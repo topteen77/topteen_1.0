@@ -1733,7 +1733,7 @@
 
       {% include 'template20/includes/psychometric_dashboard_statistics_section.html' %}
 
-            <!-- Suggested Streams based on Aptitude (strongest intelligence area) -->
+            <!-- Suggested Streams based on aptitude best fit + alternative -->
             {% if suitable_subject_combinations %}
             <div class="my-md-6 my-4 psych-stream-intelligence-section">
               <h3 class="psych-section-title mb-2"><span class="psych-section-dot" aria-hidden="true"></span>Suggested Streams from Intelligence</h3>
@@ -1803,8 +1803,13 @@
                     {% if stream_questionnaire_completed and stream_questionnaire_answers %}Part 2{% else %}Suggested{% endif %}
                   </span> -->
 
-                  {% if top_intelligence_label %}
-                  <p class="fs-13 text-gray mb-0 ">Based on your strongest aptitude area: <span class="text-capitalize fw-semibold text-purple">{{ top_intelligence_label|lower }} Reasoning</span></p>
+                  {% if stream_recommendation and stream_recommendation.profile_label %}
+                  <p class="fs-13 text-gray mb-0 ">
+                    Based on your {{ stream_recommendation.profile_label }}
+                    {% if stream_recommendation.reasoning_codes %}
+                    ({{ stream_recommendation.reasoning_codes | join(', ') }})
+                    {% endif %}
+                  </p>
                   {% endif %}
                             </div>
                 <div class="psych-stream-part-body">
@@ -1812,9 +1817,18 @@
                     {% for combo in suitable_subject_combinations %}
                     <div class="stream-card">
                       <div class="stream-card-icon">
+                        {% if combo.icon %}
+                        <img src="{{ static('images/' ~ combo.icon) }}" alt="{{ combo.stream|default(combo.label) }}" style="width: 42px; height: 42px; object-fit: contain;">
+                        {% else %}
                         <i class='bx bx-search-alt fs-28 text-primary'></i>
+                        {% endif %}
                       </div>
                       <div>
+                        {% if combo.stream_tier == 'best_fit' %}
+                        <p class="fs-11 text-primary fw-bold text-uppercase mb-1">Best fit stream</p>
+                        {% elif combo.stream_tier == 'alternative' %}
+                        <p class="fs-11 text-primary fw-bold text-uppercase mb-1">Alternative stream</p>
+                        {% endif %}
                         <p class="fw-bold mb-0 fs-16">{{ combo.stream|default(combo.label) }}</p>
                         <p class="fs-13 text-gray mb-0 lh-sm">{{ combo.subjects|default('') }}</p>
                       </div>

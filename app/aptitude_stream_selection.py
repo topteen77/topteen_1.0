@@ -389,3 +389,120 @@ def recommend_streams_from_tiers(
         result['tertiary'] = _stream_entry(tertiary)
 
     return result
+
+
+def streamsubject_from_recommendation(stream_recommendation: dict[str, Any] | None) -> list[tuple[str, str]]:
+    """(stream name, description) pairs for premium career catalogue filtering."""
+    if not stream_recommendation or stream_recommendation.get('note_only'):
+        return []
+    pairs: list[tuple[str, str]] = []
+    for slot in ('primary', 'secondary'):
+        entry = stream_recommendation.get(slot)
+        if not entry:
+            continue
+        display = str(entry.get('display') or entry.get('key') or '').strip()
+        description = str(entry.get('description') or '').strip()
+        if display:
+            pairs.append((display, description))
+    return pairs
+
+
+def suitable_combinations_from_recommendation(
+    stream_recommendation: dict[str, Any] | None,
+) -> list[dict[str, Any]]:
+    """Dashboard-style stream cards from best fit + alternative recommendation."""
+    if not stream_recommendation or stream_recommendation.get('note_only'):
+        return []
+    combos: list[dict[str, Any]] = []
+    for tier, slot in (('best_fit', 'primary'), ('alternative', 'secondary')):
+        entry = stream_recommendation.get(slot)
+        if not entry:
+            continue
+        display = str(entry.get('display') or entry.get('key') or '').strip()
+        if not display:
+            continue
+        combos.append({
+            'label': display,
+            'stream': display,
+            'subjects': str(entry.get('description') or '').strip(),
+            'stream_tier': tier,
+            'icon': entry.get('icon'),
+            'key': entry.get('key', display),
+        })
+    return combos
+
+
+def premium_career_groups_from_recommendation(
+    stream_recommendation: dict[str, Any] | None,
+) -> list[dict[str, Any]]:
+    """Premium catalogue career groups for recommended streams (dashboard / report)."""
+    from app.stream_sorter_guidance import filter_stream_wise_for_student
+    from app.stream_sorter_unique_streams import _extract_stream_codes
+
+    streamsubject = streamsubject_from_recommendation(stream_recommendation)
+    if not streamsubject:
+        return []
+
+    groups, _, _ = filter_stream_wise_for_student(streamsubject)
+    if not groups:
+        return []
+
+    def _codes_for_entry(entry: dict[str, Any]) -> set[str]:
+        text = f"{entry.get('key', '')} {entry.get('display', '')}"
+        return set(_extract_stream_codes(text))
+
+    def _careers_from_group(group: dict[str, Any]) -> list[str]:
+        careers: list[str] = []
+        for item in group.get('careers') or []:
+            if isinstance(item, dict):
+                name = str(item.get('name') or '').strip()
+            else:
+                name = str(item).strip()
+            if name:
+                careers.append(name)
+        return careers
+
+    tier_labels = {
+        'best_fit': 'Best fit stream',
+        'alternative': 'Alternative stream',
+    }
+    result: list[dict[str, Any]] = []
+    used_group_ids: set[int] = set()
+
+    for tier, slot in (('best_fit', 'primary'), ('alternative', 'secondary')):
+        entry = stream_recommendation.get(slot) if stream_recommendation else None
+        if not entry:
+            continue
+        entry_codes = _codes_for_entry(entry)
+        display = str(entry.get('display') or entry.get('key') or '').strip()
+        matched_group = None
+        for group in groups:
+            if id(group) in used_group_ids:
+                continue
+            group_codes = set(_extract_stream_codes(str(group.get('stream') or '')))
+            if entry_codes and group_codes.intersection(entry_codes):
+                matched_group = group
+                break
+        if not matched_group and display:
+            display_lower = display.lower()
+            for group in groups:
+                if id(group) in used_group_ids:
+                    continue
+                stream_label = str(group.get('stream') or '').lower()
+                if display_lower in stream_label or stream_label in display_lower:
+                    matched_group = group
+                    break
+        if not matched_group:
+            continue
+        used_group_ids.add(id(matched_group))
+        careers = _careers_from_group(matched_group)
+        if not careers:
+            continue
+        stream_label = str(matched_group.get('stream') or matched_group.get('stream_code') or '').strip()
+        result.append({
+            'code': str(matched_group.get('stream_code') or stream_label).strip(),
+            'name': tier_labels.get(tier, stream_label),
+            'stream': stream_label,
+            'careers': careers,
+        })
+    return result
