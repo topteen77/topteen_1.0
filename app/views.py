@@ -33,7 +33,12 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from app.models import Category, Course, Stream
-from app.aptitude_stream_selection import recommend_streams_from_tiers
+from app.aptitude_stream_selection import (
+    premium_career_groups_from_recommendation,
+    recommend_streams_from_tiers,
+    streamsubject_from_recommendation,
+    suitable_combinations_from_recommendation,
+)
 
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
@@ -618,51 +623,15 @@ def dashboard(request, student_id=None):
         except Exception:
             interest_suggested_careers = []
             interest_suggested_career_groups = []
-        try:
-            aptitude_career_map = {
-                'NUMERICAL': ['Finance & Accounting', 'Data Science & Analytics', 'Statistics', 'Actuarial Science'],
-                'VERBAL': ['Law', 'Journalism', 'Content Strategy', 'Public Communication'],
-                'LOGICAL': ['Engineering', 'Computer Science', 'IT & Programming', 'Software Development'],
-                'MECHANICAL': ['Mechanical Engineer', 'Automobile Engineer', 'Industrial Engineer', 'Aerospace Engineer', 'Production Engineer'],
-                'SPATIAL': ['Architecture & Design', 'Urban Planning', 'Geography & Cartography', 'Interior Design'],
-                'LANGUAGE': ['Media & Communication', 'Linguistics', 'Teaching', 'Translation Studies'],
-                'CRITICAL': ['Policy Analysis', 'Law', 'Research', 'Strategic Analysis'],
-            }
-            # Same stream mapping used in report logic (single strongest aptitude)
-            aptitude_stream_map = APTITUDE_STREAM_MAP
-            stream_subject_map = STREAM_SUBJECT_MAP
-            # Keep aligned with report: prioritize strongest aptitude area only
-            primary_aptitude = str(above_avg_score or '').upper().strip()
-            if primary_aptitude not in aptitude_career_map and top_intelligence_label:
-                primary_aptitude = str(top_intelligence_label).upper().strip()
-            aptitude_label_map = {
-                'NUMERICAL': 'Numerical reasoning',
-                'VERBAL': 'Verbal reasoning',
-                'LOGICAL': 'Logical reasoning',
-                'MECHANICAL': 'Mechanical reasoning',
-                'SPATIAL': 'Spatial reasoning',
-                'LANGUAGE': 'Language reasoning',
-                'CRITICAL': 'Critical reasoning',
-            }
-            if primary_aptitude in aptitude_career_map:
-                aptitude_suggested_careers = list(aptitude_career_map.get(primary_aptitude, []))
-                aptitude_suggested_career_groups = [{
-                    'code': primary_aptitude,
-                    'name': aptitude_label_map.get(
-                        primary_aptitude, str(top_intelligence_label or primary_aptitude).title()
-                    ),
-                    'careers': aptitude_suggested_careers,
-                }]
-                stream_codes = aptitude_stream_map.get(primary_aptitude, [])
-                for code in stream_codes:
-                    key = str(code).upper().strip()
-                    entry = stream_subject_map.get(key)
-                    if entry:
-                        suitable_subject_combinations.append(entry)
-        except Exception:
-            aptitude_suggested_careers = []
-            aptitude_suggested_career_groups = []
-            suitable_subject_combinations = []
+
+        stream_recommendation = recommend_streams_from_tiers(above_avg, avg, below_avg=below)
+        suitable_subject_combinations = suitable_combinations_from_recommendation(stream_recommendation)
+        aptitude_suggested_career_groups = premium_career_groups_from_recommendation(stream_recommendation)
+        aptitude_suggested_careers = [
+            career
+            for group in aptitude_suggested_career_groups
+            for career in group.get('careers', [])
+        ]
 
         personality_suggested_careers = []
         personality_suggested_career_groups = []
@@ -851,6 +820,7 @@ def dashboard(request, student_id=None):
             'personality_display_name': personality_display_name,
             'career_suggestions_preview_count': 2,
             'suitable_subject_combinations': suitable_subject_combinations,
+            'stream_recommendation': stream_recommendation,
             'skill_readiness_index': skill_readiness_index,
             'report_user_id': request.user.id,
             'all_tests_complete': all_tests_complete,
@@ -1334,18 +1304,20 @@ def class10_combined_report(request, user_id=None):
 
         context.update(vocational_guidance_context_for_below_areas(below, user=target_user))
         context['student_below_average'] = not should_show_extended_career_pathways(below, avg, above_avg)
+
+        stream_recommendation = recommend_streams_from_tiers(above_avg, avg, below_avg=below)
+        context['stream_recommendation'] = stream_recommendation
+
         if should_show_extended_career_pathways(below, avg, above_avg):
             from app.stream_sorter_guidance import build_report_stream_guidance
-            context['stream_sorter_guidance'] = build_report_stream_guidance(
-                streamsubject,
-                top_category=top_category,
+            aptitude_streams = streamsubject_from_recommendation(stream_recommendation)
+            context['stream_sorter_guidance'] = (
+                build_report_stream_guidance(aptitude_streams, top_category=top_category)
+                if aptitude_streams
+                else None
             )
         else:
             context['stream_sorter_guidance'] = None
-
-        context['stream_recommendation'] = recommend_streams_from_tiers(
-            above_avg, avg, below_avg=below
-        )
 
         resp = render(request, 'template20/app/class10_combined_report_new.html', context)
         return _add_no_cache_headers(resp)
@@ -1512,18 +1484,20 @@ def class10_report_download_pdf(request, user_id=None):
 
         context.update(vocational_guidance_context_for_below_areas(below, user=target_user))
         context['student_below_average'] = not should_show_extended_career_pathways(below, avg, above_avg)
+
+        stream_recommendation = recommend_streams_from_tiers(above_avg, avg, below_avg=below)
+        context['stream_recommendation'] = stream_recommendation
+
         if should_show_extended_career_pathways(below, avg, above_avg):
             from app.stream_sorter_guidance import build_report_stream_guidance
-            context['stream_sorter_guidance'] = build_report_stream_guidance(
-                streamsubject,
-                top_category=top_category,
+            aptitude_streams = streamsubject_from_recommendation(stream_recommendation)
+            context['stream_sorter_guidance'] = (
+                build_report_stream_guidance(aptitude_streams, top_category=top_category)
+                if aptitude_streams
+                else None
             )
         else:
             context['stream_sorter_guidance'] = None
-
-        context['stream_recommendation'] = recommend_streams_from_tiers(
-            above_avg, avg, below_avg=below
-        )
 
         from app.interest_report_utils import interest_report_context_fields
         context.update(

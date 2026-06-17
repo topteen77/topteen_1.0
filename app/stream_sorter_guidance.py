@@ -441,6 +441,39 @@ def _normalize_streamsubject(streamsubject):
     )
 
 
+def _order_groups_by_streamsubject(groups: list[dict], streamsubject) -> list[dict]:
+    """Keep filtered groups in the same order as the student's stream suggestions."""
+    if not groups or not streamsubject:
+        return groups
+    ordered: list[dict] = []
+    used: set[int] = set()
+    for item in streamsubject:
+        if isinstance(item, (tuple, list)) and item:
+            name = str(item[0]).strip()
+        else:
+            name = str(item).strip()
+        if not name:
+            continue
+        codes = _extract_stream_codes(name)
+        for group in groups:
+            group_id = id(group)
+            if group_id in used:
+                continue
+            if codes and _stream_group_matches_codes(group.get('stream', ''), codes):
+                ordered.append(group)
+                used.add(group_id)
+                break
+            stream_label = str(group.get('stream') or '').lower()
+            if name.lower() in stream_label or stream_label in name.lower():
+                ordered.append(group)
+                used.add(group_id)
+                break
+    for group in groups:
+        if id(group) not in used:
+            ordered.append(group)
+    return ordered
+
+
 def filter_stream_wise_for_student(
     streamsubject,
     catalog: dict | None = None,
@@ -459,6 +492,7 @@ def filter_stream_wise_for_student(
     """
     catalog = catalog or _report_streams_catalog()
     all_groups = list(catalog.get('stream_wise_premium_careers') or [])
+    original_streamsubject = list(streamsubject or [])
     streamsubject = _normalize_streamsubject(streamsubject)
     recommended_names = _recommended_stream_names(streamsubject)
     codes = _recommended_stream_codes(streamsubject)
@@ -471,6 +505,7 @@ def filter_stream_wise_for_student(
         if _stream_group_matches_codes(group.get('stream', ''), codes)
     ]
     if filtered:
+        filtered = _order_groups_by_streamsubject(filtered, original_streamsubject)
         return filtered, 'recommended', recommended_names
 
     # Fallback: label match when codes failed (e.g. non-standard stream name)
@@ -483,6 +518,7 @@ def filter_stream_wise_for_student(
         ):
             filtered.append(group)
     if filtered:
+        filtered = _order_groups_by_streamsubject(filtered, original_streamsubject)
         return filtered, 'recommended', recommended_names
 
     return all_groups, 'all', recommended_names
@@ -544,12 +580,15 @@ def build_report_stream_guidance(
     if not all_groups:
         return None
 
+    original_streamsubject = list(streamsubject or [])
     streamsubject = _normalize_streamsubject(streamsubject)
     groups, filter_mode, recommended_names = filter_stream_wise_for_student(
-        streamsubject,
+        original_streamsubject,
         catalog,
         show_all_streams=show_all_streams,
     )
+    if filter_mode == 'recommended':
+        recommended_names = _recommended_stream_names(original_streamsubject)
     other_groups = (
         _other_stream_groups(all_groups, groups)
         if filter_mode == 'recommended' and not show_all_streams
