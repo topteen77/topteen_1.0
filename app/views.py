@@ -1343,6 +1343,10 @@ def class10_combined_report(request, user_id=None):
         else:
             context['stream_sorter_guidance'] = None
 
+        context['stream_recommendation'] = recommend_streams_from_tiers(
+            above_avg, avg, below_avg=below
+        )
+
         resp = render(request, 'template20/app/class10_combined_report_new.html', context)
         return _add_no_cache_headers(resp)
         
@@ -1516,6 +1520,10 @@ def class10_report_download_pdf(request, user_id=None):
             )
         else:
             context['stream_sorter_guidance'] = None
+
+        context['stream_recommendation'] = recommend_streams_from_tiers(
+            above_avg, avg, below_avg=below
+        )
 
         from app.interest_report_utils import interest_report_context_fields
         context.update(
