@@ -210,9 +210,9 @@
       this._backdrop = el('div', { id: 'pc-backdrop', className: 'pc-hide', 'aria-hidden': 'true' });
 
       /* ---- FAB (pill button, bottom-left) ---- */
-      this._fab = el('button', { id: 'pc-fab', 'aria-label': 'Chat about this page' });
+      this._fab = el('button', { id: 'pc-fab', 'aria-label': 'Ask AI' });
       this._fab.innerHTML = `<img src="${getFabIconSrc()}" alt="" width="22" height="22" decoding="async" />` +
-        '<span id="pc-fab-label">Chat this page</span>';
+        '<span id="pc-fab-label">Ask AI</span>';
       this._badge = el('span', { id: 'pc-badge', className: 'pc-hide' }, '0');
       this._fab.appendChild(this._badge);
 

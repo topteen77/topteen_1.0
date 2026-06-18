@@ -289,6 +289,17 @@ def index(request):
         if getattr(settings, 'DEBUG', False):
             print(f"[DEBUG] Error loading AI Capabilities: {e}")
         context['ai_capabilities'] = []
+
+    from django.urls import reverse
+    context['logout_url'] = reverse('users:logout')
+    context['dashboard_url'] = reverse('users:userdashboard')
+
+    try:
+        jinja2_engine = engines['jinja2']
+        popup_tpl = jinja2_engine.get_template('template20/includes/student_login_popup.html')
+        context['login_popup_html'] = popup_tpl.render({}, request)
+    except Exception:
+        context['login_popup_html'] = ''
     
     template = django_engine.get_template('forum/index.html')
     return HttpResponse(template.render(context, request))

@@ -59,13 +59,14 @@ class Command(BaseCommand):
                 'icon': 'fas fa-graduation-cap',
                 'description': 'Get guidance on choosing the right stream after 10th',
                 'link_url': '/careers/',
-                'order': 2
+                'order': 2,
+                'is_active': False,  # temporarily hidden
             },
             {
                 'name': 'Career Cluster Matching',
                 'icon': 'fas fa-sitemap',
                 'description': 'Explore careers by clusters and find your match',
-                'link_url': '/careers/?mode=view-mode',
+                'link_url': '/careers/',
                 'order': 3
             },
             {
@@ -79,7 +80,7 @@ class Command(BaseCommand):
                 'name': 'Entrance Exam Guidance',
                 'icon': 'fas fa-clipboard-list',
                 'description': 'Get information about entrance exams and preparation',
-                'link_url': '/testprep/',
+                'link_url': '/entrance-test-prep/',
                 'order': 5
             },
             {
@@ -87,14 +88,16 @@ class Command(BaseCommand):
                 'icon': 'fas fa-rocket',
                 'description': 'Discover emerging and future career opportunities',
                 'link_url': '/careers/',
-                'order': 6
+                'order': 6,
+                'is_active': False,  # temporarily hidden
             },
             {
                 'name': 'Part-time Job Options',
                 'icon': 'fas fa-briefcase',
                 'description': 'Explore part-time job opportunities for students',
                 'link_url': '/careers/',
-                'order': 7
+                'order': 7,
+                'is_active': False,  # temporarily hidden
             },
             {
                 'name': 'Study Abroad Guidance',

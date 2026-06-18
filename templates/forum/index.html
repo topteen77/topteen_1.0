@@ -44,23 +44,20 @@
                                 <div class="profile-details-item"> {% if user_data.school %}<span class="fw-800 text-purple">School: </span> {{ user_data.school }}</span>{% endif %}</div>
                             <div class="profile-details-item"> {% if user_data.email %}<span class="fw-800 text-purple">Email: </span> {{ user.email|default:user_data.email }}</span>{% endif %}</div>  
                         </div>
-                        <div class="career-readiness-bar">
-                            <span class="readiness-icon"><img class="img-fluid" style="width: 30px;" src="{% static 'forum/images/trophy.webp' %}" alt="icon" /></span>
-                            <span class="readiness-text">Career Readiness: {{ user_data.career_readiness }}%</span>
-                            <div class="readiness-progress"><div class="readiness-fill" style="width: {{ user_data.career_readiness }}%"></div></div>
-                        </div>
                         {% if user_data.top_matches %}
                         <div class="top-matches">Top Matches: {{ user_data.top_matches|join:", " }}</div>
                         {% endif %}
                         {% else %}
                         <div class="profile-details"><span>Sign in to see your profile</span></div>
-                        <div class="career-readiness-bar">
-                            <span class="readiness-icon"> <img class="img-fluid" style="width: 30px;" src="{% static 'forum/images/trophy.webp' %}" alt="icon" /></span>
-                            <span class="readiness-text">Career Readiness: 0%</span>
-                            <div class="readiness-progress"><div class="readiness-fill" style="width: 0%"></div></div>
-                        </div>
                         {% endif %}
-                        <button type="button" class="btn btn-settings"><i class="fas fa-cog"></i> Setting</button>
+                        <div class="profile-auth-actions">
+                            {% if user.is_authenticated %}
+                            <a href="{{ dashboard_url }}" class="btn btn-profile-action btn-profile-dashboard"><i class="fas fa-th-large"></i> Dashboard</a>
+                            <a href="{{ logout_url }}" class="btn btn-profile-action btn-profile-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                            {% else %}
+                            <button type="button" class="btn btn-profile-action btn-profile-login" onclick="if (typeof showLoginRequiredPopup === 'function') { showLoginRequiredPopup(window.location.href); }"><i class="fas fa-sign-in-alt"></i> Login</button>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
 
@@ -177,7 +174,8 @@
                     </div>
                 </div>
 
-                <!-- AI Capabilities Card -->
+                <!-- AI Capabilities Card (temporarily hidden) -->
+                {% comment %}
                 <div class="card capabilities-card">
                     <div class="card-header new-card-header-gradient">
                         <h3><img class="img-fluid" src="{% static 'forum/images/ai-capability.png' %}" alt="AI Capabilities" />  AI Capabilities</h3>
@@ -186,6 +184,7 @@
                         <ul class="feature-list" id="aiCapabilities"></ul>
                     </div>
                 </div>
+                {% endcomment %}
 
                 <!-- Trending Careers Card -->
                 <div class="card trending-card">
@@ -202,6 +201,7 @@
         </div>
     </div>
 
+    {{ login_popup_html|safe }}
     <script src="{% static 'forum/js/main.js' %}"></script>
 </body>
 </html>
