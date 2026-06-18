@@ -1,0 +1,45 @@
+{% extends "admin/change_list.html" %}
+{% load i18n static %}
+
+{% block extrahead %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/dashboard_level_band_min_points.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="module" style="margin-bottom: 12px;">
+  <p class="help" style="margin: 0 0 8px 0;">
+    <strong>Min:</strong> account registration = <strong>{{ registration_points }} pts</strong>.
+    <strong>Max:</strong> total active
+    <a href="{{ point_rules_url }}">Dashboard Point Rules</a> =
+    <strong>{{ max_achievable_points }} pts</strong>.
+    Use the slider to pick min points — it cannot go below registration or above the rules total.
+  </p>
+  {% if point_milestones %}
+  <table style="width: 100%; max-width: 720px; border-collapse: collapse; margin-top: 8px;">
+    <thead>
+      <tr>
+        <th style="text-align: left; padding: 6px 8px; border-bottom: 1px solid #ccc;">Valid min points</th>
+        <th style="text-align: left; padding: 6px 8px; border-bottom: 1px solid #ccc;">Milestone</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for milestone in point_milestones %}
+      <tr>
+        <td style="padding: 6px 8px; border-bottom: 1px solid #eee; font-weight: 600;">{{ milestone.cumulative }}</td>
+        <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">
+          {% if milestone.rule_key == 'registration' %}
+            Account registration (+{{ milestone.step_points }})
+          {% else %}
+            After {{ milestone.label }} (+{{ milestone.step_points }})
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</div>
+{{ block.super }}
+{{ valid_milestone_points|json_script:"level-band-milestones" }}
+{% endblock %}

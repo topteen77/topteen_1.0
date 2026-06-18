@@ -1,0 +1,12 @@
+{% extends "admin/change_form.html" %}
+{% load i18n static %}
+
+{% block extrahead %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/dashboard_level_band_min_points.css' %}">
+{% endblock %}
+
+{% block after_related_objects %}
+{{ valid_milestone_points|json_script:"level-band-milestones" }}
+<script src="{% static 'admin/js/dashboard_level_band_min_points.js' %}"></script>
+{% endblock %}

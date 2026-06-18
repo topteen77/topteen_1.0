@@ -1262,7 +1262,13 @@ class GeneratedPage(models.Model):
 class DashboardLevelBand(models.Model):
     """Level name and point threshold for student dashboard (e.g. Rookie 0, Explorer 500)."""
     name = models.CharField(max_length=64, help_text="Display name, e.g. Rookie, Explorer")
-    min_points = models.PositiveIntegerField(default=0, help_text="Minimum total points for this level")
+    min_points = models.PositiveIntegerField(
+        default=0,
+        help_text=(
+            "Minimum total points for this level. Must be a cumulative milestone from "
+            "active point rules (minimum = account registration, maximum = rules total)."
+        ),
+    )
     order = models.PositiveSmallIntegerField(default=0, help_text="Sort order; higher = higher level")
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
@@ -1271,6 +1277,13 @@ class DashboardLevelBand(models.Model):
         ordering = ['order', 'min_points']
         verbose_name = 'Dashboard Level Band'
         verbose_name_plural = 'Dashboard Level Bands'
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        from core.dashboard_points import validate_level_band_min_points
+        error = validate_level_band_min_points(self.min_points)
+        if error:
+            raise ValidationError({'min_points': error})
 
     def __str__(self):
         return f"{self.name} (from {self.min_points} pts)"
@@ -1288,12 +1301,16 @@ class DashboardPointRule(models.Model):
         ),
     )
     points = models.PositiveIntegerField(default=0)
+    order = models.PositiveSmallIntegerField(
+        default=0,
+        help_text="Display order in admin and dashboard (lower = first)",
+    )
     active = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['rule_key']
+        ordering = ['order', 'rule_key']
         verbose_name = 'Dashboard Point Rule'
         verbose_name_plural = 'Dashboard Point Rules'
 

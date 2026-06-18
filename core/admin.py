@@ -587,6 +587,11 @@ class ConfigurationAdmin(admin.ModelAdmin):
             'preview_user': preview_user,
             'preview_stats': preview_stats,
         }
+        try:
+            from core.dashboard_points import get_active_point_rules_total
+            context['max_achievable_points'] = get_active_point_rules_total()
+        except Exception:
+            context['max_achievable_points'] = None
         return render(request, 'admin/core/configuration/dashboard_statistics.html', context)
 
 
@@ -651,19 +656,125 @@ class LeadAdmin(admin.ModelAdmin):
     search_fields=['name']
     list_filter = ['created','modified']
 
+class DashboardLevelBandForm(forms.ModelForm):
+    class Meta:
+        model = DashboardLevelBand
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from core.dashboard_points import get_min_level_band_points, get_active_point_rules_total
+        self.fields['min_points'].widget.attrs.update({
+            'min': get_min_level_band_points(),
+            'max': get_active_point_rules_total(),
+            'class': 'dashboard-level-band-min-points-input',
+            'style': 'width: 4.5em; text-align: center;',
+        })
+
+    def clean_min_points(self):
+        from core.dashboard_points import validate_level_band_min_points
+        min_points = self.cleaned_data.get('min_points')
+        if min_points is not None:
+            error = validate_level_band_min_points(min_points)
+            if error:
+                raise ValidationError(error)
+        return min_points
+
+
 class DashboardLevelBandAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'min_points', 'order', 'modified')
+    form = DashboardLevelBandForm
+    list_display = ('id', 'name', 'min_points', 'order', 'points_cap_status', 'modified')
     list_editable = ('name', 'min_points', 'order')
     ordering = ('order', 'min_points')
     search_fields = ('name',)
+    change_list_template = 'admin/core/dashboardlevelband/change_list.html'
+    change_form_template = 'admin/core/dashboardlevelband/change_form.html'
+
+    class Media:
+        css = {'all': ('admin/css/dashboard_level_band_min_points.css',)}
+        js = ('admin/js/dashboard_level_band_min_points.js',)
+
+    @admin.display(description='Cap status')
+    def points_cap_status(self, obj):
+        from core.dashboard_points import (
+            get_valid_level_band_min_points,
+            get_active_point_rules_total,
+            get_min_level_band_points,
+        )
+        valid = get_valid_level_band_min_points()
+        max_pts = get_active_point_rules_total()
+        min_pts = get_min_level_band_points()
+        if obj.min_points > max_pts:
+            return format_html(
+                '<span style="color:#ba2121;" title="Exceeds active point rules total ({} pts)">Over max</span>',
+                max_pts,
+            )
+        if obj.min_points < min_pts:
+            return format_html(
+                '<span style="color:#ba2121;" title="Below account registration ({} pts)">Below min</span>',
+                min_pts,
+            )
+        if obj.min_points not in valid:
+            return format_html(
+                '<span style="color:#ba2121;" title="Not a cumulative milestone from point rules">Invalid</span>'
+            )
+        return format_html('<span style="color:#0a0;">OK</span>')
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = self._inject_level_band_point_context(extra_context) or {}
+        return super().changelist_view(request, extra_context=extra_context)
+
+    def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
+        extra_context = self._inject_level_band_point_context(extra_context) or {}
+        return super().changeform_view(request, object_id, form_url, extra_context)
+
+    def _inject_level_band_point_context(self, extra_context):
+        from core.dashboard_points import (
+            get_active_point_rules_total,
+            get_cumulative_point_milestones,
+            get_registration_points,
+            get_min_level_band_points,
+            get_valid_level_band_min_points,
+        )
+        if extra_context is None:
+            extra_context = {}
+        extra_context['max_achievable_points'] = get_active_point_rules_total()
+        extra_context['min_achievable_points'] = get_min_level_band_points()
+        extra_context['registration_points'] = get_registration_points()
+        extra_context['point_milestones'] = get_cumulative_point_milestones()
+        extra_context['valid_milestone_points'] = sorted(get_valid_level_band_min_points())
+        extra_context['point_rules_url'] = reverse('admin:core_dashboardpointrule_changelist')
+        return extra_context
 
 
 class DashboardPointRuleAdmin(admin.ModelAdmin):
-    list_display = ('id', 'rule_key', 'points', 'active', 'modified')
-    list_editable = ('points', 'active')
+    list_display = ('order', 'label_display', 'rule_key', 'points', 'active', 'modified')
+    list_editable = ('order', 'points', 'active')
+    list_display_links = ('label_display', 'rule_key')
     list_filter = ('active',)
-    ordering = ('rule_key',)
+    ordering = ('order', 'rule_key')
     search_fields = ('rule_key',)
+    change_list_template = 'admin/core/dashboardpointrule/change_list.html'
+
+    @admin.display(description='Rule')
+    def label_display(self, obj):
+        from core.dashboard_stats import RULE_LABELS
+        return RULE_LABELS.get(obj.rule_key, obj.rule_key.replace('_', ' ').title())
+
+    def changelist_view(self, request, extra_context=None):
+        from core.dashboard_points import get_active_point_rules_total
+        from django.db.models import Sum
+        extra_context = extra_context or {}
+        qs = self.get_queryset(request)
+        if request.GET.get('active__exact') == '1':
+            qs = qs.filter(active=True)
+        elif request.GET.get('active__exact') == '0':
+            qs = qs.filter(active=False)
+        total = qs.aggregate(total=Sum('points'))['total'] or 0
+        extra_context['points_total'] = int(total)
+        extra_context['level_bands_url'] = reverse('admin:core_dashboardlevelband_changelist')
+        extra_context['max_achievable_points'] = get_active_point_rules_total()
+        return super().changelist_view(request, extra_context=extra_context)
 
 
 class DashboardTrophyDefinitionAdmin(admin.ModelAdmin):

@@ -22,10 +22,10 @@ ONE_OFF_RULE_KEYS = frozenset({
 
 # Default level bands if none in DB
 DEFAULT_LEVEL_BANDS = [
-    {'name': 'Rookie', 'min_points': 0, 'order': 0},
-    {'name': 'Explorer', 'min_points': 500, 'order': 1},
-    {'name': 'Champion', 'min_points': 1000, 'order': 2},
-    {'name': 'Legend', 'min_points': 2000, 'order': 3},
+    {'name': 'Rookie', 'min_points': 50, 'order': 0},
+    {'name': 'Explorer', 'min_points': 250, 'order': 1},
+    {'name': 'Champion', 'min_points': 490, 'order': 2},
+    {'name': 'Legend', 'min_points': 840, 'order': 3},
 ]
 
 # Default point rules if none in DB (rule_key -> points)
@@ -271,20 +271,27 @@ def _get_trophy_details(user):
 def _get_points_details(user):
     from core.models import DashboardPointRule
     from user_analytics.models import UserEvent
-    rules = list(DashboardPointRule.objects.filter(active=True).values_list('rule_key', 'points'))
-    if not rules:
+    rule_rows = list(
+        DashboardPointRule.objects.filter(active=True).values('rule_key', 'points', 'order')
+    )
+    if not rule_rows:
         point_map = DEFAULT_POINT_RULES.copy()
+        rule_order = {k: i for i, k in enumerate(point_map.keys())}
     else:
-        point_map = {k: p for k, p in rules}
+        point_map = {r['rule_key']: r['points'] for r in rule_rows}
+        rule_order = {r['rule_key']: r['order'] for r in rule_rows}
 
     details = []
     earned_total = 0
-    for rule_key in ONE_OFF_RULE_KEYS:
-        if rule_key not in point_map:
-            continue
-        pts = point_map[rule_key]
-        earned = _rule_condition_met(user, rule_key)
-        row_pts = pts if earned else 0
+
+    def _append_rule(rule_key, pts, earned, count=1):
+        nonlocal earned_total
+        if rule_key in ONE_OFF_RULE_KEYS:
+            row_pts = pts if earned else 0
+            row_count = 1 if earned else 0
+        else:
+            row_pts = pts * count
+            row_count = count
         earned_total += row_pts
         details.append({
             'rule_key': rule_key,
@@ -292,28 +299,24 @@ def _get_points_details(user):
             'points': pts,
             'earned_points': row_pts,
             'earned': earned,
-            'count': 1 if earned else 0,
+            'count': row_count,
         })
 
+    counts = {}
     event_points_keys = [k for k in point_map if k not in ONE_OFF_RULE_KEYS]
     if event_points_keys:
-        counts = UserEvent.objects.filter(user=user).values('event_type').annotate(c=Count('id'))
-        count_map = {row['event_type']: row['c'] for row in counts}
-        for rule_key in sorted(event_points_keys):
-            pts = point_map[rule_key]
-            count = count_map.get(rule_key, 0)
-            row_pts = pts * count
-            earned_total += row_pts
-            details.append({
-                'rule_key': rule_key,
-                'label': _rule_label(rule_key),
-                'points': pts,
-                'earned_points': row_pts,
-                'earned': count > 0,
-                'count': count,
-            })
+        event_counts = UserEvent.objects.filter(user=user).values('event_type').annotate(c=Count('id'))
+        counts = {row['event_type']: row['c'] for row in event_counts}
 
-    details.sort(key=lambda x: (-x['earned_points'], x['label']))
+    for rule_key in sorted(point_map.keys(), key=lambda k: (rule_order.get(k, 9999), k)):
+        pts = point_map[rule_key]
+        if rule_key in ONE_OFF_RULE_KEYS:
+            earned = _rule_condition_met(user, rule_key)
+            _append_rule(rule_key, pts, earned)
+        else:
+            count = counts.get(rule_key, 0)
+            _append_rule(rule_key, pts, count > 0, count=count)
+
     return details, earned_total
 
 

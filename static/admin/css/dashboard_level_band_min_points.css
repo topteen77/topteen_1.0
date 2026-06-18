@@ -1,0 +1,28 @@
+.level-band-min-points-cell {
+  min-width: 220px;
+}
+
+.level-band-min-points-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.level-band-min-points-wrap input[type="range"] {
+  flex: 1;
+  min-width: 100px;
+  max-width: 220px;
+  cursor: pointer;
+}
+
+.level-band-min-points-wrap .dashboard-level-band-min-points-input,
+.level-band-min-points-wrap input[name$="-min_points"],
+.level-band-min-points-wrap #id_min_points {
+  flex: 0 0 auto;
+  width: 4.5em;
+  text-align: center;
+}
+
+.form-row.field-min_points .level-band-min-points-wrap input[type="range"] {
+  max-width: 320px;
+}

@@ -7,14 +7,14 @@ from core.models import DashboardPointRule
 
 
 ACTIVE_POINT_RULES = [
-    ('registration', 50),
-    ('profile_complete', 50),
-    ('payment_success', 150),
-    ('personality_test_complete', 100),
-    ('motivation_test_complete', 70),
-    ('interest_test_complete', 70),
-    ('aptitude_test_complete', 200),
-    ('report_reading', 150),
+    ('registration', 50, 1),
+    ('profile_complete', 50, 2),
+    ('payment_success', 150, 3),
+    ('personality_test_complete', 100, 4),
+    ('motivation_test_complete', 70, 5),
+    ('interest_test_complete', 70, 6),
+    ('aptitude_test_complete', 200, 7),
+    ('report_reading', 150, 8),
 ]
 
 
@@ -25,10 +25,10 @@ class Command(BaseCommand):
         deactivated = DashboardPointRule.objects.filter(active=True).update(active=False)
         self.stdout.write(self.style.WARNING(f'Deactivated {deactivated} existing rule(s).'))
 
-        for rule_key, points in ACTIVE_POINT_RULES:
+        for rule_key, points, order in ACTIVE_POINT_RULES:
             rule, created = DashboardPointRule.objects.update_or_create(
                 rule_key=rule_key,
-                defaults={'points': points, 'active': True},
+                defaults={'points': points, 'order': order, 'active': True},
             )
             action = 'Created' if created else 'Updated'
             self.stdout.write(

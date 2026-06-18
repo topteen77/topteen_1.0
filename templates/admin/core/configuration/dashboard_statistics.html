@@ -12,13 +12,13 @@
 {% endblock %}
 
 {% block content %}
-<p style="margin-bottom: 20px; color: #666;">Configure student dashboard statistics: level bands, point rules, trophy definitions, and streak. These drive the four stat cards (Trophies, Points, Streak, Level) on the user dashboard.</p>
+<p style="margin-bottom: 20px; color: #666;">Configure student dashboard statistics: level bands, point rules, trophy definitions, and streak. These drive the four stat cards (Trophies, Points, Streak, Level) on the user dashboard.{% if max_achievable_points %} Maximum achievable points from active rules: <strong>{{ max_achievable_points }}</strong>.{% endif %}</p>
 
 <div class="module">
   <h2>Dashboard Statistics</h2>
   <ul style="list-style: none; padding-left: 0;">
-    <li style="margin-bottom: 12px;"><a href="{{ level_bands_url }}" class="addlink">Level Bands</a> &mdash; Define level names and minimum points (e.g. Rookie 0, Explorer 500).</li>
-    <li style="margin-bottom: 12px;"><a href="{{ point_rules_url }}" class="addlink">Point Rules</a> &mdash; Points awarded per achievement (rule_key).</li>
+    <li style="margin-bottom: 12px;"><a href="{{ level_bands_url }}" class="addlink">Level Bands</a> &mdash; Define level names and minimum points. Values must match cumulative milestones from point rules (starting at account registration).</li>
+    <li style="margin-bottom: 12px;"><a href="{{ point_rules_url }}" class="addlink">Point Rules</a> &mdash; Points awarded per achievement (rule_key). Ordered list with total at bottom.</li>
     <li style="margin-bottom: 12px;"><a href="{{ trophy_defs_url }}" class="addlink">Trophy Definitions</a> &mdash; What counts as one trophy (rule_key).</li>
     <li style="margin-bottom: 12px;"><a href="{{ streak_config_url }}" class="addlink">Streak Config</a> &mdash; How streak is computed (UserActivity vs UserEvent).</li>
   </ul>
