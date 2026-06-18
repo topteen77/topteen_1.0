@@ -3006,4 +3006,3 @@ class GeneratedPageAdmin(admin.ModelAdmin):
     ordering = ("-created",)
 
 
- 

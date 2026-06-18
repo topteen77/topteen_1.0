@@ -642,4 +642,3 @@ def build_report_stream_guidance(
         'data_source': catalog.get('source', 'unknown'),
     }
 
-  
