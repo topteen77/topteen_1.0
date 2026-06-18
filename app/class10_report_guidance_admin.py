@@ -144,3 +144,4 @@ class Class10FutureRelevantCareerAdmin(admin.ModelAdmin):
             messages.success(request, f"Imported {result.get('future_careers', 0)} future-relevant careers.")
         else:
             messages.error(request, result.get('error', 'Import failed.'))
+

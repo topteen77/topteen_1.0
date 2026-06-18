@@ -506,3 +506,4 @@ def premium_career_groups_from_recommendation(
             'careers': careers,
         })
     return result
+
