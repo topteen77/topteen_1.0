@@ -10,10 +10,14 @@ from django.db.models import Count
 
 # Rule keys that are evaluated as one-off conditions (not event counts)
 ONE_OFF_RULE_KEYS = frozenset({
-    'profile_complete', 'test1_complete', 'test2_complete', 'test3_complete',
+    'profile_complete', 'payment_success',
+    'personality_test_complete', 'motivation_test_complete',
+    'interest_test_complete', 'aptitude_test_complete', 'report_reading',
+    # Legacy keys kept for backward compatibility if still active in admin
+    'test1_complete', 'test2_complete', 'test3_complete',
     'numerical_complete', 'verbal_complete', 'logical_complete', 'emotional_complete',
     'machanical_complete', 'language_complete', 'spatial_complete',
-    'career_direction_complete', 'payment_success',
+    'career_direction_complete',
 })
 
 # Default level bands if none in DB
@@ -26,21 +30,14 @@ DEFAULT_LEVEL_BANDS = [
 
 # Default point rules if none in DB (rule_key -> points)
 DEFAULT_POINT_RULES = {
-    'profile_complete': 100,
-    'test1_complete': 150,
-    'test2_complete': 150,
-    'test3_complete': 200,
-    'numerical_complete': 50,
-    'verbal_complete': 50,
-    'logical_complete': 50,
-    'emotional_complete': 50,
-    'machanical_complete': 50,
-    'language_complete': 50,
-    'spatial_complete': 50,
-    'career_direction_complete': 200,
-    'payment_success': 50,
-    'psychometric_test_completed': 200,
-    'registration': 25,
+    "registration": 50,
+    'profile_complete': 50,
+    'payment_success': 150,
+    'personality_test_complete': 100,
+    'motivation_test_complete': 70,
+    'interest_test_complete': 70,
+    'aptitude_test_complete': 200,
+    'report_reading': 150,
 }
 
 # Default trophy rule keys (same as point rules that are one-off + payment)
@@ -52,7 +49,15 @@ DEFAULT_TROPHY_KEYS = [
 ]
 
 RULE_LABELS = {
-    'profile_complete': 'Complete your profile',
+    'registration': 'Account registration',
+    'profile_complete': 'Profile completion',
+    'payment_success': 'Test payment',
+    'personality_test_complete': 'Personality test completion',
+    'motivation_test_complete': 'Motivation test completion',
+    'interest_test_complete': 'Interest test completion',
+    'aptitude_test_complete': 'Aptitude test completion',
+    'report_reading': 'Report reading',
+    # Legacy labels
     'test1_complete': 'Personality test (Part 1)',
     'test2_complete': 'Interest test (Part 2)',
     'test3_complete': 'Aptitude test (Part 3)',
@@ -60,14 +65,32 @@ RULE_LABELS = {
     'verbal_complete': 'Verbal reasoning',
     'logical_complete': 'Logical reasoning',
     'emotional_complete': 'Emotional intelligence',
-    'machanical_complete': 'Mechanical reasoning',  # rule_key spelling kept for DB compatibility
+    'machanical_complete': 'Mechanical reasoning',
     'language_complete': 'Language & spelling',
     'spatial_complete': 'Spatial reasoning',
     'career_direction_complete': 'Career direction test',
-    'payment_success': 'Psychometric test payment',
     'psychometric_test_completed': 'Psychometric test completed',
-    'registration': 'Account registration',
 }
+
+
+def _class10_test_flag(user, field_name):
+    from app.models import TestCompletion
+    tc = TestCompletion.objects.filter(user=user).first()
+    if not tc:
+        return False
+    return bool(getattr(tc, field_name, False))
+
+
+def _post_matric_test_completed(user, test_id):
+    from app_post_matric.models import TestSession
+    return TestSession.objects.filter(
+        user=user, test__id=test_id, is_completed=True,
+    ).exists()
+
+
+def _user_event_exists(user, event_type):
+    from user_analytics.models import UserEvent
+    return UserEvent.objects.filter(user=user, event_type=event_type).exists()
 
 
 def _rule_label(rule_key, admin_label=None):
@@ -82,14 +105,34 @@ def _rule_condition_met(user, rule_key):
         if rule_key == 'profile_complete':
             return user.get_profile_completion_percentage() == 100
 
+        if rule_key == 'personality_test_complete':
+            return (
+                _class10_test_flag(user, 'test1_complete')
+                or _post_matric_test_completed(user, 1)
+            )
+
+        if rule_key == 'motivation_test_complete':
+            return _post_matric_test_completed(user, 2)
+
+        if rule_key == 'interest_test_complete':
+            return (
+                _class10_test_flag(user, 'test2_complete')
+                or _post_matric_test_completed(user, 3)
+            )
+
+        if rule_key == 'aptitude_test_complete':
+            return (
+                _class10_test_flag(user, 'test3_complete')
+                or _post_matric_test_completed(user, 4)
+            )
+
+        if rule_key == 'report_reading':
+            return _user_event_exists(user, 'result_generated')
+
         if rule_key in ('test1_complete', 'test2_complete', 'test3_complete',
                         'numerical_complete', 'verbal_complete', 'logical_complete',
                         'emotional_complete', 'machanical_complete', 'language_complete', 'spatial_complete'):
-            from app.models import TestCompletion
-            tc = TestCompletion.objects.filter(user=user).first()
-            if not tc:
-                return False
-            return getattr(tc, rule_key, False)
+            return _class10_test_flag(user, rule_key)
 
         if rule_key == 'career_direction_complete':
             from app_post_matric.models import TestSession

@@ -1278,7 +1278,15 @@ class DashboardLevelBand(models.Model):
 
 class DashboardPointRule(models.Model):
     """Points awarded when a rule_key condition is met (e.g. profile_complete=100)."""
-    rule_key = models.CharField(max_length=80, db_index=True, help_text="e.g. profile_complete, test1_complete, psychometric_test_completed")
+    rule_key = models.CharField(
+        max_length=80,
+        db_index=True,
+        help_text=(
+            "e.g. registration, profile_complete, payment_success, "
+            "personality_test_complete, motivation_test_complete, "
+            "interest_test_complete, aptitude_test_complete, report_reading"
+        ),
+    )
     points = models.PositiveIntegerField(default=0)
     active = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True)
