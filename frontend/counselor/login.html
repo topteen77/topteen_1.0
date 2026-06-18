@@ -5,17 +5,10 @@
 
 {% block footer_cta %}{% endblock %}
 
-{% block bodyclass %}counselor-login-page{% endblock %}
+{% block bodyclass %}{% endblock %}
 
 {% block additionalhead %}
 <style>
-  .counselor-login-page {
-    padding-top: 80px;
-    padding-bottom: 50px;
-    min-height: 100vh;
-    background: #f7f7fa;
-  }
-  
   .auth-container {
     max-width: 500px;
     margin: 0 auto;
@@ -60,22 +53,41 @@
   .input-wrapper {
     position: relative;
   }
-  
-  .input-wrapper i {
+
+  .icon-input::after {
+    content: "";
     position: absolute;
     left: 15px;
     top: 50%;
     transform: translateY(-50%);
-    color: #999;
+    width: 16px;
+    height: 16px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 16px 16px;
+    pointer-events: none;
+    opacity: 0.8;
+  }
+
+  .email-icon::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='12' viewBox='0 0 16 12' fill='none'%3E%3Cpath d='M1.5 1H14.5C15.0523 1 15.5 1.44772 15.5 2V10C15.5 10.5523 15.0523 11 14.5 11H1.5C0.947715 11 0.5 10.5523 0.5 10V2C0.5 1.44772 0.947715 1 1.5 1Z' stroke='%236B7280'/%3E%3Cpath d='M1 2L8 7L15 2' stroke='%236B7280'/%3E%3C/svg%3E");
+  }
+
+  .lock-icon::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M7 10V7C7 4.79086 8.79086 3 11 3H13C15.2091 3 17 4.79086 17 7V10' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round'/%3E%3Crect x='5' y='10' width='14' height='11' rx='2' stroke='%236B7280' stroke-width='1.5'/%3E%3Cpath d='M12 14V17' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
   }
   
   .input-wrapper input {
     width: 100%;
-    padding: 12px 15px 12px 45px;
+    padding: 12px 45px 12px 45px;
     border: 2px solid #DCDCDC;
     border-radius: 10px;
     font-size: 14px;
     transition: border-color 0.3s;
+  }
+
+  .input-wrapper:not(.lock-icon) input {
+    padding-right: 15px;
   }
   
   .input-wrapper input:focus {
@@ -92,6 +104,11 @@
     border: none;
     cursor: pointer;
     color: #999;
+    font-size: 20px;
+    line-height: 1;
+    padding: 0;
+    display: flex;
+    align-items: center;
   }
   
   .password-toggle:hover {
@@ -174,12 +191,15 @@
 {% endblock %}
 
 {% block content %}
-<section class="counselor-login-page">
+<section class="login-home d-flex align-items-center py-14">
   <div class="container">
     <div class="auth-container">
       <div class="auth-wrapper">
         <div class="form-container">
           <div class="form-header">
+            <div class="logo-header text-center mb-2">
+              <img src="{{ static('images_new/logos/topteen-haticon.svg') }}" alt="Logo" />
+            </div>
             <h2>Counselor Login</h2>
             <p>Access your counselor dashboard</p>
           </div>
@@ -192,8 +212,7 @@
             
             <div class="form-group">
               <label for="email">Email Address <span style="color: red;">*</span></label>
-              <div class="input-wrapper">
-                <i class="fas fa-envelope"></i>
+              <div class="input-wrapper icon-input email-icon">
                 <input type="email" id="email" name="email" placeholder="Enter your email address" required autocomplete="email">
               </div>
               <div class="error-message" id="email_error"></div>
@@ -201,11 +220,10 @@
 
             <div class="form-group">
               <label for="password">Password <span style="color: red;">*</span></label>
-              <div class="input-wrapper">
-                <i class="fas fa-lock"></i>
+              <div class="input-wrapper icon-input lock-icon">
                 <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
-                <button type="button" class="password-toggle" id="togglePassword">
-                  <i class="fas fa-eye"></i>
+                <button type="button" class="password-toggle" id="togglePassword" aria-label="Toggle password visibility">
+                  <i class="bx bx-hide"></i>
                 </button>
               </div>
               <div class="error-message" id="password_error"></div>
@@ -261,8 +279,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
       passwordInput.setAttribute('type', type);
       const icon = togglePassword.querySelector('i');
-      icon.classList.toggle('fa-eye');
-      icon.classList.toggle('fa-eye-slash');
+      icon.classList.toggle('bx-show');
+      icon.classList.toggle('bx-hide');
     });
   }
 
