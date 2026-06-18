@@ -26,3 +26,4 @@ def student_all_growth_areas(below, avg=None, above_avg=None) -> bool:
 def should_show_extended_career_pathways(below, avg=None, above_avg=None) -> bool:
     """Extended stream-sorter pathways unless all aptitude results are growth area."""
     return not student_all_growth_areas(below, avg, above_avg)
+ 

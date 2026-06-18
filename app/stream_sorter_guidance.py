@@ -641,3 +641,5 @@ def build_report_stream_guidance(
         'catalog_stats': catalog.get('stats') or {},
         'data_source': catalog.get('source', 'unknown'),
     }
+
+  

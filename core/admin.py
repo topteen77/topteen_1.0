@@ -3005,3 +3005,5 @@ class GeneratedPageAdmin(admin.ModelAdmin):
     search_fields = ("slug", "title")
     ordering = ("-created",)
 
+
+ 
