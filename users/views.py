@@ -1549,6 +1549,15 @@ def _apply_institute_student_mobile_gate(request, user, desired_redirect):
     return desired_redirect
 
 
+def _set_registration_welcome_popup(request, user):
+    """Show gamification welcome popup on the student's first dashboard visit after signup."""
+    try:
+        if user and getattr(user, 'user_type', None) == choices.UserType.STUDENT:
+            request.session['show_registration_welcome_popup'] = True
+    except Exception:
+        pass
+
+
 def _normalize_mobile_digits(value: str) -> str:
     return re.sub(r"\D+", "", str(value or "")).strip()
 
@@ -1950,6 +1959,8 @@ class SignUpPassword(APIView):
                         import traceback
                         print(f"Warning: Error updating user profile: {str(profile_error)}")
                         print(traceback.format_exc())
+
+                    _set_registration_welcome_popup(request, user)
                     
                     try:
                         # Auto-login the user
@@ -3451,6 +3462,22 @@ class UserDashboard(TemplateView):
             pass
         ctx["hub_upcoming_events"] = hub_upcoming
 
+        ctx['show_registration_welcome_popup'] = False
+        ctx['registration_welcome_points'] = 50
+        try:
+            if (
+                request.user.is_authenticated
+                and request.user.user_type == choices.UserType.STUDENT
+                and not is_parent_view
+                and profile_user.id == request.user.id
+                and request.session.pop('show_registration_welcome_popup', False)
+            ):
+                from core.dashboard_points import get_registration_points
+                ctx['show_registration_welcome_popup'] = True
+                ctx['registration_welcome_points'] = get_registration_points()
+        except Exception:
+            pass
+
         return ctx
 
     def post(self, request, *args, **kwargs):
@@ -3783,6 +3810,14 @@ class MyResumesHubView(TemplateView):
 
     template_name = "template20/user/my_resumes.html"
 
+    def __breadcrumb(self):
+        l = [
+            {"title": "Profile page", "text": "Profile page", "url": reverse_lazy("users:userdashboard")},
+            {"title": "Scrapbook", "text": "Scrapbook", "url": reverse_lazy("users:scrapbook")},
+            {"title": "My resume", "text": "My resume", "url": ""},
+        ]
+        return get_breadcrumb(l)
+
     def html_head(self):
         name = "My resumes"
         return build_html_head(title=name, description=name)
@@ -3790,6 +3825,7 @@ class MyResumesHubView(TemplateView):
     def get_context(self, request, *args, **kwargs):
         ctx = {}
         ctx["html_head"] = self.html_head()
+        ctx["breadcrumb"] = self.__breadcrumb()
         profile_user = request.user
         ctx["profile_user"] = profile_user
         UserProfile.objects.get_or_create(user=profile_user)
@@ -4736,7 +4772,11 @@ class BookmarkVideo(TemplateView):
     template_name="template20/user/bookmark_video.html"
 
     def __breadcrumb(self):
-        l=[{'title':'Profile page','text':'Profile page','url':reverse_lazy('users:userdashboard')},{'title':'My Bookmarks','text':'My Bookmarks','url':reverse_lazy('users:bookmark')},{'title':'My Videos','text':'My Videos','url':''}]
+        l = [
+            {"title": "Profile page", "text": "Profile page", "url": reverse_lazy("users:userdashboard")},
+            {"title": "Scrapbook", "text": "Scrapbook", "url": reverse_lazy("users:scrapbook")},
+            {"title": "My Videos", "text": "My Videos", "url": ""},
+        ]
         return get_breadcrumb(l)
 
     def html_head(self):
@@ -4760,7 +4800,11 @@ class BookmarkExam(TemplateView):
     template_name="template20/user/bookmark_exam.html"
 
     def __breadcrumb(self):
-        l=[{'title':'Profile page','text':'Profile page','url':reverse_lazy('users:userdashboard')},{'title':'My Bookmarks','text':'My Bookmarks','url':reverse_lazy('users:bookmark')},{'title':'My Exams','text':'My Exams','url':''}]
+        l = [
+            {"title": "Profile page", "text": "Profile page", "url": reverse_lazy("users:userdashboard")},
+            {"title": "Scrapbook", "text": "Scrapbook", "url": reverse_lazy("users:scrapbook")},
+            {"title": "My exam", "text": "My exam", "url": ""},
+        ]
         return get_breadcrumb(l)
 
     def html_head(self):
@@ -4820,9 +4864,11 @@ class BookmarkBlog(TemplateView):
     template_name="template20/user/bookmark_blog.html"
 
     def __breadcrumb(self):
-        l=[{'title':'Profile page','text':'Profile page','url':reverse_lazy('users:userdashboard')},
-           {'title':'My Bookmarks','text':'My Bookmarks','url':reverse_lazy('users:bookmark')},
-           {'title':'My Blogs','text':'My Blogs','url':''}]
+        l = [
+            {"title": "Profile page", "text": "Profile page", "url": reverse_lazy("users:userdashboard")},
+            {"title": "Scrapbook", "text": "Scrapbook", "url": reverse_lazy("users:scrapbook")},
+            {"title": "My Blogs", "text": "My Blogs", "url": ""},
+        ]
         return get_breadcrumb(l)
 
     def html_head(self):

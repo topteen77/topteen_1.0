@@ -1,10 +1,8 @@
 /**
- * Student dashboard / resume shell: desktop sidebar collapse + localStorage.
- * Works across all student pages after login.
- * Uses event delegation so it doesn't depend on per-page script timing.
+ * Student dashboard / resume shell: desktop sidebar collapse.
+ * Sidebar is always closed on page load; click the top-bar button to show/hide.
  */
 (function () {
-  var STORAGE_KEY = 'topteen_student_dash_sidebar_collapsed';
   var mq = window.matchMedia('(min-width: 992px)');
 
   function getShell() {
@@ -20,44 +18,29 @@
     var desktopToggle = getDesktopToggle();
     if (!shell || !desktopToggle) return;
 
-    var collapsed = shell.classList.contains('sidebar-collapsed');
+    var open = shell.classList.contains('sidebar-open');
     var icon = desktopToggle.querySelector('i');
     if (icon) {
-      icon.className = collapsed ? 'bx bx-menu' : 'bx bx-chevrons-left';
+      icon.className = open ? 'bx bx-chevrons-left' : 'bx bx-menu';
     }
-    desktopToggle.setAttribute('aria-label', collapsed ? 'Open sidebar' : 'Close sidebar');
-    desktopToggle.setAttribute('title', collapsed ? 'Open sidebar' : 'Close sidebar');
+    desktopToggle.setAttribute('aria-label', open ? 'Close sidebar' : 'Open sidebar');
+    desktopToggle.setAttribute('title', open ? 'Close sidebar' : 'Open sidebar');
   }
 
-  function syncFromStorage() {
+  function ensureSidebarClosed() {
     var shell = getShell();
     if (!shell) return;
 
-    if (mq.matches) {
-      try {
-        if (localStorage.getItem(STORAGE_KEY) === '1') {
-          shell.classList.add('sidebar-collapsed');
-        } else {
-          shell.classList.remove('sidebar-collapsed');
-        }
-      } catch (e) {
-        shell.classList.remove('sidebar-collapsed');
-      }
-    } else {
-      shell.classList.remove('sidebar-collapsed');
-    }
+    shell.classList.remove('sidebar-open');
     updateToggleUi();
   }
 
-  function toggleSidebarCollapsed() {
+  function toggleSidebar() {
     var shell = getShell();
     if (!shell) return;
     if (!mq.matches) return;
 
-    shell.classList.toggle('sidebar-collapsed');
-    try {
-      localStorage.setItem(STORAGE_KEY, shell.classList.contains('sidebar-collapsed') ? '1' : '0');
-    } catch (e) {}
+    shell.classList.toggle('sidebar-open');
     updateToggleUi();
   }
 
@@ -65,11 +48,10 @@
     var btn = e.target && e.target.closest ? e.target.closest('#studentSidebarToggleDesktop') : null;
     if (!btn) return;
     e.preventDefault();
-    toggleSidebarCollapsed();
+    toggleSidebar();
   });
 
   // Global close handler for Bootstrap modals (e.g., "Refer/Invite friends")
-  // Some pages attach modal JS locally; this ensures the X always works.
   document.addEventListener('click', function (e) {
     if (!e.target || !e.target.closest) return;
     var closeBtn = e.target.closest('[data-bs-dismiss="modal"], .referPopupClose');
@@ -78,7 +60,6 @@
     var modalEl = closeBtn.closest('.modal');
     if (!modalEl) return;
 
-    // Prefer Bootstrap's API when available
     try {
       if (window.bootstrap && window.bootstrap.Modal) {
         var inst = window.bootstrap.Modal.getInstance(modalEl);
@@ -93,7 +74,6 @@
       modalEl.style.display = 'none';
     }
 
-    // Cleanup any stuck backdrop/body state
     window.setTimeout(function () {
       var backdrops = document.querySelectorAll('.modal-backdrop');
       backdrops.forEach(function (b) { try { b.remove(); } catch (e2) {} });
@@ -103,11 +83,15 @@
     }, 150);
   }, true);
 
-  mq.addEventListener('change', syncFromStorage);
+  mq.addEventListener('change', function () {
+    if (!mq.matches) {
+      ensureSidebarClosed();
+    }
+  });
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', syncFromStorage);
+    document.addEventListener('DOMContentLoaded', ensureSidebarClosed);
   } else {
-    syncFromStorage();
+    ensureSidebarClosed();
   }
 })();

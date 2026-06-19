@@ -283,6 +283,11 @@ function handleCareerResults(result, index) {
     'C': 'Conventional'
   };
   const riasecOrder = ['R', 'I', 'A', 'S', 'E', 'C'];
+  const riasecChartLabel = (code) => {
+    const cleanCode = String(code || '').replace(/\d+$/, '').toUpperCase();
+    const name = riasecNames[cleanCode] || cleanCode;
+    return name ? `${name} (${cleanCode})` : cleanCode;
+  };
 
   // Try to get result data - handle different possible structures
   let resultData = result.result_data || {};
@@ -355,14 +360,15 @@ function handleCareerResults(result, index) {
       level: getScoreLevel(score, 25)
     });
 
-    labels.push(cleanCode);
+    labels.push(riasecChartLabel(cleanCode));
     scores.push(score);
   }
 
   // If we couldn't find any dimensions, create generic ones
   if (dimensions.length === 0) {
     console.log('No RIASEC dimensions found, creating generic ones');
-    Object.entries(riasecNames).forEach(([code, name]) => {
+    riasecOrder.forEach((code) => {
+      const name = riasecNames[code];
       const randomScore = Math.floor(Math.random() * 25); // For demo purposes only
       dimensions.push({
         code: code,
@@ -371,10 +377,20 @@ function handleCareerResults(result, index) {
         percentage: (randomScore / 25) * 100,
         level: getScoreLevel(randomScore, 25)
       });
-      labels.push(code);
+      labels.push(riasecChartLabel(code));
       scores.push(randomScore);
     });
   }
+
+  const chartLabels = [];
+  const chartScores = [];
+  riasecOrder.forEach((code) => {
+    const dim = dimensions.find((item) => item.code === code);
+    if (dim) {
+      chartLabels.push(riasecChartLabel(code));
+      chartScores.push(dim.score);
+    }
+  });
 
   // Sort by score, then canonical RIASEC order for ties
   dimensions.sort((a, b) => {
@@ -434,8 +450,8 @@ function handleCareerResults(result, index) {
     gridContainer.appendChild(card);
   });
 
-  // Create career chart (radar chart) with all dimensions
-  createCareerChart(labels, scores, index);
+  // Create career chart with all dimensions in RIASEC order
+  createCareerChart(chartLabels.length ? chartLabels : labels, chartScores.length ? chartScores : scores, index);
 }
 
 // Handle Aptitude Test Results
@@ -1105,52 +1121,57 @@ function createCareerChart(labels, scores, index) {
 
   // Create new chart instance and store it
   careerChartInstance = new Chart(ctx, {
-    type: 'radar',
+    type: 'bar',
     data: {
       labels: labels,
       datasets: [{
         label: 'Career Interest Scores',
         data: scores,
-        backgroundColor: 'rgba(63, 55, 201, 0.2)',
-        borderColor: 'rgba(63, 55, 201, 1)',
-        borderWidth: 2,
-        pointBackgroundColor: 'rgba(63, 55, 201, 1)',
-        pointBorderColor: '#fff',
-        pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: 'rgba(63, 55, 201, 1)',
-        pointRadius: 5,
-        pointHoverRadius: 7
+        backgroundColor: [
+          '#c6e1ff', '#99dbfb', '#b9fbee', '#bdfdd4', '#fde185', '#fbc6c6'
+        ],
+        borderColor: [
+          '#c6e1ff', '#99dbfb', '#b9fbee', '#bdfdd4', '#fde185', '#fbc6c6'
+        ],
+        borderWidth: 1,
+        borderRadius: 8
       }]
     },
     options: {
       responsive: true,
       scales: {
-        r: {
+        x: {
+          ticks: {
+            autoSkip: false,
+            maxRotation: 45,
+            minRotation: 25,
+            font: { size: 9 }
+          },
+          grid: {
+            color: 'rgba(0, 0, 0, 0.06)'
+          }
+        },
+        y: {
           beginAtZero: true,
           max: 25,
           ticks: {
-            stepSize: 5
+            display: false
           },
           grid: {
-            color: 'rgba(0, 0, 0, 0.1)'
+            display: false
           },
-          angleLines: {
-            color: 'rgba(0, 0, 0, 0.1)'
+          border: {
+            display: false
           }
         }
       },
       plugins: {
         legend: {
-          position: 'top'
+          display: false
         },
         title: {
           display: true,
           text: 'RIASEC Career Interest Profile'
-        }
-      },
-      elements: {
-        line: {
-          tension: 0.1
         }
       }
     }

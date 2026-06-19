@@ -26,12 +26,12 @@
 
   /* When the birthday input (or any icon-input) is focused, hide the decorative left icon
      so the browser's native date UI is visible without visual duplication. */
-  .icon-input:focus-within img {
-    display: none !important;
+  .icon-input:focus-within .field-icon {
+    opacity: 0;
   }
   /* Keep padding so text doesn't overlap the left icon when not focused */
   input[name="userbirthdaydate"] {
-    padding-left: 40px !important;
+    padding-left: 45px !important;
   }
 
   .ct-joinbutton button {
@@ -136,18 +136,23 @@ label.hobbiesTab img {
     margin-bottom: 8px;
     color: #333;
   }
-  .icon-input img {
+  .icon-input-field {
+    position: relative;
+  }
+  .icon-input-field .field-icon {
     position: absolute;
     left: 14px;
-    bottom: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    line-height: 1;
+    color: #6b7280;
     z-index: 1;
+    pointer-events: none;
   }
-  .icon-input input,
-  .icon-input select {
+  .icon-input-field input,
+  .icon-input-field select {
     padding-left: 45px;
-  }
-  .icon-input.has-label img {
-    bottom: 12px;
   }
   .icon-input input[type="text"]:not([value]),
   .icon-input input[type="text"][value=""],
@@ -155,7 +160,9 @@ label.hobbiesTab img {
     color: #999;
   }
   .icon-input input.is-invalid,
-  .icon-input select.is-invalid {
+  .icon-input select.is-invalid,
+  .icon-input-field input.is-invalid,
+  .icon-input-field select.is-invalid {
     border-color: #dc3545 !important;
     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
   }
@@ -180,6 +187,19 @@ label.hobbiesTab img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+  .profile-photo-skip-btn {
+    background: #fff;
+    color: #555;
+    border: 1px solid #bdbdbd;
+    border-radius: 8px;
+    font-weight: 600;
+    text-transform: none;
+  }
+  .profile-photo-skip-btn:hover {
+    background: #f8f8f8;
+    color: #333;
+    border-color: #9e9e9e;
   }
   .backArrow {
     position: absolute;
@@ -215,7 +235,57 @@ label.hobbiesTab img {
 }
 
   }
+
+  .profile-flash-messages {
+    position: fixed;
+    top: 64px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9998;
+    width: min(560px, calc(100vw - 24px));
+    pointer-events: none;
+  }
+
+  .profile-flash-alert {
+    pointer-events: auto;
+    margin: 0;
+    padding: 14px 18px;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    font-size: 14px;
+    line-height: 1.45;
+    min-height: auto;
+  }
+
+  .profile-flash-alert .btn-close {
+    padding: 0.65rem;
+  }
 </style>
+{% endblock %}
+
+{% block student_messages %}
+{% if messages %}
+<div class="profile-flash-messages">
+  {% for message in messages %}
+  {% set bs_tag = 'danger' if message.tags == 'error' else (message.tags if message.tags in ['success', 'warning', 'info', 'danger', 'primary', 'secondary'] else 'info') %}
+  <div class="alert alert-{{ bs_tag }} alert-dismissible fade show profile-flash-alert" role="alert">
+    <div class="d-flex align-items-start gap-2">
+      {% if bs_tag == 'danger' %}
+      <i class='bx bx-error-circle fs-20 flex-shrink-0 mt-1'></i>
+      {% elif bs_tag == 'success' %}
+      <i class='bx bx-check-circle fs-20 flex-shrink-0 mt-1'></i>
+      {% elif bs_tag == 'warning' %}
+      <i class='bx bx-error fs-20 flex-shrink-0 mt-1'></i>
+      {% else %}
+      <i class='bx bx-info-circle fs-20 flex-shrink-0 mt-1'></i>
+      {% endif %}
+      <span class="flex-grow-1">{{ message }}</span>
+      <button type="button" class="btn-close flex-shrink-0" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
 {% endblock %}
 
 {% block student_main %}
@@ -233,8 +303,8 @@ label.hobbiesTab img {
       </div>
     </div>
     
-    <div class="backArrow">
-      <img src="{{ static('topteenfrontend/assets/images/arrow.left.png') }}" alt="Back" style="width: 15px; height: 15px;" />
+    <div class="backArrow" aria-label="Back">
+      <i class='bx bx-chevron-left' style="font-size: 22px; color: #333;"></i>
     </div>
 
     <!-- Edit Username Popup Modal -->
@@ -312,50 +382,58 @@ label.hobbiesTab img {
         <div class="w-100 d-flex justify-content-center mb-3">
           <div class="icon-input position-relative has-label" style="width: 576px;">
             <label for="username" class="form-label fs-14 fw-semibold mb-2">Full Name</label>
-            <img src="{{ static('topteenfrontend/assets/images/signature.png') }}" alt="Name" style="width: 20px; height: 20px; position: absolute; left: 14px; bottom: 12px; z-index: 1;" />
-            <input name="username" id="username" type="text" 
-                   value="{% if profile_user.name and profile_user.name != 'None' %}{{ profile_user.name }}{% elif profile_user.mobile %}{{ profile_user.mobile }}{% endif %}" 
-                   class="form-control custom-input w-100" 
-                   style="height: 48px; padding-left: 45px;"
-                   placeholder="Enter your full name" required />
+            <div class="icon-input-field">
+              <i class='bx bx-user field-icon' aria-hidden="true"></i>
+              <input name="username" id="username" type="text" 
+                     value="{% if profile_user.name and profile_user.name != 'None' and profile_user.name != 'Student' %}{{ profile_user.name }}{% endif %}" 
+                     class="form-control custom-input w-100" 
+                     style="height: 48px;"
+                     placeholder="Enter your full name" required />
+            </div>
           </div>
         </div>
 
         <!-- Birthday and Gender -->
         <div class="w-100 d-flex justify-content-center gap-3 mb-3">
           <div class="icon-input position-relative has-label" style="width: 288px;">
-            <label for="userbirthdaydate" class="form-label fs-14 fw-semibold mb-2">Birthday</label>
-            <img src="{{ static('topteenfrontend/assets/images/calender1.png') }}" alt="Birthday" style="width: 20px; height: 20px; position: absolute; left: 14px; bottom: 12px; z-index: 1;" />
-            <input name="userbirthdaydate" id="userbirthdaydate" type="text" 
-                   onfocus="if(this.type==='text'){ this.type='date'; var d=new Date(); var min=new Date(d.getFullYear()-25,d.getMonth(),d.getDate()); var max=new Date(d.getFullYear()-11,d.getMonth(),d.getDate()); this.setAttribute('min',min.toISOString().split('T')[0]); this.setAttribute('max',max.toISOString().split('T')[0]); }" 
-                   value="{{ birthdate_value|default('', true) }}"
-                   class="form-control custom-input w-100" 
-                   style="height: 48px; padding-left: 40px;"
-                   placeholder="Select date (11–25 years)" required />
+            <label for="userbirthdaydate" class="form-label fs-14 fw-semibold mb-2">Date of Birth</label>
+            <div class="icon-input-field">
+              <i class='bx bx-calendar field-icon' aria-hidden="true"></i>
+              <input name="userbirthdaydate" id="userbirthdaydate" type="text" 
+                     onfocus="if(this.type==='text'){ this.type='date'; var d=new Date(); var min=new Date(d.getFullYear()-25,d.getMonth(),d.getDate()); var max=new Date(d.getFullYear()-11,d.getMonth(),d.getDate()); this.setAttribute('min',min.toISOString().split('T')[0]); this.setAttribute('max',max.toISOString().split('T')[0]); }" 
+                     value="{{ birthdate_value|default('', true) }}"
+                     class="form-control custom-input w-100" 
+                     style="height: 48px;"
+                     placeholder="Select date (DD-MM-YYYY)" required />
+            </div>
           </div>
           <div class="icon-input position-relative has-label" style="width: 288px;">
             <label for="gender" class="form-label fs-14 fw-semibold mb-2">Gender</label>
-            <img src="{{ static('topteenfrontend/assets/images/person.fill.png') }}" alt="Gender" style="width: 20px; height: 20px; position: absolute; left: 14px; bottom: 12px; z-index: 1;" />
-            <select name="gender" id="gender" class="form-control custom-input w-100" style="height: 48px; padding-left: 40px;" required>
-              <option value="">Select Gender</option>
-              <option value="20" {% if profile_user.user_profile and profile_user.user_profile.gender == 20 %}selected{% endif %}>Male</option>
-              <option value="30" {% if profile_user.user_profile and profile_user.user_profile.gender == 30 %}selected{% endif %}>Female</option>
-              <option value="10" {% if profile_user.user_profile and profile_user.user_profile.gender == 10 %}selected{% endif %}>Transgender</option>
-            </select>
+            <div class="icon-input-field">
+              <i class='bx bx-male-female field-icon' aria-hidden="true"></i>
+              <select name="gender" id="gender" class="form-control custom-input w-100" style="height: 48px;" required>
+                <option value="">Select Gender</option>
+                <option value="20" {% if profile_user.user_profile and profile_user.user_profile.gender == 20 %}selected{% endif %}>Male</option>
+                <option value="30" {% if profile_user.user_profile and profile_user.user_profile.gender == 30 %}selected{% endif %}>Female</option>
+                <option value="10" {% if profile_user.user_profile and profile_user.user_profile.gender == 10 %}selected{% endif %}>Transgender</option>
+              </select>
+            </div>
           </div>
         </div>
 
         <!-- Phone Number -->
         <div class="w-100 d-flex justify-content-center mb-3">
           <div class="icon-input position-relative has-label" style="width: 576px;">
-            <label for="userphone" class="form-label fs-14 fw-semibold mb-2">Phone Number</label>
-            <img src="{{ static('topteenfrontend/assets/images/phone.fill.png') }}" alt="Phone" style="width: 20px; height: 20px; position: absolute; left: 14px; bottom: 12px; z-index: 1;" />
-            <input name="userphone" id="userphone" type="tel" 
-                   maxlength="10" inputmode="numeric" pattern="[6-9][0-9]{9}" 
-                   value="{{ mobile_display|default('', true) }}"
-                   class="form-control custom-input w-100" 
-                   style="height: 48px; padding-left: 45px;"
-                   placeholder="Enter 10 digit mobile number" required />
+            <label for="userphone" class="form-label fs-14 fw-semibold mb-2">Mobile Number</label>
+            <div class="icon-input-field">
+              <i class='bx bx-phone field-icon' aria-hidden="true"></i>
+              <input name="userphone" id="userphone" type="tel" 
+                     maxlength="10" inputmode="numeric" pattern="[6-9][0-9]{9}" 
+                     value="{{ mobile_display|default('', true) }}"
+                     class="form-control custom-input w-100" 
+                     style="height: 48px;"
+                     placeholder="Enter mobile number" required />
+            </div>
           </div>
         </div>
 
@@ -363,25 +441,30 @@ label.hobbiesTab img {
         <div class="w-100 d-flex justify-content-center mb-3">
           <div class="icon-input position-relative has-label" style="width: 576px;">
             <label for="useremail" class="form-label fs-14 fw-semibold mb-2">Email Address</label>
-            <img src="{{ static('topteenfrontend/assets/images/signature.png') }}" alt="Email" style="width: 20px; height: 20px; position: absolute; left: 14px; bottom: 12px; z-index: 1;" />
-            <input name="useremail" id="useremail" type="email"
-                   value="{{ profile_user.email|default('', true) }}"
-                   class="form-control custom-input w-100"
-                   style="height: 48px; padding-left: 45px;"
-                   placeholder="Enter email address (optional)" />
+            <div class="icon-input-field">
+              <i class='bx bx-envelope field-icon' aria-hidden="true"></i>
+              <input name="useremail" id="useremail" type="email"
+                     value="{{ profile_user.email|default('', true) }}"
+                     class="form-control custom-input w-100"
+                     style="height: 48px;"
+                     placeholder="Enter email address (optional)" />
+            </div>
           </div>
         </div>
 
         <!-- Parent Accounts (optional) -->
         <div class="w-100 d-flex justify-content-center mb-3">
           <div class="icon-input position-relative has-label" style="width: 576px;">
-            <label class="form-label fs-14 fw-semibold mb-2">Parent Mobile Number <span class="text-muted fw-normal">(Optional)</span></label>
+            <label class="form-label fs-14 fw-semibold mb-2">Parent Mobile Number <span class="text-muted fw-normal d-none">(Optional)</span></label>
             <div class="d-flex gap-2">
-              <input id="parent_mobile_profile" type="text"
-                     class="form-control custom-input w-100"
-                     style="height: 48px;"
-                     maxlength="10" inputmode="numeric" pattern="[0-9]*"
-                     placeholder="Enter 10 digit parent mobile" />
+              <div class="icon-input-field flex-grow-1">
+                <i class='bx bx-group field-icon' aria-hidden="true"></i>
+                <input id="parent_mobile_profile" type="text"
+                       class="form-control custom-input w-100"
+                       style="height: 48px;"
+                       maxlength="10" inputmode="numeric" pattern="[0-9]*"
+                       placeholder="Enter parent mobile number" />
+              </div>
               <button type="button" id="add_parent_btn" class="btn custom-button purple-button fw-600" style="height: 48px; min-width: 110px;">
                 Add
               </button>
@@ -440,14 +523,16 @@ label.hobbiesTab img {
         <div class="w-100 d-flex justify-content-center mb-3">
           <div class="icon-input position-relative has-label" style="width: 576px;">
             <label for="userschool" class="form-label fs-14 fw-semibold mb-2">School Name</label>
-            <img src="{{ static('topteenfrontend/assets/images/person.2.crop.square.stack.fill.png') }}" alt="School" style="width: 20px; height: 20px; position: absolute; left: 14px; bottom: 12px; z-index: 1;" />
-            <input name="userschool" id="userschool" type="text" 
-                   list="school-datalist"
-                   autocomplete="off"
-                   value="{% if profile_user.user_profile and profile_user.user_profile.schoolname and profile_user.user_profile.schoolname != 'None' %}{{ profile_user.user_profile.schoolname }}{% endif %}"
-                   class="form-control custom-input w-100" 
-                   style="height: 48px; padding-left: 45px;"
-                   placeholder="Type to search or select school" required />
+            <div class="icon-input-field">
+              <i class='bx bx-buildings field-icon' aria-hidden="true"></i>
+              <input name="userschool" id="userschool" type="text" 
+                     list="school-datalist"
+                     autocomplete="off"
+                     value="{% if profile_user.user_profile and profile_user.user_profile.schoolname and profile_user.user_profile.schoolname != 'None' %}{{ profile_user.user_profile.schoolname }}{% endif %}"
+                     class="form-control custom-input w-100" 
+                     style="height: 48px;"
+                     placeholder="Type to search or select school" required />
+            </div>
             <datalist id="school-datalist">
               {% for school in school_suggestions %}
               <option value="{{ school }}"></option>
@@ -460,8 +545,9 @@ label.hobbiesTab img {
         <div class="w-100 d-flex justify-content-center mb-3">
           <div class="icon-input position-relative has-label" style="width:576px;">
             <label for="usergrade" class="form-label fs-14 fw-semibold mb-2">Grade/Class</label>
-            <img src="{{ static('topteenfrontend/assets/images/bookmark.square.png') }}" alt="Grade" style="width: 20px; height: 20px; position: absolute; left: 14px; bottom: 12px; z-index: 1;" />
-            <select name="usergrade" id="usergrade" class="form-control custom-input w-100" style="height: 48px; padding-left: 45px;" required>
+            <div class="icon-input-field">
+              <i class='bx bx-bookmark field-icon' aria-hidden="true"></i>
+              <select name="usergrade" id="usergrade" class="form-control custom-input w-100" style="height: 48px;" required>
               <option value="">Select Grade/Class</option>
               {# support both Jinja (master_classes()) and Django TEMPLATE (MASTER_CLASSES) #}
               {% if master_classes is defined %}
@@ -493,6 +579,7 @@ label.hobbiesTab img {
                 {% endif %}
               {% endif %}
             </select>
+            </div>
           </div>
         </div>
 
@@ -522,15 +609,18 @@ label.hobbiesTab img {
             {% endif %}
           </button>
           <input type="file" name="image" accept="image/*" class="d-none imgIp" />
-          <p class="mb-1">Upload your image</p>
+          <p class="mb-1" id="photoUploadHint">{% if profile_user.image %}Your profile photo{% else %}Upload your image{% endif %}</p>
           <p class="text-muted small mb-0">Recommended image size: 200px x 200px</p>
         </div>
 
       
 
-        <div class="mt-5 w-100 d-flex justify-content-center">
-          <button type="button" data-form-name="photoupload" class="btn custom-button purple-button slideOnButton" style="width: 344px; height: 48px;">
-            CONTINUE
+        <div class="mt-5 w-100 d-flex flex-column align-items-center gap-3">
+          <button type="button" id="photoUploadBtn" class="btn custom-button purple-button {% if profile_user.image %}photo-continue-btn{% else %}photo-upload-trigger{% endif %}" style="width: 344px; height: 48px;">
+            {% if profile_user.image %}Continue{% else %}Upload your image{% endif %}
+          </button>
+          <button type="button" data-form-name="photoupload" class="btn profile-photo-skip-btn slideOnButton" style="width: 344px; height: 48px;">
+            Skip
           </button>
         </div>
       </div>
@@ -653,12 +743,39 @@ label.hobbiesTab img {
       $('.imgIp').click();
     });
 
+    $('#photoUploadBtn').click(function() {
+      if ($(this).hasClass('photo-continue-btn')) {
+        goToPhotoNextStep();
+        return;
+      }
+      $('.imgIp').click();
+    });
+
+    function setPhotoUploadedState(hasPhoto) {
+      var btn = $('#photoUploadBtn');
+      var hint = $('#photoUploadHint');
+      if (hasPhoto) {
+        btn.text('Continue').addClass('photo-continue-btn').removeClass('photo-upload-trigger');
+        if (hint.length) hint.text('Your profile photo');
+      } else {
+        btn.text('Upload your image').addClass('photo-upload-trigger').removeClass('photo-continue-btn');
+        if (hint.length) hint.text('Upload your image');
+      }
+    }
+
+    function goToPhotoNextStep() {
+      if ($('.newPages').hasClass('slick-initialized')) {
+        $('.newPages').slick('slickGoTo', 3, false);
+      }
+    }
+
     $('.imgIp').change(function(e) {
       const file = e.target.files[0];
       if (file) {
         const reader = new FileReader();
-        reader.onload = function(e) {
-          $('.imgBtn').html('<img src="' + e.target.result + '" class="w-100 h-100 rounded-circle object-fit-cover" alt="Profile" />');
+        reader.onload = function(ev) {
+          $('.imgBtn').html('<img src="' + ev.target.result + '" class="w-100 h-100 rounded-circle object-fit-cover" alt="Profile" />');
+          setPhotoUploadedState(true);
         };
         reader.readAsDataURL(file);
       }

@@ -456,6 +456,7 @@ def dashboard(request, student_id=None):
             interest_report_context_fields,
             riasec_code_display_label,
             RIASEC_CODE_TO_NAME,
+            RIASEC_CAREERS_TO_CHOOSE,
         )
         interest_ctx = interest_report_context_fields(
             scores=sorted_test2_result,
@@ -575,45 +576,16 @@ def dashboard(request, student_id=None):
         aptitude_suggested_careers = []
         aptitude_suggested_career_groups = []
         suitable_subject_combinations = []
+        stream_sorter_guidance = None
         try:
-            interest_career_map = {
-                'R': [
-                    'Mechanical Engineering', 'Construction Management', 'Aviation (Pilots)',
-                    'Surveying and Mapping', 'Skilled Trades', 'Industrial Engineering',
-                    'Automotive Engineering', 'Environmental Health and Safety Specialist',
-                ],
-                'I': [
-                    'Research and Development', 'Data Science and Analytics', 'Biotechnology and Life Sciences',
-                    'Software Engineering', 'Forensic Science', 'Medical Research',
-                    'Environmental Science', 'Epidemiology',
-                ],
-                'A': [
-                    'Graphic Design', 'Writing and Publishing', 'Music and Performing Arts',
-                    'Film and Media Production', 'Art Direction', 'Animation',
-                    'Interior Design', 'Fashion Design',
-                ],
-                'S': [
-                    'Counseling and Therapy', 'Education and Teaching',
-                    'Healthcare (e.g., Nursing, Physician Assistant)', 'Social Services',
-                    'Human Resources', 'Occupational Therapy', 'Public Relations',
-                    'Nonprofit Management',
-                ],
-                'E': [
-                    'Entrepreneurship', 'Marketing and Sales', 'Real Estate',
-                    'Business Consulting', 'Executive Leadership', 'Management Consulting',
-                    'Venture Capital', 'Investment Banking',
-                ],
-                'C': [
-                    'Accounting and Finance', 'Administrative and Office Management',
-                    'Data Analysis', 'Project Management', 'Banking and Financial Services',
-                    'Compliance and Risk Management', 'Supply Chain Management',
-                    'Investment Analysis',
-                ],
-            }
-            dominant_codes = codes_from_code_string(max_length) or [str(max_length or '').strip().upper()[:1]]
+            dominant_codes = (
+                dominant_interest_codes
+                or codes_from_code_string(max_length)
+                or [str(max_length or '').strip().upper()[:1]]
+            )
             interest_suggested_career_groups = career_suggestion_groups(
                 dominant_codes,
-                interest_career_map,
+                RIASEC_CAREERS_TO_CHOOSE,
                 fallback_careers=sorted(courseName) if courseName else None,
                 fallback_title='From your interest profile',
             )
@@ -626,7 +598,30 @@ def dashboard(request, student_id=None):
 
         stream_recommendation = recommend_streams_from_tiers(above_avg, avg, below_avg=below)
         suitable_subject_combinations = suitable_combinations_from_recommendation(stream_recommendation)
-        aptitude_suggested_career_groups = premium_career_groups_from_recommendation(stream_recommendation)
+        stream_sorter_guidance = None
+        try:
+            from app.report_visibility import should_show_extended_career_pathways
+            from app.stream_sorter_guidance import (
+                build_report_stream_guidance,
+                career_groups_for_dashboard,
+            )
+
+            if should_show_extended_career_pathways(below, avg, above_avg):
+                aptitude_streams = streamsubject_from_recommendation(stream_recommendation)
+                if aptitude_streams:
+                    stream_sorter_guidance = build_report_stream_guidance(
+                        aptitude_streams,
+                        top_category=top_category,
+                    )
+        except Exception:
+            stream_sorter_guidance = None
+
+        if stream_sorter_guidance:
+            aptitude_suggested_career_groups = career_groups_for_dashboard(stream_sorter_guidance)
+        else:
+            aptitude_suggested_career_groups = premium_career_groups_from_recommendation(
+                stream_recommendation
+            )
         aptitude_suggested_careers = [
             career
             for group in aptitude_suggested_career_groups
@@ -667,29 +662,7 @@ def dashboard(request, student_id=None):
             personality_suggested_career_groups = []
             personality_display_name = ''
 
-        try:
-            from app.dashboard_area_links import enrich_career_groups_chip_urls
-            interest_suggested_career_groups = enrich_career_groups_chip_urls(
-                interest_suggested_career_groups
-            )
-            aptitude_suggested_career_groups = enrich_career_groups_chip_urls(
-                aptitude_suggested_career_groups
-            )
-            personality_suggested_career_groups = enrich_career_groups_chip_urls(
-                personality_suggested_career_groups
-            )
-            interest_suggested_careers = [
-                c for g in interest_suggested_career_groups for c in g.get('careers', [])
-            ]
-            aptitude_suggested_careers = [
-                c for g in aptitude_suggested_career_groups for c in g.get('careers', [])
-            ]
-            personality_suggested_careers = [
-                c for g in personality_suggested_career_groups for c in g.get('careers', [])
-            ]
-        except Exception:
-            pass
-
+        # Interest / personality / aptitude careers use report catalog labels (no fuzzy remap).
         # Statistics for template20 dashboard (trophies, points, streak, level)
         trophy_details = []
         points_details = []
@@ -821,6 +794,7 @@ def dashboard(request, student_id=None):
             'career_suggestions_preview_count': 2,
             'suitable_subject_combinations': suitable_subject_combinations,
             'stream_recommendation': stream_recommendation,
+            'stream_sorter_guidance': stream_sorter_guidance,
             'skill_readiness_index': skill_readiness_index,
             'report_user_id': request.user.id,
             'all_tests_complete': all_tests_complete,

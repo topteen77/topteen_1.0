@@ -127,7 +127,7 @@
     flex: 0 0 auto;
     display: block;
     margin-top: 10px;
-    margin-left: 176px;
+    /* margin-left: 176px; */
     color: #6f7793;
     font-size: 15px;
   }
@@ -263,8 +263,12 @@
 
 {% block student_main %}
 
-<div class="mt-8"> 
-        <div class="my-resume-header">
+<div class="app-right-content pt-10 px-3 pb-3">
+        {% if breadcrumb %}
+        {% include 'template20/includes/breadcrumb.html' %}
+        {% endif %}
+
+        <div class="my-resume-header pt-3">
           <div class="my-resume-title-wrap">
             <span class="my-resume-title-icon" aria-hidden="true"><i class='bx bx-file-blank'></i></span>
             <div>
@@ -277,11 +281,11 @@
 
         <div class="my-resume-card my-resume-create-card mb-4">
           <div class="my-resume-create-row">
-              <label class="form-label">New resume title</label>
+             
               <form method="post" action="{{ url('users:resumebuilder_create') }}" class="d-flex gap-2 my-resume-create-form">
                 <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                 <input type="hidden" name="next" value="studio">
-                <input type="text" name="title" class="form-control flex-grow-1" placeholder="Enter resume title" maxlength="120">
+                <input type="text" name="title" class="form-control flex-grow-1" placeholder="Enter a name for your resume" maxlength="120">
                 <button type="submit" class="btn custom-button purple-button text-nowrap my-resume-primary-btn"><i class='bx bx-plus-circle'></i>Add resume</button>
               </form>
              

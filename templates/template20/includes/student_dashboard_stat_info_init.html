@@ -1,6 +1,24 @@
 <script>
   (function () {
     var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function countUpDayStreak(el, end, duration) {
+      if (!el || reduceMotion) {
+        if (el) el.textContent = 'Day ' + end;
+        return;
+      }
+      var start = 0;
+      var startTime = null;
+      function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        var progress = Math.min((timestamp - startTime) / duration, 1);
+        var easeOut = 1 - Math.pow(1 - progress, 2);
+        var current = Math.round(start + (end - start) * easeOut);
+        el.textContent = 'Day ' + current;
+        if (progress < 1) requestAnimationFrame(step);
+        else el.textContent = 'Day ' + end;
+      }
+      requestAnimationFrame(step);
+    }
     function countUp(el, end, duration) {
       if (!el || reduceMotion) { if (el) el.textContent = end; return; }
       var start = 0;
@@ -53,11 +71,16 @@
       }
       if (streakEl && streakEl.hasAttribute('data-value')) {
         var sv = parseInt(streakEl.getAttribute('data-value'), 10) || 0;
-        countUp(streakEl, sv, duration);
-        if (streakLabel) {
-          var psychStreak = /streak/i.test(streakLabel.textContent);
-          if (sv === 1) streakLabel.textContent = psychStreak ? '1 day streak' : '1 day';
-          else streakLabel.textContent = psychStreak ? (sv + ' day streak') : (sv + ' days');
+        if (streakEl.getAttribute('data-streak-format') === 'day-label') {
+          countUpDayStreak(streakEl, sv, duration);
+          if (streakLabel) streakLabel.textContent = 'Streak';
+        } else {
+          countUp(streakEl, sv, duration);
+          if (streakLabel) {
+            var psychStreak = /streak/i.test(streakLabel.textContent);
+            if (sv === 1) streakLabel.textContent = psychStreak ? '1 day streak' : '1 day';
+            else streakLabel.textContent = psychStreak ? (sv + ' day streak') : (sv + ' days');
+          }
         }
       }
     }

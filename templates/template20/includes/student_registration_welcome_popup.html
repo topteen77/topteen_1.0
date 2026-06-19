@@ -1,0 +1,401 @@
+{% if show_registration_welcome_popup %}
+<style>
+  .reg-welcome-confetti-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
+    border-radius: 24px;
+  }
+
+  .reg-welcome-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 13000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    background: rgba(15, 23, 42, 0.42);
+    backdrop-filter: blur(3px);
+    opacity: 1;
+    transition: opacity 0.5s ease;
+  }
+
+  .reg-welcome-overlay.is-hiding {
+    opacity: 0;
+  }
+
+  .reg-welcome-popup {
+    pointer-events: auto;
+    position: relative;
+    width: min(360px, calc(100vw - 28px));
+    padding: 1.65rem 1.45rem 1.25rem;
+    border-radius: 24px;
+    text-align: center;
+    color: #ffffff;
+    background: linear-gradient(155deg, #6366f1 0%, #4338ca 38%, #6d28d9 72%, #7c3aed 100%);
+    box-shadow:
+      0 28px 60px rgba(67, 56, 202, 0.45),
+      0 0 0 1px rgba(255, 255, 255, 0.22) inset,
+      0 0 80px rgba(129, 140, 248, 0.35);
+    transform: scale(1) translateY(0);
+    animation: regWelcomePopIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+  }
+
+  .reg-welcome-popup::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.22) 0%, transparent 42%),
+      radial-gradient(circle at 80% 100%, rgba(253, 224, 71, 0.12) 0%, transparent 38%);
+    pointer-events: none;
+  }
+
+  .reg-welcome-popup::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.15);
+    z-index: 2;
+  }
+
+  .reg-welcome-progress {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg, #fde047, #f472b6, #60a5fa);
+    transform-origin: left center;
+    animation: regWelcomeProgress 20s linear forwards;
+    z-index: 3;
+    border-radius: 0 0 24px 24px;
+  }
+
+  @keyframes regWelcomeProgress {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+  }
+
+  .reg-welcome-overlay.is-hiding .reg-welcome-popup {
+    transform: scale(0.9) translateY(16px);
+    opacity: 0;
+    transition: transform 0.5s ease, opacity 0.5s ease;
+  }
+
+  @keyframes regWelcomePopIn {
+    0% { transform: scale(0.68) translateY(32px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+  }
+
+  .reg-welcome-inner {
+    position: relative;
+    z-index: 3;
+  }
+
+  .reg-welcome-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease, transform 0.2s ease;
+    z-index: 4;
+  }
+
+  .reg-welcome-close:hover {
+    background: rgba(255, 255, 255, 0.35);
+    transform: scale(1.06);
+  }
+
+  .reg-welcome-coin-wrap {
+    perspective: 520px;
+    width: 96px;
+    height: 96px;
+    margin: 0 auto 0.85rem;
+    position: relative;
+  }
+
+  .reg-welcome-coin-glow {
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(253, 224, 71, 0.55) 0%, transparent 68%);
+    animation: regCoinGlow 2s ease-in-out infinite;
+  }
+
+  @keyframes regCoinGlow {
+    0%, 100% { opacity: 0.55; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.08); }
+  }
+
+  .reg-welcome-coin {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    animation: regCoinSpin3d 3.2s ease-in-out infinite;
+  }
+
+  @keyframes regCoinSpin3d {
+    0%, 12%, 88%, 100% { transform: rotateY(0deg) rotateX(14deg) scale(1); }
+    50% { transform: rotateY(180deg) rotateX(-10deg) scale(1.06); }
+  }
+
+  .reg-welcome-coin svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.35));
+  }
+
+  .reg-welcome-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.28rem 0.65rem;
+    margin-bottom: 0.55rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    color: #fef9c3 !important;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .reg-welcome-title {
+    font-size: 1.55rem;
+    font-weight: 800;
+    margin: 0 0 0.45rem;
+    letter-spacing: -0.02em;
+    color: #ffffff !important;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .reg-welcome-sub {
+    font-size: 0.95rem;
+    margin: 0 0 1rem;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, 0.92) !important;
+    font-weight: 500;
+  }
+
+  .reg-welcome-points {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 0.55rem 1.1rem;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: #ffffff !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+
+  .reg-welcome-points strong {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #fde047 !important;
+    text-shadow: 0 0 18px rgba(253, 224, 71, 0.45);
+  }
+
+  .reg-welcome-hint {
+    font-size: 0.78rem;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.78) !important;
+    font-weight: 500;
+  }
+</style>
+
+<div class="reg-welcome-overlay" id="regWelcomeOverlay" role="dialog" aria-labelledby="regWelcomeTitle" aria-live="polite">
+  <div class="reg-welcome-popup" id="regWelcomePopup">
+    <canvas class="reg-welcome-confetti-canvas" id="regWelcomeConfettiCanvas" aria-hidden="true"></canvas>
+    <div class="reg-welcome-progress" aria-hidden="true"></div>
+    <button type="button" class="reg-welcome-close" id="regWelcomeClose" aria-label="Close">&times;</button>
+
+    <div class="reg-welcome-inner">
+      <div class="reg-welcome-coin-wrap">
+        <div class="reg-welcome-coin-glow"></div>
+        <div class="reg-welcome-coin">
+          <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="regCoinFace" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#fff9db"/>
+                <stop offset="40%" stop-color="#fbbf24"/>
+                <stop offset="100%" stop-color="#b45309"/>
+              </linearGradient>
+              <linearGradient id="regCoinEdge" x1="0%" y1="50%" x2="100%" y2="50%">
+                <stop offset="0%" stop-color="#92400e"/>
+                <stop offset="50%" stop-color="#fde68a"/>
+                <stop offset="100%" stop-color="#78350f"/>
+              </linearGradient>
+              <radialGradient id="regCoinShine" cx="32%" cy="28%" r="58%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+                <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <ellipse cx="60" cy="64" rx="44" ry="7" fill="#000" opacity="0.2"/>
+            <circle cx="60" cy="56" r="44" fill="url(#regCoinEdge)"/>
+            <circle cx="60" cy="54" r="38" fill="url(#regCoinFace)"/>
+            <circle cx="60" cy="54" r="38" fill="url(#regCoinShine)"/>
+            <circle cx="60" cy="54" r="32" fill="none" stroke="#f59e0b" stroke-width="2.5" opacity="0.6"/>
+            <path d="M60 28 L64.2 42.8 L79.8 42.8 L67.4 52.2 L71.6 67 L60 57.6 L48.4 67 L52.6 52.2 L40.2 42.8 L55.8 42.8 Z" fill="#fffbeb"/>
+            <text x="60" y="80" text-anchor="middle" font-size="13" font-weight="800" fill="#92400e" font-family="Space Grotesk, sans-serif">POINTS</text>
+          </svg>
+        </div>
+      </div>
+
+      <span class="reg-welcome-badge">&#127881; Welcome Bonus</span>
+      <h2 class="reg-welcome-title" id="regWelcomeTitle">Congratulations!</h2>
+      <p class="reg-welcome-sub">Welcome to TopTeen! Your career journey starts now — keep exploring to earn more rewards.</p>
+      <div class="reg-welcome-points">
+        You earned <strong>{{ registration_welcome_points|default(50) }}</strong> points
+      </div>
+      <p class="reg-welcome-hint">Closing in 20 seconds&hellip;</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var POPUP_DURATION_MS = 20000;
+    var overlay = document.getElementById('regWelcomeOverlay');
+    var popup = document.getElementById('regWelcomePopup');
+    var canvas = document.getElementById('regWelcomeConfettiCanvas');
+    if (!overlay || !popup || !canvas) return;
+
+    var ctx = canvas.getContext('2d');
+    var particles = [];
+    var colors = ['#fde047', '#f472b6', '#60a5fa', '#34d399', '#fb923c', '#c084fc', '#ffffff', '#facc15', '#a78bfa'];
+    var animId = null;
+    var hideTimer = null;
+    var running = true;
+
+    function resizeCanvas() {
+      var rect = popup.getBoundingClientRect();
+      canvas.width = Math.max(1, Math.floor(rect.width));
+      canvas.height = Math.max(1, Math.floor(rect.height));
+    }
+
+    function spawnWave(count, spreadY) {
+      var w = canvas.width;
+      var h = canvas.height;
+      for (var i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * w,
+          y: h + Math.random() * (spreadY || 24),
+          w: 5 + Math.random() * 7,
+          h: 3 + Math.random() * 5,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          vy: -(3.5 + Math.random() * 5.5),
+          vx: (Math.random() - 0.5) * 2.8,
+          rot: Math.random() * 360,
+          vr: (Math.random() - 0.5) * 14,
+          opacity: 0.88 + Math.random() * 0.12,
+          round: Math.random() > 0.4
+        });
+      }
+    }
+
+    function drawConfetti() {
+      if (!running) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (var i = particles.length - 1; i >= 0; i--) {
+        var p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy -= 0.015;
+        p.rot += p.vr;
+
+        if (p.y < -20 || p.x < -20 || p.x > canvas.width + 20) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = p.opacity;
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot * Math.PI / 180);
+        ctx.fillStyle = p.color;
+        if (p.round) {
+          ctx.beginPath();
+          ctx.arc(0, 0, p.w * 0.45, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+        }
+        ctx.restore();
+      }
+
+      animId = requestAnimationFrame(drawConfetti);
+    }
+
+    function startConfettiSplash() {
+      resizeCanvas();
+      spawnWave(55, 20);
+      window.setTimeout(function () { spawnWave(45, 18); }, 400);
+      window.setTimeout(function () { spawnWave(35, 16); }, 800);
+      window.setTimeout(function () { spawnWave(30, 14); }, 1200);
+      drawConfetti();
+    }
+
+    function stopConfetti() {
+      running = false;
+      if (animId) cancelAnimationFrame(animId);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function hidePopup() {
+      if (!overlay || overlay.classList.contains('is-hiding')) return;
+      overlay.classList.add('is-hiding');
+      stopConfetti();
+      window.setTimeout(function () {
+        if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+      }, 520);
+    }
+
+    window.addEventListener('resize', function () {
+      resizeCanvas();
+    });
+
+    if (typeof ResizeObserver !== 'undefined') {
+      new ResizeObserver(resizeCanvas).observe(popup);
+    }
+
+    startConfettiSplash();
+    hideTimer = window.setTimeout(hidePopup, POPUP_DURATION_MS);
+
+    var closeBtn = document.getElementById('regWelcomeClose');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function () {
+        if (hideTimer) window.clearTimeout(hideTimer);
+        hidePopup();
+      });
+    }
+  });
+</script>
+{% endif %}

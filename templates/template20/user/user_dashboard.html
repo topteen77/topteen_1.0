@@ -991,10 +991,10 @@
                 <div>
                   <p class="fs-18 fw-semibold mb-0 stat-value stat-value-trigger" id="stat-streak"
                     data-value="{{ streak_days|default(0) }}"
+                    data-streak-format="day-label"
                     data-bs-toggle="modal" data-bs-target="#dashboardStatStreakModal"
-                    role="button" tabindex="0" title="View streak details">0</p>
-                  <p class="text-gray fs-10 mb-0" id="stat-streak-label">{% if (streak_days|default(0)) == 1 %}1 day{%
-                    else %}{{ streak_days|default(0) }} days{% endif %}</p>
+                    role="button" tabindex="0" title="View streak details">Day 0</p>
+                  <p class="text-gray fs-10 mb-0" id="stat-streak-label">Streak</p>
                 </div>
               </div>
             </div>
@@ -1236,24 +1236,6 @@
               </div>
               <!-- End of My Invoices -->
 
-              <!-- Bookmarks -->
-              <a href="{{ url('users:bookmark') }}" class="text-decoration-none">
-                <div class="quick-link-card">
-                  <div class="d-flex align-items-center gap-3">
-                    <div class="dashboard-quicklinks-icon" style="background: #F4C398;">
-                      <img src="{{ static('images_new/icons//bookmark-icon.svg') }}" style="width: 26px; height: 26px;"
-                        alt="Digital Scrapbook" />
-                    </div>
-                    <div>
-                      <p class="fs-16 fw-semibold mb-1">Bookmarks</p>
-                      <p class="text-gray fs-10 mb-0">Get your shortlist items</p>
-                    </div>
-                  </div>
-                  <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
-                </div>
-              </a>
-              <!-- End Bookmarks -->
-
               <!-- Refer Friends -->
               <!-- Career Matcher Links -->
               <div class="quick-link-card" onclick="window.location='{{ url('post_matric:career_swipe') }}'">
@@ -1346,8 +1328,6 @@
         </div>
         <!-- End of Quick Links -->
 
-</section>
-<!-- End of Main Content -->
 <!-- Mobile Settings Drawer (gear opens this on small screens) -->
 <div class="drawerModal fixed inset-0 z-50 bg-black bg-opacity-50 transition-all duration-300 translate-y-full d-none"
   data-direction="translate-y-full" aria-hidden="true">
@@ -1384,7 +1364,7 @@
 
 {% block additionaljs %}
 {{ super() }}
-<script src="{{ static('js/student-shell.js') }}?v=1"></script>
+{% include 'template20/includes/student_registration_welcome_popup.html' %}
 {% include 'template20/includes/student_dashboard_stat_info_init.html' %}
 <!-- SweetAlert2 - Load after jQuery -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

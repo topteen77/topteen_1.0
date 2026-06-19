@@ -1789,62 +1789,8 @@
               <h3 class="psych-section-title mb-2"><span class="psych-section-dot" aria-hidden="true"></span>Suggested Streams from Intelligence</h3>
        
 
-              <div class="psych-stream-columns{% if not stream_questionnaire_completed or not stream_questionnaire_answers %} psych-stream-columns--single{% endif %}">
-              {% if stream_questionnaire_completed and stream_questionnaire_answers %}
-              <section class="psych-stream-part psych-stream-part--decision" aria-labelledby="psychStreamDecisionPartTitle">
-                <div class="psych-stream-part-head d-none">
-                  <span class="psych-stream-part-kicker">
-                    <i class='bx bx-edit-alt' aria-hidden="true"></i>
-                    Part 1
-                  </span>
-                  <h4 id="psychStreamDecisionPartTitle" class="psych-stream-part-title">Your stream decision</h4>
-                  <p class="psych-stream-part-desc">The stream you submitted after reviewing your intelligence results.</p>
-                </div>
-                <div class="psych-stream-part-body">
-                  <div class="stream-decision-result-section">
-                    <div class="stream-decision-result-shell">
-                      <div class="stream-decision-result-border" aria-hidden="true"></div>
-                      <div class="stream-decision-result-inner">
-                        <div class="stream-decision-result-top">
-                          <div class="stream-decision-result-header">
-                            <span class="stream-decision-result-badge">
-                              <svg class="stream-decision-result-badge-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                                <path fill="currentColor" d="M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3h7z"/>
-                              </svg>
-                              Submitted choice
-                            </span>
-                            <p class="stream-decision-result-subtitle mb-0">You confirmed this stream through the decision questionnaire.</p>
-                          </div>
-                          <div class="stream-decision-result-highlight">
-                            <span class="stream-decision-result-label">Chosen stream</span>
-                            <div class="stream-decision-result-stream-row">
-                              <span class="stream-decision-result-value">{{ stream_questionnaire_answers.preferred_stream }}</span>
-                              {% if stream_questionnaire_answers.preferred_stream_match_score and stream_questionnaire_answers.preferred_stream_match_score != '0' %}
-                              <span class="stream-decision-result-match">{{ stream_questionnaire_answers.preferred_stream_match_score }}% match</span>
-                              {% endif %}
-                            </div>
-                          </div>
-                        </div>
-                        {% if stream_questionnaire_answers.reports_reviewed %}
-                        <div class="stream-decision-result-meta d-none">
-                          <span class="stream-decision-result-meta-item">
-                            <i class='bx bx-check-shield' aria-hidden="true"></i>
-                            Reports reviewed: {{ stream_questionnaire_answers.reports_reviewed }}
-                          </span>
-                          {% if stream_questionnaire_completed_at %}
-                          <span class="stream-decision-result-meta-item">
-                            <i class='bx bx-calendar' aria-hidden="true"></i>
-                            Submitted: {{ stream_questionnaire_completed_at[:10] }}
-                          </span>
-                          {% endif %}
-                        </div>
-                        {% endif %}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </section>
-              {% endif %}
+              <div class="psych-stream-columns psych-stream-columns--single">
+              {# Stream decision questionnaire result hidden from dashboard report view #}
 
               <section class="psych-stream-part psych-stream-part--suggested" aria-labelledby="psychStreamSuggestedPartTitle">
                 <div class="psych-stream-part-head">
@@ -1894,7 +1840,11 @@
                         <p class="psych-stream-career-panel-label">Suggested careers</p>
                         <div class="career-chip-grid career-group-chips{% if career_total > career_preview %} is-collapsed{% endif %}" data-career-group-chips>
                           {% for item in group_items %}
+                          {% if item.url %}
                           <a href="{{ item.url }}" class="career-chip" title="Explore {{ item.name }}">{{ item.name }}</a>
+                          {% else %}
+                          <span class="career-chip">{{ item.name }}</span>
+                          {% endif %}
                           {% else %}
                           {% for career in group.careers %}
                           <span class="career-chip">{{ career }}</span>
@@ -2175,7 +2125,11 @@
               </div>
               <div class="personality-career-chips career-chip-grid">
                 {% for item in group_items %}
+                {% if item.url %}
                 <a href="{{ item.url }}" class="career-chip" title="Explore {{ item.name }}">{{ item.name }}</a>
+                {% else %}
+                <span class="career-chip">{{ item.name }}</span>
+                {% endif %}
                 {% else %}
                 {% for career in group.careers %}
                 <span class="career-chip">{{ career }}</span>
@@ -2228,7 +2182,11 @@
                 </div>
                 <div class="career-chip-grid career-group-chips {% if career_total > career_preview %}is-collapsed{% endif %}" data-career-group-chips>
                   {% for item in group.career_items|default([]) %}
+                  {% if item.url %}
                   <a href="{{ item.url }}" class="career-chip" title="Explore {{ item.name }}">{{ item.name }}</a>
+                  {% else %}
+                  <span class="career-chip">{{ item.name }}</span>
+                  {% endif %}
                   {% else %}
                   {% for career in group.careers %}
                   <span class="career-chip">{{ career }}</span>

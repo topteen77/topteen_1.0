@@ -73,6 +73,33 @@ class Class10ReportGuidanceDbTest(TestCase):
         self.assertEqual(entry['name'], 'Nonexistent Career XYZ 999')
         self.assertIsNone(entry['url'])
 
+    def test_dashboard_career_groups_match_report_guidance(self):
+        guidance = {
+            'stream_wise_premium_careers': [
+                {
+                    'stream': 'PCM',
+                    'stream_code': 'PCM',
+                    'careers': [
+                        {'name': 'Software engineer', 'url': '/careers/software/'},
+                        {'name': 'AI/ML Engineer', 'url': None},
+                    ],
+                },
+                {
+                    'stream': 'PCB',
+                    'stream_code': 'PCB',
+                    'careers': [{'name': 'Doctor (MBBS)', 'url': '/careers/doctor/'}],
+                },
+            ],
+        }
+        from app.stream_sorter_guidance import career_groups_for_dashboard
+
+        groups = career_groups_for_dashboard(guidance)
+        self.assertEqual(len(groups), 2)
+        self.assertEqual(groups[0]['stream_tier'], 'best_fit')
+        self.assertEqual(groups[1]['stream_tier'], 'alternative')
+        self.assertEqual(groups[0]['careers'], ['Software engineer', 'AI/ML Engineer'])
+        self.assertEqual(groups[0]['career_items'][0]['url'], '/careers/software/')
+
     def test_import_lists_all_careers_from_json(self):
         if not JSON_PATH.exists():
             self.skipTest('unique streams JSON missing')

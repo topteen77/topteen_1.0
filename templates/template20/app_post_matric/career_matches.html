@@ -332,7 +332,7 @@
   {% if matches %}
     <div class="row">
       {% for match in matches %}
-      <div class="col-sm-6 col-lg-4 col-xl-4 mb-4">
+      <div class="col-sm-6 col-lg-3 col-xl-3 mb-4">
         <div class="match-card h-100">
           <div class="match-card-inner">
             <div class="match-card-image-wrapper">
@@ -341,7 +341,7 @@
                 alt="{{ match.career.name }}"
                 class="career-image"
               >
-              <span class="match-score-badge">
+              <span class="match-score-badge d-none">
                 <i class='bx bxs-star'></i>
                 {{ match.match_score|default(85) }}% match
               </span>

@@ -51,10 +51,12 @@
 
   .recommendation-card {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
     background: #ffffff;
     border-radius: 18px;
     padding: 16px 16px 14px;
-    margin-bottom: 24px;
     box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
     border: 1px solid rgba(148, 163, 184, 0.35);
     overflow: hidden;
@@ -89,6 +91,9 @@
   .recommendation-card-inner {
     display: flex;
     flex-direction: column;
+    flex: 1 1 auto;
+    height: 100%;
+    min-height: 0;
     gap: 12px;
   }
 
@@ -164,30 +169,55 @@
     font-size: 13px;
     color: #6b7280;
     margin-bottom: 8px;
+    min-height: 20px;
   }
 
   .career-summary {
     font-size: 14px;
     color: #4b5563;
-    margin-bottom: 10px;
-    min-height: 90px;
+    margin-bottom: 0;
+    flex: 1 1 auto;
+    min-height: 84px;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.45;
   }
 
   .recommendation-card-footer {
     display: flex;
     justify-content: flex-end;
     align-items: center;
+    flex-shrink: 0;
     margin-top: auto;
-    padding-top: 8px;
+    padding-top: 12px;
     border-top: 1px dashed rgba(148, 163, 184, 0.5);
   }
 
   .btn-view-details {
-    padding: 6px 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 7px 16px;
     font-size: 13px;
     border-radius: 999px;
     font-weight: 600;
-    border-width: 1px;
+    border: 1px solid #4c6ef5;
+    background-color: #ffffff;
+    color: #4c6ef5;
+    white-space: nowrap;
+    box-shadow: none;
+  }
+
+  .btn-view-details:hover,
+  .btn-view-details:focus,
+  .btn-view-details:active {
+    background-color: #4c6ef5;
+    border-color: #4c6ef5;
+    color: #ffffff;
+    box-shadow: none;
   }
 
   .btn-view-details i {
@@ -264,13 +294,13 @@
   <div class="container-fluid px-3 px-lg-4 text-center">
     <h1 class="mb-3">
       <img class="img-fluid" style="width: 50px;" src="{{ static('images_new/general/career-3d-icon.png') }}" alt="Top Recommendations Icon" />
-      Top Career Recommendations
+      Your Career Recommendations
     </h1>
     <p class="fs-18 mb-0 text-white">
       {% if has_tests %}
         Personalized from your test results
       {% else %}
-        Personalized from your profile
+      Personalized based on your profile
       {% endif %}
     </p>
   </div>
@@ -278,9 +308,9 @@
 
 <div class="container-fluid px-3 px-lg-4 py-4">
   {% if top_careers %}
-    <div class="row">
+    <div class="row g-4">
       {% for career, score in top_careers %}
-      <div class="col-sm-6 col-lg-4 col-xl-4 mb-4">
+      <div class="col-sm-6 col-lg-3 d-flex">
         <div class="recommendation-card h-100">
           <div class="recommendation-card-inner">
             <div class="recommendation-card-image-wrapper">
@@ -289,11 +319,11 @@
                 alt="{{ career.name }}"
                 class="career-image"
               >
-              <span class="score-badge">
+              <span class="score-badge d-none">
                 <i class='bx bxs-star'></i>
                 {{ score|round(1) }}% match
               </span>
-              <span class="rank-badge">#{{ loop.index }}</span>
+              <span class="rank-badge d-none">#{{ loop.index }}</span>
             </div>
 
             <div class="recommendation-card-body">
@@ -315,9 +345,9 @@
               </p>
 
               <div class="recommendation-card-footer">
-                <a href="{{ career.url() }}" class="btn btn-outline-primary btn-view-details">
+                <a href="{{ career.url() }}" class="btn btn-view-details">
                   View details
-                  <i class='bx bx-right-arrow-alt ms-1'></i>
+                  <i class='bx bx-right-arrow-alt'></i>
                 </a>
               </div>
             </div>

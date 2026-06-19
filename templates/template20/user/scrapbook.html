@@ -233,6 +233,24 @@
               </span>
               <div>
                 <p class="fs-16 fw-semibold mb-1 text-dark">My Hobbies</p>
+                <p class="text-gray fs-10 mb-0">Your hobbies and personal interests</p>
+              </div>
+            </div>
+            <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+          </div>
+      </a>
+
+      <!-- My Blogs -->
+      <a href="{{ url('users:bookmarkblog') }}" class="text-decoration-none">
+          <div class="scrapbook-card">
+            <div class="d-flex align-items-center gap-3">
+              <span class="dashboard-quicklinks-icon" style="background:#b8d4ff;">
+                <img src="{{ static('images_new/icons/e-books-icon.svg') }}" style="width: 26px; height: 26px;"
+                alt="My Blogs" />
+              </span>
+              <div>
+                <p class="fs-16 fw-semibold mb-1 text-dark">My Blogs</p>
+                <p class="text-gray fs-10 mb-0">Blogs that you have bookmarked</p>
               </div>
             </div>
             <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
@@ -270,25 +288,6 @@
 {{ super() }}
 
 </div>
-<script>
-  (function () {
-    var ensureSidebarOpen = function () {
-      var shell = document.getElementById('studentDashboardShell');
-      if (shell) {
-        shell.classList.remove('sidebar-collapsed');
-      }
-      try {
-        localStorage.setItem('topteen_student_dash_sidebar_collapsed', '0');
-      } catch (e) {}
-    };
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', ensureSidebarOpen);
-    } else {
-      ensureSidebarOpen();
-    }
-  })();
-</script>
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>

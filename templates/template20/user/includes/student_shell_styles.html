@@ -199,13 +199,9 @@
   }
 
   @media (min-width: 992px) {
-    #studentDashboardShell.student-dash-shell .student-dash-sidebar-col {
+    #studentDashboardShell.student-dash-shell .student-dash-sidebar-col,
+    #studentDashboardShell .student-dash-sidebar-col {
       transition: flex 0.28s ease, max-width 0.28s ease, width 0.28s ease, opacity 0.22s ease, padding 0.22s ease;
-      /* visible: overflow:hidden here breaks sticky + inner .profile-sidebar scroll */
-      overflow: visible;
-    }
-
-    #studentDashboardShell.student-dash-shell.sidebar-collapsed .student-dash-sidebar-col {
       flex: 0 0 0 !important;
       max-width: 0 !important;
       width: 0 !important;
@@ -214,13 +210,31 @@
       padding-right: 0 !important;
       pointer-events: none;
       overflow: hidden !important;
-      height: auto !important;
-      max-height: none !important;
+      height: 0 !important;
+      min-height: 0 !important;
+      max-height: 0 !important;
     }
 
-    #studentDashboardShell.student-dash-shell.sidebar-collapsed .student-dash-main-col {
+    #studentDashboardShell .student-dash-main-col {
       flex: 0 0 100% !important;
       max-width: 100% !important;
+    }
+
+    #studentDashboardShell.sidebar-open .student-dash-sidebar-col {
+      flex: 0 0 var(--std-sidebar-width) !important;
+      max-width: var(--std-sidebar-width) !important;
+      width: var(--std-sidebar-width) !important;
+      opacity: 1;
+      pointer-events: auto;
+      overflow: visible !important;
+      height: calc(100vh - 50px) !important;
+      min-height: 0 !important;
+      max-height: calc(100vh - 50px) !important;
+    }
+
+    #studentDashboardShell.sidebar-open .student-dash-main-col {
+      flex: 1 1 0% !important;
+      max-width: none !important;
     }
   }
 
@@ -350,9 +364,12 @@
     }
   }
 
-  body.student-dashboard-shell.logged-in.user-dashboard-fullscreen .user-dashboard,
   body.student-dashboard-shell .student-resume-shell {
     min-height: calc(100vh - 52px);
+    background: var(--dash-bg);
+  }
+
+  body.student-dashboard-shell.logged-in.user-dashboard-fullscreen .user-dashboard {
     background: var(--dash-bg);
   }
 
@@ -361,7 +378,6 @@
     max-width: 100%;
   }
 
-  body.student-dashboard-shell.logged-in.user-dashboard-fullscreen .user-dashboard .student-dash-shell.row,
   body.student-dashboard-shell .student-resume-shell .student-dash-shell.row {
     min-height: calc(100vh - 100px);
   }
@@ -374,11 +390,16 @@
     position: sticky;
     top: 50px;
     align-self: flex-start;
-    height: calc(100vh - 50px);
-    max-height: calc(100vh - 50px);
     display: flex;
     flex-direction: column;
     min-height: 0;
+  }
+
+  @media (min-width: 992px) {
+    body.student-dashboard-shell #studentDashboardShell.sidebar-open .student-dash-sidebar-col {
+      height: calc(100vh - 50px);
+      max-height: calc(100vh - 50px);
+    }
   }
 
   body.student-dashboard-shell .student-dash-sidebar-col > .profile-sidebar {

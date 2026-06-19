@@ -110,27 +110,110 @@
 }
 
 .bookmark-empty-state {
-  min-height: 52vh;
-  border: 1px dashed #d9dff0;
-  border-radius: 16px;
- }
+  max-width: 760px;
+  margin: 24px auto 0;
+  padding: 44px 26px;
+  border-radius: 20px;
+  border: 1px solid #dfe4ff;
+  background: linear-gradient(150deg, #ffffff 0%, #f7f8ff 50%, #f1f3ff 100%);
+  box-shadow: 0 18px 45px rgba(51, 64, 129, 0.1);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.bookmark-empty-state::before,
+.bookmark-empty-state::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(76, 51, 255, 0.08);
+  z-index: 0;
+}
+
+.bookmark-empty-state::before {
+  width: 190px;
+  height: 190px;
+  top: -80px;
+  right: -70px;
+}
+
+.bookmark-empty-state::after {
+  width: 140px;
+  height: 140px;
+  bottom: -55px;
+  left: -45px;
+}
+
+.bookmark-empty-content {
+  position: relative;
+  z-index: 1;
+}
 
 .bookmark-empty-icon {
-  width: 78px;
-  height: 78px;
+  width: 84px;
+  height: 84px;
   border-radius: 50%;
-  background: #eef1ff;
-  color: #3f37c9;
-  display: inline-flex;
+  margin: 0 auto 18px;
+  display: flex;
   align-items: center;
   justify-content: center;
+  color: #4c33ff;
+  font-size: 38px;
+  background: radial-gradient(circle at 30% 30%, #ffffff 0%, #ecebff 100%);
+  box-shadow: 0 8px 18px rgba(76, 51, 255, 0.22);
+}
+
+.bookmark-empty-title {
+  font-size: 1.55rem;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #1f2437;
+  margin-bottom: 10px;
+}
+
+.bookmark-empty-text {
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: #5d647d;
+  max-width: 520px;
+  margin: 0 auto 24px;
+}
+
+.bookmark-empty-btn {
+  min-width: 170px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+@media (max-width: 575.98px) {
+  .bookmark-empty-state {
+    margin-top: 10px;
+    border-radius: 16px;
+    padding: 30px 16px;
+  }
+
+  .bookmark-empty-title {
+    font-size: 1.2rem;
+  }
+
+  .bookmark-empty-text {
+    font-size: 0.9rem;
+    margin-bottom: 18px;
+  }
+
+  .bookmark-empty-icon {
+    width: 72px;
+    height: 72px;
+    font-size: 32px;
+  }
 }
 </style>
 {% endblock %}
 
 {% block student_shell_vars %}
 {{ super() }}
-{% set student_shell_subtitle = 'Videos' %}
+{% set student_shell_subtitle = 'My Videos' %}
 {% endblock %}
 
 {% block student_section_class %}bookmark-video-page  std-shell-main{% endblock %}
@@ -146,16 +229,27 @@
         {% endif %}
 
         <!-- Video Heading -->
-        <div class="d-md-flex d-none justify-content-between align-items-center mb-4 pt-4">
+        <div class="d-md-flex d-none justify-content-between align-items-center mb-4 border-bottom pb-3 mb-4">
           <h1 class="fs-24 fw-semibold mb-0">My Videos</h1>
+          {% if videos %}
+          <a href="{{ url('careers:careervideos') }}" class="btn custom-button purple-button d-none d-md-inline-flex align-items-center">
+            <i class='bx bx-search me-2'></i>
+            <span>Browse Videos</span>
+          </a>
+          {% endif %}
         </div>
 
         <!-- Mobile Header -->
-        <div class="d-lg-none d-flex justify-content-between align-items-center border-bottom pb-3 mb-4 position-relative">
-          <button type="button" class="btn btn-outline-secondary" onclick="window.history.back();">
-            <i class='bx bx-arrow-back fs-18 text-gray'></i>
+        <div class="d-lg-none d-flex justify-content-between align-items-center border-bottom pb-5 mb-4 position-relative">
+          <button type="button" class="btn btn-link position-absolute start-0 top-0" onclick="window.history.back();">
+            <i class='bx bx-arrow-left fs-18 text-gray'></i>
           </button>
           <h2 class="fs-21 fw-normal text-center mb-0 fw-bold">My Videos</h2>
+          {% if videos %}
+          <a href="{{ url('careers:careervideos') }}" class="btn btn-sm custom-button purple-button position-absolute end-0 top-0">
+            <i class='bx bx-search me-1'></i>Browse
+          </a>
+          {% endif %}
         </div>
 
         <!-- Videos Content -->
@@ -232,17 +326,21 @@
     </div>
     {% else %}
     <!-- Empty State -->
-    <div class="bookmark-empty-state text-center d-flex flex-column align-items-center justify-content-center p-4 p-md-5">
-      <div class="bookmark-empty-icon mb-3">
-        <i class='bx bx-video-recording fs-40'></i>
+    <div class="bookmark-empty-state">
+      <div class="bookmark-empty-content">
+        <div class="bookmark-empty-icon">
+          <i class='bx bx-video-recording'></i>
+        </div>
+        <h3 class="bookmark-empty-title">No Bookmarked Videos Yet</h3>
+        <p class="bookmark-empty-text">Start exploring videos and bookmark your favorites to view them here.</p>
+        <a href="{{ url('careers:careervideos') }}" class="btn custom-button purple-button bookmark-empty-btn d-inline-flex align-items-center justify-content-center gap-2">
+          <i class='bx bx-search'></i>
+          <span>Browse Videos</span>
+        </a>
       </div>
-      <h3 class="fs-20 fw-semibold text-dark mb-2">No Bookmarked Videos Yet</h3>
-      <p class="text-gray fs-14 mb-4">Start exploring videos and bookmark your favorites to view them here.</p>
-      <a href="{{ url('careers:careervideos') }}" class="btn custom-button purple-button px-4">
-        Browse Videos
-      </a>
     </div>
     {% endif %}
+</div>
 
 <!-- Video Modal -->
 <div class="modal fade" id="videoModal" tabindex="-1" aria-hidden="true">

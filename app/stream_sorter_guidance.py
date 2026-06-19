@@ -642,3 +642,39 @@ def build_report_stream_guidance(
         'data_source': catalog.get('source', 'unknown'),
     }
 
+
+def career_groups_for_dashboard(stream_sorter_guidance: dict | None) -> list[dict]:
+    """
+    Dashboard stream career chips using the same catalogue entries as the combined report.
+    """
+    if not stream_sorter_guidance:
+        return []
+
+    tier_slots = ('best_fit', 'alternative')
+    groups: list[dict] = []
+    for idx, group in enumerate(stream_sorter_guidance.get('stream_wise_premium_careers') or []):
+        career_items: list[dict] = []
+        for career in group.get('careers') or []:
+            if isinstance(career, dict):
+                name = str(career.get('name') or '').strip()
+                if not name:
+                    continue
+                item = {'name': name}
+                if career.get('url'):
+                    item['url'] = career['url']
+                career_items.append(item)
+            else:
+                name = str(career).strip()
+                if name:
+                    career_items.append({'name': name})
+
+        groups.append({
+            'code': group.get('stream_code') or '',
+            'name': group.get('stream') or '',
+            'stream': group.get('stream') or '',
+            'stream_tier': tier_slots[idx] if idx < len(tier_slots) else '',
+            'careers': [item['name'] for item in career_items],
+            'career_items': career_items,
+        })
+    return groups
+

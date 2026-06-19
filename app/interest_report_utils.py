@@ -15,6 +15,70 @@ RIASEC_NAME_TO_CODE = {
 
 RIASEC_CODE_TO_NAME = {code: name for name, code in RIASEC_NAME_TO_CODE.items()}
 
+# Canonical "Careers to Choose" lists — keep aligned with test2_report.html / combined report.
+RIASEC_CAREERS_TO_CHOOSE = {
+    'R': [
+        'Mechanical Engineering',
+        'Construction Management',
+        'Aviation (Pilots)',
+        'Surveying and Mapping',
+        'Skilled Trades',
+        'Industrial Engineering',
+        'Automotive Engineering',
+        'Environmental Health and Safety Specialist',
+    ],
+    'I': [
+        'Research and Development',
+        'Data Science and Analytics',
+        'Biotechnology and Life Sciences',
+        'Software Engineering',
+        'Forensic Science',
+        'Medical Research',
+        'Environmental Science',
+        'Epidemiology',
+    ],
+    'A': [
+        'Graphic Design',
+        'Writing and Publishing',
+        'Music and Performing Arts',
+        'Film and Media Production',
+        'Art Direction',
+        'Animation',
+        'Interior Design',
+        'Fashion Design',
+    ],
+    'S': [
+        'Counseling and Therapy',
+        'Education and Teaching',
+        'Healthcare (e.g., Nursing, Physician Assistant)',
+        'Social Services',
+        'Human Resources',
+        'Occupational Therapy',
+        'Public Relations',
+        'Nonprofit Management',
+    ],
+    'E': [
+        'Entrepreneurship',
+        'Marketing and Sales',
+        'Real Estate',
+        'Business Consulting',
+        'Executive Leadership',
+        'Management Consulting',
+        'Venture Capital',
+        'Investment Banking',
+    ],
+    'C': [
+        'Accounting and Finance',
+        'Administrative and Office Management',
+        'Data Analysis',
+        'Project Management',
+        'Banking and Financial Services',
+        'Compliance and Risk Management',
+        'Supply Chain Management',
+        'Investment Analysis',
+    ],
+}
+
 
 def _category_to_code(name):
     if not name:
