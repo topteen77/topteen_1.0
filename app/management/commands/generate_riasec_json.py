@@ -131,6 +131,13 @@ def parse_career_segments(career_text: str) -> list[tuple[str, list[str]]]:
     return segments
 
 
+def parse_flat_career_pathways(career_text: str) -> list[str]:
+    """Parse comma-separated Career Pathways column (new docx format)."""
+    if not career_text:
+        return []
+    return [item.strip() for item in career_text.strip().rstrip(".").split(",") if item.strip()]
+
+
 def label_to_key(label: str) -> str:
     label = label.strip()
     base_label = re.sub(r"\s*\(Set\s*\d+\)\s*$", "", label, flags=re.I).strip()
@@ -246,8 +253,6 @@ class Command(BaseCommand):
                 career_text = cells[4]
 
                 segments = parse_career_segments(career_text)
-                stream_careers = assign_stream_careers(stream1_raw, stream2_raw, segments)
-
                 stream_keys: list[str] = []
                 streams: dict[str, list[str]] = {}
                 for stream_raw in (stream1_raw, stream2_raw):
@@ -257,20 +262,30 @@ class Command(BaseCommand):
                     stream_keys.append(stream_key)
                     streams[stream_key] = [stream_label(stream_key if "(Set 2)" in stream_key else stream_raw)]
 
-                for extra_key in stream_careers:
-                    if extra_key not in streams:
-                        stream_keys.append(extra_key)
-                        streams[extra_key] = [stream_label(extra_key)]
-
-                ordered_streams = {key: streams[key] for key in stream_keys if key in streams}
-                ordered_stream_careers = {
-                    key: stream_careers.get(key, [])
-                    for key in ordered_streams
-                }
-
-                all_careers: list[str] = []
-                for careers in ordered_stream_careers.values():
-                    all_careers.extend(careers)
+                if segments:
+                    stream_careers = assign_stream_careers(stream1_raw, stream2_raw, segments)
+                    for extra_key in stream_careers:
+                        if extra_key not in streams:
+                            stream_keys.append(extra_key)
+                            streams[extra_key] = [stream_label(extra_key)]
+                    ordered_streams = {key: streams[key] for key in stream_keys if key in streams}
+                    ordered_stream_careers = {
+                        key: stream_careers.get(key, [])
+                        for key in ordered_streams
+                    }
+                    all_careers: list[str] = []
+                    for careers in ordered_stream_careers.values():
+                        all_careers.extend(careers)
+                else:
+                    flat_careers = parse_flat_career_pathways(career_text)
+                    ordered_streams = {key: streams[key] for key in stream_keys if key in streams}
+                    ordered_stream_careers = {
+                        key: list(flat_careers) for key in ordered_streams
+                    }
+                    all_careers = list(flat_careers)
+                    career_pathways_mode = "combined"
+                if segments:
+                    career_pathways_mode = "individual"
 
                 entries.append(
                     {
@@ -282,6 +297,7 @@ class Command(BaseCommand):
                         "best_colleges": best_colleges_map.get(code, ""),
                         "streams": ordered_streams,
                         "stream_careers": ordered_stream_careers,
+                        "career_pathways_mode": career_pathways_mode,
                     }
                 )
 

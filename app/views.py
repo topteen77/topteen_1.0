@@ -650,7 +650,7 @@ def dashboard(request, student_id=None):
                     continue
                 personality_suggested_career_groups.append({
                     'code': section.get('code', ''),
-                    'name': section.get('code', 'Suggested stream'),
+                    'name': section.get('title') or section.get('code', 'Suggested stream'),
                     'careers': careers,
                 })
             if not personality_suggested_career_groups and courseName:
@@ -872,22 +872,8 @@ def final_assessment_pdf(request):
 
 
 def get_stream_career_sections(top_category):
-    """Return per-stream suggested career blocks for personality reports."""
-    if not top_category:
-        return []
-    sections = []
-    for stream in Stream.objects.filter(category=top_category).order_by("id"):
-        careers = stream.career_options if isinstance(stream.career_options, list) else []
-        if not careers:
-            continue
-        sections.append(
-            {
-                "code": stream.stream_name,
-                "label": stream.subjects,
-                "careers": careers,
-            }
-        )
-    return sections
+    from app.riasec_report_utils import get_stream_career_sections as _get_sections
+    return _get_sections(top_category)
 
 
 def db_results_inst_user(user):

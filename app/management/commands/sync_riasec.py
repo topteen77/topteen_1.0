@@ -8,6 +8,7 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from app.models import Category, Course, Stream
+from app.riasec_report_utils import normalize_career_pathways_mode
 
 
 class Command(BaseCommand):
@@ -88,6 +89,9 @@ class Command(BaseCommand):
                 "summary": entry["summary"],
                 "fields": entry["fields"],
                 "best_colleges": entry.get("best_colleges") or "",
+                "career_pathways_mode": normalize_career_pathways_mode(
+                    entry.get("career_pathways_mode")
+                ),
             },
         )
 
@@ -123,18 +127,36 @@ class Command(BaseCommand):
         return []
 
     def _course_names(self, entry) -> list[str]:
-        names: list[str] = []
+        mode = normalize_career_pathways_mode(entry.get("career_pathways_mode"))
+        if entry.get("courses"):
+            return self._dedupe_names(
+                str(item).strip() for item in entry["courses"] if str(item).strip()
+            )
+
         stream_careers = entry.get("stream_careers") or {}
         if stream_careers:
+            if mode == Category.CAREER_PATHWAYS_COMBINED:
+                first_careers = next(iter(stream_careers.values()), [])
+                return self._dedupe_names(
+                    str(item).strip() for item in first_careers if str(item).strip()
+                )
+            names: list[str] = []
             for careers in stream_careers.values():
                 names.extend(str(item).strip() for item in careers if str(item).strip())
-        elif entry.get("courses"):
-            names.extend(str(item).strip() for item in entry["courses"] if str(item).strip())
-        else:
-            for _stream_name, stream_data in (entry.get("streams") or {}).items():
-                _label, careers = self._parse_legacy_stream(stream_data)
-                names.extend(careers)
-        return names
+            return self._dedupe_names(names)
+
+        names = []
+        for _stream_name, stream_data in (entry.get("streams") or {}).items():
+            _label, careers = self._parse_legacy_stream(stream_data)
+            names.extend(careers)
+        return self._dedupe_names(names)
+
+    def _dedupe_names(self, names) -> list[str]:
+        seen: list[str] = []
+        for name in names:
+            if name and name not in seen:
+                seen.append(name)
+        return seen
 
     def _stream_label(self, stream_name, stream_data) -> str:
         label, _careers = self._parse_legacy_stream(stream_data)
