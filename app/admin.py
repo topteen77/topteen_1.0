@@ -51,6 +51,8 @@ class StreamInline(admin.TabularInline):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('category', 'fullname', 'career_pathways_mode')
+    list_filter = ('career_pathways_mode',)
     inlines = [CourseInline, StreamInline]
 
 admin.site.register(Course)

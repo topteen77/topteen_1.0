@@ -490,35 +490,7 @@
       {% endif %}
     </div>
 
-    {% if stream_career_sections %}
-      {% for section in stream_career_sections %}
-      <div class="cat-box cat-one-box" style="margin-top: 12px;">
-        <div class="cat-head" style="background: #3F37C9; color:#fff; margin: 0px;">
-          <h4 style="font-size: 16px; width:600px; margin: 0px;">Suggested Careers — {{ section.code }}</h4>
-        </div>
-        <div class="cat-list" style="padding:6px; margin-top:0px;">
-          <ul >
-            {% for value in section.careers %}
-            <li>{{ value }}</li>
-            {% endfor %}
-          </ul>
-        </div>
-      </div>
-      {% endfor %}
-    {% elif courseName %}
-    <div class="cat-box cat-one-box">
-      <div class="cat-head" style="background: #3F37C9; color:#fff; margin: 0px;">
-        <h4 style="font-size: 16px; width:600px; margin: 0px;">Suggested Careers</h4>
-      </div>
-      <div class="cat-list" style="padding:6px; margin-top:0px;">
-        <ul style="column-count:3;">
-          {% for value in courseName %}
-          <li>{{ value }}</li>
-          {% endfor %}
-        </ul>
-      </div>
-    </div>
-    {% endif %}
+    {% include 'template20/app/partials/stream_career_sections.html' %}
   </div>
   {% endif %}
   

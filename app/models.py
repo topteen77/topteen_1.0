@@ -97,11 +97,24 @@ class Results(models.Model):
 # inserting the RIASEC.json
 
 class Category(models.Model):
+    CAREER_PATHWAYS_COMBINED = 'combined'
+    CAREER_PATHWAYS_INDIVIDUAL = 'individual'
+    CAREER_PATHWAYS_MODE_CHOICES = [
+        (CAREER_PATHWAYS_COMBINED, 'Combined (Career Pathways)'),
+        (CAREER_PATHWAYS_INDIVIDUAL, 'Individual (per stream)'),
+    ]
+
     category = models.CharField(max_length=3, unique=True)  # e.g., 'RIA'
     fullname = models.CharField(max_length=255)  # e.g., 'RIA (Realistic, Investigative, Artistic)'
     summary = models.TextField()
     fields = models.TextField()
     best_colleges = models.TextField(blank=True, null=True)  # Colleges may be empty
+    career_pathways_mode = models.CharField(
+        max_length=16,
+        choices=CAREER_PATHWAYS_MODE_CHOICES,
+        default=CAREER_PATHWAYS_INDIVIDUAL,
+        help_text='Combined shows one "Career Pathways" block; individual shows per-stream titles.',
+    )
 
     def __str__(self):
         return self.fullname

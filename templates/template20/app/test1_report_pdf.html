@@ -407,35 +407,9 @@
       {% endif %}
     </div>
 
-    {% if stream_career_sections %}
-      {% for section in stream_career_sections %}
-      <div class="cat-box cat-one-box" style="margin-top: 12px;">
-        <div class="cat-head" style="background: #3F37C9; color:#fff; margin: 0px;">
-          <h4 style="font-size: 16px; width:600px; margin: 0px; text-align: center;">Suggested Careers — {{ section.code }}</h4>
-        </div>
-        <div class="cat-list" style="padding:6px; margin-top:0px; height:150px; max-height: 150px;min-height: 150px;">
-          <ul style="column-count:3; list-style: disc; padding-left: 23px;">
-            {% for value in section.careers %}
-            <li style="list-style: disc;">{{ value }}</li>
-            {% endfor %}
-          </ul>
-        </div>
-      </div>
-      {% endfor %}
-    {% elif courseName %}
-    <div class="cat-box cat-one-box">
-      <div class="cat-head" style="background: #3F37C9; color:#fff; margin: 0px;">
-        <h4 style="font-size: 16px; width:600px; margin: 0px; text-align: center;">Suggested Careers</h4>
-      </div>
-      <div class="cat-list" style="padding:6px; margin-top:0px;">
-        <ul style="column-count:3; list-style: disc; padding-left: 23px;">
-          {% for value in courseName %}
-          <li style="list-style: disc;">{{ value }}</li>
-          {% endfor %}
-        </ul>
-      </div>
-    </div>
-    {% endif %}
+    {% with section_title_center=true, section_column_count=3, section_list_disc=true, section_list_height='150px' %}
+    {% include 'template20/app/partials/stream_career_sections.html' %}
+    {% endwith %}
   </div>
 </body>
 </html>
