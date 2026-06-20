@@ -14,6 +14,7 @@ urlpatterns = [
    path('demo-login/', views.DemoLoginView.as_view(), name='demo_login'),
    path('profiledetails/', views.ProfileBasicDetails.as_view(), name="profiledetails"),
    path('viewprofile/', views.ViewProfile.as_view(), name="viewprofile"),
+   path('update-profile-section/', views.UpdateProfileSectionView.as_view(), name="update_profile_section"),
    path('loginsingup/',views.LoginSignUp.as_view(),name='loginsingup'),
    path('signupverifyotp/',views.SignUpVerifyOTP.as_view(),name='signupotpverify'),
    path('signuppwd/',views.SignUpPassword.as_view(),name='signuppwd'),

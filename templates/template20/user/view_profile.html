@@ -64,8 +64,53 @@
   }
   .edit-profile-btn:hover {
     background: #2d28a0;
+    color: white;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(63, 55, 201, 0.3);
+  }
+  .profile-choice-tab {
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid #cbcbcb;
+    margin-bottom: 0;
+  }
+  .profile-choice-tab:hover {
+    background: #e9ecef !important;
+  }
+  .profile-choice-tab.active-choice {
+    background: #3f37c9 !important;
+    color: white;
+    border-color: #3f37c9;
+  }
+  .profile-choice-tab.active-choice p,
+  .profile-choice-tab.active-choice .text-muted {
+    color: white !important;
+  }
+
+  /* List modals: keep header/footer visible, scroll the options list */
+  .profile-list-modal-dialog.modal-dialog-scrollable {
+    max-height: calc(100vh - 1rem);
+    margin: 0.5rem auto;
+  }
+  .profile-list-modal-dialog .modal-content {
+    max-height: calc(100vh - 1rem);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .profile-list-modal-dialog .profile-modal-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .profile-list-modal-dialog .profile-modal-scroll-body {
+    overflow-y: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: calc(100vh - 220px);
+    -webkit-overflow-scrolling: touch;
   }
 
   @media (max-width: 767.98px) {
@@ -84,21 +129,16 @@
     }
   }
 
+  .student-dash-main-col {
+    padding: 0px;
+    background: #eef1f8;
+    height: calc(100vh - 52px);
+    overflow-y: auto;
+  }
 
-.student-dash-main-col {
-	padding: 0px;
-  background: #eef1f8;
-  height: calc(100vh - 52px);
-  overflow-y: auto;
-}
-
-.std-shell-main {
-  padding-top: 52px;
-}
-
-
-
-
+  .std-shell-main {
+    padding-top: 52px;
+  }
 </style>
 {% endblock %}
 
@@ -119,9 +159,11 @@
         <div class="profile-card">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h3 class="profile-section-title mb-0">Personal Information</h3>
-            <a href="{{ url('users:profiledetails') }}" class="edit-profile-btn text-decoration-none">
+            {% if not is_parent_view %}
+            <button type="button" class="edit-profile-btn" id="openPersonalInfoModal">
               <i class="bx bx-edit me-2"></i>Add/Edit Contact Info
-            </a>
+            </button>
+            {% endif %}
           </div>
           {% set missing_email = not profile_user.email %}
           {% set missing_mobile = not profile_user.mobile %}
@@ -155,7 +197,7 @@
             {% if profile_user.user_profile %}
             <div class="col-md-6">
               <div class="profile-field">
-                <div class="profile-label">Birthday</div>
+                <div class="profile-label">Date of Birth</div>
                 <div class="profile-value">{{ profile_user.user_profile.birthdate|default('Not set') }}</div>
               </div>
             </div>
@@ -191,9 +233,11 @@
         <div class="profile-card">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h3 class="profile-section-title mb-0">Parent Accounts</h3>
+            {% if not is_parent_view %}
             <button type="button" class="edit-profile-btn" id="openParentOtpModal">
               Add Parent Mobile
             </button>
+            {% endif %}
           </div>
           {% if linked_parents and linked_parents|length %}
             <div class="row">
@@ -207,49 +251,23 @@
               {% endfor %}
             </div>
           {% else %}
-            <div class="text-muted">No parent accounts linked yet. Add parent mobile from Edit Profile.</div>
+            <div class="text-muted">No parent accounts linked yet. Add parent mobile using the button above.</div>
           {% endif %}
-        </div>
-
-        <!-- Parent OTP Modal -->
-        <div class="modal fade" id="parentOtpModalView" tabindex="-1" aria-hidden="true">
-          <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title">Verify Parent Mobile</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                <div id="parentOtpErrView" class="text-danger fs-12 mb-2" style="display:none;"></div>
-                <div class="mb-3">
-                  <label class="form-label fw-600">Parent Mobile</label>
-                  <input type="text" class="form-control" id="parentOtpMobileView" maxlength="10" inputmode="numeric" pattern="[0-9]*" placeholder="Enter 10 digit mobile number" />
-                </div>
-                <button type="button" class="btn custom-button purple-button fw-600 w-100 mb-3" id="parentOtpSendBtnView">Send OTP</button>
-
-                <div id="parentOtpBoxView" style="display:none;">
-                  <label class="form-label fw-600">Enter OTP</label>
-                  <div class="d-flex justify-content-between gap-2 mb-3">
-                    <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pv1" />
-                    <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pv2" />
-                    <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pv3" />
-                    <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pv4" />
-                    <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pv5" />
-                    <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pv6" />
-                  </div>
-                  <button type="button" class="btn custom-button purple-button fw-600 w-100" id="parentOtpVerifyBtnView">Verify & Add Parent</button>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
         {% if profile_user.user_profile %}
         <!-- What are you here for? -->
         {% set figure_outs = profile_user.user_profile.figure_out.all() %}
-        {% if figure_outs|length > 0 %}
         <div class="profile-card">
-          <h3 class="profile-section-title">What are you here for?</h3>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="profile-section-title mb-0">What are you here for?</h3>
+            {% if not is_parent_view %}
+            <button type="button" class="edit-profile-btn" id="openFigureOutModal">
+              <i class="bx bx-edit me-2"></i>Edit
+            </button>
+            {% endif %}
+          </div>
+          {% if figure_outs|length > 0 %}
           <div class="d-flex flex-wrap">
             {% for fo in figure_outs %}
             <span class="profile-badge">
@@ -260,16 +278,25 @@
             </span>
             {% endfor %}
           </div>
+          {% else %}
+          <div class="text-muted">Not set yet. Click Edit to add your preferences.</div>
+          {% endif %}
         </div>
-        {% endif %}
 
         <!-- Subjects -->
-        {% set subjects = profile_user.user_profile.subject.all() %}
-        {% if subjects|length > 0 %}
+        {% set subjects_list = profile_user.user_profile.subject.all() %}
         <div class="profile-card">
-          <h3 class="profile-section-title">Subjects</h3>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="profile-section-title mb-0">Subjects</h3>
+            {% if not is_parent_view %}
+            <button type="button" class="edit-profile-btn" id="openSubjectsModal">
+              <i class="bx bx-edit me-2"></i>Edit
+            </button>
+            {% endif %}
+          </div>
+          {% if subjects_list|length > 0 %}
           <div class="d-flex flex-wrap">
-            {% for subj in subjects %}
+            {% for subj in subjects_list %}
             <span class="profile-badge">
               {% if subj.image %}
               <img src="{{ subj.image.url }}" alt="{{ subj.name }}" style="width: 20px; height: 20px; object-fit: cover; border-radius: 50%; margin-right: 8px; vertical-align: middle;" />
@@ -278,14 +305,23 @@
             </span>
             {% endfor %}
           </div>
+          {% else %}
+          <div class="text-muted">Not set yet. Click Edit to add your subjects.</div>
+          {% endif %}
         </div>
-        {% endif %}
 
         <!-- Hobbies -->
         {% set hobbies_list = profile_user.user_profile.hobbies.all() %}
-        {% if hobbies_list|length > 0 %}
         <div class="profile-card">
-          <h3 class="profile-section-title">Hobbies</h3>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="profile-section-title mb-0">Hobbies</h3>
+            {% if not is_parent_view %}
+            <button type="button" class="edit-profile-btn" id="openHobbiesModal">
+              <i class="bx bx-edit me-2"></i>Edit
+            </button>
+            {% endif %}
+          </div>
+          {% if hobbies_list|length > 0 %}
           <div class="d-flex flex-wrap">
             {% for hobby in hobbies_list %}
             <span class="profile-badge">
@@ -296,18 +332,202 @@
             </span>
             {% endfor %}
           </div>
+          {% else %}
+          <div class="text-muted">Not set yet. Click Edit to add your hobbies.</div>
+          {% endif %}
         </div>
-        {% endif %}
         {% endif %}
       </div>
 {% endblock %}
 
+{% block student_modals %}
+{% if not is_parent_view %}
+<!-- Parent OTP Modal -->
+<div class="modal fade" id="parentOtpModalView" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Verify Parent Mobile</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div id="parentOtpErrView" class="text-danger fs-12 mb-2" style="display:none;"></div>
+        <div class="mb-3">
+          <label class="form-label fw-600">Parent Mobile</label>
+          <input type="text" class="form-control" id="parentOtpMobileView" maxlength="10" inputmode="numeric" pattern="[0-9]*" placeholder="Enter parent mobile number" />
+        </div>
+        <button type="button" class="btn custom-button purple-button fw-600 w-100 mb-3" id="parentOtpSendBtnView">Send OTP</button>
+
+        <div id="parentOtpBoxView" style="display:none;">
+          <label class="form-label fw-600">Enter OTP</label>
+          <div class="d-flex justify-content-between gap-2 mb-3">
+            <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pv1" />
+            <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pv2" />
+            <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pv3" />
+            <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pv4" />
+            <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pv5" />
+            <input class="form-control text-center" maxlength="1" inputmode="numeric" id="pv6" />
+          </div>
+          <button type="button" class="btn custom-button purple-button fw-600 w-100" id="parentOtpVerifyBtnView">Verify & Add Parent</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include 'template20/user/includes/profile_section_modals.html' %}
+{% endif %}
+{% endblock %}
+
 {% block additionaljs %}
 {{ super() }}
-
-</div>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    const csrfToken = '{{ csrf_token }}';
+    const updateSectionUrl = "{{ url('users:update_profile_section') }}";
+
+    function setErr(el, msg) {
+      if (!el) return;
+      el.textContent = msg;
+      el.style.display = msg ? 'block' : 'none';
+    }
+
+    function initChoiceTabs(scope) {
+      (scope || document).querySelectorAll('.profile-choice-tab').forEach(function(tab) {
+        const checkbox = tab.querySelector('input[type="checkbox"]');
+        if (!checkbox) return;
+        tab.classList.toggle('active-choice', checkbox.checked);
+        tab.addEventListener('click', function(e) {
+          e.preventDefault();
+          checkbox.checked = !checkbox.checked;
+          tab.classList.toggle('active-choice', checkbox.checked);
+        });
+      });
+    }
+
+    function submitProfileSection(form, section, errEl, submitBtn) {
+      const fd = new FormData(form);
+      fd.append('section', section);
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.dataset.originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Saving...';
+      }
+      setErr(errEl, '');
+      return fetch(updateSectionUrl, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrfToken },
+        body: fd
+      })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.success) {
+            location.reload();
+          } else {
+            setErr(errEl, data.message || 'Unable to save changes');
+          }
+        })
+        .catch(function() { setErr(errEl, 'Unable to save changes'); })
+        .finally(function() {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = submitBtn.dataset.originalText || 'Save Changes';
+          }
+        });
+    }
+
+    initChoiceTabs(document);
+
+    // Personal Information modal
+    const personalBtn = document.getElementById('openPersonalInfoModal');
+    const personalModalEl = document.getElementById('personalInfoModal');
+    if (personalBtn && personalModalEl) {
+      const personalModal = new bootstrap.Modal(personalModalEl);
+      const personalForm = document.getElementById('personalInfoForm');
+      const personalErr = document.getElementById('personalInfoErr');
+      const personalSaveBtn = document.getElementById('personalInfoSaveBtn');
+      const piMobile = document.getElementById('piMobile');
+
+      personalBtn.addEventListener('click', function() {
+        setErr(personalErr, '');
+        personalModal.show();
+      });
+
+      if (piMobile) {
+        piMobile.addEventListener('input', function() {
+          piMobile.value = (piMobile.value || '').replace(/\D+/g, '').slice(0, 10);
+        });
+      }
+
+      if (personalForm) {
+        personalForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          submitProfileSection(personalForm, 'personal', personalErr, personalSaveBtn);
+        });
+      }
+    }
+
+    // Figure out modal
+    const figureOutBtn = document.getElementById('openFigureOutModal');
+    const figureOutModalEl = document.getElementById('figureOutModal');
+    if (figureOutBtn && figureOutModalEl) {
+      const figureOutModal = new bootstrap.Modal(figureOutModalEl);
+      const figureOutForm = document.getElementById('figureOutForm');
+      const figureOutErr = document.getElementById('figureOutErr');
+      figureOutBtn.addEventListener('click', function() {
+        setErr(figureOutErr, '');
+        figureOutModal.show();
+      });
+      if (figureOutForm) {
+        figureOutForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          const btn = figureOutForm.querySelector('button[type="submit"]');
+          submitProfileSection(figureOutForm, 'figure_out', figureOutErr, btn);
+        });
+      }
+    }
+
+    // Subjects modal
+    const subjectsBtn = document.getElementById('openSubjectsModal');
+    const subjectsModalEl = document.getElementById('subjectsModal');
+    if (subjectsBtn && subjectsModalEl) {
+      const subjectsModal = new bootstrap.Modal(subjectsModalEl);
+      const subjectsForm = document.getElementById('subjectsForm');
+      const subjectsErr = document.getElementById('subjectsErr');
+      subjectsBtn.addEventListener('click', function() {
+        setErr(subjectsErr, '');
+        subjectsModal.show();
+      });
+      if (subjectsForm) {
+        subjectsForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          const btn = subjectsForm.querySelector('button[type="submit"]');
+          submitProfileSection(subjectsForm, 'subjects', subjectsErr, btn);
+        });
+      }
+    }
+
+    // Hobbies modal
+    const hobbiesBtn = document.getElementById('openHobbiesModal');
+    const hobbiesModalEl = document.getElementById('hobbiesModal');
+    if (hobbiesBtn && hobbiesModalEl) {
+      const hobbiesModal = new bootstrap.Modal(hobbiesModalEl);
+      const hobbiesForm = document.getElementById('hobbiesForm');
+      const hobbiesErr = document.getElementById('hobbiesErr');
+      hobbiesBtn.addEventListener('click', function() {
+        setErr(hobbiesErr, '');
+        hobbiesModal.show();
+      });
+      if (hobbiesForm) {
+        hobbiesForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          const btn = hobbiesForm.querySelector('button[type="submit"]');
+          submitProfileSection(hobbiesForm, 'hobbies', hobbiesErr, btn);
+        });
+      }
+    }
+
+    // Parent OTP modal
     const openBtn = document.getElementById('openParentOtpModal');
     const modalEl = document.getElementById('parentOtpModalView');
     if (!openBtn || !modalEl) return;
@@ -319,12 +539,8 @@
     const sendBtn = document.getElementById('parentOtpSendBtnView');
     const verifyBtn = document.getElementById('parentOtpVerifyBtnView');
     const otpIds = ['pv1','pv2','pv3','pv4','pv5','pv6'];
-    const otpInputs = otpIds.map(id => document.getElementById(id)).filter(Boolean);
+    const otpInputs = otpIds.map(function(id) { return document.getElementById(id); }).filter(Boolean);
 
-    function setErr(msg) {
-      errEl.textContent = msg;
-      errEl.style.display = msg ? 'block' : 'none';
-    }
     function onlyDigits10() {
       mobileEl.value = (mobileEl.value || '').replace(/\D+/g, '').slice(0, 10);
     }
@@ -333,77 +549,76 @@
     function setOtpFromString(str) {
       const digits = (str || '').replace(/\D+/g, '').slice(0, 6);
       for (let i = 0; i < otpInputs.length; i++) otpInputs[i].value = digits[i] || '';
-      (otpInputs.find(i => !i.value) || otpInputs[otpInputs.length-1])?.focus();
+      (otpInputs.find(function(i) { return !i.value; }) || otpInputs[otpInputs.length-1])?.focus();
     }
-    otpInputs.forEach((inp, idx) => {
-      inp.addEventListener('input', () => {
+    otpInputs.forEach(function(inp, idx) {
+      inp.addEventListener('input', function() {
         inp.value = (inp.value || '').replace(/\D+/g, '').slice(0, 1);
         if (inp.value && idx < otpInputs.length-1) otpInputs[idx+1].focus();
       });
-      inp.addEventListener('keydown', (e) => {
+      inp.addEventListener('keydown', function(e) {
         if (e.key === 'Backspace') {
           if (inp.value) { inp.value=''; e.preventDefault(); return; }
           if (idx>0) { otpInputs[idx-1].focus(); otpInputs[idx-1].value=''; e.preventDefault(); }
         }
       });
-      inp.addEventListener('paste', (e) => {
+      inp.addEventListener('paste', function(e) {
         const text = (e.clipboardData || window.clipboardData)?.getData('text') || '';
         if (text) { e.preventDefault(); setOtpFromString(text); }
       });
     });
 
     openBtn.addEventListener('click', function() {
-      setErr('');
+      setErr(errEl, '');
       boxEl.style.display = 'none';
-      otpInputs.forEach(i => i.value='');
+      otpInputs.forEach(function(i) { i.value=''; });
       modal.show();
-      setTimeout(() => mobileEl.focus(), 50);
+      setTimeout(function() { mobileEl.focus(); }, 50);
     });
 
     sendBtn.addEventListener('click', function() {
       const mobile = (mobileEl.value || '').trim();
-      if (!/^[6-9]\d{9}$/.test(mobile)) { setErr('Please enter a valid 10-digit mobile number'); return; }
-      setErr('');
+      if (!/^[6-9]\d{9}$/.test(mobile)) { setErr(errEl, 'Please enter a valid 10-digit mobile number'); return; }
+      setErr(errEl, '');
       const fd = new FormData();
       fd.append('parent_mobile', mobile);
       fetch("{{ url('users:send_parent_otp') }}", {
         method: 'POST',
-        headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+        headers: { 'X-CSRFToken': csrfToken },
         body: fd
-      }).then(r => r.json()).then(data => {
+      }).then(function(r) { return r.json(); }).then(function(data) {
         if (data.success) {
           boxEl.style.display = 'block';
-          otpInputs.forEach(i => i.value='');
+          otpInputs.forEach(function(i) { i.value=''; });
           otpInputs[0]?.focus();
         } else {
-          setErr(data.message || 'Unable to send OTP');
+          setErr(errEl, data.message || 'Unable to send OTP');
         }
-      }).catch(() => setErr('Unable to send OTP'));
+      }).catch(function() { setErr(errEl, 'Unable to send OTP'); });
     });
 
     verifyBtn.addEventListener('click', function() {
       const mobile = (mobileEl.value || '').trim();
-      const otp = otpInputs.map(i => (i.value || '').trim()).join('');
-      if (!/^[6-9]\d{9}$/.test(mobile)) { setErr('Please enter a valid 10-digit mobile number'); return; }
-      if (otp.length !== 6) { setErr('Please enter the 6-digit OTP'); return; }
-      setErr('');
+      const otp = otpInputs.map(function(i) { return (i.value || '').trim(); }).join('');
+      if (!/^[6-9]\d{9}$/.test(mobile)) { setErr(errEl, 'Please enter a valid 10-digit mobile number'); return; }
+      if (otp.length !== 6) { setErr(errEl, 'Please enter the 6-digit OTP'); return; }
+      setErr(errEl, '');
       const fd = new FormData();
       fd.append('parent_mobile', mobile);
       fd.append('parent_name', 'Parent');
       fd.append('otp', otp);
       fetch("{{ url('users:verify_parent_otp') }}", {
         method: 'POST',
-        headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+        headers: { 'X-CSRFToken': csrfToken },
         body: fd
-      }).then(r => r.json()).then(data => {
+      }).then(function(r) { return r.json(); }).then(function(data) {
         if (data.success) {
           location.reload();
         } else {
-          setErr(data.message || 'Invalid OTP');
+          setErr(errEl, data.message || 'Invalid OTP');
         }
-      }).catch(() => setErr('Unable to verify OTP'));
+      }).catch(function() { setErr(errEl, 'Unable to verify OTP'); });
     });
   });
 </script>
 {% endblock %}
-

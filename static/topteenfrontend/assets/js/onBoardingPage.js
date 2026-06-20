@@ -99,7 +99,7 @@ function validateuserinfoform(){
         return false
     }
     if ($('input[name="userbirthdaydate"]').val()==""){
-        fireAlert("Please enter a birth date","error")
+        fireAlert("Please enter your date of birth","error")
         return false
     }
     if (document.getElementById('gender').value==""){

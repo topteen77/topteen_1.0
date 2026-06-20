@@ -1,0 +1,184 @@
+{# Personal Information Modal #}
+<div class="modal fade profile-section-modal" id="personalInfoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Personal Information</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="personalInfoForm">
+        <div class="modal-body">
+          <div id="personalInfoErr" class="text-danger fs-12 mb-2" style="display:none;"></div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-600" for="piName">Full Name</label>
+              <input type="text" class="form-control" id="piName" name="username" required
+                     value="{% if profile_user.name and profile_user.name != 'None' %}{{ profile_user.name }}{% endif %}" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-600" for="piEmail">Email</label>
+              <input type="email" class="form-control" id="piEmail" name="useremail"
+                     value="{{ profile_user.email|default('', true) }}" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-600" for="piMobile">Mobile Number</label>
+              <input type="tel" class="form-control" id="piMobile" name="userphone" maxlength="10"
+                     inputmode="numeric" pattern="[6-9][0-9]{9}" required
+                     value="{{ mobile_display|default('', true) }}" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-600" for="piBirthday">Date of Birth</label>
+              <input type="date" class="form-control" id="piBirthday" name="userbirthdaydate"
+                     value="{{ birthdate_value|default('', true) }}" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-600" for="piGender">Gender</label>
+              <select class="form-control" id="piGender" name="gender">
+                <option value="">Select Gender</option>
+                <option value="20" {% if profile_user.user_profile and profile_user.user_profile.gender == 20 %}selected{% endif %}>Male</option>
+                <option value="30" {% if profile_user.user_profile and profile_user.user_profile.gender == 30 %}selected{% endif %}>Female</option>
+                <option value="10" {% if profile_user.user_profile and profile_user.user_profile.gender == 10 %}selected{% endif %}>Transgender</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-600" for="piSchool">School Name</label>
+              <input type="text" class="form-control" id="piSchool" name="userschool" list="piSchoolList"
+                     value="{% if profile_user.user_profile and profile_user.user_profile.schoolname %}{{ profile_user.user_profile.schoolname }}{% endif %}" />
+              <datalist id="piSchoolList">
+                {% for school in school_suggestions %}
+                <option value="{{ school }}"></option>
+                {% endfor %}
+              </datalist>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-600" for="piGrade">Grade/Class</label>
+              <select class="form-control" id="piGrade" name="usergrade">
+                <option value="">Select Grade/Class</option>
+                {% if master_classes is defined %}
+                  {% set classes = master_classes() %}
+                {% else %}
+                  {% set classes = MASTER_CLASSES %}
+                {% endif %}
+                {% set user_grade = profile_user.user_profile.grade if profile_user.user_profile else None %}
+                {% for cls in classes %}
+                <option value="{{ cls.value }}" {% if user_grade is not none and ('' ~ user_grade) == ('' ~ cls.value) %}selected{% endif %}>{{ cls.label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button fw-600" id="personalInfoSaveBtn">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{# Figure Out Modal #}
+<div class="modal fade profile-section-modal" id="figureOutModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable profile-list-modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">What are you here for?</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="figureOutForm" class="profile-modal-form">
+        <div class="modal-body profile-modal-scroll-body">
+          <div id="figureOutErr" class="text-danger fs-12 mb-2" style="display:none;"></div>
+          <p class="text-muted fs-14 mb-3">Select all that apply.</p>
+          {% for fg in figureouts %}
+          <label class="profile-choice-tab d-flex align-items-center p-3 rounded-3 bg-light mb-2">
+            <input type="checkbox" name="userfigureout" value="{{ fg.id }}" class="d-none"
+                   {% if profile_user.user_profile and fg in profile_user.user_profile.figure_out.all() %}checked{% endif %} />
+            {% if fg.image %}
+            <img src="{{ fg.image.url }}" class="me-3" style="width: 36px; height: 36px; object-fit: cover;" alt="{{ fg.name }}" />
+            {% endif %}
+            <div>
+              <p class="fs-16 fw-semibold mb-0">{{ fg.name }}</p>
+              {% if fg.description %}
+              <p class="fs-12 text-muted mb-0">{{ fg.description }}</p>
+              {% endif %}
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button fw-600">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{# Subjects Modal #}
+<div class="modal fade profile-section-modal" id="subjectsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable profile-list-modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Subjects</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="subjectsForm" class="profile-modal-form">
+        <div class="modal-body profile-modal-scroll-body">
+          <div id="subjectsErr" class="text-danger fs-12 mb-2" style="display:none;"></div>
+          <div class="row g-2">
+            {% for sb in subjects %}
+            <div class="col-12 col-md-6">
+              <label class="profile-choice-tab d-flex align-items-center p-3 rounded-3 bg-light">
+                <input type="checkbox" name="usersubject" value="{{ sb.id }}" class="d-none"
+                       {% if profile_user.user_profile and sb in profile_user.user_profile.subject.all() %}checked{% endif %} />
+                {% if sb.image %}
+                <img src="{{ sb.image.url }}" class="me-3" style="width: 36px; height: 36px; object-fit: cover;" alt="{{ sb.name }}" />
+                {% endif %}
+                <p class="fs-16 fw-semibold mb-0">{{ sb.name }}</p>
+              </label>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button fw-600">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{# Hobbies Modal #}
+<div class="modal fade profile-section-modal" id="hobbiesModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable profile-list-modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Hobbies</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="hobbiesForm" class="profile-modal-form">
+        <div class="modal-body profile-modal-scroll-body">
+          <div id="hobbiesErr" class="text-danger fs-12 mb-2" style="display:none;"></div>
+          <div class="row g-2">
+            {% for hb in hobbies %}
+            <div class="col-12 col-md-6">
+              <label class="profile-choice-tab d-flex align-items-center p-3 rounded-3 bg-light">
+                <input type="checkbox" name="hobbies" value="{{ hb.id }}" class="d-none"
+                       {% if profile_user.user_profile and hb in profile_user.user_profile.hobbies.all() %}checked{% endif %} />
+                {% if hb.image %}
+                <img src="{{ hb.image.url }}" class="me-3" style="width: 36px; height: 36px; object-fit: cover;" alt="{{ hb.name }}" />
+                {% endif %}
+                <p class="fs-16 fw-semibold mb-0">{{ hb.name }}</p>
+              </label>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button fw-600">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

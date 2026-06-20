@@ -1561,6 +1561,21 @@ def _set_registration_welcome_popup(request, user):
 def _normalize_mobile_digits(value: str) -> str:
     return re.sub(r"\D+", "", str(value or "")).strip()
 
+
+def _user_has_profile_photo(user) -> bool:
+    """True only when the user has an image field set and the file exists in storage."""
+    try:
+        img = getattr(user, "image", None)
+        if not img or not getattr(img, "name", None):
+            return False
+        return bool(img.storage.exists(img.name))
+    except Exception:
+        try:
+            img = getattr(user, "image", None)
+            return bool(img and getattr(img, "name", None))
+        except Exception:
+            return False
+
 def _validate_login_mobile_max_digits(raw_username: str, max_digits: int = 10) -> tuple[bool, str | None]:
     """
     Validation for login inputs that can be either email or mobile.
@@ -2830,6 +2845,10 @@ class ProfileBasicDetails(TemplateView):
             profile_user = request.user
         ctx['profile_user'] = profile_user
         ctx['is_parent_view'] = is_parent_view
+        ctx['has_profile_photo'] = _user_has_profile_photo(profile_user)
+        ctx['avatar_initial'] = (
+            (getattr(profile_user, "name", None) or getattr(profile_user, "email", None) or "?")[0].upper()
+        )
         ctx['hobbies']=Hobbies.objects.all()
         ctx['subjects']=Subject.objects.all()
         ctx['figureouts']=UserFigureOut.objects.all()
@@ -2971,21 +2990,129 @@ class ViewProfile(TemplateView):
         return build_html_head(title=name, description=name)
 
     def get_context(self,request, profile_user=None, is_parent_view: bool = False, *args, **kwargs):
-        ctx={}
-        ctx['profile_user'] = profile_user or request.user
-        ctx['is_parent_view'] = is_parent_view
-        # Linked parent accounts for display
-        try:
-            from users.models import ParentStudentLink
-            links = ParentStudentLink.objects.filter(student=ctx['profile_user']).select_related('parent')
-            ctx['linked_parents'] = [x.parent for x in links if x.parent]
-        except Exception:
-            ctx['linked_parents'] = []
+        ctx = ProfileBasicDetails().get_context(
+            request, profile_user=profile_user or request.user, is_parent_view=is_parent_view
+        )
         ctx["html_head"] = self.html_head()
         return ctx
 
     def get(self, request,*args, **kwargs):      
-        return render(request, self.template_name, self.get_context(request,args, kwargs))
+        return render(
+            request,
+            self.template_name,
+            self.get_context(request, profile_user=request.user, is_parent_view=False),
+        )
+
+
+class UpdateProfileSectionView(APIView):
+    """Update a single profile section via AJAX from the view profile page."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        if request.user.user_type != choices.UserType.STUDENT:
+            return Response(
+                {'success': False, 'message': 'Only students can update their profile'},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        section = (request.POST.get('section') or '').strip()
+        user = request.user
+        user_profile, _ = UserProfile.objects.get_or_create(user=user)
+
+        handlers = {
+            'personal': self._update_personal,
+            'figure_out': self._update_figure_out,
+            'subjects': self._update_subjects,
+            'hobbies': self._update_hobbies,
+        }
+        handler = handlers.get(section)
+        if not handler:
+            return Response(
+                {'success': False, 'message': 'Invalid section'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return handler(request, user, user_profile)
+
+    def _update_personal(self, request, user, user_profile):
+        name = (request.POST.get('username') or '').strip()
+        mobile = request.POST.get('userphone')
+        user_email = (request.POST.get('useremail') or '').strip().lower()
+        birthdate = request.POST.get('userbirthdaydate')
+        gender = request.POST.get('gender')
+        school = (request.POST.get('userschool') or '').strip()
+        grade = request.POST.get('usergrade')
+
+        if not name or not mobile:
+            return Response({'success': False, 'message': 'Name and mobile are required'})
+
+        mobile_digits = _normalize_mobile_digits(mobile)
+        if len(mobile_digits) != 10 or not re.match(r'^[6-9]', mobile_digits):
+            return Response({
+                'success': False,
+                'message': 'Mobile number must be exactly 10 digits and start with 6, 7, 8, or 9.',
+            })
+
+        if _student_mobile_exists(mobile_digits, exclude_user_id=user.id):
+            return Response({'success': False, 'message': 'This mobile number is already used by another student.'})
+
+        if _mobile_conflicts_student_parent(
+            mobile_digits, current_user=user, intended_user_type=choices.UserType.STUDENT
+        ):
+            return Response({'success': False, 'message': 'This mobile number is already used by a parent account.'})
+
+        if user_email:
+            if not re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', user_email):
+                return Response({'success': False, 'message': 'Please enter a valid email address.'})
+            if User.objects.filter(email__iexact=user_email).exclude(id=user.id).exists():
+                return Response({'success': False, 'message': 'This email is already used by another account.'})
+
+        user.name = name
+        user.mobile = mobile_digits
+        if user_email:
+            user.email = user_email
+        user.save()
+
+        if birthdate:
+            from django.utils.dateparse import parse_date
+            parsed = parse_date(birthdate)
+            if parsed:
+                user_profile.birthdate = parsed
+        if gender:
+            try:
+                user_profile.gender = int(gender)
+            except (ValueError, TypeError):
+                pass
+        if school:
+            user_profile.schoolname = school
+        if grade:
+            user_profile.grade = grade
+        user_profile.save()
+
+        return Response({'success': True, 'message': 'Personal information updated successfully.'})
+
+    def _update_figure_out(self, request, user, user_profile):
+        figure_outs = request.POST.getlist('userfigureout')
+        if not figure_outs:
+            return Response({'success': False, 'message': 'Please select at least one option.'})
+        user_profile.figure_out.set(UserFigureOut.objects.filter(id__in=figure_outs))
+        user_profile.save()
+        return Response({'success': True, 'message': 'Preferences updated successfully.'})
+
+    def _update_subjects(self, request, user, user_profile):
+        subjects = request.POST.getlist('usersubject')
+        if not subjects:
+            return Response({'success': False, 'message': 'Please select at least one subject.'})
+        user_profile.subject.set(Subject.objects.filter(id__in=subjects))
+        user_profile.save()
+        return Response({'success': True, 'message': 'Subjects updated successfully.'})
+
+    def _update_hobbies(self, request, user, user_profile):
+        hobbies = request.POST.getlist('hobbies')
+        if not hobbies:
+            return Response({'success': False, 'message': 'Please select at least one hobby.'})
+        user_profile.hobbies.set(Hobbies.objects.filter(id__in=hobbies))
+        user_profile.save()
+        return Response({'success': True, 'message': 'Hobbies updated successfully.'})
 
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')

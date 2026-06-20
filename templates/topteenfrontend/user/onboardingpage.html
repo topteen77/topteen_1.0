@@ -125,14 +125,14 @@
           </div>
         </div>
 
-        <!-- Birthday and Gender -->
+        <!-- Date of Birth and Gender -->
         <div class='w-full flex justify-center relative items-center space-x-4 mt-[10px] lg:mt-[10px] '>
           <div class="relative">
             <img class='absolute left-[14px] top-[50%] -translate-y-[50%]'
               src="{{static('topteenfrontend/assets/images/calender1.png')}}" />
             <input name="userbirthdaydate" type="text" onfocus="(this.type = 'date')" {% if request.user.user_profile %} value="{{request.user.user_profile.birthdate}}" {% endif %}
               class='w-[164px] h-[48px] bg-[#F7F7FA] pl-10 rounded-xl text-gray-600  font-bold border-[1.5px] border-[#DCDCDC]'
-              placeholder='Birthday ' />
+              placeholder='Date of Birth' />
 
           </div>
 

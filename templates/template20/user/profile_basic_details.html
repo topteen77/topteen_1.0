@@ -24,7 +24,7 @@
 }
 
 
-  /* When the birthday input (or any icon-input) is focused, hide the decorative left icon
+  /* When the date of birth input (or any icon-input) is focused, hide the decorative left icon
      so the browser's native date UI is visible without visual duplication. */
   .icon-input:focus-within .field-icon {
     opacity: 0;
@@ -34,14 +34,6 @@
     padding-left: 45px !important;
   }
 
-  .ct-joinbutton button {
-    border: 1px solid #919191 !important;
-    margin-bottom: 15px;
-}
-.ct-joinbutton button i {
-    font-size: 78px;
-    color: #919191;
-}
 
 label.hobbiesTab img {
     background: #Ffff;
@@ -179,27 +171,160 @@ label.hobbiesTab img {
       transform: translateX(-50%) translateY(0);
     }
   }
-  .imgBtn {
-    position: relative;
-    overflow: hidden;
+  .profile-photo-zone {
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
   }
-  .imgBtn img {
+  .profile-photo-avatar-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .profile-photo-initials {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #5c54d4, #7c6ef2);
+    color: #fff;
+    font-size: 56px;
+    font-weight: 700;
+    flex-shrink: 0;
+    box-shadow: 0 4px 20px rgba(63, 55, 201, 0.2);
+  }
+  .profile-photo-img {
     width: 100%;
     height: 100%;
+    border-radius: 50%;
     object-fit: cover;
+    border: 3px solid #fff;
+    box-shadow: 0 4px 20px rgba(63, 55, 201, 0.15);
+  }
+  .profile-photo-upload-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 344px;
+    height: 48px;
+    background: #3f37c9;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 16px;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .profile-photo-upload-btn:hover {
+    background: #342db0;
+    color: #fff;
+  }
+  .profile-photo-upload-btn i {
+    font-size: 20px;
+  }
+  .profile-photo-instructions {
+    margin-top: 20px;
+    padding: 16px 20px;
+    width: 100%;
+    background: #fafafa;
+    border: 1px solid #ececf0;
+    border-radius: 12px;
+    text-align: left;
+  }
+  .profile-photo-instructions-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .profile-photo-instructions ul {
+    margin: 0;
+    padding: 0 0 0 18px;
+    font-size: 14px;
+    color: #666;
+    line-height: 1.7;
+  }
+  .profile-photo-preview-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 160px;
+    height: 160px;
+    margin-bottom: 12px;
+  }
+  .profile-photo-change-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background: #3f37c9;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: background 0.2s;
+  }
+  .profile-photo-change-btn:hover {
+    background: #342db0;
+  }
+  .profile-photo-change-btn i {
+    font-size: 18px;
+  }
+  .profile-photo-preview-label {
+    font-size: 15px;
+    font-weight: 500;
+    color: #333;
+    margin: 0 0 32px;
+  }
+  .profile-photo-actions {
+    width: 100%;
+    max-width: 344px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  #photoEmptyActions .profile-photo-upload-btn {
+    margin-top: 4px;
+  }
+  .profile-photo-continue-btn {
+    width: 100%;
+    height: 48px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 16px;
   }
   .profile-photo-skip-btn {
+    width: 100%;
+    height: 48px;
     background: #fff;
     color: #555;
-    border: 1px solid #bdbdbd;
-    border-radius: 8px;
+    border: 1px solid #d0d0d8;
+    border-radius: 10px;
     font-weight: 600;
+    font-size: 16px;
     text-transform: none;
+    transition: background 0.2s, border-color 0.2s;
   }
   .profile-photo-skip-btn:hover {
-    background: #f8f8f8;
+    background: #f8f8fa;
     color: #333;
-    border-color: #9e9e9e;
+    border-color: #b0b0bc;
   }
   .backArrow {
     position: absolute;
@@ -393,7 +518,7 @@ label.hobbiesTab img {
           </div>
         </div>
 
-        <!-- Birthday and Gender -->
+        <!-- Date of Birth and Gender -->
         <div class="w-100 d-flex justify-content-center gap-3 mb-3">
           <div class="icon-input position-relative has-label" style="width: 288px;">
             <label for="userbirthdaydate" class="form-label fs-14 fw-semibold mb-2">Date of Birth</label>
@@ -498,7 +623,7 @@ label.hobbiesTab img {
                 <div id="parentOtpErr" class="text-danger fs-12 mb-2" style="display:none;"></div>
                 <div class="mb-3">
                   <label class="form-label fw-600">Parent Mobile</label>
-                  <input type="text" class="form-control" id="parentOtpMobile" maxlength="10" inputmode="numeric" pattern="[0-9]*" placeholder="Enter 10 digit mobile number" />
+                  <input type="text" class="form-control" id="parentOtpMobile" maxlength="10" inputmode="numeric" pattern="[0-9]*" placeholder="Enter parent mobile number" />
                 </div>
                 <button type="button" class="btn custom-button purple-button fw-600 w-100 mb-3" id="parentOtpSendBtn">Send OTP</button>
 
@@ -600,28 +725,51 @@ label.hobbiesTab img {
           Join a community of 10k+ students and discover your true passion.
         </p>
 
-        <div class="d-flex justify-content-center align-items-center flex-column mt-5 ct-joinbutton">
-          <button type="button" class="imgBtn btn p-0 border-0 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 150px; height:150px; overflow: hidden;">
-            {% if profile_user.image %}
-            <img src="{{ profile_user.image.url }}" class="w-100 h-100 rounded-circle object-fit-cover" alt="Profile" />
-            {% else %}
-            <i class='bx bx-cloud-upload' ></i>
-            {% endif %}
-          </button>
-          <input type="file" name="image" accept="image/*" class="d-none imgIp" />
-          <p class="mb-1" id="photoUploadHint">{% if profile_user.image %}Your profile photo{% else %}Upload your image{% endif %}</p>
-          <p class="text-muted small mb-0">Recommended image size: 200px x 200px</p>
-        </div>
+        <div class="profile-photo-zone mt-4 mt-md-5">
+          <input type="file" name="image" accept="image/jpeg,image/png,image/webp,image/gif" class="d-none imgIp" />
 
-      
+          <div class="profile-photo-avatar-area mb-4">
+            <div class="profile-photo-preview-wrap">
+              <span id="photoInitialsAvatar" class="profile-photo-initials{% if has_profile_photo %} d-none{% endif %}" aria-label="Profile avatar">{{ avatar_initial }}</span>
+              <img id="photoPreviewImg"
+                   class="profile-photo-img{% if not has_profile_photo %} d-none{% endif %}"
+                   src="{% if has_profile_photo %}{{ profile_user.image.url }}{% endif %}"
+                   alt="" />
+              <button type="button" id="photoChangeBtn"
+                      class="profile-photo-change-btn{% if not has_profile_photo %} d-none{% endif %}"
+                      title="Change photo" aria-label="Change photo">
+                <i class="bx bx-camera"></i>
+              </button>
+            </div>
+            <p id="photoAvatarLabel" class="profile-photo-preview-label mb-0">
+              {% if has_profile_photo %}Your profile photo{% else %}Add your profile photo{% endif %}
+            </p>
+          </div>
 
-        <div class="mt-5 w-100 d-flex flex-column align-items-center gap-3">
-          <button type="button" id="photoUploadBtn" class="btn custom-button purple-button {% if profile_user.image %}photo-continue-btn{% else %}photo-upload-trigger{% endif %}" style="width: 344px; height: 48px;">
-            {% if profile_user.image %}Continue{% else %}Upload your image{% endif %}
-          </button>
-          <button type="button" data-form-name="photoupload" class="btn profile-photo-skip-btn slideOnButton" style="width: 344px; height: 48px;">
-            Skip
-          </button>
+          <div id="photoEmptyActions" class="profile-photo-actions{% if has_profile_photo %} d-none{% endif %}">
+            <button type="button" id="photoUploadTrigger" class="btn profile-photo-upload-btn">
+              <i class="bx bx-cloud-upload"></i>
+              Upload photo
+            </button>
+            <div class="profile-photo-instructions">
+              <p class="profile-photo-instructions-title">Photo guidelines</p>
+              <ul>
+                <li>Recommended size: 200 &times; 200 px</li>
+                <li>Square images work best</li>
+                <li>Formats: JPG, PNG, or WebP</li>
+                <li>Maximum file size: 2 MB</li>
+              </ul>
+            </div>
+            <button type="button" data-form-name="photoupload" id="photoSkipBtn" class="btn profile-photo-skip-btn slideOnButton">
+              Skip and continue
+            </button>
+          </div>
+
+          <div id="photoUploadedActions" class="profile-photo-actions{% if not has_profile_photo %} d-none{% endif %}">
+            <button type="button" id="photoContinueBtn" class="btn custom-button purple-button profile-photo-continue-btn">
+              Continue
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -739,27 +887,44 @@ label.hobbiesTab img {
 
   // Image upload
   $(document).ready(function() {
-    $('.imgBtn').click(function() {
-      $('.imgIp').click();
+    function openPhotoPicker() {
+      $('.imgIp').val('').click();
+    }
+
+    $('#photoUploadTrigger, #photoChangeBtn').on('click', openPhotoPicker);
+
+    $('#photoContinueBtn').on('click', function() {
+      goToPhotoNextStep();
     });
 
-    $('#photoUploadBtn').click(function() {
-      if ($(this).hasClass('photo-continue-btn')) {
-        goToPhotoNextStep();
-        return;
-      }
-      $('.imgIp').click();
-    });
-
-    function setPhotoUploadedState(hasPhoto) {
-      var btn = $('#photoUploadBtn');
-      var hint = $('#photoUploadHint');
+    function setPhotoUploadedState(hasPhoto, previewSrc) {
       if (hasPhoto) {
-        btn.text('Continue').addClass('photo-continue-btn').removeClass('photo-upload-trigger');
-        if (hint.length) hint.text('Your profile photo');
+        if (previewSrc) {
+          $('#photoPreviewImg').attr('src', previewSrc);
+        }
+        $('#photoInitialsAvatar').addClass('d-none');
+        $('#photoPreviewImg').removeClass('d-none');
+        $('#photoChangeBtn').removeClass('d-none');
+        $('#photoAvatarLabel').text('Your profile photo');
+        $('#photoEmptyActions').addClass('d-none');
+        $('#photoUploadedActions').removeClass('d-none');
       } else {
-        btn.text('Upload your image').addClass('photo-upload-trigger').removeClass('photo-continue-btn');
-        if (hint.length) hint.text('Upload your image');
+        $('#photoPreviewImg').addClass('d-none').attr('src', '');
+        $('#photoInitialsAvatar').removeClass('d-none');
+        $('#photoChangeBtn').addClass('d-none');
+        $('#photoAvatarLabel').text('Add your profile photo');
+        $('#photoEmptyActions').removeClass('d-none');
+        $('#photoUploadedActions').addClass('d-none');
+      }
+    }
+
+    var serverPhotoImg = document.getElementById('photoPreviewImg');
+    if (serverPhotoImg && serverPhotoImg.getAttribute('src')) {
+      serverPhotoImg.addEventListener('error', function() {
+        setPhotoUploadedState(false);
+      });
+      if (serverPhotoImg.complete && serverPhotoImg.naturalWidth === 0) {
+        setPhotoUploadedState(false);
       }
     }
 
@@ -769,16 +934,24 @@ label.hobbiesTab img {
       }
     }
 
-    $('.imgIp').change(function(e) {
+    $('.imgIp').on('change', function(e) {
       const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(ev) {
-          $('.imgBtn').html('<img src="' + ev.target.result + '" class="w-100 h-100 rounded-circle object-fit-cover" alt="Profile" />');
-          setPhotoUploadedState(true);
-        };
-        reader.readAsDataURL(file);
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        fireAlert('Please select a valid image file.', 'error');
+        return;
       }
+      if (file.size > 2 * 1024 * 1024) {
+        fireAlert('Image must be 2 MB or smaller.', 'error');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        setPhotoUploadedState(true, ev.target.result);
+      };
+      reader.readAsDataURL(file);
     });
 
     // Initialize Slick Carousel
@@ -922,7 +1095,7 @@ label.hobbiesTab img {
       return false;
     }
     if ($('input[name="userbirthdaydate"]').val() == "") {
-      showValidationError("Please select your birthday", $('input[name="userbirthdaydate"]'));
+      showValidationError("Please select your date of birth", $('input[name="userbirthdaydate"]'));
       return false;
     }
     if ($('#gender').val() == "") {
