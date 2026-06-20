@@ -2848,6 +2848,8 @@ class ProfileBasicDetails(TemplateView):
         ctx['avatar_initial'] = (
             (getattr(profile_user, "name", None) or getattr(profile_user, "email", None) or "?")[0].upper()
         )
+        # Ensure UserProfile exists before context fields that read profile fields
+        up, _ = UserProfile.objects.get_or_create(user=profile_user)
         ctx['is_profile_edit_mode'] = bool(
             getattr(profile_user, "is_completed", False)
             or (
@@ -2858,8 +2860,6 @@ class ProfileBasicDetails(TemplateView):
         ctx['hobbies']=Hobbies.objects.all()
         ctx['subjects']=Subject.objects.all()
         ctx['figureouts']=UserFigureOut.objects.all()
-        # Ensure UserProfile exists so template can safely use profile_user.user_profile (avoids RelatedObjectDoesNotExist)
-        up, _ = UserProfile.objects.get_or_create(user=profile_user)
         # Mobile: always show 10 digits only in form (strip +91 etc.)
         raw_mobile = getattr(profile_user, 'mobile', None) or ''
         ctx['mobile_display'] = _normalize_mobile_digits(str(raw_mobile))[:10]
