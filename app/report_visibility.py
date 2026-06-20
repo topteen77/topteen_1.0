@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from core.choices import ReasoningArea
+
 
 def _as_area_list(value) -> list:
     return value if isinstance(value, list) else []
@@ -14,13 +16,21 @@ def student_has_below_average_areas(below) -> bool:
 
 def student_all_growth_areas(below, avg=None, above_avg=None) -> bool:
     """
-    True only when every scored aptitude area is in Growth Area (below average):
-    at least one below-area and no average or above-average areas.
+    True only when every aptitude area is in Growth Area (below average):
+    all seven reasoning areas scored as development tier, with no average
+    or above-average areas.
     """
     below_list = _as_area_list(below)
+    if _as_area_list(avg) or _as_area_list(above_avg):
+        return False
     if not below_list:
         return False
-    return not _as_area_list(avg) and not _as_area_list(above_avg)
+    return len(below_list) >= len(ReasoningArea.ALL)
+
+
+def should_show_aptitude_improvement_note(below, avg=None, above_avg=None) -> bool:
+    """Show vocational improvement NOTE only when all seven areas are growth tier."""
+    return student_all_growth_areas(below, avg, above_avg)
 
 
 def should_show_extended_career_pathways(below, avg=None, above_avg=None) -> bool:

@@ -1,0 +1,118 @@
+{# Reusable Strong Fit / Good Fit plan block. Expects: plan, plan_heading (optional) #}
+{% set cp = plan.combination_profile %}
+{% if cp %}
+<div class="aptitude-plan-block{% if plan.is_backup %} aptitude-plan-block--backup{% endif %}">
+  {% if plan_heading %}
+  <div class="aptitude-plan-heading">
+    <h2>{{ plan_heading }}</h2>
+    <p>
+      Based on your {{ plan.profile_label }}
+    </p>
+  </div>
+  {% else %}
+  <p class="aptitude-plan-subtitle">
+    Based on your {{ plan.profile_label }}
+  </p>
+  {% endif %}
+
+  {% if cp.profile %}
+  <div class="aptitude-combination-narrative">
+    <p>{{ cp.profile }}</p>
+  </div>
+  {% endif %}
+
+  {% if plan.all_seven_note %}
+  <div class="aptitude-combination-all-seven-note">
+    {{ plan.all_seven_note }}
+  </div>
+  {% endif %}
+
+  <div class="aptitude-fit-columns">
+    <div class="aptitude-fit-col aptitude-fit-col--strong{% if plan.tier_used == 'average' %} aptitude-fit-col--average-tier{% endif %}">
+      <div class="aptitude-fit-col-header">
+        <span class="aptitude-fit-badge aptitude-fit-badge--strong" aria-hidden="true">&#9733;</span>
+        <span class="aptitude-fit-col-title">Strong Fit</span>
+      </div>
+
+      <div class="aptitude-fit-section">
+        <div class="aptitude-fit-section-head">
+          <span class="aptitude-fit-section-icon aptitude-fit-section-icon--strong" aria-hidden="true">&#128218;</span>
+          <span>Streams</span>
+        </div>
+        <p class="aptitude-fit-stream-text">{{ cp.strong_fit_stream }}</p>
+      </div>
+
+      <div class="aptitude-fit-section">
+        <div class="aptitude-fit-section-head">
+          <span class="aptitude-fit-section-icon aptitude-fit-section-icon--strong" aria-hidden="true">&#128188;</span>
+          <span>Career Pathways</span>
+        </div>
+        {% if cp.strong_fit_careers %}
+        <ul class="aptitude-fit-list aptitude-fit-list--strong">
+          {% for career in cp.strong_fit_careers %}
+          <li>{{ career }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+
+      <div class="aptitude-fit-section aptitude-fit-section--last">
+        <div class="aptitude-fit-section-head">
+          <span class="aptitude-fit-section-icon aptitude-fit-section-icon--strong" aria-hidden="true">&#127891;</span>
+          <span>Subject Combinations</span>
+        </div>
+        {% if cp.strong_fit_subjects %}
+        <ul class="aptitude-fit-list aptitude-fit-list--strong">
+          {% for subject in cp.strong_fit_subjects %}
+          <li>{{ subject }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="aptitude-fit-col aptitude-fit-col--good{% if plan.tier_used == 'average' %} aptitude-fit-col--average-tier{% endif %}">
+      <div class="aptitude-fit-col-header">
+        <span class="aptitude-fit-badge aptitude-fit-badge--good" aria-hidden="true">&#128077;</span>
+        <span class="aptitude-fit-col-title">Good Fit</span>
+      </div>
+
+      <div class="aptitude-fit-section">
+        <div class="aptitude-fit-section-head">
+          <span class="aptitude-fit-section-icon aptitude-fit-section-icon--good" aria-hidden="true">&#128218;</span>
+          <span>Streams</span>
+        </div>
+        <p class="aptitude-fit-stream-text">{{ cp.good_fit_stream }}</p>
+      </div>
+
+      <div class="aptitude-fit-section">
+        <div class="aptitude-fit-section-head">
+          <span class="aptitude-fit-section-icon aptitude-fit-section-icon--good" aria-hidden="true">&#128188;</span>
+          <span>Career Pathways</span>
+        </div>
+        {% if cp.good_fit_careers %}
+        <ul class="aptitude-fit-list aptitude-fit-list--good">
+          {% for career in cp.good_fit_careers %}
+          <li>{{ career }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+
+      <div class="aptitude-fit-section aptitude-fit-section--last">
+        <div class="aptitude-fit-section-head">
+          <span class="aptitude-fit-section-icon aptitude-fit-section-icon--good" aria-hidden="true">&#127891;</span>
+          <span>Subject Combinations</span>
+        </div>
+        {% if cp.good_fit_subjects %}
+        <ul class="aptitude-fit-list aptitude-fit-list--good">
+          {% for subject in cp.good_fit_subjects %}
+          <li>{{ subject }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}

@@ -1,4 +1,4 @@
-{% if stream_recommendation and stream_recommendation.note_only %}
+{% if stream_recommendation and stream_recommendation.note_only and student_below_average|default(false) %}
 <div class="chapterPage aptitude-final-streams aptitude-final-streams--note-only" style="clear: both; width: 100%; float: left; margin-top: 24px;">
   <div class="db-header" style="margin-top: 10px; text-align: center;">
     <h1 style="color: #A22717; font-size: 16px; margin-bottom: 16px; text-transform: capitalize; font-weight: 600;">
@@ -51,14 +51,6 @@
   <div style="text-align: center; margin-top: 12px; font-size: 13px; color: #494949;">
     <strong style="color: #3F37C9;">Third emerging option:</strong>
     {{ stream_recommendation.tertiary.display }} — {{ stream_recommendation.tertiary.description }}
-  </div>
-  {% endif %}
-
-  {% if stream_recommendation.has_development_areas and (intelligence_data.below_avg or below) %}
-  <div class="db-header" style="margin-top: 24px; text-align: center;">
-    <h1 style="color: #A22717; font-size: 16px; margin-bottom: 0; text-transform: capitalize; font-weight: 600;">
-      <span>NOTE-</span> {{ aptitude_improvement_note }}
-    </h1>
   </div>
   {% endif %}
 </div>

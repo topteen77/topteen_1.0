@@ -24,12 +24,6 @@
       {% endfor %}
     </div>
   </div>
-  {% elif intelligence_data.below_avg %}
-  <div class="db-header" style="margin-top: 6px;">
-    <h1 style="color: #A22717; font-size: 16px; margin-bottom: 5px; text-transform: capitalize;">
-      <span>NOTE-</span> {{ aptitude_improvement_note }}
-    </h1>
-  </div>
   {% endif %}
 
   {% if vocational_guidance_groups|default([]) %}

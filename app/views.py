@@ -3239,6 +3239,9 @@ def test3_report_html(request, user_id=None):
                 print(f"Error generating graph: {e}")
                 pass
         
+        from app.report_visibility import student_all_growth_areas
+        from app.vocational_recommendations import vocational_guidance_context_for_below_areas
+
         context = {
             'user': target_user,
             'user_profile': user_profile,
@@ -3251,7 +3254,9 @@ def test3_report_html(request, user_id=None):
             'no_results': False,
             'viewing_as_admin': user_id is not None and user_id != request.user.id,
             'stream_recommendation': recommend_streams_from_tiers(above_avg, avg, below_avg=below),
+            'student_below_average': student_all_growth_areas(below, avg, above_avg),
         }
+        context.update(vocational_guidance_context_for_below_areas(below, user=target_user))
         
         resp = render(request, 'template20/app/test3_report.html', context)
         return _add_no_cache_headers(resp)
@@ -3672,6 +3677,9 @@ def test3_report_pdf(request, user_id=None):
         created_date = test3_result.created if hasattr(test3_result, 'created') else target_user.created
         student_name = target_user.name if target_user.name else target_user.email
         
+        from app.report_visibility import student_all_growth_areas
+        from app.vocational_recommendations import vocational_guidance_context_for_below_areas
+
         context = {
             'user': target_user,
             'user_profile': user_profile,
@@ -3685,7 +3693,10 @@ def test3_report_pdf(request, user_id=None):
             'created_date': created_date,
             'now': datetime.now(),
             'stream_recommendation': recommend_streams_from_tiers(above_avg, avg, below_avg=below),
+            'student_below_average': student_all_growth_areas(below, avg, above_avg),
+            'show_student_info_on_cover': True,
         }
+        context.update(vocational_guidance_context_for_below_areas(below, user=target_user))
         
         # Render HTML template
         template = get_template('template20/app/test3_report_pdf.html')

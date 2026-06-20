@@ -1,0 +1,45 @@
+{% if stream_recommendation and stream_recommendation.note_only and student_below_average|default(false) %}
+<div class="chapterPage aptitude-final-streams aptitude-final-streams--note-only" style="clear: both; width: 100%; float: left; margin-top: 24px;">
+  <div class="db-header" style="margin-top: 10px; text-align: center;">
+    <h1 style="color: #A22717; font-size: 16px; margin-bottom: 16px; text-transform: capitalize; font-weight: 600;">
+      <span>NOTE-</span> {{ aptitude_improvement_note }}
+    </h1>
+  </div>
+</div>
+{% elif stream_recommendation and stream_recommendation.combination_profile %}
+<div class="chapterPage aptitude-combination-profile" style="clear: both; width: 100%; float: left; margin-top: 24px;">
+  <div class="db-header" style="margin-top: 10px; text-align: center;">
+    <h1 style="color: #3F37C9; margin-bottom: 8px;">Aptitude Profile &amp; Recommendations</h1>
+  </div>
+
+  {% set plan = {
+    'combination_profile': stream_recommendation.combination_profile,
+    'profile_label': stream_recommendation.profile_label,
+    'reasoning_codes': stream_recommendation.reasoning_codes,
+    'all_seven_note': stream_recommendation.all_seven_note,
+    'tier_used': stream_recommendation.tier_used,
+    'is_backup': false
+  } %}
+  {% if stream_recommendation.backup_plan and stream_recommendation.backup_plan.combination_profile %}
+  {% set plan_heading = 'Primary Plan' %}
+  {% else %}
+  {% set plan_heading = none %}
+  {% endif %}
+  {% include 'template20/app/partials/aptitude_combination_plan_block.html' %}
+
+  {% if stream_recommendation.backup_plan and stream_recommendation.backup_plan.combination_profile %}
+  {% set plan = {
+    'combination_profile': stream_recommendation.backup_plan.combination_profile,
+    'profile_label': stream_recommendation.backup_plan.profile_label,
+    'reasoning_codes': stream_recommendation.backup_plan.reasoning_codes,
+    'all_seven_note': stream_recommendation.backup_plan.all_seven_note,
+    'tier_used': stream_recommendation.backup_plan.tier_used,
+    'is_backup': true
+  } %}
+  {% set plan_heading = 'Backup Plan' %}
+  {% include 'template20/app/partials/aptitude_combination_plan_block.html' %}
+  {% endif %}
+</div>
+{% elif stream_recommendation and stream_recommendation.primary %}
+{% include 'template20/app/partials/aptitude_final_streams.html' %}
+{% endif %}

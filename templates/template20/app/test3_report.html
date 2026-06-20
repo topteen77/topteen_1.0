@@ -577,17 +577,13 @@ table {
     </table>
   </div>
 
-  {% if intelligence_data.above_avg %}
-  {% include 'template20/app/partials/aptitude_above_avg.html' %}
+  {% include 'template20/app/partials/aptitude_combination_profile.html' %}
+
+  {% if student_below_average|default(false) %}
+  {% include 'template20/app/partials/below_average_guidance_report.html' %}
+  {% endif %}
   {% endif %}
 
-  {% if intelligence_data.average %}
-  {% include 'template20/app/partials/aptitude_avg.html' %}
-  {% endif %}
-
-  {% include 'template20/app/partials/aptitude_final_streams.html' %}
-  {% endif %}
-  
   {% endif %}
   
   <!-- Sticky Back + Download Button -->

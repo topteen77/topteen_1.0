@@ -839,17 +839,8 @@
 
 
 
-    <!-- Above Average Reasoning Types -->
-    {% if intelligence_data.above_avg %}
-    {% include 'template20/app/partials/aptitude_above_avg.html' %}
-    {% endif %}
-
-    <!-- Average Reasoning Types -->
-    {% if intelligence_data.average %}
-    {% include 'template20/app/partials/aptitude_avg.html' %}
-    {% endif %}
-
-    {% include 'template20/app/partials/aptitude_final_streams.html' %}
+    <!-- Aptitude combination profile (Strong Fit / Good Fit from Excel) -->
+    {% include 'template20/app/partials/aptitude_combination_profile.html' %}
 
     {% endif %}
 

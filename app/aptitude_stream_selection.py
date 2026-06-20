@@ -11,6 +11,11 @@ from __future__ import annotations
 
 from typing import Any
 
+from app.aptitude_combination_data import (
+    combination_profile_for_display,
+    lookup_combination_profile,
+)
+from app.report_visibility import student_all_growth_areas
 from core.choices import (
     CLASS10_APTITUDE_STREAM_DISPLAY_MODE_KEY,
     CLASS10_APTITUDE_STREAM_MODE_COMBINED,
@@ -283,7 +288,31 @@ def profile_label_for_tier(tier_used: str) -> str:
         return 'above average reasoning profile'
     if tier_used == 'average':
         return 'average reasoning profile'
+    if tier_used == 'below_avg':
+        return 'development areas profile'
     return 'combined reasoning profile'
+
+
+def _plan_from_areas(areas: list[str], tier_used: str) -> dict[str, Any] | None:
+    """Build a combination plan dict from reasoning areas and Excel lookup."""
+    codes = areas_to_codes(areas)
+    combo_profile = combination_profile_for_display(lookup_combination_profile(codes))
+    if not combo_profile:
+        return None
+    plan: dict[str, Any] = {
+        'tier_used': tier_used,
+        'profile_label': profile_label_for_tier(tier_used),
+        'areas': list(areas),
+        'reasoning_codes': sorted(codes),
+        'combination_profile': combo_profile,
+        'all_seven_note': ALL_SEVEN_NOTE if codes == ALL_REASONING_CODES else None,
+    }
+    return plan
+
+
+def _needs_backup_plan(above: list[str], average: list[str]) -> bool:
+    """Backup plan when student has both above-average and average reasoning areas."""
+    return bool(above) and bool(average)
 
 
 def _stream_entry(stream_key: str) -> dict[str, Any]:
@@ -311,13 +340,23 @@ def _weighted_recommendation(codes: frozenset[str]) -> tuple[str, str, str]:
     return primary, secondary, tertiary or secondary
 
 
+def _stream_key_from_excel(text: str) -> str:
+    """First stream token from Excel Strong/Good Fit cell."""
+    raw = str(text or '').strip()
+    if not raw:
+        return 'PCM'
+    if 'Fine Arts' in raw:
+        return 'Fine Arts'
+    return raw.split('/')[0].strip()
+
+
 def _lookup_exact(codes: frozenset[str]) -> tuple[str, str] | None:
     if not codes:
         return None
     if codes == ALL_REASONING_CODES:
         return ALL_SEVEN_STREAMS
     if len(codes) == 6:
-        missing = (ALL_REASONING_CODES - codes).pop()
+        missing = next(iter(ALL_REASONING_CODES - codes))
         return SIX_AREA_LOOKUP.get(missing)
     return COMBO_LOOKUP.get(codes)
 
@@ -332,40 +371,68 @@ def recommend_streams_from_tiers(
     Recommend best-fit and alternative streams from aptitude tier lists.
 
     Returns dict with primary, secondary, optional tertiary, and metadata.
-    When tier-priority mode is active and all areas are below average,
-    returns note_only=True with no stream cards.
+    When all areas are development/growth, returns note_only=True.
+
+    Mixed above + average profiles also include backup_plan (average-tier combo).
     """
     display_mode = mode or get_aptitude_stream_display_mode()
-    strong_areas, tier_used = resolve_stream_input_areas(above_avg, average, display_mode)
+    above = _dedupe_areas(above_avg or [])
+    avg = _dedupe_areas(average or [])
+    below = _dedupe_areas(below_avg or [])
 
-    if tier_used == 'below_avg':
+    if student_all_growth_areas(below, avg, above):
         return {
             'note_only': True,
             'display_mode': display_mode,
-            'tier_used': tier_used,
-            'profile_label': profile_label_for_tier(tier_used),
+            'tier_used': 'below_avg',
+            'profile_label': profile_label_for_tier('below_avg'),
             'strong_areas': [],
             'reasoning_codes': [],
-            'has_development_areas': bool(_dedupe_areas(below_avg or [])),
+            'has_development_areas': True,
             'method': 'note_only',
             'all_seven_note': None,
+            'combination_profile': None,
+            'backup_plan': None,
         }
 
-    codes = areas_to_codes(strong_areas)
+    if _needs_backup_plan(above, avg):
+        main_areas = above
+        tier_used = 'above_avg'
+    else:
+        main_areas, tier_used = resolve_stream_input_areas(above, avg, display_mode)
+
+    codes = areas_to_codes(main_areas)
+    main_plan = _plan_from_areas(main_areas, tier_used)
+    combo_profile = main_plan['combination_profile'] if main_plan else None
+
+    backup_plan = None
+    if _needs_backup_plan(above, avg):
+        backup_plan = _plan_from_areas(avg, 'average')
 
     result: dict[str, Any] = {
         'note_only': False,
         'display_mode': display_mode,
         'tier_used': tier_used,
         'profile_label': profile_label_for_tier(tier_used),
-        'strong_areas': strong_areas,
+        'strong_areas': main_areas,
         'reasoning_codes': sorted(codes),
-        'has_development_areas': bool(_dedupe_areas(below_avg or [])),
+        'has_development_areas': bool(below),
         'method': 'weighted',
-        'all_seven_note': None,
+        'all_seven_note': main_plan.get('all_seven_note') if main_plan else None,
+        'combination_profile': combo_profile,
+        'backup_plan': backup_plan,
     }
 
-    if not codes:
+    tertiary = None
+    if combo_profile:
+        primary = _stream_key_from_excel(combo_profile['strong_fit_stream'])
+        secondary = _stream_key_from_excel(combo_profile['good_fit_stream'])
+        result['method'] = 'exact'
+        if codes == ALL_REASONING_CODES:
+            result['ranked_streams'] = [
+                _stream_entry(s) for s in STREAM_RANK_ALL_SEVEN
+            ]
+    elif not codes:
         primary, secondary, tertiary = _weighted_recommendation(frozenset())
         result['method'] = 'fallback_empty'
     else:
@@ -378,7 +445,6 @@ def recommend_streams_from_tiers(
                 result['ranked_streams'] = [
                     _stream_entry(s) for s in STREAM_RANK_ALL_SEVEN
                 ]
-            tertiary = None
         else:
             primary, secondary, tertiary = _weighted_recommendation(codes)
             result['method'] = 'weighted'
