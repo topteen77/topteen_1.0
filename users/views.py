@@ -1563,18 +1563,12 @@ def _normalize_mobile_digits(value: str) -> str:
 
 
 def _user_has_profile_photo(user) -> bool:
-    """True only when the user has an image field set and the file exists in storage."""
+    """True when the user has a profile image path set (same rule as header avatar)."""
     try:
         img = getattr(user, "image", None)
-        if not img or not getattr(img, "name", None):
-            return False
-        return bool(img.storage.exists(img.name))
+        return bool(img and getattr(img, "name", None))
     except Exception:
-        try:
-            img = getattr(user, "image", None)
-            return bool(img and getattr(img, "name", None))
-        except Exception:
-            return False
+        return False
 
 def _validate_login_mobile_max_digits(raw_username: str, max_digits: int = 10) -> tuple[bool, str | None]:
     """
@@ -2846,8 +2840,20 @@ class ProfileBasicDetails(TemplateView):
         ctx['profile_user'] = profile_user
         ctx['is_parent_view'] = is_parent_view
         ctx['has_profile_photo'] = _user_has_profile_photo(profile_user)
+        ctx['profile_photo_url'] = (
+            profile_user.image.url
+            if _user_has_profile_photo(profile_user)
+            else ""
+        )
         ctx['avatar_initial'] = (
             (getattr(profile_user, "name", None) or getattr(profile_user, "email", None) or "?")[0].upper()
+        )
+        ctx['is_profile_edit_mode'] = bool(
+            getattr(profile_user, "is_completed", False)
+            or (
+                getattr(profile_user, "name", None)
+                and getattr(up, "grade", None) not in (None, "")
+            )
         )
         ctx['hobbies']=Hobbies.objects.all()
         ctx['subjects']=Subject.objects.all()
