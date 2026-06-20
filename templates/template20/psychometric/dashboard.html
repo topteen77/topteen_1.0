@@ -1802,9 +1802,6 @@
                   {% if stream_recommendation and stream_recommendation.profile_label %}
                   <p class="fs-13 text-gray mb-0 ">
                     Based on your {{ stream_recommendation.profile_label }}
-                    {% if stream_recommendation.reasoning_codes %}
-                    ({{ stream_recommendation.reasoning_codes | join(', ') }})
-                    {% endif %}
                   </p>
                   {% endif %}
                             </div>
