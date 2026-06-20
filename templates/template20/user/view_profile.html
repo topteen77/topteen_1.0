@@ -139,6 +139,134 @@
   .std-shell-main {
     padding-top: 52px;
   }
+
+  .view-profile-avatar-wrap {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+  }
+  .view-profile-avatar-initials {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #5c54d4, #7c6ef2);
+    color: #fff;
+    font-size: 32px;
+    font-weight: 700;
+    box-shadow: 0 4px 16px rgba(63, 55, 201, 0.2);
+  }
+  .view-profile-avatar-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #fff;
+    box-shadow: 0 4px 16px rgba(63, 55, 201, 0.15);
+  }
+
+  .profile-photo-zone {
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+  .profile-photo-avatar-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .profile-photo-initials {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #5c54d4, #7c6ef2);
+    color: #fff;
+    font-size: 56px;
+    font-weight: 700;
+    flex-shrink: 0;
+    box-shadow: 0 4px 20px rgba(63, 55, 201, 0.2);
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+  }
+  .profile-photo-initials.profile-photo-clickable {
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .profile-photo-initials.profile-photo-clickable:hover {
+    transform: scale(1.03);
+    box-shadow: 0 6px 24px rgba(63, 55, 201, 0.28);
+  }
+  .profile-photo-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 160px;
+    height: 160px;
+    display: block;
+    z-index: 2;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #fff;
+    box-shadow: 0 4px 20px rgba(63, 55, 201, 0.15);
+  }
+  .profile-photo-preview-wrap {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+  }
+  .profile-photo-instructions {
+    background: #f8f9ff;
+    border-radius: 12px;
+    padding: 16px 20px;
+    text-align: left;
+  }
+  .profile-photo-instructions-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #3f37c9;
+    margin-bottom: 8px;
+  }
+  .profile-photo-instructions ul {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 13px;
+    color: #666;
+  }
+  .profile-photo-change-btn {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    z-index: 3;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background: #3f37c9;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+  .profile-photo-change-btn:hover {
+    background: #2d28a0;
+  }
+  .profile-photo-preview-label {
+    font-size: 14px;
+    color: #666;
+  }
 </style>
 {% endblock %}
 
@@ -155,6 +283,30 @@
 {% block student_main %}
 
 <div class="app-right-content pt-3 px-3 pb-3">
+        <!-- Profile Photo -->
+        <div class="profile-card">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="view-profile-avatar-wrap">
+                {% if has_profile_photo %}
+                <img src="{{ profile_photo_url }}" alt="Profile photo" class="view-profile-avatar-img" id="viewProfileAvatarImg" />
+                {% else %}
+                <span class="view-profile-avatar-initials" id="viewProfileAvatarInitials">{{ avatar_initial }}</span>
+                {% endif %}
+              </div>
+              <div>
+                <h3 class="profile-section-title mb-1 border-0 pb-0">Profile Photo</h3>
+                <p class="text-muted mb-0 fs-14">Add a photo so others can recognize you.</p>
+              </div>
+            </div>
+            {% if not is_parent_view %}
+            <button type="button" class="edit-profile-btn" id="openPhotoModal">
+              <i class="bx bx-camera me-2"></i>Change Photo
+            </button>
+            {% endif %}
+          </div>
+        </div>
+
         <!-- Personal Information -->
         <div class="profile-card">
           <div class="d-flex justify-content-between align-items-center mb-3">
@@ -437,6 +589,105 @@
     }
 
     initChoiceTabs(document);
+
+    // Profile photo modal
+    const photoBtn = document.getElementById('openPhotoModal');
+    const photoModalEl = document.getElementById('profilePhotoModal');
+    if (photoBtn && photoModalEl) {
+      const photoModal = new bootstrap.Modal(photoModalEl);
+      const photoForm = document.getElementById('profilePhotoForm');
+      const photoErr = document.getElementById('profilePhotoErr');
+      const photoSaveBtn = document.getElementById('profilePhotoSaveBtn');
+      const photoInput = document.getElementById('vpPhotoInput');
+      const photoInitials = document.getElementById('vpPhotoInitials');
+      const photoPreview = document.getElementById('vpPhotoPreviewImg');
+      const photoChangeBtn = document.getElementById('vpPhotoChangeBtn');
+      const photoLabel = document.getElementById('vpPhotoLabel');
+      const serverPhotoSrc = photoPreview ? (photoPreview.getAttribute('src') || '') : '';
+      let selectedFile = null;
+
+      function openPhotoPicker() {
+        if (photoInput) {
+          photoInput.value = '';
+          photoInput.click();
+        }
+      }
+
+      function setPhotoPreviewState(hasPhoto, previewSrc) {
+        if (!photoPreview || !photoInitials) return;
+        if (hasPhoto) {
+          if (previewSrc) photoPreview.src = previewSrc;
+          photoInitials.classList.add('d-none');
+          photoPreview.classList.remove('d-none');
+          if (photoChangeBtn) photoChangeBtn.classList.remove('d-none');
+          if (photoLabel) photoLabel.textContent = 'Your profile photo';
+        } else {
+          photoPreview.classList.add('d-none');
+          photoPreview.removeAttribute('src');
+          photoInitials.classList.remove('d-none');
+          if (photoChangeBtn) photoChangeBtn.classList.add('d-none');
+          if (photoLabel) photoLabel.textContent = 'Tap your avatar to upload a photo';
+        }
+      }
+
+      function resetPhotoModal() {
+        selectedFile = null;
+        if (photoInput) photoInput.value = '';
+        setErr(photoErr, '');
+        if (serverPhotoSrc) {
+          photoPreview.src = serverPhotoSrc;
+          setPhotoPreviewState(true, serverPhotoSrc);
+        } else {
+          setPhotoPreviewState(false);
+        }
+      }
+
+      if (photoInitials) {
+        photoInitials.addEventListener('click', openPhotoPicker);
+        photoInitials.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') openPhotoPicker();
+        });
+      }
+      if (photoChangeBtn) photoChangeBtn.addEventListener('click', openPhotoPicker);
+
+      if (photoInput) {
+        photoInput.addEventListener('change', function(e) {
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+          if (!file.type.startsWith('image/')) {
+            setErr(photoErr, 'Please select a valid image file.');
+            return;
+          }
+          if (file.size > 2 * 1024 * 1024) {
+            setErr(photoErr, 'Image must be 2 MB or smaller.');
+            return;
+          }
+          setErr(photoErr, '');
+          selectedFile = file;
+          const reader = new FileReader();
+          reader.onload = function(ev) {
+            setPhotoPreviewState(true, ev.target.result);
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      photoBtn.addEventListener('click', function() {
+        resetPhotoModal();
+        photoModal.show();
+      });
+
+      if (photoForm) {
+        photoForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          if (!selectedFile && !(photoInput && photoInput.files && photoInput.files[0])) {
+            setErr(photoErr, 'Please select a photo to upload.');
+            return;
+          }
+          submitProfileSection(photoForm, 'photo', photoErr, photoSaveBtn);
+        });
+      }
+    }
 
     // Personal Information modal
     const personalBtn = document.getElementById('openPersonalInfoModal');

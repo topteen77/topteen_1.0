@@ -3030,6 +3030,7 @@ class UpdateProfileSectionView(APIView):
             'figure_out': self._update_figure_out,
             'subjects': self._update_subjects,
             'hobbies': self._update_hobbies,
+            'photo': self._update_photo,
         }
         handler = handlers.get(section)
         if not handler:
@@ -3119,6 +3120,22 @@ class UpdateProfileSectionView(APIView):
         user_profile.hobbies.set(Hobbies.objects.filter(id__in=hobbies))
         user_profile.save()
         return Response({'success': True, 'message': 'Hobbies updated successfully.'})
+
+    def _update_photo(self, request, user, user_profile):
+        image = request.FILES.get('image')
+        if not image:
+            return Response({'success': False, 'message': 'Please select a photo to upload.'})
+
+        content_type = getattr(image, 'content_type', '') or ''
+        if content_type and not content_type.startswith('image/'):
+            return Response({'success': False, 'message': 'Please select a valid image file.'})
+
+        if image.size > 2 * 1024 * 1024:
+            return Response({'success': False, 'message': 'Image must be 2 MB or smaller.'})
+
+        user.image = image
+        user.save()
+        return Response({'success': True, 'message': 'Profile photo updated successfully.'})
 
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')

@@ -1,3 +1,60 @@
+{# Profile Photo Modal #}
+<div class="modal fade profile-section-modal" id="profilePhotoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Change Profile Photo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="profilePhotoForm">
+        <div class="modal-body">
+          <div id="profilePhotoErr" class="text-danger fs-12 mb-2" style="display:none;"></div>
+          <div class="profile-photo-zone mx-auto">
+            <input type="file" name="image" accept="image/jpeg,image/png,image/webp,image/gif" class="d-none" id="vpPhotoInput" />
+
+            <div class="profile-photo-avatar-area mb-3">
+              <div class="profile-photo-preview-wrap">
+                <span id="vpPhotoInitials"
+                      class="profile-photo-initials profile-photo-clickable{% if has_profile_photo %} d-none{% endif %}"
+                      role="button"
+                      tabindex="0"
+                      title="Upload photo"
+                      aria-label="Upload profile photo">{{ avatar_initial }}</span>
+                <img id="vpPhotoPreviewImg"
+                     class="profile-photo-img{% if not has_profile_photo %} d-none{% endif %}"
+                     src="{{ profile_photo_url }}"
+                     alt="Your profile photo" />
+                <button type="button" id="vpPhotoChangeBtn"
+                        class="profile-photo-change-btn{% if not has_profile_photo %} d-none{% endif %}"
+                        title="Change photo" aria-label="Change photo">
+                  <i class="bx bx-camera"></i>
+                </button>
+              </div>
+              <p id="vpPhotoLabel" class="profile-photo-preview-label mb-0">
+                {% if has_profile_photo %}Your profile photo{% else %}Tap your avatar to upload a photo{% endif %}
+              </p>
+            </div>
+
+            <div class="profile-photo-instructions">
+              <p class="profile-photo-instructions-title">Photo guidelines</p>
+              <ul>
+                <li>Recommended size: 200 &times; 200 px</li>
+                <li>Square images work best</li>
+                <li>Formats: JPG, PNG, or WebP</li>
+                <li>Maximum file size: 2 MB</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn custom-button purple-button fw-600" id="profilePhotoSaveBtn">Save Photo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 {# Personal Information Modal #}
 <div class="modal fade profile-section-modal" id="personalInfoModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
