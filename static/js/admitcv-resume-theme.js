@@ -22,6 +22,7 @@
   }
 
   function initialMode() {
+    if (window.TOPTEEN_RESUME_STUDIO_LOCK_LIGHT) return 'light';
     var s = readStored();
     if (s === 'light' || s === 'dark') return s;
     return systemDefault();

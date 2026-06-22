@@ -376,6 +376,39 @@ label.hobbiesTab img {
     border-color: #dc3545 !important;
     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
   }
+  .school-search-wrap {
+    position: relative;
+  }
+  .school-search-dropdown {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 4px);
+    z-index: 1050;
+    max-height: 220px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  }
+  .school-search-option {
+    display: block;
+    width: 100%;
+    padding: 10px 14px 10px 42px;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #1f2937;
+    cursor: pointer;
+  }
+  .school-search-option:hover,
+  .school-search-option.is-active {
+    background: #f3f0ff;
+    color: #3f37c9;
+  }
   #validationErrorAlert {
     animation: slideDown 0.3s ease-out;
   }
@@ -857,25 +890,26 @@ label.hobbiesTab img {
           </div>
         </div>
 
-        <!-- School Name (suggest dropdown) -->
+        <!-- School Name (searchable suggestions) -->
         <div class="w-100 d-flex justify-content-center mb-3">
-          <div class="icon-input position-relative has-label" style="width: 576px;">
+          <div class="icon-input position-relative has-label school-search-wrap" style="width: 576px;">
             <label for="userschool" class="form-label fs-14 fw-semibold mb-2">School Name</label>
             <div class="icon-input-field">
               <i class='bx bx-buildings field-icon' aria-hidden="true"></i>
-              <input name="userschool" id="userschool" type="text" 
+              <input name="userschool" id="userschool" type="text"
                      list="school-datalist"
                      autocomplete="off"
                      value="{% if profile_user.user_profile and profile_user.user_profile.schoolname and profile_user.user_profile.schoolname != 'None' %}{{ profile_user.user_profile.schoolname }}{% endif %}"
-                     class="form-control custom-input w-100" 
+                     class="form-control custom-input w-100 school-search-input"
                      style="height: 48px;"
-                     placeholder="Type to search or select school" required />
+                     placeholder="Enter your school name" required />
             </div>
             <datalist id="school-datalist">
               {% for school in school_suggestions %}
               <option value="{{ school }}"></option>
               {% endfor %}
             </datalist>
+            <script type="application/json" id="school-suggestions-json">{{ school_suggestions|tojson }}</script>
           </div>
         </div>
 
@@ -1044,7 +1078,7 @@ label.hobbiesTab img {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+<script src="{{ static('js/school-name-search.js') }}"></script>
 <script>
   // Sweet Alert Helper
   const fireAlert = async function (
@@ -1458,6 +1492,16 @@ label.hobbiesTab img {
     const userPhone = document.getElementById('userphone');
     if (userPhone) {
       installMaxDigitsMobile(userPhone, 10);
+    }
+
+    const schoolSuggestionsEl = document.getElementById('school-suggestions-json');
+    if (schoolSuggestionsEl && typeof initSchoolNameSearch === 'function') {
+      try {
+        const schoolSuggestions = JSON.parse(schoolSuggestionsEl.textContent || '[]');
+        initSchoolNameSearch('userschool', schoolSuggestions);
+      } catch (e) {
+        console.warn('School suggestions could not be loaded', e);
+      }
     }
 
     const parentInput = document.getElementById('parent_mobile_profile');

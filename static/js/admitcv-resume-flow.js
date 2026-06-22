@@ -41,16 +41,22 @@ function applyServerPrefill(){
   if (!raw || !raw.textContent) return;
   try {
     var d = JSON.parse(raw.textContent);
-    if (d.name) sv('f-name', d.name);
-    if (d.email) sv('f-email', d.email);
-    if (d.phone) sv('f-phone', d.phone);
-    if (d.country) sv('f-country', d.country);
-    if (d.school) sv('f-school', d.school);
+    svIfEmpty('f-name', d.name);
+    svIfEmpty('f-email', d.email);
+    svIfEmpty('f-phone', d.phone);
+    svIfEmpty('f-country', d.country);
+    svIfEmpty('f-school', d.school);
     if (d.grade) {
       var lvl = document.getElementById('f-level');
       if (lvl && !lvl.value) lvl.value = d.grade;
     }
   } catch (e) {}
+}
+
+function svIfEmpty(id, val){
+  if (!val) return;
+  var el = document.getElementById(id);
+  if (el && !String(el.value || '').trim()) el.value = val;
 }
 
 function _splitLines(s){

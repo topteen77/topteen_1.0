@@ -8,6 +8,7 @@ from core import choices
 
 from .models import (
     UserProfile,
+    UserResume,
     UserResumeActivity,
     UserResumeCertificate,
     UserResumeInternship,
@@ -448,6 +449,418 @@ def _wizard_draft_dict(resume):
     except (json.JSONDecodeError, TypeError, ValueError):
         return None
     return o if isinstance(o, dict) else None
+
+
+GUIDED_WIZARD_FIELD_KEYS = frozenset(
+    {
+        "name",
+        "email",
+        "phone",
+        "country",
+        "linkedin",
+        "portfolio",
+        "level",
+        "school",
+        "course",
+        "career",
+        "unis",
+        "gpa",
+        "board",
+        "board_state",
+        "subjects",
+        "tests",
+        "awards",
+        "olymp",
+        "lead",
+        "extra",
+        "sport",
+        "intern",
+        "research",
+        "community",
+        "projects",
+        "tech",
+        "soft",
+        "langs",
+        "certs",
+        "personal",
+        "hobbies",
+        "style",
+        "format",
+        "tag",
+        "instr",
+    }
+)
+
+
+def _wizard_guided_slice(wiz: dict | None) -> dict:
+    if not isinstance(wiz, dict):
+        return {}
+    out = {k: wiz[k] for k in GUIDED_WIZARD_FIELD_KEYS if k in wiz}
+    for meta in ("generated_once", "proofread"):
+        if meta in wiz:
+            out[meta] = wiz[meta]
+    return out
+
+
+def _wizard_has_guided_content(wiz: dict | None) -> bool:
+    guided = _wizard_guided_slice(wiz)
+    for k, v in guided.items():
+        if k in ("generated_once", "proofread"):
+            continue
+        if isinstance(v, str) and v.strip():
+            return True
+    return False
+
+
+def _merge_wizard_drafts(primary: dict | None, fallback: dict | None) -> dict:
+    """Keep non-empty values in primary; fill gaps from fallback."""
+    out = dict(primary or {})
+    for k, v in (fallback or {}).items():
+        if k in (STUDIO_PROTO_V1_KEY, WIZARD_PREFER_GENERATED_PDF_KEY):
+            continue
+        if k == "generated_once":
+            if not out.get(k) and v:
+                out[k] = v
+            continue
+        if k == "proofread":
+            if k not in out and isinstance(v, bool):
+                out[k] = v
+            continue
+        cur = out.get(k)
+        if cur is None or (isinstance(cur, str) and not str(cur).strip()):
+            if v is None:
+                continue
+            if isinstance(v, str) and not str(v).strip():
+                continue
+            out[k] = v
+    return out
+
+
+def _join_drow(*parts) -> str:
+    return " | ".join(str(p).strip() for p in parts if p is not None and str(p).strip())
+
+
+def _map_grade_to_education_level(grade: str) -> str:
+    g = (grade or "").strip().lower()
+    if not g:
+        return ""
+    if any(x in g for x in ("o-level", "o level", "gcse")) or re.search(r"\b10\b", g):
+        return "Class 10 / O-Levels / GCSE"
+    if any(
+        x in g
+        for x in (
+            "11",
+            "12",
+            "a-level",
+            "a level",
+            "ib",
+            "cbse",
+            "icse",
+            "+2",
+            "plus 2",
+            "plus2",
+            "hsc",
+            "senior",
+        )
+    ):
+        return "Class 11–12 / A-Levels / IB / CBSE / ICSE"
+    if "undergraduate" in g or "under grad" in g:
+        if "final" in g:
+            return "Undergraduate — Final Year"
+        return "Undergraduate — Year 1 or 2"
+    if any(x in g for x in ("master", "masters", "graduate student", "postgrad")):
+        return "Graduate / Masters Student"
+    if any(x in g for x in ("mba", "phd", "working professional")):
+        return "Working Professional (MBA / PhD applicant)"
+    if "gap year" in g or "deferred" in g:
+        return "Gap Year / Deferred Entry"
+    if "transfer" in g:
+        return "Transfer Student"
+    return (grade or "").strip()[:120]
+
+
+def _guess_country_from_user(user) -> str:
+    mobile = str(getattr(user, "mobile", None) or "").strip()
+    if mobile.startswith("+91") or (len(mobile) == 10 and mobile[0] in "6789"):
+        return "India"
+    return ""
+
+
+def _profile_to_wizard_seed(user, profile) -> dict:
+    if user is None:
+        return {}
+    out: dict = {
+        "name": (user.name or "").strip()[:200],
+        "email": (user.email or "").strip()[:200],
+        "phone": str(user.mobile or "").strip()[:80],
+    }
+    country = _guess_country_from_user(user)
+    if country:
+        out["country"] = country
+    if not profile:
+        return out
+    school = (profile.schoolname or "").strip()
+    if school:
+        out["school"] = school[:300]
+    level = _map_grade_to_education_level(profile.grade or "")
+    if level:
+        out["level"] = level[:120]
+    subjects = [s.name.strip() for s in profile.subject.all() if getattr(s, "name", None)]
+    if subjects:
+        out["subjects"] = ", ".join(subjects)[:500]
+    streams = [f.name.strip() for f in profile.figure_out.all() if getattr(f, "name", None)]
+    if streams:
+        out["course"] = ", ".join(streams)[:200]
+    hobbies = [h.name.strip() for h in profile.hobbies.all() if getattr(h, "name", None)]
+    if hobbies:
+        out["hobbies"] = ", ".join(hobbies)[:500]
+    return out
+
+
+def _resume_children_to_wizard_seed(resume) -> dict:
+    if resume is None:
+        return {}
+    out: dict = {}
+
+    about = (resume.about or "").strip()
+    if about:
+        out["personal"] = about[:4000]
+
+    intern_rows = []
+    for it in UserResumeInternship.objects.filter(resume=resume).order_by("id"):
+        desc = " ".join(_desc_bullets(it.description))[:800]
+        intern_rows.append(
+            _join_drow(it.role, it.provider, _iso_range(it.start_date, it.end_date), desc)
+        )
+    if intern_rows:
+        out["intern"] = "\n".join(intern_rows)
+
+    community_rows = []
+    for v in UserResumeVolunteerInvolvement.objects.filter(resume=resume).order_by("id"):
+        desc = " ".join(_desc_bullets(v.description))[:800]
+        community_rows.append(_join_drow(v.title, v.role, _iso_range(v.start_date, v.end_date), desc))
+    if community_rows:
+        out["community"] = "\n".join(community_rows)
+
+    extra_rows = []
+    lang_parts = []
+    for a in UserResumeActivity.objects.filter(resume=resume).order_by("id"):
+        title = (a.title or "").strip()
+        desc = (a.description or "").strip()
+        if title.lower().startswith("language:"):
+            nm = title.split(":", 1)[-1].strip()
+            lang_parts.append(f"{nm} ({desc})" if desc else nm)
+            continue
+        row = _join_drow(title, desc)
+        if row:
+            extra_rows.append(row)
+    if extra_rows:
+        out["extra"] = "\n".join(extra_rows)
+    if lang_parts:
+        out["langs"] = ", ".join(lang_parts)
+
+    cert_lines = []
+    for c in UserResumeCertificate.objects.filter(resume=resume).order_by("id"):
+        title = (c.title or "").strip()
+        if not title:
+            continue
+        issuer = (c.description or "").strip()
+        date = c.issue_date.isoformat() if c.issue_date else ""
+        cert_lines.append(" — ".join(x for x in [title, issuer, date] if x))
+    if cert_lines:
+        out["certs"] = "\n".join(cert_lines)
+
+    tech_skills = []
+    soft_skills = []
+    for s in UserResumeSkill.objects.filter(resume=resume).order_by("id"):
+        title = (s.title or "").strip()
+        if not title:
+            continue
+        if s.profficiency == choices.UserResumeProficiency.EXPERT:
+            tech_skills.append(title)
+        elif s.profficiency == choices.UserResumeProficiency.INTERMEDIATE:
+            tech_skills.append(title)
+        else:
+            soft_skills.append(title)
+    if tech_skills:
+        out["tech"] = ", ".join(tech_skills)[:800]
+    if soft_skills:
+        out["soft"] = ", ".join(soft_skills)[:800]
+
+    return out
+
+
+def _studio_payload_to_wizard_seed(rd: dict | None) -> dict:
+    if not isinstance(rd, dict):
+        return {}
+    out: dict = {}
+    out["name"] = (rd.get("fullName") or "").strip()[:200]
+    out["email"] = (rd.get("email") or "").strip()[:200]
+    out["phone"] = (rd.get("phone") or "").strip()[:80]
+    out["linkedin"] = (rd.get("linkedin") or "").strip()[:500]
+    out["portfolio"] = (rd.get("website") or "").strip()[:500]
+    addr = (rd.get("address") or "").strip()
+    if addr:
+        out["country"] = addr.split(",")[0].strip()[:120]
+    headline = (rd.get("headline") or "").strip()
+    summary = (rd.get("summary") or "").strip()
+    if headline:
+        out["course"] = headline[:200]
+    if summary:
+        out["career"] = summary[:1200]
+        if not out.get("personal"):
+            out["personal"] = summary[:4000]
+
+    edu = rd.get("education") or []
+    if edu and isinstance(edu[0], dict):
+        e = edu[0]
+        school = (e.get("school") or "").strip()
+        degree = (e.get("degree") or "").strip()
+        detail = (e.get("detail") or "").strip()
+        if school:
+            out["school"] = school[:300]
+        if degree:
+            mapped = _map_grade_to_education_level(degree)
+            out["level"] = (mapped or degree)[:120]
+            if not out.get("course"):
+                out["course"] = degree[:200]
+        if detail:
+            out["subjects"] = detail[:500]
+            if not out.get("gpa"):
+                out["gpa"] = detail[:200]
+
+    tech = []
+    soft = []
+    for sk in rd.get("skills") or []:
+        if not isinstance(sk, dict):
+            continue
+        name = (sk.get("name") or "").strip()
+        if not name:
+            continue
+        try:
+            lv = int(sk.get("level"))
+        except (TypeError, ValueError):
+            lv = 3
+        if lv >= 4:
+            tech.append(name)
+        else:
+            soft.append(name)
+    if tech:
+        out["tech"] = ", ".join(tech)[:800]
+    if soft:
+        out["soft"] = ", ".join(soft)[:800]
+
+    langs = []
+    for lg in rd.get("languages") or []:
+        if not isinstance(lg, dict):
+            continue
+        nm = (lg.get("name") or "").strip()
+        lv = (lg.get("level") or "").strip()
+        if nm:
+            langs.append(f"{nm} ({lv})" if lv else nm)
+    if langs:
+        out["langs"] = ", ".join(langs)[:500]
+
+    cert_lines = []
+    for c in rd.get("certifications") or []:
+        if not isinstance(c, dict):
+            continue
+        nm = (c.get("name") or "").strip()
+        if not nm:
+            continue
+        issuer = (c.get("issuer") or "").strip()
+        date = (c.get("date") or "").strip()
+        cert_lines.append(" — ".join(x for x in [nm, issuer, date] if x))
+    if cert_lines:
+        out["certs"] = "\n".join(cert_lines)
+
+    intern_rows = []
+    extra_rows = []
+    community_rows = []
+    for ex in rd.get("experience") or []:
+        if not isinstance(ex, dict):
+            continue
+        title = (ex.get("title") or "").strip()
+        company = (ex.get("company") or "").strip()
+        dates = (ex.get("dates") or "").strip()
+        bullets = ex.get("bullets") or []
+        desc = " ".join(str(b).strip() for b in bullets if str(b).strip())[:800]
+        row = _join_drow(title, company, dates, desc)
+        if not row:
+            continue
+        company_l = company.lower()
+        title_l = title.lower()
+        if "volunteer" in company_l or "community" in title_l:
+            community_rows.append(row)
+        elif company_l == "activity" or title_l.startswith("language:"):
+            extra_rows.append(row)
+        elif "intern" in title_l:
+            intern_rows.append(row)
+        else:
+            intern_rows.append(row)
+    if intern_rows:
+        out["intern"] = "\n".join(intern_rows)
+    if extra_rows:
+        out["extra"] = "\n".join(extra_rows)
+    if community_rows:
+        out["community"] = "\n".join(community_rows)
+
+    interests = (rd.get("interests") or "").strip()
+    if interests:
+        out["hobbies"] = interests[:500]
+    return out
+
+
+def _best_sibling_wizard_seed(user, exclude_resume_id) -> dict:
+    if user is None:
+        return {}
+    for sibling in UserResume.objects.filter(user=user).exclude(pk=exclude_resume_id).order_by("-modified"):
+        wiz = _wizard_draft_dict(sibling)
+        if wiz and _wizard_has_guided_content(wiz):
+            return _wizard_guided_slice(wiz)
+        child_seed = _resume_children_to_wizard_seed(sibling)
+        if _wizard_has_guided_content(child_seed):
+            return child_seed
+    return {}
+
+
+def prepare_admitcv_wizard_restore(resume, request=None) -> dict:
+    """
+    Build wizard JSON for the AdmitCV studio: saved draft wins, then profile,
+    resume sections, studio payload, and other resumes for the same user fill gaps.
+    """
+    existing = _wizard_draft_dict(resume) or {}
+    existing_guided = _wizard_guided_slice(existing)
+    user = getattr(resume, "user", None)
+    profile = UserProfile.objects.filter(user=user).first() if user else None
+
+    inferred: dict = {}
+    for layer in (
+        _profile_to_wizard_seed(user, profile),
+        _resume_children_to_wizard_seed(resume),
+        _studio_payload_to_wizard_seed(
+            resume_studio_prototype_payload(resume, request, ignore_studio_proto_merge=False)
+        ),
+        _best_sibling_wizard_seed(user, resume.pk),
+    ):
+        inferred = _merge_wizard_drafts(inferred, layer)
+
+    wiz = existing
+    sp = wiz.get(STUDIO_PROTO_V1_KEY) if isinstance(wiz, dict) else None
+    if isinstance(sp, dict) and isinstance(sp.get("resume"), dict):
+        inferred = _merge_wizard_drafts(
+            inferred, _studio_payload_to_wizard_seed(sp["resume"])
+        )
+
+    final = _merge_wizard_drafts(inferred, existing_guided)
+    for meta_key in (STUDIO_PROTO_V1_KEY, WIZARD_PREFER_GENERATED_PDF_KEY):
+        if meta_key in existing:
+            final[meta_key] = existing[meta_key]
+    if existing.get("generated_once"):
+        final["generated_once"] = True
+    elif (getattr(resume, "generated_html", None) or "").strip():
+        final["generated_once"] = True
+    return final
 
 
 def _split_skill_tokens(text):

@@ -98,6 +98,28 @@
     box-shadow: 0 0 0 0.22rem rgba(75, 77, 230, 0.14);
   }
 
+  .my-resume-create-form .form-control.is-invalid {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.22rem rgba(220, 53, 69, 0.14);
+  }
+
+  .my-resume-create-input-wrap {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .my-resume-create-error {
+    display: none;
+    margin-top: 8px;
+    color: #dc3545;
+    font-size: 14px;
+    line-height: 1.35;
+  }
+
+  .my-resume-create-error.is-visible {
+    display: block;
+  }
+
   .my-resume-create-row {
     display: flex;
     align-items: center;
@@ -214,6 +236,10 @@
       width: 100%;
     }
 
+    .my-resume-create-input-wrap {
+      width: 100%;
+    }
+
     .my-resume-create-form .form-control {
       width: 100%;
     }
@@ -282,12 +308,28 @@
         <div class="my-resume-card my-resume-create-card mb-4">
           <div class="my-resume-create-row">
              
-              <form method="post" action="{{ url('users:resumebuilder_create') }}" class="d-flex gap-2 my-resume-create-form">
+              <form method="post" action="{{ url('users:resumebuilder_create') }}" class="d-flex gap-2 my-resume-create-form" id="resume-create-form" novalidate>
                 <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                 <input type="hidden" name="next" value="studio">
-                <input type="text" name="title" class="form-control flex-grow-1" placeholder="Enter a name for your resume" maxlength="120">
+                <div class="my-resume-create-input-wrap">
+                  <input
+                    type="text"
+                    name="title"
+                    id="resume-create-title"
+                    class="form-control"
+                    placeholder="Enter a name for your resume"
+                    maxlength="120"
+                    minlength="2"
+                    required
+                    autocomplete="off"
+                    value="{{ draft_title|default('', true)|e }}"
+                    aria-describedby="resume-create-title-error"
+                  >
+                  <div class="my-resume-create-error" id="resume-create-title-error" role="alert"></div>
+                </div>
                 <button type="submit" class="btn custom-button purple-button text-nowrap my-resume-primary-btn"><i class='bx bx-plus-circle'></i>Add resume</button>
               </form>
+              <script type="application/json" id="resume-existing-titles-json">{{ existing_resume_titles|default([])|tojson }}</script>
              
           </div>
 
@@ -328,4 +370,66 @@
         </div>
         {% endif %}
  </div>
+<script>
+(function () {
+  var form = document.getElementById('resume-create-form');
+  var input = document.getElementById('resume-create-title');
+  var errorEl = document.getElementById('resume-create-title-error');
+  if (!form || !input || !errorEl) return;
+
+  var MIN_LEN = 2;
+  var MAX_LEN = 120;
+  var existingTitles = [];
+  try {
+    var raw = document.getElementById('resume-existing-titles-json');
+    existingTitles = raw ? JSON.parse(raw.textContent || '[]') : [];
+  } catch (e) {
+    existingTitles = [];
+  }
+
+  function clearError() {
+    input.classList.remove('is-invalid');
+    errorEl.textContent = '';
+    errorEl.classList.remove('is-visible');
+  }
+
+  function showError(message) {
+    input.classList.add('is-invalid');
+    errorEl.textContent = message;
+    errorEl.classList.add('is-visible');
+    input.focus();
+  }
+
+  function validateTitle() {
+    var title = (input.value || '').trim();
+    if (!title) {
+      return 'Please enter a name for your resume.';
+    }
+    if (title.length < MIN_LEN) {
+      return 'Resume name must be at least ' + MIN_LEN + ' characters.';
+    }
+    if (title.length > MAX_LEN) {
+      return 'Resume name must be ' + MAX_LEN + ' characters or fewer.';
+    }
+    var lowered = title.toLowerCase();
+    for (var i = 0; i < existingTitles.length; i++) {
+      if (String(existingTitles[i] || '').trim().toLowerCase() === lowered) {
+        return 'You already have a resume with this name. Please choose a different name.';
+      }
+    }
+    return '';
+  }
+
+  input.addEventListener('input', clearError);
+
+  form.addEventListener('submit', function (event) {
+    clearError();
+    var error = validateTitle();
+    if (error) {
+      event.preventDefault();
+      showError(error);
+    }
+  });
+})();
+</script>
 {% endblock %}

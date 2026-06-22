@@ -89,6 +89,7 @@ from .resume_payload import (
     STUDIO_PROTO_V1_KEY,
     apply_studio_resume_to_userresume_children,
     ensure_studio_proto_v1_defaults_saved,
+    prepare_admitcv_wizard_restore,
     resume_editor_payload as _resume_editor_payload,
     resume_studio_embed_finish_pdf_urls,
     resume_studio_prototype_payload,
@@ -2904,6 +2905,11 @@ class ProfileBasicDetails(TemplateView):
             ctx["school_suggestions"] = sorted(set(existing))[:250]
         except Exception:
             ctx["school_suggestions"] = []
+        from django.conf import settings
+        ctx["google_maps_api_key"] = (
+            getattr(settings, "GOOGLE_MAPS_API_KEY", None)
+            or getattr(settings, "GOOGLE_API_KEY", "")
+        )
         ctx["html_head"] = self.html_head()
         return ctx
 
@@ -3926,6 +3932,25 @@ def _resume_section_count(ur):
     )
 
 
+RESUME_TITLE_MIN_LEN = 2
+RESUME_TITLE_MAX_LEN = 120
+
+
+def _validate_new_resume_title(user, title):
+    """Return an error message, or None when title is valid for a new resume."""
+    if not title:
+        return "Please enter a name for your resume."
+    if len(title) < RESUME_TITLE_MIN_LEN:
+        return f"Resume name must be at least {RESUME_TITLE_MIN_LEN} characters."
+    if len(title) > RESUME_TITLE_MAX_LEN:
+        return f"Resume name must be {RESUME_TITLE_MAX_LEN} characters or fewer."
+    lowered = title.casefold()
+    for existing in UserResume.objects.filter(user=user).values_list("title", flat=True):
+        if (existing or "").strip().casefold() == lowered:
+            return "You already have a resume with this name. Please choose a different name."
+    return None
+
+
 def _hub_nav_counts(user):
     """Sidebar badge counts (mirrors UserDashboard resume/shortlist/notes slice)."""
     ctx = {
@@ -3983,6 +4008,8 @@ class MyResumesHubView(TemplateView):
         resumes = list(UserResume.objects.filter(user=profile_user).order_by("-modified"))
         ctx["resumes"] = resumes
         ctx["resume_rows"] = [{"resume": r, "sections": _resume_section_count(r)} for r in resumes]
+        ctx["draft_title"] = (request.GET.get("draft_title") or "")[:RESUME_TITLE_MAX_LEN]
+        ctx["existing_resume_titles"] = [(r.title or "").strip() for r in resumes if (r.title or "").strip()]
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -3996,7 +4023,13 @@ class ResumeHubCreateView(View):
     http_method_names = ["post"]
 
     def post(self, request, *args, **kwargs):
-        title = (request.POST.get("title") or "").strip()[:120] or "Untitled resume"
+        title = (request.POST.get("title") or "").strip()[:RESUME_TITLE_MAX_LEN]
+        title_error = _validate_new_resume_title(request.user, title)
+        if title_error:
+            messages.error(request, title_error)
+            from urllib.parse import urlencode
+
+            return redirect(f"{reverse('users:resumebuilder')}?{urlencode({'draft_title': title})}")
         nxt = (request.POST.get("next") or "studio").strip().lower()
         resume = UserResume.objects.create(user=request.user, title=title)
         messages.success(request, "Resume created.")
@@ -4260,7 +4293,11 @@ class ResumeStudioSetupView(TemplateView):
             "school": (profile.schoolname or "")[:300] if profile else "",
             "grade": (profile.grade or "")[:120] if profile else "",
         }
-        ctx["wizard_restore_json"] = resume.wizard_draft_json or "{}"
+        ctx["wizard_restore_json"] = json.dumps(
+            prepare_admitcv_wizard_restore(resume, request),
+            ensure_ascii=False,
+            default=str,
+        )
         from users.resume_studio_html import studio_html_template_catalog_rows
 
         rows = studio_html_template_catalog_rows()

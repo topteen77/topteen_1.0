@@ -533,6 +533,10 @@
 
 {% block additionaljs %}
 {{ super() }}
+<script src="{{ static('js/school-places-autocomplete.js') }}"></script>
+{% if google_maps_api_key %}
+<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key|urlencode }}&libraries=places&callback=initGoogleSchoolPlaces"></script>
+{% endif %}
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const csrfToken = '{{ csrf_token }}';

@@ -436,6 +436,25 @@
     padding-top: 24px;
   }
 
+  /* Match student dashboard light shell (override admitcv dark defaults) */
+  body.student-dashboard-shell.admitcv-elite-flow {
+    background: var(--dash-bg) !important;
+    color: #475569;
+  }
+
+  body.student-dashboard-shell.admitcv-elite-flow::before,
+  body.student-dashboard-shell.admitcv-elite-flow::after {
+    display: none;
+  }
+
+  body.student-dashboard-shell.admitcv-elite-flow #pg-build {
+    background: transparent;
+  }
+
+  body.student-dashboard-shell.admitcv-elite-flow .std-shell-main {
+    background: var(--dash-bg);
+  }
+
   .std-shell-toolbar-extras .btn-theme-toggle {
     margin: 0;
   }
