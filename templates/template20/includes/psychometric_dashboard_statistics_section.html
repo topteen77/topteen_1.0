@@ -41,9 +41,10 @@
         <div class="min-w-0">
           <p class="stat-value mb-0 stat-value-trigger" id="stat-streak"
             data-value="{{ streak_days|default(0) }}"
+            data-streak-format="day-label"
             data-bs-toggle="modal" data-bs-target="#dashboardStatStreakModal"
-            role="button" tabindex="0" title="View streak details">{{ streak_days|default(0) }}</p>
-          <p class="stat-label mb-0 lh-sm" id="stat-streak-label">{% if (streak_days|default(0)) == 1 %}1 day streak{% else %}{{ streak_days|default(0) }} day streak{% endif %}</p>
+            role="button" tabindex="0" title="View streak details">Day {{ streak_days|default(0) }}</p>
+          <p class="stat-label mb-0 lh-sm" id="stat-streak-label">Streak</p>
         </div>
       </div>
     </div>

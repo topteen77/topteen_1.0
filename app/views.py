@@ -742,6 +742,8 @@ def dashboard(request, student_id=None):
                 suitable_subject_combinations,
             )
 
+        from app.stream_decision import STREAM_DECISION_STREAM_OPTIONS
+
         context = {
             'user_profile': user_profile,
             'top_category': top_category,
@@ -804,6 +806,7 @@ def dashboard(request, student_id=None):
             'stream_questionnaire_completed_at': stream_questionnaire_completed_at,
             'stream_questionnaire_suggested': stream_questionnaire_suggested,
             'stream_questionnaire_other': stream_questionnaire_other,
+            'stream_decision_options': STREAM_DECISION_STREAM_OPTIONS,
         }
 
         return render(request, 'template20/psychometric/dashboard.html', context)

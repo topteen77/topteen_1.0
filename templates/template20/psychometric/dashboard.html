@@ -1740,7 +1740,7 @@
 
   .student-dash-main-col {padding:0px;}
 </style>
-<link rel="stylesheet" href="{{ static('css_new/stream-decision-questionnaire.css') }}?v=24">
+<link rel="stylesheet" href="{{ static('css_new/stream-decision-questionnaire.css') }}?v=25">
 {% endblock %}
 
 {% block student_main %}
@@ -1786,7 +1786,7 @@
             } %}
             {% if suitable_subject_combinations %}
             <div class="my-md-6 my-4 psych-stream-intelligence-section">
-              <h3 class="psych-section-title mb-2"><span class="psych-section-dot" aria-hidden="true"></span>Suggested Streams from Intelligence</h3>
+              <h3 class="psych-section-title mb-2"><span class="psych-section-dot" aria-hidden="true"></span>Suggested Streams from Aptitude </h3>
        
 
               <div class="psych-stream-columns psych-stream-columns--single">
@@ -1804,7 +1804,7 @@
                     Based on your {{ stream_recommendation.profile_label }}
                   </p>
                   {% endif %}
-                            </div>
+                </div>
                 <div class="psych-stream-part-body">
                   <div class="psych-stream-suggested-list">
                     {% for combo in suitable_subject_combinations %}
@@ -1860,9 +1860,7 @@
               </section>
               </div>
             </div>
-            {% endif %}
-
-   
+            {% endif %}   
       <!-- Psychometric Test Report (modern combined-report style using DB data) -->
       <div class="mb-4 psych-report-section">
         <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Psychometric Test Report</h2>
@@ -1923,7 +1921,7 @@
               <div class="report-card-head">
                 <div>
                   <p class="report-card-title">Interest</p>
-                  <p class="report-card-sub">Career interest inventory - Part 2</p>
+                  <p class="report-card-sub">Career interest assessment - Part 2</p>
                 </div>
                 <div class="report-card-score interest d-none">{{ interest_highest_value|default(interest_pct|default(0))|int }} pts</div>
               </div>
@@ -1986,7 +1984,7 @@
             <div class="report-card report-card-intelligence report-card-modern">
               <div class="report-card-head">
                 <div>
-                  <p class="report-card-title">Intelligence</p>
+                  <p class="report-card-title">Aptitude</p>
                   <p class="report-card-sub">Aptitude assessment - Part 3</p>
                 </div>
                 <div class="report-card-score intelligence"></div>
@@ -2097,7 +2095,7 @@
                 <span class="career-type-pill">{{ top_category.fullname|default(top_category.category) }}</span>
                 {% endif %}
               </h3>
-              <p>Career suggestions based on your dominant personality from the assessment report.</p>
+              <p>Career suggestions based on your dominant personality traits from the assessment report.</p>
             </div>
 
             {% if personality_suggested_career_groups %}
@@ -2152,7 +2150,7 @@
                 <span class="career-type-pill">{{ dominant_interest_name }}</span>
                 {% endif %}
               </h3>
-              <p>Career paths aligned with each dominant interest type from your Career Interest Inventory.</p>
+              <p>Career paths aligned with each dominant interest type from your Career Interest Assessment.</p>
             </div>
 
             {% if interest_suggested_career_groups %}

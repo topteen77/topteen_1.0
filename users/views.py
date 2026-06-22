@@ -3560,10 +3560,10 @@ class UserDashboard(TemplateView):
             ctx["dashboard_enrolled_items"].append(
                 {
                     "kind": "psychometric",
-                    "title": "Multiple Intelligences",
+                    "title": "Multiple Intelligence",
                     "subtitle": "Learning style" if mi_done else "Assessment",
                     "start_url": reverse("core:multiple_intelligences_assessment"),
-                    "action_label": "View report" if mi_done else "Take assessment",
+                    "action_label": "View report" if mi_done else "Start test",
                     "action_variant": "report" if mi_done else "start",
                     "hide_kind_badge": True,
                 }
@@ -3583,7 +3583,7 @@ class UserDashboard(TemplateView):
                     "title": "Emotional Intelligence",
                     "subtitle": "EQ profile" if eq_done else "Assessment",
                     "start_url": reverse("core:emotional_intelligences_assessment"),
-                    "action_label": "View report" if eq_done else "Take assessment",
+                    "action_label": "View report" if eq_done else "Start test",
                     "action_variant": "report" if eq_done else "start",
                     "hide_kind_badge": True,
                 }
