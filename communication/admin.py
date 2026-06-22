@@ -127,8 +127,8 @@ class EmailMessageTemplateAdmin(admin.ModelAdmin):
             ('Email content (editable)', {
                 'fields': ('subject_template', 'body_html_template'),
                 'description': (
-                    'Variables are filled at send time. Example subject: '
-                    '<code>{inviter_name} invited you to join TopTeen</code>'
+                    'Email goes TO the invitee ({invitee_email}). Mention the inviter ({inviter_name}) '
+                    'as the person who sent the invite — do not open with "Hi {inviter_name}" to the friend.'
                 ),
             }),
             ('Timestamps', {

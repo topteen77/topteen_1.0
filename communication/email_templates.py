@@ -8,13 +8,26 @@ REFERRAL_EMAIL_SLUG = 'refer_friend'
 DEFAULT_REFERRAL_SUBJECT = '{inviter_name} has invited you to explore careers in TopTeen'
 
 REFERRAL_PLACEHOLDER_HELP = """
-Available placeholders (type exactly as shown, including curly braces):
+Who is who (important):
+  INVITER  = logged-in user clicking "Send invitation" on the dashboard
+  INVITEE  = friend email entered in the form (also the person who RECEIVES this email)
 
-  {inviter_name}   — Name of the user sending the invite (falls back to their email)
-  {referral_url}   — Unique sign-up link for the friend
-  {invitee_email}  — Friend's email address entered in the invite form
+Placeholders (type exactly as shown, including curly braces):
 
-Legacy aliases (same values): {user} = inviter name, {refral_url} = referral link
+  {inviter_name}    — Inviter display name (or email if name is empty)
+  {inviter_email}   — Inviter account email
+  {invitee_email}   — Friend email / recipient (same as To address)
+  {referral_url}    — Unique sign-up link for the friend
+
+Legacy aliases: {user} = inviter name, {refral_url} = referral link
+
+Correct example opening:
+  Hello,
+  {inviter_name} has invited you to join TopTeen.
+  This invitation was sent to {invitee_email}.
+
+Do NOT greet the inviter in the email body (wrong: "Hi {inviter_name}," as the opening
+line — that addresses the sender, not the friend receiving the mail).
 """.strip()
 
 REFERRAL_SAMPLE_SUBJECT = '{inviter_name} invited you to join TopTeen'
@@ -90,8 +103,10 @@ def format_email_message(slug, context, default_subject, default_html_renderer):
 
 def format_referral_email(user, referral_url, invitee_email=''):
     inviter_name = (getattr(user, 'name', None) or getattr(user, 'email', None) or 'A TopTeen user').strip()
+    inviter_email = (getattr(user, 'email', None) or '').strip()
     context = {
         'inviter_name': inviter_name,
+        'inviter_email': inviter_email,
         'user': inviter_name,
         'referral_url': referral_url,
         'refral_url': referral_url,
