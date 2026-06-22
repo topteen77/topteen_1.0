@@ -3810,6 +3810,7 @@ class UserHobbies(TemplateView):
         ctx={}
         ctx["html_head"] = self.html_head()
         ctx['breadcrumb']=self.__breadcrumb()
+        ctx['all_hobbies'] = list(Hobbies.objects.all())
         # Pre-evaluate hobbies for Jinja2 template
         try:
             if hasattr(request.user, 'user_profile') and request.user.user_profile:
@@ -3819,6 +3820,7 @@ class UserHobbies(TemplateView):
                 ctx['hobbies'] = []
         except Exception as e:
             ctx['hobbies'] = []
+        ctx['user_hobby_ids'] = {h.id for h in ctx['hobbies']}
         return ctx
 
     def get(self, request,*args, **kwargs):
