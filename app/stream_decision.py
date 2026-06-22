@@ -17,7 +17,42 @@ VALID_STREAMS = frozenset({
     'HUM',
 })
 
+STREAM_DECISION_STREAM_OPTIONS = (
+    {
+        'code': 'PCM',
+        'label': 'PCM - Engineering (Physics, Chemistry, Mathematics)',
+    },
+    {
+        'code': 'PCB',
+        'label': 'PCB - Medical (Physics, Chemistry, Biology)',
+    },
+    {
+        'code': 'CWM',
+        'label': 'CWM - Commerce (Commerce with Mathematics)',
+    },
+    {
+        'code': 'CWOM',
+        'label': 'CWOM - Commerce (Commerce without Mathematics)',
+    },
+    {
+        'code': 'HUM-L',
+        'label': 'HUM-L - Humanities (Humanities with Languages)',
+    },
+    {
+        'code': 'HUM',
+        'label': 'HUM - Humanities (Humanities)',
+    },
+)
+
 QUESTIONNAIRE_KEY = 'stream_decision_questionnaire'
+
+
+def stream_decision_display_label(stream_code):
+    code = str(stream_code or '').strip().upper()
+    for option in STREAM_DECISION_STREAM_OPTIONS:
+        if option['code'] == code:
+            return option['label']
+    return code
 
 
 def get_questionnaire_data(results_dict):

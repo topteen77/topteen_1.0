@@ -8,10 +8,6 @@
 </div>
 {% elif stream_recommendation and stream_recommendation.combination_profile %}
 <div class="chapterPage aptitude-combination-profile" style="clear: both; width: 100%; float: left; margin-top: 24px;">
-  <div class="db-header" style="margin-top: 10px; text-align: center;">
-    <h1 style="color: #3F37C9; margin-bottom: 8px;">Aptitude Profile &amp; Recommendations</h1>
-  </div>
-
   {% set plan = {
     'combination_profile': stream_recommendation.combination_profile,
     'profile_label': stream_recommendation.profile_label,

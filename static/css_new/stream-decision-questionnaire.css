@@ -329,6 +329,26 @@
   line-height: 1.45;
 }
 
+.stream-decision-stream-options {
+  gap: 10px;
+}
+
+.stream-decision-option-stream {
+  align-items: center;
+}
+
+.stream-decision-option-stream .stream-decision-option-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.45;
+}
+
+.stream-decision-option-stream input {
+  margin-top: 0;
+  flex-shrink: 0;
+}
+
 .stream-decision-options {
   display: flex;
   flex-direction: column;

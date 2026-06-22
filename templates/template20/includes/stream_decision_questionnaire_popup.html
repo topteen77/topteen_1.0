@@ -45,30 +45,14 @@
             2. Considering both your academic scores and psychometric test, which stream do you believe would be the most suitable choice for you?
           </p>
           <div class="stream-decision-options stream-decision-stream-options">
-            <label class="stream-decision-option">
-              <input type="radio" name="preferred_stream" value="PCM">
-              <span>PCM</span>
+            {% for option in stream_decision_options|default([]) %}
+            <label class="stream-decision-option stream-decision-option-stream">
+              <input type="radio" name="preferred_stream" value="{{ option.code }}">
+              <span class="stream-decision-option-content">
+                <span class="stream-decision-option-label">{{ option.label }}</span>
+              </span>
             </label>
-            <label class="stream-decision-option">
-              <input type="radio" name="preferred_stream" value="PCB">
-              <span> PCB</span>
-            </label>
-            <label class="stream-decision-option">
-              <input type="radio" name="preferred_stream" value="CWM">
-              <span> CWM</span>
-            </label>
-            <label class="stream-decision-option">
-              <input type="radio" name="preferred_stream" value="CWOM">
-              <span>CWOM</span>
-            </label>
-            <label class="stream-decision-option">
-              <input type="radio" name="preferred_stream" value="HUM-L">
-              <span> HUM-L</span>
-            </label>
-            <label class="stream-decision-option">
-              <input type="radio" name="preferred_stream" value="HUM">
-              <span> HUM</span>
-            </label>
+            {% endfor %}
           </div>
         </div>
 
