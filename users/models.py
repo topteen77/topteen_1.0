@@ -294,8 +294,12 @@ class User(BaseModel,AbstractBaseUser, PermissionsMixin):
         sign = Signer()
         enc_id=sign.sign_object(({"refer_enc_id":self.id}))
         path=reverse('users:referallogin',args=[enc_id])
-        url="{}{}".format("https://topteen.in",path)
-        return url
+        base = (
+            getattr(settings, 'ENQUIRY_SOURCE_BASE_URL', None)
+            or getattr(settings, 'SITE_URL', None)
+            or 'https://www.topteen.in'
+        )
+        return "{}{}".format(base.rstrip('/'), path)
     
     def get_user_status(self):
         return self.user_status==choices.UserStatus.UNBLOCK

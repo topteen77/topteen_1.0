@@ -17,8 +17,7 @@ def send_otp_mail(username,otp_type):
 @app.task()
 def send_referral_mail(user_id,to):
     cs=ComService()
-    cs.send_referral(user_id,to)
-    print("referral mail successfully")
+    return cs.send_referral(user_id,to)
 
 # @app.task()
 # def send_resume_mail(user_id):

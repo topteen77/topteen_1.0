@@ -880,7 +880,7 @@
           tools.</p>
       </div>
       <div class="modal-body refer-modal-body text-center">
-        <ul class="refer-modal-perks">
+        <ul class="refer-modal-perks  d-none">
           <li>
             <span class="perk-ico"><i class='bx bx-trophy' aria-hidden="true"></i></span>
             <span><strong>Earn reward points</strong> when your friend signs up and gets started.</span>
@@ -1539,16 +1539,17 @@
             document.getElementById('referform').reset();
           }
         } else {
+          const errMsg = (response && response.message) ? response.message : 'Please enter a valid email address';
           if (typeof Swal !== 'undefined') {
             Swal.fire({
               title: 'Error',
-              text: 'Please enter a valid email address',
+              text: errMsg,
               icon: 'error',
               confirmButtonText: 'OK',
               confirmButtonColor: '#3f37c9'
             });
           } else {
-            alert('Please enter a valid email address');
+            alert(errMsg);
           }
         }
         // Re-enable submit button
@@ -1560,16 +1561,21 @@
       },
       error: function (xhr, status, error) {
         console.error('Error:', error);
+        let errMsg = 'Something went wrong. Please try again.';
+        try {
+          const payload = xhr.responseJSON || JSON.parse(xhr.responseText || '{}');
+          if (payload.message) errMsg = payload.message;
+        } catch (e) {}
         if (typeof Swal !== 'undefined') {
           Swal.fire({
             title: 'Error',
-            text: 'Something went wrong. Please try again.',
+            text: errMsg,
             icon: 'error',
             confirmButtonText: 'OK',
             confirmButtonColor: '#3f37c9'
           });
         } else {
-          alert('Something went wrong. Please try again.');
+          alert(errMsg);
         }
         // Re-enable submit button
         if (submitBtn) {

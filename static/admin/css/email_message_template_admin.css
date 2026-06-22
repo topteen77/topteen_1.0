@@ -1,0 +1,53 @@
+/* Email message template admin — force readable contrast in readonly instruction blocks */
+.field-template_instructions .readonly,
+.field-sample_subject_preview .readonly,
+.field-sample_body_preview .readonly {
+  color: #111111 !important;
+}
+
+.field-template_instructions .email-template-admin-block,
+.field-sample_subject_preview .email-template-admin-block,
+.field-sample_body_preview .email-template-admin-block {
+  display: block;
+  margin: 0;
+  padding: 14px 16px;
+  background: #ffffff !important;
+  color: #111111 !important;
+  border: 1px solid #b8c2cc;
+  border-radius: 6px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 13px;
+  line-height: 1.6;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.field-template_instructions label,
+.field-sample_subject_preview label,
+.field-sample_body_preview label {
+  color: #111111 !important;
+  font-weight: 600;
+}
+
+fieldset.module .description {
+  color: #333333 !important;
+}
+
+fieldset.module .description code {
+  color: #0d3b66 !important;
+  background: #eef4ff;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+/* CKEditor on email template change form */
+.field-body_html_template .django-ckeditor-widget,
+.field-body_html_template .cke_chrome {
+  max-width: 100% !important;
+}
+
+.field-body_html_template .cke_contents {
+  min-height: 380px !important;
+}

@@ -455,6 +455,23 @@ CKEDITOR_CONFIGS = {
     'default': {
         'toolbar': None,
     },
+    'email_template': {
+        'toolbar': 'EmailTemplate',
+        'toolbar_EmailTemplate': [
+            ['Source', '-', 'Bold', 'Italic', 'Underline', 'Strike'],
+            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'],
+            ['JustifyLeft', 'JustifyCenter', 'JustifyRight'],
+            ['Link', 'Unlink', '-', 'RemoveFormat'],
+            ['Format', 'TextColor', 'BGColor'],
+        ],
+        'height': 380,
+        'width': '100%',
+        'allowedContent': True,
+        'extraAllowedContent': '*(*);*{*}',
+        'removePlugins': 'stylesheetparser',
+        'entities': False,
+        'basicEntities': False,
+    },
 }
 
 # File Upload Settings

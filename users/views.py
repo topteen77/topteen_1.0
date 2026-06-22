@@ -5089,15 +5089,19 @@ class BookmarkBlog(TemplateView):
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
     
 class ReferView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
     def post(self, request, *args, **kwargs):
         import re
         evalid = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        email=request.POST.get("email")
-        em=re.match(evalid,email)
-        if em:
-            to=email
-            user_id=request.user.id
-            send_referral_mail.delay(user_id,to)
-            return JsonResponse({'success': "true"})
-        else:
-            return JsonResponse({'success': "false"})
+        email = (request.POST.get("email") or "").strip()
+        if not email or not re.match(evalid, email):
+            return JsonResponse({'success': "false", 'message': 'Please enter a valid email address.'})
+
+        sent = send_referral_mail(request.user.id, email)
+        if sent:
+            return JsonResponse({'success': "true", 'message': 'Invitation sent successfully.'})
+        return JsonResponse(
+            {'success': "false", 'message': 'Unable to send invitation email. Please try again later.'},
+            status=500,
+        )

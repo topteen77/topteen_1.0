@@ -105,7 +105,17 @@ class ComService:
         return status
 
     def make_log_entry(self,to,body,com_type,response):
-        CommunicationLog.objects.create(to=to,body=body,type=com_type,response=response)
+        from communication.utils import mysql_text_safe
+        try:
+            log_response = response if isinstance(response, str) else ('success' if response else 'failed')
+            CommunicationLog.objects.create(
+                to=mysql_text_safe(to) if isinstance(to, str) else to,
+                body=mysql_text_safe(body),
+                type=com_type,
+                response=log_response,
+            )
+        except Exception as e:
+            logger.warning("CommunicationLog create failed for %s: %s", to, e)
 
 
     def check_duplicate_sms(self,url):
@@ -243,12 +253,14 @@ class ComService:
         return False
     
     def send_referral(self,user_id,to):
+        from communication.email_templates import format_referral_email
         user=User.objects.get(id=user_id)
-        subject="{} has invited you to explore careers in TopTeen".format(user)
-        to=to
         url=user.get_referral_url()
-        html_content=render_to_string('mail/user/referral.html',{"refral_url":url,"user":user})
-        text_content=html_content
+        subject, text_content, html_content = format_referral_email(
+            user=user,
+            referral_url=url,
+            invitee_email=to,
+        )
         return self.send_mail(subject,to,text_content,html_content)
     
     def send_student_create_mail(self,email,password,ins_name,image_url,test_link):
