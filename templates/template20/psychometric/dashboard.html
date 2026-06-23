@@ -1824,9 +1824,9 @@
                         </div>
                         <div>
                           {% if combo.stream_tier == 'best_fit' %}
-                          <p class="fs-11 text-primary fw-bold text-uppercase mb-1">Best fit stream</p>
+                          <p class="fs-11 text-primary fw-bold text-uppercase mb-1">Strong Fit</p>
                           {% elif combo.stream_tier == 'alternative' %}
-                          <p class="fs-11 text-primary fw-bold text-uppercase mb-1">Alternative stream</p>
+                          <p class="fs-11 text-primary fw-bold text-uppercase mb-1">Good Fit</p>
                           {% endif %}
                           <p class="fw-bold mb-0 fs-16">{{ combo.stream|default(combo.label) }}</p>
                           <p class="fs-13 text-gray mb-0 lh-sm">{{ combo.subjects|default('') }}</p>
@@ -1834,7 +1834,7 @@
                       </div>
                       {% if group %}
                       <div class="psych-stream-combined-careers">
-                        <p class="psych-stream-career-panel-label">Suggested careers</p>
+                        <p class="psych-stream-career-panel-label">Career Pathways</p>
                         <div class="career-chip-grid career-group-chips{% if career_total > career_preview %} is-collapsed{% endif %}" data-career-group-chips>
                           {% for item in group_items %}
                           {% if item.url %}
