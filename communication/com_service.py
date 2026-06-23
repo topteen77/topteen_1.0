@@ -9,6 +9,7 @@ from .models import OTP,CommunicationLog
 from django.core.mail import EmailMultiAlternatives
 from core import email_strings, sms_strings
 from communication.email_templates import render_transactional_email
+from communication.email_layout import ensure_email_html_wrapped
 from communication.utils import referral_url_without_scheme
 # from edmissions.celery import app
 from django.utils.safestring import mark_safe

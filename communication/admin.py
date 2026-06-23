@@ -1,7 +1,11 @@
 from django.contrib import admin
-from django.utils.html import format_html, escape
+from django.http import JsonResponse
+from django.urls import path
+from django.utils.html import escape, format_html
 from django.utils.safestring import mark_safe
+import html as html_module
 
+from communication.email_preview import render_admin_email_preview
 from communication.email_template_registry import get_email_template_meta
 from communication.forms import EmailMessageTemplateAdminForm
 from .models import CommunicationLog, EmailMessageTemplate, OTP
@@ -51,6 +55,7 @@ class EmailMessageTemplateAdmin(admin.ModelAdmin):
         'builtin_template_path',
         'sample_subject_preview',
         'sample_body_preview',
+        'email_live_preview',
         'created',
         'modified',
     )
@@ -121,6 +126,59 @@ class EmailMessageTemplateAdmin(admin.ModelAdmin):
             return mark_safe('<p class="help">No sample body for this template.</p>')
         return _admin_pre_block(sample)
 
+    def _build_preview_html(self, slug, subject_template='', body_html_template=''):
+        subject, html = render_admin_email_preview(slug, subject_template, body_html_template)
+        iframe = format_html(
+            '<iframe class="email-template-live-preview-frame" srcdoc="{}" '
+            'style="width:100%;min-height:560px;border:1px solid #d1d5db;border-radius:8px;background:#fff;" '
+            'title="Email preview"></iframe>',
+            mark_safe(html_module.escape(html, quote=True)),
+        )
+        return format_html(
+            '<div class="email-template-live-preview-wrap" data-slug="{}">'
+            '<p style="margin:0 0 8px;color:#111111 !important;"><strong>Subject:</strong> {}</p>'
+            '<p class="help" style="margin:0 0 12px;color:#444444 !important;">'
+            'Full email with shared header/footer from <code>mail/base_email.html</code>. '
+            'Sample placeholder values are used.</p>'
+            '<button type="button" class="button email-template-preview-refresh" '
+            'style="margin-bottom:12px;">Refresh preview from fields above</button>'
+            '{}'
+            '</div>',
+            escape(slug),
+            escape(subject),
+            iframe,
+        )
+
+    @admin.display(description='Live email preview')
+    def email_live_preview(self, obj):
+        if not obj or not obj.slug:
+            return mark_safe('<p class="help">Save the template to see a live preview.</p>')
+        return self._build_preview_html(obj.slug, obj.subject_template, obj.body_html_template)
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                '<path:object_id>/preview/',
+                self.admin_site.admin_view(self.preview_email_template),
+                name='communication_emailmessagetemplate_preview',
+            ),
+        ]
+        return custom_urls + urls
+
+    def preview_email_template(self, request, object_id):
+        obj = self.get_object(request, object_id)
+        if not obj:
+            return JsonResponse({'error': 'Template not found'}, status=404)
+        subject_template = request.POST.get('subject_template', obj.subject_template)
+        body_html_template = request.POST.get('body_html_template', obj.body_html_template)
+        subject, html = render_admin_email_preview(
+            obj.slug,
+            subject_template,
+            body_html_template,
+        )
+        return JsonResponse({'subject': subject, 'html': html})
+
     @admin.action(description='Reload subject/body from built-in template file')
     def reload_from_builtin(self, request, queryset):
         from communication.builtin_email_content import populate_template_defaults
@@ -167,6 +225,10 @@ class EmailMessageTemplateAdmin(admin.ModelAdmin):
                     'Edit message body only — do not add logo/header/footer here; they are injected automatically. '
                     'For links in CKEditor use http://{url_no_scheme} when available, or full URLs like {url}.'
                 ),
+            }),
+            ('Live preview', {
+                'fields': ('email_live_preview',),
+                'description': 'Preview shows the final email with header, logo, and footer applied.',
             }),
             ('Timestamps', {
                 'fields': ('created', 'modified'),

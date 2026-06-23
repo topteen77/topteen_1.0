@@ -98,3 +98,26 @@ fieldset.module .description code {
   line-height: 1.55 !important;
   min-height: 380px !important;
 }
+
+.field-email_live_preview .readonly {
+  width: 100%;
+}
+
+.email-template-live-preview-wrap {
+  background: #f8fafc !important;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.email-template-live-preview-wrap p,
+.email-template-live-preview-wrap .help {
+  color: #111111 !important;
+}
+
+.email-template-live-preview-wrap code {
+  color: #0d3b66 !important;
+  background: #eef4ff;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
