@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <link rel="preload stylesheet" href="{{ static('font/font-style.css') }}">
-  <title>Stream Sorter Assessment Report - Intelligence</title>
+  <title>Stream Sorter Assessment Report - Aptitude</title>
   <style>
     @page {
       @top-left {
@@ -139,6 +139,49 @@
     }
     .aptitude-fit-list li {
       list-style-type: disc;
+    }
+    .aptitude-performance-profile {
+      clear: both;
+      width: 100%;
+      margin: 12px 0 16px;
+    }
+    .aptitude-performance-profile__intro {
+      font-size: 11px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+    }
+    .aptitude-performance-grid {
+      width: 100%;
+      overflow: hidden;
+    }
+    .aptitude-performance-card {
+      float: left;
+      width: 48.5%;
+      margin: 0 1.5% 8px 0;
+      padding: 8px 10px;
+      page-break-inside: avoid;
+      box-sizing: border-box;
+    }
+    .aptitude-performance-card:nth-child(2n) {
+      margin-right: 0;
+    }
+    .aptitude-performance-card__title {
+      font-size: 11px;
+    }
+    .aptitude-performance-card__score {
+      font-size: 10px;
+      padding: 2px 8px;
+    }
+    .aptitude-performance-card__summary-title {
+      font-size: 10px;
+    }
+    .aptitude-performance-card__row {
+      font-size: 9px;
+      padding: 3px 0;
+    }
+    .aptitude-performance-profile div,
+    .aptitude-performance-card div {
+      margin-bottom: 0 !important;
     }
   </style>
   {% include 'template20/app/partials/aptitude_tier_styles.html' %}
@@ -285,7 +328,7 @@
       <div class="top-layout" style="margin-top:0px;">Part - 3</div>
     </div>
     <div class="db-header" style="margin-top: 0px; text-align: center;">
-      <h1 style="color: #3F37C9; margin-top: 0px; font-size: 19pt;">INTELLIGENCE ASSESSMENT REPORT</h1>
+      <h1 style="color: #3F37C9; margin-top: 0px; font-size: 19pt;">APTITUDE ASSESSMENT REPORT</h1>
     </div>
     <div class="text-info-paragraph" style="width: 100%; float: left; margin-top: 5px;">
       <p style="font-size: 14px;">An intelligence test is a standardized assessment designed to measure a person's cognitive abilities and intellectual potential. These tests evaluate various factors of intelligence to provide a comprehensive understanding of an individual's mental capabilities. The key factors often assessed in an intelligence test include numerical reasoning, verbal reasoning, logical reasoning, mechanical reasoning, spatial reasoning, language usage and spelling, and critical reasoning. By identifying your dominant Reasoning type, you can better understand your career preferences and suggest suitable career paths that align with your strengths and passions.</p>
@@ -375,7 +418,6 @@
     <div class="threebox-col">
       {% if above_avg %}
       <div class="box-i onebox" style="background: #F0FFEA;margin: 20px 8px; border-radius: 10px; border-right: 4px solid #2A740E; border-bottom: 4px solid #2A740E; width:190px; height: 180px; min-height: 180px;">
-        <p style="color: #2A740E; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Above Average</p>
         {% for above in above_avg %}
         <p style="color: #494949; line-height: 16px; font-size: 11px; font-weight: 600; margin-bottom: 3px; overflow-wrap: break-word;">{{ above }}</p>
         {% endfor %}
@@ -384,7 +426,6 @@
 
       {% if avg %}
       <div class="box-i onebox" style="background: #F5F4FF; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #3F37C9; border-bottom: 4px solid #3F37C9; width:190px; height: 180px; min-height: 180px;">
-        <p style="color: #3F37C9; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Average</p>
         {% for average in avg %}
         <p style="color: #494949; line-height: 16px; font-size: 11px; font-weight: 600; margin-bottom: 3px; overflow-wrap: break-word;">{{ average }}</p>
         {% endfor %}
@@ -393,14 +434,14 @@
 
       {% if below %}
       <div class="box-i onebox" style="background:#FFE5E5; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #A22717; border-bottom: 4px solid #A22717; width:190px;height: 180px; min-height: 180px;">
-        {# changes required by management (01-Jun-2025): Below Average → Development Areas #}
-        <p style="color: #A22717; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">{{ "Below Average"|aptitude_tier_label }}</p>
         {% for belowavg in below %}
         <p style="color: #494949; line-height: 16px; font-size: 11px; font-weight: 600; margin-bottom: 3px; overflow-wrap: break-word;">{{ belowavg }}</p>
         {% endfor %}
       </div>
       {% endif %}
     </div>
+
+    {% include 'template20/app/partials/aptitude_performance_profile.html' %}
   
     <table style="margin-bottom: 30px; margin-top:10px; width:600px; margin: 0px auto;">
       <thead>

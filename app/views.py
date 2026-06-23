@@ -1282,6 +1282,13 @@ def class10_combined_report(request, user_id=None):
         else:
             context['stream_sorter_guidance'] = None
 
+        from app.aptitude_report_utils import aptitude_report_context_fields
+        context.update(
+            aptitude_report_context_fields(
+                test3_result.scores if test3_result and test3_result.scores else None
+            )
+        )
+
         resp = render(request, 'template20/app/class10_combined_report_new.html', context)
         return _add_no_cache_headers(resp)
         
@@ -1461,6 +1468,13 @@ def class10_report_download_pdf(request, user_id=None):
             )
         else:
             context['stream_sorter_guidance'] = None
+
+        from app.aptitude_report_utils import aptitude_report_context_fields
+        context.update(
+            aptitude_report_context_fields(
+                test3_result.scores if test3_result and test3_result.scores else None
+            )
+        )
 
         from app.interest_report_utils import interest_report_context_fields
         context.update(
@@ -2695,13 +2709,6 @@ def gernate_graph(request):
             ax.set_ylim(0, 18)  # Set limit to 20 to create a gap above the highest tick
             ax.set_yticks(range(0, 19, 5))  # Tick marks at 0, 5, 10, 15
 
-            # Add labels for score ranges outside the graph on the left side
-            # changes required by management (01-Jun-2025): Below Average → Development Areas (graph label only)
-            from app_post_matric.aptitude_area_labels import aptitude_tier_label
-            ax.text(-0.8, 2.5, f'{aptitude_tier_label("Below Average")}\n(0-5)', fontsize=25, color='black', ha='right', va='center')
-            ax.text(-0.8, 8, 'Average\n(6-10)', fontsize=25, color='black', ha='right', va='center')
-            ax.text(-0.8, 13, 'Above Average\n(11-15)', fontsize=25, color='black', ha='right', va='center')
-
             # Highlight specific bars if needed
             highlight_value = 15  # Example value to highlight
             for bar, value in zip(bars, values):
@@ -3260,7 +3267,14 @@ def test3_report_html(request, user_id=None):
             'student_below_average': student_all_growth_areas(below, avg, above_avg),
         }
         context.update(vocational_guidance_context_for_below_areas(below, user=target_user))
-        
+
+        from app.aptitude_report_utils import aptitude_report_context_fields
+        context.update(
+            aptitude_report_context_fields(
+                test3_result.scores if test3_result and test3_result.scores else None
+            )
+        )
+
         resp = render(request, 'template20/app/test3_report.html', context)
         return _add_no_cache_headers(resp)
         
@@ -3700,6 +3714,13 @@ def test3_report_pdf(request, user_id=None):
             'show_student_info_on_cover': True,
         }
         context.update(vocational_guidance_context_for_below_areas(below, user=target_user))
+
+        from app.aptitude_report_utils import aptitude_report_context_fields
+        context.update(
+            aptitude_report_context_fields(
+                test3_result.scores if test3_result and test3_result.scores else None
+            )
+        )
         
         # Render HTML template
         template = get_template('template20/app/test3_report_pdf.html')

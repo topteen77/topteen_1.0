@@ -1,0 +1,180 @@
+{# Class 10 aptitude performance profile cards. Expects: aptitude_profile_sections #}
+{% if aptitude_profile_sections %}
+<style>
+  .aptitude-performance-profile {
+    width: 100%;
+    clear: both;
+    margin: 20px 0 24px;
+    page-break-inside: auto;
+  }
+
+  .aptitude-performance-profile__intro {
+    margin: 0 0 12px;
+    padding: 10px 14px;
+    font-size: 14px;
+    color: #334155;
+    background: #f8fafc;
+    border-radius: 8px;
+  }
+
+  .aptitude-performance-profile__intro strong {
+    color: #1e293b;
+  }
+
+  .aptitude-performance-grid {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .aptitude-performance-grid::after {
+    content: "";
+    display: block;
+    clear: both;
+  }
+
+  .aptitude-performance-card {
+    float: left;
+    width: 48.5%;
+    margin: 0 1.5% 10px 0;
+    background: #fff;
+    border: 1px solid #e8edf5;
+    border-radius: 8px;
+    padding: 10px 12px;
+    box-sizing: border-box;
+    page-break-inside: avoid;
+  }
+
+  .aptitude-performance-card:nth-child(2n) {
+    margin-right: 0;
+  }
+
+  .aptitude-performance-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .aptitude-performance-card__title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1f2937;
+    line-height: 1.3;
+    margin: 0;
+  }
+
+  .aptitude-performance-card__score {
+    color: #fff;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .aptitude-performance-card__summary-title {
+    margin: 0 0 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+  }
+
+  .aptitude-performance-card__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 11px;
+    color: #334155;
+  }
+
+  .aptitude-performance-card__row:last-child {
+    border-bottom: none;
+  }
+
+  .aptitude-performance-card__value {
+    font-weight: 600;
+  }
+
+  @media screen and (max-width: 768px) {
+    .aptitude-performance-card {
+      float: none;
+      width: 100%;
+      margin-right: 0;
+    }
+  }
+
+  @media print {
+    .aptitude-performance-profile {
+      margin: 14px 0 18px;
+    }
+
+    .aptitude-performance-profile__intro {
+      font-size: 11px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+    }
+
+    .aptitude-performance-card {
+      width: 48.5%;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+    }
+
+    .aptitude-performance-card__title {
+      font-size: 11px;
+    }
+
+    .aptitude-performance-card__score {
+      font-size: 10px;
+      padding: 2px 8px;
+    }
+
+    .aptitude-performance-card__summary-title {
+      font-size: 10px;
+    }
+
+    .aptitude-performance-card__row {
+      font-size: 9px;
+      padding: 3px 0;
+    }
+  }
+</style>
+
+<section class="aptitude-performance-profile" aria-labelledby="aptitudePerformanceProfileTitle">
+  <p class="aptitude-performance-profile__intro" id="aptitudePerformanceProfileTitle">
+    <strong>Your Aptitude Profile:</strong> Natural abilities across 7 key areas
+  </p>
+  <div class="aptitude-performance-grid">
+    {% for section in aptitude_profile_sections %}
+    <article class="aptitude-performance-card" style="border-left: 4px solid {{ section.accent_color }};">
+      <div class="aptitude-performance-card__header">
+        <h3 class="aptitude-performance-card__title">{{ section.name }}</h3>
+        <span class="aptitude-performance-card__score" style="background-color: {{ section.accent_color }};">
+          {{ section.correct_answers }}/{{ section.total_questions }}
+        </span>
+      </div>
+      <div>
+        <p class="aptitude-performance-card__summary-title">Performance Summary:</p>
+        <div class="aptitude-performance-card__row">
+          <span>Total Questions:</span>
+          <span class="aptitude-performance-card__value">{{ section.total_questions }}</span>
+        </div>
+        <div class="aptitude-performance-card__row">
+          <span>Correct Answers:</span>
+          <span class="aptitude-performance-card__value">{{ section.correct_answers }}</span>
+        </div>
+        <div class="aptitude-performance-card__row">
+          <span>Accuracy:</span>
+          <span class="aptitude-performance-card__value" style="color: {{ section.accent_color }};">{{ section.accuracy }}%</span>
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}

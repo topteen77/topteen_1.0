@@ -1,7 +1,7 @@
 {% extends 'template20/logged-in-base.html' %}
 
-{% block title_content %}Intelligence Assessment Report | Top Teen{% endblock %}
-{% block description_content %}View your Intelligence Assessment report.{% endblock %}
+{% block title_content %}Aptitude Assessment Report | Top Teen{% endblock %}
+{% block description_content %}View your Aptitude Assessment report.{% endblock %}
 
 {% block chatbot %}{% endblock %}
 {% block chatbot_css %}{% endblock %}
@@ -372,7 +372,7 @@ table {
       <div class="top-layout" style="font-size: 16px;">Part - 3</div>
     </div>
     <div class="db-header" style="margin-top: 0px;">
-      <h1 style="color: #3F37C9; margin-top: 10px;">INTELLIGENCE ASSESSMENT REPORT</h1>
+      <h1 style="color: #3F37C9; margin-top: 10px;">APTITUDE ASSESSMENT REPORT</h1>
     </div>
     <div class="text-info-paragraph" style="width: 100%; float: left; margin-top: 10px;">
       <p>An intelligence test is a standardized assessment designed to measure a person's cognitive abilities and intellectual potential. These tests evaluate various factors of intelligence to provide a comprehensive understanding of an individual's mental capabilities. The key factors often assessed in an intelligence test include numerical reasoning, verbal reasoning, logical reasoning, mechanical reasoning, spatial reasoning, language usage and spelling, and critical reasoning. By identifying your dominant Reasoning type, you can better understand your career preferences and suggest suitable career paths that align with your strengths and passions.</p>
@@ -499,7 +499,6 @@ table {
     <div class="threebox-col" style="display: flex;justify-content: center; margin: 8px 0 0 0;">
       {% if intelligence_data.above_avg %}
       <div class="box-i onebox aptitude-summary--above" style="background: #F0FFEA;margin: 20px 8px; border-radius: 10px; border-right: 4px solid #2A740E; border-bottom: 4px solid #2A740E; width:190px; height: 180px; min-height: 180px;">
-        <p class="aptitude-summary-label" style="color: #2A740E; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Above Average</p>
         <ul style="margin: 0px; list-style: none; padding:0px; float: left;">
           {% for above in intelligence_data.above_avg %}
           <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin-bottom: 0px; width:180px;float:left; text-align: center;">{{ above }}</li>
@@ -510,7 +509,6 @@ table {
 
       {% if intelligence_data.average %}
       <div class="box-i onebox aptitude-summary--average" style="background: #F5F4FF; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #3F37C9; border-bottom: 4px solid #3F37C9; width:190px; height: 180px; min-height: 180px;">
-        <p class="aptitude-summary-label" style="color: #3F37C9; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Average</p>
         <ul style="margin: 0px; list-style: none; padding:0px; float: left;">
           {% for average in intelligence_data.average %}
           <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin-bottom: 0px; width:180px;float:left; text-align: center;">{{ average }}</li>
@@ -521,8 +519,6 @@ table {
 
       {% if intelligence_data.below_avg %}
       <div class="box-i onebox aptitude-summary--below" style="background:#FFE5E5; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #A22717; border-bottom: 4px solid #A22717; width:190px;height: 180px; min-height: 180px;">
-        {# changes required by management (01-Jun-2025): Below Average → Development Areas #}
-        <p class="aptitude-summary-label" style="color: #A22717; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">{{ "Below Average"|aptitude_tier_label }}</p>
         <ul style="margin: 0px; list-style: none; padding:0px; float: left;">
           {% for belowavg in intelligence_data.below_avg %}
           <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin-bottom: 0px; width:180px;float:left; text-align: center;">{{ belowavg }}</li>
@@ -531,6 +527,8 @@ table {
       </div>
       {% endif %}
     </div>
+
+    {% include 'template20/app/partials/aptitude_performance_profile.html' %}
 
     {% if user_name and user_ID %}
     <div class="graph" style="width:100%; text-align: center; margin-top: 10px; float: left; margin-bottom: 10px;">

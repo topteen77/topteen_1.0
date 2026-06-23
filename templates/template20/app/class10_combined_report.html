@@ -422,7 +422,6 @@
         <div class="test-card">
           {% if intelligence_data.above_avg %}
           <div class="mb-3">
-            <strong>Above Average:</strong> 
             {% for item in intelligence_data.above_avg %}
             <span class="badge bg-success me-2">{{ item }}</span>
             {% endfor %}
@@ -430,7 +429,6 @@
           {% endif %}
           {% if intelligence_data.average %}
           <div class="mb-3">
-            <strong>Average:</strong> 
             {% for item in intelligence_data.average %}
             <span class="badge bg-warning me-2">{{ item }}</span>
             {% endfor %}
@@ -438,8 +436,6 @@
           {% endif %}
           {% if intelligence_data.below_avg %}
           <div class="mb-3">
-            {# changes required by management (01-Jun-2025): Below Average → Development Areas #}
-            <strong>{{ "Below Average"|aptitude_tier_label }}:</strong> 
             {% for item in intelligence_data.below_avg %}
             <span class="badge bg-danger me-2">{{ item }}</span>
             {% endfor %}

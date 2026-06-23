@@ -748,11 +748,6 @@
         </tbody>
       </table>
 
-
-      <!-- hidden Reprot -->
-
-
-
       <div class="db-header" style="margin-top: 10px;">
         <h3 style="color: #121216; font-size:20px; font-weight: 700;">Interpretation & Recommendations</h1>
       </div>
@@ -767,7 +762,6 @@
       <div class="threebox-col" style="display: flex;justify-content: center; margin: 8px 0 0 0;">
         {% if intelligence_data.above_avg and intelligence_data.above_avg|length > 0 %}
         <div class="box-i onebox aptitude-summary--above" style="background: #F0FFEA;margin: 20px 8px; border-radius: 10px; border-right: 4px solid #2A740E; border-bottom: 4px solid #2A740E; width:190px; height: 190px; min-height: 190px;">
-          <p class="aptitude-summary-label" style="color: #2A740E; font-weight: 700; font-size: 16px; margin: 0 0 6px 0; text-align: center;">Above Average</p>
           {% for above in intelligence_data.above_avg %}
           <p class="aptitude-summary-item" style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin: 0 0 3px 0; text-align: center; overflow-wrap: break-word;">{{ above }}</p>
           {% endfor %}
@@ -776,7 +770,6 @@
 
         {% if intelligence_data.average and intelligence_data.average|length > 0 %}
         <div class="box-i onebox aptitude-summary--average" style="background: #F5F4FF; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #3F37C9; border-bottom: 4px solid #3F37C9; width:190px; height: 190px; min-height: 190px;">
-          <p class="aptitude-summary-label" style="color: #3F37C9; font-weight: 700; font-size: 16px; margin: 0 0 6px 0; text-align: center;">Average</p>
           {% for average in intelligence_data.average %}
           <p class="aptitude-summary-item" style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin: 0 0 3px 0; text-align: center; overflow-wrap: break-word;">{{ average }}</p>
           {% endfor %}
@@ -785,14 +778,14 @@
 
         {% if intelligence_data.below_avg %}
         <div class="box-i onebox aptitude-summary--below" style="background:#FFE5E5; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #A22717; border-bottom: 4px solid #A22717; width:190px;height: 190px; min-height: 190px;">
-          {# changes required by management (01-Jun-2025): Below Average → Development Areas #}
-          <p class="aptitude-summary-label" style="color: #A22717; font-weight: 700; font-size: 16px; margin: 0 0 6px 0; text-align: center;">{{ "Below Average"|aptitude_tier_label }}</p>
           {% for belowavg in intelligence_data.below_avg %}
           <p class="aptitude-summary-item" style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin: 0 0 3px 0; text-align: center; overflow-wrap: break-word;">{{ belowavg }}</p>
           {% endfor %}
         </div>
         {% endif %}
       </div>
+
+      {% include 'template20/app/partials/aptitude_performance_profile.html' %}
 
       {% if user_name and user_ID %}
       <div class="graph" style="width:100%; text-align: center; margin-top: 10px; float: left; margin-bottom: 10px;">
