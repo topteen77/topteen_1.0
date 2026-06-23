@@ -1,3 +1,7 @@
+function reloadForStaleSession() {
+  window.location.reload();
+}
+
 function loginsingup() {
   let phoneEmail = document.getElementById("mobileEmail").value;
   if (validateLoginSignup(phoneEmail) == false) {
@@ -58,10 +62,7 @@ function loginsingup() {
     error: function (xhr, status, error) {
       try {
         if (xhr.status === 403) {
-          // Don't show message, just redirect silently
-          setTimeout(function() {
-            window.location.href = '/user/login';
-          }, 100);
+          reloadForStaleSession();
         } else if (xhr.status === 400) {
           // Prefer backend-provided message (e.g., mobile length validation)
           var errorMsg400 = "Invalid request. Please check your input and try again";
@@ -328,10 +329,7 @@ function loginsingupotp() {
     error: function (xhr, status, error) {
       try {
         if (xhr.status === 403) {
-          // Don't show message, just redirect silently
-          setTimeout(function() {
-            window.location.href = '/user/login';
-          }, 100);
+          reloadForStaleSession();
         } else if (xhr.status === 400) {
           fireAlert("Invalid request. Please check your input and try again", "error");
         } else if (xhr.status === 401) {
@@ -856,10 +854,7 @@ function loginpwd() {
     error: function (xhr, status, error) {
       try {
         if (xhr.status === 403) {
-          // Don't show message, just redirect silently
-          setTimeout(function() {
-            window.location.href = '/user/login';
-          }, 100);
+          reloadForStaleSession();
         } else if (xhr.status === 400) {
           fireAlert("Invalid request. Please check your input and try again", "error");
         } else if (xhr.status === 401) {
@@ -1035,9 +1030,7 @@ function loginwithotp() {
     error: function (xhr, status, error) {
       try {
         if (xhr.status === 403) {
-          setTimeout(function() {
-            window.location.href = '/user/login';
-          }, 100);
+          setTimeout(reloadForStaleSession, 100);
         } else if (xhr.status === 400) {
           fireAlert("Invalid request. Please check your input and try again", "error");
         } else if (xhr.status === 401) {
@@ -1154,9 +1147,7 @@ function forgotpasswordshow() {
     error: function (xhr, status, error) {
       try {
         if (xhr.status === 403) {
-          setTimeout(function() {
-            window.location.href = '/user/login';
-          }, 100);
+          setTimeout(reloadForStaleSession, 100);
         } else if (xhr.status === 400) {
           fireAlert("Invalid request. Please check your input and try again", "error");
         } else if (xhr.status === 401) {
@@ -1254,10 +1245,7 @@ function forgotpassword() {
     error: function (xhr, status, error) {
       try {
         if (xhr.status === 403) {
-          // Don't show message, just redirect silently
-          setTimeout(function() {
-            window.location.href = '/user/login';
-          }, 100);
+          reloadForStaleSession();
         } else if (xhr.status === 400) {
           fireAlert("Invalid request. Please check your input and try again", "error");
         } else if (xhr.status === 401) {
@@ -1359,10 +1347,7 @@ function forgotpasswordotp() {
     error: function (xhr, status, error) {
       try {
         if (xhr.status === 403) {
-          // Don't show message, just redirect silently
-          setTimeout(function() {
-            window.location.href = '/user/login';
-          }, 100);
+          reloadForStaleSession();
         } else if (xhr.status === 400) {
           fireAlert("Invalid request. Please check your input and try again", "error");
         } else if (xhr.status === 401) {
@@ -1453,9 +1438,7 @@ function reSendForgotOtp() {
     error: function (xhr, status, error) {
       try {
         if (xhr.status === 403) {
-          setTimeout(function() {
-            window.location.href = '/user/login';
-          }, 100);
+          setTimeout(reloadForStaleSession, 100);
         } else if (xhr.status === 400) {
           fireAlert("Invalid request. Please check your input and try again", "error");
         } else if (xhr.status === 401) {
@@ -1504,10 +1487,7 @@ function reSendOtp() {
     error: function (xhr, status, error) {
       try {
         if (xhr.status === 403) {
-          // Don't show message, just redirect silently
-          setTimeout(function() {
-            window.location.href = '/user/login';
-          }, 100);
+          reloadForStaleSession();
         } else if (xhr.status === 400) {
           fireAlert("Invalid request. Please check your input and try again", "error");
         } else if (xhr.status === 401) {
@@ -1588,8 +1568,8 @@ $(".oinputs").keyup(function (e) {
         // All 6 digits entered - auto-submit the form
         setTimeout(function() {
           const formId = form.attr('id');
-          if (formId === 'singupotp' && typeof loginsingupotp === 'function') {
-            loginsingupotp();
+          if (formId === 'singupotp' && typeof handleOtpSubmit === 'function') {
+            handleOtpSubmit();
           } else if (formId === 'forgototppwd' && typeof forgotpasswordotp === 'function') {
             forgotpasswordotp();
           }
@@ -1598,37 +1578,4 @@ $(".oinputs").keyup(function (e) {
     }
   }
 });
-// ///////////
-
-// OTP pasting and Typing code
-
-const otpSource = document.querySelector(".otpSource");
-const otpIp = document.querySelectorAll(".otpIp");
-
-function otpHandler() {
-  const otpData = otpSource.value;
-  console.log(otpData.length);
-  if (otpData.length == 6 && "onpaste" in otpSource) {
-    for (i = 0; i < otpData.length; i++) {
-      otpIp[i].value = otpData[i];
-    }
-    // Auto-submit when OTP is pasted
-    setTimeout(function() {
-      const form = otpSource.closest('form');
-      if (form) {
-        const formId = form.id;
-        if (formId === 'singupotp' && typeof loginsingupotp === 'function') {
-          loginsingupotp();
-        } else if (formId === 'forgototppwd' && typeof forgotpasswordotp === 'function') {
-          forgotpasswordotp();
-        }
-      }
-    }, 100);
-  } else if (otpData.length == 1) {
-    otpSource.maxLength = 1;
-  }
-}
-
-if (otpSource) {
-  otpSource.addEventListener("input", otpHandler);
-}
+// OTP paste support: static/topteenfrontend/assets/js/otp_input.js

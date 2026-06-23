@@ -569,6 +569,14 @@ class LoginView(TemplateView):
         return ctx
 
     def get(self, request, *args, **kwargs):
+        # After AJAX login the browser may still hit the login URL once; send user to dashboard
+        # instead of showing the "logout first?" prompt (which caused accidental logouts).
+        if (
+            getattr(request, "user", None)
+            and request.user.is_authenticated
+            and request.session.pop("fresh_login", False)
+        ):
+            return redirect(get_dashboard_url_for_user(request, request.user))
         ctx = self.get_context(request, *args, **kwargs)
         return render(request, self.template_name, ctx)
 
@@ -656,6 +664,12 @@ class StudentLoginView(LoginView):
         return ctx
 
     def get(self, request, *args, **kwargs):
+        if (
+            getattr(request, "user", None)
+            and request.user.is_authenticated
+            and request.session.pop("fresh_login", False)
+        ):
+            return redirect(get_dashboard_url_for_user(request, request.user))
         ctx = self.get_context(request, *args, **kwargs)
         ctx['login_mode'] = 'student'
         return render(request, self.template_name, ctx)

@@ -357,18 +357,18 @@
     try {
       Swal.fire({
         title: "You're already logged in",
-        text: "Do you want to logout first?",
+        text: "Go to your dashboard or sign out to use a different account.",
         icon: "info",
         showCancelButton: true,
-        confirmButtonText: "Logout",
+        confirmButtonText: "Go to dashboard",
         cancelButtonText: "Stay here",
         showDenyButton: true,
-        denyButtonText: "Go to dashboard",
+        denyButtonText: "Sign out",
       }).then(function(result) {
         if (result.isConfirmed) {
-          window.location.href = "{{ logout_url }}";
-        } else if (result.isDenied) {
           window.location.href = "{{ dashboard_url }}";
+        } else if (result.isDenied) {
+          window.location.href = "{{ logout_url }}";
         }
       });
     } catch (e) {}

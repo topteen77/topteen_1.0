@@ -315,6 +315,19 @@ class TestLoginSessionExpiry(SimpleTestCase):
             def __init__(self):
                 self.expiry = None
                 self.modified = False
+                self._data = {}
+
+            def __setitem__(self, key, value):
+                self._data[key] = value
+
+            def __getitem__(self, key):
+                return self._data[key]
+
+            def get(self, key, default=None):
+                return self._data.get(key, default)
+
+            def pop(self, key, default=None):
+                return self._data.pop(key, default)
 
             def set_expiry(self, value):
                 self.expiry = value
@@ -322,6 +335,9 @@ class TestLoginSessionExpiry(SimpleTestCase):
 
             def get_expiry_age(self):
                 return self.expiry
+
+            def save(self):
+                calls.append(("save",))
 
         request = self._request_with_session()
         request.session = _SessionStub()
@@ -336,4 +352,5 @@ class TestLoginSessionExpiry(SimpleTestCase):
 
         self.assertEqual(calls[0][0], "login")
         self.assertEqual(calls[1], ("set_expiry", REMEMBER_ME_SESSION_AGE))
+        self.assertIn(("save",), calls)
 

@@ -34,8 +34,25 @@ def login_user_with_session(request, user, remember_me=False, demo=False, backen
     """Log in and apply persistent session expiry in the correct order."""
     from django.contrib.auth import login
 
+    # Flags are read by user_logged_in (social/admin logins) and cleared after login().
+    if demo:
+        request.session["_pending_demo_login"] = True
+    elif _is_truthy(remember_me):
+        request.session["_pending_remember_me"] = True
+
     login(request, user, backend=backend or DEFAULT_LOGIN_BACKEND)
+
+    remember_me = _is_truthy(remember_me) or bool(
+        request.session.pop("_pending_remember_me", False)
+    )
+    demo = demo or bool(request.session.pop("_pending_demo_login", False))
     apply_login_session_expiry(request, remember_me=remember_me, demo=demo)
+    request.session["fresh_login"] = True
+    request.session.modified = True
+    try:
+        request.session.save()
+    except Exception:
+        pass
     return user
 
 

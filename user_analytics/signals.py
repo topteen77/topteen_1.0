@@ -435,3 +435,24 @@ def link_session_on_login(sender, request, user, **kwargs):
     except Exception:
         pass
 
+
+@receiver(user_logged_in)
+def apply_session_expiry_on_login(sender, request, user, **kwargs):
+    """
+    Ensure session cookie lifetime is set for every login path (social OAuth, admin, etc.).
+    login_user_with_session() sets pending flags and applies expiry after this signal runs.
+    """
+    if not request:
+        return
+    try:
+        if request.session.get("_pending_remember_me") or request.session.get(
+            "_pending_demo_login"
+        ):
+            return
+        from users.session_utils import apply_login_session_expiry
+
+        apply_login_session_expiry(request)
+        request.session.modified = True
+    except Exception:
+        pass
+

@@ -310,7 +310,7 @@
     if (el = document.getElementById('studentSignupPwdInput')) el.value = '';
     if (el = document.getElementById('studentSignupPwdConfirm')) el.value = '';
   };
-  function onLoginSuccess() {
+  function onLoginSuccess(redirectUrl) {
     if (window.pendingCareerBookmarkSlug) {
       var slug = window.pendingCareerBookmarkSlug;
       window.pendingCareerBookmarkSlug = '';
@@ -335,9 +335,9 @@
       return;
     }
     closeLoginRequiredPopup();
-    if (window.studentLoginNextUrl) {
-      var url = window.studentLoginNextUrl;
-      window.studentLoginNextUrl = '';
+    var url = (redirectUrl && String(redirectUrl).trim()) || window.studentLoginNextUrl || '';
+    window.studentLoginNextUrl = '';
+    if (url) {
       window.location.href = url;
     } else {
       window.location.reload();
@@ -493,7 +493,7 @@
       if (!enc || !pwd) { if (errEl) errEl.textContent = 'Enter password'; return; }
       var fd = new FormData(); fd.append('enc_user_name', enc); fd.append('password', pwd);
       ajaxPost(urls.loginpwd, fd, function(data) {
-        if (data.success && data.redirect_url) { onLoginSuccess(); return; }
+        if (data.success) { onLoginSuccess(data.redirect_url); return; }
         if (errEl) errEl.textContent = data.errMsg || data.message || 'Login failed';
       }, function(data) { if (errEl) errEl.textContent = (data && (data.errMsg || data.message)) || 'Login failed'; });
     });
@@ -508,7 +508,7 @@
       otpArr.forEach(function(d) { fd.append('otp', d); });
       var oe = document.getElementById('studentLoginOtpErr'); if (oe) oe.textContent = '';
       ajaxPost(urls.loginotp, fd, function(data) {
-        if (data.success && data.redirect_url) { onLoginSuccess(); return; }
+        if (data.success) { onLoginSuccess(data.redirect_url); return; }
         var oe = document.getElementById('studentLoginOtpErr'); if (oe) oe.textContent = data.message || data.errMsg || 'Invalid OTP';
       }, function(data) { var oe = document.getElementById('studentLoginOtpErr'); if (oe) oe.textContent = (data && (data.message || data.errMsg)) || 'Invalid OTP'; });
     });
@@ -551,7 +551,7 @@
       otpArr.forEach(function(d) { fd.append('otp', d); });
       var oe = document.getElementById('studentSignupOtpErr'); if (oe) oe.textContent = '';
       ajaxPost(urls.signupotpverify, fd, function(data) {
-        if (data.user_exists && data.success && data.redirect_url) { onLoginSuccess(); return; }
+        if (data.user_exists && data.success) { onLoginSuccess(data.redirect_url); return; }
         if (data.message && !data.otp_verify) {
           var oe = document.getElementById('studentSignupOtpErr'); if (oe) oe.textContent = data.message;
           return;
@@ -586,7 +586,7 @@
       if (pwd !== confirm) { if (errEl) errEl.textContent = 'Passwords do not match'; return; }
       var fd = new FormData(); fd.append('enc_user_name', enc); fd.append('password', pwd); fd.append('confirm_password', confirm);
       ajaxPost(urls.signuppwd, fd, function(data) {
-        if (data.success && data.redirect_url) { onLoginSuccess(); return; }
+        if (data.success) { onLoginSuccess(data.redirect_url); return; }
         if (errEl) errEl.textContent = data.message || 'Signup failed';
       }, function(data) { if (errEl) errEl.textContent = data.message || 'Signup failed'; });
     });

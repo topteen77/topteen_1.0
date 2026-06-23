@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.http import JsonResponse
-from django.urls import path
+from django.urls import path, reverse
 from django.utils.html import escape, format_html
 from django.utils.safestring import mark_safe
 import html as html_module
@@ -47,6 +47,7 @@ def _admin_pre_block(content):
 @admin.register(EmailMessageTemplate)
 class EmailMessageTemplateAdmin(admin.ModelAdmin):
     form = EmailMessageTemplateAdminForm
+    change_form_template = 'admin/communication/emailmessagetemplate/change_form.html'
     list_display = ('slug', 'name', 'builtin_template_path', 'is_active', 'modified')
     list_filter = ('is_active',)
     search_fields = ('slug', 'name', 'subject_template', 'body_html_template')
@@ -66,7 +67,6 @@ class EmailMessageTemplateAdmin(admin.ModelAdmin):
         css = {
             'all': ('admin/css/email_message_template_admin.css',),
         }
-        js = ('admin/js/email_message_template_admin.js',)
 
     def get_readonly_fields(self, request, obj=None):
         readonly = list(self.readonly_fields)
@@ -126,8 +126,12 @@ class EmailMessageTemplateAdmin(admin.ModelAdmin):
             return mark_safe('<p class="help">No sample body for this template.</p>')
         return _admin_pre_block(sample)
 
-    def _build_preview_html(self, slug, subject_template='', body_html_template=''):
+    def _build_preview_html(self, obj, slug, subject_template='', body_html_template=''):
         subject, html = render_admin_email_preview(slug, subject_template, body_html_template)
+        preview_url = reverse(
+            'admin:communication_emailmessagetemplate_preview',
+            args=[obj.pk],
+        )
         iframe = format_html(
             '<iframe class="email-template-live-preview-frame" srcdoc="{}" '
             'style="width:100%;min-height:560px;border:1px solid #d1d5db;border-radius:8px;background:#fff;" '
@@ -135,7 +139,7 @@ class EmailMessageTemplateAdmin(admin.ModelAdmin):
             mark_safe(html_module.escape(html, quote=True)),
         )
         return format_html(
-            '<div class="email-template-live-preview-wrap" data-slug="{}">'
+            '<div class="email-template-live-preview-wrap" data-slug="{}" data-preview-url="{}">'
             '<p style="margin:0 0 8px;color:#111111 !important;"><strong>Subject:</strong> {}</p>'
             '<p class="help" style="margin:0 0 12px;color:#444444 !important;">'
             'Full email with shared header/footer from <code>mail/base_email.html</code>. '
@@ -145,6 +149,7 @@ class EmailMessageTemplateAdmin(admin.ModelAdmin):
             '{}'
             '</div>',
             escape(slug),
+            escape(preview_url),
             escape(subject),
             iframe,
         )
@@ -153,7 +158,7 @@ class EmailMessageTemplateAdmin(admin.ModelAdmin):
     def email_live_preview(self, obj):
         if not obj or not obj.slug:
             return mark_safe('<p class="help">Save the template to see a live preview.</p>')
-        return self._build_preview_html(obj.slug, obj.subject_template, obj.body_html_template)
+        return self._build_preview_html(obj, obj.slug, obj.subject_template, obj.body_html_template)
 
     def get_urls(self):
         urls = super().get_urls()
@@ -228,7 +233,10 @@ class EmailMessageTemplateAdmin(admin.ModelAdmin):
             }),
             ('Live preview', {
                 'fields': ('email_live_preview',),
-                'description': 'Preview shows the final email with header, logo, and footer applied.',
+                'description': (
+                    'Preview updates automatically as you edit the subject or body above '
+                    '(or use Refresh preview). Shows the final email with header, logo, and footer.'
+                ),
             }),
             ('Timestamps', {
                 'fields': ('created', 'modified'),

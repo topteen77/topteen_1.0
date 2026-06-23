@@ -1,0 +1,14 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block admin_change_form_document_ready %}
+{{ block.super }}
+<script src="{% static 'admin/js/email_message_template_admin.js' %}?v=20260622b"></script>
+<script>
+django.jQuery(function () {
+  if (window.initEmailTemplatePreviewAdmin) {
+    window.initEmailTemplatePreviewAdmin();
+  }
+});
+</script>
+{% endblock %}
