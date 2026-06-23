@@ -33,7 +33,7 @@ const CareerClusterSelection = ({ careerClusters, fightHistory = [], onContinue,
           Select <span className="text-purple">Career </span> Cluster
         </h1>
         <p className="career-cluster-selection-subtitle" id="cluster-selection-description">
-          Choose a career cluster to explore related streams
+          Choose any one career cluster to explore related streams
         </p>
         {selectedCluster && (
           <div className="selected-cluster-info">

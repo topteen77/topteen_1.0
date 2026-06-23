@@ -8,7 +8,8 @@ from core import choices
 from .models import OTP,CommunicationLog
 from django.core.mail import EmailMultiAlternatives
 from core import email_strings, sms_strings
-from django.template.loader import render_to_string
+from communication.email_templates import render_transactional_email
+from communication.utils import referral_url_without_scheme
 # from edmissions.celery import app
 from django.utils.safestring import mark_safe
 from django.template.loader import get_template
@@ -130,10 +131,12 @@ class ComService:
         print(f"From Con_service",">"*30,user)
         print()
         otp = self.get_otp(user,choices.CommunicationTypeChooices.EMAIL)
-        subject=self.build_email_subject(email_strings.EMAIL_OTP_SUBJECT)
         to=user
-        html_content=render_to_string('mail/user/otp.html', { 'otp': otp })
-        text_content=html_content
+        subject, text_content, html_content = render_transactional_email(
+            'email_otp',
+            format_context={'otp': otp},
+            django_context={'otp': otp},
+        )
         print("Email otp",otp)
         if settings.DEBUG is False or True: #enabled for now
             return self.send_mail(subject,to,text_content,html_content)
@@ -141,18 +144,34 @@ class ComService:
         return True
     
     def send_pyschometric_payment_success_mail(self,user,test_payment):
-        subject=self.build_email_subject(email_strings.EMAIL_PYSCHOMETRIC_TEST_PAYMENT_SUCCESS)
         to=user
         candidate_test=test_payment.candidate_test.last()
-        html_content=render_to_string('mail/user/pyschometrictestpaymentsucess.html', {"test_payment":test_payment,"candidate_test":candidate_test})
-        text_content=html_content
+        django_context = {"test_payment": test_payment, "candidate_test": candidate_test}
+        test_link = getattr(candidate_test, 'test_link', '') if candidate_test else ''
+        format_context = {'test_link': test_link}
+        subject, text_content, html_content = render_transactional_email(
+            'psychometric_payment_success',
+            format_context=format_context,
+            django_context=django_context,
+        )
         return self.send_mail(subject,to,text_content,html_content)
     
     def send_skillabcourse_payment_success_mail(self,user,course_payment):
-        subject=self.build_email_subject(email_strings.EMAIL_SKILLABCOURSE_PAYMENT_SUCCESS)
         to=user
-        html_content=render_to_string('mail/user/skilllabcoursepaymentsuccess.html', {"course_payment":course_payment})
-        text_content=html_content
+        django_context = {"course_payment": course_payment}
+        course = getattr(course_payment, 'skilllab_course', None)
+        course_name = getattr(course, 'name', '') if course else ''
+        course_url = ''
+        if course and getattr(course, 'slug', None):
+            course_url = "https://topteen.in{}".format(
+                reverse('skilllabcourse:skilllabcoursedetail', args=[course.slug])
+            )
+        format_context = {'course_name': course_name, 'course_url': course_url}
+        subject, text_content, html_content = render_transactional_email(
+            'skilllab_payment_success',
+            format_context=format_context,
+            django_context=django_context,
+        )
         return self.send_mail(subject,to,text_content,html_content)
 
     def send_mobile_otp(self,user):
@@ -264,47 +283,67 @@ class ComService:
         return self.send_mail(subject,to,text_content,html_content)
     
     def send_student_create_mail(self,email,password,ins_name,image_url,test_link):
-        subject="You have been invited to join Topteen"
         to=email
         ins_logo_url="{}{}".format("https://www.topteen.in",image_url)
         url="{}{}".format("https://www.topteen.in",reverse("users:login"))
-        # psychometric_test_url="{}{}".format("https://www.topteen.in",reverse("psychometrictests:psychometrictest"))
-        # psychometric_test_url="{}{}".format("http://127.0.0.1:8000",reverse("app:test_buttons"))
         psychometric_test_url=test_link
-        html_content=render_to_string('mail/user/create_student.html',{"url":url,"email":email,"password":password,"ins_logo_url":ins_logo_url,"ins_name":ins_name,"psychometric_test_url":psychometric_test_url})
-        text_content=html_content
+        django_context = {
+            "url": url,
+            "email": email,
+            "password": password,
+            "ins_logo_url": ins_logo_url,
+            "ins_name": ins_name,
+            "psychometric_test_url": psychometric_test_url,
+        }
+        format_context = {
+            **django_context,
+            'url_no_scheme': referral_url_without_scheme(url),
+        }
+        subject, text_content, html_content = render_transactional_email(
+            'student_invite',
+            format_context=format_context,
+            django_context=django_context,
+        )
         return self.send_mail(subject,to,text_content,html_content)
     
     def send_institute_create_mail(self,email,password):
-        subject="You have been invited to join Topteen"
         to=email
         url="{}{}".format("https://www.topteen.in",reverse("users:login"))
-        html_content=render_to_string('mail/user/create_institute.html',{"url":url,"email":email,"password":password})
-        text_content=html_content
+        django_context = {"url": url, "email": email, "password": password}
+        format_context = {**django_context, 'url_no_scheme': referral_url_without_scheme(url)}
+        subject, text_content, html_content = render_transactional_email(
+            'institute_invite',
+            format_context=format_context,
+            django_context=django_context,
+        )
         return self.send_mail(subject,to,text_content,html_content)
     
     # Manish
     def send_institute_create_homepage_mail(self, email, password, Ins_name, principal_name, contact_number, Address, institute_type):
-        subject = "Welcome aboard! Your Institute is Now Part of the TOPTEEN Journey"
         to = email
-        url = "{}{}".format("https://demo.topteen.in", reverse("users:login"))               
-        
-        # Create a context dictionary with exactly matching variable names
-        context = {
+        url = "{}{}".format("https://demo.topteen.in", reverse("users:login"))
+        django_context = {
             "url": url,
             "email": email,
             "password": password,
-            "Ins_name": Ins_name,  # This should match the template variable
+            "Ins_name": Ins_name,
             "principal_name": principal_name,
             "contact_number": contact_number,
             "Address": Address,
-            "institute_type": institute_type  # Now passing the name instead of number
+            "institute_type": institute_type,
         }
-        
-        html_content = render_to_string('mail/user/create_institute_mail_principal.html', context)
-        text_content = html_content
+        format_context = {
+            **django_context,
+            'ins_name': Ins_name,
+            'address': Address,
+            'url_no_scheme': referral_url_without_scheme(url),
+        }
+        subject, text_content, html_content = render_transactional_email(
+            'institute_homepage_welcome',
+            format_context=format_context,
+            django_context=django_context,
+        )
         status = self.send_mail(subject, to, text_content, html_content)
-        # Return a message instead of the ComService object itself
         return "Email sent to {}".format(email) if status else "Failed to send email to {}".format(email)
     
     def send_institute_create_homepage_mail_bulk(self, user_email, emails, password, Ins_name, principal_name, contact_number, Address, institute_type):
@@ -314,11 +353,10 @@ class ComService:
         """
         results = []
         url = "{}{}".format("https://demo.topteen.in", reverse("users:login"))
-        subject = f"New Institute Registered on TOPTEEN – {institute_type}, {Address}"
         
         for email in emails:
             try:
-                context = {
+                django_context = {
                     "url": url,
                     "user_email": user_email,
                     "email": email,
@@ -327,11 +365,19 @@ class ComService:
                     "principal_name": principal_name,
                     "contact_number": contact_number,
                     "Address": Address,
-                    "institute_type": institute_type
+                    "institute_type": institute_type,
                 }
-                
-                html_content = render_to_string('mail/user/create_institute_mail_to_marketing.html', context)
-                text_content = html_content
+                format_context = {
+                    **django_context,
+                    'ins_name': Ins_name,
+                    'address': Address,
+                    'url_no_scheme': referral_url_without_scheme(url),
+                }
+                subject, text_content, html_content = render_transactional_email(
+                    'institute_marketing_notify',
+                    format_context=format_context,
+                    django_context=django_context,
+                )
                 status = self.send_mail(subject, email, text_content, html_content)
                 results.append({"email": email, "status": "success", "result": status})
             except Exception as e:
@@ -360,49 +406,80 @@ class ComService:
 
     # Manish
     def send_counselor_create_mail(self,email,password):
-        subject="You have been invited to join Topteen"
         to=email
         url="{}{}".format("https://www.topteen.in",reverse("users:login"))
-        html_content=render_to_string('mail/user/create_counselor.html',{"url":url,"email":email,"password":password})
-        text_content=html_content
+        django_context = {"url": url, "email": email, "password": password}
+        format_context = {**django_context, 'url_no_scheme': referral_url_without_scheme(url)}
+        subject, text_content, html_content = render_transactional_email(
+            'counselor_invite',
+            format_context=format_context,
+            django_context=django_context,
+        )
         return self.send_mail(subject,to,text_content,html_content)
     
     def send_institute_group_create_mail(self,group_name,email,password):
-        subject="You have been invited to join Topteen"
         to=email
         url="{}{}".format("https://www.topteen.in",reverse("users:login"))
-        html_content=render_to_string('mail/user/create_institute_group.html',{"url":url,"email":email,"password":password,"group_name":group_name})
-        text_content=html_content
+        django_context = {"url": url, "email": email, "password": password, "group_name": group_name}
+        format_context = {**django_context, 'url_no_scheme': referral_url_without_scheme(url)}
+        subject, text_content, html_content = render_transactional_email(
+            'institute_group_invite',
+            format_context=format_context,
+            django_context=django_context,
+        )
         return self.send_mail(subject,to,text_content,html_content)
     
     def send_student_change_password(self,email,password):
-        subject="You have been invited to join Topteen"
         to=email
         url="{}{}".format("https://www.topteen.in",reverse("users:login"))
-        html_content=render_to_string('mail/user/student_change_password.html',{"url":url,"email":email,"password":password})
-        text_content=html_content
+        django_context = {"url": url, "email": email, "password": password}
+        format_context = {**django_context, 'url_no_scheme': referral_url_without_scheme(url)}
+        subject, text_content, html_content = render_transactional_email(
+            'student_password_notify',
+            format_context=format_context,
+            django_context=django_context,
+        )
         return self.send_mail(subject,to,text_content,html_content)
 
 
     def send_registration_success_mail(self,user):
-        subject=self.build_email_subject(email_strings.EMAIL_REGISTRATION_SUCCESS.format(user.did))
         to=user.email
-        html_content=render_to_string('mail/user/registration_success.html', { 'name': user.name,'did':user.did, 'email':user.email,'mobile':user.mobile })
-        text_content=html_content
+        format_context = {
+            'name': user.name,
+            'did': user.did,
+            'email': user.email,
+            'mobile': user.mobile,
+        }
+        django_context = format_context.copy()
+        subject, text_content, html_content = render_transactional_email(
+            'registration_success',
+            format_context=format_context,
+            django_context=django_context,
+            default_subject=email_strings.EMAIL_REGISTRATION_SUCCESS.format(user.did),
+        )
         return self.send_mail(subject,to,text_content,html_content)
     
     def send_institute_deletion_request(self,ins_id,ins_name,reason):
-        subject="Institute Deletion Request"
         to=self.from_email
-        html_content=render_to_string('mail/user/institute_account_del.html',{"institute_id":ins_id,"institute_name":ins_name,"reason":reason})
-        text_content=html_content
+        format_context = {
+            'institute_id': ins_id,
+            'institute_name': ins_name,
+            'reason': reason,
+        }
+        django_context = format_context.copy()
+        subject, text_content, html_content = render_transactional_email(
+            'institute_deletion_request',
+            format_context=format_context,
+            django_context=django_context,
+        )
         return self.send_mail(subject,to,text_content,html_content)
     
     def send_resume_builder_resume_mail(self,user,attachment=None,attachment_name=None,attachment_type=None):
-        subject=self.build_email_subject(email_strings.EMAIL_RESUME_BUILDER_RESUME)
         to=user.email
-        html_content=render_to_string('mail/user/userresume.html', {})
-        text_content=html_content
+        subject, text_content, html_content = render_transactional_email(
+            'resume_builder',
+            django_context={},
+        )
         return self.send_mail(subject,to,text_content,html_content,attachment,attachment_name,attachment_type)
 
     def send_registration_success_sms(self,user):
@@ -446,10 +523,8 @@ class ComService:
                 print("No admin emails configured for test popup answers notification")
                 return False
             
-            subject = f"Test Completion Popup Answers - {user.username or user.email}"
-            
-            # Prepare context for email template
-            context = {
+            user_name = user.username or user.email
+            django_context = {
                 'user': user,
                 'answers_data': answers_data,
                 'personality_answer': answers_data.get('personality', {}).get('answer', 'Not answered'),
@@ -457,9 +532,18 @@ class ComService:
                 'career_answer': answers_data.get('career_interest', {}).get('answer', 'Not answered'),
                 'career_country': answers_data.get('career_interest', {}).get('country', ''),
             }
-            
-            html_content = render_to_string('mail/admin/test_popup_answers.html', context)
-            text_content = html_content
+            format_context = {
+                **django_context,
+                'user_email': user.email,
+                'user_name': user.name or '',
+                'user_username': user.username or '',
+            }
+            subject, text_content, html_content = render_transactional_email(
+                'test_popup_answers',
+                format_context=format_context,
+                django_context=django_context,
+                default_subject=f"Test Completion Popup Answers - {user_name}",
+            )
             
             # Send to all admin emails
             return self.send_mail(subject, admin_emails, text_content, html_content)

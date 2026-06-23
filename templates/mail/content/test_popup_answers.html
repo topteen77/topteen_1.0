@@ -1,0 +1,47 @@
+<h2 style="color:#3F37C9;font-weight:600;margin:0 0 15px;">Test Completion Popup Answers</h2>
+<p style="margin:0 0 15px;">A student has completed the test assessment popups. Below are their answers:</p>
+
+<table border="0" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 20px;">
+  <tr>
+    <td style="padding:12px;background-color:#f8f9fa;border-radius:5px;">
+      <p style="margin:0 0 8px;font-weight:600;color:#3F37C9;">Student Information</p>
+      <p style="margin:0 0 5px;"><strong>Username:</strong> {{ user.username|default('N/A') }}</p>
+      <p style="margin:0 0 5px;"><strong>Email:</strong> {{ user.email|default('N/A') }}</p>
+      <p style="margin:0;"><strong>Name:</strong> {{ user.name|default('N/A') }}</p>
+    </td>
+  </tr>
+</table>
+
+<h3 style="color:#333;font-weight:600;margin:20px 0 10px;">Popup Answers</h3>
+
+<table border="0" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 10px;">
+  <tr>
+    <td style="padding:15px;background-color:#f8f9fa;border-left:4px solid #3F37C9;border-radius:5px;">
+      <p style="margin:0 0 8px;font-weight:600;color:#3F37C9;">Popup 1: After Personality Test</p>
+      <p style="margin:0;"><strong>Answer:</strong> {{ personality_answer }}</p>
+    </td>
+  </tr>
+</table>
+
+<table border="0" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 10px;">
+  <tr>
+    <td style="padding:15px;background-color:#f8f9fa;border-left:4px solid #3F37C9;border-radius:5px;">
+      <p style="margin:0 0 8px;font-weight:600;color:#3F37C9;">Popup 2: After Motivation Test</p>
+      <p style="margin:0;"><strong>Answer:</strong> {{ motivation_answer }}</p>
+    </td>
+  </tr>
+</table>
+
+<table border="0" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 10px;">
+  <tr>
+    <td style="padding:15px;background-color:#f8f9fa;border-left:4px solid #3F37C9;border-radius:5px;">
+      <p style="margin:0 0 8px;font-weight:600;color:#3F37C9;">Popup 3: After Career Interest Test</p>
+      <p style="margin:0 0 5px;"><strong>Answer:</strong> {{ career_answer }}</p>
+      {% if career_country %}
+      <p style="margin:0;"><strong>Preferred Country:</strong> {{ career_country }}</p>
+      {% endif %}
+    </td>
+  </tr>
+</table>
+
+<p style="margin:20px 0 0;color:#666;">This is an automated notification from TopTeen Assessment System.</p>

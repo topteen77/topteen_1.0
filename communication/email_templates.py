@@ -1,40 +1,19 @@
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
+from .email_layout import wrap_email_layout
+from .email_template_registry import EMAIL_TEMPLATE_REGISTRY, get_email_template_meta
 from .models import EmailMessageTemplate
 
 REFERRAL_EMAIL_SLUG = 'refer_friend'
 
-DEFAULT_REFERRAL_SUBJECT = '{inviter_name} has invited you to explore careers in TopTeen'
+DEFAULT_REFERRAL_SUBJECT = EMAIL_TEMPLATE_REGISTRY[REFERRAL_EMAIL_SLUG]['default_subject']
 
-REFERRAL_PLACEHOLDER_HELP = """
-Who is who (important):
-  INVITER  = logged-in user clicking "Send invitation" on the dashboard
-  INVITEE  = friend email entered in the form (also the person who RECEIVES this email)
+REFERRAL_PLACEHOLDER_HELP = EMAIL_TEMPLATE_REGISTRY[REFERRAL_EMAIL_SLUG]['placeholder_help']
 
-Placeholders (type exactly as shown, including curly braces):
+REFERRAL_SAMPLE_SUBJECT = EMAIL_TEMPLATE_REGISTRY[REFERRAL_EMAIL_SLUG]['sample_subject']
 
-  {inviter_name}    — Inviter display name (or email if name is empty)
-  {inviter_email}   — Inviter account email
-  {invitee_name}    — Friend greeting name (from email, e.g. john from john@gmail.com)
-  {invitee_email}   — Friend email / recipient (same as To address)
-  {referral_url}    — Join link WITHOUT http:// (for CKEditor link tool: http://{referral_url})
-  {referral_url_full} — Full join link with https:// (use in href="{referral_url_full}")
-
-Legacy aliases: {user} = inviter name, {refral_url} = full referral link
-
-Link examples (CKEditor adds http:// by default):
-  <a href="http://{referral_url}">Join Now</a>
-  <a href="{referral_url_full}">Join Now</a>
-""".strip()
-
-REFERRAL_SAMPLE_SUBJECT = '{inviter_name} invited you to join TopTeen'
-
-REFERRAL_SAMPLE_BODY_HTML = """<p>Hi {invitee_name},</p>
-<p>Your friend (<strong>{inviter_name}</strong>) wants to help you build an amazing future! They have invited you to join TopTeen.in, the ultimate platform designed to help you explore, discover, and choose the absolute best career paths for you.</p>
-<p>Whether you are figuring out your next steps or looking for the perfect industry that matches your passions, TopTeen has everything you need to get started.</p>
-<p><a href="http://{referral_url}">Join TopTeen</a></p>
-<p>Thank you,<br>Team TopTeen</p>"""
+REFERRAL_SAMPLE_BODY_HTML = EMAIL_TEMPLATE_REGISTRY[REFERRAL_EMAIL_SLUG]['sample_body_html']
 
 
 class _SafeFormatDict(dict):
@@ -42,16 +21,25 @@ class _SafeFormatDict(dict):
         return '{' + key + '}'
 
 
+def ensure_all_email_templates():
+    from .builtin_email_content import get_builtin_defaults
+
+    for slug, meta in EMAIL_TEMPLATE_REGISTRY.items():
+        default_subject, default_body = get_builtin_defaults(slug)
+        EmailMessageTemplate.objects.get_or_create(
+            slug=slug,
+            defaults={
+                'name': meta['name'],
+                'subject_template': default_subject,
+                'body_html_template': default_body,
+                'is_active': True,
+            },
+        )
+
+
 def ensure_default_email_templates():
-    EmailMessageTemplate.objects.get_or_create(
-        slug=REFERRAL_EMAIL_SLUG,
-        defaults={
-            'name': 'Refer a friend invitation',
-            'subject_template': '',
-            'body_html_template': '',
-            'is_active': True,
-        },
-    )
+    """Backward-compatible alias."""
+    ensure_all_email_templates()
 
 
 def format_email_message(slug, context, default_subject, default_html_renderer):
@@ -60,7 +48,7 @@ def format_email_message(slug, context, default_subject, default_html_renderer):
 
     ``default_html_renderer`` is a callable returning the fallback HTML string.
     """
-    ensure_default_email_templates()
+    ensure_all_email_templates()
     ctx = _SafeFormatDict(context or {})
     try:
         subject = (default_subject or '').format_map(ctx)
@@ -76,14 +64,44 @@ def format_email_message(slug, context, default_subject, default_html_renderer):
 
     if tpl and (tpl.body_html_template or '').strip():
         try:
-            html_content = (tpl.body_html_template or '').strip().format_map(ctx)
+            inner_html = (tpl.body_html_template or '').strip().format_map(ctx)
         except Exception:
-            html_content = default_html_renderer()
+            inner_html = default_html_renderer()
     else:
-        html_content = default_html_renderer()
+        inner_html = default_html_renderer()
 
+    html_content = wrap_email_layout(inner_html, preheader=subject)
     text_content = strip_tags(html_content) or html_content
     return subject, text_content, html_content
+
+
+def render_transactional_email(
+    slug,
+    format_context=None,
+    django_template_path=None,
+    django_context=None,
+    default_subject=None,
+):
+    """
+    Render subject/HTML for a slug, using admin override when configured.
+
+    ``format_context`` supplies ``str.format`` placeholders for admin templates.
+    ``django_context`` is passed to the built-in Django HTML file fallback.
+    """
+    meta = get_email_template_meta(slug)
+    if django_template_path is None:
+        django_template_path = meta.get('template_path')
+    if default_subject is None:
+        default_subject = meta.get('default_subject', '')
+    if django_context is None:
+        django_context = format_context or {}
+    if format_context is None:
+        format_context = {}
+
+    def default_html():
+        return render_to_string(django_template_path, django_context)
+
+    return format_email_message(slug, format_context, default_subject, default_html)
 
 
 def format_referral_email(user, referral_url, invitee_email=''):
@@ -107,7 +125,7 @@ def format_referral_email(user, referral_url, invitee_email=''):
 
     def default_html():
         return render_to_string(
-            'mail/user/referral.html',
+            'mail/content/refer_friend.html',
             {'refral_url': referral_url_full, 'user': inviter_name},
         )
 

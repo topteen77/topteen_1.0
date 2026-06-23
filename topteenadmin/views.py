@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import (AuthenticationForm, PasswordChangeForm,
                                        PasswordResetForm, SetPasswordForm)
 from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import BadHeaderError, send_mail
+from django.core.mail import BadHeaderError, EmailMultiAlternatives, send_mail
 from django.forms.models import inlineformset_factory
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
@@ -791,10 +791,8 @@ def password_reset_request(request, *args, **kwargs):
         password_reset_form = PasswordResetForm(request.POST)
         data = request.POST.get('email')
         if password_reset_form.is_valid():
-            email_template_name='mail/user/password_reset_email.html'
             user = User.objects.filter(email=data).first()
             if user:
-                subject = "Password Reset Requested"
                 c = { 
                 "email":user.email,
                 'domain':request.META['HTTP_HOST'],
@@ -805,9 +803,21 @@ def password_reset_request(request, *args, **kwargs):
                 'protocol': 'http',
                 }
                 url=c['protocol']+"://"+c['domain']+"/topteenadmin/changepassword/"+c['uid']+"/"+c['token']
-                email = render_to_string(email_template_name,{"url":url})
+                from communication.email_templates import render_transactional_email
+                subject, text_content, html_content = render_transactional_email(
+                    'password_reset',
+                    format_context={'email': user.email, 'url': url},
+                    django_context={'url': url},
+                )
                 try:
-                    send_mail(subject, email, settings.DEFAULT_FROM_EMAIL , [user.email], fail_silently=False)
+                    msg = EmailMultiAlternatives(
+                        subject,
+                        text_content,
+                        settings.DEFAULT_FROM_EMAIL,
+                        [user.email],
+                    )
+                    msg.attach_alternative(html_content, 'text/html')
+                    msg.send(fail_silently=False)
                 except BadHeaderError:
                     return HttpResponse('Invalid header found.')
                 messages.info(request, "Password reset instructions have been sent to the email address entered.")
