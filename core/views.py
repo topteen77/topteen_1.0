@@ -3,7 +3,7 @@ import logging
 import random
 import re
 import os
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 
 logger = logging.getLogger(__name__)
 from multiprocessing import get_context
@@ -1121,6 +1121,15 @@ class EmotionalIntelligencesAssessmentView(LoginRequiredMixin, TemplateView):
     template_name = "template20/emotional_intelligences_assessment.html"
     login_url = reverse_lazy("users:login")
 
+    def get_back_url(self, request):
+        from django.utils.http import url_has_allowed_host_and_scheme
+
+        referer = (request.META.get("HTTP_REFERER") or "").strip()
+        if referer and url_has_allowed_host_and_scheme(referer, allowed_hosts={request.get_host()}):
+            if urlparse(referer).path.rstrip("/") != request.path.rstrip("/"):
+                return referer
+        return reverse("users:userdashboard")
+
     def html_head(self):
         return build_html_head(
             title="Emotional Intelligence Assessment",
@@ -1130,6 +1139,7 @@ class EmotionalIntelligencesAssessmentView(LoginRequiredMixin, TemplateView):
     def get_context(self, request, *args, **kwargs):
         ctx = {}
         ctx["html_head"] = self.html_head()
+        ctx["back_url"] = self.get_back_url(request)
         ctx["breadcrumb"] = get_breadcrumb([
             {"text": "Emotional Intelligences", "url": reverse("core:emotional_intelligences")},
             {"text": "Assessment", "url": reverse("core:emotional_intelligences_assessment")},
@@ -1197,6 +1207,15 @@ class MultipleIntelligencesAssessmentView(LoginRequiredMixin, TemplateView):
     template_name = "template20/multiple_intelligences_assessment.html"
     login_url = reverse_lazy("users:login")
 
+    def get_back_url(self, request):
+        from django.utils.http import url_has_allowed_host_and_scheme
+
+        referer = (request.META.get("HTTP_REFERER") or "").strip()
+        if referer and url_has_allowed_host_and_scheme(referer, allowed_hosts={request.get_host()}):
+            if urlparse(referer).path.rstrip("/") != request.path.rstrip("/"):
+                return referer
+        return reverse("users:userdashboard")
+
     def html_head(self):
         return build_html_head(
             title="Multiple Intelligences Assessment",
@@ -1206,6 +1225,7 @@ class MultipleIntelligencesAssessmentView(LoginRequiredMixin, TemplateView):
     def get_context(self, request, *args, **kwargs):
         ctx = {}
         ctx["html_head"] = self.html_head()
+        ctx["back_url"] = self.get_back_url(request)
         ctx["breadcrumb"] = get_breadcrumb([
             {"text": "Multiple Intelligences", "url": reverse("core:multiple_intelligences")},
             {"text": "Assessment", "url": reverse("core:multiple_intelligences_assessment")},
