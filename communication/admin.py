@@ -102,6 +102,7 @@ class EmailMessageTemplateAdmin(admin.ModelAdmin):
             '---------',
             '- Use {placeholder} style — not Django template tags like {{ name }}.',
             '- Do not rename slug after creation; code references it when sending mail.',
+            '- Edit message body only. Header, logo, and footer are always added from mail/base_email.html when sent.',
             '- Copy sample subject/body below when available, then customize.',
         ])
         return _admin_pre_block('\n'.join(lines))

@@ -13,7 +13,8 @@ from communication.utils import referral_url_without_scheme
 # from edmissions.celery import app
 from django.utils.safestring import mark_safe
 from django.template.loader import get_template
-from datetime import datetime,timedelta 
+from django.utils.html import strip_tags
+from datetime import datetime,timedelta
 from users.models import User
 from django.urls import reverse
 
@@ -90,6 +91,9 @@ class ComService:
     def send_mail(self,subject,to,text_content, html_content,attachment=None,attachment_name=None,attachment_type=None):
         status = False
         to_list = [to] if not isinstance(to, list) else to
+        html_content = ensure_email_html_wrapped(html_content, preheader=subject)
+        if not text_content or text_content == html_content:
+            text_content = strip_tags(html_content) or html_content
         try:
             msg = EmailMultiAlternatives(subject, text_content, self.from_email, to_list)
             msg.attach_alternative(html_content, "text/html")

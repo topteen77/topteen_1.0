@@ -1,7 +1,7 @@
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 
-from .email_layout import wrap_email_layout
+from .email_layout import ensure_email_html_wrapped, wrap_email_layout
 from .email_template_registry import EMAIL_TEMPLATE_REGISTRY, get_email_template_meta
 from .models import EmailMessageTemplate
 

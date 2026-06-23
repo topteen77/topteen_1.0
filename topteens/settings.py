@@ -848,6 +848,12 @@ STREAM_SORTER_TEST_AMOUNT = config('STREAM_SORTER_TEST_AMOUNT', default=999, cas
 CAREER_DIRECTION_TEST_AMOUNT = config('CAREER_DIRECTION_TEST_AMOUNT', default=999, cast=int)
 
 LOGO_URL="https://topteen.in/static/images/logos/topteen-logo-with-text.png"
+TOPTEEN_SITE_URL = config('TOPTEEN_SITE_URL', default='https://www.topteen.in')
+TOPTEEN_EMAIL_LOGO_URL = config(
+    'TOPTEEN_EMAIL_LOGO_URL',
+    default='https://www.topteen.in/static/images_new/logos/logo.svg',
+)
+TOPTEEN_SUPPORT_EMAIL = config('TOPTEEN_SUPPORT_EMAIL', default='support@topteen.careers')
 SITE_NAME="Topteen Careers"
 LOGIN_ERROR_URL='/user/login'
 CENTRAL_TEST_API_USERNAME="counselcareer1@gmail.com"
