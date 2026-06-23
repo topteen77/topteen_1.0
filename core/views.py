@@ -267,6 +267,22 @@ def ref_landing(request):
     """
     return HttpResponse('OK', content_type='text/plain')
 
+
+@require_GET
+def topteen_guide(request):
+    """Standalone student platform reference guide (no site header/footer)."""
+    ctx = {
+        "html_head": build_html_head(
+            title="TopTeen Student Platform Reference Guide | Classes 9–12",
+            description=(
+                "A complete walkthrough of www.topteen.in for Indian school students — "
+                "career discovery, assessments, college research, and AI counselling."
+            ),
+            request=request,
+        ),
+    }
+    return render(request, "template20/topteen_guide.html", ctx)
+
 def validation(request,mobile,email):
     mvalid = r'^\d{3}\d{3}\d{4}$'
     evalid = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'

@@ -6,6 +6,7 @@ app_name = 'core'
 urlpatterns = [
     path("",views.Home.as_view(),name="home"),
     path("ref-landing/", views.ref_landing, name="ref_landing"),
+    path("topteen-guide/", views.topteen_guide, name="topteen_guide"),
     path("searchand-explore/",views.SearchItems.as_view(),name="searchandexplore"),
     path("searchand-explore-result/",views.AjaxSearchResult.as_view(),name="searchandexploreresult"),
     path("recommandedsearch/",views.AjaxRecommandedSearchCollege.as_view(),name="recommandedsearch"),

@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#070f1c">
+  <title>TopTeen Student Platform Reference Guide | Classes 9–12</title>
+  <meta name="description" content="A complete walkthrough of www.topteen.in for Indian school students — career discovery, assessments, college research, and AI counselling.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="{{ static('topteen_guide/styles.css') }}" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Reading Progress -->
+  <div class="tt-progress-wrap"><div class="tt-progress-bar" id="progressBar"></div></div>
+
+  <!-- Navigation -->
+  <nav class="tt-navbar navbar navbar-expand-lg fixed-top" id="mainNav">
+    <div class="container">
+      <a class="navbar-brand" href="#hero">
+        <img src="{{ static('topteen_guide/logo.svg') }}" alt="TopTeen">
+      </a>
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-label="Toggle navigation">
+        <i class="bi bi-list text-white fs-4"></i>
+      </button>
+      <div class="collapse navbar-collapse tt-mobile-nav" id="navMenu">
+        <ul class="navbar-nav ms-auto gap-1 tt-nav-grid">
+          <li class="nav-item"><a class="nav-link" href="#section-1">Overview</a></li>
+          <li class="nav-item"><a class="nav-link" href="#section-2">Access</a></li>
+          <li class="nav-item"><a class="nav-link" href="#section-3">Navigate</a></li>
+          <li class="nav-item"><a class="nav-link" href="#section-4">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="#section-5">Assessments</a></li>
+          <li class="nav-item"><a class="nav-link" href="#section-6">Careers</a></li>
+          <li class="nav-item"><a class="nav-link" href="#section-7">Colleges</a></li>
+          <li class="nav-item"><a class="nav-link" href="#section-8">Roadmap</a></li>
+          <li class="nav-item"><a class="nav-link" href="#section-9">AI Counsellor</a></li>
+          <li class="nav-item"><a class="nav-link" href="#section-10">Profile</a></li>
+          <li class="nav-item"><a class="nav-link" href="#section-11">Help</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════ HERO ═══════════════════ -->
+  <header class="tt-hero" id="hero">
+    <div class="tt-hero-orb tt-hero-orb-1"></div>
+    <div class="tt-hero-orb tt-hero-orb-2"></div>
+    <div class="tt-hero-orb tt-hero-orb-3"></div>
+    <div class="tt-hero-grid"></div>
+    <div class="container tt-hero-content">
+      <div class="row tt-hero-row align-items-center g-4 g-xl-5">
+        <div class="col-lg-6 order-2 order-lg-1">
+          <div class="tt-hero-left">
+            <img src="{{ static('topteen_guide/logo.svg') }}" alt="TopTeen" class="tt-hero-logo">
+            <div class="tt-hero-pills">
+              <span class="tt-hero-pill"><i class="bi bi-mortarboard-fill"></i> Every Student, Career Ready</span>
+              <span class="tt-hero-pill"><i class="bi bi-globe2"></i> Classes 9–12</span>
+              <span class="tt-hero-pill"><i class="bi bi-cpu-fill"></i> AI-Powered</span>
+            </div>
+            <h1>
+              <span class="outline-text">Interactive Tour Guide</span>
+              <span class="gradient-text">Student Platform Reference Guide</span>
+            </h1>
+            <p class="tt-hero-sub">A Complete Walkthrough of www.topteen.in for Classes 9–12 — your step-by-step infographic journey from first login to career roadmap.</p>
+            <div class="tt-hero-stats">
+              <div class="tt-stat-box"><div class="tt-stat-num">11</div><div class="tt-stat-label">Tour Stops</div></div>
+              <div class="tt-stat-box"><div class="tt-stat-num">9–12</div><div class="tt-stat-label">Class Range</div></div>
+              <div class="tt-stat-box"><div class="tt-stat-num">4</div><div class="tt-stat-label">Year Roadmap</div></div>
+              <div class="tt-stat-box"><div class="tt-stat-num">AI</div><div class="tt-stat-label">Counsellor</div></div>
+            </div>
+            <div class="tt-hero-cta">
+              <a href="#journey-map" class="tt-btn-primary"><i class="bi bi-play-circle-fill"></i> Start the Tour</a>
+              <a href="#section-2" class="tt-btn-ghost"><i class="bi bi-box-arrow-in-right"></i> Jump to Sign Up</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6 order-1 order-lg-2">
+          <div class="tt-hero-video-wrap">
+            <div class="tt-hero-video-label">
+              <i class="bi bi-play-circle-fill"></i> Platform Walkthrough Video
+            </div>
+            <div class="tt-hero-video-frame" id="heroVideoFrame">
+              <video
+                id="heroVideo"
+                class="tt-hero-video"
+                controls
+                playsinline
+                preload="metadata"
+                poster=""
+              >
+                <source src="https://topteenc.s3.ap-northeast-1.amazonaws.com/media/TopTeen_1080P.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+              <button type="button" class="tt-video-play-btn" id="heroPlayBtn" aria-label="Play TopTeen walkthrough video">
+                <span class="tt-video-play-ring"></span>
+                <i class="bi bi-play-fill"></i>
+              </button>
+            </div>
+            <p class="tt-video-caption">
+              <i class="bi bi-camera-video-fill"></i>
+              Watch how TopTeen helps students discover careers, choose streams, and plan their future.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tt-scroll-hint"><i class="bi bi-chevron-double-down"></i>Scroll to Explore</div>
+  </header>
+
+  <!-- ═══════════════════ JOURNEY MAP ═══════════════════ -->
+  <section class="tt-journey" id="journey-map">
+    <div class="container">
+      <div class="tt-journey-header fade-up">
+        <span class="eyebrow"><i class="bi bi-signpost-split-fill"></i> Your Complete Journey</span>
+        <h2>11-Step Platform Tour</h2>
+        <p>Click any stop below to jump directly to that section. Each step is highlighted with icons, timelines, and infographic cards.</p>
+      </div>
+      <div class="tt-journey-grid">
+        <a href="#section-1" class="tt-journey-card fade-up" data-accent="purple"><div class="tt-journey-num">01</div><div class="tt-journey-icon"><i class="bi bi-stars"></i></div><h5>Overview</h5><p>What TopTeen is and what it helps you do</p><span class="tt-journey-arrow"><i class="bi bi-arrow-right"></i></span></a>
+        <a href="#section-2" class="tt-journey-card fade-up" data-accent="blue"><div class="tt-journey-num">02</div><div class="tt-journey-icon"><i class="bi bi-box-arrow-in-right"></i></div><h5>Accessing TopTeen</h5><p>Sign up, log in, and account setup</p><span class="tt-journey-arrow"><i class="bi bi-arrow-right"></i></span></a>
+        <a href="#section-3" class="tt-journey-card fade-up" data-accent="teal"><div class="tt-journey-num">03</div><div class="tt-journey-icon"><i class="bi bi-compass-fill"></i></div><h5>Navigation</h5><p>Top bar, menus, and content cards</p><span class="tt-journey-arrow"><i class="bi bi-arrow-right"></i></span></a>
+        <a href="#section-4" class="tt-journey-card fade-up" data-accent="indigo"><div class="tt-journey-num">04</div><div class="tt-journey-icon"><i class="bi bi-house-heart-fill"></i></div><h5>Dashboard</h5><p>Your home screen and readiness score</p><span class="tt-journey-arrow"><i class="bi bi-arrow-right"></i></span></a>
+        <a href="#section-5" class="tt-journey-card fade-up" data-accent="violet"><div class="tt-journey-num">05</div><div class="tt-journey-icon"><i class="bi bi-clipboard2-check-fill"></i></div><h5>Assessments</h5><p>Stream Sorter, profiler, and results</p><span class="tt-journey-arrow"><i class="bi bi-arrow-right"></i></span></a>
+        <a href="#section-6" class="tt-journey-card fade-up" data-accent="amber"><div class="tt-journey-num">06</div><div class="tt-journey-icon"><i class="bi bi-briefcase-fill"></i></div><h5>Careers</h5><p>Clusters, profiles, and shortlisting</p><span class="tt-journey-arrow"><i class="bi bi-arrow-right"></i></span></a>
+        <a href="#section-7" class="tt-journey-card fade-up" data-accent="sky"><div class="tt-journey-num">07</div><div class="tt-journey-icon"><i class="bi bi-building-fill"></i></div><h5>Colleges</h5><p>Search, shortlist, and scholarships</p><span class="tt-journey-arrow"><i class="bi bi-arrow-right"></i></span></a>
+        <a href="#section-8" class="tt-journey-card fade-up" data-accent="emerald"><div class="tt-journey-num">08</div><div class="tt-journey-icon"><i class="bi bi-map-fill"></i></div><h5>My Roadmap</h5><p>Four-year plan and task management</p><span class="tt-journey-arrow"><i class="bi bi-arrow-right"></i></span></a>
+        <a href="#section-9" class="tt-journey-card fade-up" data-accent="fuchsia"><div class="tt-journey-num">09</div><div class="tt-journey-icon"><i class="bi bi-robot"></i></div><h5>AI Counsellor</h5><p>Ask questions and get guidance</p><span class="tt-journey-arrow"><i class="bi bi-arrow-right"></i></span></a>
+        <a href="#section-10" class="tt-journey-card fade-up" data-accent="slate"><div class="tt-journey-num">10</div><div class="tt-journey-icon"><i class="bi bi-person-gear"></i></div><h5>Profile</h5><p>Settings, security, and log out</p><span class="tt-journey-arrow"><i class="bi bi-arrow-right"></i></span></a>
+        <a href="#section-11" class="tt-journey-card fade-up" data-accent="rose"><div class="tt-journey-num">11</div><div class="tt-journey-icon"><i class="bi bi-life-preserver"></i></div><h5>Help</h5><p>Troubleshooting and quick reference</p><span class="tt-journey-arrow"><i class="bi bi-arrow-right"></i></span></a>
+      </div>
+    </div>
+  </section>
+
+  <main class="container tt-main-wrap">
+    <!-- Mobile sticky tour nav -->
+    <nav class="tt-mobile-toc d-lg-none" id="mobileToc" aria-label="Tour sections">
+      <a href="#section-1" class="tt-mobile-toc-chip"><span>1</span> Overview</a>
+      <a href="#section-2" class="tt-mobile-toc-chip"><span>2</span> Access</a>
+      <a href="#section-3" class="tt-mobile-toc-chip"><span>3</span> Navigate</a>
+      <a href="#section-4" class="tt-mobile-toc-chip"><span>4</span> Dashboard</a>
+      <a href="#section-5" class="tt-mobile-toc-chip"><span>5</span> Assessments</a>
+      <a href="#section-6" class="tt-mobile-toc-chip"><span>6</span> Careers</a>
+      <a href="#section-7" class="tt-mobile-toc-chip"><span>7</span> Colleges</a>
+      <a href="#section-8" class="tt-mobile-toc-chip"><span>8</span> Roadmap</a>
+      <a href="#section-9" class="tt-mobile-toc-chip"><span>9</span> AI Guide</a>
+      <a href="#section-10" class="tt-mobile-toc-chip"><span>10</span> Profile</a>
+      <a href="#section-11" class="tt-mobile-toc-chip"><span>11</span> Help</a>
+    </nav>
+
+    <div class="row g-4">
+      <!-- Sidebar TOC -->
+      <div class="col-lg-3 d-none d-lg-block">
+        <nav class="tt-toc-sidebar" id="tocSidebar">
+          <h6>Tour Guide Contents</h6>
+          <a href="#section-1"><span class="toc-num">1</span> Overview</a>
+          <a href="#section-2"><span class="toc-num">2</span> Accessing TopTeen</a>
+          <a href="#section-3"><span class="toc-num">3</span> Finding Your Way Around</a>
+          <a href="#section-4"><span class="toc-num">4</span> Your Dashboard</a>
+          <a href="#section-5"><span class="toc-num">5</span> Assessments</a>
+          <a href="#section-6"><span class="toc-num">6</span> Exploring Careers</a>
+          <a href="#section-7"><span class="toc-num">7</span> Colleges &amp; Scholarships</a>
+          <a href="#section-8"><span class="toc-num">8</span> My Roadmap</a>
+          <a href="#section-9"><span class="toc-num">9</span> AI Career Counsellor</a>
+          <a href="#section-10"><span class="toc-num">10</span> Profile &amp; Settings</a>
+          <a href="#section-11"><span class="toc-num">11</span> Troubleshooting</a>
+        </nav>
+      </div>
+
+      <div class="col-lg-9">
+
+        <!-- ═══════ SECTION 1: OVERVIEW ═══════ -->
+        <section class="tt-section theme-1" id="section-1">
+          <div class="tt-section-shell">
+            <div class="tt-infographic-banner" data-step="01">
+              <div class="tt-banner-icon-wrap"><i class="bi bi-stars"></i></div>
+              <div class="tt-banner-body">
+                <span class="tt-banner-tag"><i class="bi bi-signpost-fill"></i> Tour Stop 1</span>
+                <h2>Overview</h2>
+                <p class="tt-banner-intro">TopTeen is an AI-powered career readiness platform built for Indian school students in Classes 9 to 12. It brings together psychometric assessment, structured career exploration, stream selection guidance, college and scholarship research, and one-to-one AI counselling into a single dashboard — so that instead of guessing your way through “What should I become?”, you follow a structured, evidence-based path.</p>
+                <p class="tt-banner-intro">TopTeen is built and operated by TopTeen Educational Services Private Limited (part of the Canam Group), headquartered in Chandigarh, and is designed specifically around the Indian education system — CBSE, ICSE, and State Boards — and aligned with the goals of NEP 2020.</p>
+              </div>
+            </div>
+            <div class="tt-section-body">
+          <div class="tt-timeline">
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">1.1</div>
+              <div class="tt-timeline-card">
+                <h3>What TopTeen Helps You Do</h3>
+                <div class="tt-feature-grid">
+                  <div class="tt-feature-card">
+                    <div class="tt-feature-icon"><i class="bi bi-compass"></i></div>
+                    <h5>Self-Discovery</h5>
+                    <p>Scientifically designed assessments (Stream Sorter, Career Interest Profiler, and others) that map your interests, aptitude, and personality to suitable streams and careers.</p>
+                  </div>
+                  <div class="tt-feature-card">
+                    <div class="tt-feature-icon"><i class="bi bi-signpost-split"></i></div>
+                    <h5>Stream Selection</h5>
+                    <p>Class 9–10 students get structured help choosing between Science, Commerce, and Humanities — backed by data, not guesswork.</p>
+                  </div>
+                  <div class="tt-feature-card">
+                    <div class="tt-feature-icon"><i class="bi bi-briefcase"></i></div>
+                    <h5>Career Exploration</h5>
+                    <p>Browse career clusters and individual career profiles across fields such as Engineering, Design, Commerce, Computer Applications, and more.</p>
+                  </div>
+                  <div class="tt-feature-card">
+                    <div class="tt-feature-icon"><i class="bi bi-calendar3"></i></div>
+                    <h5>Four-Year Planning</h5>
+                    <p>A class-wise roadmap (Class 9 through Class 12) that tells you what to focus on at each stage — foundation building, board prep, competitive exams, and higher-education readiness.</p>
+                  </div>
+                  <div class="tt-feature-card">
+                    <div class="tt-feature-icon"><i class="bi bi-building"></i></div>
+                    <h5>College &amp; Course Research</h5>
+                    <p>Explore undergraduate and postgraduate programmes, diplomas, and certifications to understand which path fits your goal.</p>
+                  </div>
+                  <div class="tt-feature-card">
+                    <div class="tt-feature-icon"><i class="bi bi-robot"></i></div>
+                    <h5>AI Career Counsellor</h5>
+                    <p>A conversational assistant you can message any time for guidance on streams, careers, exams, or next steps.</p>
+                  </div>
+                  <div class="tt-feature-card">
+                    <div class="tt-feature-icon"><i class="bi bi-people"></i></div>
+                    <h5>Parent Involvement</h5>
+                    <p>Resources and guidance that help your parents understand and support your choices.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">1.2</div>
+              <div class="tt-timeline-card">
+                <h3>Who Should Use This Guide</h3>
+                <p>This guide is written for students — not parents, schools, or counsellors. If you are in Class 9, 10, 11, or 12 and have been given access to TopTeen by your school or have signed up independently at www.topteen.in, this guide will walk you through everything from your first login to building your full career roadmap.</p>
+                <div class="tt-callout tt-callout-note">
+                  <i class="bi bi-info-circle-fill"></i>
+                  <div><strong>Note</strong>Some features described here (for example, certain assessments or the AI Counsellor) may be switched on or off depending on what your school has enabled for your batch. If something in this guide is not visible on your screen, check with your school's TopTeen coordinator or write to info@topteen.in.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+                    </div>
+          </div>
+        </section>
+
+        <!-- ═══════ SECTION 2: ACCESSING ═══════ -->
+        <section class="tt-section theme-2" id="section-2">
+          <div class="tt-section-shell">
+            <div class="tt-infographic-banner" data-step="02">
+              <div class="tt-banner-icon-wrap"><i class="bi bi-box-arrow-in-right"></i></div>
+              <div class="tt-banner-body">
+                <span class="tt-banner-tag"><i class="bi bi-signpost-fill"></i> Tour Stop 2</span>
+                <h2>Accessing TopTeen</h2>
+                <p class="tt-banner-intro">TopTeen is a mobile-responsive web platform. You do not need to install anything — it works directly in your phone, tablet, or computer's internet browser.</p>
+              </div>
+            </div>
+            <div class="tt-section-body">
+          <div class="tt-timeline">
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">2.1</div>
+              <div class="tt-timeline-card">
+                <h3>Platform Address</h3>
+                <p>Open your browser and go to: <strong>www.topteen.in</strong></p>
+                <p>If your school has its own TopTeen sign-in page or QR code, use the link or code your school coordinator shares with you instead — it will take you to the same platform with your school already linked to your profile.</p>
+                <div class="tt-callout tt-callout-tip">
+                  <i class="bi bi-lightbulb-fill"></i>
+                  <div><strong>Tip</strong>Bookmark the TopTeen sign-in page on your phone and laptop so you can return to it quickly without searching for it each time.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">2.2</div>
+              <div class="tt-timeline-card">
+                <h3>Creating Your Account (First-Time Students)</h3>
+                <p>TopTeen uses a simple email-or-mobile sign-up with OTP (one-time password) verification — there is no registration code to remember.</p>
+                <ol class="tt-steps">
+                  <li>Go to www.topteen.in and click <strong>Sign Up</strong>.</li>
+                  <li>Enter your email address or mobile number.</li>
+                  <li>Click <strong>Continue</strong>. TopTeen sends a one-time OTP to the email or number you entered.</li>
+                  <li>Enter the OTP in the Verify OTP screen. If it does not arrive within a minute, use <strong>Resend Code</strong>.</li>
+                  <li>Once verified, choose a password for your account and click <strong>Create Account</strong>.</li>
+                  <li>Complete your profile: full name, date of birth, class/grade, school name or code, and your city.</li>
+                  <li>Select your current academic stream (if you are in Class 11 or 12) or skip this if you are in Class 9 or 10 and have not chosen a stream yet.</li>
+                  <li>Click <strong>Continue</strong> to land on your TopTeen Dashboard for the first time.</li>
+                </ol>
+                <div class="tt-callout tt-callout-note mt-3">
+                  <i class="bi bi-info-circle-fill"></i>
+                  <div><strong>What happens on your very first login</strong>A short welcome tour highlights the main sections of your dashboard. You may be prompted to start the Stream Sorter or Career Interest Profiler assessment — see Section 5. If your school has enrolled you in advance, some profile fields (school, class) may already be filled in for you.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">2.3</div>
+              <div class="tt-timeline-card">
+                <h3>Logging In (Returning Students)</h3>
+                <ol class="tt-steps">
+                  <li>Go to www.topteen.in and click <strong>Login</strong>.</li>
+                  <li>Choose <strong>Email Login</strong> or <strong>Mobile OTP</strong>.</li>
+                  <li><strong>Email Login:</strong> enter your registered email and password, then click Continue.</li>
+                  <li><strong>Mobile OTP:</strong> enter your registered mobile number, click Continue, then enter the OTP sent to your phone.</li>
+                  <li>You will land directly on your Dashboard (Home).</li>
+                </ol>
+              </div>
+            </div>
+
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">2.4</div>
+              <div class="tt-timeline-card">
+                <h3>Forgotten Password or OTP Issues</h3>
+                <p><strong>Forgotten password:</strong> on the Email Login screen, select Forgot Password, enter your registered email, and follow the reset link sent to your inbox.</p>
+                <p><strong>OTP not received:</strong> check that you entered the correct mobile number or email, wait 60 seconds, then use Resend Code. If it still does not arrive, check your spam folder (for email) or signal strength (for SMS).</p>
+                <p><strong>Account locked or unrecognised:</strong> contact your school's TopTeen coordinator first, since your account may be linked to your school's batch. If you signed up independently, write to info@topteen.in.</p>
+              </div>
+            </div>
+          </div>
+                    </div>
+          </div>
+        </section>
+
+        <!-- ═══════ SECTION 3: NAVIGATION ═══════ -->
+        <section class="tt-section theme-3" id="section-3">
+          <div class="tt-section-shell">
+            <div class="tt-infographic-banner" data-step="03">
+              <div class="tt-banner-icon-wrap"><i class="bi bi-compass-fill"></i></div>
+              <div class="tt-banner-body">
+                <span class="tt-banner-tag"><i class="bi bi-signpost-fill"></i> Tour Stop 3</span>
+                <h2>Finding Your Way Around</h2>
+                <p class="tt-banner-intro">TopTeen's interface adjusts automatically to whatever device you're using — phone, tablet, or laptop. The underlying structure is identical; only the layout changes.</p>
+              </div>
+            </div>
+            <div class="tt-section-body">
+          <div class="tt-timeline">
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">3.1</div>
+              <div class="tt-timeline-card">
+                <h3>The Top Navigation Bar</h3>
+                <p>Every page keeps a navy-and-gold bar fixed at the top. On a phone, the main sections collapse into a menu icon; on a tablet or laptop, they are shown as a horizontal strip.</p>
+                <div class="tt-data-grid">
+                  <div class="tt-data-row tt-data-row-3 header"><div class="col-num">#</div><div class="col-label">Element</div><div class="col-value">What It Does</div></div>
+                  <div class="tt-data-row tt-data-row-3"><div class="col-num">1</div><div class="col-label">TopTeen Logo</div><div class="col-value">Click at any time to return to your Dashboard (Home).</div></div>
+                  <div class="tt-data-row tt-data-row-3"><div class="col-num">2</div><div class="col-label">Dashboard / Career Hub</div><div class="col-value">Your personalised home screen — see Section 4.</div></div>
+                  <div class="tt-data-row tt-data-row-3"><div class="col-num">3</div><div class="col-label">Assessments</div><div class="col-value">Stream Sorter, Career Interest Profiler, and other psychometric tools — see Section 5.</div></div>
+                  <div class="tt-data-row tt-data-row-3"><div class="col-num">4</div><div class="col-label">Careers</div><div class="col-value">Career Clusters and individual career profiles — see Section 6.</div></div>
+                  <div class="tt-data-row tt-data-row-3"><div class="col-num">5</div><div class="col-label">Colleges &amp; Courses</div><div class="col-value">Search and shortlist colleges, courses, and scholarships — see Section 7.</div></div>
+                  <div class="tt-data-row tt-data-row-3"><div class="col-num">6</div><div class="col-label">My Roadmap</div><div class="col-value">Your class-wise four-year plan and to-do list — see Section 8.</div></div>
+                  <div class="tt-data-row tt-data-row-3"><div class="col-num">7</div><div class="col-label">AI Counsellor</div><div class="col-value">Open a chat with your AI Career Counsellor from anywhere — see Section 9.</div></div>
+                  <div class="tt-data-row tt-data-row-3"><div class="col-num">8</div><div class="col-label">Notifications Bell</div><div class="col-value">New messages, counsellor notes, deadline reminders, and platform updates.</div></div>
+                  <div class="tt-data-row tt-data-row-3"><div class="col-num">9</div><div class="col-label">Profile Icon</div><div class="col-value">Account settings, password, language preference, and Log Out — see Section 10.</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">3.2</div>
+              <div class="tt-timeline-card">
+                <h3>Menus and Drill-Down Navigation</h3>
+                <p>Most sections follow the same two-level pattern: a top-level menu item (for example, Colleges &amp; Courses) expands into a short list of sub-sections (for example, Search Colleges, Shortlisted Colleges, Scholarships). Tapping or clicking a top-level item on mobile reveals its sub-items; on a larger screen, hovering reveals a drop-down.</p>
+              </div>
+            </div>
+
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">3.3</div>
+              <div class="tt-timeline-card">
+                <h3>Content Cards</h3>
+                <p>Inside each section, information is organised into rectangular content cards, each with a clear title. Depending on the card, you may see a Read More, See All, or an action button (such as Add to Shortlist or Start Assessment) at the bottom. Once you recognise this pattern, every new page on TopTeen will feel familiar.</p>
+                <div class="tt-callout tt-callout-tip">
+                  <i class="bi bi-lightbulb-fill"></i>
+                  <div><strong>Tip</strong>If a page looks empty or a card says “No data yet,” it usually means you haven't completed the related step — for example, your Career Match card stays empty until you finish the Stream Sorter assessment.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+                    </div>
+          </div>
+        </section>
+
+        <!-- ═══════ SECTION 4: DASHBOARD ═══════ -->
+        <section class="tt-section theme-4" id="section-4">
+          <div class="tt-section-shell">
+            <div class="tt-infographic-banner" data-step="04">
+              <div class="tt-banner-icon-wrap"><i class="bi bi-house-heart-fill"></i></div>
+              <div class="tt-banner-body">
+                <span class="tt-banner-tag"><i class="bi bi-signpost-fill"></i> Tour Stop 4</span>
+                <h2>Your Dashboard (Home)</h2>
+                <p class="tt-banner-intro">Your Dashboard is the first screen you see after logging in. It is built to answer one question at a glance: “Where am I in my career planning journey, and what should I do next?”</p>
+              </div>
+            </div>
+            <div class="tt-section-body">
+          <div class="tt-timeline">
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">4.1</div>
+              <div class="tt-timeline-card">
+                <h3>Dashboard Sections</h3>
+                <div class="tt-data-grid">
+                  <div class="tt-data-row tt-data-row-3 header"><div class="col-num">#</div><div class="col-label">Element</div><div class="col-value">What It Does</div></div>
+                  <div class="tt-data-row tt-data-row-3"><div class="col-num">1</div><div class="col-label">Welcome Banner</div><div class="col-value">Greets you by name and shows your class, stream (if selected), and school.</div></div>
+                  <div class="tt-data-row tt-data-row-3"><div class="col-num">2</div><div class="col-label">Career Readiness Score</div><div class="col-value">A snapshot score reflecting how much of your profile, assessments, and roadmap you have completed.</div></div>
+                  <div class="tt-data-row tt-data-row-3"><div class="col-num">3</div><div class="col-label">Continue Where You Left Off</div><div class="col-value">A shortcut back into your most recent assessment, journal entry, or roadmap task.</div></div>
+                  <div class="tt-data-row tt-data-row-3"><div class="col-num">4</div><div class="col-label">My Shortlists</div><div class="col-value">Quick access to Careers I'm Exploring, Colleges I'm Interested In, and Scholarships I'm Tracking.</div></div>
+                  <div class="tt-data-row tt-data-row-3"><div class="col-num">5</div><div class="col-label">Upcoming Tasks &amp; Deadlines</div><div class="col-value">Pulled from My Roadmap — shows overdue and due-soon items first.</div></div>
+                  <div class="tt-data-row tt-data-row-3"><div class="col-num">6</div><div class="col-label">Recommended For You</div><div class="col-value">AI-suggested careers, colleges, or articles based on your assessment results and activity.</div></div>
+                  <div class="tt-data-row tt-data-row-3"><div class="col-num">7</div><div class="col-label">From Your School</div><div class="col-value">Announcements, shared resources, or events posted by your school's TopTeen coordinator.</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">4.2</div>
+              <div class="tt-timeline-card">
+                <h3>Reading Your Career Readiness Score</h3>
+                <p>This score is a simple, motivating way to track your own progress — not a judgment of your ability. It typically improves as you complete these milestones:</p>
+                <ul class="tt-milestones">
+                  <li>Completing your profile (academic details, interests, goals)</li>
+                  <li>Finishing the Stream Sorter or Career Interest Profiler assessment</li>
+                  <li>Shortlisting at least one career and one college</li>
+                  <li>Adding tasks to your roadmap and marking them complete</li>
+                </ul>
+                <div class="tt-callout tt-callout-note">
+                  <i class="bi bi-info-circle-fill"></i>
+                  <div><strong>Note</strong>Your Career Readiness Score is meant to guide your effort, not to compare you with classmates. Use it as a private checklist.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+                    </div>
+          </div>
+        </section>
+
+        <!-- ═══════ SECTION 5: ASSESSMENTS ═══════ -->
+        <section class="tt-section theme-5" id="section-5">
+          <div class="tt-section-shell">
+            <div class="tt-infographic-banner" data-step="05">
+              <div class="tt-banner-icon-wrap"><i class="bi bi-clipboard2-check-fill"></i></div>
+              <div class="tt-banner-body">
+                <span class="tt-banner-tag"><i class="bi bi-signpost-fill"></i> Tour Stop 5</span>
+                <h2>Assessments</h2>
+                <p class="tt-banner-intro">TopTeen's assessments are the foundation of everything else on the platform. Your results here directly shape the career and college recommendations you see throughout the rest of your dashboard, so it is worth taking them seriously and answering honestly rather than guessing what sounds impressive.</p>
+              </div>
+            </div>
+            <div class="tt-section-body">
+          <div class="tt-timeline">
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">5.1</div>
+              <div class="tt-timeline-card">
+                <h3>Available Assessments</h3>
+                <div class="tt-data-grid">
+                  <div class="tt-data-row header"><div class="col-label">Assessment</div><div class="col-value">Best For &amp; What It Measures</div></div>
+                  <div class="tt-data-row"><div class="col-label">Stream Sorter</div><div class="col-value"><strong>Class 9–10.</strong> Interests, aptitude, and learning style, mapped to a recommended academic stream (Science, Commerce, or Humanities).</div></div>
+                  <div class="tt-data-row"><div class="col-label">Career Interest Profiler</div><div class="col-value"><strong>Class 9–12.</strong> A Holland Code (RIASEC) style interest assessment that surfaces career clusters matching your personality and interests.</div></div>
+                  <div class="tt-data-row"><div class="col-label">Personality &amp; Strengths Assessment</div><div class="col-value"><strong>Class 9–12.</strong> Broader personality traits that influence the work environments and roles likely to suit you.</div></div>
+                  <div class="tt-data-row"><div class="col-label">Aptitude Check</div><div class="col-value"><strong>Class 9–12.</strong> Quick checks on logical, verbal, and numerical reasoning to round out your profile.</div></div>
+                </div>
+                <div class="tt-callout tt-callout-note">
+                  <i class="bi bi-info-circle-fill"></i>
+                  <div><strong>Note</strong>Not every assessment is enabled for every student or school. If you don't see one listed here, it has not been switched on for your batch yet.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">5.2</div>
+              <div class="tt-timeline-card">
+                <h3>Taking an Assessment</h3>
+                <ol class="tt-steps">
+                  <li>From the top navigation bar, go to <strong>Assessments</strong>.</li>
+                  <li>Choose an assessment from <strong>My Assessments to Take</strong>.</li>
+                  <li>Read the short instructions screen — most assessments take 10–20 minutes and cannot be paused once started, so set aside uninterrupted time.</li>
+                  <li>Answer every question as it genuinely applies to you, not how you think you “should” answer.</li>
+                  <li>Submit at the end. Your results usually appear immediately on the My Results screen.</li>
+                </ol>
+                <div class="tt-callout tt-callout-note mt-3">
+                  <i class="bi bi-info-circle-fill"></i>
+                  <div><strong>If you're stuck partway through</strong>Most assessments auto-save your progress every few questions — check the status bar at the top of the screen. If you do get interrupted, returning to Assessments will usually show your test under Assessments in Progress so you can resume. Avoid refreshing the page or pressing the back button mid-assessment, as this can occasionally reset unsaved answers.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">5.3</div>
+              <div class="tt-timeline-card">
+                <h3>Understanding Your Results</h3>
+                <p>Each completed assessment produces a results page with three parts:</p>
+                <ul class="tt-milestones">
+                  <li>A summary score or profile type (for example, your top two Holland Code letters, or your recommended stream).</li>
+                  <li>A plain-language explanation of what that result means — written for students, not psychologists.</li>
+                  <li>A list of suggested career clusters or streams, each linking directly into the Careers section so you can explore further.</li>
+                </ul>
+                <p>You can retake most assessments, but TopTeen will generally show you your most recent result as your “active” profile. If your interests or circumstances change significantly (for example, after Class 10 board results), it is worth retaking the relevant assessment.</p>
+              </div>
+            </div>
+          </div>
+                    </div>
+          </div>
+        </section>
+
+        <!-- ═══════ SECTION 6: CAREERS ═══════ -->
+        <section class="tt-section theme-6" id="section-6">
+          <div class="tt-section-shell">
+            <div class="tt-infographic-banner" data-step="06">
+              <div class="tt-banner-icon-wrap"><i class="bi bi-briefcase-fill"></i></div>
+              <div class="tt-banner-body">
+                <span class="tt-banner-tag"><i class="bi bi-signpost-fill"></i> Tour Stop 6</span>
+                <h2>Exploring Careers</h2>
+                <p class="tt-banner-intro">Once you have a sense of your interests — whether from an assessment or simply from curiosity — the Careers section is where you go to actually explore what different paths look like in practice.</p>
+              </div>
+            </div>
+            <div class="tt-section-body">
+          <div class="tt-timeline">
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">6.1</div>
+              <div class="tt-timeline-card">
+                <h3>Career Clusters</h3>
+                <p>Careers on TopTeen are grouped into broad clusters such as Engineering &amp; Technology, Commerce, Economics &amp; Finance, Design, Fine Arts &amp; Performing Arts, Computer Applications, Arts, Humanities, Education &amp; Training, Business Management &amp; Marketing, and Agriculture &amp; Allied Sciences, among others. Each cluster contains dozens of individual career profiles.</p>
+                <ol class="tt-steps">
+                  <li>Go to <strong>Careers</strong> in the top navigation bar.</li>
+                  <li>Browse all clusters, or click <strong>Recommended for Me</strong> to see clusters matched to your assessment results.</li>
+                  <li>Click into a cluster to see the full list of careers inside it.</li>
+                </ol>
+              </div>
+            </div>
+
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">6.2</div>
+              <div class="tt-timeline-card">
+                <h3>Reading a Career Profile</h3>
+                <p>Each individual career page is built to answer the questions students actually ask, structured consistently so you always know where to look:</p>
+                <div class="tt-data-grid">
+                  <div class="tt-data-row header"><div class="col-label">Profile Section</div><div class="col-value">What You'll Find There</div></div>
+                  <div class="tt-data-row"><div class="col-label">What It Is</div><div class="col-value">A plain-English description of the role and what a typical day looks like.</div></div>
+                  <div class="tt-data-row"><div class="col-label">Skills &amp; Subjects Needed</div><div class="col-value">Core school subjects and skills that matter for this path.</div></div>
+                  <div class="tt-data-row"><div class="col-label">Education Pathway</div><div class="col-value">The typical sequence of degrees, diplomas, or entrance exams required.</div></div>
+                  <div class="tt-data-row"><div class="col-label">Top Entrance Exams</div><div class="col-value">Relevant exams such as JEE, NEET, CLAT, CUET, or others, where applicable.</div></div>
+                  <div class="tt-data-row"><div class="col-label">Growth &amp; Demand Outlook</div><div class="col-value">A general sense of how the field is evolving in India and globally.</div></div>
+                  <div class="tt-data-row"><div class="col-label">Related Careers</div><div class="col-value">Adjacent roles you might not have considered.</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">6.3</div>
+              <div class="tt-timeline-card">
+                <h3>Shortlisting Careers</h3>
+                <ol class="tt-steps">
+                  <li>On any career profile, click the heart icon or <strong>Add to “Careers I'm Exploring.”</strong></li>
+                  <li>View your full shortlist any time from <strong>My Favourites</strong> on your Dashboard, or from <strong>Careers I'm Exploring</strong> inside the Careers section.</li>
+                  <li>Remove a career from your shortlist by clicking the same heart icon again.</li>
+                </ol>
+                <div class="tt-callout tt-callout-tip">
+                  <i class="bi bi-lightbulb-fill"></i>
+                  <div><strong>Tip</strong>Shortlisting a career does not commit you to anything — think of it as a personal “maybe” list you can revisit and refine as you learn more.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+                    </div>
+          </div>
+        </section>
+
+        <!-- ═══════ SECTION 7: COLLEGES ═══════ -->
+        <section class="tt-section theme-7" id="section-7">
+          <div class="tt-section-shell">
+            <div class="tt-infographic-banner" data-step="07">
+              <div class="tt-banner-icon-wrap"><i class="bi bi-building-fill"></i></div>
+              <div class="tt-banner-body">
+                <span class="tt-banner-tag"><i class="bi bi-signpost-fill"></i> Tour Stop 7</span>
+                <h2>Colleges, Courses & Scholarships</h2>
+                <p class="tt-banner-intro">This section helps you move from “What career do I want?” to “Where and how do I actually get there?” — covering specific colleges, courses, and the scholarships that can make them affordable.</p>
+              </div>
+            </div>
+            <div class="tt-section-body">
+          <div class="tt-timeline">
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">7.1</div>
+              <div class="tt-timeline-card">
+                <h3>Searching for Colleges and Courses</h3>
+                <ol class="tt-steps">
+                  <li>Go to <strong>Colleges &amp; Courses</strong> in the top navigation bar.</li>
+                  <li>Use the search bar to look up a specific college by name, or use <strong>Browse by Course</strong> to start from a subject or degree instead.</li>
+                  <li>Apply filters such as location, course type (Undergraduate, Postgraduate, Diploma, Certification), and fees range to narrow your results.</li>
+                  <li>Click any result to open its full profile — typically including admission criteria, fee ranges, course duration, and application windows.</li>
+                </ol>
+              </div>
+            </div>
+
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">7.2</div>
+              <div class="tt-timeline-card">
+                <h3>Shortlisting and Tracking</h3>
+                <p>Add any college or course to <strong>Colleges I'm Interested In</strong> using the heart icon, exactly as you would shortlist a career.</p>
+                <p>Your shortlist appears on your Dashboard under <strong>My Shortlists</strong> and inside <strong>My Roadmap</strong> as upcoming application tasks once deadlines are known.</p>
+              </div>
+            </div>
+
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">7.3</div>
+              <div class="tt-timeline-card">
+                <h3>Scholarships</h3>
+                <p>The Scholarships tab inside Colleges &amp; Courses lists scholarships you may be eligible for, based on your profile (class, stream, location, and category where disclosed). Each listing shows eligibility criteria, the award amount, and the application deadline.</p>
+                <div class="tt-callout tt-callout-important">
+                  <i class="bi bi-exclamation-triangle-fill"></i>
+                  <div><strong>Important</strong>Always verify eligibility criteria and deadlines directly on the scholarship provider's official page before applying — TopTeen aggregates publicly available scholarship information, but final terms are set by the provider.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+                    </div>
+          </div>
+        </section>
+
+        <!-- ═══════ SECTION 8: ROADMAP ═══════ -->
+        <section class="tt-section theme-8" id="section-8">
+          <div class="tt-section-shell">
+            <div class="tt-infographic-banner" data-step="08">
+              <div class="tt-banner-icon-wrap"><i class="bi bi-map-fill"></i></div>
+              <div class="tt-banner-body">
+                <span class="tt-banner-tag"><i class="bi bi-signpost-fill"></i> Tour Stop 8</span>
+                <h2>My Roadmap</h2>
+                <p class="tt-banner-intro">My Roadmap is your personal four-year plan, broken down by class. It turns long-term goals (“get into a good engineering college”) into specific, dated actions you can actually check off.</p>
+              </div>
+            </div>
+            <div class="tt-section-body">
+          <div class="tt-timeline">
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">8.1</div>
+              <div class="tt-timeline-card">
+                <h3>The Four-Year Framework</h3>
+                <div class="tt-class-pills">
+                  <div class="tt-class-pill"><span class="class-tag">Class 9</span><p>Foundation building and broad exploration — trying out interests before committing to a stream.</p></div>
+                  <div class="tt-class-pill"><span class="class-tag">Class 10</span><p>Stream selection and board exam preparation — supported directly by your Stream Sorter results.</p></div>
+                  <div class="tt-class-pill"><span class="class-tag">Class 11</span><p>Deepening subject expertise and beginning competitive exam readiness for your chosen path.</p></div>
+                  <div class="tt-class-pill"><span class="class-tag">Class 12</span><p>Higher-education preparation — applications, entrance exams, and life-skills development.</p></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">8.2</div>
+              <div class="tt-timeline-card">
+                <h3>Roadmap Views</h3>
+                <div class="tt-data-grid">
+                  <div class="tt-data-row header"><div class="col-label">Tab</div><div class="col-value">What You'll Find There</div></div>
+                  <div class="tt-data-row"><div class="col-label">Overview</div><div class="col-value">A combined view of overdue items, what's coming up, and what you've recently completed.</div></div>
+                  <div class="tt-data-row"><div class="col-label">Goals</div><div class="col-value">Longer-term personal goals you set for yourself — for example, “Score 90%+ in Class 10 boards.”</div></div>
+                  <div class="tt-data-row"><div class="col-label">To-Do List</div><div class="col-value">Short-term actions you create — for example, “Register for the entrance exam.”</div></div>
+                  <div class="tt-data-row"><div class="col-label">Tasks Assigned to Me</div><div class="col-value">Items your school or counsellor has specifically assigned to you.</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">8.3</div>
+              <div class="tt-timeline-card">
+                <h3>Managing Tasks</h3>
+                <ol class="tt-steps">
+                  <li>Go to <strong>My Roadmap</strong> from the top navigation bar.</li>
+                  <li>Switch between Overview, Goals, To-Do List, and Tasks Assigned to Me using the tabs at the top of the page.</li>
+                  <li>To add your own task or goal, click <strong>+ Add Task</strong> (or <strong>+ Add Goal</strong>) and fill in a title, optional notes, and a due date.</li>
+                  <li>Mark any task complete using the checkbox or <strong>Mark as Done</strong> button — completed items move to Recently Completed, where you can undo the change if needed.</li>
+                  <li>Use the calendar (Calendar View) or simple list (List View) to see what's coming up.</li>
+                </ol>
+                <div class="tt-callout tt-callout-note">
+                  <i class="bi bi-info-circle-fill"></i>
+                  <div><strong>Note</strong>Tasks Assigned to Me are set by your school's counsellor and usually cannot be deleted — only marked complete. If you believe one is incorrect or no longer relevant, contact your school coordinator rather than deleting it yourself.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+                    </div>
+          </div>
+        </section>
+
+        <!-- ═══════ SECTION 9: AI COUNSELLOR ═══════ -->
+        <section class="tt-section theme-9" id="section-9">
+          <div class="tt-section-shell">
+            <div class="tt-infographic-banner" data-step="09">
+              <div class="tt-banner-icon-wrap"><i class="bi bi-robot"></i></div>
+              <div class="tt-banner-body">
+                <span class="tt-banner-tag"><i class="bi bi-signpost-fill"></i> Tour Stop 9</span>
+                <h2>AI Career Counsellor</h2>
+                <p class="tt-banner-intro">The AI Career Counsellor is a conversational assistant available from a chat icon on every page of TopTeen. It is designed to answer the kinds of questions you might otherwise have to wait for a human counsellor's free slot to ask.</p>
+              </div>
+            </div>
+            <div class="tt-section-body">
+          <div class="tt-timeline">
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">9.1</div>
+              <div class="tt-timeline-card">
+                <h3>What You Can Ask</h3>
+                <ul class="tt-quote-list">
+                  <li>Based on my Stream Sorter result, what careers should I look at?</li>
+                  <li>What is the difference between a B.Tech and a B.E.?</li>
+                  <li>What entrance exams do I need for a career in [field]?</li>
+                  <li>Help me compare two colleges I've shortlisted.</li>
+                  <li>What should I be doing right now, this term, given my class?</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">9.2</div>
+              <div class="tt-timeline-card">
+                <h3>Starting a Conversation</h3>
+                <ol class="tt-steps">
+                  <li>Click the <strong>AI Counsellor</strong> icon (visible on every page, usually in the bottom-right corner or top navigation bar).</li>
+                  <li>Type your question in plain language — no special format required.</li>
+                  <li>Use the language selector inside the chat panel if you would prefer to communicate in a regional language.</li>
+                  <li>Review the response, and ask follow-up questions in the same conversation for more specific guidance.</li>
+                </ol>
+              </div>
+            </div>
+
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">9.3</div>
+              <div class="tt-timeline-card">
+                <h3>Limitations to Keep in Mind</h3>
+                <div class="tt-callout tt-callout-important">
+                  <i class="bi bi-exclamation-triangle-fill"></i>
+                  <div><strong>Important</strong>The AI Career Counsellor gives general, evidence-informed guidance — it does not replace a one-to-one session with a human counsellor, especially for sensitive personal, family, or mental health concerns. If a conversation touches on something serious or personal, the assistant will typically suggest connecting you with a human counsellor or a trusted adult, and you should follow that suggestion.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+                    </div>
+          </div>
+        </section>
+
+        <!-- ═══════ SECTION 10: PROFILE ═══════ -->
+        <section class="tt-section theme-10" id="section-10">
+          <div class="tt-section-shell">
+            <div class="tt-infographic-banner" data-step="10">
+              <div class="tt-banner-icon-wrap"><i class="bi bi-person-gear"></i></div>
+              <div class="tt-banner-body">
+                <span class="tt-banner-tag"><i class="bi bi-signpost-fill"></i> Tour Stop 10</span>
+                <h2>My Profile & Account Settings</h2>
+                <p class="tt-banner-intro">Your profile is more than a settings page — it's the information TopTeen uses to personalise every recommendation you see, so it's worth keeping accurate and up to date.</p>
+              </div>
+            </div>
+            <div class="tt-section-body">
+          <div class="tt-timeline">
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">10.1</div>
+              <div class="tt-timeline-card">
+                <h3>Viewing and Editing Your Profile</h3>
+                <ol class="tt-steps">
+                  <li>Click your <strong>Profile Icon</strong> (top-right corner) and select <strong>My Profile</strong>.</li>
+                  <li>Review your personal details, academic details, interests, and goals.</li>
+                  <li>Click <strong>Edit</strong> on any section to update it — for example, after choosing your stream at the end of Class 10.</li>
+                  <li>Click <strong>Save</strong> to confirm changes.</li>
+                </ol>
+              </div>
+            </div>
+
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">10.2</div>
+              <div class="tt-timeline-card">
+                <h3>Account Security</h3>
+                <ol class="tt-steps">
+                  <li>From your Profile Icon, select <strong>Account Settings &gt; Security</strong>.</li>
+                  <li>Click <strong>Change Password</strong>, enter your current password, then your new password twice to confirm.</li>
+                  <li>Click <strong>Save</strong>. You may be asked to log in again on other devices after changing your password.</li>
+                </ol>
+                <div class="tt-callout tt-callout-important">
+                  <i class="bi bi-exclamation-triangle-fill"></i>
+                  <div><strong>Important</strong>Use a password that is at least 10 characters long and not something easy to guess (avoid your name, birthdate, or “password123”). Never share your TopTeen password with classmates, even to “show them something.”</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">10.3</div>
+              <div class="tt-timeline-card">
+                <h3>Notifications and Language</h3>
+                <p><strong>Notification Preferences:</strong> choose whether you receive deadline reminders and counsellor messages by email, SMS, or in-app only.</p>
+                <p><strong>Language:</strong> select your preferred display language for platform menus, where supported by your school's configuration.</p>
+              </div>
+            </div>
+
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">10.4</div>
+              <div class="tt-timeline-card">
+                <h3>Logging Out</h3>
+                <p>Click your Profile Icon and select <strong>Log Out</strong>. On a shared or public computer, always log out when you're finished, especially before closing the browser.</p>
+              </div>
+            </div>
+          </div>
+                    </div>
+          </div>
+        </section>
+
+        <!-- ═══════ SECTION 11: TROUBLESHOOTING ═══════ -->
+        <section class="tt-section theme-11" id="section-11">
+          <div class="tt-section-shell">
+            <div class="tt-infographic-banner" data-step="11">
+              <div class="tt-banner-icon-wrap"><i class="bi bi-life-preserver"></i></div>
+              <div class="tt-banner-body">
+                <span class="tt-banner-tag"><i class="bi bi-signpost-fill"></i> Tour Stop 11</span>
+                <h2>Troubleshooting & Quick Reference</h2>
+              </div>
+            </div>
+            <div class="tt-section-body">
+          <div class="tt-timeline">
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">11.1</div>
+              <div class="tt-timeline-card">
+                <h3>Common Issues</h3>
+                <div class="tt-data-grid">
+                  <div class="tt-data-row header"><div class="col-label">Issue</div><div class="col-value">What To Try</div></div>
+                  <div class="tt-data-row"><div class="col-label">Can't log in</div><div class="col-value">Confirm you're using the correct email or mobile number. Try Forgot Password. If your school manages your account, confirm with your coordinator that it is active.</div></div>
+                  <div class="tt-data-row"><div class="col-label">OTP not arriving</div><div class="col-value">Wait 60 seconds, then Resend Code. Check spam folder for email OTPs; check signal strength for SMS.</div></div>
+                  <div class="tt-data-row"><div class="col-label">Assessment won't load or freezes</div><div class="col-value">Refresh the page once. Avoid using the browser's back button mid-assessment. Try a different browser (Chrome or Safari) if the issue continues.</div></div>
+                  <div class="tt-data-row"><div class="col-label">My results don't reflect reality</div><div class="col-value">Assessment results are based only on the answers you gave — consider retaking the assessment if your circumstances or interests have changed.</div></div>
+                  <div class="tt-data-row"><div class="col-label">A card on my Dashboard says “No data yet”</div><div class="col-value">This is expected until you complete the related action — for example, complete an assessment or shortlist a career.</div></div>
+                  <div class="tt-data-row"><div class="col-label">I can't see a feature mentioned in this guide</div><div class="col-value">It may not be enabled for your school or batch yet. Check with your TopTeen coordinator.</div></div>
+                  <div class="tt-data-row"><div class="col-label">Page looks broken or oddly formatted</div><div class="col-value">Try refreshing, clearing your browser cache, or switching between mobile and desktop view.</div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">11.2</div>
+              <div class="tt-timeline-card">
+                <h3>Getting Further Help</h3>
+                <ul class="tt-milestones">
+                  <li>Your school's TopTeen coordinator or career counsellor — first point of contact for account or school-specific issues.</li>
+                  <li>TopTeen Support: <a href="mailto:info@topteen.in">info@topteen.in</a></li>
+                  <li>TopTeen Support Phone: <a href="tel:+916239505640">+91 6239505640</a></li>
+                  <li>In-app feedback: use the <strong>Provide Feedback</strong> option from your Profile menu to report a bug or suggest an improvement directly to the TopTeen team.</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="tt-timeline-item">
+              <div class="tt-timeline-dot">11.3</div>
+              <div class="tt-timeline-card">
+                <h3>Quick Reference: Where Do I Go?</h3>
+                <div class="tt-quick-ref">
+                  <div class="tt-data-row"><div class="col-label">I want to…</div><div class="col-value">Go to…</div></div>
+                  <div class="tt-data-row"><div class="col-label">Find out which stream suits me</div><div class="col-value">Assessments &gt; Stream Sorter</div></div>
+                  <div class="tt-data-row"><div class="col-label">Discover careers that match my personality</div><div class="col-value">Assessments &gt; Career Interest Profiler, then Careers</div></div>
+                  <div class="tt-data-row"><div class="col-label">Browse careers in a specific field</div><div class="col-value">Careers &gt; [Cluster Name]</div></div>
+                  <div class="tt-data-row"><div class="col-label">Find and shortlist colleges</div><div class="col-value">Colleges &amp; Courses</div></div>
+                  <div class="tt-data-row"><div class="col-label">Check scholarships I may be eligible for</div><div class="col-value">Colleges &amp; Courses &gt; Scholarships</div></div>
+                  <div class="tt-data-row"><div class="col-label">See what I should be focusing on this term</div><div class="col-value">My Roadmap &gt; Overview</div></div>
+                  <div class="tt-data-row"><div class="col-label">Ask a quick question any time</div><div class="col-value">AI Counsellor (chat icon)</div></div>
+                  <div class="tt-data-row"><div class="col-label">Update my stream or class</div><div class="col-value">Profile Icon &gt; My Profile</div></div>
+                  <div class="tt-data-row"><div class="col-label">Change my password</div><div class="col-value">Profile Icon &gt; Account Settings &gt; Security</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+                    </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="tt-footer">
+    <div class="container">
+      <img src="{{ static('topteen_guide/logo.svg') }}" alt="TopTeen">
+      <p>Published by <strong>TopTeen Educational Services Private Limited</strong></p>
+      <p>SCO 83–84, Sector 17-D, Chandigarh, India &nbsp;|&nbsp; <a href="https://www.topteen.in" target="_blank">www.topteen.in</a> &nbsp;|&nbsp; <a href="mailto:info@topteen.in">info@topteen.in</a></p>
+      <p class="mt-2 opacity-50">Version 1.0 &nbsp;|&nbsp; June 2026 &nbsp;|&nbsp; Every Student, Career Ready</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const NAV_OFFSET = window.innerWidth < 768 ? 72 : 108;
+
+    // Reading progress bar
+    const progressBar = document.getElementById('progressBar');
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      progressBar.style.width = progress + '%';
+    }, { passive: true });
+
+    // Navbar scroll shadow
+    const nav = document.getElementById('mainNav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 40);
+    }, { passive: true });
+
+    // Fade-up on journey cards only (not tour sections — avoids scroll jump)
+    const fadeEls = document.querySelectorAll('.tt-journey-card.fade-up, .tt-journey-header.fade-up');
+    const fadeObserver = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    fadeEls.forEach((el, i) => {
+      el.style.transitionDelay = `${(i % 11) * 0.05}s`;
+      fadeObserver.observe(el);
+    });
+
+    // Smooth scroll for all tour guide links
+    const tourSections = document.querySelectorAll('section[id^="section-"]');
+    const navLinks = document.querySelectorAll('.tt-navbar .nav-link, .tt-toc-sidebar a, .tt-journey-card[href^="#section-"], .tt-mobile-toc-chip');
+
+    function setActiveLink(id) {
+      navLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        link.classList.toggle('active', id && href === '#' + id);
+      });
+      const activeMobile = document.querySelector('.tt-mobile-toc-chip.active');
+      const mobileToc = document.getElementById('mobileToc');
+      if (activeMobile && mobileToc) {
+        const scrollLeft = activeMobile.offsetLeft - mobileToc.offsetWidth / 2 + activeMobile.offsetWidth / 2;
+        mobileToc.scrollTo({ left: Math.max(0, scrollLeft), behavior: 'smooth' });
+      }
+    }
+
+    function scrollToTarget(id, smooth = true) {
+      const target = document.getElementById(id);
+      if (!target) return;
+      const offset = id === 'hero' ? 0 : NAV_OFFSET;
+      const top = target.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({ top: Math.max(0, top), behavior: smooth ? 'smooth' : 'auto' });
+      if (id.startsWith('section-')) setActiveLink(id);
+      else setActiveLink('');
+    }
+
+    function scrollToSection(id, smooth = true) {
+      scrollToTarget(id, smooth);
+    }
+
+    document.querySelectorAll('a[href^="#section-"]').forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        const id = link.getAttribute('href').slice(1);
+        scrollToSection(id, true);
+        const navMenu = document.getElementById('navMenu');
+        if (navMenu && navMenu.classList.contains('show')) {
+          bootstrap.Collapse.getOrCreateInstance(navMenu).hide();
+        }
+      });
+    });
+
+    document.querySelectorAll('a[href="#hero"], a[href="#journey-map"]').forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        scrollToTarget(link.getAttribute('href').slice(1), true);
+        setActiveLink('');
+        const navMenu = document.getElementById('navMenu');
+        if (navMenu && navMenu.classList.contains('show')) {
+          bootstrap.Collapse.getOrCreateInstance(navMenu).hide();
+        }
+      });
+    });
+
+    // Scroll spy — only highlight sections after scrolling past hero
+    let scrollTicking = false;
+    function updateActiveOnScroll() {
+      if (window.scrollY < 200) {
+        setActiveLink('');
+        scrollTicking = false;
+        return;
+      }
+      let current = '';
+      tourSections.forEach(section => {
+        const top = section.getBoundingClientRect().top;
+        if (top <= NAV_OFFSET + 40) {
+          current = section.id;
+        }
+      });
+      setActiveLink(current);
+      scrollTicking = false;
+    }
+
+    window.addEventListener('scroll', () => {
+      if (!scrollTicking) {
+        requestAnimationFrame(updateActiveOnScroll);
+        scrollTicking = true;
+      }
+    }, { passive: true });
+
+    // Handle direct URL hash on load — otherwise stay at hero
+    if (location.hash && location.hash.startsWith('#section-')) {
+      setTimeout(() => scrollToSection(location.hash.slice(1), false), 150);
+    } else if (location.hash === '#journey-map') {
+      setTimeout(() => scrollToTarget('journey-map', false), 150);
+    } else {
+      window.scrollTo(0, 0);
+      setActiveLink('');
+    }
+
+    // Hero video play button
+    const heroVideo = document.getElementById('heroVideo');
+    const heroPlayBtn = document.getElementById('heroPlayBtn');
+    const heroVideoFrame = document.getElementById('heroVideoFrame');
+
+    if (heroVideo && heroPlayBtn && heroVideoFrame) {
+      heroPlayBtn.addEventListener('click', () => {
+        heroVideo.play();
+        heroVideoFrame.classList.add('is-playing');
+      });
+      heroVideo.addEventListener('play', () => heroVideoFrame.classList.add('is-playing'));
+      heroVideo.addEventListener('pause', () => heroVideoFrame.classList.remove('is-playing'));
+      heroVideo.addEventListener('ended', () => heroVideoFrame.classList.remove('is-playing'));
+    }
+  </script>
+</body>
+</html>
