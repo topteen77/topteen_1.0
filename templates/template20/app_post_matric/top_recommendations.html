@@ -1,7 +1,7 @@
 {# Use student shell after student login #}
 {% extends 'template20/user/student_base.html' %}
 
-{% block title_content %}Top Career Recommendations | Top Teen{% endblock %}
+{% block title_content %}Profile Linked Careers | Top Teen{% endblock %}
 {% block description_content %}Discover the top career recommendations based on your profile and test results.{% endblock %}
 
 {% block chatbot %}{% endblock %}
@@ -11,7 +11,7 @@
 
 {% block student_shell_vars %}
 {{ super() }}
-{% set student_shell_subtitle = 'Top recommendations' %}
+{% set student_shell_subtitle = 'Profile Linked Careers' %}
 {% endblock %}
 
 {% block student_section_class %}top-recommendations-page std-shell-main{% endblock %}
@@ -293,8 +293,8 @@
 <div class="recommendations-header">
   <div class="container-fluid px-3 px-lg-4 text-center">
     <h1 class="mb-3">
-      <img class="img-fluid" style="width: 50px;" src="{{ static('images_new/general/career-3d-icon.png') }}" alt="Top Recommendations Icon" />
-      Your Career Recommendations
+      <img class="img-fluid" style="width: 50px;" src="{{ static('images_new/general/career-3d-icon.png') }}" alt="Profile Linked Careers" />
+      Profile Linked Careers
     </h1>
     <p class="fs-18 mb-0 text-white">
       {% if has_tests %}
