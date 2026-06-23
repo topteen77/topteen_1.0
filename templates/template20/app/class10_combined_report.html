@@ -259,7 +259,7 @@
           <ul class="list-unstyled">
             <li>Personality Assessment (Test 1): {% if test1_completed %}<span class="text-success">✓ Completed</span>{% else %}<span class="text-danger">✗ Not Completed</span>{% endif %}</li>
             <li>Interest Assessment (Test 2): {% if test2_completed %}<span class="text-success">✓ Completed</span>{% else %}<span class="text-danger">✗ Not Completed</span>{% endif %}</li>
-            <li>Intelligence Assessment (Test 3): {% if test3_completed %}<span class="text-success">✓ Completed</span>{% else %}<span class="text-danger">✗ Not Completed</span>{% endif %}</li>
+            <li>Aptitude Assessment (Test 3): {% if test3_completed %}<span class="text-success">✓ Completed</span>{% else %}<span class="text-danger">✗ Not Completed</span>{% endif %}</li>
           </ul>
         </div>
         {% endif %}
@@ -341,7 +341,7 @@
         
         <div class="test-card">
           <div class="test-card-header">
-            <div class="test-title">Intelligence Assessment (Test 3)</div>
+            <div class="test-title">Aptitude Assessment (Test 3)</div>
             <div class="test-date">
               <i class="fas fa-check-circle text-success me-2"></i>
               Completed
@@ -415,10 +415,10 @@
       </div>
       {% endif %}
 
-      <!-- Intelligence Assessment Results -->
+      <!-- Aptitude Assessment Results -->
       {% if intelligence_data and intelligence_data.scores %}
       <div class="test-summary-section">
-        <h3 class="section-title">Intelligence Assessment Results</h3>
+        <h3 class="section-title">Aptitude Assessment Results</h3>
         <div class="test-card">
           {% if intelligence_data.above_avg %}
           <div class="mb-3">
@@ -442,7 +442,7 @@
           </div>
           {% endif %}
           
-          <h5 class="mb-3 mt-4">Intelligence Scores</h5>
+          <h5 class="mb-3 mt-4">Aptitude Scores</h5>
           {% for category, score in intelligence_data.scores.items() %}
           <div class="score-bar">
             <span class="score-label">{{ category }}</span>

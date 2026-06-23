@@ -1080,7 +1080,7 @@ def class10_combined_report(request, user_id=None):
         
         if not all_tests_completed:
             resp = render(request, 'template20/app/class10_combined_report_new.html', {
-                'error': 'Please complete all three tests (Personality, Interest, and Intelligence) to view your combined report.',
+                'error': 'Please complete all three tests (Personality, Interest, and Aptitude) to view your combined report.',
                 'no_results': True,
                 'user': target_user,
                 'user_id': target_user.id,
@@ -2381,7 +2381,7 @@ def stream_decision_questionnaire_submit(request):
         save_questionnaire(test3_result, answers)
         return JsonResponse({'message': 'Success', 'completed': True}, status=200)
     except Results.DoesNotExist:
-        return JsonResponse({'message': 'Intelligence test results not found.'}, status=400)
+        return JsonResponse({'message': 'Aptitude test results not found.'}, status=400)
     except Exception as exc:
         logger.error('stream_decision_questionnaire_submit failed for user %s: %s', request.user.id, exc)
         return JsonResponse({'message': 'Unable to save your responses.'}, status=500)
@@ -2697,7 +2697,7 @@ def gernate_graph(request):
             bars = ax.bar(labels, values, color=colors)
             
             # Set title and labels
-            ax.set_title('INTELLIGENCE ASSESSMENT', fontsize=29, fontweight='bold')
+            ax.set_title('APTITUDE ASSESSMENT', fontsize=29, fontweight='bold')
             ax.set_xlabel('')
             ax.set_ylabel('', fontsize=29, fontweight='bold')
             
@@ -2918,7 +2918,7 @@ def download_pdf(request,test_paper):
             elif test_paper == 'test2':
                 filename = f"{safe_name}-Interest_Assessment_report.pdf"
             elif test_paper == 'test3':
-                filename = f"{safe_name}-Intelligence_Assessment_report.pdf"
+                filename = f"{safe_name}-Aptitude_Assessment_report.pdf"
             else:
                 filename = f"{safe_name}-Final_Assessment_report.pdf"
 
@@ -3179,7 +3179,7 @@ def test2_report_html(request, user_id=None):
 @login_required(login_url=reverse_lazy('users:login'))
 def test3_report_html(request, user_id=None):
     """
-    HTML report view for Test 3 (Intelligence Assessment)
+    HTML report view for Test 3 (Aptitude Assessment)
     """
     try:
         # Get the target user
@@ -3196,7 +3196,7 @@ def test3_report_html(request, user_id=None):
             test3_result = Results.objects.get(user=target_user, test_paper='test3')
         except Results.DoesNotExist:
             resp = render(request, 'template20/app/test3_report.html', {
-                'error': 'Please complete the Intelligence Assessment test first.',
+                'error': 'Please complete the Aptitude Assessment test first.',
                 'no_results': True,
                 'user': target_user,
                 'user_ID': target_user.id if target_user else None,
@@ -3623,7 +3623,7 @@ def test2_report_pdf(request, user_id=None):
 @login_required(login_url=reverse_lazy('users:login'))
 def test3_report_pdf(request, user_id=None):
     """
-    PDF download view for Test 3 (Intelligence Assessment)
+    PDF download view for Test 3 (Aptitude Assessment)
     """
     try:
         import weasyprint
@@ -3643,7 +3643,7 @@ def test3_report_pdf(request, user_id=None):
         try:
             test3_result = Results.objects.get(user=target_user, test_paper='test3')
         except Results.DoesNotExist:
-            return HttpResponse('Please complete the Intelligence Assessment test first.', status=404)
+            return HttpResponse('Please complete the Aptitude Assessment test first.', status=404)
         
         # Get user profile
         try:
@@ -3752,7 +3752,7 @@ def test3_report_pdf(request, user_id=None):
         # Create response (safe filename for Gmail/email users)
         raw_name = getattr(target_user, 'name', None) or getattr(target_user, 'email', 'user')
         safe_name = re.sub(r'[^\w\s-]', '', str(raw_name)).strip()[:50] or 'user'
-        filename = f"{safe_name}-Intelligence_Assessment_report.pdf"
+        filename = f"{safe_name}-Aptitude_Assessment_report.pdf"
         response = HttpResponse(pdf_file, content_type='application/pdf')
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         user_directory = ensure_user_pdf_folder(target_user.id)
