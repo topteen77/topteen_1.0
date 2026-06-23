@@ -63,6 +63,7 @@ class EmailMessageTemplateAdmin(admin.ModelAdmin):
         css = {
             'all': ('admin/css/email_message_template_admin.css',),
         }
+        js = ('admin/js/email_message_template_admin.js',)
 
     @admin.display(description='Instructions')
     def template_instructions(self, obj):
@@ -127,8 +128,8 @@ class EmailMessageTemplateAdmin(admin.ModelAdmin):
             ('Email content (editable)', {
                 'fields': ('subject_template', 'body_html_template'),
                 'description': (
-                    'Email goes TO the invitee ({invitee_email}). Mention the inviter ({inviter_name}) '
-                    'as the person who sent the invite — do not open with "Hi {inviter_name}" to the friend.'
+                    'For links in CKEditor use <code>http://{referral_url}</code> (no https in placeholder). '
+                    'Or use <code>{referral_url_full}</code> directly in href.'
                 ),
             }),
             ('Timestamps', {

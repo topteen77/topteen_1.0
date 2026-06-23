@@ -1,0 +1,21 @@
+/* CKEditor iframe body — black text on white (email template admin) */
+body,
+body.cke_editable,
+body.email-template-editor-body {
+  background: #ffffff !important;
+  color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+p, li, td, th, div, span, h1, h2, h3, h4, h5, h6 {
+  color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
+}
+
+a {
+  color: #3f37c9 !important;
+  -webkit-text-fill-color: #3f37c9 !important;
+}

@@ -32,7 +32,7 @@ class EmailMessageTemplate(models.Model):
         default='',
         help_text=(
             'Email subject line. Leave empty to use the built-in default. '
-            'Placeholders: {inviter_name}, {inviter_email}, {invitee_email}, {referral_url}.'
+            'Placeholders: {invitee_name}, {inviter_name}, {inviter_email}, {invitee_email}, {referral_url}.'
         ),
     )
     body_html_template = models.TextField(

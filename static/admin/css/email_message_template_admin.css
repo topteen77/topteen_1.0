@@ -27,12 +27,12 @@
 .field-template_instructions label,
 .field-sample_subject_preview label,
 .field-sample_body_preview label {
-  color: #111111 !important;
+  color: inherit !important;
   font-weight: 600;
 }
 
 fieldset.module .description {
-  color: #333333 !important;
+  color: inherit !important;
 }
 
 fieldset.module .description code {
@@ -42,12 +42,59 @@ fieldset.module .description code {
   border-radius: 3px;
 }
 
-/* CKEditor on email template change form */
+/* Editable inputs — white background, black text (dark admin theme override) */
+#emailmessagetemplate_form input[type="text"],
+#emailmessagetemplate_form textarea,
+#emailmessagetemplate_form .vTextField,
+.field-subject_template input,
+.field-name input,
+.field-slug input {
+  background: #ffffff !important;
+  color: #111111 !important;
+  border: 1px solid #b8c2cc !important;
+}
+
+#emailmessagetemplate_form input[type="text"]::placeholder,
+#emailmessagetemplate_form textarea::placeholder {
+  color: #666666 !important;
+}
+
+#emailmessagetemplate_form .help,
+#emailmessagetemplate_form .helptext {
+  color: #444444 !important;
+}
+
+/* CKEditor chrome + editable area */
 .field-body_html_template .django-ckeditor-widget,
 .field-body_html_template .cke_chrome {
   max-width: 100% !important;
 }
 
+.field-body_html_template .cke_top,
+.field-body_html_template .cke_bottom {
+  background: #f3f4f6 !important;
+}
+
 .field-body_html_template .cke_contents {
+  min-height: 380px !important;
+  background: #ffffff !important;
+}
+
+.field-body_html_template .cke_wysiwyg_frame,
+.field-body_html_template .cke_wysiwyg_div {
+  background: #ffffff !important;
+}
+
+/* Source mode textarea inside CKEditor */
+.field-body_html_template textarea.cke_source,
+.field-body_html_template .cke_source,
+.field-body_html_template textarea {
+  background: #ffffff !important;
+  color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
+  caret-color: #111111 !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+  font-size: 13px !important;
+  line-height: 1.55 !important;
   min-height: 380px !important;
 }

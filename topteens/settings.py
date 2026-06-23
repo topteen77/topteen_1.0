@@ -186,6 +186,8 @@ CSRF_COOKIE_SECURE = USE_HTTPS
 SESSION_COOKIE_AGE = config('SESSION_COOKIE_AGE', default=1209600, cast=int)  # 14 days
 SESSION_SAVE_EVERY_REQUEST = config('SESSION_SAVE_EVERY_REQUEST', default=True, cast=bool)
 SESSION_EXPIRE_AT_BROWSER_CLOSE = config('SESSION_EXPIRE_AT_BROWSER_CLOSE', default=False, cast=bool)
+SESSION_COOKIE_SAMESITE = config('SESSION_COOKIE_SAMESITE', default='Lax')
+SESSION_COOKIE_HTTPONLY = True
 DEFAULT_LOGIN_SESSION_AGE = SESSION_COOKIE_AGE
 REMEMBER_ME_SESSION_AGE = config('REMEMBER_ME_SESSION_AGE', default=2592000, cast=int)  # 30 days
 # When behind reverse proxy (nginx, etc.) that terminates SSL
@@ -471,6 +473,9 @@ CKEDITOR_CONFIGS = {
         'removePlugins': 'stylesheetparser',
         'entities': False,
         'basicEntities': False,
+        'contentsCss': ['/static/admin/css/email_message_template_ckeditor_contents.css'],
+        'bodyClass': 'email-template-editor-body',
+        'linkDefaultProtocol': 'http://',
     },
 }
 

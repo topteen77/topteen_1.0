@@ -11,7 +11,7 @@ from django.core.exceptions import ValidationError
 import re
 
 from users.models import User
-from users.session_utils import apply_login_session_expiry
+from users.session_utils import login_user_with_session
 from institute.models import InstituteMarketingGroup
 from core import choices
 
@@ -170,10 +170,7 @@ class MarketingLoginAPI(APIView):
                 data['errMsg'] = 'No marketing group found for this account'
                 return Response(data, status=status.HTTP_200_OK)
 
-            apply_login_session_expiry(request, remember_me=remember_me)
-
-            # Login user
-            login(request, user, backend='users.backends.CustomUserBackend')
+            login_user_with_session(request, user, remember_me=remember_me)
             
             data['success'] = True
             data['message'] = 'Login successful'

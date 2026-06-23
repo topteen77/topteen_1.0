@@ -11,6 +11,7 @@ from users.session_utils import (
     DEFAULT_LOGIN_SESSION_AGE,
     REMEMBER_ME_SESSION_AGE,
     apply_login_session_expiry,
+    login_user_with_session,
 )
 from users.views import _apply_institute_student_mobile_gate, get_dashboard_url_for_user
 
@@ -303,4 +304,36 @@ class TestLoginSessionExpiry(SimpleTestCase):
         self.assertTrue(settings.SESSION_SAVE_EVERY_REQUEST)
         self.assertFalse(settings.SESSION_EXPIRE_AT_BROWSER_CLOSE)
         self.assertGreaterEqual(settings.SESSION_COOKIE_AGE, DEFAULT_LOGIN_SESSION_AGE)
+
+    def test_login_user_with_session_applies_expiry_after_login(self):
+        calls = []
+
+        class _UserStub:
+            pk = 1
+
+        class _SessionStub:
+            def __init__(self):
+                self.expiry = None
+                self.modified = False
+
+            def set_expiry(self, value):
+                self.expiry = value
+                calls.append(("set_expiry", value))
+
+            def get_expiry_age(self):
+                return self.expiry
+
+        request = self._request_with_session()
+        request.session = _SessionStub()
+
+        from unittest.mock import patch
+
+        def _fake_login(req, user, backend=None):
+            calls.append(("login", backend))
+
+        with patch("django.contrib.auth.login", side_effect=_fake_login):
+            login_user_with_session(request, _UserStub(), remember_me=True)
+
+        self.assertEqual(calls[0][0], "login")
+        self.assertEqual(calls[1], ("set_expiry", REMEMBER_ME_SESSION_AGE))
 

@@ -37,7 +37,7 @@ from communication import models
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from users.decorators import institute_dashboard_roles_only
-from users.session_utils import apply_login_session_expiry
+from users.session_utils import login_user_with_session
 from django.views.decorators.csrf import ensure_csrf_cookie
 from careers.models import Videos,Career,CareerTags
 from core.models import EntranceTestPrepExam
@@ -616,8 +616,7 @@ class DemoLoginView(View):
         if not user.get_user_status():
             messages.error(request, 'Account is blocked or inactive.')
             return self._login_fallback_url(request)
-        apply_login_session_expiry(request, demo=True)
-        login(request, user, backend='users.backends.CustomUserBackend')
+        login_user_with_session(request, user, demo=True)
         redirect_url = self._redirect_url(request, user)
         return redirect(redirect_url)
 
@@ -1809,8 +1808,7 @@ class SignUpVerifyOTP(APIView):
                     from django.contrib.auth import login
                     from django.utils.http import url_has_allowed_host_and_scheme
                     # Use CustomUserBackend for login
-                    apply_login_session_expiry(request)
-                    login(request, user, backend='users.backends.CustomUserBackend')
+                    login_user_with_session(request, user)
                     _link_current_analytics_session(request, user)
                     data["otp_verify"]=True
                     data["user_exists"]=True
@@ -1974,10 +1972,7 @@ class SignUpPassword(APIView):
                     
                     try:
                         # Auto-login the user
-                        from django.contrib.auth import login
-                        # Specify backend since multiple backends are configured
-                        apply_login_session_expiry(request)
-                        login(request, user, backend='users.backends.CustomUserBackend')
+                        login_user_with_session(request, user)
                         _link_current_analytics_session(request, user)
                     except Exception as login_error:
                         # Log but don't fail - user is already created
@@ -2078,8 +2073,7 @@ class LoginOTP(APIView):
                     from django.contrib.auth import login
                     from django.utils.http import url_has_allowed_host_and_scheme
                     # Use CustomUserBackend for login
-                    apply_login_session_expiry(request)
-                    login(request, user, backend='users.backends.CustomUserBackend')
+                    login_user_with_session(request, user)
                     _link_current_analytics_session(request, user)
                     data["otp_verify"]=True
                     data["success"]=True
@@ -2165,9 +2159,7 @@ class LoginPassword(APIView):
                 # Master password login - authenticate user directly
                 if user.get_user_status():
                     remember_me = request.POST.get('remember_me', False)
-                    apply_login_session_expiry(request, remember_me=remember_me)
-                    
-                    login(request, user, backend='users.backends.CustomUserBackend')
+                    login_user_with_session(request, user, remember_me=remember_me)
                     _link_current_analytics_session(request, user)
                     data['success'] = True
                     data['message'] = "Login successful"
@@ -2194,10 +2186,7 @@ class LoginPassword(APIView):
                 # If master password was not used, do normal authentication
                 if not is_master_password:
                     remember_me = request.POST.get('remember_me', False)
-                    apply_login_session_expiry(request, remember_me=remember_me)
-                    
-                    # Use CustomUserBackend for login
-                    login(request, user, backend='users.backends.CustomUserBackend')
+                    login_user_with_session(request, user, remember_me=remember_me)
                     _link_current_analytics_session(request, user)
                     data['success'] = True
                 # If master password was used, data['success'] is already set above
@@ -2584,9 +2573,7 @@ class SetPassword(APIView):
             user.save()
             
             # Re-authenticate with new password to update session
-            from django.contrib.auth import login
-            apply_login_session_expiry(request)
-            login(request, user, backend='users.backends.CustomUserBackend')
+            login_user_with_session(request, user)
             
             data['success'] = True
             data['message'] = "Password set successfully"
@@ -2668,8 +2655,7 @@ class ChangeOwnPasswordView(View):
         try:
             user.set_password(new_password)
             user.save(update_fields=["password"])
-            apply_login_session_expiry(request)
-            login(request, user, backend="users.backends.CustomUserBackend")
+            login_user_with_session(request, user)
         except Exception:
             return respond(False, "Could not update password. Please try again.", 500)
 

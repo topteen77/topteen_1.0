@@ -16,6 +16,11 @@ class EmailMessageTemplateAdminForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if 'body_html_template' in self.fields:
             self.fields['body_html_template'].help_text = (
-                'HTML email body. Use the editor toolbar or click Source to paste HTML and '
-                'placeholders like {inviter_name}, {referral_url}, {invitee_email}.'
+                'HTML email body. Placeholders: {invitee_name}, {inviter_name}, '
+                '{inviter_email}, {invitee_email}, {referral_url} (no http), {referral_url_full}. '
+                'CKEditor link: use http://{referral_url}'
             )
+        if 'subject_template' in self.fields:
+            self.fields['subject_template'].widget.attrs.update({
+                'style': 'background:#ffffff;color:#111111;',
+            })

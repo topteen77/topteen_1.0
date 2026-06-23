@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.conf import settings
 
 from users.models import User
-from users.session_utils import apply_login_session_expiry
+from users.session_utils import login_user_with_session
 from counselor.models import primary_counselor_for_user
 from core import choices
 
@@ -82,10 +82,7 @@ class CounselorLoginAPI(APIView):
                 data['errMsg'] = 'No counselor profile found for this account'
                 return Response(data, status=status.HTTP_200_OK)
 
-            apply_login_session_expiry(request, remember_me=remember_me)
-
-            # Login user
-            login(request, user, backend='users.backends.CustomUserBackend')
+            login_user_with_session(request, user, remember_me=remember_me)
             
             data['success'] = True
             data['message'] = 'Login successful'
