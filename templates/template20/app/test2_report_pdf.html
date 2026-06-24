@@ -495,7 +495,7 @@ margin-bottom:0px !important;
   {% if user_name and user_ID %}
   <div class="chapterPage">
     <div style="width:600px; text-align: center; margin-top: 30px; float: left; margin-bottom: 30px;">
-      <img style="width:550px;" src="/media/graph_images/{{ user_name }}-{{ user_ID }}_interest_Assessment.png" alt="graph"/>
+      <img style="width:550px;" src="{{ graph_image_media_url(user_name, user_ID, 'interest') }}" alt="graph"/>
     </div>
 
     <div style="width: 600px; float: left;">

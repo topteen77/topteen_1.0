@@ -108,10 +108,12 @@ urlpatterns = [
 
 
 ]
-# if settings.DEBUG:
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-# Only serve MEDIA_ROOT when not using S3 proxy (otherwise /media/s3/... is handled by s3_media_proxy)
-if not getattr(settings, 'S3_MEDIA_ACCESS_MODE', None) == 'proxy':
+# Local MEDIA_ROOT: always at /media/ in DEBUG (graph_images etc.), even when S3 proxy mode is on.
+# Production without DEBUG: serve locally only when not using S3 proxy mode.
+if settings.DEBUG:
+    urlpatterns += static('/media/', document_root=settings.MEDIA_ROOT)
+elif getattr(settings, 'S3_MEDIA_ACCESS_MODE', None) != 'proxy':
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Debug toolbar is commented out in settings, so commenting out here too

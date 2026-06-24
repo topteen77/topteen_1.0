@@ -979,21 +979,13 @@ def Assessment_pdf_inst_user(request, user_id=None):
         top_categories = []
     
     
-    user_name = user
+    user_name = getattr(user, 'name', None) or getattr(user, 'email', None) or str(user)
     user_ID = user.id if user_id is None else user_id
     # Ensure graph images exist for the report (personality, interest, intelligence)
-    graph_dir = os.path.join(settings.BASE_DIR, 'media', 'graph_images')
-    if not os.path.isdir(graph_dir):
-        try:
-            os.makedirs(graph_dir, exist_ok=True)
-        except OSError:
-            pass
-    graph_basename = f"{user_name}-{user_ID}"
-    graph_files = [
-        f"{graph_basename}_personality_Assessment.png",
-        f"{graph_basename}_interest_Assessment.png",
-        f"{graph_basename}_intelligence_Assessment.png",
-    ]
+    from app.graph_media_utils import graph_image_basenames, graph_images_directory
+
+    graph_dir = graph_images_directory()
+    graph_files = graph_image_basenames(user_name, user_ID)
     need_graphs = any(not os.path.exists(os.path.join(graph_dir, f)) for f in graph_files)
     if need_graphs:
         original_user = request.user
@@ -1177,18 +1169,11 @@ def class10_combined_report(request, user_id=None):
             }
         
         # Ensure graph images exist for report (personality, interest, intelligence)
-        graph_dir = os.path.join(settings.BASE_DIR, 'media', 'graph_images')
-        if not os.path.isdir(graph_dir):
-            try:
-                os.makedirs(graph_dir, exist_ok=True)
-            except OSError:
-                pass
-        graph_basename = f"{(getattr(target_user, 'name', None) or target_user.email)}-{target_user.id}"
-        graph_files = [
-            f"{graph_basename}_personality_Assessment.png",
-            f"{graph_basename}_interest_Assessment.png",
-            f"{graph_basename}_intelligence_Assessment.png",
-        ]
+        from app.graph_media_utils import graph_image_basenames, graph_images_directory
+
+        graph_dir = graph_images_directory()
+        graph_basename_name = (getattr(target_user, 'name', None) or target_user.email)
+        graph_files = graph_image_basenames(graph_basename_name, target_user.id)
         need_graphs = any(not os.path.exists(os.path.join(graph_dir, f)) for f in graph_files)
         if need_graphs:
             original_user = getattr(request, 'user', None)
@@ -1388,18 +1373,11 @@ def class10_report_download_pdf(request, user_id=None):
             }
         
         # Ensure graph images exist before PDF (same as backup download_pdf: gernate_graph first)
-        graph_dir = os.path.join(settings.BASE_DIR, 'media', 'graph_images')
-        if not os.path.isdir(graph_dir):
-            try:
-                os.makedirs(graph_dir, exist_ok=True)
-            except OSError:
-                pass
-        graph_basename = f"{(getattr(target_user, 'name', None) or target_user.email)}-{target_user.id}"
-        graph_files = [
-            f"{graph_basename}_personality_Assessment.png",
-            f"{graph_basename}_interest_Assessment.png",
-            f"{graph_basename}_intelligence_Assessment.png",
-        ]
+        from app.graph_media_utils import graph_image_basenames, graph_images_directory
+
+        graph_dir = graph_images_directory()
+        graph_basename_name = (getattr(target_user, 'name', None) or target_user.email)
+        graph_files = graph_image_basenames(graph_basename_name, target_user.id)
         need_graphs = any(not os.path.exists(os.path.join(graph_dir, f)) for f in graph_files)
         if need_graphs:
             original_user = getattr(request, 'user', None)
@@ -2555,15 +2533,11 @@ def gernate_graph(request):
         above_avg = ''
 
     # Define the graph images folder for the user
-    from pathlib import Path
+    from app.graph_media_utils import graph_image_path, graph_images_directory
 
-     # Define the graph images folder for the user
-    BASE_DIR = settings.BASE_DIR
     user_name = getattr(request.user, 'name', None) or getattr(request.user, 'email', None) or str(request.user)
     user_ID = request.user.id
-    graph_images_folder = BASE_DIR / 'media' / 'graph_images'
-    if not os.path.exists(graph_images_folder):
-        os.makedirs(graph_images_folder)
+    graph_images_folder = graph_images_directory()
 
     graph_images = []
 
@@ -2616,7 +2590,7 @@ def gernate_graph(request):
                         ha='center', va='bottom', fontsize=15, fontweight='bold')
         
         # Save the image
-        image_path = os.path.join(graph_images_folder, f"{user_name}-{user_ID}_personality_Assessment.png")
+        image_path = graph_image_path(user_name, user_ID, 'personality')
         graph_images.append(image_path)
         plt.savefig(image_path, bbox_inches='tight')  # Save image with tight layout
         plt.close()
@@ -2671,7 +2645,7 @@ def gernate_graph(request):
                             ha='center', va='bottom', fontsize=15, fontweight='bold')
             
             # Save the image
-            image_path = os.path.join(graph_images_folder, f"{user_name}-{user_ID}_interest_Assessment.png")
+            image_path = graph_image_path(user_name, user_ID, 'interest')
             graph_images.append(image_path)
             plt.savefig(image_path, bbox_inches='tight')  # Save image with tight layout
             plt.close()
@@ -2723,7 +2697,7 @@ def gernate_graph(request):
                             ha='center', va='bottom', fontsize=15, fontweight='bold')
             
             # Save the image
-            image_path = os.path.join(graph_images_folder, f"{user_name}-{user_ID}_intelligence_Assessment.png")
+            image_path = graph_image_path(user_name, user_ID, 'intelligence')
             graph_images.append(image_path)
             plt.savefig(image_path, bbox_inches='tight')  # Save image with tight layout
             plt.close()
