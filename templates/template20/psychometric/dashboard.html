@@ -2217,26 +2217,26 @@
         <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Improvement Recommendations</h2>
         {% if below|default([]) %}
         <div class="improvement-alert mb-3">
-          {# changes required by management (01-Jun-2025): Below Average → Focus areas for skill strengthening #}
+          {# changes required by management (01-Jun-2025): Below Average → Growth areas #}
           <h4>{{ aptitude_development_alert_title }}</h4>
           <p>{{ below|length|aptitude_development_alert_body }}</p>
           <div class="improvement-chip-row">
             {% for area in below %}
-            {% set area_key = area|string|upper %}
-            {% if below_area_vocational_urls.get(area) or below_area_vocational_urls.get(area_key) %}
-            <a class="improvement-chip" href="{{ below_area_vocational_urls.get(area) or below_area_vocational_urls.get(area_key) }}" title="View all {{ area|title }} vocational careers">{{ area|title }}</a>
-            {% else %}
             <span class="improvement-chip">{{ area|title }}</span>
-            {% endif %}
             {% endfor %}
           </div>
         </div>
         {% endif %}
+        {% if aptitude_improvement_plan|default([]) %}
+        {% include 'template20/app/partials/aptitude_growth_plan_styles.html' %}
+        {% include 'template20/app/partials/aptitude_growth_plan_section.html' %}
+        {% endif %}
+        {# Class 10 dashboard: vocational guidance hidden; strategic growth plan is shown above. #}
+        <div class="class10-vocational-guidance-hidden" style="display: none !important;">
         {% if vocational_guidance_cards|default([]) %}
-        <h3 class="psych-section-title psych-section-link mb-3">
+        <h3 class="psych-section-title mb-3">
           <span class="psych-section-dot" aria-hidden="true"></span>
-          {# changes required by management (01-Jun-2025): Below Average → Vocational Guidance for Skill Development #}
-          <a href="{{ vocational_guidance_section_url|default(url('careers:career')) }}">{{ aptitude_vocational_section_title }}</a>
+          {{ aptitude_vocational_section_title }}
         </h3>
         {% set vocational_area_icons = {
           'VERBAL': 'bx-chat',
@@ -2272,6 +2272,7 @@
           {% endfor %}
         </div>
         {% endif %}
+        </div>
       </div>
       {% endif %}
 
@@ -2531,6 +2532,7 @@
 {% block modals %}
 {{ super() }}
 {% include 'template20/includes/stream_decision_questionnaire_popup.html' %}
+<div class="class10-vocational-guidance-hidden" style="display: none !important;">
 {% if vocational_guidance_groups|default([]) %}
 {% for group in vocational_guidance_groups %}
 {% set area_code = group.reasoning_area|string|upper %}
@@ -2558,6 +2560,7 @@
 </div>
 {% endfor %}
 {% endif %}
+</div>
 {% endblock %}
 
 {% block student_additionaljs %}

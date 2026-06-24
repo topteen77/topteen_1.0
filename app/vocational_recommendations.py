@@ -221,22 +221,40 @@ def vocational_guidance_cards_for_below_areas(below_areas, user=None):
 
 def vocational_guidance_context_for_below_areas(below_areas, user=None) -> dict:
     """Shared context for dashboard and combined report below-average sections."""
+    from app.aptitude_improvement_plans import (
+        CLASS_10,
+        CLASS_12,
+        build_improvement_plans_for_below_areas,
+        normalize_report_plan,
+    )
     from careers.vocational_cluster import build_vocational_cluster_mapped_url
 
     groups = []
     cards = []
     below_area_urls = {}
     section_url = None
+    improvement_plans = []
     if isinstance(below_areas, list) and below_areas:
         cards = vocational_guidance_cards_for_below_areas(below_areas, user=user)
         groups = vocational_guidance_grouped_for_below_areas(below_areas, user=user)
         below_area_urls = below_area_vocational_urls(below_areas, user=user)
         section_url = build_vocational_cluster_mapped_url()
+        education_level = (
+            CLASS_12 if vocational_level_tab_for_user(user) == 'after-12' else CLASS_10
+        )
+        improvement_plans = build_improvement_plans_for_below_areas(
+            below_areas,
+            education_level=education_level,
+        )
+        improvement_plans = [
+            normalize_report_plan(p) for p in improvement_plans
+        ]
     return {
         'vocational_guidance_cards': cards,
         'vocational_guidance_groups': groups,
         'below_area_vocational_urls': below_area_urls,
         'vocational_guidance_section_url': section_url,
+        'aptitude_improvement_plan': improvement_plans,
     }
 
 

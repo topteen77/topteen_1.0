@@ -4204,46 +4204,20 @@
                     <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
                 </div>
                 <hr />
-                <p class="section-title imp-title">Strategic Plan for Growth Area </p>
-                <div class="card-container improve-report">
-                    {% for plan in aptitude_improvement_plan|slice:":4" %}
-                        <div class="card {% if plan.Category == 'Below Average' %}below-average{% endif %}">
-                            <h3>{{ plan.Area }}</h3>
-                            <p><strong>Duration:</strong> {{ plan.Duration }}</p>
-                            <ul>
-                                {% for remark in plan.Remarks %}
-                                    <li><i style=" color: #C24E4E;" class="fas fa-briefcase me-2"></i><span class="aptitude-remark-text">{{ remark|aptitude_remark_text }}</span></li>
-                                    
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    {% endfor %}
-                </div>
+                {% include 'partials/aptitude_growth_plan_styles.html' %}
+                {% include 'partials/aptitude_growth_plan_section.html' with growth_plans=aptitude_improvement_plan|slice:":4" show_header=True %}
                 {% endif %}
             </div>
 
-            <!-- Improvement Plan 1-4 reas -->
+            <!-- Improvement Plan 5-7 areas -->
             <div class="chapterPage result-four">
                               
-                {% if aptitude_improvement_plan %}
+                {% if aptitude_improvement_plan|length > 4 %}
                 <div class="fixex-top-logo" style="width: 100%;">
                     <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
                 </div>
                 <hr /> 
-                <div class="card-container improve-report">
-                    {% for plan in aptitude_improvement_plan|slice:"4:7" %}
-                        <div class="card {% if plan.Category == 'Below Average' %}below-average{% endif %}">
-                            <h3>{{ plan.Area }}</h3>
-                            <p><strong>Duration:</strong> {{ plan.Duration }}</p>
-                            <ul>
-                                {% for remark in plan.Remarks %}
-                                    <li><i style=" color: #C24E4E;" class="fas fa-briefcase me-2"></i><span class="aptitude-remark-text">{{ remark|aptitude_remark_text }}</span></li>
-                                    
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    {% endfor %}
-                </div>
+                {% include 'partials/aptitude_growth_plan_section.html' with growth_plans=aptitude_improvement_plan|slice:"4:7" show_header=False %}
                 {% endif %}
             </div>
 

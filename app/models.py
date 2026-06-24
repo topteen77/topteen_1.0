@@ -276,3 +276,50 @@ class Class10FutureRelevantCareer(models.Model):
 
     def __str__(self):
         return self.career.name if self.career_id else self.career_name
+
+
+class AptitudeImprovementPlan(models.Model):
+    """Admin-managed growth-area improvement plans for Class 10 / Class 12 aptitude reports."""
+
+    CLASS_10 = 'class_10'
+    CLASS_12 = 'class_12'
+    EDUCATION_LEVEL_CHOICES = (
+        (CLASS_10, 'Class 10'),
+        (CLASS_12, 'Class 12'),
+    )
+
+    education_level = models.CharField(max_length=16, choices=EDUCATION_LEVEL_CHOICES)
+    area_key = models.CharField(
+        max_length=64,
+        help_text='Stable key used to match student below-average areas (e.g. verbal, language_verbal_reasoning).',
+    )
+    growth_area_title = models.CharField(
+        max_length=255,
+        help_text='Display title shown in reports, e.g. Language & Verbal Reasoning.',
+    )
+    development_goal = models.TextField(blank=True)
+    improvement_plan_items = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='List of suggested improvement plan bullet strings.',
+    )
+    practice_frequency = models.CharField(max_length=255, blank=True)
+    expected_timeline = models.CharField(max_length=255, blank=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ('education_level', 'sort_order', 'growth_area_title')
+        verbose_name = 'Aptitude improvement plan'
+        verbose_name_plural = 'Aptitude improvement plans'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['education_level', 'area_key'],
+                name='unique_aptitude_improvement_plan_level_area',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.get_education_level_display()} — {self.growth_area_title}'

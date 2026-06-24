@@ -66,10 +66,10 @@ def aptitude_tier_label(tier_key):
 
 
 # changes required by management (01-Jun-2025): Below Average → professional copy (display only)
-APTITUDE_DEVELOPMENT_ALERT_TITLE = "Focus areas for skill strengthening"
+APTITUDE_DEVELOPMENT_ALERT_TITLE = "Growth areas"
 
 APTITUDE_DEVELOPMENT_ALERT_BODY_TEMPLATE = (
-    "{count} reasoning area(s) have been identified as focus areas for skill strengthening. "
+    "{count} reasoning area(s) have been identified as growth areas for skill strengthening. "
     "Targeted practice and the recommended vocational guidance below can help you build "
     "confidence in these areas before final stream selection."
 )
@@ -84,13 +84,13 @@ APTITUDE_EMPTY_STATE_SKILL_AREAS = (
 )
 
 APTITUDE_IMPROVEMENT_NOTE = (
-    "If you have focus areas for skill strengthening in your profile, vocational training "
+    "If you have growth areas for skill strengthening in your profile, vocational training "
     "and guidance can help you develop your other reasoning areas."
 )
 
 
 def aptitude_development_alert_body(count):
-    """Format dashboard alert body for the number of development/focus areas."""
+    """Format dashboard alert body for the number of development/growth areas."""
     try:
         n = int(count)
     except (TypeError, ValueError):

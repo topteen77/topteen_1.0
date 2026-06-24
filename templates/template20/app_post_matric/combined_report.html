@@ -2298,30 +2298,8 @@
           {% endif %}
           {% if aptitude_improvement_plan %}
           <div class="mapping-card">
-            <div class="subsection-title">Improvement Plan</div>
-            <ul class="insight-list">
-              {% for item in aptitude_improvement_plan %}
-              <li>
-                {% if item.Area %}
-                <span class="insight-label">{{ item.Area }}</span>
-                {% endif %}
-                {% if item.Remarks %}
-                  {% if item.Remarks is string %}
-                  <div>{{ item.Remarks }}</div>
-                  {% else %}
-                    {% for remark in item.Remarks %}
-                    <div>• {{ remark }}</div>
-                    {% endfor %}
-                  {% endif %}
-                {% elif item %}
-                <div>{{ item }}</div>
-                {% endif %}
-                {% if item.Duration %}
-                <span class="insight-note"><strong>Recommended duration:</strong> {{ item.Duration }}</span>
-                {% endif %}
-              </li>
-              {% endfor %}
-            </ul>
+            {% include 'template20/app/partials/aptitude_growth_plan_styles.html' %}
+            {% include 'template20/app/partials/aptitude_growth_plan_section.html' %}
           </div>
           {% endif %}
           {% if career_code_discription %}

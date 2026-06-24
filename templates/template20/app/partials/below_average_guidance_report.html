@@ -26,9 +26,15 @@
   </div>
   {% endif %}
 
+  {% if aptitude_improvement_plan|default([]) %}
+  {% include 'template20/app/partials/aptitude_growth_plan_styles.html' %}
+  {% include 'template20/app/partials/aptitude_growth_plan_section.html' %}
+  {% endif %}
+
+  {# Class 10 reports: vocational careers panel hidden; growth plan section above is the primary guidance. #}
   {% if vocational_guidance_groups|default([]) %}
   {% set vocational_web_preview_count = 4 %}
-  <div class="vocational-guidance-panel">
+  <div class="vocational-guidance-panel class10-vocational-guidance-hidden" style="display: none !important;">
     <div class="db-header vocational-guidance-heading" style="margin-top: {% if vocational_report_is_pdf %}0{% else %}12px{% endif %};">
       <h1 style="color: #3F37C9; font-size: 16px; margin-bottom: 8px;">{{ aptitude_vocational_section_title }}</h1>
     </div>

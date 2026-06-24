@@ -1152,17 +1152,25 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
                         roles_map.setdefault(k, []).append(row)
 
                 # ---------- Below Average: Improvement Plan ----------
+                json_plans = []
                 for area in below_categories:
                     data = weak_map.get(resolve_aptitude_json_area(area))
                     if data:
-                        remarks  = [(r or '').rstrip('.') for r in data.get('Remarks', [])]
+                        remarks = [(r or '').rstrip('.') for r in data.get('Remarks', [])]
                         duration = data.get('Duration', 'No details available')
-                        result['aptitude_improvement_plan'].append({
+                        json_plans.append({
                             'Area': data.get('Areas', 'Unknown'),
                             'Remarks': remarks,
                             'Duration': duration,
-                            'Category': 'Below Average'
+                            'Category': 'Below Average',
                         })
+
+                from app.aptitude_improvement_plans import CLASS_12, merge_improvement_plans
+                result['aptitude_improvement_plan'] = merge_improvement_plans(
+                    below_categories,
+                    json_plans,
+                    education_level=CLASS_12,
+                )
 
                 # ---------- Helper: Strength + Recommendations + Roles ----------
                 def process_strength_recs_roles(areas):
@@ -1779,6 +1787,10 @@ def Results(request):
         import json as _json
         context['test_results_json'] = _json.dumps(test_results_data)
         
+        context['breadcrumb'] = get_breadcrumb([
+            {'text': 'Tests', 'url': reverse('post_matric:tests')},
+            {'text': 'Results', 'url': ''},
+        ])
         return render(request, "results.html", context)    
         
     except Exception as e:

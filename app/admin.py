@@ -71,3 +71,4 @@ admin.site.register(TestCompletion, TestCompletionAdmin)
 
 # Class 10 combined report career guidance (admin-only; not on dashboard)
 from app import class10_report_guidance_admin  # noqa: F401
+from app import aptitude_improvement_plan_admin  # noqa: F401

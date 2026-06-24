@@ -569,6 +569,7 @@ def dashboard(request, student_id=None):
         vocational_guidance_groups = vocational_ctx['vocational_guidance_groups']
         below_area_vocational_urls_map = vocational_ctx['below_area_vocational_urls']
         vocational_guidance_section_url = vocational_ctx['vocational_guidance_section_url']
+        aptitude_improvement_plan = vocational_ctx.get('aptitude_improvement_plan', [])
 
         # Suggested careers block (grouped by RIASEC / aptitude heading for dashboard)
         interest_suggested_careers = []
@@ -785,6 +786,7 @@ def dashboard(request, student_id=None):
             'vocational_guidance_cards': vocational_guidance_cards,
             'vocational_guidance_groups': vocational_guidance_groups,
             'vocational_guidance_section_url': vocational_guidance_section_url,
+            'aptitude_improvement_plan': aptitude_improvement_plan,
             'below_area_vocational_urls': below_area_vocational_urls_map,
             'interest_suggested_careers': interest_suggested_careers,
             'interest_suggested_career_groups': interest_suggested_career_groups,

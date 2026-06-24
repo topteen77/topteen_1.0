@@ -1,0 +1,79 @@
+{% load custom_filters_post_matric %}
+{% if growth_plans %}
+<div class="aptitude-growth-plan-section">
+  {% if show_header|default:True %}
+  <div class="aptitude-growth-plan-header">
+    <div class="aptitude-growth-plan-eyebrow">
+      <i class="fas fa-chart-line" aria-hidden="true"></i>
+      Personalised improvement path
+    </div>
+    <h2 class="aptitude-growth-plan-title">Strategic Plan for Growth Area</h2>
+    <p class="aptitude-growth-plan-subtitle">
+      Each card below shows the growth area, development goal, suggested improvement plan, practice frequency, and expected timeline.
+    </p>
+  </div>
+  {% endif %}
+
+  <div class="aptitude-growth-plan-grid">
+    {% for plan in growth_plans %}
+    <article class="aptitude-growth-plan-card">
+      <div class="aptitude-growth-plan-card__head">
+        <span class="aptitude-growth-plan-card__icon" aria-hidden="true"><i class="fas fa-seedling"></i></span>
+        <div class="aptitude-growth-plan-card__title-wrap">
+          <p class="aptitude-growth-plan-field-label">Growth Area</p>
+          <h3>{% firstof plan.GrowthArea plan.Area %}</h3>
+        </div>
+      </div>
+
+      <div class="aptitude-growth-plan-card__body">
+        <div class="aptitude-growth-plan-field">
+          <p class="aptitude-growth-plan-field-label">Development Goal</p>
+          <p class="aptitude-growth-plan-field-value{% if not plan.DevelopmentGoal %} aptitude-growth-plan-field-value--empty{% endif %}">
+            {% if plan.DevelopmentGoal %}{{ plan.DevelopmentGoal }}{% else %}—{% endif %}
+          </p>
+        </div>
+
+        <div class="aptitude-growth-plan-field">
+          <p class="aptitude-growth-plan-field-label">Practice Frequency</p>
+          <p class="aptitude-growth-plan-field-value{% if not plan.PracticeFrequency %} aptitude-growth-plan-field-value--empty{% endif %}">
+            {% if plan.PracticeFrequency %}{{ plan.PracticeFrequency }}{% else %}—{% endif %}
+          </p>
+        </div>
+
+        <div class="aptitude-growth-plan-field">
+          <p class="aptitude-growth-plan-field-label">Expected Improvement Timeline</p>
+          <p class="aptitude-growth-plan-field-value{% if not plan.ExpectedTimeline and not plan.Duration %} aptitude-growth-plan-field-value--empty{% endif %}">
+            {% firstof plan.ExpectedTimeline plan.Duration "—" %}
+          </p>
+        </div>
+
+        <div class="aptitude-growth-plan-field aptitude-growth-plan-field--plan">
+          <p class="aptitude-growth-plan-field-label">Suggested Improvement Plan</p>
+          {% if plan.SuggestedImprovementPlan %}
+          <ol class="aptitude-growth-plan-list">
+            {% for remark in plan.SuggestedImprovementPlan %}
+            <li>
+              <span class="aptitude-growth-plan-step-num">{{ forloop.counter }}</span>
+              <span class="aptitude-growth-plan-step-text">{{ remark|aptitude_remark_text }}</span>
+            </li>
+            {% endfor %}
+          </ol>
+          {% elif plan.Remarks %}
+          <ol class="aptitude-growth-plan-list">
+            {% for remark in plan.Remarks %}
+            <li>
+              <span class="aptitude-growth-plan-step-num">{{ forloop.counter }}</span>
+              <span class="aptitude-growth-plan-step-text">{{ remark|aptitude_remark_text }}</span>
+            </li>
+            {% endfor %}
+          </ol>
+          {% else %}
+          <p class="aptitude-growth-plan-field-value aptitude-growth-plan-field-value--empty">—</p>
+          {% endif %}
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}

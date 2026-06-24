@@ -1,0 +1,197 @@
+<style>
+  .aptitude-growth-plan-section {
+    margin: 28px 0 36px;
+    padding: 24px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #faf8ff 0%, #ffffff 55%, #fff9f9 100%);
+    border: 1px solid #e8e4ff;
+    box-shadow: 0 10px 30px rgba(63, 55, 201, 0.06);
+  }
+
+  .aptitude-growth-plan-header {
+    text-align: center;
+    max-width: 760px;
+    margin: 0 auto 24px;
+  }
+
+  .aptitude-growth-plan-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #fff1f1;
+    color: #c24e4e;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .aptitude-growth-plan-title {
+    margin: 0 0 8px;
+    color: #2720a7;
+    font-size: clamp(1.35rem, 2vw, 1.7rem);
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  .aptitude-growth-plan-subtitle {
+    margin: 0;
+    color: #5b6472;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .aptitude-growth-plan-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  @media (max-width: 900px) {
+    .aptitude-growth-plan-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .aptitude-growth-plan-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    background: #ffffff;
+    border: 1px solid #ece8ff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(17, 24, 39, 0.05);
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .aptitude-growth-plan-card__head {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 18px 18px 14px;
+    background: linear-gradient(135deg, rgba(63, 55, 201, 0.08) 0%, rgba(194, 78, 78, 0.08) 100%);
+    border-bottom: 1px solid #f0ecff;
+  }
+
+  .aptitude-growth-plan-card__icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 18px;
+    flex-shrink: 0;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+    background: linear-gradient(145deg, #3f37c9, #6d28d9);
+  }
+
+  .aptitude-growth-plan-card__title-wrap {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .aptitude-growth-plan-card h3 {
+    margin: 0;
+    color: #1f2937;
+    font-size: 1.02rem;
+    font-weight: 800;
+    line-height: 1.35;
+  }
+
+  .aptitude-growth-plan-field-label {
+    margin: 0 0 6px;
+    color: #3f37c9;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .aptitude-growth-plan-card__body {
+    padding: 16px 18px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    flex: 1;
+  }
+
+  .aptitude-growth-plan-field {
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #faf9ff;
+    border: 1px solid #ece8ff;
+  }
+
+  .aptitude-growth-plan-field-value {
+    margin: 0;
+    color: #374151;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .aptitude-growth-plan-field-value--empty {
+    color: #9ca3af;
+  }
+
+  .aptitude-growth-plan-field--plan {
+    background: #fff;
+  }
+
+  .aptitude-growth-plan-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+
+  .aptitude-growth-plan-list li {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 10px;
+    align-items: start;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: #fcfcff;
+    border: 1px solid #f1efff;
+  }
+
+  .aptitude-growth-plan-step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #3f37c9;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+
+  .aptitude-growth-plan-step-text {
+    color: #4b5563;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  @media print {
+    .aptitude-growth-plan-section {
+      box-shadow: none;
+      padding: 12px 0;
+    }
+
+    .aptitude-growth-plan-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+  }
+</style>

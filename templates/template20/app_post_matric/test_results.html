@@ -687,27 +687,8 @@
         {% endif %}
 
         {% if aptitude_improvement_plan %}
-        <div class="categories-section">
-          <h3 class="section-title">Improvement Plan for Weaker Areas</h3>
-          <div class="category-grid">
-            {% for plan in aptitude_improvement_plan %}
-            <div class="category-card {% if plan.Category == 'Below Average' %}low{% endif %}">
-              <div class="category-name">{{ plan.Area }}</div>
-              <p style="margin-top: 12px; margin-bottom: 12px;">
-                <strong>Duration:</strong> {{ plan.Duration }}
-              </p>
-              <ul style="list-style: none; padding-left: 0;">
-                {% for remark in plan.Remarks %}
-                <li class="aptitude-remark-item">
-                  <i class="fas fa-briefcase aptitude-remark-icon" style="color: #C24E4E;"></i>
-                  <span class="aptitude-remark-text">{{ remark|aptitude_remark_text }}</span>
-                </li>
-                {% endfor %}
-              </ul>
-            </div>
-            {% endfor %}
-          </div>
-        </div>
+        {% include 'template20/app/partials/aptitude_growth_plan_styles.html' %}
+        {% include 'template20/app/partials/aptitude_growth_plan_section.html' %}
         {% endif %}
 
       {% elif test_type == 'Motivation Assessment' %}
