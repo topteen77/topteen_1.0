@@ -541,12 +541,26 @@
         }
 
         .pr-combined-report-body ul {
-	list-style: disc;
-}
+            list-style: disc;
+            padding-left: 22px;
+            margin: 12px 0 0;
+        }
 
-.pr-combined-report-body ul li::marker {
-	color: #013E5D;
-}
+        .pr-combined-report-body ul li {
+            padding: 10px 0;
+            border-bottom: 1px solid #d4e4ed;
+            line-height: 1.5;
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        .pr-combined-report-body ul li:last-child {
+            border-bottom: none;
+        }
+
+        .pr-combined-report-body ul li::marker {
+            color: #013E5D;
+        }
 
         .pr-combined-report-header h1 span {
             background: #013E5D;
@@ -769,12 +783,15 @@
 
         .hm-text ul li {
             border: 0px;
-            margin-bottom: 0px;
+  margin-bottom: 0px;
+  padding-bottom: 0px;
         }
 
         .hm-text h4 {
             color: #4a41cb;
-            font-size: 16px;
+  font-size: 16px;
+  margin-bottom: 5px;
+  margin-top: 8px;
         }
 
 
@@ -3326,7 +3343,7 @@
                     <div class="s-motivation-summary">
 
                         <h3>
-                            {% if high_categories == 'Medical' %}MEDICAL PRACTITIONER / HEALTHCARE{% elif high_categories == 'Business' %}BUSINESS PROFESSIONAL{% elif high_categories == 'Engineer' %}ENGINEERING / IIT & TECH FIELD{% elif high_categories == 'Social' %}HUMANITIES / ARTS / SOCIAL SCIENCES{% endif %} <br>({{ motivation_key_description|get_item:"Motivation Style" }})
+                            {% if high_categories == 'Medical' %}MEDICAL PRACTITIONER / HEALTHCARE{% elif high_categories == 'Business' %}BUSINESS PROFESSIONAL{% elif high_categories == 'Engineer' %}ENGINEERING / IIT & TECH FIELD{% elif high_categories == 'Social' %}HUMANITIES / ARTS / SOCIAL SCIENCES{% endif %} <br>{% if high_categories == 'Social' %}(Intrinsic Motivation){% else %}({{ motivation_key_description|get_item:"Motivation Style" }}){% endif %}
                         </h3>
 
                         <h4>Narrative Explanation</h4>
