@@ -189,14 +189,27 @@ def _student_localstorage_context(request):
     """
     Returns context for student localStorage: encrypted payload when
     STUDENT_DATA_ENCRYPTION_KEY is set, else plain dict. For students only.
+    chatbot_student_localstorage is always plain (four keys for Career Counsellor bot).
     """
     data = _student_localstorage_data(request)
     if data is None:
-        return {"student_localstorage_enc": None, "student_localstorage": None}
+        return {
+            "student_localstorage_enc": None,
+            "student_localstorage": None,
+            "chatbot_student_localstorage": None,
+        }
     enc = _encrypt_student_data(data)
     if enc:
-        return {"student_localstorage_enc": enc, "student_localstorage": None}
-    return {"student_localstorage_enc": None, "student_localstorage": data}
+        return {
+            "student_localstorage_enc": enc,
+            "student_localstorage": None,
+            "chatbot_student_localstorage": data,
+        }
+    return {
+        "student_localstorage_enc": None,
+        "student_localstorage": data,
+        "chatbot_student_localstorage": data,
+    }
 
 
 def _should_show_ai_counsellor_bot(request):

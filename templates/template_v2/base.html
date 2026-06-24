@@ -101,7 +101,9 @@
     })();
   </script>
 
-  {% block additionalhead %}{% endblock %}
+  {% block additionalhead %}
+  {% include 'template20/includes/chatbot_student_localstorage.html' %}
+  {% endblock %}
 </head>
 
 {% set _bodyclass = self.bodyclass()|trim %}

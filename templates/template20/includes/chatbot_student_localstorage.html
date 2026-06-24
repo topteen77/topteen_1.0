@@ -1,0 +1,45 @@
+{# Sync Career Counsellor bot context keys for logged-in students; clear when logged out. #}
+<script>
+(function () {
+  try {
+    if (typeof localStorage === 'undefined') return;
+
+    var CHATBOT_KEYS = [
+      'student_id',
+      'student_class',
+      'psychometric_class10_status',
+      'psychometric_class12_status',
+    ];
+
+    function clearChatbotKeys() {
+      CHATBOT_KEYS.forEach(function (key) {
+        localStorage.removeItem(key);
+      });
+    }
+
+    {% if chatbot_student_localstorage %}
+    var payload = {{ chatbot_student_localstorage | tojson }};
+    if (payload && payload.student_id != null) {
+      localStorage.setItem('student_id', String(payload.student_id));
+      localStorage.setItem('student_class', String(payload.student_class || ''));
+      localStorage.setItem('psychometric_class10_status', String(payload.psychometric_class10_status || ''));
+      localStorage.setItem('psychometric_class12_status', String(payload.psychometric_class12_status || ''));
+    } else {
+      clearChatbotKeys();
+    }
+
+    {% if student_localstorage_enc %}
+    localStorage.setItem('student_data', {{ student_localstorage_enc | tojson }});
+    localStorage.setItem('student_data_encrypted', '1');
+    {% elif student_localstorage %}
+    localStorage.setItem('student_data', JSON.stringify(payload));
+    localStorage.setItem('student_data_encrypted', '0');
+    {% endif %}
+    {% else %}
+    clearChatbotKeys();
+    localStorage.removeItem('student_data');
+    localStorage.removeItem('student_data_encrypted');
+    {% endif %}
+  } catch (e) {}
+})();
+</script>
