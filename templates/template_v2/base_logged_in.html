@@ -19,6 +19,9 @@
   .swal2-backdrop-show, .swal2-backdrop { z-index: 99998 !important; }
 </style>
 {{ super() }}
+{% if request and request.user and request.user.is_authenticated %}
+{% include 'notifications/includes/notification_bell_styles.html' %}
+{% endif %}
 {% endblock %}
 
 {# Institute / marketing / group / counselor v2: skip public marketing footer; keep scripts for Bootstrap + theme. #}

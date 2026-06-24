@@ -100,6 +100,9 @@
   }
 </style>
 {{ super() }}
+{% if request and request.user and request.user.is_authenticated %}
+{% include 'notifications/includes/notification_bell_styles.html' %}
+{% endif %}
 <script>
   // Hide footer immediately - run before DOM is ready to prevent any flash
   (function() {

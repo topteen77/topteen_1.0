@@ -2,6 +2,7 @@ from datetime import timedelta
 from urllib.parse import quote
 
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import JsonResponse
@@ -318,45 +319,50 @@ def notifications_page(request):
 @login_required
 @require_GET
 def notifications_latest_api(request):
+    cache_key = f'notif_latest:{request.user.id}'
+    cached_payload = cache.get(cache_key)
+    if cached_payload is not None:
+        return JsonResponse(cached_payload)
+
     unread_count = _unread_count_for_user(request.user)
     summary_profile = _notification_summary_profile(request.user)
     if summary_profile:
-        return JsonResponse(
-            {
-                'success': True,
-                'summary_mode': True,
-                'summary_profile': summary_profile,
-                'unread_count': unread_count,
-                'notifications': [],
-                'buckets': _notification_summary_buckets_for_request(request),
-            }
-        )
+        payload = {
+            'success': True,
+            'summary_mode': True,
+            'summary_profile': summary_profile,
+            'unread_count': unread_count,
+            'notifications': [],
+            'buckets': _notification_summary_buckets_for_request(request),
+        }
+        cache.set(cache_key, payload, 5)
+        return JsonResponse(payload)
     # Show all notifications regardless of stored environment (dev / production / etc.).
     raw = list(
         Notification.objects.filter(recipient=request.user).order_by('-created')[:80]
     )
     rows = _dedupe_assignment_notifications(raw)[:10]
-    return JsonResponse(
-        {
-            'success': True,
-            'summary_mode': False,
-            'unread_count': unread_count,
-            'notifications': [
-                {
-                    'id': r.id,
-                    'title': r.title,
-                    'body': (r.body or '')[:180],
-                    'event_type': r.event_type,
-                    'category': r.category,
-                    'environment': r.environment,
-                    'is_read': r.is_read,
-                    'created': r.created.strftime('%Y-%m-%d %H:%M:%S'),
-                    'payload': _api_payload_for_notification(r),
-                }
-                for r in rows
-            ],
-        }
-    )
+    payload = {
+        'success': True,
+        'summary_mode': False,
+        'unread_count': unread_count,
+        'notifications': [
+            {
+                'id': r.id,
+                'title': r.title,
+                'body': (r.body or '')[:180],
+                'event_type': r.event_type,
+                'category': r.category,
+                'environment': r.environment,
+                'is_read': r.is_read,
+                'created': r.created.strftime('%Y-%m-%d %H:%M:%S'),
+                'payload': _api_payload_for_notification(r),
+            }
+            for r in rows
+        ],
+    }
+    cache.set(cache_key, payload, 5)
+    return JsonResponse(payload)
 
 
 @login_required

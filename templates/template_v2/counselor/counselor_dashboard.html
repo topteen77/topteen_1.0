@@ -105,6 +105,7 @@
 {% endblock %}
 
 {% block additionaljs %}
+{{ super() }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{{ staticv('js_new/ttv2_dashboard_analytics.js') }}"></script>
 <script src="{{ staticv('js_new/ttv2_weekly_session_report.js') }}"></script>

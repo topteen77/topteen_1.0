@@ -724,6 +724,7 @@ LOGGING = {
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
+            'level': 'INFO',
         },
         'file_app': {
             'class': 'logging.handlers.RotatingFileHandler',
@@ -768,6 +769,37 @@ LOGGING = {
         'celery.utils.functional': {
             'handlers': ['console', 'file_app'],
             'level': 'INFO',
+            'propagate': False,
+        },
+        # Noisy third-party loggers — keep off the server console
+        'matplotlib': {
+            'handlers': ['file_app'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'PIL': {
+            'handlers': ['file_app'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'urllib3': {
+            'handlers': ['file_app'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'botocore': {
+            'handlers': ['file_app'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'boto3': {
+            'handlers': ['file_app'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'topteens.services_status': {
+            'handlers': ['file_app'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': False,
         },
     },

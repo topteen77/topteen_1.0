@@ -62,6 +62,24 @@
   right: -96px !important;
 }
     }
+
+    @media (min-width: 62rem) {
+      .tt-header-mobile-toolbar {
+        display: flex !important;
+        align-items: center;
+        margin-left: auto;
+        gap: 0.8rem;
+      }
+      .tt-header-mobile-toolbar .burger,
+      .tt-header-mobile-toolbar .main-search-icon,
+      .tt-header-mobile-toolbar .tt-header-mobile-account {
+        display: none !important;
+      }
+      .tt-header-mobile-toolbar .tt-header-mobile-action {
+        display: flex;
+        align-items: center;
+      }
+    }
   </style>
   <nav class="navbar container px-md-5 px-3">
     <div class="navbar-inner">
@@ -162,11 +180,6 @@
           </a>
         </li>
         
-        {% if hdr_user.is_authenticated %}
-        <li class="menu-item single-link d-none d-lg-flex">
-          {% include "notifications/includes/notification_bell.html" %}
-        </li>
-        {% endif %}
         <li class="menu-item dropdown d-none d-lg-flex">
           {% include "template20/includes/header_account_menu.html" %}
         </li>

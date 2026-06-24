@@ -81,7 +81,7 @@ def speed_test(request):
 
 
 def custom_logout(request):
-    print('Logging out {}'.format(request.user))  # Logging the user who is logging out
+    logger.info('Logging out %s', request.user)  # Logging the user who is logging out
     logout(request)
     return redirect('/')
 
@@ -177,7 +177,7 @@ def db_results(request):
             courseName.add(course.course_name)
 
     else:
-        print("No category found with the code:", top_category_code)
+        logger.debug("No category found with the code: %s", top_category_code)
 
     return top_category, streamsubject,courseName, max_length, min_length, below, avg, above_avg, top_categories
 # Example implementation of has_attempted_test function
@@ -884,7 +884,7 @@ def db_results_inst_user(user):
         top_categories = []
         top_category_code = ''
     except Exception as e:
-        print(f"Error processing test1 results for user {user.id}: {str(e)}")
+        logger.exception("Error processing test1 results for user %s", user.id)
         top_categories = []
         top_category_code = ''
 
@@ -938,7 +938,7 @@ def db_results_inst_user(user):
             courseName.add(course.course_name)
 
     else:
-        print("No category found with the code:", top_category_code)
+        logger.debug("No category found with the code: %s", top_category_code)
 
     return top_category, streamsubject,courseName, max_length, min_length, below, avg, above_avg, top_categories
 
@@ -965,8 +965,7 @@ def Assessment_pdf_inst_user(request, user_id=None):
     except Exception as e:
         # Log the error but don't crash - return with empty data
         import traceback
-        print(f"Error in db_results_inst_user for user {user.id}: {str(e)}")
-        print(traceback.format_exc())
+        logger.exception(f"Error in db_results_inst_user for user {user.id}: {str(e)}")
         # Set default values to prevent template errors
         top_category = None
         streamsubject = set()
@@ -994,8 +993,7 @@ def Assessment_pdf_inst_user(request, user_id=None):
             gernate_graph(request)
         except Exception as e:
             import traceback
-            print(f"Assessment_pdf_inst_user: could not generate graphs for user {user.id}: {e}")
-            print(traceback.format_exc())
+            logger.warning("Assessment_pdf_inst_user: could not generate graphs for user %s: %s", user.id, e)
         finally:
             request.user = original_user
     # Prepare context dictionary
@@ -1106,8 +1104,7 @@ def class10_combined_report(request, user_id=None):
             return _add_no_cache_headers(resp)
         except Exception as e:
             import traceback
-            print(f"Error in db_results_inst_user for user {target_user.id}: {str(e)}")
-            print(traceback.format_exc())
+            logger.exception(f"Error in db_results_inst_user for user {target_user.id}: {str(e)}")
             top_category = None
             streamsubject = set()
             courseName = set()
@@ -1333,8 +1330,7 @@ def class10_report_download_pdf(request, user_id=None):
             top_category, streamsubject, courseName, max_length, min_length, below, avg, above_avg, top_categories = db_results_inst_user(target_user)
         except Exception as e:
             import traceback
-            print(f"Error getting results: {e}")
-            print(traceback.format_exc())
+            logger.exception(f"Error getting results: {e}")
             return HttpResponse('Error generating report data.', status=500)
         
         # Get individual test results
@@ -1605,13 +1601,13 @@ def test_buttons(request):
                 grade = "Class 10"
 
         except (UserProfile.DoesNotExist, AttributeError):
-            print("UserProfile does not exist.")
+            logger.debug("UserProfile does not exist.")
             user_profile = None
             student_class = "10"  # Default
             grade = "Class 10"
 
     else:
-        print("User is not authenticated.")
+        logger.debug("User is not authenticated.")
         # Redirect to login if not authenticated
         return redirect(reverse('users:login'))
     
@@ -2469,7 +2465,7 @@ def app_submit(request):
     if test_completion.test3_complete and not all_subtests_complete:
         test_completion.test3_complete = False
         test_completion.save()
-        print(f"Corrected test3_complete for user {request.user.id}: was True but not all subtests complete")
+        logger.info("Corrected test3_complete for user %s: was True but not all subtests complete", request.user.id)
     elif not test_completion.test3_complete and all_subtests_complete:
         test_completion.test3_complete = True
         test_completion.save()
@@ -2651,7 +2647,7 @@ def gernate_graph(request):
             plt.close()
 
     except Exception as e:
-        print(f"Error creating interest assessment graph: {e}")
+        logger.warning("Error creating interest assessment graph: %s", e)
 
     try:
         personality = test3_result.scores
@@ -2703,7 +2699,7 @@ def gernate_graph(request):
             plt.close()
 
     except Exception as e:
-        print(f"Error creating intelligence assessment graph: {e}")
+        logger.warning("Error creating intelligence assessment graph: %s", e)
         personality = ''
 
     return below, avg, above_avg, personality, min_length, max_length
@@ -2788,7 +2784,7 @@ def download_pdf(request,test_paper):
                 courseName.add(course.course_name)
 
         else:
-            print("No category found with the code:", top_category_code)
+            logger.debug("No category found with the code: %s", top_category_code)
         
         if request.user.is_authenticated:
             user = request.user
@@ -2817,10 +2813,10 @@ def download_pdf(request,test_paper):
                 
 
             except UserProfile.DoesNotExist:
-                print("UserProfile does not exist.")
+                logger.debug("UserProfile does not exist.")
 
         else:
-            print("User is not authenticated.")
+            logger.debug("User is not authenticated.")
 
         user_name = request.user
         user_ID = request.user.id
@@ -2900,7 +2896,7 @@ def download_pdf(request,test_paper):
             user_directory = ensure_user_pdf_folder(request.user.id)
             if not user_directory:
                 import traceback
-                print(f"download_pdf: ensure_user_pdf_folder failed for user_id={request.user.id}")
+                logger.warning("download_pdf: ensure_user_pdf_folder failed for user_id=%s", request.user.id)
                 traceback.print_exc()
                 messages.error(request, 'Error creating download folder')
                 return redirect('app:app_submit')
@@ -2914,7 +2910,7 @@ def download_pdf(request,test_paper):
             
         except Exception as e:
             import traceback
-            print(f"Error generating PDF: {e}")
+            logger.exception("Error generating PDF: %s", e)
             traceback.print_exc()
             messages.error(request, 'Error generating PDF')
             return redirect('app:app_submit')
@@ -2977,8 +2973,7 @@ def test1_report_html(request, user_id=None):
             top_category, streamsubject, courseName, max_length, min_length, below, avg, above_avg, top_categories = db_results_inst_user(target_user)
         except Exception as e:
             import traceback
-            print(f"Error in db_results_inst_user: {e}")
-            print(traceback.format_exc())
+            logger.exception(f"Error in db_results_inst_user: {e}")
             top_category = None
             streamsubject = set()
             courseName = set()
@@ -3008,7 +3003,7 @@ def test1_report_html(request, user_id=None):
                 gernate_graph(request)
                 request.user = original_user
             except Exception as e:
-                print(f"Error generating graph: {e}")
+                logger.warning("Error generating graph: %s", e)
                 pass
         
         context = {
@@ -3032,8 +3027,7 @@ def test1_report_html(request, user_id=None):
     except Exception as e:
         import traceback
         trace = traceback.format_exc()
-        print(f"Error in test1_report_html: {str(e)}")
-        print(trace)
+        logger.exception(f"Error in test1_report_html: {str(e)}")
         resp = render(request, 'template20/app/test1_report.html', {
             'error': f'An error occurred: {str(e)}',
             'no_results': True,
@@ -3083,8 +3077,7 @@ def test2_report_html(request, user_id=None):
             top_category, streamsubject, courseName, max_length, min_length, below, avg, above_avg, top_categories = db_results_inst_user(target_user)
         except Exception as e:
             import traceback
-            print(f"Error in db_results_inst_user: {e}")
-            print(traceback.format_exc())
+            logger.exception(f"Error in db_results_inst_user: {e}")
             max_length = ''
             min_length = ''
         
@@ -3111,7 +3104,7 @@ def test2_report_html(request, user_id=None):
                 gernate_graph(request)
                 request.user = original_user
             except Exception as e:
-                print(f"Error generating graph: {e}")
+                logger.warning("Error generating graph: %s", e)
                 pass
         
         from app.interest_report_utils import interest_report_context_fields
@@ -3138,8 +3131,7 @@ def test2_report_html(request, user_id=None):
     except Exception as e:
         import traceback
         trace = traceback.format_exc()
-        print(f"Error in test2_report_html: {str(e)}")
-        print(trace)
+        logger.exception(f"Error in test2_report_html: {str(e)}")
         resp = render(request, 'template20/app/test2_report.html', {
             'error': f'An error occurred: {str(e)}',
             'no_results': True,
@@ -3189,8 +3181,7 @@ def test3_report_html(request, user_id=None):
             top_category, streamsubject, courseName, max_length, min_length, below, avg, above_avg, top_categories = db_results_inst_user(target_user)
         except Exception as e:
             import traceback
-            print(f"Error in db_results_inst_user: {e}")
-            print(traceback.format_exc())
+            logger.exception(f"Error in db_results_inst_user: {e}")
             below = []
             avg = []
             above_avg = []
@@ -3220,7 +3211,7 @@ def test3_report_html(request, user_id=None):
                 gernate_graph(request)
                 request.user = original_user
             except Exception as e:
-                print(f"Error generating graph: {e}")
+                logger.warning("Error generating graph: %s", e)
                 pass
         
         from app.report_visibility import student_all_growth_areas
@@ -3255,8 +3246,7 @@ def test3_report_html(request, user_id=None):
     except Exception as e:
         import traceback
         trace = traceback.format_exc()
-        print(f"Error in test3_report_html: {str(e)}")
-        print(trace)
+        logger.exception(f"Error in test3_report_html: {str(e)}")
         resp = render(request, 'template20/app/test3_report.html', {
             'error': f'An error occurred: {str(e)}',
             'no_results': True,
@@ -3352,8 +3342,7 @@ def test1_report_pdf(request, user_id=None):
             top_category, streamsubject, courseName, max_length, min_length, below, avg, above_avg, top_categories = db_results_inst_user(target_user)
         except Exception as e:
             import traceback
-            print(f"Error in db_results_inst_user: {e}")
-            print(traceback.format_exc())
+            logger.exception(f"Error in db_results_inst_user: {e}")
             top_category = None
             streamsubject = set()
             courseName = set()
@@ -3383,7 +3372,7 @@ def test1_report_pdf(request, user_id=None):
                 gernate_graph(request)
                 request.user = original_user
             except Exception as e:
-                print(f"Error generating graph: {e}")
+                logger.warning("Error generating graph: %s", e)
                 pass
         
         # Get created_date and student_name
@@ -3493,8 +3482,7 @@ def test2_report_pdf(request, user_id=None):
             top_category, streamsubject, courseName, max_length, min_length, below, avg, above_avg, top_categories = db_results_inst_user(target_user)
         except Exception as e:
             import traceback
-            print(f"Error in db_results_inst_user: {e}")
-            print(traceback.format_exc())
+            logger.exception(f"Error in db_results_inst_user: {e}")
             max_length = ''
             min_length = ''
         
@@ -3521,7 +3509,7 @@ def test2_report_pdf(request, user_id=None):
                 gernate_graph(request)
                 request.user = original_user
             except Exception as e:
-                print(f"Error generating graph: {e}")
+                logger.warning("Error generating graph: %s", e)
                 pass
         
         # Get created_date and student_name
@@ -3630,8 +3618,7 @@ def test3_report_pdf(request, user_id=None):
             top_category, streamsubject, courseName, max_length, min_length, below, avg, above_avg, top_categories = db_results_inst_user(target_user)
         except Exception as e:
             import traceback
-            print(f"Error in db_results_inst_user: {e}")
-            print(traceback.format_exc())
+            logger.exception(f"Error in db_results_inst_user: {e}")
             below = []
             avg = []
             above_avg = []
@@ -3661,7 +3648,7 @@ def test3_report_pdf(request, user_id=None):
                 gernate_graph(request)
                 request.user = original_user
             except Exception as e:
-                print(f"Error generating graph: {e}")
+                logger.warning("Error generating graph: %s", e)
                 pass
         
         # Get created_date and student_name

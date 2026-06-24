@@ -9,7 +9,10 @@ from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
 from core.models import Configuration, S3FileUpload
 import mimetypes
+import logging
 from urllib.parse import urljoin
+
+logger = logging.getLogger(__name__)
 
 
 class S3UploadService:
@@ -39,7 +42,7 @@ class S3UploadService:
                 self.s3_client = boto3.client('s3', region_name=self.aws_region)
         except Exception as e:
             self.s3_client = None
-            print(f"Error initializing S3 client: {e}")
+            logger.warning("Error initializing S3 client: %s", e)
     
     def is_enabled(self):
         """Check if S3 upload is enabled via Configuration"""
@@ -268,7 +271,7 @@ class S3UploadService:
             
             return files
         except Exception as e:
-            print(f"Error listing S3 files: {e}")
+            logger.warning("Error listing S3 files: %s", e)
             return []
     
     def list_folders_and_files(self, folder_path=''):
@@ -338,7 +341,7 @@ class S3UploadService:
             
             return {'folders': folders, 'files': files}
         except Exception as e:
-            print(f"Error listing S3 folders and files: {e}")
+            logger.warning("Error listing S3 folders and files: %s", e)
             return {'folders': [], 'files': []}
     
     def create_folder(self, folder_path):
@@ -433,7 +436,7 @@ class S3UploadService:
             )
             return url
         except Exception as e:
-            print(f"Error generating presigned URL for {s3_key}: {e}")
+            logger.warning("Error generating presigned URL for %s: %s", s3_key, e)
             return None
 
     def s3_key_from_url(self, url):

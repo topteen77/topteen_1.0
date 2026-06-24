@@ -261,7 +261,7 @@ def wait_for_db():
     """Handle the command"""
     from django import db
     import time
-    print('Waiting for database...')
+    logger.info('Waiting for database...')
     db.close_old_connections()
     db_conn = None
     while not db_conn:
@@ -269,10 +269,10 @@ def wait_for_db():
             db.connection.ensure_connection()
             db_conn = True
         except:
-            print('Database unavailable, waiting 1 second...')
+            logger.info('Database unavailable, waiting 1 second...')
             time.sleep(1)
 
-    print('Database available!')
+    logger.info('Database available!')
 
 def reformat_filename(filename):
     filename, file_extension = os.path.splitext(filename)
@@ -316,28 +316,35 @@ def get_preferred_payment_gateway():
     preference = getattr(settings, 'PAYMENT_GATEWAY_PREFERENCE', 1)
     icici_environment = getattr(settings, 'ICICI_EAZYPAY_ENVIRONMENT', 'sandbox')
     
-    print(f"[Gateway Selection] PAYMENT_GATEWAY_PREFERENCE from settings: {preference}")
-    print(f"[Gateway Selection] ICICI_EAZYPAY_ENVIRONMENT: {icici_environment}")
+    logger.debug("[Gateway Selection] PAYMENT_GATEWAY_PREFERENCE from settings: %s", preference)
+    logger.debug("[Gateway Selection] ICICI_EAZYPAY_ENVIRONMENT: %s", icici_environment)
     
     # Check if ICICI Eazypay is preferred (preference = 1 means ICICI Eazypay)
     if preference == 1:  # ICICI Eazypay preference
         # Use the improved is_gateway_available function for consistent validation
         if is_gateway_available(choices.GatewayChoices.ICICIEAZYPAY):
-            print("[Gateway Selection] Using ICICI Eazypay (credentials configured)")
+            logger.debug("[Gateway Selection] Using ICICI Eazypay (credentials configured)")
             return choices.GatewayChoices.ICICIEAZYPAY
         else:
             merchant_id = getattr(settings, 'ICICI_EAZYPAY_MERCHANT_ID', '')
             encryption_key = getattr(settings, 'ICICI_EAZYPAY_ENCRYPTION_KEY', '')
-            print(f"[Gateway Selection] ICICI Eazypay ({icici_environment} mode) - Merchant ID: {'SET' if merchant_id else 'EMPTY'}, Encryption Key: {'SET' if encryption_key else 'EMPTY'}")
-            print("[Gateway Selection] ICICI Eazypay preferred but credentials not configured, falling back to Razorpay")
+            logger.debug(
+                "[Gateway Selection] ICICI Eazypay (%s mode) - Merchant ID: %s, Encryption Key: %s",
+                icici_environment,
+                'SET' if merchant_id else 'EMPTY',
+                'SET' if encryption_key else 'EMPTY',
+            )
+            logger.debug(
+                "[Gateway Selection] ICICI Eazypay preferred but credentials not configured, falling back to Razorpay"
+            )
     
     # Fallback to Razorpay (either preference is 2, or ICICI Eazypay is not configured)
     if is_gateway_available(choices.GatewayChoices.RAZORPAY):
-        print("[Gateway Selection] Using Razorpay")
+        logger.debug("[Gateway Selection] Using Razorpay")
         return choices.GatewayChoices.RAZORPAY
     
     # If neither is configured, default to Razorpay (even if not configured)
-    print("[Gateway Selection] Warning: No payment gateway properly configured, defaulting to Razorpay")
+    logger.warning("[Gateway Selection] No payment gateway properly configured, defaulting to Razorpay")
     return choices.GatewayChoices.RAZORPAY
 
 def is_gateway_available(gateway_choice):

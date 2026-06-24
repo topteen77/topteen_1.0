@@ -1,0 +1,11 @@
+<script>
+  window.__ttNotificationBellConfig = {
+    userId: {{ request.user.id if (request and request.user and request.user.is_authenticated) else 'null' }},
+    latestUrl: '{{ url("notifications:latest_api") }}',
+    markReadUrl: '{{ url("notifications:mark_read_api") }}',
+    markBucketReadUrl: '{{ url("notifications:mark_bucket_read_api") }}',
+    notificationsPageUrl: '{{ url("notifications:page") }}',
+    pollMs: 60000
+  };
+</script>
+<script src="{{ static('js_new/notification-bell.js') }}?v=20260624" defer></script>

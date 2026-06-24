@@ -53,3 +53,6 @@
 
 {% if show_chatbot %}<script src="{{ static('js_new/chatbot-widget.js') }}"></script>{% endif %}
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+{% if request and request.user and request.user.is_authenticated %}
+{% include 'notifications/includes/notification_bell_boot.html' %}
+{% endif %}

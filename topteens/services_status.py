@@ -3,8 +3,11 @@ Service availability status: Redis, Celery (broker), Elasticsearch.
 Populated at Django startup so the app can use these flags without re-checking.
 Import from here: from topteens.services_status import REDIS_AVAILABLE, CELERY_AVAILABLE, ELASTICSEARCH_AVAILABLE
 """
+import logging
 import os
 import sys
+
+logger = logging.getLogger(__name__)
 
 # Set by run_startup_checks(); safe defaults for use before ready()
 REDIS_AVAILABLE = False
@@ -133,4 +136,4 @@ def run_startup_checks():
         lines.append("  COMMON_BASE_PATH:  error checking (" + str(e) + ")")
 
     if print_services:
-        print("\n".join(lines))
+        logger.debug("\n".join(lines))

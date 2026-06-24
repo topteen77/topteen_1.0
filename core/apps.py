@@ -9,6 +9,11 @@ class CoreConfig(AppConfig):
     name = 'core'
 
     def ready(self):
+        import logging
+
+        for noisy_logger in ('matplotlib', 'PIL', 'urllib3', 'botocore', 'boto3'):
+            logging.getLogger(noisy_logger).setLevel(logging.WARNING)
+
         try:
             from topteens.services_status import run_startup_checks
             run_startup_checks()
