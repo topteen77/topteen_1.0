@@ -4,7 +4,59 @@
 {% endif %}
 
 <header class="header tt-header" id="header">
+  {% if hdr_user.is_authenticated %}
+  {% include 'notifications/includes/notification_bell_styles.html' %}
+  {% endif %}
   <style>
+    .tt-header .tt-notification-bell-wrap {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .tt-header .tt-notification-bell {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+    }
+    .tt-header .tt-notification-bell:hover,
+    .tt-header .tt-notification-bell-wrap--empty .tt-notification-bell:hover {
+      background: #efecff !important;
+      box-shadow: none !important;
+    }
+    .tt-header .tt-notification-bell-icon {
+      color: var(--color-black-500, #1e1e1e);
+      width: 20px;
+      height: 20px;
+    }
+    .tt-header .menu-item.tt-header-notification {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-inline: 0.2rem;
+      cursor: default;
+    }
+    .tt-header .menu-item.tt-header-notification:hover {
+      background: #efecff;
+    }
+    .tt-header .tt-notification-dropdown {
+      background: rgb(244, 243, 255, 0.98) !important;
+      border: 1px solid #5350f72e !important;
+      border-radius: 14px !important;
+      box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px !important;
+      z-index: 1060;
+    }
+    .tt-header .tt-notification-header {
+      background: linear-gradient(180deg, rgba(244, 243, 255, 0.95) 0%, #fff 100%);
+      border-bottom-color: #5350f72e;
+    }
+    .tt-header .tt-notification-footer {
+      background: rgba(244, 243, 255, 0.5);
+      border-top-color: #5350f72e;
+    }
+
     @media (max-width: 61.99875rem) {
       .tt-header-mobile-toolbar {
         display: flex;
@@ -31,7 +83,7 @@
         background: transparent;
       }
       .tt-header-mobile-toolbar .tt-header-account-toggle img {
-        width:30px;
+        width: 30px;
         height: 30px;
         display: block;
       }
@@ -48,36 +100,23 @@
       }
       .tt-header-mobile-account .dropdown-content.login-content {
         position: absolute;
-    right: -43px;
-    top: calc(100% + 8px);
-    width: min(302px, calc(100vw - 24px));
-    z-index: 1060;
-    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
-    border-radius: 12px;
-
+        right: -43px;
+        top: calc(100% + 8px);
+        width: min(302px, calc(100vw - 24px));
+        z-index: 1060;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+        border-radius: 12px;
       }
-
-      .tt-notification-dropdown {
-  min-width: min(344px, calc(100vw - 24px));
-  right: -96px !important;
-}
+      .tt-header .tt-notification-dropdown {
+        min-width: min(344px, calc(100vw - 24px));
+        right: 0 !important;
+        left: auto !important;
+      }
     }
 
     @media (min-width: 62rem) {
       .tt-header-mobile-toolbar {
-        display: flex !important;
-        align-items: center;
-        margin-left: auto;
-        gap: 0.8rem;
-      }
-      .tt-header-mobile-toolbar .burger,
-      .tt-header-mobile-toolbar .main-search-icon,
-      .tt-header-mobile-toolbar .tt-header-mobile-account {
         display: none !important;
-      }
-      .tt-header-mobile-toolbar .tt-header-mobile-action {
-        display: flex;
-        align-items: center;
       }
     }
   </style>
@@ -88,6 +127,11 @@
       </a>
 
       <div class="tt-header-mobile-toolbar d-lg-none">
+        <div class="main-search-icon">
+          <a href="#" class="menu-link search-toggle" aria-label="Open search">
+            <i class='bx bx-search fs-20'></i>
+          </a>
+        </div>
         {% if hdr_user.is_authenticated %}
         <div class="tt-header-mobile-action">
           {% include "notifications/includes/notification_bell.html" %}
@@ -95,11 +139,6 @@
         {% endif %}
         <div class="dropdown tt-header-mobile-account">
           {% include "template20/includes/header_account_menu.html" %}
-        </div>
-        <div class="main-search-icon">
-          <a href="#" class="menu-link search-toggle">
-            <i class='bx bx-search fs-20'></i>
-          </a>
         </div>
         <div class="burger" id="burger">
           <span class="burger-line"></span>
@@ -179,6 +218,12 @@
             <i class='bx bx-search fs-20'></i>
           </a>
         </li>
+
+        {% if hdr_user.is_authenticated %}
+        <li class="menu-item tt-header-notification d-none d-lg-flex">
+          {% include "notifications/includes/notification_bell.html" %}
+        </li>
+        {% endif %}
         
         <li class="menu-item dropdown d-none d-lg-flex">
           {% include "template20/includes/header_account_menu.html" %}

@@ -25,116 +25,135 @@
   'mechanical_reasoning': 'bx-wrench',
   'spatial_reasoning': 'bx-cube'
 } %}
+
+{% macro aptitude_growth_plan_card(plan, card_index) %}
+{% set growth_area = plan.GrowthArea|default(plan.Area) %}
+{% set development_goal = plan.DevelopmentGoal|default('') %}
+{% set practice_frequency = plan.PracticeFrequency|default('') %}
+{% set expected_timeline = plan.ExpectedTimeline|default(plan.Duration)|default('') %}
+{% set plan_steps = plan.SuggestedImprovementPlan|default(plan.Remarks)|default([]) %}
+{% set area_slug = (plan.area_key|default(growth_area)|string|lower|replace(' ', '_')) %}
+{% set area_icon = growth_area_icons.get(area_slug, 'bx-bulb') %}
+<article class="aptitude-growth-plan-card aptitude-growth-plan-card--{{ area_slug|replace('_', '-') }}">
+  <div class="aptitude-growth-plan-card__head">
+    {% if growth_plan_layout != 'pdf' %}
+    <span class="aptitude-growth-plan-card__icon" aria-hidden="true"><i class="bx {{ area_icon }}"></i></span>
+    {% endif %}
+    <div class="aptitude-growth-plan-card__title-wrap">
+      {% if growth_plan_layout != 'pdf' %}
+      <p class="aptitude-growth-plan-field-label d-none">Growth Area</p>
+      {% endif %}
+      <h3>{{ growth_area }}</h3>
+    </div>
+  </div>
+
+  <div class="aptitude-growth-plan-card__body">
+    <div class="aptitude-growth-plan-card__meta">
+      <div class="aptitude-growth-plan-field">
+        <p class="aptitude-growth-plan-field-label">Development Goal</p>
+        <p class="aptitude-growth-plan-field-value">{{ development_goal if development_goal else '—' }}</p>
+      </div>
+
+      <div class="aptitude-growth-plan-field">
+        <p class="aptitude-growth-plan-field-label">Practice Frequency</p>
+        <p class="aptitude-growth-plan-field-value">{{ practice_frequency if practice_frequency else '—' }}</p>
+      </div>
+
+      <div class="aptitude-growth-plan-field">
+        <p class="aptitude-growth-plan-field-label">Expected Timeline</p>
+        <p class="aptitude-growth-plan-field-value">{{ expected_timeline if expected_timeline else '—' }}</p>
+      </div>
+    </div>
+
+    <div class="aptitude-growth-plan-field aptitude-growth-plan-field--plan{% if growth_plan_layout == 'dashboard' %} aptitude-growth-plan-field--plan-accordion{% endif %}">
+      {% if growth_plan_layout == 'dashboard' and plan_steps %}
+      {% set plan_panel_id = 'growth-plan-steps-' ~ area_slug ~ '-' ~ card_index %}
+      <button type="button"
+              class="aptitude-growth-plan-accordion-toggle"
+              aria-expanded="false"
+              aria-controls="{{ plan_panel_id }}">
+        <span class="aptitude-growth-plan-field-label aptitude-growth-plan-accordion-label">Suggested Improvement Plan</span>
+        <span class="aptitude-growth-plan-accordion-meta">
+          <span class="aptitude-growth-plan-accordion-count">{{ plan_steps|length }} step{{ 's' if plan_steps|length != 1 else '' }}</span>
+          <i class="bx bx-chevron-down aptitude-growth-plan-accordion-chevron" aria-hidden="true"></i>
+        </span>
+      </button>
+      <div id="{{ plan_panel_id }}" class="aptitude-growth-plan-accordion-panel" hidden>
+        <ol class="aptitude-growth-plan-list">
+          {% for remark in plan_steps %}
+          {% set remark_text = remark|aptitude_remark_text %}
+          {% set remark_parts = remark_text.split(':', 1) %}
+          <li>
+            <span class="aptitude-growth-plan-step-num">{{ loop.index }}</span>
+            <span class="aptitude-growth-plan-step-text">
+              {% if remark_parts|length > 1 and remark_parts[0]|length < 40 %}
+              <span class="aptitude-growth-plan-step-label">{{ remark_parts[0] }}</span>
+              {{ remark_parts[1] }}
+              {% else %}
+              {{ remark_text }}
+              {% endif %}
+            </span>
+          </li>
+          {% endfor %}
+        </ol>
+      </div>
+      {% else %}
+      <p class="aptitude-growth-plan-field-label">Suggested Improvement Plan</p>
+      {% if plan_steps %}
+      <ol class="aptitude-growth-plan-list">
+        {% for remark in plan_steps %}
+        {% set remark_text = remark|aptitude_remark_text %}
+        {% set remark_parts = remark_text.split(':', 1) %}
+        <li>
+          <span class="aptitude-growth-plan-step-num">{{ loop.index }}</span>
+          <span class="aptitude-growth-plan-step-text">
+            {% if remark_parts|length > 1 and remark_parts[0]|length < 40 %}
+            <span class="aptitude-growth-plan-step-label">{{ remark_parts[0] }}</span>
+            {{ remark_parts[1] }}
+            {% else %}
+            {{ remark_text }}
+            {% endif %}
+          </span>
+        </li>
+        {% endfor %}
+      </ol>
+      {% else %}
+      <p class="aptitude-growth-plan-field-value aptitude-growth-plan-field-value--empty">—</p>
+      {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</article>
+{% endmacro %}
+
 <div class="aptitude-growth-plan-section aptitude-growth-plan-section--{{ growth_plan_layout }}">
   <div class="aptitude-growth-plan-header">
-
     <h2 class="aptitude-growth-plan-title">Strategic Plan for Growth Area</h2>
-  
   </div>
 
-  <div class="aptitude-growth-plan-grid aptitude-growth-plan-grid--cols-{{ growth_plan_grid_cols }} aptitude-growth-plan-grid--layout-{{ growth_plan_layout }}">
-    {% for plan in aptitude_improvement_plan %}
-    {% set growth_area = plan.GrowthArea|default(plan.Area) %}
-    {% set development_goal = plan.DevelopmentGoal|default('') %}
-    {% set practice_frequency = plan.PracticeFrequency|default('') %}
-    {% set expected_timeline = plan.ExpectedTimeline|default(plan.Duration)|default('') %}
-    {% set plan_steps = plan.SuggestedImprovementPlan|default(plan.Remarks)|default([]) %}
-    {% set area_slug = (plan.area_key|default(growth_area)|string|lower|replace(' ', '_')) %}
-    {% set area_icon = growth_area_icons.get(area_slug, 'bx-bulb') %}
-    <article class="aptitude-growth-plan-card aptitude-growth-plan-card--{{ area_slug|replace('_', '-') }}">
-      <div class="aptitude-growth-plan-card__head">
-        {% if growth_plan_layout != 'pdf' %}
-        <span class="aptitude-growth-plan-card__icon" aria-hidden="true"><i class="bx {{ area_icon }}"></i></span>
-        {% endif %}
-        <div class="aptitude-growth-plan-card__title-wrap">
-          {% if growth_plan_layout == 'pdf' %}
-          <p class="aptitude-growth-plan-field-label">Growth Area</p>
-          {% else %}
-          <p class="aptitude-growth-plan-field-label d-none">Growth Area</p>
-          {% endif %}
-          <h3>{{ growth_area }}</h3>
-        </div>
+  {% if growth_plan_layout == 'pdf' %}
+  <div class="aptitude-growth-plan-grid aptitude-growth-plan-grid--layout-pdf">
+    {% for row_start in range(0, aptitude_improvement_plan|length, 2) %}
+    {% set row_plans = aptitude_improvement_plan[row_start:row_start + 2] %}
+    <div class="aptitude-growth-plan-pdf-row">
+      {% for plan in row_plans %}
+      <div class="aptitude-growth-plan-pdf-cell">
+        {{ aptitude_growth_plan_card(plan, row_start + loop.index) }}
       </div>
-
-      <div class="aptitude-growth-plan-card__body">
-        <div class="aptitude-growth-plan-card__meta">
-          <div class="aptitude-growth-plan-field">
-            <p class="aptitude-growth-plan-field-label">Development Goal</p>
-            <p class="aptitude-growth-plan-field-value">{{ development_goal if development_goal else '—' }}</p>
-          </div>
-
-          <div class="aptitude-growth-plan-field">
-            <p class="aptitude-growth-plan-field-label">Practice Frequency</p>
-            <p class="aptitude-growth-plan-field-value">{{ practice_frequency if practice_frequency else '—' }}</p>
-          </div>
-
-          <div class="aptitude-growth-plan-field">
-            <p class="aptitude-growth-plan-field-label">Expected Timeline</p>
-            <p class="aptitude-growth-plan-field-value">{{ expected_timeline if expected_timeline else '—' }}</p>
-          </div>
-        </div>
-
-        <div class="aptitude-growth-plan-field aptitude-growth-plan-field--plan{% if growth_plan_layout == 'dashboard' %} aptitude-growth-plan-field--plan-accordion{% endif %}">
-          {% if growth_plan_layout == 'dashboard' and plan_steps %}
-          {% set plan_panel_id = 'growth-plan-steps-' ~ area_slug ~ '-' ~ loop.index %}
-          <button type="button"
-                  class="aptitude-growth-plan-accordion-toggle"
-                  aria-expanded="false"
-                  aria-controls="{{ plan_panel_id }}">
-            <span class="aptitude-growth-plan-field-label aptitude-growth-plan-accordion-label">Suggested Improvement Plan</span>
-            <span class="aptitude-growth-plan-accordion-meta">
-              <span class="aptitude-growth-plan-accordion-count">{{ plan_steps|length }} step{{ 's' if plan_steps|length != 1 else '' }}</span>
-              <i class="bx bx-chevron-down aptitude-growth-plan-accordion-chevron" aria-hidden="true"></i>
-            </span>
-          </button>
-          <div id="{{ plan_panel_id }}" class="aptitude-growth-plan-accordion-panel" hidden>
-            <ol class="aptitude-growth-plan-list">
-              {% for remark in plan_steps %}
-              {% set remark_text = remark|aptitude_remark_text %}
-              {% set remark_parts = remark_text.split(':', 1) %}
-              <li>
-                <span class="aptitude-growth-plan-step-num">{{ loop.index }}</span>
-                <span class="aptitude-growth-plan-step-text">
-                  {% if remark_parts|length > 1 and remark_parts[0]|length < 40 %}
-                  <span class="aptitude-growth-plan-step-label">{{ remark_parts[0] }}</span>
-                  {{ remark_parts[1] }}
-                  {% else %}
-                  {{ remark_text }}
-                  {% endif %}
-                </span>
-              </li>
-              {% endfor %}
-            </ol>
-          </div>
-          {% else %}
-          <p class="aptitude-growth-plan-field-label">Suggested Improvement Plan</p>
-          {% if plan_steps %}
-          <ol class="aptitude-growth-plan-list">
-            {% for remark in plan_steps %}
-            {% set remark_text = remark|aptitude_remark_text %}
-            {% set remark_parts = remark_text.split(':', 1) %}
-            <li>
-              <span class="aptitude-growth-plan-step-num">{{ loop.index }}</span>
-              <span class="aptitude-growth-plan-step-text">
-                {% if remark_parts|length > 1 and remark_parts[0]|length < 40 %}
-                <span class="aptitude-growth-plan-step-label">{{ remark_parts[0] }}</span>
-                {{ remark_parts[1] }}
-                {% else %}
-                {{ remark_text }}
-                {% endif %}
-              </span>
-            </li>
-            {% endfor %}
-          </ol>
-          {% else %}
-          <p class="aptitude-growth-plan-field-value aptitude-growth-plan-field-value--empty">—</p>
-          {% endif %}
-          {% endif %}
-        </div>
-      </div>
-    </article>
+      {% endfor %}
+      {% if row_plans|length == 1 %}
+      <div class="aptitude-growth-plan-pdf-cell aptitude-growth-plan-pdf-cell--spacer" aria-hidden="true"></div>
+      {% endif %}
+    </div>
     {% endfor %}
   </div>
+  {% else %}
+  <div class="aptitude-growth-plan-grid aptitude-growth-plan-grid--cols-{{ growth_plan_grid_cols }} aptitude-growth-plan-grid--layout-{{ growth_plan_layout }}">
+    {% for plan in aptitude_improvement_plan %}
+    {{ aptitude_growth_plan_card(plan, loop.index) }}
+    {% endfor %}
+  </div>
+  {% endif %}
 </div>
 {% if growth_plan_layout == 'dashboard' %}
 <script>

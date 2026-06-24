@@ -58,7 +58,7 @@
 
   .aptitude-growth-plan-section--web-report .aptitude-growth-plan-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 14px;
+    gap: 22px 24px;
   }
 
   /* Web reports (test3 + combined): improved readability */
@@ -83,11 +83,11 @@
 
   .aptitude-growth-plan-section--web-report .aptitude-growth-plan-card__body {
     padding: 12px 14px 14px;
-    gap: 10px;
+    gap: 12px;
   }
 
   .aptitude-growth-plan-section--web-report .aptitude-growth-plan-card__meta {
-    gap: 8px;
+    gap: 12px;
   }
 
   .aptitude-growth-plan-section--web-report .aptitude-growth-plan-field {
@@ -106,7 +106,7 @@
   }
 
   .aptitude-growth-plan-section--web-report .aptitude-growth-plan-list {
-    gap: 8px;
+    gap: 10px;
   }
 
   .aptitude-growth-plan-section--web-report .aptitude-growth-plan-list li {
@@ -138,6 +138,7 @@
   @media (max-width: 900px) {
     .aptitude-growth-plan-section--web-report .aptitude-growth-plan-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
     }
   }
 
@@ -163,7 +164,7 @@
 
   .aptitude-growth-plan-card__head {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 8px;
     padding: 10px 10px 8px;
     background: linear-gradient(135deg, rgba(63, 55, 201, 0.08) 0%, rgba(194, 78, 78, 0.08) 100%);
@@ -461,19 +462,26 @@
   .aptitude-growth-plan-card--mechanical-reasoning .aptitude-growth-plan-card__icon { background: linear-gradient(145deg, #ca8a04, #eab308); }
   .aptitude-growth-plan-card--spatial-reasoning .aptitude-growth-plan-card__icon { background: linear-gradient(145deg, #db2777, #ec4899); }
 
-  /* PDF report: WeasyPrint-safe 2-column float layout (grid/flex often collapse) */
+  /* PDF report: WeasyPrint-safe 2-column table-row layout (grid/flex often collapse) */
   .below-average-guidance-report--pdf .aptitude-growth-plan-section {
-    margin: 8px 0 12px;
-    padding: 8px 0;
+    margin: 6px 0 10px;
+    padding: 0;
     box-shadow: none;
     border: 0;
     background: transparent;
     width: 100%;
+    max-width: 100%;
     clear: both;
+    box-sizing: border-box;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-section,
+  .below-average-guidance-report--pdf .aptitude-growth-plan-section * {
+    box-sizing: border-box;
   }
 
   .below-average-guidance-report--pdf .aptitude-growth-plan-header {
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
 
   .below-average-guidance-report--pdf .aptitude-growth-plan-eyebrow,
@@ -482,43 +490,58 @@
   }
 
   .below-average-guidance-report--pdf .aptitude-growth-plan-title {
-    font-size: 13pt;
-    margin-bottom: 8px;
+    font-size: 12.5pt;
+    margin-bottom: 6px;
   }
 
   .below-average-guidance-report--pdf .aptitude-growth-plan-grid {
     display: block;
     width: 100%;
-    overflow: hidden;
+    max-width: 100%;
   }
 
-  .below-average-guidance-report--pdf .aptitude-growth-plan-grid::after {
-    content: '';
+  .below-average-guidance-report--pdf .aptitude-growth-plan-pdf-row {
     display: table;
-    clear: both;
-  }
-
-  .below-average-guidance-report--pdf .aptitude-growth-plan-card {
-    float: left;
-    width: 48.5%;
-    margin: 0 1.5% 10px 0;
-    height: auto;
-    min-height: 0;
-    display: block;
-    overflow: visible;
-    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 10px 0;
+    margin: 0 0 10px;
     page-break-inside: avoid;
     break-inside: avoid;
   }
 
-  .below-average-guidance-report--pdf .aptitude-growth-plan-card:nth-child(2n) {
-    margin-right: 0;
+  .below-average-guidance-report--pdf .aptitude-growth-plan-pdf-cell {
+    display: table-cell;
+    width: 50%;
+    vertical-align: top;
+    padding: 0;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-pdf-cell--spacer {
+    border: 0;
+    background: transparent;
+    padding: 0;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-card {
+    float: none;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    height: 100%;
+    min-height: 100%;
+    display: block;
+    overflow: hidden;
+    page-break-inside: auto;
+    break-inside: auto;
   }
 
   .below-average-guidance-report--pdf .aptitude-growth-plan-card__head {
     display: block;
     overflow: hidden;
-    padding: 8px 10px 6px;
+    padding: 7px 8px 5px;
     background: linear-gradient(135deg, rgba(63, 55, 201, 0.08) 0%, rgba(194, 78, 78, 0.08) 100%);
     border-bottom: 1px solid #f0ecff;
   }
@@ -532,30 +555,32 @@
   }
 
   .below-average-guidance-report--pdf .aptitude-growth-plan-card__title-wrap .aptitude-growth-plan-field-label {
-    margin-bottom: 3px;
+    display: none !important;
   }
 
   .below-average-guidance-report--pdf .aptitude-growth-plan-card h3 {
-    font-size: 9.5pt;
-    line-height: 1.25;
+    font-size: 9pt;
+    line-height: 1.2;
     margin: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
 
   .below-average-guidance-report--pdf .aptitude-growth-plan-card__body {
     display: block;
-    padding: 10px 8px 8px;
+    padding: 7px 6px 6px;
     min-height: 0;
   }
 
   .below-average-guidance-report--pdf .aptitude-growth-plan-card__meta {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
 
   .below-average-guidance-report--pdf .aptitude-growth-plan-field {
-    padding: 7px 8px;
-    margin-bottom: 8px !important;
-    border-radius: 6px;
+    padding: 6px 7px;
+    margin-bottom: 6px !important;
+    border-radius: 5px;
   }
 
   .below-average-guidance-report--pdf .aptitude-growth-plan-card__meta .aptitude-growth-plan-field:last-child {
@@ -563,20 +588,23 @@
   }
 
   .below-average-guidance-report--pdf .aptitude-growth-plan-field-label {
-    font-size: 7pt;
-    margin-bottom: 4px;
+    font-size: 6.5pt;
+    margin-bottom: 3px;
+    letter-spacing: 0.03em;
   }
 
   .below-average-guidance-report--pdf .aptitude-growth-plan-field-value {
-    font-size: 8pt;
-    line-height: 1.45;
+    font-size: 7.5pt;
+    line-height: 1.4;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
 
   .below-average-guidance-report--pdf .aptitude-growth-plan-field--plan {
     display: block;
-    margin-top: 8px !important;
+    margin-top: 6px !important;
     margin-bottom: 0 !important;
-    padding: 7px 8px;
+    padding: 6px 7px;
   }
 
   .below-average-guidance-report--pdf .aptitude-growth-plan-list {
@@ -586,23 +614,27 @@
   .below-average-guidance-report--pdf .aptitude-growth-plan-list li {
     display: block;
     position: relative;
-    padding: 6px 7px 6px 24px;
-    margin-bottom: 6px;
-    min-height: 18px;
+    padding: 5px 6px 5px 22px;
+    margin-bottom: 4px;
+    min-height: 16px;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-list li:last-child {
+    margin-bottom: 0;
   }
 
   .below-average-guidance-report--pdf .aptitude-growth-plan-step-num {
     position: absolute;
-    left: 4px;
-    top: 6px;
-    width: 16px;
-    height: 16px;
+    left: 3px;
+    top: 5px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     background: #3f37c9;
     color: #fff;
-    font-size: 7pt;
+    font-size: 6.5pt;
     font-weight: 800;
-    line-height: 16px;
+    line-height: 14px;
     text-align: center;
     display: block;
     padding: 0;
@@ -614,12 +646,14 @@
 
   .below-average-guidance-report--pdf .aptitude-growth-plan-step-text {
     display: block;
-    font-size: 7.5pt;
-    line-height: 1.35;
+    font-size: 7pt;
+    line-height: 1.32;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
 
   .below-average-guidance-report--pdf .aptitude-growth-plan-step-label {
-    font-size: 7.5pt;
+    font-size: 7pt;
   }
 
   .below-average-guidance-report--pdf .aptitude-growth-plan-card__head,
@@ -636,9 +670,16 @@
       padding: 12px 0;
     }
 
-    .below-average-guidance-report--pdf .aptitude-growth-plan-card {
-      float: left;
-      width: 48.5%;
+    .below-average-guidance-report--pdf .aptitude-growth-plan-pdf-row {
+      display: table;
+      width: 100%;
+      page-break-inside: avoid;
+    }
+
+    .below-average-guidance-report--pdf .aptitude-growth-plan-pdf-cell {
+      display: table-cell;
+      width: 50%;
+      vertical-align: top;
     }
   }
 </style>
