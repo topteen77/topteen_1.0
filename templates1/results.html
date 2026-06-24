@@ -1013,6 +1013,23 @@
             text-wrap: pretty;
         }
 
+        /* Class 12 consolidated interpretation — footer clearance */
+        .class12-consolidated-profile .header-text h3 {
+            text-align: center;
+            line-height: 1.35;
+        }
+
+        .chapterPage.class12-consolidated-page {
+            padding-bottom: 110px;
+        }
+
+        @media (max-width: 768px) {
+            .class12-consolidated-profile .impact-box .impact-info {
+                display: block;
+                width: 100%;
+            }
+        }
+
 
         /** updated css **/
     </style>
@@ -4008,6 +4025,20 @@
 
                 <div class="average-cards aptitude-tier-cards"></div>
 
+                {% if aptitude_tier_data_json %}
+                <script type="application/json" id="aptitude-tier-data-json">{{ aptitude_tier_data_json|safe }}</script>
+                <script>
+                    (function () {
+                        var el = document.getElementById('aptitude-tier-data-json');
+                        try {
+                            window.aptitudeTierData = el ? JSON.parse(el.textContent || '{}') : null;
+                        } catch (e) {
+                            window.aptitudeTierData = null;
+                        }
+                    })();
+                </script>
+                {% endif %}
+
                 <div class="aptitude-profile-banner">
                     <p><strong>Your Aptitude Profile:</strong> Natural abilities across 7 key areas</p>
                 </div>
@@ -4024,7 +4055,100 @@
             </div>
 
                     <!-- Aptitude Interpretations -->
-                    {% if aptitude_interpretations %}
+                    {% if class12_aptitude_consolidated_profile %}
+            <div class="chapterPage class12-consolidated-page">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+
+                <div class="recommended-courses-info-above-average class12-consolidated-profile" style="margin-top: 20px;margin-bottom: 10px;">
+
+                    <div class="header-text">
+                        <h3>
+                            <div class="imgpact">
+                                <img src="{% static class12_aptitude_consolidated_profile.image %}" alt="img">
+                            </div>
+                            {{ class12_aptitude_consolidated_profile.title|default:"Recommendation" }}
+                        </h3>
+                    </div>
+
+                    <div class="real-description">
+                        {{ class12_aptitude_consolidated_profile.description_html|safe }}
+
+                        <div class="real-sign-box">
+                            <h4>
+                                <div class="real-sign"> <img src="{% static 'images/real-sign.webp'%}" alt="img"> </div>
+                                Real-life signs:
+                            </h4>
+                            <ul>
+                                {% for sign in class12_aptitude_consolidated_profile.real_life_signs %}
+                                <li>{{ sign }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="impact-box">
+                        <div class="impact-info">
+                            <h4>
+                                <div class="car-img"> <img src="{% static 'images/3d-grad-cap.webp'%}" alt="img"> </div>
+                                Career Impact:
+                            </h4>
+                            <p>This ability is a major foundation for:</p>
+                            <ul>
+                                {% for career in class12_aptitude_consolidated_profile.career_clusters %}
+                                <li>{{ career }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="impact-info">
+                            <h4>
+                                <div class="car-img"> <img src="{% static 'images/3d-insight.webp'%}" alt="img"> </div>
+                                Daily life impact:
+                            </h4>
+                            <ul>
+                                {% for impact in class12_aptitude_consolidated_profile.daily_life_impact %}
+                                <li>{{ impact }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="impact-info stra-nar" style="margin-top: 13px;">
+                        <h4>Strength Narrative:</h4>
+                        {% if class12_aptitude_consolidated_profile.narrative_html %}
+                        <div class="aptitude-remark-text">{{ class12_aptitude_consolidated_profile.narrative_html|safe }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="impact-box aptitude-reco-two-col">
+                        <div class="impact-info">
+                            <h4>Recommended College Courses:</h4>
+                            <ul class="no-list-style">
+                                {% for course in class12_aptitude_consolidated_profile.degree_pathways %}
+                                <li>
+                                    <i style="color: #3F37C9;" class="fas fa-briefcase me-2"></i>
+                                    {{ course|safe }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="impact-info">
+                            <h4>Career Recommendations:</h4>
+                            <ul class="no-list-style">
+                                {% for role in class12_aptitude_consolidated_profile.career_pathways %}
+                                <li>
+                                    <i style="color: #3F37C9;" class="fas fa-briefcase me-2"></i>
+                                    {{ role|safe }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                    {% elif aptitude_interpretations %}
 
             {% for interpretation in aptitude_interpretations %}
             <div class="chapterPage"  >
@@ -4069,7 +4193,7 @@
                                 </h4>
                                 <ul>
                                     {% for sign in interpretation|get_item:"Real life signs" %}
-                                    <li>{{ interpretation|get_item:"Real life signs"|first }}</li>
+                                    <li>{{ sign }}</li>
                                     {% endfor %}
                                 </ul>
         
@@ -4122,6 +4246,9 @@
                               
                                 Strength Narrative:
                             </h4>
+                            {% if strength.Narrative_html %}
+                            <div class="aptitude-remark-text">{{ strength.Narrative_html|safe }}</div>
+                            {% else %}
                             <ul>
                                 {% for remark in strength.Major_points %}
                                 <li>
@@ -4134,6 +4261,7 @@
                                 </li>
                                 {% endfor %}
                             </ul>
+                            {% endif %}
                         </div>
                         {% endif %}
                         {% endfor %}
@@ -4154,7 +4282,7 @@
                                         {% else %}
                                         <i style="color: rgb(46, 138, 166);" class="fas fa-briefcase me-2"></i>
                                         {% endif %}
-                                        {{ course }}
+                                        {{ course|safe }}
                                     </li>
                                     {% endfor %}
                                 </ul>
@@ -4177,7 +4305,7 @@
                                         {% else %}
                                         <i style="color: rgb(46, 138, 166);" class="fas fa-briefcase me-2"></i>
                                         {% endif %}
-                                        {{ rec.Role }}
+                                        {{ rec.Role|safe }}
                                     </li>
                                     {% endfor %}
                                 </ul>

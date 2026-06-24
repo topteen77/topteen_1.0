@@ -1213,8 +1213,18 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
                             result['aptitude_roles_guidance'].append(area_group)
 
                 # ---------- Above Average + Average: Strength/Recommendations/Roles ----------
-                process_strength_recs_roles(above_categories)
-                process_strength_recs_roles(average_categories)
+                from app.class12_aptitude_report_utils import apply_consolidated_to_aptitude_result
+
+                consolidated_key = apply_consolidated_to_aptitude_result(
+                    result,
+                    above_categories,
+                    average_categories,
+                )
+                if not consolidated_key:
+                    process_strength_recs_roles(above_categories)
+                    process_strength_recs_roles(average_categories)
+                else:
+                    result['class12_aptitude_combination_key'] = consolidated_key
 
                 # ---------- Student-facing grouped course cards ----------
                 # Build "Course + mapped area(s) + optional eligibility hints" structure for dashboard.
@@ -1652,29 +1662,15 @@ def Results(request):
         elif latest_session.test.title == 'Aptitude Assessment' and high_categories:
             
             hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, latest_session)
-            # breakpoint()
-            # Get aptitude interpretation data for above average and average areas
-            aptitude_interpretations = []
-            if aptitude_interpretation_data and 'Aptitude_Interpretations' in aptitude_interpretation_data:
-                above_areas = high_categories.get("Above Average", []) if isinstance(high_categories, dict) else []
-                average_areas = high_categories.get("Average", []) if isinstance(high_categories, dict) else []
-                all_areas = above_areas + average_areas
-                
-                for area in all_areas:
-                    mapped_area = resolve_aptitude_json_area(area)
-                    for interpretation in aptitude_interpretation_data['Aptitude_Interpretations']:
-                        if interpretation['Area'] == mapped_area:
-                            aptitude_interpretations.append(interpretation)
-                            break
-            
-            context.update({
-                'aptitude_improvement_plan': hexaco_recommendations['aptitude_improvement_plan'],
-                'aptitude_strength_narrative': hexaco_recommendations['aptitude_strength_narrative'],
-                'aptitude_Recommended_College_Courses': hexaco_recommendations['aptitude_Recommended_College_Courses'],
-                'aptitude_roles_guidance': hexaco_recommendations['aptitude_roles_guidance'],
-                'career_guidance_selected': hexaco_recommendations['career_guidance_selected'],
-                'aptitude_interpretations': aptitude_interpretations,
-            })
+            from app.class12_aptitude_report_utils import aptitude_assessment_report_context
+
+            context.update(
+                aptitude_assessment_report_context(
+                    high_categories,
+                    aptitude_interpretation_data,
+                    hexaco_recommendations,
+                )
+            )
         
         # Build test_results_data for JavaScript (pdf-results.js)
         test_results_data = []
@@ -3498,29 +3494,15 @@ def Test_results(request, id):
         elif latest_session.test.title == 'Aptitude Assessment' and high_categories:
             
             hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, latest_session)
-            # breakpoint()
-            # Get aptitude interpretation data for above average and average areas
-            aptitude_interpretations = []
-            if aptitude_interpretation_data and 'Aptitude_Interpretations' in aptitude_interpretation_data:
-                above_areas = high_categories.get("Above Average", []) if isinstance(high_categories, dict) else []
-                average_areas = high_categories.get("Average", []) if isinstance(high_categories, dict) else []
-                all_areas = above_areas + average_areas
-                
-                for area in all_areas:
-                    mapped_area = resolve_aptitude_json_area(area)
-                    for interpretation in aptitude_interpretation_data['Aptitude_Interpretations']:
-                        if interpretation['Area'] == mapped_area:
-                            aptitude_interpretations.append(interpretation)
-                            break
-            
-            context.update({
-                'aptitude_improvement_plan': hexaco_recommendations['aptitude_improvement_plan'],
-                'aptitude_strength_narrative': hexaco_recommendations['aptitude_strength_narrative'],
-                'aptitude_Recommended_College_Courses': hexaco_recommendations['aptitude_Recommended_College_Courses'],
-                'aptitude_roles_guidance': hexaco_recommendations['aptitude_roles_guidance'],
-                'career_guidance_selected': hexaco_recommendations['career_guidance_selected'],
-                'aptitude_interpretations': aptitude_interpretations,
-            })
+            from app.class12_aptitude_report_utils import aptitude_assessment_report_context
+
+            context.update(
+                aptitude_assessment_report_context(
+                    high_categories,
+                    aptitude_interpretation_data,
+                    hexaco_recommendations,
+                )
+            )
         
         # Build test_results_data for JavaScript (pdf-results.js)
         test_results_data = []
@@ -3791,31 +3773,15 @@ def download_test_results_pdf(request, id):
             })
         elif latest_session.test.title == 'Aptitude Assessment' and high_categories:
             hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, latest_session)
-            
-            # Get aptitude interpretation data for above average and average areas
-            aptitude_interpretations = []
-            if aptitude_interpretation_data and 'Aptitude_Interpretations' in aptitude_interpretation_data:
-                above_areas = high_categories.get("Above Average", []) if isinstance(high_categories, dict) else []
-                average_areas = high_categories.get("Average", []) if isinstance(high_categories, dict) else []
-                all_areas = above_areas + average_areas
-                
-                for area in all_areas:
-                    mapped_area = resolve_aptitude_json_area(area)
-                    for interpretation in aptitude_interpretation_data['Aptitude_Interpretations']:
-                        if interpretation['Area'] == mapped_area:
-                            aptitude_interpretations.append(interpretation)
-                            break
-            
-            context.update({
-                'aptitude_improvement_plan': hexaco_recommendations.get('aptitude_improvement_plan', []),
-                'aptitude_strength_narrative': hexaco_recommendations.get('aptitude_strength_narrative', []),
-                'aptitude_Recommended_College_Courses': hexaco_recommendations.get('aptitude_Recommended_College_Courses', []),
-                'aptitude_roles_guidance': hexaco_recommendations.get('aptitude_roles_guidance', []),
-                'above_list': high_categories.get("Above Average", []) if isinstance(high_categories, dict) else [],
-                'average_list': high_categories.get("Average", []) if isinstance(high_categories, dict) else [],
-                'below_list': high_categories.get("Below Average", []) if isinstance(high_categories, dict) else [],
-                'aptitude_interpretations': aptitude_interpretations,
-            })
+            from app.class12_aptitude_report_utils import aptitude_assessment_report_context
+
+            context.update(
+                aptitude_assessment_report_context(
+                    high_categories,
+                    aptitude_interpretation_data,
+                    hexaco_recommendations,
+                )
+            )
         
         # Render PDF template
         template = get_template('template20/app_post_matric/test_results_pdf.html')

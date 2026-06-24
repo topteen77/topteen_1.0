@@ -636,24 +636,43 @@ function populateAverageCards(sectionsData) {
   // Clear any existing content
   averageCardsContainer.innerHTML = '';
 
-  // Categorize sections by performance level
-  const performanceLevels = {
+  let performanceLevels = {
     'Above Average': [],
     'Average': [],
     'Below Average': []
   };
 
-  sectionsData.forEach(section => {
-    const accuracy = section.accuracy;
-    if (accuracy >= 70) {
-      performanceLevels['Above Average'].push(section.name);
-    } else if (accuracy >= 40) {
-      performanceLevels['Average'].push(section.name);
-    } else {
-      performanceLevels['Below Average'].push(section.name);
-    }
-  });
+  const serverTiers = window.aptitudeTierData;
+  if (
+    serverTiers &&
+    (
+      (serverTiers.above_average && serverTiers.above_average.length) ||
+      (serverTiers.average && serverTiers.average.length) ||
+      (serverTiers.below_average && serverTiers.below_average.length)
+    )
+  ) {
+    performanceLevels = {
+      'Above Average': serverTiers.above_average || [],
+      'Average': serverTiers.average || [],
+      'Below Average': serverTiers.below_average || [],
+    };
+  } else {
+    sectionsData.forEach(section => {
+      const accuracy = section.accuracy;
+      if (accuracy >= 70) {
+        performanceLevels['Above Average'].push(section.name);
+      } else if (accuracy >= 40) {
+        performanceLevels['Average'].push(section.name);
+      } else {
+        performanceLevels['Below Average'].push(section.name);
+      }
+    });
+  }
 
+  renderAptitudeTierBoxes(averageCardsContainer, performanceLevels);
+}
+
+function renderAptitudeTierBoxes(container, performanceLevels) {
   // Create Above Average box
   if (performanceLevels['Above Average'].length > 0) {
     const aboveAverageBox = createCustomPerformanceBox(
@@ -665,7 +684,7 @@ function populateAverageCards(sectionsData) {
         textColor: '#3F37C9'
       }
     );
-    averageCardsContainer.appendChild(aboveAverageBox);
+    container.appendChild(aboveAverageBox);
   }
 
   // Create Average box
@@ -679,7 +698,7 @@ function populateAverageCards(sectionsData) {
         textColor: '#2E8AA6'
       }
     );
-    averageCardsContainer.appendChild(averageBox);
+    container.appendChild(averageBox);
   }
 
   // Below Average tier key unchanged; UI label is Growth Area
@@ -693,7 +712,7 @@ function populateAverageCards(sectionsData) {
         textColor: '#A22717'
       }
     );
-    averageCardsContainer.appendChild(belowAverageBox);
+    container.appendChild(belowAverageBox);
   }
 }
 

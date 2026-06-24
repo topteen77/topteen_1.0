@@ -323,3 +323,41 @@ class AptitudeImprovementPlan(models.Model):
 
     def __str__(self):
         return f'{self.get_education_level_display()} — {self.growth_area_title}'
+
+
+class Class12AptitudeConsolidatedReport(models.Model):
+    """Consolidated Class 11–12 aptitude interpretation row (one per reasoning combination)."""
+
+    reasoning_combination = models.CharField(
+        max_length=64,
+        unique=True,
+        help_text='Normalized key, e.g. AR + CR + LR',
+    )
+    codes = models.JSONField(default=list, blank=True)
+    aptitude_description = models.TextField(blank=True)
+    interpretation_narrative = models.TextField(blank=True)
+    career_clusters = models.JSONField(default=list, blank=True)
+    career_pathways = models.JSONField(default=list, blank=True)
+    degree_pathways = models.JSONField(default=list, blank=True)
+    is_active = models.BooleanField(default=True)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ('reasoning_combination',)
+        verbose_name = 'Class 12 aptitude consolidated report'
+        verbose_name_plural = 'Class 12 aptitude consolidated reports'
+
+    def __str__(self):
+        return self.reasoning_combination
+
+    def to_row_dict(self) -> dict:
+        return {
+            'reasoning_combination': self.reasoning_combination,
+            'codes': list(self.codes or []),
+            'aptitude_description': self.aptitude_description or '',
+            'interpretation_narrative': self.interpretation_narrative or '',
+            'career_clusters': list(self.career_clusters or []),
+            'career_pathways': list(self.career_pathways or []),
+            'degree_pathways': list(self.degree_pathways or []),
+        }
