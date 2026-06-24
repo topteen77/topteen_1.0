@@ -1,5 +1,10 @@
 {# Improvement recommendations + vocational guidance (below-average students only) #}
 {% set vocational_report_is_pdf = show_student_info_on_cover is defined and show_student_info_on_cover %}
+{% if vocational_report_is_pdf %}
+{% set growth_plan_layout = 'pdf' %}
+{% else %}
+{% set growth_plan_layout = growth_plan_layout|default('dashboard') %}
+{% endif %}
 <div class="below-average-guidance-report report-subsection{% if vocational_report_is_pdf %} below-average-guidance-report--pdf{% endif %}">
   {% if not vocational_report_is_pdf %}
   <div class="page-header" style="width:650px;">

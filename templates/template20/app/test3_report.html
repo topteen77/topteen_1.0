@@ -578,6 +578,7 @@ table {
   {% include 'template20/app/partials/aptitude_combination_profile.html' %}
 
   {% if student_below_average|default(false) %}
+  {% set growth_plan_layout = 'web-report' %}
   {% include 'template20/app/partials/below_average_guidance_report.html' %}
   {% endif %}
   {% endif %}

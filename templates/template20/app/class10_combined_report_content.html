@@ -838,6 +838,9 @@
     {% endif %}
 
     {% if student_below_average|default(false) %}
+    {% if not (show_student_info_on_cover is defined and show_student_info_on_cover) %}
+    {% set growth_plan_layout = 'web-report' %}
+    {% endif %}
     {% include 'template20/app/partials/below_average_guidance_report.html' %}
     {% elif stream_sorter_guidance %}
     {% include 'template20/app/partials/stream_sorter_guidance_section.html' %}

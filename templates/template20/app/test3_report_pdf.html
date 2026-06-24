@@ -130,7 +130,16 @@
     .threebox-col { display: flex; justify-content: center; margin: 8px 0 0 0; }
     .aptitude-combination-profile div,
     .aptitude-plan-block div,
-    .aptitude-fit-icon-box {
+    .aptitude-fit-icon-box,
+    .below-average-guidance-report--pdf .aptitude-growth-plan-section div,
+    .below-average-guidance-report--pdf .aptitude-growth-plan-card div {
+      margin-bottom: 0 !important;
+    }
+    .below-average-guidance-report--pdf .aptitude-growth-plan-field:not(.aptitude-growth-plan-field--plan) {
+      margin-bottom: 8px !important;
+    }
+    .below-average-guidance-report--pdf .aptitude-growth-plan-field--plan {
+      margin-top: 8px !important;
       margin-bottom: 0 !important;
     }
     .aptitude-fit-list {

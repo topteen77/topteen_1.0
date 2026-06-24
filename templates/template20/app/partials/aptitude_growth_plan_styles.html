@@ -1,18 +1,18 @@
 {# Shared styles for Strategic Plan for Growth Area #}
 <style>
   .aptitude-growth-plan-section {
-    margin: 28px 0 36px;
-    padding: 24px;
-    border-radius: 18px;
+    margin: 20px 0 28px;
+    padding: 16px 18px;
+    border-radius: 14px;
     background: linear-gradient(180deg, #faf8ff 0%, #ffffff 55%, #fff9f9 100%);
     border: 1px solid #e8e4ff;
-    box-shadow: 0 10px 30px rgba(63, 55, 201, 0.06);
+    box-shadow: 0 8px 24px rgba(63, 55, 201, 0.05);
   }
 
   .aptitude-growth-plan-header {
     text-align: center;
-    max-width: 760px;
-    margin: 0 auto 24px;
+    max-width: 900px;
+    margin: 0 auto 16px;
   }
 
   .aptitude-growth-plan-eyebrow {
@@ -31,9 +31,9 @@
   }
 
   .aptitude-growth-plan-title {
-    margin: 0 0 8px;
+    margin: 0 0 6px;
     color: #2720a7;
-    font-size: clamp(1.35rem, 2vw, 1.7rem);
+    font-size: clamp(1.1rem, 1.6vw, 1.35rem);
     font-weight: 800;
     line-height: 1.25;
   }
@@ -41,19 +41,109 @@
   .aptitude-growth-plan-subtitle {
     margin: 0;
     color: #5b6472;
-    font-size: 14px;
-    line-height: 1.6;
+    font-size: 12px;
+    line-height: 1.5;
   }
 
   .aptitude-growth-plan-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 18px;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .aptitude-growth-plan-grid--cols-1 { grid-template-columns: minmax(0, 1fr); }
+  .aptitude-growth-plan-grid--cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .aptitude-growth-plan-grid--cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .aptitude-growth-plan-grid--cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+  .aptitude-growth-plan-section--web-report .aptitude-growth-plan-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  /* Web reports (test3 + combined): improved readability */
+  .aptitude-growth-plan-section--web-report .aptitude-growth-plan-title {
+    font-size: clamp(1.25rem, 2vw, 1.5rem);
+  }
+
+  .aptitude-growth-plan-section--web-report .aptitude-growth-plan-card h3 {
+    font-size: 1rem;
+    line-height: 1.35;
+  }
+
+  .aptitude-growth-plan-section--web-report .aptitude-growth-plan-card__icon {
+    width: 38px;
+    height: 38px;
+    font-size: 19px;
+  }
+
+  .aptitude-growth-plan-section--web-report .aptitude-growth-plan-card__head {
+    padding: 12px 14px 10px;
+  }
+
+  .aptitude-growth-plan-section--web-report .aptitude-growth-plan-card__body {
+    padding: 12px 14px 14px;
+    gap: 10px;
+  }
+
+  .aptitude-growth-plan-section--web-report .aptitude-growth-plan-card__meta {
+    gap: 8px;
+  }
+
+  .aptitude-growth-plan-section--web-report .aptitude-growth-plan-field {
+    padding: 10px 12px;
+  }
+
+  .aptitude-growth-plan-section--web-report .aptitude-growth-plan-field-label {
+    font-size: 11px;
+    margin-bottom: 5px;
+    letter-spacing: 0.05em;
+  }
+
+  .aptitude-growth-plan-section--web-report .aptitude-growth-plan-field-value {
+    font-size: 13.5px;
+    line-height: 1.55;
+  }
+
+  .aptitude-growth-plan-section--web-report .aptitude-growth-plan-list {
+    gap: 8px;
+  }
+
+  .aptitude-growth-plan-section--web-report .aptitude-growth-plan-list li {
+    grid-template-columns: 24px 1fr;
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  .aptitude-growth-plan-section--web-report .aptitude-growth-plan-step-num {
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    font-size: 12px;
+  }
+
+  .aptitude-growth-plan-section--web-report .aptitude-growth-plan-step-text,
+  .aptitude-growth-plan-section--web-report .aptitude-growth-plan-step-label {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 1200px) {
+    .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-grid--cols-3,
+    .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-grid--cols-4 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 
   @media (max-width: 900px) {
+    .aptitude-growth-plan-section--web-report .aptitude-growth-plan-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
     .aptitude-growth-plan-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: 1fr !important;
     }
   }
 
@@ -61,11 +151,12 @@
     display: flex;
     flex-direction: column;
     min-height: 100%;
+    height: 100%;
     background: #ffffff;
     border: 1px solid #ece8ff;
-    border-radius: 16px;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 8px 24px rgba(17, 24, 39, 0.05);
+    box-shadow: 0 4px 14px rgba(17, 24, 39, 0.04);
     break-inside: avoid;
     page-break-inside: avoid;
   }
@@ -73,23 +164,23 @@
   .aptitude-growth-plan-card__head {
     display: flex;
     align-items: flex-start;
-    gap: 12px;
-    padding: 18px 18px 14px;
+    gap: 8px;
+    padding: 10px 10px 8px;
     background: linear-gradient(135deg, rgba(63, 55, 201, 0.08) 0%, rgba(194, 78, 78, 0.08) 100%);
     border-bottom: 1px solid #f0ecff;
   }
 
   .aptitude-growth-plan-card__icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     color: #fff;
-    font-size: 20px;
+    font-size: 16px;
     flex-shrink: 0;
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   }
 
   .aptitude-growth-plan-card__title-wrap {
@@ -100,31 +191,38 @@
   .aptitude-growth-plan-card h3 {
     margin: 0;
     color: #1f2937;
-    font-size: 1.02rem;
+    font-size: 0.82rem;
     font-weight: 800;
-    line-height: 1.35;
+    line-height: 1.3;
   }
 
   .aptitude-growth-plan-field-label {
-    margin: 0 0 6px;
+    margin: 0 0 4px;
     color: #3f37c9;
-    font-size: 11px;
+    font-size: 9px;
     font-weight: 800;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
   }
 
   .aptitude-growth-plan-card__body {
-    padding: 16px 18px 18px;
+    padding: 10px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 8px;
     flex: 1;
+    min-height: 0;
+  }
+
+  .aptitude-growth-plan-card__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
 
   .aptitude-growth-plan-field {
-    padding: 12px 14px;
-    border-radius: 12px;
+    padding: 8px 9px;
+    border-radius: 8px;
     background: #faf9ff;
     border: 1px solid #ece8ff;
   }
@@ -132,8 +230,9 @@
   .aptitude-growth-plan-field-value {
     margin: 0;
     color: #374151;
-    font-size: 13px;
-    line-height: 1.6;
+    font-size: 11px;
+    line-height: 1.45;
+    word-break: break-word;
   }
 
   .aptitude-growth-plan-field-value--empty {
@@ -142,6 +241,10 @@
 
   .aptitude-growth-plan-field--plan {
     background: #fff;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
   }
 
   .aptitude-growth-plan-list {
@@ -149,45 +252,197 @@
     margin: 0;
     padding: 0;
     display: grid;
-    gap: 10px;
+    gap: 6px;
+    flex: 1;
   }
 
   .aptitude-growth-plan-list li {
     display: grid;
-    grid-template-columns: 28px 1fr;
-    gap: 10px;
+    grid-template-columns: 20px 1fr;
+    gap: 6px;
     align-items: start;
-    padding: 10px 12px;
-    border-radius: 12px;
+    padding: 6px 7px;
+    border-radius: 8px;
     background: #fcfcff;
     border: 1px solid #f1efff;
   }
 
   .aptitude-growth-plan-step-num {
-    width: 28px;
-    height: 28px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: block;
+    text-align: center;
+    line-height: 20px;
     background: #3f37c9;
     color: #fff;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 800;
     flex-shrink: 0;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
   }
 
   .aptitude-growth-plan-step-text {
     color: #4b5563;
-    font-size: 13px;
-    line-height: 1.6;
+    font-size: 10.5px;
+    line-height: 1.45;
+    word-break: break-word;
   }
 
   .aptitude-growth-plan-step-label {
     display: block;
     color: #111827;
     font-weight: 700;
-    margin-bottom: 2px;
+    font-size: 10.5px;
+    margin-bottom: 1px;
+  }
+
+  /* Dashboard only: collapsible Suggested Improvement Plan */
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-field--plan-accordion {
+    padding: 8px 9px;
+  }
+
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-accordion-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+  }
+
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-accordion-toggle:focus-visible {
+    outline: 2px solid #3f37c9;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-accordion-label {
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-accordion-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-accordion-count {
+    font-size: 10px;
+    font-weight: 600;
+    color: #6b7280;
+    white-space: nowrap;
+  }
+
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-accordion-chevron {
+    font-size: 18px;
+    line-height: 1;
+    color: #3f37c9;
+    transition: transform 0.2s ease;
+  }
+
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-accordion-toggle.is-open .aptitude-growth-plan-accordion-chevron {
+    transform: rotate(180deg);
+  }
+
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-accordion-panel {
+    margin-top: 8px;
+  }
+
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-accordion-panel[hidden] {
+    display: none !important;
+  }
+
+  /* Dashboard: improved readability (reports/PDF keep compact base sizes) */
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-title {
+    font-size: clamp(1.2rem, 1.8vw, 1.45rem);
+  }
+
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-card h3 {
+    font-size: 0.95rem;
+    line-height: 1.35;
+  }
+
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-card__icon {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-card__head {
+    padding: 12px 12px 10px;
+  }
+
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-card__body {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-card__meta {
+    gap: 8px;
+  }
+
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-field {
+    padding: 10px 11px;
+  }
+
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-field-label,
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-accordion-label {
+    font-size: 10.5px;
+    margin-bottom: 5px;
+    letter-spacing: 0.05em;
+  }
+
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-field-value {
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-field--plan-accordion {
+    padding: 10px 11px;
+  }
+
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-accordion-count {
+    font-size: 11.5px;
+  }
+
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-accordion-chevron {
+    font-size: 20px;
+  }
+
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-list {
+    gap: 8px;
+  }
+
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-list li {
+    grid-template-columns: 22px 1fr;
+    gap: 8px;
+    padding: 8px 9px;
+  }
+
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-step-num {
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+    font-size: 11px;
+  }
+
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-step-text,
+  .aptitude-growth-plan-section--dashboard .aptitude-growth-plan-step-label {
+    font-size: 12px;
+    line-height: 1.5;
   }
 
   .aptitude-growth-plan-card--verbal .aptitude-growth-plan-card__icon { background: linear-gradient(145deg, #2563eb, #3b82f6); }
@@ -206,15 +461,184 @@
   .aptitude-growth-plan-card--mechanical-reasoning .aptitude-growth-plan-card__icon { background: linear-gradient(145deg, #ca8a04, #eab308); }
   .aptitude-growth-plan-card--spatial-reasoning .aptitude-growth-plan-card__icon { background: linear-gradient(145deg, #db2777, #ec4899); }
 
+  /* PDF report: WeasyPrint-safe 2-column float layout (grid/flex often collapse) */
+  .below-average-guidance-report--pdf .aptitude-growth-plan-section {
+    margin: 8px 0 12px;
+    padding: 8px 0;
+    box-shadow: none;
+    border: 0;
+    background: transparent;
+    width: 100%;
+    clear: both;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-header {
+    margin-bottom: 8px;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-eyebrow,
+  .below-average-guidance-report--pdf .aptitude-growth-plan-subtitle {
+    display: none !important;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-title {
+    font-size: 13pt;
+    margin-bottom: 8px;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-grid {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-grid::after {
+    content: '';
+    display: table;
+    clear: both;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-card {
+    float: left;
+    width: 48.5%;
+    margin: 0 1.5% 10px 0;
+    height: auto;
+    min-height: 0;
+    display: block;
+    overflow: visible;
+    box-sizing: border-box;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-card:nth-child(2n) {
+    margin-right: 0;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-card__head {
+    display: block;
+    overflow: hidden;
+    padding: 8px 10px 6px;
+    background: linear-gradient(135deg, rgba(63, 55, 201, 0.08) 0%, rgba(194, 78, 78, 0.08) 100%);
+    border-bottom: 1px solid #f0ecff;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-card__icon {
+    display: none !important;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-card__title-wrap {
+    overflow: visible;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-card__title-wrap .aptitude-growth-plan-field-label {
+    margin-bottom: 3px;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-card h3 {
+    font-size: 9.5pt;
+    line-height: 1.25;
+    margin: 0;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-card__body {
+    display: block;
+    padding: 10px 8px 8px;
+    min-height: 0;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-card__meta {
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-field {
+    padding: 7px 8px;
+    margin-bottom: 8px !important;
+    border-radius: 6px;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-card__meta .aptitude-growth-plan-field:last-child {
+    margin-bottom: 0 !important;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-field-label {
+    font-size: 7pt;
+    margin-bottom: 4px;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-field-value {
+    font-size: 8pt;
+    line-height: 1.45;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-field--plan {
+    display: block;
+    margin-top: 8px !important;
+    margin-bottom: 0 !important;
+    padding: 7px 8px;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-list {
+    display: block;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-list li {
+    display: block;
+    position: relative;
+    padding: 6px 7px 6px 24px;
+    margin-bottom: 6px;
+    min-height: 18px;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-step-num {
+    position: absolute;
+    left: 4px;
+    top: 6px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #3f37c9;
+    color: #fff;
+    font-size: 7pt;
+    font-weight: 800;
+    line-height: 16px;
+    text-align: center;
+    display: block;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-step-text {
+    display: block;
+    font-size: 7.5pt;
+    line-height: 1.35;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-step-label {
+    font-size: 7.5pt;
+  }
+
+  .below-average-guidance-report--pdf .aptitude-growth-plan-card__head,
+  .below-average-guidance-report--pdf .aptitude-growth-plan-card__body,
+  .below-average-guidance-report--pdf .aptitude-growth-plan-card__meta,
+  .below-average-guidance-report--pdf .aptitude-growth-plan-card__title-wrap,
+  .below-average-guidance-report--pdf .aptitude-growth-plan-header {
+    margin-bottom: 0;
+  }
+
   @media print {
-    .aptitude-growth-plan-section {
+    .aptitude-growth-plan-section:not(.aptitude-growth-plan-section--pdf) {
       box-shadow: none;
       padding: 12px 0;
     }
 
-    .aptitude-growth-plan-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
+    .below-average-guidance-report--pdf .aptitude-growth-plan-card {
+      float: left;
+      width: 48.5%;
     }
   }
 </style>
