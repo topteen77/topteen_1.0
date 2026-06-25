@@ -12,15 +12,17 @@
     <strong>Min:</strong> account registration = <strong>{{ registration_points }} pts</strong>.
     <strong>Max:</strong> total active
     <a href="{{ point_rules_url }}">Dashboard Point Rules</a> =
-    <strong>{{ max_achievable_points }} pts</strong>.
-    Use the slider to pick min points — it cannot go below registration or above the rules total.
+    <strong>{{ max_achievable_points_class10|default:"—" }}</strong> (Class 10 and below) /
+    <strong>{{ max_achievable_points }}</strong> (Class 11–12+).
+    Use the slider to pick min points — it cannot go below registration or above the Class 11–12+ rules total.
   </p>
   {% if point_milestones %}
-  <table style="width: 100%; max-width: 720px; border-collapse: collapse; margin-top: 8px;">
+  <table style="width: 100%; max-width: 900px; border-collapse: collapse; margin-top: 8px;">
     <thead>
       <tr>
         <th style="text-align: left; padding: 6px 8px; border-bottom: 1px solid #ccc;">Valid min points</th>
         <th style="text-align: left; padding: 6px 8px; border-bottom: 1px solid #ccc;">Milestone</th>
+        <th style="text-align: left; padding: 6px 8px; border-bottom: 1px solid #ccc;">Applies to</th>
       </tr>
     </thead>
     <tbody>
@@ -33,6 +35,9 @@
           {% else %}
             After {{ milestone.label }} (+{{ milestone.step_points }})
           {% endif %}
+        </td>
+        <td style="padding: 6px 8px; border-bottom: 1px solid #eee;">
+          {{ milestone.applies_to|default:"All students" }}
         </td>
       </tr>
       {% endfor %}

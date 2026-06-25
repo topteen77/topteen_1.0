@@ -1,6 +1,9 @@
 """
 Seed dashboard level bands using cumulative point milestones from active point rules.
 Minimum level starts at account registration; maximum level uses the full rules total.
+
+Seeded bands target the Class 11-12+ (post-matric) track. Class 10 and below bands are
+computed at runtime without the motivation test milestone.
 """
 from django.core.management.base import BaseCommand
 from core.models import DashboardLevelBand
