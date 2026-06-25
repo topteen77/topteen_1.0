@@ -1219,10 +1219,15 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
                     result,
                     above_categories,
                     average_categories,
+                    below_categories,
                 )
                 if not consolidated_key:
-                    process_strength_recs_roles(above_categories)
-                    process_strength_recs_roles(average_categories)
+                    from app.class12_aptitude_report_utils import resolve_class12_consolidated_tiers
+
+                    tier_ctx = resolve_class12_consolidated_tiers(high_categories)
+                    if not tier_ctx.get('note_only'):
+                        process_strength_recs_roles(tier_ctx.get('lookup_above', []))
+                        process_strength_recs_roles(tier_ctx.get('lookup_average', []))
                 else:
                     result['class12_aptitude_combination_key'] = consolidated_key
 
@@ -2338,202 +2343,177 @@ def CombinedReport(request, user_id=None):
                                         codes_to_check.append(combo_str)
                         
                         logger.debug(f"codes_to_check: {codes_to_check} (total: {len(codes_to_check)} combinations to check)")
-                        
-                        # Compare aptitude_codes with AptitudeCombinationMapping in database
-                        # Find the best matching combination (longest/most comprehensive match)
+
                         best_mapping = None
                         best_code = None
-                        checked_count = 0
-                        found_matches = []
-                        
-                        # Check what combinations exist in database for these codes (handle missing table gracefully)
-                        all_db_codes = []
-                        matching_db_codes = []
-                        codes_set = set(aptitude_codes)
-                        
+
                         try:
-                            # Check if table exists
-                            from django.db import connection
-                            with connection.cursor() as cursor:
-                                cursor.execute("SHOW TABLES LIKE 'app_post_matric_aptitudecombinationmapping'")
-                                table_exists = cursor.fetchone() is not None
-                            
-                            if table_exists:
-                                all_db_codes = list(AptitudeCombinationMapping.objects.values_list('aptitude_code', flat=True))
-                                for db_code in all_db_codes:
-                                    db_codes_list = db_code.split('+')
-                                    if set(db_codes_list) == codes_set:  # Same codes, different order
-                                        matching_db_codes.append(db_code)
-                            else:
-                                logger.debug("[DEBUG] AptitudeCombinationMapping table does not exist - skipping mapping")
-                        except Exception as e:
-                            logger.debug(f"[DEBUG] Error accessing AptitudeCombinationMapping table (non-critical): {str(e)}")
+                            from app.class12_aptitude_report_utils import (
+                                build_class12_consolidated_aptitude_mapping,
+                            )
+
+                            best_mapping = build_class12_consolidated_aptitude_mapping(
+                                high_categories,
+                                resolve_role_urls=True,
+                            )
+                            if best_mapping:
+                                best_code = best_mapping.get('aptitude_code')
+                                logger.debug(
+                                    "Class 12 consolidated aptitude mapping: %s (mode=%s, tier=%s)",
+                                    best_code,
+                                    best_mapping.get('display_mode'),
+                                    best_mapping.get('tier_used'),
+                                )
+                        except Exception as ex:
+                            logger.warning(
+                                "Class 12 consolidated aptitude mapping failed: %s", ex
+                            )
+
+                        if not best_mapping:
+                            # Legacy AptitudeCombinationMapping fallback (all above+average codes)
+                            checked_count = 0
+                            found_matches = []
+
+                            # Check what combinations exist in database for these codes (handle missing table gracefully)
                             all_db_codes = []
-                        
-                        logger.debug(f"\n🔍 Comparing aptitude_codes ({aptitude_codes}) with AptitudeCombinationMapping in database...")
-                        if matching_db_codes:
-                            logger.debug(f"   Found matching codes in DB (same codes, different order): {matching_db_codes}")
-                        logger.debug(f"   Checking combinations in order (longest to shortest)...")
-                        
-                        # Check combinations in order (longest first)
-                        for code in codes_to_check:
-                            checked_count += 1
+                            matching_db_codes = []
+                            codes_set = set(aptitude_codes)
+
                             try:
-                                # print(f"   [{checked_count}] Checking: {code}")
-                                mapping = AptitudeCombinationMapping.objects.filter(aptitude_code=code).first()
-                                if mapping:
-                                    found_matches.append({
-                                        'code': code,
-                                        'areas': mapping.aptitude_areas,
-                                        'clusters_count': mapping.clusters.count(),
-                                        'roles_count': mapping.roles.count(),
-                                        'pathways_count': mapping.pathways.count()
-                                    })
-                                    # print(f"      ✓ MATCH FOUND in database: {code}")
-                                    # print(f"      Areas: {mapping.aptitude_areas}")
-                                    # print(f"      Clusters: {mapping.clusters.count()}, Roles: {mapping.roles.count()}, Pathways: {mapping.pathways.count()}")
-                                # else:
-                                #     print(f"      ✗ Not found: {code}")
+                                # Check if table exists
+                                from django.db import connection
+                                with connection.cursor() as cursor:
+                                    cursor.execute("SHOW TABLES LIKE 'app_post_matric_aptitudecombinationmapping'")
+                                    table_exists = cursor.fetchone() is not None
+
+                                if table_exists:
+                                    all_db_codes = list(AptitudeCombinationMapping.objects.values_list('aptitude_code', flat=True))
+                                    for db_code in all_db_codes:
+                                        db_codes_list = db_code.split('+')
+                                        if set(db_codes_list) == codes_set:  # Same codes, different order
+                                            matching_db_codes.append(db_code)
+                                else:
+                                    logger.debug("[DEBUG] AptitudeCombinationMapping table does not exist - skipping mapping")
                             except Exception as e:
-                                logger.debug(f"      ❌ Error checking {code}: {e}")
-                        
-                        # If no exact match found, try matching_db_codes (same codes, different order)
-                        if not found_matches and matching_db_codes:
-                            logger.debug(f"\n   No exact order match found. Trying matching codes from DB (different order)...")
-                            for db_code in matching_db_codes:
+                                logger.debug(f"[DEBUG] Error accessing AptitudeCombinationMapping table (non-critical): {str(e)}")
+                                all_db_codes = []
+
+                            logger.debug(f"\n🔍 Comparing aptitude_codes ({aptitude_codes}) with AptitudeCombinationMapping in database...")
+                            if matching_db_codes:
+                                logger.debug(f"   Found matching codes in DB (same codes, different order): {matching_db_codes}")
+                            logger.debug(f"   Checking combinations in order (longest to shortest)...")
+
+                            # Check combinations in order (longest first)
+                            for code in codes_to_check:
                                 checked_count += 1
                                 try:
-                                    # print(f"   [{checked_count}] Checking DB code: {db_code}")
-                                    mapping = AptitudeCombinationMapping.objects.filter(aptitude_code=db_code).first()
+                                    mapping = AptitudeCombinationMapping.objects.filter(aptitude_code=code).first()
                                     if mapping:
                                         found_matches.append({
-                                            'code': db_code,
+                                            'code': code,
                                             'areas': mapping.aptitude_areas,
                                             'clusters_count': mapping.clusters.count(),
                                             'roles_count': mapping.roles.count(),
                                             'pathways_count': mapping.pathways.count()
                                         })
-                                        # print(f"      ✓ MATCH FOUND in database: {db_code}")
-                                        # print(f"      Areas: {mapping.aptitude_areas}")
-                                        # print(f"      Clusters: {mapping.clusters.count()}, Roles: {mapping.roles.count()}, Pathways: {mapping.pathways.count()}")
-                                        # Add to codes_to_check for processing
-                                        if db_code not in codes_to_check:
-                                            codes_to_check.append(db_code)
                                 except Exception as e:
-                                    logger.debug(f"      ❌ Error checking {db_code}: {e}")
-                        
-                        # Process the best match (prioritize complete matches with all codes)
-                        # Check matching_db_codes first if it has entries with all codes
-                        match_code_to_use = None
-                        total_codes_count = len(aptitude_codes)
-                        
-                        # Prioritize matching_db_codes if it contains entries with all codes
-                        if matching_db_codes:
-                            # Check if any matching_db_code has all codes
-                            for db_code in matching_db_codes:
-                                db_code_count = len(db_code.split('+'))
-                                if db_code_count == total_codes_count:
-                                    match_code_to_use = db_code
-                                    logger.debug(f"\n   ✅ Using complete DB match (all {total_codes_count} codes): {match_code_to_use}")
-                                    break
-                        
-                        # If no complete match in matching_db_codes, use found_matches
-                        if not match_code_to_use and found_matches:
-                            # Use the longest match from codes_to_check
-                            match_code_to_use = found_matches[0]['code']
-                            logger.debug(f"\n   ✅ Using match from codes_to_check: {match_code_to_use}")
-                        elif not match_code_to_use and matching_db_codes:
-                            # Fallback to first matching_db_code
-                            match_code_to_use = matching_db_codes[0]
-                            logger.debug(f"\n   ✅ Using DB match (different order): {match_code_to_use}")
-                        
-                        # Get clusters, roles, pathways from the matched code
-                        if match_code_to_use:
-                            try:
-                                mapping = AptitudeCombinationMapping.objects.filter(aptitude_code=match_code_to_use).first()
-                                if mapping:
-                                    # Get clusters with hyperlinks
-                                    clusters_data = []
-                                    for cluster in mapping.clusters.all():
-                                        try:
-                                            safe_slug = (cluster.slug or slugify(cluster.name or '') or 'cluster')
-                                            url = reverse('careers:careerlibrary', kwargs={'cluster_slug': safe_slug, 'cluster_id': cluster.id})
-                                            clusters_data.append({
-                                                'name': cluster.name,
-                                                'url': url
+                                    logger.debug(f"      ❌ Error checking {code}: {e}")
+
+                            # If no exact match found, try matching_db_codes (same codes, different order)
+                            if not found_matches and matching_db_codes:
+                                logger.debug(f"\n   No exact order match found. Trying matching codes from DB (different order)...")
+                                for db_code in matching_db_codes:
+                                    checked_count += 1
+                                    try:
+                                        mapping = AptitudeCombinationMapping.objects.filter(aptitude_code=db_code).first()
+                                        if mapping:
+                                            found_matches.append({
+                                                'code': db_code,
+                                                'areas': mapping.aptitude_areas,
+                                                'clusters_count': mapping.clusters.count(),
+                                                'roles_count': mapping.roles.count(),
+                                                'pathways_count': mapping.pathways.count()
                                             })
-                                        except Exception as e:
-                                            logger.debug(f"Error creating cluster URL for {cluster.name}: {e}")
-                                            clusters_data.append({
-                                                'name': cluster.name,
-                                                'url': None
-                                            })
-                                    
-                                    # Get roles with hyperlinks
-                                    roles_data = []
-                                    for role in mapping.roles.all():
-                                        try:
-                                            url = reverse('careers:careerdetail', kwargs={'slug': role.slug, 'career_id': role.id})
-                                            roles_data.append({
-                                                'name': role.name,
-                                                'url': url
-                                            })
-                                        except Exception as e:
-                                            logger.debug(f"Error creating role URL for {role.name}: {e}")
-                                            roles_data.append({
-                                                'name': role.name,
-                                                'url': None
-                                            })
-                                    
-                                    # Get pathways with hyperlinks
-                                    pathways_data = []
-                                    for pathway in mapping.pathways.all():
-                                        try:
-                                            # Use public course URL that students can access
-                                            url = reverse('courses:coursedetail', kwargs={'course_id': pathway.id})
-                                            pathways_data.append({
-                                                'name': pathway.name,
-                                                'url': url
-                                            })
-                                        except Exception as e:
-                                            logger.debug(f"Error creating pathway URL for {pathway.name}: {e}")
-                                            pathways_data.append({
-                                                'name': pathway.name,
-                                                'url': None
-                                            })
-                                    
-                                    # Store the mapping if it has data
-                                    if clusters_data or roles_data or pathways_data:
-                                        best_mapping = {
-                                            'aptitude_code': match_code_to_use,
-                                            'aptitude_areas': mapping.aptitude_areas,
-                                            'clusters': clusters_data,
-                                            'roles': roles_data,
-                                            'pathways': pathways_data
-                                        }
-                                        best_code = match_code_to_use
-                                        logger.debug(f"   ✅ SELECTED: {best_code} (matching combination with data)")
-                                    else:
-                                        logger.debug(f"   ⚠ Found but no data (clusters/roles/pathways empty)")
-                            except Exception as e:
-                                logger.debug(f"   ❌ Error processing {match_code_to_use}: {e}")
-                                import traceback
-                                traceback.print_exc()
-                        
-                        # Summary of matching results
-                        # print(f"\n📊 Matching Summary:")
-                        # print(f"   Aptitude codes extracted: {aptitude_codes} (original order, not sorted)")
-                        # print(f"   Total combinations checked: {checked_count}")
-                        # print(f"   Matches found in database: {len(found_matches)}")
-                        # if found_matches:
-                        #     print(f"   All matches found:")
-                        #     for match in found_matches:
-                        #         print(f"      - {match['code']}: {match['areas']}")
-                        
+                                            if db_code not in codes_to_check:
+                                                codes_to_check.append(db_code)
+                                    except Exception as e:
+                                        logger.debug(f"      ❌ Error checking {db_code}: {e}")
+
+                            match_code_to_use = None
+                            total_codes_count = len(aptitude_codes)
+
+                            if matching_db_codes:
+                                for db_code in matching_db_codes:
+                                    db_code_count = len(db_code.split('+'))
+                                    if db_code_count == total_codes_count:
+                                        match_code_to_use = db_code
+                                        logger.debug(f"\n   ✅ Using complete DB match (all {total_codes_count} codes): {match_code_to_use}")
+                                        break
+
+                            if not match_code_to_use and found_matches:
+                                match_code_to_use = found_matches[0]['code']
+                                logger.debug(f"\n   ✅ Using match from codes_to_check: {match_code_to_use}")
+                            elif not match_code_to_use and matching_db_codes:
+                                match_code_to_use = matching_db_codes[0]
+                                logger.debug(f"\n   ✅ Using DB match (different order): {match_code_to_use}")
+
+                            if match_code_to_use:
+                                try:
+                                    mapping = AptitudeCombinationMapping.objects.filter(aptitude_code=match_code_to_use).first()
+                                    if mapping:
+                                        clusters_data = []
+                                        for cluster in mapping.clusters.all():
+                                            try:
+                                                safe_slug = (cluster.slug or slugify(cluster.name or '') or 'cluster')
+                                                url = reverse('careers:careerlibrary', kwargs={'cluster_slug': safe_slug, 'cluster_id': cluster.id})
+                                                clusters_data.append({'name': cluster.name, 'url': url})
+                                            except Exception as e:
+                                                logger.debug(f"Error creating cluster URL for {cluster.name}: {e}")
+                                                clusters_data.append({'name': cluster.name, 'url': None})
+
+                                        roles_data = []
+                                        for role in mapping.roles.all():
+                                            try:
+                                                url = reverse('careers:careerdetail', kwargs={'slug': role.slug, 'career_id': role.id})
+                                                roles_data.append({'name': role.name, 'url': url})
+                                            except Exception as e:
+                                                logger.debug(f"Error creating role URL for {role.name}: {e}")
+                                                roles_data.append({'name': role.name, 'url': None})
+
+                                        pathways_data = []
+                                        for pathway in mapping.pathways.all():
+                                            try:
+                                                url = reverse('courses:coursedetail', kwargs={'course_id': pathway.id})
+                                                pathways_data.append({'name': pathway.name, 'url': url})
+                                            except Exception as e:
+                                                logger.debug(f"Error creating pathway URL for {pathway.name}: {e}")
+                                                pathways_data.append({'name': pathway.name, 'url': None})
+
+                                        if clusters_data or roles_data or pathways_data:
+                                            best_mapping = {
+                                                'aptitude_code': match_code_to_use,
+                                                'aptitude_areas': mapping.aptitude_areas,
+                                                'clusters': clusters_data,
+                                                'roles': roles_data,
+                                                'pathways': pathways_data
+                                            }
+                                            best_code = match_code_to_use
+                                            logger.debug(f"   ✅ SELECTED: {best_code} (matching combination with data)")
+                                        else:
+                                            logger.debug(f"   ⚠ Found but no data (clusters/roles/pathways empty)")
+                                except Exception as e:
+                                    logger.debug(f"   ❌ Error processing {match_code_to_use}: {e}")
+                                    import traceback
+                                    traceback.print_exc()
+
                         # Store the best mapping in context (clusters, roles, pathways from DB)
                         context['aptitude_mapping'] = best_mapping
                         if best_mapping:
-                            logger.debug(f"\n✅ FINAL RESULT - Displaying from database:")
+                            context['class12_aptitude_combination_key'] = best_mapping.get('aptitude_code', '')
+                            context['class12_aptitude_display_mode'] = best_mapping.get('display_mode')
+                            context['class12_consolidated_tier_used'] = best_mapping.get('tier_used')
+                            source = best_mapping.get('source', 'legacy')
+                            logger.debug(f"\n✅ FINAL RESULT - Displaying aptitude mapping ({source}):")
                             logger.debug(f"   Aptitude Code: {best_code}")
                             logger.debug(f"   Aptitude Areas: {best_mapping['aptitude_areas']}")
                             logger.debug(f"   Clusters: {len(best_mapping['clusters'])}")

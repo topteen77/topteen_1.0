@@ -2137,7 +2137,7 @@
             {% endif %}
           </div>
           <div class="mapping-card">
-            <h4>Recommended Roles</h4>
+            <h4>Career Pathways</h4>
             {% set role_ns = namespace(items=[], role_items=[], has_items=false) %}
             <ul class="link-list">
               {% for item in aptitude_mapping.roles %}
@@ -2159,12 +2159,12 @@
             {% if not role_ns.has_items %}
             <div class="card-empty-state">
               <span class="icon"><i class='bx bx-sitemap' ></i></span>
-              <div class="label">No recommended roles available right now.</div>
+              <div class="label">No career pathways available right now.</div>
             </div>
             {% endif %}
           </div>
           <div class="mapping-card">
-            <h4>Suggested Pathways</h4>
+            <h4>Degree Pathways</h4>
             {% set pathway_ns = namespace(items=[], has_items=false) %}
             <ul class="link-list">
               {% for item in aptitude_mapping.pathways %}
@@ -2178,7 +2178,7 @@
             {% if not pathway_ns.has_items %}
             <div class="card-empty-state">
               <span class="icon"><i class='bx bx-sitemap' ></i></span>
-              <div class="label">No suggested pathways available right now.</div>
+              <div class="label">No degree pathways available right now.</div>
             </div>
             {% endif %}
           </div>

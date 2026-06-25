@@ -391,6 +391,8 @@ def import_rows_to_db(
                     'career_clusters': list(row.get('career_clusters') or []),
                     'career_pathways': list(row.get('career_pathways') or []),
                     'degree_pathways': list(row.get('degree_pathways') or []),
+                    'real_life_sign_ids': list(row.get('real_life_sign_ids') or []),
+                    'daily_life_impact_ids': list(row.get('daily_life_impact_ids') or []),
                     'is_active': True,
                 },
             )
@@ -412,6 +414,8 @@ def build_json_payload(rows: list[dict[str, Any]], *, source: str) -> dict[str, 
             'codes': row['codes'],
             'aptitude_description': row['aptitude_description'],
             'interpretation_narrative': row['interpretation_narrative'],
+            'real_life_sign_ids': list(row.get('real_life_sign_ids') or []),
+            'daily_life_impact_ids': list(row.get('daily_life_impact_ids') or []),
             'career_clusters': row['career_clusters'],
             'career_pathways': row['career_pathways'],
             'degree_pathways': row['degree_pathways'],
@@ -422,3 +426,70 @@ def build_json_payload(rows: list[dict[str, Any]], *, source: str) -> dict[str, 
         'imported_at': datetime.now(timezone.utc).isoformat(),
         'combinations': combinations,
     }
+
+
+CODE_TO_INTERPRETATION_AREA: dict[str, str] = {
+    'AR': 'Abstract Reasoning',
+    'NR': 'Numerical Reasoning',
+    'LR': 'Logical Reasoning',
+    'LVR': 'Language and Verbal Reasoning',
+    'CR': 'Clerical speed & Accuracy',
+    'MR': 'Mechanical Reasoning',
+    'SR': 'Spatial Reasoning',
+}
+
+
+def load_aptitude_interpretation_data() -> dict[str, Any]:
+    """Load legacy per-area interpretation JSON used for Real-life signs / Daily life impact."""
+    import json
+
+    from django.conf import settings
+
+    path = Path(settings.BASE_DIR) / 'static' / 'data' / 'aptitute interpretation.json'
+    if not path.is_file():
+        return {}
+    with path.open(encoding='utf-8') as handle:
+        return json.load(handle)
+
+
+def _merge_unique_text_items(*lists: list[Any] | None) -> list[str]:
+    merged: list[str] = []
+    seen: set[str] = set()
+    for items in lists:
+        for item in items or []:
+            text = str(item).strip()
+            if not text or text in seen:
+                continue
+            seen.add(text)
+            merged.append(text)
+    return merged
+
+
+def merge_legacy_signs_impact_for_codes(
+    codes: list[str],
+    interpretation_data: dict[str, Any] | None,
+) -> tuple[list[str], list[str]]:
+    """Merge Real-life signs and Daily life impact from legacy JSON for reasoning codes."""
+    if not interpretation_data or not codes:
+        return [], []
+
+    by_area = {
+        item.get('Area'): item
+        for item in interpretation_data.get('Aptitude_Interpretations', [])
+        if item.get('Area')
+    }
+    sign_lists: list[list[str]] = []
+    impact_lists: list[list[str]] = []
+    for code in codes:
+        area = CODE_TO_INTERPRETATION_AREA.get(code)
+        if not area:
+            continue
+        interp = by_area.get(area)
+        if not interp:
+            continue
+        sign_lists.append(list(interp.get('Real life signs') or []))
+        impact_lists.append(list(interp.get('Daily life impact') or []))
+    return (
+        _merge_unique_text_items(*sign_lists),
+        _merge_unique_text_items(*impact_lists),
+    )

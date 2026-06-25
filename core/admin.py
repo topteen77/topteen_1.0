@@ -6,6 +6,8 @@ from core.choices import (
     CLASS10_APTITUDE_STREAM_DISPLAY_MODE_KEY,
     CLASS10_APTITUDE_STREAM_MODE_COMBINED,
     CLASS10_APTITUDE_STREAM_MODE_TIER_PRIORITY,
+    CLASS12_APTITUDE_CONSOLIDATED_DISPLAY_MODE_CHOICES,
+    CLASS12_APTITUDE_CONSOLIDATED_DISPLAY_MODE_KEY,
     COURSE_MINDMAP_CONFIG_CHOICES,
     MINDMAP_TYPE_CHOICES,
     coerce_default_mindmap_type,
@@ -111,6 +113,21 @@ class Class10AptitudeReportSettingsForm(forms.Form):
             'Combined: use Above Average and Average areas together. '
             'Single - Above Average: use Above Average only when present, otherwise Average; '
             'if every area is Below Average, show the improvement note only.'
+        ),
+    )
+
+
+class Class12AptitudeReportSettingsForm(forms.Form):
+    """Class 11–12 aptitude consolidated interpretation display (Admin-managed)."""
+
+    CLASS12_APTITUDE_CONSOLIDATED_DISPLAY_MODE = forms.ChoiceField(
+        choices=CLASS12_APTITUDE_CONSOLIDATED_DISPLAY_MODE_CHOICES,
+        required=True,
+        label='Consolidated interpretation basis',
+        help_text=(
+            'Combined: use Above Average and Average areas together for the consolidated box. '
+            'Single - Above Average: use Above Average only when present, otherwise Average; '
+            'if every area is a Growth Area, show the improvement note only.'
         ),
     )
 
@@ -275,6 +292,21 @@ class ConfigurationAdminForm(forms.ModelForm):
             )
             if self.instance.pk:
                 self.fields['value'].initial = self._class10_aptitude_mode_to_choice(self.instance.value)
+            return
+
+        if cfg_key == CLASS12_APTITUDE_CONSOLIDATED_DISPLAY_MODE_KEY:
+            self.fields['value'] = forms.ChoiceField(
+                choices=CLASS12_APTITUDE_CONSOLIDATED_DISPLAY_MODE_CHOICES,
+                label='Value',
+                required=True,
+                help_text=(
+                    'Combined: use Above Average and Average together for consolidated interpretation. '
+                    'Single - Above Average: use Above Average first, otherwise Average; '
+                    'if all areas are Growth Area, show the improvement note only.'
+                ),
+            )
+            if self.instance.pk:
+                self.fields['value'].initial = self._class10_aptitude_mode_to_choice(self.instance.value)
 
 
 class ConfigurationAdmin(admin.ModelAdmin):
@@ -301,6 +333,9 @@ class ConfigurationAdmin(admin.ModelAdmin):
         if obj.key == CLASS10_APTITUDE_STREAM_DISPLAY_MODE_KEY:
             choice_val = ConfigurationAdminForm._class10_aptitude_mode_to_choice(obj.value)
             return dict(CLASS10_APTITUDE_STREAM_DISPLAY_MODE_CHOICES).get(choice_val, obj.value)
+        if obj.key == CLASS12_APTITUDE_CONSOLIDATED_DISPLAY_MODE_KEY:
+            choice_val = ConfigurationAdminForm._class10_aptitude_mode_to_choice(obj.value)
+            return dict(CLASS12_APTITUDE_CONSOLIDATED_DISPLAY_MODE_CHOICES).get(choice_val, obj.value)
         return obj.value
 
     def get_fields(self, request, obj=None):
@@ -336,6 +371,11 @@ class ConfigurationAdmin(admin.ModelAdmin):
                 'class10-aptitude-report-settings/',
                 self.admin_site.admin_view(self.class10_aptitude_report_settings_view),
                 name='core_configuration_class10_aptitude_report_settings',
+            ),
+            path(
+                'class12-aptitude-report-settings/',
+                self.admin_site.admin_view(self.class12_aptitude_report_settings_view),
+                name='core_configuration_class12_aptitude_report_settings',
             ),
             path('student-id-settings/', self.admin_site.admin_view(self.student_id_settings_view), name='core_configuration_student_id_settings'),
             path('website-settings/', self.admin_site.admin_view(self.website_settings_view), name='core_configuration_website_settings'),
@@ -446,6 +486,47 @@ class ConfigurationAdmin(admin.ModelAdmin):
             'opts': self.model._meta,
         }
         return render(request, 'admin/core/configuration/class10_aptitude_report_settings.html', context)
+
+    def class12_aptitude_report_settings_view(self, request):
+        """Custom admin view for Class 12 aptitude consolidated report display settings."""
+        from core.models import Configuration
+
+        if request.method == 'POST':
+            form = Class12AptitudeReportSettingsForm(request.POST)
+            if form.is_valid():
+                val = (form.cleaned_data.get('CLASS12_APTITUDE_CONSOLIDATED_DISPLAY_MODE') or '').strip()
+                if val not in dict(CLASS12_APTITUDE_CONSOLIDATED_DISPLAY_MODE_CHOICES):
+                    val = CLASS10_APTITUDE_STREAM_MODE_TIER_PRIORITY
+                config, _ = Configuration.objects.get_or_create(
+                    key=CLASS12_APTITUDE_CONSOLIDATED_DISPLAY_MODE_KEY,
+                    defaults={'value': val, 'editable': True},
+                )
+                config.value = val
+                config.save()
+                from app.class12_aptitude_report_utils import clear_consolidated_lookup_cache
+                clear_consolidated_lookup_cache()
+                messages.success(request, 'Class 12 aptitude report settings saved successfully.')
+                return redirect('admin:core_configuration_class12_aptitude_report_settings')
+        else:
+            stored = Configuration.get(
+                CLASS12_APTITUDE_CONSOLIDATED_DISPLAY_MODE_KEY,
+                CLASS10_APTITUDE_STREAM_MODE_TIER_PRIORITY,
+                editable=True,
+            )
+            mode = str(stored or '').strip().lower()
+            if mode not in dict(CLASS12_APTITUDE_CONSOLIDATED_DISPLAY_MODE_CHOICES):
+                mode = CLASS10_APTITUDE_STREAM_MODE_TIER_PRIORITY
+            form = Class12AptitudeReportSettingsForm(initial={
+                'CLASS12_APTITUDE_CONSOLIDATED_DISPLAY_MODE': mode,
+            })
+
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'Class 12 Aptitude Report Settings',
+            'form': form,
+            'opts': self.model._meta,
+        }
+        return render(request, 'admin/core/configuration/class12_aptitude_report_settings.html', context)
 
     def website_settings_view(self, request):
         """Custom admin view for Core website settings (e.g. mindmap)."""

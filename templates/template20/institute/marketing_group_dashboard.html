@@ -27,6 +27,12 @@
       return new bootstrap.Tooltip(tooltipTriggerEl);
     });
   }
+
+  function _ttv2MktgApiUrl(query) {
+    const base = '{{ url("institute:marketinggroupdashboard") }}'.replace(/\/$/, '');
+    const q = (query || '').replace(/^\?/, '');
+    return q ? (base + '?' + q) : base;
+  }
   
   // AJAX function to load institutes table
   function loadInstitutesTable(url) {
@@ -152,7 +158,7 @@
   
   // Load statistics via AJAX
   function loadStatistics() {
-    const url = window.location.pathname + '?data_type=stats';
+    const url = _ttv2MktgApiUrl('data_type=stats');
     fetch(url, {
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
@@ -203,7 +209,7 @@
   
   // Load charts data via AJAX
   function loadCharts() {
-    const url = window.location.pathname + '?data_type=charts';
+    const url = _ttv2MktgApiUrl('data_type=charts');
     fetch(url, {
       headers: {
         'X-Requested-With': 'XMLHttpRequest',

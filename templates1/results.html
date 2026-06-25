@@ -1023,6 +1023,45 @@
             padding-bottom: 110px;
         }
 
+        .aptitude-collapsible-block.is-collapsed .aptitude-collapsible-list li:nth-child(n+5) {
+            display: none;
+        }
+
+        .aptitude-view-toggle {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 0;
+            border: none;
+            background: none;
+            color: #3F37C9;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .aptitude-view-toggle[hidden] {
+            display: none !important;
+        }
+
+        body.print-mode .aptitude-collapsible-block.is-collapsed .aptitude-collapsible-list li {
+            display: list-item !important;
+        }
+
+        body.print-mode .aptitude-view-toggle {
+            display: none !important;
+        }
+
+        @media print {
+            .aptitude-collapsible-block.is-collapsed .aptitude-collapsible-list li {
+                display: list-item !important;
+            }
+
+            .aptitude-view-toggle {
+                display: none !important;
+            }
+        }
+
         @media (max-width: 768px) {
             .class12-consolidated-profile .impact-box .impact-info {
                 display: block;
@@ -4055,7 +4094,19 @@
             </div>
 
                     <!-- Aptitude Interpretations -->
-                    {% if class12_aptitude_consolidated_profile %}
+                    {% if class12_consolidated_note_only %}
+            <div class="chapterPage class12-consolidated-page">
+                <div class="fixex-top-logo" style="width: 100%;">
+                    <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
+                </div>
+                <hr />
+                <div class="db-header" style="margin-top: 10px; text-align: center;">
+                    <h1 style="color: #A22717; font-size: 16px; margin-bottom: 16px; text-transform: capitalize; font-weight: 600;">
+                        <span>NOTE-</span> {{ aptitude_improvement_note }}
+                    </h1>
+                </div>
+            </div>
+                    {% elif class12_aptitude_consolidated_profile and not class12_aptitude_consolidated_profile.note_only %}
             <div class="chapterPage class12-consolidated-page">
                 <div class="fixex-top-logo" style="width: 100%;">
                     <img style="width:150px;" src="{% static 'images/logo.png'%}" alt="logo" />
@@ -4066,26 +4117,28 @@
 
                     <div class="header-text">
                         <h3>
-                            <div class="imgpact">
+                            <!-- <div class="imgpact">
                                 <img src="{% static class12_aptitude_consolidated_profile.image %}" alt="img">
-                            </div>
-                            {{ class12_aptitude_consolidated_profile.title|default:"Recommendation" }}
+                            </div> -->
+                            Aptitude Profile Recommendation
+                            <!-- {{ class12_aptitude_consolidated_profile.title|default:"Recommendation" }} -->
                         </h3>
                     </div>
 
                     <div class="real-description">
                         {{ class12_aptitude_consolidated_profile.description_html|safe }}
 
-                        <div class="real-sign-box">
+                        <div class="real-sign-box aptitude-collapsible-block" data-preview-count="4">
                             <h4>
                                 <div class="real-sign"> <img src="{% static 'images/real-sign.webp'%}" alt="img"> </div>
                                 Real-life signs:
                             </h4>
-                            <ul>
+                            <ul class="aptitude-collapsible-list">
                                 {% for sign in class12_aptitude_consolidated_profile.real_life_signs %}
                                 <li>{{ sign }}</li>
                                 {% endfor %}
                             </ul>
+                            <button type="button" class="aptitude-view-toggle html-only-view-toggle" hidden>View more</button>
                         </div>
                     </div>
 
@@ -4093,30 +4146,31 @@
                         <div class="impact-info">
                             <h4>
                                 <div class="car-img"> <img src="{% static 'images/3d-grad-cap.webp'%}" alt="img"> </div>
-                                Career Impact:
+                                Career Clusters:
                             </h4>
-                            <p>This ability is a major foundation for:</p>
+                            <!-- <p>This ability is a major foundation for:</p> -->
                             <ul>
                                 {% for career in class12_aptitude_consolidated_profile.career_clusters %}
                                 <li>{{ career }}</li>
                                 {% endfor %}
                             </ul>
                         </div>
-                        <div class="impact-info">
+                        <div class="impact-info aptitude-collapsible-block" data-preview-count="4">
                             <h4>
                                 <div class="car-img"> <img src="{% static 'images/3d-insight.webp'%}" alt="img"> </div>
                                 Daily life impact:
                             </h4>
-                            <ul>
+                            <ul class="aptitude-collapsible-list">
                                 {% for impact in class12_aptitude_consolidated_profile.daily_life_impact %}
                                 <li>{{ impact }}</li>
                                 {% endfor %}
                             </ul>
+                            <button type="button" class="aptitude-view-toggle html-only-view-toggle" hidden>View more</button>
                         </div>
                     </div>
 
                     <div class="impact-info stra-nar" style="margin-top: 13px;">
-                        <h4>Strength Narrative:</h4>
+                        <h4>Interpretation Narrative:</h4>
                         {% if class12_aptitude_consolidated_profile.narrative_html %}
                         <div class="aptitude-remark-text">{{ class12_aptitude_consolidated_profile.narrative_html|safe }}</div>
                         {% endif %}
@@ -4124,7 +4178,7 @@
 
                     <div class="impact-box aptitude-reco-two-col">
                         <div class="impact-info">
-                            <h4>Recommended College Courses:</h4>
+                            <h4>Degree Pathways:</h4>
                             <ul class="no-list-style">
                                 {% for course in class12_aptitude_consolidated_profile.degree_pathways %}
                                 <li>
@@ -4135,7 +4189,7 @@
                             </ul>
                         </div>
                         <div class="impact-info">
-                            <h4>Career Recommendations:</h4>
+                            <h4>Career Pathways:</h4>
                             <ul class="no-list-style">
                                 {% for role in class12_aptitude_consolidated_profile.career_pathways %}
                                 <li>
@@ -4214,7 +4268,7 @@
                                     Career Impact:
                                 </h4>
         
-                                <p>This ability is a major foundation for:</p>
+                                <!-- <p>This ability is a major foundation for:</p> -->
                                 <ul>
                                     {% for career in interpretation|get_item:"Career impact" %}
                                     <li>{{ career }}</li>
@@ -4615,6 +4669,35 @@
         }
 
         document.getElementById('downloadPDF').addEventListener('click', downloadPDF);
+
+        function initAptitudeCollapsibleLists() {
+            document.querySelectorAll('.aptitude-collapsible-block').forEach(function (block) {
+                var list = block.querySelector('.aptitude-collapsible-list');
+                var toggle = block.querySelector('.aptitude-view-toggle');
+                if (!list || !toggle) {
+                    return;
+                }
+
+                var previewCount = parseInt(block.getAttribute('data-preview-count') || '4', 10);
+                var items = list.querySelectorAll('li');
+                if (items.length <= previewCount) {
+                    return;
+                }
+
+                block.classList.add('is-collapsed');
+                toggle.hidden = false;
+                toggle.textContent = 'View more (' + (items.length - previewCount) + ' more)';
+
+                toggle.addEventListener('click', function () {
+                    var collapsed = block.classList.toggle('is-collapsed');
+                    toggle.textContent = collapsed
+                        ? 'View more (' + (items.length - previewCount) + ' more)'
+                        : 'View less';
+                });
+            });
+        }
+
+        initAptitudeCollapsibleLists();
     </script>
 
     <!-- Include the JavaScript functionality -->

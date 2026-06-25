@@ -7,6 +7,8 @@ from django.conf import settings
 from core.choices import (
     CLASS10_APTITUDE_STREAM_DISPLAY_MODE_KEY,
     CLASS10_APTITUDE_STREAM_MODE_COMBINED,
+    CLASS12_APTITUDE_CONSOLIDATED_DISPLAY_MODE_KEY,
+    CLASS10_APTITUDE_STREAM_MODE_TIER_PRIORITY,
 )
 from core.models import Configuration
 
@@ -33,12 +35,20 @@ CLASS10_APTITUDE_REPORT_SETTINGS = [
     },
 ]
 
+CLASS12_APTITUDE_REPORT_SETTINGS = [
+    {
+        'key': CLASS12_APTITUDE_CONSOLIDATED_DISPLAY_MODE_KEY,
+        'value': CLASS10_APTITUDE_STREAM_MODE_TIER_PRIORITY,
+        'description': 'Class 12 aptitude consolidated interpretation display mode',
+    },
+]
+
 
 class Command(BaseCommand):
     help = 'Initialize psychometric test site settings in Configuration (manageable via Admin)'
 
     def handle(self, *args, **options):
-        for item in PSYCHOMETRIC_SETTINGS + CLASS10_APTITUDE_REPORT_SETTINGS:
+        for item in PSYCHOMETRIC_SETTINGS + CLASS10_APTITUDE_REPORT_SETTINGS + CLASS12_APTITUDE_REPORT_SETTINGS:
             config, created = Configuration.objects.get_or_create(
                 key=item['key'],
                 defaults={

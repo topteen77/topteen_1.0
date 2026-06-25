@@ -1,0 +1,18 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+<p>
+  Export the list first to get the correct column layout. Use <code>|</code> between reasoning codes
+  in <code>real_life_sign_codes</code> and <code>daily_life_impact_codes</code>
+  (for example <code>CR|MR|AR</code>).
+</p>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <table>{{ form.as_table }}</table>
+  <div class="submit-row">
+    <input type="submit" value="Import" class="default">
+    <a href="{% url 'admin:app_class12aptitudeconsolidatedreport_changelist' %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

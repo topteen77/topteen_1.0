@@ -1,0 +1,44 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:core_configuration_changelist' %}">Configuration</a>
+&rsaquo; Class 12 Aptitude Report Settings
+</div>
+{% endblock %}
+
+{% block content %}
+<p style="margin-bottom: 20px; color: #666;">
+  Configure how the consolidated interpretation box is built at the end of the Class 11–12 aptitude report.
+  Changes take effect immediately on the next report view.
+</p>
+
+<form method="post" id="class12-aptitude-report-settings-form">
+  {% csrf_token %}
+  <fieldset class="module aligned">
+    <h2>Consolidated interpretation display</h2>
+    {% for field in form %}
+    <div class="form-row">
+      <div>
+        <label for="{{ field.id_for_label }}" style="font-weight: 600;">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}
+        <p class="help" style="margin: 8px 0 0 0; color: #666; font-size: 12px;">{{ field.help_text }}</p>
+        {% endif %}
+        {% if field.errors %}
+        <ul class="errorlist">{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </fieldset>
+  <div class="submit-row" style="margin-top: 20px;">
+    <input type="submit" value="Save settings" class="default">
+    <a href="{% url 'admin:core_configuration_changelist' %}" class="button cancel-link">Cancel</a>
+  </div>
+</form>
+{% endblock %}

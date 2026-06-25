@@ -325,6 +325,81 @@ class AptitudeImprovementPlan(models.Model):
         return f'{self.get_education_level_display()} — {self.growth_area_title}'
 
 
+CLASS12_APTITUDE_REASONING_CODE_CHOICES = (
+    ('AR', 'Abstract Reasoning'),
+    ('NR', 'Numerical Reasoning'),
+    ('LR', 'Logical Reasoning'),
+    ('LVR', 'Language & Verbal Reasoning'),
+    ('CR', 'Clerical Speed & Accuracy'),
+    ('MR', 'Mechanical Reasoning'),
+    ('SR', 'Spatial Reasoning'),
+)
+
+
+class Class12AptitudeRealLifeSign(models.Model):
+    """Real-life signs for one reasoning area (one admin row per code, one bullet per line)."""
+
+    reasoning_code = models.CharField(
+        max_length=3,
+        choices=CLASS12_APTITUDE_REASONING_CODE_CHOICES,
+        unique=True,
+    )
+    items_text = models.TextField(
+        blank=True,
+        help_text='One real-life sign per line.',
+    )
+    is_active = models.BooleanField(default=True)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ('reasoning_code',)
+        verbose_name = 'Class 12 aptitude real-life sign'
+        verbose_name_plural = 'Class 12 aptitude real-life signs'
+
+    def __str__(self):
+        return f'[{self.pk}] {self.get_reasoning_code_display()}'
+
+    def bullet_list(self) -> list[str]:
+        return [
+            line.strip()
+            for line in (self.items_text or '').splitlines()
+            if line.strip()
+        ]
+
+
+class Class12AptitudeDailyLifeImpact(models.Model):
+    """Daily-life impacts for one reasoning area (one admin row per code, one bullet per line)."""
+
+    reasoning_code = models.CharField(
+        max_length=3,
+        choices=CLASS12_APTITUDE_REASONING_CODE_CHOICES,
+        unique=True,
+    )
+    items_text = models.TextField(
+        blank=True,
+        help_text='One daily-life impact per line.',
+    )
+    is_active = models.BooleanField(default=True)
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ('reasoning_code',)
+        verbose_name = 'Class 12 aptitude daily-life impact'
+        verbose_name_plural = 'Class 12 aptitude daily-life impacts'
+
+    def __str__(self):
+        return f'[{self.pk}] {self.get_reasoning_code_display()}'
+
+    def bullet_list(self) -> list[str]:
+        return [
+            line.strip()
+            for line in (self.items_text or '').splitlines()
+            if line.strip()
+        ]
+
+
 class Class12AptitudeConsolidatedReport(models.Model):
     """Consolidated Class 11–12 aptitude interpretation row (one per reasoning combination)."""
 
@@ -339,6 +414,16 @@ class Class12AptitudeConsolidatedReport(models.Model):
     career_clusters = models.JSONField(default=list, blank=True)
     career_pathways = models.JSONField(default=list, blank=True)
     degree_pathways = models.JSONField(default=list, blank=True)
+    real_life_sign_ids = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='Ordered master sign IDs for this combination. Leave empty to auto-merge by codes.',
+    )
+    daily_life_impact_ids = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='Ordered master impact IDs for this combination. Leave empty to auto-merge by codes.',
+    )
     is_active = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
@@ -360,4 +445,6 @@ class Class12AptitudeConsolidatedReport(models.Model):
             'career_clusters': list(self.career_clusters or []),
             'career_pathways': list(self.career_pathways or []),
             'degree_pathways': list(self.degree_pathways or []),
+            'real_life_sign_ids': list(self.real_life_sign_ids or []),
+            'daily_life_impact_ids': list(self.daily_life_impact_ids or []),
         }

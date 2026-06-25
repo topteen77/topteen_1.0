@@ -1,14 +1,20 @@
 """Tests for Class 12 consolidated aptitude report context helpers."""
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, override_settings
 
 from app.class12_aptitude_report_utils import (
     aptitude_assessment_report_context,
     build_aptitude_interpretations,
+    build_class12_consolidated_aptitude_mapping,
     build_combination_key,
     build_consolidated_profile,
     build_consolidated_profile_for_student,
     enrich_interpretation,
     lookup_student_consolidated_row,
+    resolve_class12_consolidated_tiers,
+)
+from core.choices import (
+    CLASS10_APTITUDE_STREAM_MODE_COMBINED,
+    CLASS10_APTITUDE_STREAM_MODE_TIER_PRIORITY,
 )
 
 
@@ -27,9 +33,50 @@ class Class12AptitudeReportUtilsTests(SimpleTestCase):
         row = lookup_student_consolidated_row(
             ['Abstract Reasoning'],
             ['Numerical Reasoning'],
+            mode=CLASS10_APTITUDE_STREAM_MODE_COMBINED,
         )
         self.assertIsNotNone(row)
         self.assertIn('<strong>', row['interpretation_narrative'])
+
+    def test_tier_priority_uses_above_only(self):
+        hc = {
+            'Above Average': ['Clerical speed & Accuracy', 'Mechanical Reasoning'],
+            'Average': ['Abstract Reasoning', 'Numerical Reasoning'],
+            'Below Average': [],
+        }
+        tier_ctx = resolve_class12_consolidated_tiers(
+            hc,
+            mode=CLASS10_APTITUDE_STREAM_MODE_TIER_PRIORITY,
+        )
+        self.assertEqual(tier_ctx['tier_used'], 'above_avg')
+        self.assertEqual(tier_ctx['combination_key'], 'CR + MR')
+        self.assertEqual(tier_ctx['primary_area'], 'Clerical speed & Accuracy')
+
+    def test_tier_priority_falls_back_to_average(self):
+        hc = {
+            'Above Average': [],
+            'Average': ['Abstract Reasoning', 'Numerical Reasoning'],
+            'Below Average': ['Spatial Reasoning'],
+        }
+        tier_ctx = resolve_class12_consolidated_tiers(
+            hc,
+            mode=CLASS10_APTITUDE_STREAM_MODE_TIER_PRIORITY,
+        )
+        self.assertEqual(tier_ctx['tier_used'], 'average')
+        self.assertEqual(tier_ctx['combination_key'], 'AR + NR')
+
+    def test_combined_mode_uses_both_tiers(self):
+        hc = {
+            'Above Average': ['Clerical speed & Accuracy', 'Mechanical Reasoning'],
+            'Average': ['Abstract Reasoning'],
+            'Below Average': [],
+        }
+        tier_ctx = resolve_class12_consolidated_tiers(
+            hc,
+            mode=CLASS10_APTITUDE_STREAM_MODE_COMBINED,
+        )
+        self.assertEqual(tier_ctx['tier_used'], 'combined')
+        self.assertEqual(tier_ctx['combination_key'], 'AR + CR + MR')
 
     def test_enrich_interpretation_keeps_real_life_signs(self):
         base = {
@@ -90,9 +137,9 @@ class Class12AptitudeReportUtilsTests(SimpleTestCase):
         self.assertEqual(profile['real_life_signs'], ['Sign one'])
         self.assertEqual(profile['daily_life_impact'], ['Impact one'])
 
-    def test_consolidated_signs_use_primary_area_only(self):
+    def test_consolidated_signs_merge_display_tier_areas(self):
         high_categories = {
-            'Above Average': ['Clerical speed & Accuracy'],
+            'Above Average': ['Clerical speed & Accuracy', 'Mechanical Reasoning'],
             'Average': ['Numerical Reasoning', 'Logical Reasoning'],
             'Below Average': [],
         }
@@ -105,6 +152,12 @@ class Class12AptitudeReportUtilsTests(SimpleTestCase):
                     'Daily life impact': ['Clerical impact'],
                 },
                 {
+                    'Area': 'Mechanical Reasoning',
+                    'Title': 'MECHANICAL',
+                    'Real life signs': ['Mechanical sign'],
+                    'Daily life impact': ['Mechanical impact'],
+                },
+                {
                     'Area': 'Numerical Reasoning',
                     'Title': 'NUMERICAL',
                     'Real life signs': ['Numerical sign'],
@@ -113,8 +166,8 @@ class Class12AptitudeReportUtilsTests(SimpleTestCase):
             ]
         }
         profile = build_consolidated_profile_for_student(high_categories, interpretation_data)
-        self.assertEqual(profile['real_life_signs'], ['Clerical sign'])
-        self.assertEqual(profile['daily_life_impact'], ['Clerical impact'])
+        self.assertEqual(profile['real_life_signs'], ['Clerical sign', 'Mechanical sign'])
+        self.assertEqual(profile['daily_life_impact'], ['Clerical impact', 'Mechanical impact'])
 
     def test_build_consolidated_profile_default_heading(self):
         row = lookup_student_consolidated_row(['Clerical speed & Accuracy'], [])
@@ -131,3 +184,38 @@ class Class12AptitudeReportUtilsTests(SimpleTestCase):
         self.assertEqual(ctx['above_list'], ['Mechanical Reasoning'])
         self.assertIn('aptitude_tier_data_json', ctx)
         self.assertIsNotNone(ctx['class12_aptitude_consolidated_profile'])
+
+    def test_consolidated_aptitude_mapping_tier_priority_uses_above_only(self):
+        hc = {
+            'Above Average': ['Numerical Reasoning'],
+            'Average': [
+                'Abstract Reasoning',
+                'Logical Reasoning',
+                'Language and Verbal Reasoning',
+                'Spatial Reasoning',
+            ],
+            'Below Average': ['Clerical speed & Accuracy', 'Mechanical Reasoning'],
+        }
+        mapping = build_class12_consolidated_aptitude_mapping(
+            hc,
+            mode=CLASS10_APTITUDE_STREAM_MODE_TIER_PRIORITY,
+        )
+        self.assertIsNotNone(mapping)
+        self.assertEqual(mapping['aptitude_code'], 'NR')
+        self.assertEqual(mapping['aptitude_areas'], ['Numerical Reasoning'])
+
+    def test_consolidated_aptitude_mapping_combined_mode(self):
+        hc = {
+            'Above Average': ['Numerical Reasoning'],
+            'Average': ['Abstract Reasoning', 'Logical Reasoning'],
+            'Below Average': [],
+        }
+        mapping = build_class12_consolidated_aptitude_mapping(
+            hc,
+            mode=CLASS10_APTITUDE_STREAM_MODE_COMBINED,
+        )
+        self.assertIsNotNone(mapping)
+        self.assertEqual(mapping['aptitude_code'], 'AR + LR + NR')
+        self.assertIn('clusters', mapping)
+        self.assertIn('roles', mapping)
+        self.assertIn('pathways', mapping)

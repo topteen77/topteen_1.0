@@ -73,3 +73,4 @@ admin.site.register(TestCompletion, TestCompletionAdmin)
 from app import class10_report_guidance_admin  # noqa: F401
 from app import aptitude_improvement_plan_admin  # noqa: F401
 from app import class12_aptitude_consolidated_admin  # noqa: F401
+from app import class12_aptitude_signs_impact_admin  # noqa: F401
