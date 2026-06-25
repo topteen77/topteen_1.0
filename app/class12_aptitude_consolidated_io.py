@@ -24,6 +24,17 @@ EXCEL_COLUMNS = (
 MIN_DESCRIPTION_LEN = 20
 MIN_NARRATIVE_LEN = 40
 
+# Consolidated Excel labels that must match CareerCluster.name in the careers DB.
+CAREER_CLUSTER_DB_ALIASES: dict[str, str] = {
+    'Agriculture, Natural Resources & Allied Sciences': 'Agriculture , Natural Resources & Allied Sciences',
+    'Arts, Humanities, Education and Training': 'Arts, Humanities , Education & Training',
+    'Vocational Studies': 'Vocational Careers',
+}
+
+
+def normalize_career_cluster_names(names: list[str] | None) -> list[str]:
+    return [CAREER_CLUSTER_DB_ALIASES.get(name, name) for name in (names or [])]
+
 _HTML_TAG_RE = re.compile(r'<[^>]+>')
 
 
@@ -193,8 +204,8 @@ def parse_excel_file(excel_path: Path) -> list[dict[str, Any]]:
                 'codes': codes,
                 'aptitude_description': aptitude_description,
                 'interpretation_narrative': interpretation_narrative,
-                'career_clusters': split_html_list(
-                    cell_value(row_num, 'Career Clusters'), ';'
+                'career_clusters': normalize_career_cluster_names(
+                    split_html_list(cell_value(row_num, 'Career Clusters'), ';')
                 ),
                 'career_pathways': split_html_list(
                     cell_value(row_num, 'Career Pathways'), ','
@@ -388,7 +399,9 @@ def import_rows_to_db(
                     'codes': list(row.get('codes') or []),
                     'aptitude_description': row.get('aptitude_description') or '',
                     'interpretation_narrative': row.get('interpretation_narrative') or '',
-                    'career_clusters': list(row.get('career_clusters') or []),
+                    'career_clusters': normalize_career_cluster_names(
+                        list(row.get('career_clusters') or [])
+                    ),
                     'career_pathways': list(row.get('career_pathways') or []),
                     'degree_pathways': list(row.get('degree_pathways') or []),
                     'real_life_sign_ids': list(row.get('real_life_sign_ids') or []),
@@ -416,7 +429,7 @@ def build_json_payload(rows: list[dict[str, Any]], *, source: str) -> dict[str, 
             'interpretation_narrative': row['interpretation_narrative'],
             'real_life_sign_ids': list(row.get('real_life_sign_ids') or []),
             'daily_life_impact_ids': list(row.get('daily_life_impact_ids') or []),
-            'career_clusters': row['career_clusters'],
+            'career_clusters': normalize_career_cluster_names(list(row.get('career_clusters') or [])),
             'career_pathways': row['career_pathways'],
             'degree_pathways': row['degree_pathways'],
         }
