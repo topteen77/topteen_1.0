@@ -1,9 +1,14 @@
 {# Unified v2 body partial (loaded via ?ttv2_partial=1 into the v2 frame) #}
 {% set _role = (ttv2_role_ctx.role if (ttv2_role_ctx is defined and ttv2_role_ctx.role is defined) else '') %}
+{# /institute/<slug>/… URLs always embed the single-institute body, even for marketing/group admins. #}
+{% set _is_institute_url = institute is defined and institute and institute.slug is defined %}
 <div class="ttv2-unified-embed">
   <div data-ttv2-page="{{ ttv2_page|default('dashboard') }}"></div>
 
-  {% if _role == 'counselor' %}
+  {% if _is_institute_url %}
+    {% include "template_v2/institute/institute_dashboard_body.html" %}
+
+  {% elif _role == 'counselor' %}
     {% include "template_v2/counselor/counselor_dashboard_body.html" %}
 
   {% elif _role == 'marketing_group' %}

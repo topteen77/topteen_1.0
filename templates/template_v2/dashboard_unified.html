@@ -3,10 +3,14 @@
 {% block title_content %}Dashboard | Top Teen{% endblock %}
 {% block description_content %}Role-based unified dashboard shell.{% endblock %}
 
+{% set _is_institute_url = institute is defined and institute and institute.slug is defined %}
+
 {% block additionalhead %}
 {{ super() }}
 {# Role-specific asset includes (keep existing v2 behavior) #}
-{% if ttv2_role_ctx is defined and ttv2_role_ctx.role == 'counselor' %}
+{% if _is_institute_url %}
+  {% include 'template20/institute/institute_dashboard_assets.html' %}
+{% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'counselor' %}
   {% include 'template20/counselor/counselor_dashboard_assets.html' %}
 {% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'marketing_group' %}
   {% include 'template20/institute/marketing_group_dashboard_assets.html' %}
@@ -18,12 +22,14 @@
 {% endblock %}
 
 {% block dashboard_title %}
-  {% if ttv2_role_ctx is defined and ttv2_role_ctx.role == 'counselor' %}Dashboard{% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'marketing_group' %}Marketing Dashboard{% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'institute_group' %}Institute Group Dashboard{% else %}Institute Dashboard{% endif %}
+  {% if _is_institute_url %}Institute Dashboard{% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'counselor' %}Dashboard{% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'marketing_group' %}Marketing Dashboard{% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'institute_group' %}Institute Group Dashboard{% else %}Institute Dashboard{% endif %}
 {% endblock %}
 {% block dashboard_subtitle %}All key metrics at a glance{% endblock %}
 
 {% block dashboard_home_url %}
-  {% if ttv2_role_ctx is defined and ttv2_role_ctx.role == 'counselor' and ttv2_role_ctx.counselor %}
+  {% if _is_institute_url %}
+    {{ url('institute:institute_masterdashboard', args=[institute.slug]) }}
+  {% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'counselor' and ttv2_role_ctx.counselor %}
     {{ url('counselor:CounselorDashboardView', args=[ttv2_role_ctx.counselor.id]) }}
   {% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'marketing_group' %}
     {{ url('institute:marketinggroupdashboard') }}
@@ -58,7 +64,7 @@
 {# Shared table loader #}
 <script src="{{ staticv('js_new/student_table_ajax.js') }}"></script>
 
-{% if ttv2_role_ctx is defined and ttv2_role_ctx.role == 'institute' %}
+{% if _is_institute_url or (ttv2_role_ctx is defined and ttv2_role_ctx.role == 'institute') %}
   <script src="{{ staticv('js_new/ttv2_institute_counselors_page.js') }}"></script>
   {% include "template_v2/institute/institute_embed_runtime.html" %}
   {% include "template_v2/institute/institute_dashboard_panel_bridge.html" %}
