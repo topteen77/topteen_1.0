@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'rest_framework',
     # 'django_unused_media',
     'core',
+    'gamification.apps.GamificationConfig',
     'skilllab',
     'users',
     'careers',

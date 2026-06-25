@@ -661,10 +661,10 @@ class ConfigurationAdmin(admin.ModelAdmin):
             **self.admin_site.each_context(request),
             'title': 'Dashboard Statistics (Student dashboard)',
             'opts': self.model._meta,
-            'level_bands_url': reverse('admin:core_dashboardlevelband_changelist'),
-            'point_rules_url': reverse('admin:core_dashboardpointrule_changelist'),
-            'trophy_defs_url': reverse('admin:core_dashboardtrophydefinition_changelist'),
-            'streak_config_url': reverse('admin:core_dashboardstreakconfig_changelist'),
+            'level_bands_url': reverse('admin:gamification_dashboardlevelband_changelist'),
+            'point_rules_url': reverse('admin:gamification_dashboardpointrule_changelist'),
+            'trophy_defs_url': reverse('admin:gamification_dashboardtrophydefinition_changelist'),
+            'streak_config_url': reverse('admin:gamification_dashboardstreakconfig_changelist'),
             'preview_user': preview_user,
             'preview_stats': preview_stats,
         }
@@ -836,7 +836,7 @@ class DashboardLevelBandAdmin(admin.ModelAdmin):
             for milestone in get_cumulative_point_milestones()
         ]
         extra_context['valid_milestone_points'] = sorted(get_valid_level_band_min_points())
-        extra_context['point_rules_url'] = reverse('admin:core_dashboardpointrule_changelist')
+        extra_context['point_rules_url'] = reverse('admin:gamification_dashboardpointrule_changelist')
         return extra_context
 
 
@@ -866,7 +866,7 @@ class DashboardPointRuleAdmin(admin.ModelAdmin):
             qs = qs.filter(active=False)
         total = qs.aggregate(total=Sum('points'))['total'] or 0
         extra_context['points_total'] = int(total)
-        extra_context['level_bands_url'] = reverse('admin:core_dashboardlevelband_changelist')
+        extra_context['level_bands_url'] = reverse('admin:gamification_dashboardlevelband_changelist')
         caps = get_max_achievable_points_by_track()
         extra_context['max_achievable_points'] = caps['post_matric']
         extra_context['max_achievable_points_class10'] = caps['class10']
@@ -899,10 +899,6 @@ class DashboardStreakConfigAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Configuration,ConfigurationAdmin)
-admin.site.register(DashboardLevelBand, DashboardLevelBandAdmin)
-admin.site.register(DashboardPointRule, DashboardPointRuleAdmin)
-admin.site.register(DashboardTrophyDefinition, DashboardTrophyDefinitionAdmin)
-admin.site.register(DashboardStreakConfig, DashboardStreakConfigAdmin)
 admin.site.register(City,CityAdmin)
 admin.site.register(State,StateAdmin)
 admin.site.register(Country,CountryAdmin)
