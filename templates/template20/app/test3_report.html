@@ -505,8 +505,11 @@ table {
       </div>
     </div>
     <div class="threebox-col" style="display: flex;justify-content: center; margin: 8px 0 0 0;">
+
       {% if intelligence_data.above_avg %}
       <div class="box-i onebox aptitude-summary--above" style="background: #F0FFEA;margin: 20px 8px; border-radius: 10px; border-right: 4px solid #2A740E; border-bottom: 4px solid #2A740E; width:190px; height: 180px; min-height: 180px;">
+        <p style="color: #2A740E; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Above Average</p>
+        
         <ul style="margin: 0px; list-style: none; padding:0px; float: left;">
           {% for above in intelligence_data.above_avg %}
           <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin-bottom: 0px; width:180px;float:left; text-align: center;">{{ above }}</li>
@@ -517,6 +520,7 @@ table {
 
       {% if intelligence_data.average %}
       <div class="box-i onebox aptitude-summary--average" style="background: #F5F4FF; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #3F37C9; border-bottom: 4px solid #3F37C9; width:190px; height: 180px; min-height: 180px;">
+        <p style="color: #3F37C9; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Average</p>
         <ul style="margin: 0px; list-style: none; padding:0px; float: left;">
           {% for average in intelligence_data.average %}
           <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin-bottom: 0px; width:180px;float:left; text-align: center;">{{ average }}</li>
@@ -527,6 +531,7 @@ table {
 
       {% if intelligence_data.below_avg %}
       <div class="box-i onebox aptitude-summary--below" style="background:#FFE5E5; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #A22717; border-bottom: 4px solid #A22717; width:190px;height: 180px; min-height: 180px;">
+        <p style="color: #A22717; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Growth Area</p>
         <ul style="margin: 0px; list-style: none; padding:0px; float: left;">
           {% for belowavg in intelligence_data.below_avg %}
           <li style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin-bottom: 0px; width:180px;float:left; text-align: center;">{{ belowavg }}</li>

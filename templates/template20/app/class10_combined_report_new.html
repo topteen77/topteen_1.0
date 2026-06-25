@@ -55,7 +55,7 @@
     -webkit-print-color-adjust: exact;
   }
 
-  ul {
+  ul:not(.aptitude-fit-list) {
     list-style-type: none;
     padding: 0;
   }
@@ -513,8 +513,89 @@
   gap: 64px 24px !important;
 }
 
+.stream-pathways-section.report-subsection {
+	padding: 0px !important;
+	margin-top: 74px !important;
+}
+
+.aptitude-combination-profile {
+  clear: both !important;
+  float: none !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: visible;
+}
+
+.aptitude-combination-profile .aptitude-plan-block {
+  clear: both;
+  width: 100%;
+}
+
+.aptitude-combination-profile .aptitude-plan-block--backup {
+  clear: both;
+  margin-top: 36px;
+}
+
+.stream-pathways-career-list {
+	padding: 16px 13px !important;
+}
+
 </style>
 {% include 'template20/app/partials/aptitude_tier_styles.html' %}
+<style>
+.combined-report-page .aptitude-combination-profile .aptitude-fit-icon-box {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+}
+
+.combined-report-page .aptitude-combination-profile .aptitude-fit-icon-box .aptitude-fit-svg {
+  position: static !important;
+  transform: none !important;
+  margin: 0 !important;
+  vertical-align: middle !important;
+}
+
+.combined-report-page .aptitude-fit-badge .aptitude-fit-svg,
+.combined-report-page .aptitude-fit-badge .aptitude-fit-svg path {
+  fill: #ffffff !important;
+  color: #ffffff !important;
+}
+
+.combined-report-page .aptitude-fit-section-icon--strong .aptitude-fit-svg,
+.combined-report-page .aptitude-fit-section-icon--strong .aptitude-fit-svg path {
+  fill: #2A740E !important;
+  color: #2A740E !important;
+}
+
+.combined-report-page .aptitude-fit-section-icon--good .aptitude-fit-svg,
+.combined-report-page .aptitude-fit-section-icon--good .aptitude-fit-svg path {
+  fill: #3F37C9 !important;
+  color: #3F37C9 !important;
+}
+
+.combined-report-page .aptitude-combination-narrative__icon .aptitude-fit-svg,
+.combined-report-page .aptitude-combination-narrative__icon .aptitude-fit-svg path {
+  fill: #3F37C9 !important;
+  color: #3F37C9 !important;
+}
+
+.combined-report-page .aptitude-fit-list {
+  list-style: disc outside !important;
+  list-style-type: disc !important;
+  padding-left: 20px !important;
+  margin: 0 !important;
+}
+
+.combined-report-page .aptitude-fit-list li {
+  display: list-item !important;
+  list-style: disc outside !important;
+  list-style-type: disc !important;
+  margin: 0 0 8px !important;
+}
+
+</style>
 {% endblock %}
 
 {% block content %}

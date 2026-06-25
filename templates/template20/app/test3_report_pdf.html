@@ -192,6 +192,25 @@
     .aptitude-performance-card div {
       margin-bottom: 0 !important;
     }
+    .aptitude-combination-profile {
+      clear: both !important;
+      width: 100% !important;
+      page-break-inside: auto !important;
+    }
+    .aptitude-plan-block:not(.aptitude-plan-block--backup) {
+      page-break-inside: avoid !important;
+    }
+    .aptitude-plan-block--backup {
+      page-break-before: always !important;
+      break-before: page !important;
+      page-break-inside: auto !important;
+      margin-top: 0 !important;
+      padding-top: 12px !important;
+    }
+    .aptitude-plan-block--backup .aptitude-plan-heading {
+      page-break-after: avoid !important;
+      break-after: avoid-page !important;
+    }
   </style>
   {% include 'template20/app/partials/aptitude_tier_styles.html' %}
 </head>
@@ -318,7 +337,7 @@
           <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 16px;"><span style="color:#2720A7;">Personality</span> encompasses the traits and characteristics that define how you interact with the world and approach tasks </td>
         </tr>
         <tr style="border:1px solid #9490dd;">
-          <td style="padding-left:14px; color: #000; font-weight: 700;">Part 2- Career Interest Inventory</td>
+          <td style="padding-left:14px; color: #000; font-weight: 700;">Part 2- Career Interest  Assessment</td>
           <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 16px;"><span style="color:#2720A7;">Interest</span> refers to the subjects and activities that naturally engage and excite you</td>
         </tr>
         <tr style="border:1px solid #9490dd;">
@@ -427,6 +446,8 @@
     <div class="threebox-col">
       {% if above_avg %}
       <div class="box-i onebox" style="background: #F0FFEA;margin: 20px 8px; border-radius: 10px; border-right: 4px solid #2A740E; border-bottom: 4px solid #2A740E; width:190px; height: 180px; min-height: 180px;">
+        
+       <p style="color: #2A740E; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Above Average</p>
         {% for above in above_avg %}
         <p style="color: #494949; line-height: 16px; font-size: 11px; font-weight: 600; margin-bottom: 3px; overflow-wrap: break-word;">{{ above }}</p>
         {% endfor %}
@@ -435,6 +456,9 @@
 
       {% if avg %}
       <div class="box-i onebox" style="background: #F5F4FF; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #3F37C9; border-bottom: 4px solid #3F37C9; width:190px; height: 180px; min-height: 180px;">
+      
+      
+       <p style="color: #3F37C9; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Average</p>
         {% for average in avg %}
         <p style="color: #494949; line-height: 16px; font-size: 11px; font-weight: 600; margin-bottom: 3px; overflow-wrap: break-word;">{{ average }}</p>
         {% endfor %}
@@ -443,6 +467,8 @@
 
       {% if below %}
       <div class="box-i onebox" style="background:#FFE5E5; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #A22717; border-bottom: 4px solid #A22717; width:190px;height: 180px; min-height: 180px;">
+        <p style="color: #A22717; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Growth Area</p>
+       
         {% for belowavg in below %}
         <p style="color: #494949; line-height: 16px; font-size: 11px; font-weight: 600; margin-bottom: 3px; overflow-wrap: break-word;">{{ belowavg }}</p>
         {% endfor %}
@@ -451,6 +477,12 @@
     </div>
 
     {% include 'template20/app/partials/aptitude_performance_profile.html' %}
+
+    {% if user_name and user_ID %}
+    <div class="graph" style="width:100%; text-align: center; margin-top: 10px; float: left; margin-bottom: 10px;">
+      <img style="width:500px;" src="{{ graph_image_media_url(user_name, user_ID, 'intelligence') }}" alt="graph" />
+    </div>
+    {% endif %}
   
     <table style="margin-bottom: 30px; margin-top:10px; width:600px; margin: 0px auto;">
       <thead>

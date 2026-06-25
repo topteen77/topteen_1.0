@@ -47,7 +47,7 @@
       -webkit-print-color-adjust: exact;
     }
     *, *::before, *::after { box-sizing: border-box; }
-    ul { list-style-type: none; padding: 0; }
+    ul:not(.aptitude-fit-list) { list-style-type: none; padding: 0; }
     a { color: inherit; text-decoration: none; }
     hr { height: 0; border: 0; border-top: 1px solid #494949; margin: 10px 0; }
     .chapterPage {
@@ -429,6 +429,146 @@
     .below-average-guidance-report--pdf .aptitude-growth-plan-field--plan {
       margin-top: 6px !important;
       margin-bottom: 0 !important;
+    }
+
+    /* Primary / Backup plan blocks — WeasyPrint-safe layout */
+    .aptitude-combination-profile {
+      clear: both !important;
+      float: none !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      page-break-inside: auto;
+    }
+    .aptitude-plan-block:not(.aptitude-plan-block--backup) {
+      clear: both;
+      width: 100%;
+      page-break-inside: avoid;
+    }
+    .aptitude-plan-block--backup {
+      clear: both;
+      page-break-before: always !important;
+      break-before: page !important;
+      page-break-inside: auto !important;
+      margin-top: 0 !important;
+      padding-top: 12px !important;
+    }
+    .aptitude-plan-block--backup .aptitude-plan-heading {
+      page-break-after: avoid !important;
+      break-after: avoid-page !important;
+    }
+    .aptitude-fit-columns {
+      display: table !important;
+      width: 100% !important;
+      table-layout: fixed !important;
+      border-collapse: separate !important;
+      border-spacing: 10px 0 !important;
+    }
+    .aptitude-fit-col {
+      display: table-cell !important;
+      vertical-align: top !important;
+      width: 50% !important;
+      max-width: none !important;
+      min-width: 0 !important;
+      page-break-inside: avoid;
+    }
+    .aptitude-combination-profile div,
+    .aptitude-plan-block div,
+    .aptitude-fit-icon-box {
+      margin-bottom: 0 !important;
+    }
+    .aptitude-fit-list {
+      list-style-type: disc !important;
+      padding-left: 18px !important;
+      margin: 0 !important;
+    }
+    .aptitude-fit-list li {
+      list-style-type: disc !important;
+      display: list-item !important;
+    }
+    .aptitude-combination-narrative__body {
+      display: flex !important;
+      align-items: flex-start !important;
+      gap: 16px !important;
+      width: 100% !important;
+    }
+    .aptitude-combination-narrative__icon {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 42px !important;
+      min-width: 42px !important;
+      flex-shrink: 0 !important;
+    }
+    .aptitude-combination-narrative__text {
+      flex: 1 !important;
+      display: block !important;
+    }
+    .aptitude-fit-icon-box {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      overflow: hidden !important;
+    }
+    .aptitude-fit-icon-box .aptitude-fit-svg {
+      position: static !important;
+      transform: none !important;
+      margin: 0 !important;
+      vertical-align: middle !important;
+    }
+    .aptitude-fit-badge .aptitude-fit-svg,
+    .aptitude-fit-badge .aptitude-fit-svg path {
+      fill: #ffffff !important;
+      color: #ffffff !important;
+    }
+    .aptitude-combination-narrative__icon {
+      color: #3F37C9 !important;
+    }
+  </style>
+  {% include 'template20/app/partials/aptitude_tier_styles.html' %}
+  <style>
+    /* Aptitude summary boxes — override tier fixed height + inline float for WeasyPrint */
+    body.combined-report-page .report-container .threebox-col {
+      display: table !important;
+      width: 100% !important;
+      table-layout: fixed !important;
+      border-collapse: separate !important;
+      border-spacing: 8px 0 !important;
+    }
+
+    body.combined-report-page .report-container .threebox-col > .box-i.onebox.aptitude-summary--above,
+    body.combined-report-page .report-container .threebox-col > .box-i.onebox.aptitude-summary--average,
+    body.combined-report-page .report-container .threebox-col > .box-i.onebox.aptitude-summary--below {
+      display: table-cell !important;
+      float: none !important;
+      width: auto !important;
+      height: auto !important;
+      min-height: 190px !important;
+      padding: 10px 6px 12px !important;
+      box-sizing: border-box !important;
+      overflow: visible !important;
+      vertical-align: top !important;
+    }
+
+    body.combined-report-page .report-container .box-i.onebox.aptitude-summary--above .aptitude-summary-label,
+    body.combined-report-page .report-container .box-i.onebox.aptitude-summary--average .aptitude-summary-label,
+    body.combined-report-page .report-container .box-i.onebox.aptitude-summary--below .aptitude-summary-label,
+    body.combined-report-page .report-container .box-i.onebox.aptitude-summary--above .aptitude-summary-item,
+    body.combined-report-page .report-container .box-i.onebox.aptitude-summary--average .aptitude-summary-item,
+    body.combined-report-page .report-container .box-i.onebox.aptitude-summary--below .aptitude-summary-item,
+    body.combined-report-page .report-container .box-i.onebox.aptitude-summary--above > p,
+    body.combined-report-page .report-container .box-i.onebox.aptitude-summary--average > p,
+    body.combined-report-page .report-container .box-i.onebox.aptitude-summary--below > p {
+      float: none !important;
+      display: block !important;
+      width: 100% !important;
+      clear: both !important;
+      box-sizing: border-box !important;
+    }
+
+    body.combined-report-page .report-container .box-i.onebox.aptitude-summary--above .aptitude-summary-label,
+    body.combined-report-page .report-container .box-i.onebox.aptitude-summary--average .aptitude-summary-label,
+    body.combined-report-page .report-container .box-i.onebox.aptitude-summary--below .aptitude-summary-label {
+      margin-bottom: 10px !important;
     }
   </style>
 </head>

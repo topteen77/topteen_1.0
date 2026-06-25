@@ -155,7 +155,7 @@
             </td>
           </tr>
           <tr style="border:1px solid #9490dd;">
-            <td style="padding-left:14px; color: #000; font-weight: 700;">Part 2- Career Interest Inventory</td>
+            <td style="padding-left:14px; color: #000; font-weight: 700;">Part 2- Career Interest Assessment</td>
             <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 16px;">
               <span style="color:#2720A7;">Interest</span> refers to the subjects and activities that naturally engage and excite you
             </td>
@@ -380,7 +380,7 @@
         <div class="top-layout" style="font-size: 16px;">Part -2</div>
       </div>
       <div class="db-header" style="margin-top: 5px;">
-        <h1 style="color: #3F37C9; margin:0px;">CAREER INTEREST INVENTORY REPORT</h1>
+        <h1 style="color: #3F37C9; margin:0px;">CAREER INTEREST ASSESSMENT REPORT</h1>
       </div>
       <div class="text-info-paragraph">
         <p>This report aims to provide you with insights into your career interests using the RIASEC framework. Each section describes a trait and highlights the strong points associated with it, helping you understand your potential strengths and suitable career paths. This report is based on the Career Interest Inventory, which helps identify your dominant traits, career interests, preferences, and potential paths</p>
@@ -761,7 +761,9 @@
       </div>
       <div class="threebox-col" style="display: flex;justify-content: center; margin: 8px 0 0 0;">
         {% if intelligence_data.above_avg and intelligence_data.above_avg|length > 0 %}
-        <div class="box-i onebox aptitude-summary--above" style="background: #F0FFEA;margin: 20px 8px; border-radius: 10px; border-right: 4px solid #2A740E; border-bottom: 4px solid #2A740E; width:190px; height: 190px; min-height: 190px;">
+        <div class="box-i onebox aptitude-summary--above" style="background: #F0FFEA;margin: 20px 8px; border-radius: 10px; border-right: 4px solid #2A740E; border-bottom: 4px solid #2A740E; width:190px; min-height: 190px;">
+          <p class="aptitude-summary-label" style="color: #2A740E; font-weight: 700; font-size: 16px; margin: 0 0 10px 0; text-align: center;">Above Average</p>
+        
           {% for above in intelligence_data.above_avg %}
           <p class="aptitude-summary-item" style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin: 0 0 3px 0; text-align: center; overflow-wrap: break-word;">{{ above }}</p>
           {% endfor %}
@@ -769,7 +771,8 @@
         {% endif %}
 
         {% if intelligence_data.average and intelligence_data.average|length > 0 %}
-        <div class="box-i onebox aptitude-summary--average" style="background: #F5F4FF; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #3F37C9; border-bottom: 4px solid #3F37C9; width:190px; height: 190px; min-height: 190px;">
+        <div class="box-i onebox aptitude-summary--average" style="background: #F5F4FF; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #3F37C9; border-bottom: 4px solid #3F37C9; width:190px; min-height: 190px;">
+          <p class="aptitude-summary-label" style="color: #3F37C9; font-weight: 700; font-size: 16px; margin: 0 0 10px 0; text-align: center;">Average</p>
           {% for average in intelligence_data.average %}
           <p class="aptitude-summary-item" style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin: 0 0 3px 0; text-align: center; overflow-wrap: break-word;">{{ average }}</p>
           {% endfor %}
@@ -777,7 +780,8 @@
         {% endif %}
 
         {% if intelligence_data.below_avg %}
-        <div class="box-i onebox aptitude-summary--below" style="background:#FFE5E5; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #A22717; border-bottom: 4px solid #A22717; width:190px;height: 190px; min-height: 190px;">
+        <div class="box-i onebox aptitude-summary--below" style="background:#FFE5E5; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #A22717; border-bottom: 4px solid #A22717; width:190px; min-height: 190px;">
+          <p class="aptitude-summary-label" style="color: #A22717; font-weight: 700; font-size: 16px; margin: 0 0 10px 0; text-align: center;">Growth Area</p>  
           {% for belowavg in intelligence_data.below_avg %}
           <p class="aptitude-summary-item" style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin: 0 0 3px 0; text-align: center; overflow-wrap: break-word;">{{ belowavg }}</p>
           {% endfor %}
