@@ -20,27 +20,27 @@ VALID_STREAMS = frozenset({
 STREAM_DECISION_STREAM_OPTIONS = (
     {
         'code': 'PCM',
-        'label': 'PCM - Engineering (Physics, Chemistry, Mathematics)',
+        'label': 'PCM - (Physics, Chemistry, Mathematics)',
     },
     {
         'code': 'PCB',
-        'label': 'PCB - Medical (Physics, Chemistry, Biology)',
+        'label': 'PCB - (Physics, Chemistry, Biology)',
     },
     {
         'code': 'CWM',
-        'label': 'CWM - Commerce (Commerce with Mathematics)',
+        'label': 'CWM - (Commerce with Mathematics)',
     },
     {
         'code': 'CWOM',
-        'label': 'CWOM - Commerce (Commerce without Mathematics)',
+        'label': 'CWOM - (Commerce without Mathematics)',
     },
     {
         'code': 'HUM-L',
-        'label': 'HUM-L - Humanities (Humanities with Languages)',
+        'label': 'HUM-L - (Humanities with Languages)',
     },
     {
         'code': 'HUM',
-        'label': 'HUM - Humanities (Humanities)',
+        'label': 'HUM - (Humanities)',
     },
 )
 

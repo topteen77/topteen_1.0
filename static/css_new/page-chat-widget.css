@@ -26,6 +26,10 @@
 /* ============================================================
    1. CSS VARIABLES  — tweak theme here
 ============================================================ */
+.pc-tool-card.pc-tc-sql {
+  display: none !important;
+}
+
 #pc-root {
   /* Brand — TopTeen brand purple, matching the main site */
   --pc-primary:        #3f37c9;

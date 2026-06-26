@@ -23,6 +23,13 @@
 /* ============================================================
    1. CSS VARIABLES  — tweak theme here
 ============================================================ */
+
+.cb-tool-card.cb-tc-sql {
+  display: none;
+}
+
+
+
 #cb-root {
   /* Brand colours — TopTeen brand purple */
   --cb-primary:        #3f37c9;   /* user bubble & accents       */

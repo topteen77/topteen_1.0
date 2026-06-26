@@ -3567,7 +3567,7 @@ class UserDashboard(TemplateView):
                 {
                     "kind": "psychometric",
                     "title": "Multiple Intelligence",
-                    "subtitle": "Learning style" if mi_done else "Assessment",
+                    "subtitle": "Know your learning style" if mi_done else "Assessment",
                     "start_url": reverse("core:multiple_intelligences_assessment"),
                     "action_label": "View report" if mi_done else "Start test",
                     "action_variant": "report" if mi_done else "start",
@@ -3587,7 +3587,7 @@ class UserDashboard(TemplateView):
                 {
                     "kind": "psychometric",
                     "title": "Emotional Intelligence",
-                    "subtitle": "EQ profile" if eq_done else "Assessment",
+                    "subtitle": "Know your EQ" if eq_done else "Assessment",
                     "start_url": reverse("core:emotional_intelligences_assessment"),
                     "action_label": "View report" if eq_done else "Start test",
                     "action_variant": "report" if eq_done else "start",
