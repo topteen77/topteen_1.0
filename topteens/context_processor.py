@@ -500,6 +500,8 @@ def globals(request):
 
     chatbot_widget_body_class = ''
     body_class_parts = []
+    if show_page_chat_widget and str(page_chat_position or 'left').lower() == 'right':
+        body_class_parts.append('cb-page-chat-right')
     if show_ai_counsellor_bot and str(ai_counsellor_position or 'right').lower() == 'left':
         body_class_parts.append('cb-ai-pos-left')
     if (

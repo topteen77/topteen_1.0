@@ -2490,7 +2490,7 @@
     </style>
 </head>
 
-<body class="{% if viewing_student_report or embed_mode %}ttv2-staff-report-embed {% endif %}{{ chatbot_widget_body_class }}">
+<body class="{% if viewing_student_report or embed_mode %}ttv2-staff-report-embed {% endif %}cb-standalone-report-page {{ chatbot_widget_body_class }}">
 {% if viewing_student_report or embed_mode %}
 <style>
   body.ttv2-staff-report-embed {

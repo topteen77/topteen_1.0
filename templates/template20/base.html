@@ -143,16 +143,10 @@
   </style>
 
   {% block additionalcss %}
-  {% if page_chat_position == 'right' %}
-  <style>
-    #pc-fab { left: auto !important; right: 28px !important; }
-    #pc-win { left: auto !important; right: 28px !important; }
-    @media (max-width: 768px) {
-      #pc-fab { right: 18px !important; left: auto !important; }
-    }
-  </style>
+  {% if show_ai_counsellor_bot or show_page_chat_widget %}
+  <link rel="stylesheet" href="{{ static('css_new/chatbot-rule-widgets-layout.css') }}?v=20260626" type="text/css" media="all" />
   {% endif %}
-  {# cb-root position & same-side stack: body classes cb-ai-pos-left / cb-bots-stack + chatbot-widget.css #}
+  {# cb-root position & same-side stack: body classes via chatbot_widget_body_class + chatbot-widget.css #}
   {% endblock %}
 
   {% block additionalhead %}
@@ -161,7 +155,7 @@
 
 </head>
 
-<body class="{% block bodyclass %} {% endblock %}{% if show_ai_counsellor_bot and (ai_counsellor_position or 'right')|lower == 'left' %} cb-ai-pos-left{% endif %}{% if show_ai_counsellor_bot and show_page_chat_widget and (page_chat_position or 'left')|lower == (ai_counsellor_position or 'right')|lower %} cb-bots-stack{% endif %}">
+<body class="{% block bodyclass %} {% endblock %}{{ chatbot_widget_body_class }}">
   {% block header %}
   {% include 'template20/includes/header.html' %}
   {% endblock %}

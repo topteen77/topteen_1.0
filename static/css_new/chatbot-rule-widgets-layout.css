@@ -1,0 +1,79 @@
+/**
+ * Shared layout for rule-driven chat widgets (page chat + career counsellor).
+ * Body classes are set in topteens.context_processor.globals → chatbot_widget_body_class.
+ */
+
+/* Page chat on the right (admin rule: position = Right) */
+body.cb-page-chat-right #pc-fab {
+  left: auto !important;
+  right: 28px !important;
+}
+
+body.cb-page-chat-right #pc-win {
+  left: auto !important;
+  right: 28px !important;
+  transform-origin: bottom right !important;
+}
+
+@media (max-width: 768px) {
+  body.cb-page-chat-right #pc-fab {
+    right: 18px !important;
+    left: auto !important;
+  }
+
+  body.cb-page-chat-right #pc-win {
+    right: 18px !important;
+    left: auto !important;
+  }
+}
+
+/* Standalone report pages with a fixed bottom action bar (Download PDF / Back) */
+body.cb-standalone-report-page #pc-fab {
+  bottom: 88px !important;
+}
+
+body.cb-standalone-report-page #pc-win {
+  bottom: 152px !important;
+}
+
+body.cb-standalone-report-page #cb-fab-wrap {
+  bottom: 88px !important;
+}
+
+body.cb-standalone-report-page #cb-window {
+  bottom: 168px !important;
+}
+
+body.cb-standalone-report-page.cb-bots-stack #cb-fab-wrap {
+  bottom: 160px !important;
+}
+
+body.cb-standalone-report-page.cb-bots-stack #cb-window {
+  bottom: 248px !important;
+}
+
+@media (max-width: 480px) {
+  body.cb-standalone-report-page #pc-fab {
+    bottom: 78px !important;
+  }
+
+  body.cb-standalone-report-page #pc-win {
+    bottom: 142px !important;
+  }
+
+  body.cb-standalone-report-page #cb-fab-wrap {
+    bottom: 78px !important;
+  }
+
+  body.cb-standalone-report-page #cb-window {
+    bottom: 158px !important;
+  }
+
+  body.cb-standalone-report-page.cb-bots-stack #cb-fab-wrap {
+    bottom: 150px !important;
+  }
+
+  body.cb-standalone-report-page.cb-bots-stack #cb-window {
+    bottom: 230px !important;
+  }
+}

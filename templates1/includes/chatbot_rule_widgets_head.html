@@ -6,3 +6,6 @@
 {% if show_page_chat_widget %}
 <link rel="stylesheet" href="{% static 'css_new/page-chat-widget.css' %}?v=20260326" type="text/css" media="all" />
 {% endif %}
+{% if show_ai_counsellor_bot or show_page_chat_widget %}
+<link rel="stylesheet" href="{% static 'css_new/chatbot-rule-widgets-layout.css' %}?v=20260626" type="text/css" media="all" />
+{% endif %}
