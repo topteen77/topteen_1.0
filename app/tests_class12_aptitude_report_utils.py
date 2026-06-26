@@ -36,7 +36,10 @@ class Class12AptitudeReportUtilsTests(SimpleTestCase):
             mode=CLASS10_APTITUDE_STREAM_MODE_COMBINED,
         )
         self.assertIsNotNone(row)
-        self.assertIn('<strong>', row['interpretation_narrative'])
+        self.assertEqual(row['reasoning_combination'], 'AR + NR')
+        self.assertTrue(row['interpretation_narrative'])
+        self.assertTrue(row.get('real_life_signs'))
+        self.assertTrue(row.get('daily_life_impact'))
 
     def test_tier_priority_uses_above_only(self):
         hc = {
@@ -125,19 +128,20 @@ class Class12AptitudeReportUtilsTests(SimpleTestCase):
                     'Area': 'Clerical speed & Accuracy',
                     'Title': 'CLERICAL SPEED & ACCURACY',
                     'Image': 'images/clerical-speed.png',
-                    'Real life signs': ['Sign one'],
-                    'Daily life impact': ['Impact one'],
+                    'Real life signs': ['Legacy sign'],
+                    'Daily life impact': ['Legacy impact'],
                 }
             ]
         }
+        consolidated = lookup_student_consolidated_row(['Clerical speed & Accuracy'], [])
         profile = build_consolidated_profile_for_student(high_categories, interpretation_data)
         self.assertIsNotNone(profile)
         self.assertEqual(profile['combination_key'], 'CR')
         self.assertEqual(profile['title'], 'CLERICAL SPEED & ACCURACY')
-        self.assertEqual(profile['real_life_signs'], ['Sign one'])
-        self.assertEqual(profile['daily_life_impact'], ['Impact one'])
+        self.assertEqual(profile['real_life_signs'], consolidated['real_life_signs'])
+        self.assertEqual(profile['daily_life_impact'], consolidated['daily_life_impact'])
 
-    def test_consolidated_signs_merge_display_tier_areas(self):
+    def test_consolidated_signs_use_combination_row_content(self):
         high_categories = {
             'Above Average': ['Clerical speed & Accuracy', 'Mechanical Reasoning'],
             'Average': ['Numerical Reasoning', 'Logical Reasoning'],
@@ -157,17 +161,17 @@ class Class12AptitudeReportUtilsTests(SimpleTestCase):
                     'Real life signs': ['Mechanical sign'],
                     'Daily life impact': ['Mechanical impact'],
                 },
-                {
-                    'Area': 'Numerical Reasoning',
-                    'Title': 'NUMERICAL',
-                    'Real life signs': ['Numerical sign'],
-                    'Daily life impact': ['Numerical impact'],
-                },
             ]
         }
+        consolidated = lookup_student_consolidated_row(
+            ['Clerical speed & Accuracy', 'Mechanical Reasoning'],
+            [],
+            mode=CLASS10_APTITUDE_STREAM_MODE_TIER_PRIORITY,
+        )
         profile = build_consolidated_profile_for_student(high_categories, interpretation_data)
-        self.assertEqual(profile['real_life_signs'], ['Clerical sign', 'Mechanical sign'])
-        self.assertEqual(profile['daily_life_impact'], ['Clerical impact', 'Mechanical impact'])
+        self.assertEqual(profile['combination_key'], 'CR + MR')
+        self.assertEqual(profile['real_life_signs'], consolidated['real_life_signs'])
+        self.assertEqual(profile['daily_life_impact'], consolidated['daily_life_impact'])
 
     def test_build_consolidated_profile_default_heading(self):
         row = lookup_student_consolidated_row(['Clerical speed & Accuracy'], [])

@@ -22,9 +22,14 @@
     </button>
     {% if _rtb and _rid %}
     <div class="std-shell-nav-btns ms-0 ms-sm-1">
-      <a class="std-shell-nav-btn" href="{{ url('users:resumebuilder') }}">My resumes</a>
+      <a class="std-shell-nav-btn" href="{{ url('users:resume_v2_dashboard') }}">My resumes</a>
+      {% if student_shell_resume_toolbar_v2|default(false) %}
+      <a class="std-shell-nav-btn{% if _ract == 'studio' %} std-shell-nav-btn--active{% endif %}" href="{{ url('users:resume_v2_studio', resume_id=_rid) }}">Resume studio</a>
+      <a class="std-shell-nav-btn{% if _ract == 'templates' %} std-shell-nav-btn--active{% endif %}" href="{{ url('users:resume_v2_templates', resume_id=_rid) }}">Templates</a>
+      {% else %}
       <a class="std-shell-nav-btn{% if _ract == 'studio' %} std-shell-nav-btn--active{% endif %}" href="{{ url('users:resumebuilder_studio', resume_id=_rid) }}">Resume studio</a>
       <a class="std-shell-nav-btn{% if _ract == 'templates' %} std-shell-nav-btn--active{% endif %}" href="{{ url('users:resumebuilder_templates', resume_id=_rid) }}">Templates</a>
+      {% endif %}
     </div>
     <div class="std-shell-toolbar-extras d-flex align-items-center gap-1 ms-1">
       {% include 'template20/user/includes/admitcv_resume_theme_toggle.html' %}
@@ -36,7 +41,7 @@
       <div class="dropdown cs-dropdown-user">
         <button type="button" class="std-shell-avatar-btn dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static"
           aria-expanded="false" aria-label="Account menu">
-          {% if _u.image %}
+          {% if _u.image and _u.image.name %}
           <img src="{{ _u.image.url }}" class="std-shell-avatar-img" alt=""
             onerror="this.style.display='none'; var s=this.nextElementSibling; if(s) s.style.display='flex';" />
           <span class="std-shell-avatar-initials" style="display:none;" aria-hidden="true">{{ (_u.name or _u.email or '?')[0]|upper }}</span>

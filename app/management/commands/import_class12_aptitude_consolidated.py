@@ -22,7 +22,7 @@ from app.class12_aptitude_consolidated_io import (
 
 DEFAULT_EXCEL = (
     Path(settings.BASE_DIR).parent
-    / 'final CONSOLIDATED REPORT FOR 11TH-12TH.xlsx'
+    / 'final 12 aptitude.xlsx'
 )
 DEFAULT_JSON = (
     Path(settings.BASE_DIR) / 'app' / 'data' / 'class12_aptitude_consolidated_report.json'

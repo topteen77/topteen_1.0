@@ -3,9 +3,8 @@
 {% block content %}
 <h1>{{ title }}</h1>
 <p>
-  Export the list first to get the correct column layout. Use <code>|</code> between reasoning codes
-  in <code>real_life_sign_codes</code> and <code>daily_life_impact_codes</code>
-  (for example <code>CR|MR|AR</code>).
+  Export the list first to get the correct column layout. Put one bullet per line in
+  <code>real_life_signs</code> and <code>daily_life_impact</code>.
 </p>
 <form method="post" enctype="multipart/form-data">
   {% csrf_token %}

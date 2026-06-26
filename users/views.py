@@ -3990,8 +3990,8 @@ class MyResumesHubView(TemplateView):
     def __breadcrumb(self):
         l = [
             {"title": "Profile page", "text": "Profile page", "url": reverse_lazy("users:userdashboard")},
-            {"title": "Scrapbook", "text": "Scrapbook", "url": reverse_lazy("users:scrapbook")},
-            {"title": "My resume", "text": "My resume", "url": ""},
+            {"title": "My resumes", "text": "My resumes", "url": reverse_lazy("users:resume_v2_dashboard")},
+            {"title": "Classic backup", "text": "Classic backup", "url": ""},
         ]
         return get_breadcrumb(l)
 
@@ -4031,13 +4031,16 @@ class ResumeHubCreateView(View):
             messages.error(request, title_error)
             from urllib.parse import urlencode
 
-            return redirect(f"{reverse('users:resumebuilder')}?{urlencode({'draft_title': title})}")
+            return redirect(f"{reverse('users:resumebuilder_classic')}?{urlencode({'draft_title': title})}")
         nxt = (request.POST.get("next") or "studio").strip().lower()
         resume = UserResume.objects.create(user=request.user, title=title)
+        from .resume_profile_store import bootstrap_user_resume_from_profile
+
+        bootstrap_user_resume_from_profile(request.user, resume)
         messages.success(request, "Resume created.")
         if nxt == "edit":
             return redirect("users:resumebuilder_edit", resume_id=resume.pk)
-        return redirect("users:resumebuilder_studio", resume_id=resume.pk)
+        return redirect("users:resume_v2_goal", resume_id=resume.pk)
 
 
 def _duplicate_user_resume_children(source_resume, new_resume):
@@ -4097,11 +4100,11 @@ class ResumeHubDuplicateView(View):
             pk = int(rid)
         except (TypeError, ValueError):
             messages.error(request, "Invalid resume.")
-            return redirect("users:resumebuilder")
+            return redirect("users:resume_v2_dashboard")
         src = UserResume.objects.filter(pk=pk, user=request.user).first()
         if not src:
             messages.error(request, "Resume not found.")
-            return redirect("users:resumebuilder")
+            return redirect("users:resume_v2_dashboard")
         title = (request.POST.get("title") or "").strip()[:120]
         raw_snap = (request.POST.get("studio_snapshot_json") or "").strip()
         if raw_snap:
@@ -4138,7 +4141,7 @@ class ResumeHubDuplicateView(View):
                     request,
                     "Saved a new copy with your studio layout and content.",
                 )
-                return redirect("users:resumebuilder_templates", resume_id=nr.pk)
+                return redirect("users:resume_v2_studio", resume_id=nr.pk)
 
         if not title:
             base = (src.title or "My resume").strip()[:100]
@@ -4154,7 +4157,7 @@ class ResumeHubDuplicateView(View):
             )
             _duplicate_user_resume_children(src, nr)
         messages.success(request, "Saved a fresh copy of your resume. You can edit it below.")
-        return redirect("users:resumebuilder_templates", resume_id=nr.pk)
+        return redirect("users:resume_v2_studio", resume_id=nr.pk)
 
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
@@ -4169,14 +4172,14 @@ class ResumeHubDeleteView(View):
             pk = int(rid)
         except (TypeError, ValueError):
             messages.error(request, "Invalid resume.")
-            return redirect("users:resumebuilder")
+            return redirect("users:resume_v2_dashboard")
         resume = UserResume.objects.filter(pk=pk, user=request.user).first()
         if resume:
             resume.delete(hard_delete=True)
             messages.success(request, "That resume was deleted.")
         else:
             messages.info(request, "Resume not found.")
-        return redirect("users:resumebuilder")
+        return redirect("users:resume_v2_dashboard")
 
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
@@ -4188,7 +4191,7 @@ class ResumeBuilderEditView(TemplateView):
     def __breadcrumb(self, resume):
         l = [
             {"title": "Profile page", "text": "Profile page", "url": reverse_lazy("users:userdashboard")},
-            {"title": "My resumes", "text": "My resumes", "url": reverse_lazy("users:resumebuilder")},
+            {"title": "My resumes", "text": "My resumes", "url": reverse_lazy("users:resume_v2_dashboard")},
             {
                 "title": "Edit resume",
                 "text": resume.title or "Edit resume",
@@ -4591,7 +4594,7 @@ def resume_pdf_download(request,*args, **kwargs):
         user_resume = qs.order_by("-modified").first()
     if not user_resume:
         messages.info(request, "Create or pick a resume before downloading a PDF.")
-        return redirect("users:resumebuilder")
+        return redirect("users:resume_v2_dashboard")
     preview_tid = request.GET.get("template_id")
     _tpl_row, classic_path, generated_path, pdf_lv, pdf_ac = _resume_pdf_template_row_paths_and_style(
         user_resume, preview_template_id=preview_tid, restrict_template_user=request.user
@@ -4778,20 +4781,24 @@ class ResumeTemplateStudioEmbedView(View):
         resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
         if ensure_studio_proto_v1_defaults_saved(resume, request):
             resume.refresh_from_db()
-        payload = resume_studio_prototype_payload(resume, request)
+        payload = resume_studio_prototype_payload(resume, request, ignore_studio_proto_merge=True)
         raw = json.dumps(payload, ensure_ascii=False, default=str).translate(
             str.maketrans({"<": "\\u003c", ">": "\\u003e"})
         )
-        finish, _pdf = resume_studio_embed_finish_pdf_urls(request, resume)
+        finish, pdf_url = resume_studio_embed_finish_pdf_urls(request, resume)
+        force_tpl = (request.GET.get("template") or "").strip()
         ctx = {
             "resume": resume,
             "resume_initial_json": mark_safe(raw),
             "studio_prefs_initial_json": mark_safe(json.dumps(studio_prefs_from_resume_record(resume))),
             "storage_key": f"resume-builder-proto-{resume.pk}",
             "finish_url": finish,
+            "pdf_download_url": pdf_url,
+            "studio_edit_url": reverse("users:resume_v2_studio", kwargs={"resume_id": resume.pk}),
+            "preview_back_url": reverse("users:resume_v2_dashboard"),
             "duplicate_resume_url": reverse("users:resumebuilder_duplicate"),
             "studio_templates_catalog_json": studio_html_template_catalog_json(),
-            "studio_force_template": "",
+            "studio_force_template": force_tpl,
             "studio_template_row": None,
         }
         return render(request, "template20/user/resume_builder_prototype_embed.html", ctx)
@@ -4800,9 +4807,9 @@ class ResumeTemplateStudioEmbedView(View):
 @method_decorator(ensure_csrf_cookie, name="dispatch")
 @method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
 class ResumeStudioPhotoUploadView(View):
-    """POST multipart {photo=<file>} → store on UserResume.image (S3-backed ImageField)."""
+    """POST multipart {photo=<file>} → store on UserResume.image; DELETE clears resume photo."""
 
-    http_method_names = ["post"]
+    http_method_names = ["post", "delete"]
 
     def post(self, request, resume_id, *args, **kwargs):
         resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
@@ -4820,14 +4827,37 @@ class ResumeStudioPhotoUploadView(View):
         if getattr(f, "size", 0) and f.size > max_mb * 1024 * 1024:
             return JsonResponse({"error": f"Image too large (max {max_mb}MB)."}, status=413)
 
+        from .resume_v2_services import save_v2_meta
+
+        save_v2_meta(resume, {"hide_resume_photo": False})
         resume.image = f
         resume.save(update_fields=["image", "modified"])
         try:
-            url = resume.image.url if resume.image else ""
-            abs_url = request.build_absolute_uri(url) if url and url.startswith("/") else url
+            from .resume_v2_services import resume_photo_url, sync_studio_proto_resume_from_db
+
+            sync_studio_proto_resume_from_db(resume, request)
+            abs_url = resume_photo_url(request, resume, request.user)
         except Exception:
             abs_url = ""
         return JsonResponse({"ok": True, "url": abs_url})
+
+    def delete(self, request, resume_id, *args, **kwargs):
+        resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
+        from .resume_v2_services import resume_photo_url, save_v2_meta, sync_studio_proto_resume_from_db
+
+        if resume.image:
+            try:
+                resume.image.delete(save=False)
+            except Exception:
+                pass
+        resume.image = None
+        resume.save(update_fields=["image", "modified"])
+        save_v2_meta(resume, {"hide_resume_photo": True})
+        try:
+            sync_studio_proto_resume_from_db(resume, request)
+        except Exception:
+            pass
+        return JsonResponse({"ok": True, "url": "", "removed": True})
 
 
 @staff_member_required

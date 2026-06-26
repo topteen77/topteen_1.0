@@ -232,6 +232,21 @@
       .replace(/"/g, "&quot;");
   }
 
+  function hasDisplayText(v) {
+    if (v == null) return false;
+    const s = String(v).trim();
+    return s && s !== "—" && s !== "-" && s !== "–";
+  }
+
+  function joinDisplayParts(parts, sep) {
+    return parts.filter(hasDisplayText).map((p) => esc(p)).join(sep || " · ");
+  }
+
+  function tplHeadline(className, d) {
+    if (!hasDisplayText(d.headline)) return "";
+    return `<p class="${className}">${esc(d.headline)}</p>`;
+  }
+
   function photoHtml(d, className) {
     if (d.photo && String(d.photo).trim()) {
       return `<img class="${className}" src="${esc(d.photo)}" alt="" />`;
@@ -304,12 +319,17 @@
     return (d.experience || [])
       .map((exp) => {
         const bullets = (exp.bullets || []).map((b) => `<li>${esc(b)}</li>`).join("");
+        const dates = hasDisplayText(exp.dates)
+          ? `<span class="tpl-job-dates">${esc(exp.dates)}</span>`
+          : "";
+        const subParts = joinDisplayParts([exp.company, exp.location]);
+        const sub = subParts ? `<div class="tpl-job-sub">${subParts}</div>` : "";
         return `<div class="${cj}">
           <div class="tpl-job-head">
             <strong>${esc(exp.title)}</strong>
-            <span class="tpl-job-dates">${esc(exp.dates)}</span>
+            ${dates}
           </div>
-          <div class="tpl-job-sub">${esc(exp.company)}${exp.location ? " · " + esc(exp.location) : ""}</div>
+          ${sub}
           ${bullets ? `<ul class="tpl-bullets">${bullets}</ul>` : ""}
         </div>`;
       })
@@ -319,13 +339,23 @@
   function educationHtml(d) {
     return (d.education || [])
       .map(
-        (ed) => `<div class="tpl-edu-block">
+        (ed) => {
+          const dates = hasDisplayText(ed.dates)
+            ? `<span class="tpl-job-dates">${esc(ed.dates)}</span>`
+            : "";
+          const school = hasDisplayText(ed.school) ? esc(ed.school) : "";
+          const detail = hasDisplayText(ed.detail) ? esc(ed.detail) : "";
+          const sub = school || detail
+            ? `<div class="tpl-job-sub">${school}${school && detail ? " — " : ""}${detail}</div>`
+            : "";
+          return `<div class="tpl-edu-block">
         <div class="tpl-job-head">
           <strong>${esc(ed.degree)}</strong>
-          <span class="tpl-job-dates">${esc(ed.dates)}</span>
+          ${dates}
         </div>
-        <div class="tpl-job-sub">${esc(ed.school)}${ed.detail ? " — " + esc(ed.detail) : ""}</div>
-      </div>`
+        ${sub}
+      </div>`;
+        }
       )
       .join("");
   }
@@ -333,17 +363,23 @@
   function certificationsHtml(d) {
     return (d.certifications || [])
       .map(
-        (c) => `<div class="tpl-cert">
+        (c) => {
+          const meta = joinDisplayParts([c.issuer, c.date]);
+          return `<div class="tpl-cert">
         <strong>${esc(c.name)}</strong>
-        <span class="tpl-cert-meta">${esc(c.issuer)}${c.date ? " · " + esc(c.date) : ""}</span>
-      </div>`
+        ${meta ? `<span class="tpl-cert-meta">${meta}</span>` : ""}
+      </div>`;
+        }
       )
       .join("");
   }
 
   function languagesHtml(d) {
     return (d.languages || [])
-      .map((l) => `<li><span class="tpl-lang-name">${esc(l.name)}</span> — ${esc(l.level)}</li>`)
+      .map((l) => {
+        const level = hasDisplayText(l.level) ? ` — ${esc(l.level)}` : "";
+        return `<li><span class="tpl-lang-name">${esc(l.name)}</span>${level}</li>`;
+      })
       .join("");
   }
 
@@ -357,14 +393,19 @@
     return (d.experience || [])
       .map((exp) => {
         const bullets = (exp.bullets || []).map((b) => `<li>${esc(b)}</li>`).join("");
+        const dates = hasDisplayText(exp.dates)
+          ? `<span class="tpl-job-dates">${esc(exp.dates)}</span>`
+          : "";
+        const subParts = joinDisplayParts([exp.company, exp.location]);
+        const sub = subParts ? `<div class="tpl-job-sub">${subParts}</div>` : "";
         return `<div class="tpl-tl-item">
           <span class="tpl-tl-dot"></span>
           <div class="tpl-tl-inner">
             <div class="tpl-job-head">
               <strong>${esc(exp.title)}</strong>
-              <span class="tpl-job-dates">${esc(exp.dates)}</span>
+              ${dates}
             </div>
-            <div class="tpl-job-sub">${esc(exp.company)}${exp.location ? " · " + esc(exp.location) : ""}</div>
+            ${sub}
             ${bullets ? `<ul class="tpl-bullets">${bullets}</ul>` : ""}
           </div>
         </div>`;
@@ -378,7 +419,7 @@
       return `<div class="tpl tpl-minimalist">
         <header class="tpl-min-head">
           <h1 class="tpl-min-name">${esc(d.fullName)}</h1>
-          <p class="tpl-min-title">${esc(d.headline)}</p>
+          ${tplHeadline("tpl-min-title", d)}
           <p class="tpl-min-contact">${contact}</p>
         </header>
         <hr class="tpl-min-rule" />
@@ -400,7 +441,7 @@
         <aside class="tpl-cs-side">
           ${photoHtml(d, "tpl-avatar")}
           <h1 class="tpl-cs-name">${esc(d.fullName)}</h1>
-          <p class="tpl-cs-title">${esc(d.headline)}</p>
+          ${tplHeadline("tpl-cs-title", d)}
           <ul class="tpl-cs-contact">${contactParts(d).map((x) => `<li>${x}</li>`).join("")}</ul>
           <h3 class="tpl-cs-h3">Skills</h3>
           <ul class="tpl-bullets tpl-bullets--tight">${skillsListHtml(d)}</ul>
@@ -422,7 +463,7 @@
       return `<div class="tpl tpl-colored-header">
         <header class="tpl-ch-bar">
           <h1 class="tpl-ch-name">${esc(d.fullName)}</h1>
-          <p class="tpl-ch-title">${esc(d.headline)}</p>
+          ${tplHeadline("tpl-ch-title", d)}
           <p class="tpl-ch-contact">${contact}</p>
         </header>
         <div class="tpl-ch-body">
@@ -451,7 +492,7 @@
             ${photoHtml(d, "tpl-ms-photo")}
             <div>
               <h1 class="tpl-ms-name">${esc(d.fullName)}</h1>
-              <p class="tpl-ms-title">${esc(d.headline)}</p>
+              ${tplHeadline("tpl-ms-title", d)}
             </div>
           </div>
           <p class="tpl-ms-contact">${contact}</p>
@@ -473,7 +514,7 @@
         <div class="tpl-pb-main">
           <header class="tpl-pb-header">
             <h1 class="tpl-pb-name">${esc(d.fullName)}</h1>
-            <p class="tpl-pb-title">${esc(d.headline)}</p>
+            ${tplHeadline("tpl-pb-title", d)}
             <p class="tpl-pb-contact">${contactParts(d).join(" · ")}</p>
           </header>
           <section class="tpl-sec"><h2 class="tpl-h2">Summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
@@ -496,7 +537,7 @@
       return `<div class="tpl tpl-bold-header">
         <header class="tpl-bh-bar">
           <h1 class="tpl-bh-name">${esc(d.fullName)}</h1>
-          <p class="tpl-bh-title">${esc(d.headline)}</p>
+          ${tplHeadline("tpl-bh-title", d)}
           <p class="tpl-bh-contact">${contactParts(d).join(" · ")}</p>
         </header>
         <div class="tpl-bh-body">
@@ -523,7 +564,7 @@
         <div class="tpl-tf-main">
           <header class="tpl-tf-head">
             <h1 class="tpl-tf-name">${esc(d.fullName)}</h1>
-            <p class="tpl-tf-title">${esc(d.headline)}</p>
+            ${tplHeadline("tpl-tf-title", d)}
           </header>
           <section class="tpl-sec"><h2 class="tpl-h2">Summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
           <section class="tpl-sec"><h2 class="tpl-h2">Experience</h2>${experienceHtml(d)}</section>
@@ -539,7 +580,7 @@
       return `<div class="tpl tpl-elegant-serif">
         <header class="tpl-el-head">
           <h1 class="tpl-el-name">${esc(d.fullName)}</h1>
-          <p class="tpl-el-title">${esc(d.headline)}</p>
+          ${tplHeadline("tpl-el-title", d)}
           <p class="tpl-el-contact">${contact}</p>
         </header>
         <section class="tpl-sec"><h2 class="tpl-el-h2">Summary</h2><p class="tpl-el-p">${esc(d.summary)}</p></section>
@@ -558,7 +599,7 @@
           ${photoHtml(d, "tpl-geo-photo")}
           <div class="tpl-geo-text">
             <h1 class="tpl-geo-name">${esc(d.fullName)}</h1>
-            <p class="tpl-geo-title">${esc(d.headline)}</p>
+            ${tplHeadline("tpl-geo-title", d)}
             <p class="tpl-geo-contact">${contactParts(d).join(" · ")}</p>
           </div>
         </header>
@@ -577,7 +618,7 @@
       return `<div class="tpl tpl-high-contrast">
         <header class="tpl-hc-top">
           <h1 class="tpl-hc-name">${esc(d.fullName)}</h1>
-          <p class="tpl-hc-title">${esc(d.headline)}</p>
+          ${tplHeadline("tpl-hc-title", d)}
           <p class="tpl-hc-contact">${contactParts(d).join(" · ")}</p>
         </header>
         <div class="tpl-hc-body">
@@ -605,7 +646,7 @@
           ${photoHtml(d, "tpl-au-photo")}
           <div class="tpl-au-hero-text">
             <h1 class="tpl-au-name">${esc(d.fullName)}</h1>
-            <p class="tpl-au-tagline">${esc(d.headline)}</p>
+            ${tplHeadline("tpl-au-tagline", d)}
             <p class="tpl-au-contact">${contactParts(d).join(" · ")}</p>
           </div>
         </div>
@@ -629,7 +670,7 @@
           <div class="tpl-mz-intro">
             <p class="tpl-mz-kicker">Professional profile</p>
             <h1 class="tpl-mz-name">${esc(d.fullName)}</h1>
-            <p class="tpl-mz-title">${esc(d.headline)}</p>
+            ${tplHeadline("tpl-mz-title", d)}
             <p class="tpl-mz-contact">${contactParts(d).join(" · ")}</p>
           </div>
         </header>
@@ -656,7 +697,7 @@
       return `<div class="tpl tpl-timeline">
         <header class="tpl-tl-head">
           <h1 class="tpl-tl-name">${esc(d.fullName)}</h1>
-          <p class="tpl-tl-sub">${esc(d.headline)}</p>
+          ${tplHeadline("tpl-tl-sub", d)}
           <p class="tpl-tl-contact">${contactParts(d).join(" · ")}</p>
         </header>
         <section class="tpl-sec"><h2 class="tpl-tl-section-title">Summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
@@ -688,7 +729,7 @@
         <div class="tpl-ex-main">
           <header class="tpl-ex-top">
             <h1 class="tpl-ex-name">${esc(d.fullName)}</h1>
-            <p class="tpl-ex-title">${esc(d.headline)}</p>
+            ${tplHeadline("tpl-ex-title", d)}
           </header>
           <section class="tpl-sec"><h2 class="tpl-ex-h2-main">Executive summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
           <section class="tpl-sec"><h2 class="tpl-ex-h2-main">Experience</h2>${experienceHtml(d)}</section>
@@ -706,7 +747,7 @@
             ${photoHtml(d, "tpl-st-photo")}
             <div>
               <h1 class="tpl-st-name">${esc(d.fullName)}</h1>
-              <p class="tpl-st-tagline">${esc(d.headline)}</p>
+              ${tplHeadline("tpl-st-tagline", d)}
               <p class="tpl-st-contact">${contactParts(d).join(" · ")}</p>
             </div>
           </div>
@@ -733,7 +774,7 @@
             ${photoHtml(d, "tpl-nv-photo")}
             <div class="tpl-nv-intro">
               <h1 class="tpl-nv-name">${esc(d.fullName)}</h1>
-              <p class="tpl-nv-tagline">${esc(d.headline)}</p>
+              ${tplHeadline("tpl-nv-tagline", d)}
               <p class="tpl-nv-contact">${contactParts(d).join(" · ")}</p>
             </div>
           </div>
@@ -755,7 +796,7 @@
       return `<div class="tpl tpl-ledger">
         <header class="tpl-lg-head">
           <h1 class="tpl-lg-name">${esc(d.fullName)}</h1>
-          <p class="tpl-lg-meta"><span class="tpl-lg-label">ROLE</span> ${esc(d.headline)}</p>
+          ${hasDisplayText(d.headline) ? `<p class="tpl-lg-meta"><span class="tpl-lg-label">ROLE</span> ${esc(d.headline)}</p>` : ""}
           <p class="tpl-lg-meta"><span class="tpl-lg-label">CONTACT</span> ${contactParts(d).join(" · ")}</p>
         </header>
         <section class="tpl-lg-block"><h2 class="tpl-lg-h2"><span class="tpl-lg-hash">#</span> Summary</h2><p class="tpl-lg-p">${esc(d.summary)}</p></section>
@@ -772,7 +813,7 @@
       return `<div class="tpl tpl-horizon">
         <header class="tpl-hz-head">
           <h1 class="tpl-hz-name">${esc(d.fullName)}</h1>
-          <p class="tpl-hz-title">${esc(d.headline)}</p>
+          ${tplHeadline("tpl-hz-title", d)}
           <p class="tpl-hz-contact">${contactParts(d).join(" · ")}</p>
         </header>
         <section class="tpl-hz-sec"><div class="tpl-hz-bar"></div><h2 class="tpl-hz-h2">Summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
@@ -791,7 +832,7 @@
           ${photoHtml(d, "tpl-fo-photo")}
           <div>
             <h1 class="tpl-fo-name">${esc(d.fullName)}</h1>
-            <p class="tpl-fo-line">${esc(d.headline)}</p>
+            ${tplHeadline("tpl-fo-line", d)}
             <p class="tpl-fo-contact">${contactParts(d).join(" · ")}</p>
           </div>
         </header>
@@ -808,7 +849,7 @@
         <header class="tpl-vx-banner">
           <div class="tpl-vx-banner-inner">
             <h1 class="tpl-vx-name">${esc(d.fullName)}</h1>
-            <p class="tpl-vx-title">${esc(d.headline)}</p>
+            ${tplHeadline("tpl-vx-title", d)}
             <p class="tpl-vx-contact">${contactParts(d).join(" · ")}</p>
           </div>
         </header>
@@ -830,7 +871,7 @@
       return `<div class="tpl tpl-atlantic-pro">
         <header class="tpl-ap-head">
           <h1 class="tpl-ap-name">${esc(d.fullName)}</h1>
-          <p class="tpl-ap-title">${esc(d.headline)}</p>
+          ${tplHeadline("tpl-ap-title", d)}
           <p class="tpl-ap-contact">${contactParts(d).join(" · ")}</p>
         </header>
         <section class="tpl-sec"><h2 class="tpl-ap-h2">Summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
@@ -854,7 +895,7 @@
       return `<div class="tpl tpl-zen-column">
         <header class="tpl-zc-head">
           <h1 class="tpl-zc-name">${esc(d.fullName)}</h1>
-          <p class="tpl-zc-title">${esc(d.headline)}</p>
+          ${tplHeadline("tpl-zc-title", d)}
           <p class="tpl-zc-contact">${contactParts(d).join(" · ")}</p>
         </header>
         <section class="tpl-sec"><h2 class="tpl-zc-h2">Profile</h2><p class="tpl-p">${esc(d.summary)}</p></section>
@@ -871,7 +912,7 @@
         <header class="tpl-gg-head">
           <div>
             <h1 class="tpl-gg-name">${esc(d.fullName)}</h1>
-            <p class="tpl-gg-title">${esc(d.headline)}</p>
+            ${tplHeadline("tpl-gg-title", d)}
           </div>
           ${photoHtml(d, "tpl-gg-photo")}
         </header>
@@ -1564,7 +1605,11 @@
       if (!window.__TT_RESUME_INITIAL) {
         if (o.resume && typeof o.resume === "object") resumeData = o.resume;
       }
-      if (o.template && RENDERERS[o.template]) activeTemplateId = o.template;
+      if (o.template && RENDERERS[o.template]) {
+        if (!window.__TT_RESUME_INITIAL) {
+          activeTemplateId = o.template;
+        }
+      }
       if (o.color && COLOR_SCHEMES.some((c) => c.id === o.color)) activeColorId = o.color;
       if (o.textAlign && TEXT_ALIGN_OPTIONS.some((a) => a.id === o.textAlign)) activeTextAlignId = o.textAlign;
       if (o.fontSize) {
@@ -1590,6 +1635,18 @@
     const isPickerMode = String(qp("mode") || "").trim() === "picker";
     if (isPickerMode) {
       document.body.classList.add("tt-mode-picker");
+    }
+    const isPreviewOnly =
+      String(qp("mode") || "").trim() === "preview" || window.__TT_PREVIEW_ONLY === true;
+    if (isPreviewOnly) {
+      document.body.classList.add("tt-mode-preview-only");
+      try {
+        if (window.self === window.top) {
+          document.body.classList.add("tt-mode-preview-standalone");
+        }
+      } catch (_) {
+        document.body.classList.add("tt-mode-preview-standalone");
+      }
     }
     if (window.__TT_STUDIO_PREFS_INITIAL && typeof window.__TT_STUDIO_PREFS_INITIAL === "object") {
       var si = window.__TT_STUDIO_PREFS_INITIAL;
@@ -1659,6 +1716,20 @@
     renderEditor();
     bindEditorEvents();
     renderPreview();
+
+    if (isPreviewOnly) {
+      try {
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      } catch (_) {}
+    }
+
+    if (isPreviewOnly && window.__TT_RESUME_INITIAL) {
+      try {
+        persistState();
+      } catch (_) {}
+    }
 
     var dupForm = document.getElementById("ttDupResumeForm");
     var snapField = document.getElementById("ttStudioSnapshotJson");

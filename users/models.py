@@ -394,6 +394,7 @@ class UserProfile(BaseModel):
     hobbies=models.ManyToManyField(Hobbies,related_name='hobbies',blank=True)
     subject=models.ManyToManyField(Subject,related_name='subject',blank=True)
     figure_out=models.ManyToManyField(UserFigureOut,related_name='figureout',blank=True)
+    resume_profile_json = models.TextField(null=True, blank=True)
 
 
 class ParentStudentLink(BaseModel):

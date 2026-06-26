@@ -298,11 +298,14 @@
           <div class="my-resume-title-wrap">
             <span class="my-resume-title-icon" aria-hidden="true"><i class='bx bx-file-blank'></i></span>
             <div>
-              <h1 class="fs-24 fw-semibold mb-1">My Resumes</h1>
-              <p class="text-muted fs-14 mb-0">Add and manage multiple resumes with quick tools for editing, templates, and PDF export.</p>
+              <h1 class="fs-24 fw-semibold mb-1">My Resumes <span class="badge bg-light text-muted fs-12 align-middle">Classic backup</span></h1>
+              <p class="text-muted fs-14 mb-0">Previous resume builder — use <a href="{{ url('users:resume_v2_dashboard') }}">Resume Builder V2</a> for the current experience.</p>
             </div>
           </div>
           <span class="my-resume-count-badge"><i class='bx bx-collection'></i>{{ hub_resume_count|default(0) }} saved</span>
+          <a href="{{ url('users:resume_v2_dashboard') }}" class="btn custom-button purple-button btn-sm ms-2">
+            <i class='bx bx-rocket'></i> Open V2 Builder
+          </a>
         </div>
 
         <div class="my-resume-card my-resume-create-card mb-4">
@@ -348,8 +351,9 @@
               </p>
             </div>
             <div class="d-flex flex-wrap gap-2 my-resume-actions">
-              <a href="{{ url('users:resumebuilder_studio', resume_id=row.resume.pk) }}" class="btn btn-outline-primary btn-sm px-3"><i class='bx bx-edit-alt'></i>Resume studio</a>
-              <a href="{{ url('users:resumebuilder_templates', resume_id=row.resume.pk) }}" class="btn btn-outline-secondary btn-sm px-3"><i class='bx bx-layout'></i>Template library</a>
+              <a href="{{ url('users:resume_v2_studio', resume_id=row.resume.pk) }}" class="btn custom-button purple-button btn-sm px-3"><i class='bx bx-edit-alt'></i>Edit in V2</a>
+              <a href="{{ url('users:resumebuilder_studio', resume_id=row.resume.pk) }}" class="btn btn-outline-secondary btn-sm px-3"><i class='bx bx-palette'></i>Classic studio</a>
+              <a href="{{ url('users:resumebuilder_templates', resume_id=row.resume.pk) }}" class="btn btn-outline-secondary btn-sm px-3"><i class='bx bx-layout'></i>Classic templates</a>
               <a href="{{ url('users:resumebuilder_templates_embed', resume_id=row.resume.pk) }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary btn-sm px-3"><i class='bx bx-show'></i>Preview</a>
               <!-- <a href="{{ url('users:resumepdf') }}?resume_id={{ row.resume.pk }}&inline=1" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary btn-sm px-3"><i class='bx bx-file-find'></i>View PDF</a>
               <a href="{{ url('users:resumepdf') }}?resume_id={{ row.resume.pk }}" class="btn btn-outline-secondary btn-sm px-3"><i class='bx bx-download'></i>PDF download</a> -->
@@ -366,7 +370,7 @@
         {% else %}
         <div class="my-resume-card mb-3">
           <h2 class="fs-18 fw-semibold mb-2">No resumes yet</h2>
-          <p class="fs-14 text-muted mb-0">Use <strong>+ Add resume</strong> above to create one and open Resume studio.</p>
+          <p class="fs-14 text-muted mb-0">Create a resume above to open the new builder, or switch to <a href="{{ url('users:resume_v2_dashboard') }}">Resume Builder V2</a>.</p>
         </div>
         {% endif %}
  </div>

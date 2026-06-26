@@ -1,0 +1,213 @@
+{% extends 'template20/user/student_base.html' %}
+
+{% block title_content %}Resume Builder | Top Teen{% endblock %}
+{% block description_content %}Build ATS-friendly resumes with AI assistance.{% endblock %}
+{% block student_bodyclass %}user-dashboard user-dashboard-fullscreen{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<link rel="stylesheet" href="{{ static('resume-builder-v2/styles.css') }}?v=7">
+{% endblock %}
+
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'Resume Builder' %}
+{% endblock %}
+
+{% block student_section_class %}rb2-page std-shell-main{% endblock %}
+
+{% block student_main %}
+<div class="app-right-content pt-3 px-3 pb-4">
+  {% if breadcrumb %}
+  {% include 'template20/includes/breadcrumb.html' %}
+  {% endif %}
+
+  <section class="rb2-hero mt-3">
+    <h1>Build Your Dream Resume</h1>
+    <p>Create ATS-friendly resumes for internships, scholarships, and future careers — powered by your TopTeen profile.</p>
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <span class="badge bg-white text-dark px-3 py-2 rounded-pill">Profile {{ profile_completion }}% complete</span>
+    </div>
+    <div class="rb2-hero-actions">
+      {% if latest_resume %}
+      <a href="{{ url('users:resume_v2_studio', resume_id=latest_resume.pk) }}" class="rb2-btn rb2-btn--white">
+        <i class='bx bx-play-circle'></i> Continue Resume
+      </a>
+      {% endif %}
+      <button type="button" class="rb2-btn rb2-btn--ghost" data-bs-toggle="collapse" data-bs-target="#rb2CreateForm">
+        <i class='bx bx-plus-circle'></i> Create New Resume
+      </button>
+      <a href="{{ url('users:resumebuilder_classic') }}" class="rb2-btn rb2-btn--outline" title="Previous resume builder">
+        <i class='bx bx-archive'></i> Classic builder
+      </a>
+    </div>
+  </section>
+
+  <div class="collapse {% if not resume_cards %}show{% endif %}" id="rb2CreateForm">
+    <div class="rb2-card mb-4">
+      <form method="post" action="{{ url('users:resume_v2_create') }}" id="rb2-create-form" novalidate>
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <div class="d-flex flex-wrap gap-3 align-items-start">
+          <div class="flex-grow-1" style="min-width:200px">
+            <label for="rb2-create-title" class="form-label fw-semibold">Resume name</label>
+            <input type="text" name="title" id="rb2-create-title" class="form-control form-control-lg rounded-pill"
+              placeholder="e.g. Internship Resume" maxlength="120" required autocomplete="off">
+          </div>
+          <div class="align-self-end">
+            <button type="submit" class="rb2-btn rb2-btn--primary">
+              <i class='bx bx-plus'></i> Create &amp; Continue
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="rb2-widgets">
+    <div class="rb2-card">
+      <h3>Profile Ready</h3>
+      <div class="rb2-ring-wrap">
+        <div class="rb2-ring">
+          <svg viewBox="0 0 36 36">
+            <path class="rb2-ring__bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            <path class="rb2-ring__fg" stroke-dasharray="{{ profile_completion }}, 100"
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+          </svg>
+          <span class="rb2-ring__num">{{ profile_completion }}%</span>
+        </div>
+        <div>
+          {% if profile_missing %}
+          <p class="mb-2 fs-14 text-muted">Missing from profile:</p>
+          <ul class="rb2-missing-list">
+            {% for item in profile_missing[:4] %}
+            <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <p class="mb-0 fs-14 text-success"><i class='bx bx-check-circle'></i> Profile looks great!</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="rb2-card">
+      <h3><i class='bx bx-bot'></i> AI Resume Coach</h3>
+      {% if ai_suggestions %}
+      {% for s in ai_suggestions %}
+      <div class="rb2-suggestion">
+        <i class='bx bx-check-circle'></i>
+        {% if s.link_url %}
+        <a href="{{ url(s.link_url) }}" class="rb2-suggestion__link">{{ s.text }}</a>
+        {% else %}
+        <span>{{ s.text }}</span>
+        {% endif %}
+      </div>
+      {% endfor %}
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        {% if latest_resume %}
+        <a href="{{ url('users:resume_v2_studio', resume_id=latest_resume.pk) }}" class="rb2-btn rb2-btn--primary" style="font-size:13px;padding:8px 16px">
+          Fix in Studio
+        </a>
+        {% else %}
+        <button type="button" class="rb2-btn rb2-btn--primary" style="font-size:13px;padding:8px 16px" data-bs-toggle="collapse" data-bs-target="#rb2CreateForm">
+          <i class='bx bx-plus'></i> Create Resume
+        </button>
+        <a href="{{ url('users:viewprofile') }}" class="rb2-btn rb2-btn--outline" style="font-size:13px;padding:8px 16px">
+          <i class='bx bx-user'></i> My Profile
+        </a>
+        {% endif %}
+      </div>
+      {% else %}
+      {% if latest_resume %}
+      <p class="text-muted fs-14 mb-2">Your resume is in good shape. Open Studio anytime to fine-tune a section.</p>
+      <a href="{{ url('users:resume_v2_studio', resume_id=latest_resume.pk) }}" class="rb2-btn rb2-btn--primary" style="font-size:13px;padding:8px 16px">
+        Open Studio
+      </a>
+      {% else %}
+      <p class="text-muted fs-14 mb-0">Complete your profile to unlock tailored resume tips.</p>
+      {% endif %}
+      {% endif %}
+    </div>
+
+    <div class="rb2-card">
+      <h3>Recommended Setup</h3>
+      <p class="fs-14 text-muted mb-2">We detected:</p>
+      <ul class="rb2-missing-list mb-3">
+        <li style="color:var(--rb2-success)">✓ {{ 'Student' if profile_analysis.type == 'student' else 'Experienced' }}</li>
+        {% if profile_analysis.grade %}<li style="color:var(--rb2-success)">✓ {{ profile_analysis.grade }}</li>{% endif %}
+        {% if not profile_analysis.has_experience %}<li style="color:var(--rb2-success)">✓ No Work Experience</li>{% endif %}
+      </ul>
+      <p class="fw-semibold mb-0">{{ 'Student Resume' if profile_analysis.type == 'student' else 'Professional Resume' }}</p>
+    </div>
+  </div>
+
+  <h2 class="fs-20 fw-bold mb-3">Your Resumes</h2>
+  <div class="rb2-resume-grid">
+    {% for card in resume_cards %}
+    <div class="rb2-resume-card">
+      <div class="rb2-resume-card__meta">
+        <span class="rb2-resume-card__meta-label">Resume file</span>
+        <span class="rb2-resume-card__meta-name" title="{{ card.resume.title|default('Untitled resume') }}">{{ card.resume.title|default('Untitled resume') }}</span>
+      </div>
+      <div class="rb2-resume-card__preview">
+        <iframe
+          class="rb2-resume-card__iframe"
+          title="Preview of {{ card.resume.title|default('resume') }}"
+          src="{{ card.preview_url }}"
+          loading="lazy"
+          tabindex="-1"
+        ></iframe>
+        <a href="{{ card.preview_url }}" target="_blank" class="rb2-resume-card__preview-link" title="Open full preview">
+          <i class='bx bx-expand-alt'></i>
+        </a>
+      </div>
+      <div class="rb2-resume-card__body">
+        <div class="rb2-resume-card__template" title="{{ card.template_name }}">
+          <span class="{{ card.thumb_class }}" aria-hidden="true"></span>
+          <span>{{ card.template_name }}</span>
+        </div>
+        <div class="rb2-stat-row">
+          <div class="rb2-stat">
+            <strong>{{ card.ats_score }}</strong>
+            <span>ATS Score</span>
+          </div>
+          <div class="rb2-stat">
+            <strong>{{ card.completion }}%</strong>
+            <span>Completion</span>
+          </div>
+          <div class="rb2-stat">
+            <strong>{{ card.strength }}</strong>
+            <span>Strength</span>
+          </div>
+        </div>
+        <p class="fs-12 text-muted mb-0">
+          {% if card.resume.modified %}Last updated {{ localtime(card.resume.modified) }}{% endif %}
+          · {{ card.level }}
+        </p>
+        <div class="rb2-resume-card-actions">
+          <a href="{{ url('users:resume_v2_studio', resume_id=card.resume.pk) }}" class="rb2-btn rb2-btn--primary">Edit Resume</a>
+          <a href="{{ card.preview_url }}" target="_blank" class="rb2-btn rb2-btn--outline">Preview</a>
+          <a href="{{ url('users:resumepdf') }}?resume_id={{ card.resume.pk }}" class="rb2-btn rb2-btn--outline">PDF</a>
+          <form method="post" action="{{ url('users:resume_v2_delete', resume_id=card.resume.pk) }}" class="rb2-resume-delete-form"
+            onsubmit="return confirm('Delete this resume and all of its sections? This cannot be undone.');">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            <button type="submit" class="rb2-btn rb2-btn--danger-outline" title="Delete resume">
+              <i class='bx bx-trash'></i> Delete
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <button type="button" class="rb2-new-card" data-bs-toggle="collapse" data-bs-target="#rb2CreateForm">
+      <i class='bx bx-plus-circle' style="font-size:2rem;margin-bottom:8px"></i>
+      <span>New Resume</span>
+    </button>
+  </div>
+
+  {% if not resume_cards %}
+  <p class="text-muted fs-14 mt-3">No resumes yet. Click <strong>New Resume</strong> to get started in under 5 minutes.</p>
+  {% endif %}
+</div>
+{% endblock %}
