@@ -7,6 +7,17 @@ DashboardTrophyDefinition, DashboardStreakConfig) and existing user/test data.
 from django.utils import timezone
 from django.db.models import Count
 
+from core.psychometric_grade import (
+    CLASS10_TRACK,
+    POST_MATRIC_TRACK,
+    get_excluded_rule_keys_for_track,
+    get_point_rules_with_applies_to,
+    get_student_psychometric_track,
+    resolve_rule_applies_to,
+    rule_applies_to_user,
+    rule_applies_to_user_track,
+)
+
 
 # Rule keys that are evaluated as one-off conditions (not event counts)
 ONE_OFF_RULE_KEYS = frozenset({
@@ -73,6 +84,90 @@ RULE_LABELS = {
 }
 
 
+def _load_point_map():
+    return {
+        rule['rule_key']: rule['points']
+        for rule in get_point_rules_with_applies_to(active_only=True)
+    }
+
+
+def _get_applicable_point_map(user):
+    track = get_student_psychometric_track(user)
+    return {
+        rule['rule_key']: rule['points']
+        for rule in get_point_rules_with_applies_to(active_only=True)
+        if rule_applies_to_user(resolve_rule_applies_to(rule['rule_key'], rule.get('applies_to') or ''), track)
+    }
+
+
+def _filter_trophy_keys_for_user(user, keys):
+    track = get_student_psychometric_track(user)
+    kept = []
+    for key in keys:
+        from core.models import DashboardTrophyDefinition
+        trophy_applies_to = (
+            DashboardTrophyDefinition.objects.filter(rule_key=key, active=True)
+            .values_list('applies_to', flat=True)
+            .first()
+        ) or ''
+        applies_to = resolve_rule_applies_to(key, trophy_applies_to)
+        if rule_applies_to_user(applies_to, track):
+            kept.append(key)
+    return kept
+
+
+def _milestone_total(milestones, rule_key, fallback=None):
+    for milestone in milestones:
+        if milestone['rule_key'] == rule_key:
+            return milestone['cumulative']
+    return fallback
+
+
+def _bands_from_milestones(milestones):
+    if not milestones:
+        return DEFAULT_LEVEL_BANDS
+
+    registration_pts = _milestone_total(milestones, 'registration', milestones[0]['cumulative'])
+    payment_pts = _milestone_total(milestones, 'payment_success', registration_pts)
+    interest_pts = _milestone_total(milestones, 'interest_test_complete', milestones[-1]['cumulative'])
+    legend_pts = milestones[-1]['cumulative']
+    return [
+        {'name': 'Rookie', 'min_points': registration_pts, 'order': 0},
+        {'name': 'Explorer', 'min_points': payment_pts, 'order': 1},
+        {'name': 'Champion', 'min_points': interest_pts, 'order': 2},
+        {'name': 'Legend', 'min_points': legend_pts, 'order': 3},
+    ]
+
+
+def _load_db_level_bands():
+    from core.models import DashboardLevelBand
+    bands = list(
+        DashboardLevelBand.objects.order_by('order', 'min_points').values('name', 'min_points', 'order')
+    )
+    if bands:
+        return bands
+    return DEFAULT_LEVEL_BANDS
+
+
+def _get_level_bands_for_user(user):
+    from core.dashboard_points import get_cumulative_point_milestones
+    from core.models import DashboardLevelBand
+
+    if get_student_psychometric_track(user) == CLASS10_TRACK:
+        excluded = get_excluded_rule_keys_for_track(CLASS10_TRACK)
+        milestones = get_cumulative_point_milestones(excluded_rule_keys=excluded)
+        return _bands_from_milestones(milestones)
+
+    bands = list(
+        DashboardLevelBand.objects.order_by('order', 'min_points').values('name', 'min_points', 'order')
+    )
+    if bands:
+        return bands
+
+    milestones = get_cumulative_point_milestones()
+    return _bands_from_milestones(milestones)
+
+
 def _class10_test_flag(user, field_name):
     from app.models import TestCompletion
     tc = TestCompletion.objects.filter(user=user).first()
@@ -112,6 +207,8 @@ def _rule_condition_met(user, rule_key):
             )
 
         if rule_key == 'motivation_test_complete':
+            if not rule_applies_to_user_track(user, rule_key):
+                return False
             return _post_matric_test_completed(user, 2)
 
         if rule_key == 'interest_test_complete':
@@ -158,18 +255,14 @@ def _get_trophy_count(user):
         keys = DEFAULT_TROPHY_KEYS
     else:
         keys = rows
+    keys = _filter_trophy_keys_for_user(user, keys)
     return sum(1 for k in keys if _rule_condition_met(user, k))
 
 
 def _get_total_points(user):
     """Sum points from DashboardPointRule (one-off + event-based) or defaults."""
-    from core.models import DashboardPointRule
     from user_analytics.models import UserEvent
-    rules = list(DashboardPointRule.objects.filter(active=True).values_list('rule_key', 'points'))
-    if not rules:
-        point_map = DEFAULT_POINT_RULES.copy()
-    else:
-        point_map = {k: p for k, p in rules}
+    point_map = _get_applicable_point_map(user)
 
     total = 0
     for rule_key in ONE_OFF_RULE_KEYS:
@@ -252,6 +345,8 @@ def _get_trophy_details(user):
         items = [{'rule_key': k, 'label': ''} for k in DEFAULT_TROPHY_KEYS]
     else:
         items = rows
+    allowed_keys = set(_filter_trophy_keys_for_user(user, [row['rule_key'] for row in items]))
+    items = [row for row in items if row['rule_key'] in allowed_keys]
     details = []
     for row in items:
         rule_key = row['rule_key']
@@ -272,14 +367,18 @@ def _get_points_details(user):
     from core.models import DashboardPointRule
     from user_analytics.models import UserEvent
     rule_rows = list(
-        DashboardPointRule.objects.filter(active=True).values('rule_key', 'points', 'order')
+        DashboardPointRule.objects.filter(active=True).values('rule_key', 'points', 'order', 'applies_to')
     )
+    point_map = _get_applicable_point_map(user)
     if not rule_rows:
-        point_map = DEFAULT_POINT_RULES.copy()
         rule_order = {k: i for i, k in enumerate(point_map.keys())}
     else:
-        point_map = {r['rule_key']: r['points'] for r in rule_rows}
-        rule_order = {r['rule_key']: r['order'] for r in rule_rows}
+        applicable_keys = set(point_map.keys())
+        rule_order = {
+            r['rule_key']: r['order']
+            for r in rule_rows
+            if r['rule_key'] in applicable_keys
+        }
 
     details = []
     earned_total = 0
@@ -320,15 +419,15 @@ def _get_points_details(user):
     return details, earned_total
 
 
-def _resolve_level_progress(total_points):
+def _resolve_level_progress(total_points, user=None):
     """
     Level progress within the current band (not total XP vs next threshold).
     Example: 25 XP, Rookie→Explorer (0–500 band) = 5% and 475 XP to Explorer.
     """
-    from core.models import DashboardLevelBand
-    bands = list(DashboardLevelBand.objects.order_by('order', 'min_points').values('name', 'min_points', 'order'))
-    if not bands:
-        bands = DEFAULT_LEVEL_BANDS
+    if user is not None:
+        bands = _get_level_bands_for_user(user)
+    else:
+        bands = _load_db_level_bands()
     if not bands:
         return {
             'current_level': 'Rookie',
@@ -379,13 +478,9 @@ def _resolve_level_progress(total_points):
     }
 
 
-def _get_level_details(total_points):
-    from core.models import DashboardLevelBand
-    bands = list(DashboardLevelBand.objects.order_by('order', 'min_points').values('name', 'min_points', 'order'))
-    if not bands:
-        bands = DEFAULT_LEVEL_BANDS
-
-    progress_data = _resolve_level_progress(total_points)
+def _get_level_details(total_points, user=None):
+    bands = _get_level_bands_for_user(user) if user is not None else _load_db_level_bands()
+    progress_data = _resolve_level_progress(total_points, user=user)
     level_name = progress_data['current_level']
     band_rows = []
     for b in bands:
@@ -413,9 +508,9 @@ def _get_streak_details(user):
     }
 
 
-def _get_level_band(total_points):
+def _get_level_band(total_points, user=None):
     """Return (level_name, next_min_points, progress_percent) from DashboardLevelBand or defaults."""
-    data = _resolve_level_progress(total_points)
+    data = _resolve_level_progress(total_points, user=user)
     return data['current_level'], data['next_level_min_points'], data['level_progress_percent']
 
 
@@ -427,7 +522,7 @@ def get_student_dashboard_stats(profile_user):
     trophies = _get_trophy_count(profile_user)
     points = _get_total_points(profile_user)
     streak = _get_streak_days(profile_user)
-    level_name, next_min, progress = _get_level_band(points)
+    level_name, next_min, progress = _get_level_band(points, user=profile_user)
     points_details, _ = _get_points_details(profile_user)
     return {
         'trophies_unlocked': trophies,
@@ -439,5 +534,6 @@ def get_student_dashboard_stats(profile_user):
         'trophy_details': _get_trophy_details(profile_user),
         'points_details': points_details,
         'streak_details': _get_streak_details(profile_user),
-        'level_details': _get_level_details(points),
+        'level_details': _get_level_details(points, user=profile_user),
+        'psychometric_track': get_student_psychometric_track(profile_user),
     }

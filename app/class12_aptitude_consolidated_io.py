@@ -14,6 +14,8 @@ EXPECTED_SINGLE_CODES = VALID_CODES
 EXCEL_COLUMNS = (
     'Reasoning Combination',
     'Aptitude Description',
+    'Real Life Signs',
+    'Daily Life Impact',
     'Interpretation Narrative',
     'Career Clusters',
     'Career Pathways',
@@ -133,6 +135,24 @@ def split_comma_list(text: str) -> list[str]:
     return [x.strip() for x in str(text or '').split(',') if x.strip()]
 
 
+_BULLET_SPLIT_RE = re.compile(r'[\n\r•\u2022\u00b7]+')
+
+
+def split_bullet_list(text: Any) -> list[str]:
+    """Split Excel or admin textarea content into bullet strings."""
+    raw = str(text or '').strip()
+    if not raw:
+        return []
+    parts = _BULLET_SPLIT_RE.split(raw) if _BULLET_SPLIT_RE.search(raw) else raw.splitlines()
+    bullets: list[str] = []
+    seen: set[str] = set()
+    for part in parts:
+        item = part.strip().lstrip('-').strip()
+        if not item or item in seen:
+            continue
+        seen.add(item)
+        bullets.append(item)
+    return bullets
 
 def parse_excel_file(excel_path: Path) -> list[dict[str, Any]]:
     """Read Sheet1 and return normalized row dicts (HTML preserves bold formatting)."""
@@ -182,6 +202,8 @@ def parse_excel_file(excel_path: Path) -> list[dict[str, Any]]:
                     rich_to_plain(cell_value(row_num, h)) == ''
                     for h in (
                         'Aptitude Description',
+                        'Real Life Signs',
+                        'Daily Life Impact',
                         'Interpretation Narrative',
                         'Career Clusters',
                         'Career Pathways',
@@ -195,6 +217,12 @@ def parse_excel_file(excel_path: Path) -> list[dict[str, Any]]:
             codes = key.split(' + ') if key else []
 
             aptitude_description = rich_to_plain(cell_value(row_num, 'Aptitude Description'))
+            real_life_signs = split_bullet_list(
+                rich_to_plain(cell_value(row_num, 'Real Life Signs'))
+            )
+            daily_life_impact = split_bullet_list(
+                rich_to_plain(cell_value(row_num, 'Daily Life Impact'))
+            )
             interpretation_narrative = cell_html(row_num, 'Interpretation Narrative')
 
             parsed.append({
@@ -203,6 +231,8 @@ def parse_excel_file(excel_path: Path) -> list[dict[str, Any]]:
                 'reasoning_combination': key,
                 'codes': codes,
                 'aptitude_description': aptitude_description,
+                'real_life_signs': real_life_signs,
+                'daily_life_impact': daily_life_impact,
                 'interpretation_narrative': interpretation_narrative,
                 'career_clusters': normalize_career_cluster_names(
                     split_html_list(cell_value(row_num, 'Career Clusters'), ';')
@@ -283,6 +313,11 @@ def validate_rows(
                 f'Row {row_num} ({key}): Interpretation Narrative is short '
                 f'({len(html_to_plain(row["interpretation_narrative"]))} chars).'
             )
+
+        if not row.get('real_life_signs'):
+            result.errors.append(f'Row {row_num} ({key}): Real Life Signs is empty.')
+        if not row.get('daily_life_impact'):
+            result.errors.append(f'Row {row_num} ({key}): Daily Life Impact is empty.')
 
         if not row.get('career_clusters'):
             result.errors.append(f'Row {row_num} ({key}): Career Clusters is empty.')
@@ -404,8 +439,8 @@ def import_rows_to_db(
                     ),
                     'career_pathways': list(row.get('career_pathways') or []),
                     'degree_pathways': list(row.get('degree_pathways') or []),
-                    'real_life_sign_ids': list(row.get('real_life_sign_ids') or []),
-                    'daily_life_impact_ids': list(row.get('daily_life_impact_ids') or []),
+                    'real_life_signs': list(row.get('real_life_signs') or []),
+                    'daily_life_impact': list(row.get('daily_life_impact') or []),
                     'is_active': True,
                 },
             )
@@ -427,8 +462,8 @@ def build_json_payload(rows: list[dict[str, Any]], *, source: str) -> dict[str, 
             'codes': row['codes'],
             'aptitude_description': row['aptitude_description'],
             'interpretation_narrative': row['interpretation_narrative'],
-            'real_life_sign_ids': list(row.get('real_life_sign_ids') or []),
-            'daily_life_impact_ids': list(row.get('daily_life_impact_ids') or []),
+            'real_life_signs': list(row.get('real_life_signs') or []),
+            'daily_life_impact': list(row.get('daily_life_impact') or []),
             'career_clusters': normalize_career_cluster_names(list(row.get('career_clusters') or [])),
             'career_pathways': row['career_pathways'],
             'degree_pathways': row['degree_pathways'],

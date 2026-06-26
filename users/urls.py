@@ -3,6 +3,18 @@ from django.urls import path
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
 from .import views
+from .resume_v2_views import (
+    ResumeV2AIView,
+    ResumeV2AnalyticsPartialView,
+    ResumeV2AutofillView,
+    ResumeV2CreateView,
+    ResumeV2DashboardView,
+    ResumeV2DeleteView,
+    ResumeV2GoalView,
+    ResumeV2StudioView,
+    ResumeV2SuggestView,
+    ResumeV2TemplatesView,
+)
 from django.contrib.auth import views as auth_views
 from django.conf import settings
 
@@ -94,7 +106,19 @@ urlpatterns = [
        RedirectView.as_view(permanent=False, pattern_name='users:resumebuilder'),
        name="resumebuilder_edit_legacy",
    ),
-   path('resume-builder/', views.MyResumesHubView.as_view(), name="resumebuilder"),
+   path('resume-builder/', RedirectView.as_view(permanent=False, pattern_name='users:resume_v2_dashboard'), name="resumebuilder"),
+   path('resume-builder/classic/', views.MyResumesHubView.as_view(), name="resumebuilder_classic"),
+   # Resume Builder V2 (primary)
+   path('resume-builder/v2/', ResumeV2DashboardView.as_view(), name="resume_v2_dashboard"),
+   path('resume-builder/v2/create/', ResumeV2CreateView.as_view(), name="resume_v2_create"),
+   path('resume-builder/v2/<int:resume_id>/delete/', ResumeV2DeleteView.as_view(), name="resume_v2_delete"),
+   path('resume-builder/v2/<int:resume_id>/goal/', ResumeV2GoalView.as_view(), name="resume_v2_goal"),
+   path('resume-builder/v2/<int:resume_id>/templates/', ResumeV2TemplatesView.as_view(), name="resume_v2_templates"),
+   path('resume-builder/v2/<int:resume_id>/studio/', ResumeV2StudioView.as_view(), name="resume_v2_studio"),
+   path('resume-builder/v2/<int:resume_id>/autofill/', ResumeV2AutofillView.as_view(), name="resume_v2_autofill"),
+   path('resume-builder/v2/<int:resume_id>/ai/', ResumeV2AIView.as_view(), name="resume_v2_ai"),
+   path('resume-builder/v2/<int:resume_id>/suggest/', ResumeV2SuggestView.as_view(), name="resume_v2_suggest"),
+   path('resume-builder/v2/<int:resume_id>/analytics/', ResumeV2AnalyticsPartialView.as_view(), name="resume_v2_analytics"),
    path(
        'resume-builder/setup/',
        RedirectView.as_view(permanent=False, pattern_name='users:resumebuilder'),

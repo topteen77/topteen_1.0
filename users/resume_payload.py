@@ -22,6 +22,58 @@ STUDIO_PROTO_V1_KEY = "studio_proto_v1"
 WIZARD_PREFER_GENERATED_PDF_KEY = "prefer_generated_pdf"
 DEFAULT_STUDIO_EMBED_FONT = '"Inter", system-ui, sans-serif'
 
+_RESUME_PLACEHOLDER_DASHES = frozenset({"—", "-", "–"})
+_V2_META_KEY = "studio_proto_v2"
+_INTERNAL_HEADLINE_RE = re.compile(
+    r"^(r\d+|copy\s*(of\s*)?\d*|resume\s*#?\d*|my\s+resume|untitled(\s+resume)?)$",
+    re.I,
+)
+
+
+def _strip_resume_placeholder(value: str) -> str:
+    """Turn legacy em-dash placeholders into empty strings for resume output."""
+    t = (value or "").strip()
+    return "" if t in _RESUME_PLACEHOLDER_DASHES else t
+
+
+def _v2_meta_from_wizard(wiz: dict | None) -> dict:
+    if not isinstance(wiz, dict):
+        return {}
+    meta = wiz.get(_V2_META_KEY)
+    return meta if isinstance(meta, dict) else {}
+
+
+def _is_meaningful_resume_headline(text: str) -> bool:
+    t = (text or "").strip()
+    if not t or len(t) < 3:
+        return False
+    return not _INTERNAL_HEADLINE_RE.match(t)
+
+
+def _studio_resume_headline(resume, profile, wiz: dict | None = None, proto_headline: str = "") -> str:
+    """Visible subtitle under the name — not the internal My Resumes label."""
+    meta = _v2_meta_from_wizard(wiz)
+    explicit = (meta.get("headline") or "").strip()
+    if explicit:
+        return explicit[:200]
+
+    for candidate in (proto_headline, (getattr(resume, "title", None) or "").strip()):
+        c = _strip_resume_placeholder(candidate)
+        if c and _is_meaningful_resume_headline(c):
+            return c[:200]
+
+    grade = (getattr(profile, "grade", None) or "").strip() if profile else ""
+    school = (getattr(profile, "schoolname", None) or "").strip() if profile else ""
+    parts = [p for p in (grade, school) if p]
+    if parts:
+        return " · ".join(parts)[:200]
+
+    goal = (meta.get("goal") or "").strip()
+    if goal:
+        return goal.replace("_", " ").title()[:200]
+
+    return ""
+
 _STUDIO_COLOR_HEX = {
     "teal": "#1b9e7a",
     "blue": "#2563eb",
@@ -111,12 +163,18 @@ def _merge_studio_proto_resume_into_payload(payload: dict, proto_resume: dict) -
         "interests",
     )
     out = dict(payload)
+    preserve_if_empty = frozenset(
+        {"photo", "fullName", "headline", "email", "phone", "address", "linkedin", "website", "summary"}
+    )
     for k in keys:
         if k not in proto_resume:
             continue
         v = proto_resume[k]
         if k in ("skills", "experience", "education", "certifications", "languages"):
-            if isinstance(v, list):
+            if isinstance(v, list) and v:
+                out[k] = v
+        elif k in preserve_if_empty:
+            if v is not None and str(v).strip():
                 out[k] = v
         elif k == "interests":
             out[k] = str(v or "")
@@ -175,7 +233,7 @@ def apply_studio_resume_to_userresume_children(resume, rd: dict) -> None:
 
     for ex in rd.get("experience") or []:
         title = (ex.get("title") or "").strip() or "Experience"
-        company = (ex.get("company") or "").strip() or "—"
+        company = _strip_resume_placeholder((ex.get("company") or "").strip())
         bullets = ex.get("bullets") or []
         loc = (ex.get("location") or "").strip()
         bullet_lines = [str(b).strip() for b in bullets if str(b).strip()]
@@ -934,9 +992,9 @@ def _wizard_experience_blocks(d):
         out.append(
             {
                 "title": label,
-                "company": "—",
+                "company": "",
                 "location": "",
-                "dates": "—",
+                "dates": "",
                 "bullets": bullets,
             }
         )
@@ -979,7 +1037,7 @@ def _wizard_education_rows(d):
     return [
         {
             "degree": course or level or "Student",
-            "school": school or "—",
+            "school": school,
             "dates": "",
             "detail": " · ".join(detail_parts)[:500],
         }
@@ -1024,11 +1082,15 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
     ignore_studio_proto_merge: when True, skip merging studio_proto_v1.resume (used when
     building a fresh studio pack from wizard/DB data).
     """
+    if not resume:
+        return {}
+
     user = resume.user
     if user is None:
         return {}
 
     profile = UserProfile.objects.filter(user=user).first()
+    wiz = _wizard_draft_dict(resume)
 
     skills_out = []
     for s in UserResumeSkill.objects.filter(resume=resume).order_by("id"):
@@ -1048,9 +1110,9 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
         experience_out.append(
             {
                 "title": role,
-                "company": provider or "—",
+                "company": provider,
                 "location": "",
-                "dates": dates or "—",
+                "dates": dates,
                 "bullets": bullets,
             }
         )
@@ -1064,7 +1126,7 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
                 "title": title,
                 "company": "Activity",
                 "location": "",
-                "dates": dates or "—",
+                "dates": dates,
                 "bullets": bullets,
             }
         )
@@ -1080,7 +1142,7 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
                 "title": title,
                 "company": company,
                 "location": "",
-                "dates": dates or "—",
+                "dates": dates,
                 "bullets": bullets,
             }
         )
@@ -1094,7 +1156,7 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
             education_out.append(
                 {
                     "degree": degree,
-                    "school": school or "—",
+                    "school": school,
                     "dates": "",
                     "detail": "",
                 }
@@ -1125,12 +1187,16 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
         parts_addr.append((profile.grade or "").strip())
 
     # Prefer resume-specific photo (used by template picker); fallback to user profile avatar.
-    photo = _absolute_media_url(request, getattr(resume, "image", None)) or _absolute_media_url(
-        request, getattr(user, "image", None)
-    )
+    v2_meta = _v2_meta_from_wizard(wiz)
+    if isinstance(v2_meta, dict) and v2_meta.get("hide_resume_photo"):
+        photo = ""
+    else:
+        photo = _absolute_media_url(request, getattr(resume, "image", None)) or _absolute_media_url(
+            request, getattr(user, "image", None)
+        )
 
     full_name = (user.name or "").strip() or (user.email or "").split("@")[0]
-    headline = (resume.title or "").strip() or "Resume"
+    headline = ""
     email = (user.email or "").strip()
     phone = (user.mobile or "").strip()
     linkedin = ""
@@ -1139,7 +1205,6 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
     languages_out = []
     interests = ", ".join(hobby_names)
 
-    wiz = _wizard_draft_dict(resume)
     wiz_guided = None
     if wiz:
         wiz_guided = {
@@ -1192,6 +1257,44 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
     elif summary:
         summary = _fallback_summary_from_about(summary, 1000)
 
+    headline = _studio_resume_headline(resume, profile, wiz, headline)
+
+    v2_meta = _v2_meta_from_wizard(wiz)
+    personal_meta = v2_meta.get("personal") if isinstance(v2_meta.get("personal"), dict) else {}
+    meta_name = (personal_meta.get("name") or "").strip()
+    meta_phone = (personal_meta.get("phone") or "").strip()
+    meta_school = (personal_meta.get("school") or "").strip()
+    meta_grade = (personal_meta.get("grade") or "").strip()
+
+    profile_name = (user.name or "").strip()
+    if profile_name and profile_name != "Student" and profile_name.lower() != email.lower():
+        pass
+    elif meta_name:
+        full_name = meta_name
+    elif not profile_name or profile_name == "Student" or profile_name.lower() == email.lower():
+        full_name = (user.email or "").split("@")[0] if email else full_name
+
+    if not str(user.mobile or "").strip() and meta_phone:
+        phone = meta_phone
+
+    if meta_school or meta_grade:
+        if not education_out and profile:
+            degree = meta_grade or (profile.grade or "").strip() or "Student"
+            school_name = meta_school or (profile.schoolname or "").strip()
+            if school_name or degree:
+                education_out.append(
+                    {
+                        "degree": degree,
+                        "school": school_name,
+                        "dates": "",
+                        "detail": "",
+                    }
+                )
+        elif education_out and meta_school:
+            education_out[0]["school"] = meta_school
+        elif education_out and meta_grade:
+            education_out[0]["degree"] = meta_grade
+
     out = {
         "fullName": full_name,
         "headline": headline,
@@ -1217,7 +1320,42 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
         sp = wiz[STUDIO_PROTO_V1_KEY]
         if isinstance(sp.get("resume"), dict):
             out = _merge_studio_proto_resume_into_payload(out, sp["resume"])
-    return out
+    cleaned = _clean_studio_list_fields(out)
+    cleaned["headline"] = _studio_resume_headline(
+        resume, profile, wiz, cleaned.get("headline") or ""
+    )
+    return cleaned
+
+
+def _clean_studio_list_fields(out: dict) -> dict:
+    """Normalize list sections and strip legacy em-dash placeholders from resume output."""
+    cleaned = dict(out)
+    experience: list[dict] = []
+    for ex in cleaned.get("experience") or []:
+        n = _norm_experience_item(ex)
+        if n:
+            experience.append(n)
+    cleaned["experience"] = experience
+    education: list[dict] = []
+    for ed in cleaned.get("education") or []:
+        n = _norm_education_item(ed)
+        if n:
+            education.append(n)
+    cleaned["education"] = education
+    certs: list[dict] = []
+    for c in cleaned.get("certifications") or []:
+        n = _norm_cert_item(c)
+        if n:
+            certs.append(n)
+    cleaned["certifications"] = certs
+    langs: list[dict] = []
+    for lg in cleaned.get("languages") or []:
+        n = _norm_lang_item(lg)
+        if n:
+            langs.append(n)
+    cleaned["languages"] = langs
+    cleaned["headline"] = _strip_resume_placeholder(str(cleaned.get("headline") or ""))
+    return cleaned
 
 
 def guided_wizard_payload_for_studio(resume, request, guided_draft: dict | None) -> dict:
@@ -1300,10 +1438,13 @@ def _norm_experience_item(ex: object) -> dict | None:
         return None
     if not title:
         title = "Experience"
-    if not company:
-        company = "—"
-    loc = _norm_str(ex.get("location") or ex.get("city") or ex.get("place"), 300)
-    dates = _norm_str(ex.get("dates") or ex.get("duration") or ex.get("period") or ex.get("date_range"), 200)
+    loc = _strip_resume_placeholder(
+        _norm_str(ex.get("location") or ex.get("city") or ex.get("place"), 300)
+    )
+    dates = _strip_resume_placeholder(
+        _norm_str(ex.get("dates") or ex.get("duration") or ex.get("period") or ex.get("date_range"), 200)
+    )
+    company = _strip_resume_placeholder(company)
     bullets_raw = ex.get("bullets") or ex.get("highlights") or ex.get("points") or []
     bl: list[str] = []
     if isinstance(bullets_raw, str):
@@ -1360,8 +1501,8 @@ def _norm_lang_item(lg: object) -> dict | None:
     name = _norm_str(lg.get("name") or lg.get("language"), 200)
     if not name:
         return None
-    lv = _norm_str(lg.get("level") or lg.get("proficiency"), 200)
-    return {"name": name, "level": lv or "—"}
+    lv = _strip_resume_placeholder(_norm_str(lg.get("level") or lg.get("proficiency"), 200))
+    return {"name": name, "level": lv}
 
 
 def normalize_studio_resume_payload(raw: dict) -> dict:
@@ -1431,7 +1572,7 @@ def resume_studio_embed_finish_pdf_urls(request, resume):
 
     from django.urls import reverse
 
-    finish = request.build_absolute_uri(reverse("users:resumebuilder"))
+    finish = request.build_absolute_uri(reverse("users:resume_v2_dashboard"))
     pdf_base = reverse("users:resumepdf")
     q = urlencode({"resume_id": int(resume.pk)})
     pdf = request.build_absolute_uri(f"{pdf_base}?{q}")

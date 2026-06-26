@@ -7,18 +7,14 @@ import json
 from typing import Any
 
 from app.class12_aptitude_consolidated_io import normalize_combination_key
-from app.class12_aptitude_signs_impact import (
-    build_sign_impact_ids_for_codes,
-    codes_to_sign_impact_ids,
-    parse_code_list,
-)
+from app.class12_aptitude_signs_impact import bullets_to_text, text_to_bullets
 
 CSV_COLUMNS = (
     'reasoning_combination',
     'aptitude_description',
+    'real_life_signs',
+    'daily_life_impact',
     'interpretation_narrative',
-    'real_life_sign_codes',
-    'daily_life_impact_codes',
     'career_clusters',
     'career_pathways',
     'degree_pathways',
@@ -47,47 +43,19 @@ def _parse_json_cell(raw: str, *, default=None):
 
 
 def export_consolidated_reports_csv() -> str:
-    from app.models import (
-        Class12AptitudeConsolidatedReport,
-        Class12AptitudeDailyLifeImpact,
-        Class12AptitudeRealLifeSign,
-    )
-
-    sign_code_by_id = {
-        row.pk: row.reasoning_code
-        for row in Class12AptitudeRealLifeSign.objects.all()
-    }
-    impact_code_by_id = {
-        row.pk: row.reasoning_code
-        for row in Class12AptitudeDailyLifeImpact.objects.all()
-    }
+    from app.models import Class12AptitudeConsolidatedReport
 
     buffer = io.StringIO()
     writer = csv.DictWriter(buffer, fieldnames=CSV_COLUMNS, extrasaction='ignore')
     writer.writeheader()
 
     for row in Class12AptitudeConsolidatedReport.objects.order_by('reasoning_combination'):
-        sign_codes = [
-            sign_code_by_id[pk]
-            for pk in (row.real_life_sign_ids or [])
-            if pk in sign_code_by_id
-        ]
-        impact_codes = [
-            impact_code_by_id[pk]
-            for pk in (row.daily_life_impact_ids or [])
-            if pk in impact_code_by_id
-        ]
-        if not sign_codes:
-            sign_codes = list(row.codes or [])
-        if not impact_codes:
-            impact_codes = list(row.codes or [])
-
         writer.writerow({
             'reasoning_combination': row.reasoning_combination,
             'aptitude_description': row.aptitude_description or '',
+            'real_life_signs': bullets_to_text(row.real_life_signs or []),
+            'daily_life_impact': bullets_to_text(row.daily_life_impact or []),
             'interpretation_narrative': row.interpretation_narrative or '',
-            'real_life_sign_codes': '|'.join(sign_codes),
-            'daily_life_impact_codes': '|'.join(impact_codes),
             'career_clusters': _json_cell(row.career_clusters or []),
             'career_pathways': _json_cell(row.career_pathways or []),
             'degree_pathways': _json_cell(row.degree_pathways or []),
@@ -125,19 +93,16 @@ def import_consolidated_reports_csv(
                 continue
 
             codes = [part.strip() for part in key.split('+') if part.strip()]
-            sign_codes = parse_code_list(row.get('real_life_sign_codes', '')) or codes
-            impact_codes = parse_code_list(row.get('daily_life_impact_codes', '')) or codes
-            sign_ids, impact_ids = codes_to_sign_impact_ids(sign_codes, impact_codes)
 
             defaults = {
                 'codes': codes,
                 'aptitude_description': row.get('aptitude_description') or '',
+                'real_life_signs': text_to_bullets(row.get('real_life_signs', '')),
+                'daily_life_impact': text_to_bullets(row.get('daily_life_impact', '')),
                 'interpretation_narrative': row.get('interpretation_narrative') or '',
                 'career_clusters': _parse_json_cell(row.get('career_clusters', '')),
                 'career_pathways': _parse_json_cell(row.get('career_pathways', '')),
                 'degree_pathways': _parse_json_cell(row.get('degree_pathways', '')),
-                'real_life_sign_ids': sign_ids,
-                'daily_life_impact_ids': impact_ids,
                 'is_active': str(row.get('is_active', '1')).strip().lower() in ('1', 'true', 'yes'),
             }
 
@@ -169,18 +134,3 @@ def import_consolidated_reports_csv(
         }
     except Exception as exc:
         return {'ok': False, 'error': str(exc)}
-
-
-def rebuild_consolidated_sign_impact_ids_from_codes() -> int:
-    from app.class12_aptitude_report_utils import clear_consolidated_lookup_cache
-    from app.models import Class12AptitudeConsolidatedReport
-
-    count = 0
-    for row in Class12AptitudeConsolidatedReport.objects.all():
-        sign_ids, impact_ids = build_sign_impact_ids_for_codes(list(row.codes or []))
-        row.real_life_sign_ids = sign_ids
-        row.daily_life_impact_ids = impact_ids
-        row.save(update_fields=['real_life_sign_ids', 'daily_life_impact_ids', 'modified'])
-        count += 1
-    clear_consolidated_lookup_cache()
-    return count

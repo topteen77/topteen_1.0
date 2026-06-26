@@ -1259,6 +1259,12 @@ class GeneratedPage(models.Model):
 
 # --- Dashboard Statistics (Gamification) - Admin-configurable for student dashboard ---
 
+class DashboardRuleAppliesTo(models.TextChoices):
+  ALL = 'all', 'All students'
+  CLASS_10_AND_BELOW = 'class10', 'Class 10 and below'
+  CLASS_11_12_PLUS = 'post_matric', 'Class 11–12+'
+
+
 class DashboardLevelBand(models.Model):
     """Level name and point threshold for student dashboard (e.g. Rookie 0, Explorer 500)."""
     name = models.CharField(max_length=64, help_text="Display name, e.g. Rookie, Explorer")
@@ -1305,6 +1311,12 @@ class DashboardPointRule(models.Model):
         default=0,
         help_text="Display order in admin and dashboard (lower = first)",
     )
+    applies_to = models.CharField(
+        max_length=20,
+        choices=DashboardRuleAppliesTo.choices,
+        default=DashboardRuleAppliesTo.ALL,
+        help_text="Which student grade track can earn points from this rule.",
+    )
     active = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
@@ -1322,6 +1334,13 @@ class DashboardTrophyDefinition(models.Model):
     """Defines what counts as one trophy (achievement) for the dashboard count."""
     rule_key = models.CharField(max_length=80, db_index=True, help_text="Same keys as point rules; condition must be true to count")
     label = models.CharField(max_length=120, blank=True, help_text="Admin display label")
+    applies_to = models.CharField(
+        max_length=20,
+        choices=DashboardRuleAppliesTo.choices,
+        blank=True,
+        default='',
+        help_text="Blank uses the matching Dashboard Point Rule applies-to setting.",
+    )
     active = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)

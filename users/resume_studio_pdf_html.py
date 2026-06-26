@@ -18,6 +18,19 @@ def _esc(s: Any) -> str:
     return html.escape(str(s or ""), quote=True)
 
 
+_PLACEHOLDER_DASHES = frozenset({"—", "-", "–"})
+
+
+def _has_display_text(value: Any) -> bool:
+    s = str(value or "").strip()
+    return bool(s) and s not in _PLACEHOLDER_DASHES
+
+
+def _join_display(parts: list[Any], sep: str = " · ") -> str:
+    bits = [_esc(p) for p in parts if _has_display_text(p)]
+    return sep.join(bits)
+
+
 def _photo_html(d: dict, class_name: str) -> str:
     ph = (d.get("photo") or "").strip()
     if ph:
@@ -81,14 +94,18 @@ def _experience_html(d: dict, class_job: str = "tpl-job") -> str:
         bullets = "".join(
             f"<li>{_esc(b)}</li>" for b in (exp.get("bullets") or []) if str(b).strip()
         )
-        loc = exp.get("location") or ""
-        loc_bit = f" · {_esc(loc)}" if str(loc).strip() else ""
-        sub = _esc(exp.get("company") or "") + loc_bit
+        dates = (
+            f'<span class="tpl-job-dates">{_esc(exp.get("dates") or "")}</span>'
+            if _has_display_text(exp.get("dates"))
+            else ""
+        )
+        sub = _join_display([exp.get("company"), exp.get("location")])
+        sub_html = f'<div class="tpl-job-sub">{sub}</div>' if sub else ""
         bul_html = f'<ul class="tpl-bullets">{bullets}</ul>' if bullets else ""
         parts.append(
             f'<div class="{class_job}"><div class="tpl-job-head"><strong>{title}</strong>'
-            f'<span class="tpl-job-dates">{_esc(exp.get("dates") or "")}</span></div>'
-            f'<div class="tpl-job-sub">{sub}</div>{bul_html}</div>'
+            f"{dates}</div>"
+            f"{sub_html}{bul_html}</div>"
         )
     return "".join(parts)
 
@@ -99,15 +116,21 @@ def _education_html(d: dict) -> str:
         if not isinstance(ed, dict):
             continue
         deg = _esc(ed.get("degree") or "")
-        sch = _esc(ed.get("school") or "")
+        sch = _esc(ed.get("school") or "") if _has_display_text(ed.get("school")) else ""
         if not deg and not sch:
             continue
-        det = ed.get("detail") or ""
-        det_bit = f" — {_esc(det)}" if str(det).strip() else ""
+        det = _esc(ed.get("detail") or "") if _has_display_text(ed.get("detail")) else ""
+        det_bit = f" — {det}" if det and sch else det
+        dates = (
+            f'<span class="tpl-job-dates">{_esc(ed.get("dates") or "")}</span>'
+            if _has_display_text(ed.get("dates"))
+            else ""
+        )
+        sub_html = f'<div class="tpl-job-sub">{sch}{det_bit}</div>' if sch or det else ""
         parts.append(
             f'<div class="tpl-edu-block"><div class="tpl-job-head"><strong>{deg}</strong>'
-            f'<span class="tpl-job-dates">{_esc(ed.get("dates") or "")}</span></div>'
-            f'<div class="tpl-job-sub">{sch}{det_bit}</div></div>'
+            f"{dates}</div>"
+            f"{sub_html}</div>"
         )
     return "".join(parts)
 
@@ -120,12 +143,9 @@ def _certifications_html(d: dict) -> str:
         nm = _esc(c.get("name") or "")
         if not nm:
             continue
-        issuer = _esc(c.get("issuer") or "")
-        date = _esc(c.get("date") or "")
-        meta = issuer + (f" · {date}" if date else "")
-        parts.append(
-            f'<div class="tpl-cert"><strong>{nm}</strong><span class="tpl-cert-meta">{meta}</span></div>'
-        )
+        meta = _join_display([c.get("issuer"), c.get("date")])
+        meta_html = f'<span class="tpl-cert-meta">{meta}</span>' if meta else ""
+        parts.append(f'<div class="tpl-cert"><strong>{nm}</strong>{meta_html}</div>')
     return "".join(parts)
 
 
@@ -134,10 +154,10 @@ def _languages_html(d: dict) -> str:
     for ln in d.get("languages") or []:
         if not isinstance(ln, dict):
             continue
-        parts.append(
-            "<li><span class=\"tpl-lang-name\">"
-            f'{_esc(ln.get("name") or "")}</span> — {_esc(ln.get("level") or "")}</li>'
-        )
+        name = _esc(ln.get("name") or "")
+        level = _esc(ln.get("level") or "") if _has_display_text(ln.get("level")) else ""
+        level_bit = f" — {level}" if level else ""
+        parts.append(f'<li><span class="tpl-lang-name">{name}</span>{level_bit}</li>')
     return "".join(parts)
 
 
@@ -163,15 +183,19 @@ def _experience_timeline_html(d: dict) -> str:
         bullets = "".join(
             f"<li>{_esc(b)}</li>" for b in (exp.get("bullets") or []) if str(b).strip()
         )
-        loc = exp.get("location") or ""
-        loc_bit = f" · {_esc(loc)}" if str(loc).strip() else ""
-        sub = _esc(exp.get("company") or "") + loc_bit
+        dates = (
+            f'<span class="tpl-job-dates">{_esc(exp.get("dates") or "")}</span>'
+            if _has_display_text(exp.get("dates"))
+            else ""
+        )
+        sub = _join_display([exp.get("company"), exp.get("location")])
+        sub_html = f'<div class="tpl-job-sub">{sub}</div>' if sub else ""
         bul_html = f'<ul class="tpl-bullets">{bullets}</ul>' if bullets else ""
         parts.append(
             f'<div class="tpl-tl-item"><span class="tpl-tl-dot"></span><div class="tpl-tl-inner">'
             f'<div class="tpl-job-head"><strong>{title}</strong>'
-            f'<span class="tpl-job-dates">{_esc(exp.get("dates") or "")}</span></div>'
-            f'<div class="tpl-job-sub">{sub}</div>{bul_html}</div></div>'
+            f"{dates}</div>"
+            f"{sub_html}{bul_html}</div></div>"
         )
     return "".join(parts)
 

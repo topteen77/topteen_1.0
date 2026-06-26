@@ -661,18 +661,21 @@ class ConfigurationAdmin(admin.ModelAdmin):
             **self.admin_site.each_context(request),
             'title': 'Dashboard Statistics (Student dashboard)',
             'opts': self.model._meta,
-            'level_bands_url': reverse('admin:core_dashboardlevelband_changelist'),
-            'point_rules_url': reverse('admin:core_dashboardpointrule_changelist'),
-            'trophy_defs_url': reverse('admin:core_dashboardtrophydefinition_changelist'),
-            'streak_config_url': reverse('admin:core_dashboardstreakconfig_changelist'),
+            'level_bands_url': reverse('admin:gamification_dashboardlevelband_changelist'),
+            'point_rules_url': reverse('admin:gamification_dashboardpointrule_changelist'),
+            'trophy_defs_url': reverse('admin:gamification_dashboardtrophydefinition_changelist'),
+            'streak_config_url': reverse('admin:gamification_dashboardstreakconfig_changelist'),
             'preview_user': preview_user,
             'preview_stats': preview_stats,
         }
         try:
-            from core.dashboard_points import get_active_point_rules_total
-            context['max_achievable_points'] = get_active_point_rules_total()
+            from core.dashboard_points import get_active_point_rules_total, get_max_achievable_points_by_track
+            caps = get_max_achievable_points_by_track()
+            context['max_achievable_points'] = caps['post_matric']
+            context['max_achievable_points_class10'] = caps['class10']
         except Exception:
             context['max_achievable_points'] = None
+            context['max_achievable_points_class10'] = None
         return render(request, 'admin/core/configuration/dashboard_statistics.html', context)
 
 
@@ -811,31 +814,41 @@ class DashboardLevelBandAdmin(admin.ModelAdmin):
 
     def _inject_level_band_point_context(self, extra_context):
         from core.dashboard_points import (
-            get_active_point_rules_total,
             get_cumulative_point_milestones,
             get_registration_points,
             get_min_level_band_points,
             get_valid_level_band_min_points,
+            get_max_achievable_points_by_track,
         )
+        from core.psychometric_grade import get_rule_applies_to_label
         if extra_context is None:
             extra_context = {}
-        extra_context['max_achievable_points'] = get_active_point_rules_total()
+        caps = get_max_achievable_points_by_track()
+        extra_context['max_achievable_points'] = caps['post_matric']
+        extra_context['max_achievable_points_class10'] = caps['class10']
         extra_context['min_achievable_points'] = get_min_level_band_points()
         extra_context['registration_points'] = get_registration_points()
-        extra_context['point_milestones'] = get_cumulative_point_milestones()
+        extra_context['point_milestones'] = [
+            {
+                **milestone,
+                'applies_to': get_rule_applies_to_label(milestone['rule_key']),
+            }
+            for milestone in get_cumulative_point_milestones()
+        ]
         extra_context['valid_milestone_points'] = sorted(get_valid_level_band_min_points())
-        extra_context['point_rules_url'] = reverse('admin:core_dashboardpointrule_changelist')
+        extra_context['point_rules_url'] = reverse('admin:gamification_dashboardpointrule_changelist')
         return extra_context
 
 
 class DashboardPointRuleAdmin(admin.ModelAdmin):
-    list_display = ('order', 'label_display', 'rule_key', 'points', 'active', 'modified')
-    list_editable = ('order', 'points', 'active')
+    list_display = ('order', 'label_display', 'rule_key', 'points', 'applies_to', 'active', 'modified')
+    list_editable = ('order', 'points', 'applies_to', 'active')
     list_display_links = ('label_display', 'rule_key')
-    list_filter = ('active',)
+    list_filter = ('active', 'applies_to')
     ordering = ('order', 'rule_key')
     search_fields = ('rule_key',)
     change_list_template = 'admin/core/dashboardpointrule/change_list.html'
+    readonly_fields = ('created', 'modified')
 
     @admin.display(description='Rule')
     def label_display(self, obj):
@@ -843,7 +856,7 @@ class DashboardPointRuleAdmin(admin.ModelAdmin):
         return RULE_LABELS.get(obj.rule_key, obj.rule_key.replace('_', ' ').title())
 
     def changelist_view(self, request, extra_context=None):
-        from core.dashboard_points import get_active_point_rules_total
+        from core.dashboard_points import get_active_point_rules_total, get_max_achievable_points_by_track
         from django.db.models import Sum
         extra_context = extra_context or {}
         qs = self.get_queryset(request)
@@ -853,17 +866,25 @@ class DashboardPointRuleAdmin(admin.ModelAdmin):
             qs = qs.filter(active=False)
         total = qs.aggregate(total=Sum('points'))['total'] or 0
         extra_context['points_total'] = int(total)
-        extra_context['level_bands_url'] = reverse('admin:core_dashboardlevelband_changelist')
-        extra_context['max_achievable_points'] = get_active_point_rules_total()
+        extra_context['level_bands_url'] = reverse('admin:gamification_dashboardlevelband_changelist')
+        caps = get_max_achievable_points_by_track()
+        extra_context['max_achievable_points'] = caps['post_matric']
+        extra_context['max_achievable_points_class10'] = caps['class10']
         return super().changelist_view(request, extra_context=extra_context)
 
 
 class DashboardTrophyDefinitionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'rule_key', 'label', 'active', 'modified')
-    list_editable = ('label', 'active')
-    list_filter = ('active',)
+    list_display = ('id', 'rule_key', 'label', 'applies_to', 'resolved_applies_to_display', 'active', 'modified')
+    list_editable = ('label', 'applies_to', 'active')
+    list_filter = ('active', 'applies_to')
     ordering = ('rule_key',)
     search_fields = ('rule_key', 'label')
+    readonly_fields = ('created', 'modified', 'resolved_applies_to_display')
+
+    @admin.display(description='Effective applies to')
+    def resolved_applies_to_display(self, obj):
+        from core.psychometric_grade import get_rule_applies_to_label
+        return get_rule_applies_to_label(obj.rule_key, obj.applies_to or '')
 
 
 class DashboardStreakConfigAdmin(admin.ModelAdmin):
@@ -878,10 +899,6 @@ class DashboardStreakConfigAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Configuration,ConfigurationAdmin)
-admin.site.register(DashboardLevelBand, DashboardLevelBandAdmin)
-admin.site.register(DashboardPointRule, DashboardPointRuleAdmin)
-admin.site.register(DashboardTrophyDefinition, DashboardTrophyDefinitionAdmin)
-admin.site.register(DashboardStreakConfig, DashboardStreakConfigAdmin)
 admin.site.register(City,CityAdmin)
 admin.site.register(State,StateAdmin)
 admin.site.register(Country,CountryAdmin)

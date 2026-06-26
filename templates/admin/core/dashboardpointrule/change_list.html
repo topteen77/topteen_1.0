@@ -2,9 +2,13 @@
 {% load i18n %}
 
 {% block content %}
+<p class="help" style="margin: 0 0 12px 0;">
+  Use the <strong>Applies to</strong> column to limit a rule to Class 10 and below, Class 11–12+, or all students.
+  Rules outside a student's track are hidden from their Points Breakdown and excluded from XP totals and level bands.
+</p>
 {{ block.super }}
 {% if points_total is not None %}
-<div class="module" style="margin-top: 12px; max-width: 640px;">
+<div class="module" style="margin-top: 12px; max-width: 720px;">
   <table style="width: 100%; border-collapse: collapse;">
     <tbody>
       <tr>
@@ -23,8 +27,11 @@
   </table>
 {% if max_achievable_points %}
   <p class="help" style="margin: 8px 0 0 0;">
-    Active rules total: <strong>{{ max_achievable_points }}</strong> pts — this is the maximum achievable points and caps
-    <a href="{{ level_bands_url }}">Dashboard Level Bands</a>.
+    Maximum achievable points:
+    <strong>{{ max_achievable_points_class10|default:"—" }}</strong> (Class 10 and below) /
+    <strong>{{ max_achievable_points }}</strong> (Class 11–12+).
+    Class 11–12+ total caps <a href="{{ level_bands_url }}">Dashboard Level Bands</a>.
+    Class 10 bands are derived automatically at runtime.
   </p>
   {% endif %}
 </div>

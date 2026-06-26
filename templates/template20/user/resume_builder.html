@@ -106,9 +106,11 @@
         {% include 'template20/includes/breadcrumb.html' %}
         {% endif %}
         <div class="d-none d-lg-block mb-3">
-          <a href="{{ url('users:resumebuilder') }}" class="fs-13 text-decoration-none text-muted">← My resumes</a>
+          <a href="{{ url('users:resume_v2_dashboard') }}" class="fs-13 text-decoration-none text-muted">← My resumes</a>
           <span class="text-muted mx-2">·</span>
-          <a href="{{ url('users:resumebuilder_studio', resume_id=resume.pk) }}" class="fs-13 text-decoration-none">Resume studio (guided)</a>
+          <a href="{{ url('users:resume_v2_studio', resume_id=resume.pk) }}" class="fs-13 text-decoration-none">Resume studio (V2)</a>
+          <span class="text-muted mx-2">·</span>
+          <a href="{{ url('users:resumebuilder_studio', resume_id=resume.pk) }}" class="fs-13 text-decoration-none text-muted">Classic studio</a>
         </div>
 
         <!-- Mobile Header -->
@@ -529,7 +531,6 @@
         </a>
       </div>
     </div>
-{% endblock %}
 
 <!-- About Modal -->
 <div class="modal fade" id="aboutModal" tabindex="-1" aria-hidden="true">

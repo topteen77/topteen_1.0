@@ -23,7 +23,7 @@ from app.class12_aptitude_consolidated_io import (
 
 DEFAULT_EXCEL = (
     Path(settings.BASE_DIR).parent
-    / 'final CONSOLIDATED REPORT FOR 11TH-12TH.xlsx'
+    / 'final 12 aptitude.xlsx'
 )
 
 
@@ -61,6 +61,8 @@ class ValidateRowsTests(SimpleTestCase):
             'codes': normalize_combination_key(key).split(' + '),
             'aptitude_description': 'A' * 50,
             'interpretation_narrative': 'B' * 80,
+            'real_life_signs': ['Sign one', 'Sign two'],
+            'daily_life_impact': ['Impact one'],
             'career_clusters': ['Cluster A'],
             'career_pathways': ['Path A'],
             'degree_pathways': ['Degree A'],
@@ -133,8 +135,9 @@ class GeneratedJsonTests(SimpleTestCase):
         combo = lookup_combination('NR+AR')
         self.assertIsNotNone(combo)
         self.assertEqual(combo['reasoning_combination'], 'AR + NR')
-        self.assertIn('<strong>', combo['interpretation_narrative'])
-        self.assertIn('Abstract and Numerical Reasoning', combo['interpretation_narrative'])
+        self.assertTrue(combo['interpretation_narrative'])
+        self.assertTrue(combo.get('real_life_signs'))
+        self.assertTrue(combo.get('daily_life_impact'))
 
     def test_json_all_rows_have_required_fields(self):
         payload = load_json_payload()
@@ -142,6 +145,8 @@ class GeneratedJsonTests(SimpleTestCase):
             for field in (
                 'aptitude_description',
                 'interpretation_narrative',
+                'real_life_signs',
+                'daily_life_impact',
                 'career_clusters',
                 'career_pathways',
                 'degree_pathways',

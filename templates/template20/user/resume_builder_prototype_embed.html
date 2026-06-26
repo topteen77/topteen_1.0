@@ -54,6 +54,22 @@
 
     <div class="app-main">
     <main class="preview-wrap">
+      {% if resume %}
+      <header class="tt-preview-standalone-bar" id="ttPreviewStandaloneBar" aria-label="Preview actions">
+        <a href="{{ preview_back_url }}" class="tt-preview-standalone-bar__btn tt-preview-standalone-bar__btn--ghost">
+          ← Back
+        </a>
+        <span class="tt-preview-standalone-bar__title">{{ resume.title|default('Resume')|e }}</span>
+        <div class="tt-preview-standalone-bar__actions">
+          <a href="{{ studio_edit_url }}" class="tt-preview-standalone-bar__btn tt-preview-standalone-bar__btn--soft">
+            Edit resume
+          </a>
+          <a href="{{ pdf_download_url }}" class="tt-preview-standalone-bar__btn tt-preview-standalone-bar__btn--primary" target="_blank" rel="noopener">
+            Download PDF
+          </a>
+        </div>
+      </header>
+      {% endif %}
       <div class="preview-toolbar">
         <span class="preview-toolbar__hint">Live preview — your saved resume data and layout choice</span>
       </div>

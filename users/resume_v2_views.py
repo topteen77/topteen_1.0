@@ -1,0 +1,534 @@
+"""Resume Builder V2 views — dashboard, creation flow, studio, and API endpoints."""
+
+from __future__ import annotations
+
+import json
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse, reverse_lazy
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.views.generic import TemplateView
+
+from core.breadcrumbs import get_breadcrumb
+from core.utils import build_html_head
+
+from .models import (
+    UserProfile,
+    UserResume,
+    UserResumeActivity,
+    UserResumeCertificate,
+    UserResumeInternship,
+    UserResumeSkill,
+)
+from .resume_payload import resume_editor_payload, resume_studio_prototype_payload
+from .resume_v2_services import (
+    RESUME_GOALS,
+    STUDENT_SECTIONS,
+    ProfileAutofillDetector,
+    ProjectDescriptionGenerator,
+    ResumeProfileAnalyzer,
+    KeywordSuggestionService,
+    ResumeSuggestionService,
+    ResumeSummaryGenerator,
+    ResumeV2Metrics,
+    add_skills_to_resume,
+    apply_template_to_resume,
+    filter_missing_keywords,
+    get_v2_meta,
+    resume_card_context,
+    resume_photo_url,
+    resume_has_own_photo,
+    user_avatar_initial,
+    user_has_profile_photo,
+    save_v2_meta,
+    resolve_resume_template,
+    studio_ui_state,
+    studio_personal_context,
+    sync_studio_proto_resume_from_db,
+    template_by_id,
+    v2_templates_catalog,
+)
+from .resume_profile_store import (
+    apply_profile_autofill,
+    bootstrap_user_resume_from_profile,
+    sync_activity_to_user_profile,
+    sync_certificate_to_user_profile,
+    sync_headline_to_user_profile,
+    sync_personal_fields_to_user_profile,
+    sync_skill_to_user_profile,
+    sync_summary_to_user_profile,
+)
+from .views import (
+    RESUME_TITLE_MAX_LEN,
+    _hub_nav_counts,
+    _validate_new_resume_title,
+)
+
+
+def _v2_breadcrumb(extra=None):
+    items = [
+        {"title": "Profile page", "text": "Profile page", "url": reverse_lazy("users:userdashboard")},
+        {"title": "Resume Builder", "text": "Resume Builder", "url": reverse_lazy("users:resume_v2_dashboard")},
+    ]
+    if extra:
+        items.extend(extra)
+    return get_breadcrumb(items)
+
+
+def _base_ctx(request, resume=None):
+    UserProfile.objects.get_or_create(user=request.user)
+    ctx = {
+        "profile_user": request.user,
+        "html_head": build_html_head(title="Resume Builder", description="AI-powered resume builder"),
+    }
+    ctx.update(_hub_nav_counts(request.user))
+    if resume:
+        ctx["resume"] = resume
+    return ctx
+
+
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+class ResumeV2DashboardView(TemplateView):
+    template_name = "template20/user/resume_v2_dashboard.html"
+
+    def get_context_data(self, **kwargs):
+        request = self.request
+        ctx = super().get_context_data(**kwargs)
+        ctx.update(_base_ctx(request))
+        ctx["breadcrumb"] = _v2_breadcrumb([{"title": "Dashboard", "text": "Dashboard", "url": ""}])
+
+        user = request.user
+        resumes = list(UserResume.objects.filter(user=user).order_by("-modified"))
+        profile_pct = user.get_profile_completion_percentage()
+        autofill = ProfileAutofillDetector.detect(user)
+        suggestions = ResumeSuggestionService.suggestions(user, resumes[0] if resumes else None)
+        analysis = ResumeProfileAnalyzer.analyze(user)
+
+        resume_cards = [resume_card_context(r, request) for r in resumes]
+
+        ctx.update(
+            {
+                "profile_completion": profile_pct,
+                "profile_missing": autofill["missing"],
+                "ai_suggestions": suggestions,
+                "profile_analysis": analysis,
+                "resume_cards": resume_cards,
+                "resume_count": len(resumes),
+                "latest_resume": resumes[0] if resumes else None,
+                "existing_resume_titles": [(r.title or "").strip() for r in resumes if (r.title or "").strip()],
+            }
+        )
+        return ctx
+
+
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+class ResumeV2CreateView(View):
+    http_method_names = ["post"]
+
+    def post(self, request, *args, **kwargs):
+        title = (request.POST.get("title") or "").strip()[:RESUME_TITLE_MAX_LEN]
+        title_error = _validate_new_resume_title(request.user, title)
+        if title_error:
+            messages.error(request, title_error)
+            return redirect("users:resume_v2_dashboard")
+        resume = UserResume.objects.create(user=request.user, title=title)
+        bootstrap_user_resume_from_profile(request.user, resume)
+        messages.success(request, "Resume created. Choose your goal to continue.")
+        return redirect("users:resume_v2_goal", resume_id=resume.pk)
+
+
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+class ResumeV2GoalView(TemplateView):
+    template_name = "template20/user/resume_v2_goal.html"
+
+    def get_context_data(self, resume_id, **kwargs):
+        request = self.request
+        resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
+        ctx = super().get_context_data(**kwargs)
+        ctx.update(_base_ctx(request, resume))
+        ctx["breadcrumb"] = _v2_breadcrumb(
+            [{"title": resume.title or "Resume", "text": resume.title or "Resume", "url": ""}]
+        )
+        analysis = ResumeProfileAnalyzer.analyze(request.user, resume)
+        meta = get_v2_meta(resume)
+        ctx.update(
+            {
+                "resume_goals": RESUME_GOALS,
+                "profile_analysis": analysis,
+                "selected_goal": meta.get("goal") or "",
+            }
+        )
+        return ctx
+
+    def post(self, request, resume_id, *args, **kwargs):
+        resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
+        goal = (request.POST.get("goal") or "").strip()
+        use_recommended = request.POST.get("use_recommended") == "1"
+        analysis = ResumeProfileAnalyzer.analyze(request.user, resume)
+
+        patch = {"goal": goal, "profile_type": analysis["type"]}
+        if use_recommended:
+            patch["recommended_template"] = analysis["recommended_template"]
+            patch["recommended_sections"] = analysis["recommended_sections"]
+        save_v2_meta(resume, patch)
+        return redirect("users:resume_v2_templates", resume_id=resume.pk)
+
+
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+class ResumeV2TemplatesView(TemplateView):
+    template_name = "template20/user/resume_v2_templates.html"
+
+    def get_context_data(self, resume_id, **kwargs):
+        request = self.request
+        resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
+        ctx = super().get_context_data(**kwargs)
+        ctx.update(_base_ctx(request, resume))
+        ctx["breadcrumb"] = _v2_breadcrumb(
+            [{"title": "Templates", "text": "Templates", "url": ""}]
+        )
+        meta = get_v2_meta(resume)
+        analysis = ResumeProfileAnalyzer.analyze(request.user, resume)
+        catalog = v2_templates_catalog()
+        recommended_tpl = template_by_id(
+            meta.get("recommended_template") or analysis["recommended_template"]
+        ) or template_by_id("minimalist")
+        selected_tpl = resolve_resume_template(meta, recommended_tpl["id"])
+        ctx.update(
+            {
+                "templates": catalog,
+                "recommended_id": recommended_tpl["id"],
+                "selected_template": selected_tpl["id"],
+                "goal": meta.get("goal") or "",
+            }
+        )
+        return ctx
+
+    def post(self, request, resume_id, *args, **kwargs):
+        resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
+        template_id = (request.POST.get("template_id") or "").strip()
+        tpl = template_by_id(template_id)
+        if not tpl:
+            messages.error(request, "Please select a valid template.")
+            return redirect("users:resume_v2_templates", resume_id=resume.pk)
+        save_v2_meta(
+            resume,
+            {
+                "template_id": tpl["id"],
+                "prototype_key": tpl["prototype_key"],
+            },
+        )
+        return redirect("users:resume_v2_studio", resume_id=resume.pk)
+
+
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+class ResumeV2StudioView(TemplateView):
+    template_name = "template20/user/resume_v2_studio.html"
+
+    def get_context_data(self, resume_id, **kwargs):
+        request = self.request
+        resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
+        bootstrap_user_resume_from_profile(request.user, resume, request)
+        resume.refresh_from_db()
+        ctx = super().get_context_data(**kwargs)
+        ctx.update(_base_ctx(request, resume))
+        ctx["breadcrumb"] = _v2_breadcrumb(
+            [{"title": "Studio", "text": "Studio", "url": ""}]
+        )
+
+        meta = get_v2_meta(resume)
+        analysis = ResumeProfileAnalyzer.analyze(request.user, resume)
+        sections_list = meta.get("recommended_sections") or analysis["recommended_sections"]
+        if analysis["type"] == "student":
+            sections_list = STUDENT_SECTIONS
+
+        metrics = ResumeV2Metrics.section_completion(resume, sections_list)
+        strength = ResumeV2Metrics.resume_strength(resume, request)
+        autofill = ProfileAutofillDetector.detect(request.user, resume)
+        suggestions = ResumeSuggestionService.suggestions(request.user, resume, sections_list)
+        missing_keywords = filter_missing_keywords(strength, resume)
+        payload = resume_studio_prototype_payload(resume, request)
+
+        tpl = resolve_resume_template(meta, analysis.get("recommended_template") or "classic-sidebar")
+        prototype_key = tpl["prototype_key"]
+        catalog = v2_templates_catalog()
+
+        ctx.update(
+            {
+                "sections_list": sections_list,
+                "section_metrics": metrics["sections"],
+                "overall_completion": metrics["overall"],
+                "strength": strength,
+                "autofill": autofill,
+                "ai_suggestions": suggestions,
+                "profile_analysis": analysis,
+                "resume_payload_json": json.dumps(payload, ensure_ascii=False, default=str),
+                "v2_meta_json": json.dumps(meta, ensure_ascii=False, default=str),
+                "prototype_key": prototype_key,
+                "template_id": tpl["id"],
+                "goal": meta.get("goal") or "",
+                "preview_embed_url": reverse(
+                    "users:resumebuilder_templates_embed", kwargs={"resume_id": resume.pk}
+                )
+                + "?mode=preview&template="
+                + prototype_key,
+                "pdf_url": reverse("users:resumepdf") + f"?resume_id={resume.pk}",
+                "editor_payload": resume_editor_payload(resume),
+                "v2_templates": catalog,
+                "template_count": len(catalog),
+                "selected_template_id": tpl["id"],
+                "resume_photo_url": resume_photo_url(request, resume, request.user),
+                "resume_has_own_photo": resume_has_own_photo(resume),
+                "has_profile_photo": user_has_profile_photo(request.user),
+                "avatar_initial": user_avatar_initial(request.user),
+                "missing_keywords": missing_keywords,
+                "photo_upload_url": reverse(
+                    "users:resumebuilder_studio_photo_upload", kwargs={"resume_id": resume.pk}
+                ),
+                "resume_headline": payload.get("headline") or "",
+                "personal_fields": studio_personal_context(request.user, resume),
+            }
+        )
+        return ctx
+
+
+def _json_studio_response(request, resume, extra=None):
+    """Merge mutation result with fresh UI state for the studio."""
+    analysis = ResumeProfileAnalyzer.analyze(request.user, resume)
+    meta = get_v2_meta(resume)
+    sections_list = meta.get("recommended_sections") or analysis["recommended_sections"]
+    if analysis["type"] == "student":
+        sections_list = STUDENT_SECTIONS
+    state = studio_ui_state(request.user, resume, request, sections_list)
+    out = {"success": True, **state}
+    if extra:
+        out.update(extra)
+    return JsonResponse(out)
+
+
+def _mutate_studio(request, resume, extra=None):
+    sync_studio_proto_resume_from_db(resume, request)
+    return _json_studio_response(request, resume, extra)
+
+
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+class ResumeV2AutofillView(View):
+    http_method_names = ["post"]
+
+    def post(self, request, resume_id, *args, **kwargs):
+        resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
+        result = apply_profile_autofill(request.user, resume)
+        return JsonResponse(result)
+
+
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+class ResumeV2AIView(View):
+    http_method_names = ["post"]
+
+    def post(self, request, resume_id, *args, **kwargs):
+        resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
+        try:
+            body = json.loads(request.body.decode("utf-8") or "{}")
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+        action = (body.get("action") or "").strip()
+        if action == "generate_summary":
+            text = ResumeSummaryGenerator.generate(
+                request.user, resume, career_goal=body.get("career_goal") or get_v2_meta(resume).get("goal", "")
+            )
+            return JsonResponse({"text": text})
+        if action == "improve_summary":
+            text = ResumeSummaryGenerator.improve(body.get("text") or resume.about or "", body.get("mode") or "professional")
+            return JsonResponse({"text": text})
+        if action == "generate_project":
+            bullets = ProjectDescriptionGenerator.generate(body.get("title") or "", body.get("technologies") or "")
+            return JsonResponse({"bullets": bullets})
+        if action == "save_summary":
+            summary = (body.get("text") or "").strip()[:5000]
+            resume.about = summary
+            resume.save(update_fields=["about", "modified"])
+            sync_summary_to_user_profile(request.user, summary)
+            return _mutate_studio(request, resume)
+        if action == "save_headline":
+            headline = (body.get("headline") or "").strip()[:200]
+            save_v2_meta(resume, {"headline": headline})
+            sync_headline_to_user_profile(request.user, headline)
+            return _mutate_studio(request, resume)
+        if action == "save_personal":
+            personal_ctx = studio_personal_context(request.user, resume)
+            headline = (body.get("headline") or "").strip()[:200]
+            meta = get_v2_meta(resume)
+            personal_patch = dict(meta.get("personal") or {})
+            sync_kwargs: dict = {}
+
+            if personal_ctx.get("can_edit_name"):
+                sync_kwargs["name"] = (body.get("name") or "").strip()[:250]
+            if personal_ctx.get("can_edit_phone"):
+                sync_kwargs["phone"] = (body.get("phone") or "").strip()[:25]
+            if personal_ctx.get("can_edit_school"):
+                sync_kwargs["school"] = (body.get("school") or "").strip()[:250]
+            if personal_ctx.get("can_edit_grade"):
+                sync_kwargs["grade"] = (body.get("grade") or "").strip()[:100]
+
+            if sync_kwargs:
+                sync_personal_fields_to_user_profile(request.user, **sync_kwargs)
+                for key, val in sync_kwargs.items():
+                    if val:
+                        personal_patch[key] = val
+
+            save_v2_meta(
+                resume,
+                {
+                    "headline": headline,
+                    "personal": personal_patch,
+                },
+            )
+            if headline:
+                sync_headline_to_user_profile(request.user, headline)
+            return _mutate_studio(request, resume)
+        if action == "add_skill":
+            title = (body.get("title") or "").strip()
+            add_skills_to_resume(resume, title)
+            for part in title.replace(";", ",").split(","):
+                sync_skill_to_user_profile(request.user, part.strip())
+            return _mutate_studio(request, resume)
+        if action == "add_certificate":
+            title = (body.get("title") or "").strip()[:250]
+            if not title:
+                return JsonResponse({"error": "Certificate name is required"}, status=400)
+            desc = (body.get("description") or "").strip()[:2000]
+            UserResumeCertificate.objects.create(
+                resume=resume,
+                title=title,
+                description=desc,
+                issue_date=body.get("issue_date") or None,
+            )
+            sync_certificate_to_user_profile(request.user, title, desc)
+            return _mutate_studio(request, resume)
+        if action == "add_activity":
+            title = (body.get("title") or "").strip()[:250]
+            desc = (body.get("description") or "").strip()[:2000]
+            if not title:
+                return JsonResponse({"error": "Title is required"}, status=400)
+            if not desc:
+                return JsonResponse({"error": "Description is required"}, status=400)
+            UserResumeActivity.objects.create(resume=resume, title=title, description=desc)
+            sync_activity_to_user_profile(request.user, title, desc)
+            return _mutate_studio(request, resume)
+        if action == "update_activity":
+            item_id = body.get("item_id")
+            title = (body.get("title") or "").strip()[:250]
+            desc = (body.get("description") or "").strip()[:2000]
+            if not item_id:
+                return JsonResponse({"error": "Project not found"}, status=400)
+            if not title:
+                return JsonResponse({"error": "Title is required"}, status=400)
+            if not desc:
+                return JsonResponse({"error": "Description is required"}, status=400)
+            updated = UserResumeActivity.objects.filter(
+                pk=int(item_id), resume=resume
+            ).update(title=title, description=desc)
+            if not updated:
+                return JsonResponse({"error": "Project not found"}, status=404)
+            sync_activity_to_user_profile(request.user, title, desc)
+            return _mutate_studio(request, resume)
+        if action == "add_internship":
+            role = (body.get("role") or "").strip()[:250]
+            provider = (body.get("provider") or "").strip()[:250]
+            description = (body.get("description") or "").strip()[:2000]
+            start_date = body.get("start_date") or None
+            end_date = body.get("end_date") or None
+            if not role:
+                return JsonResponse({"error": "Role is required"}, status=400)
+            if not provider:
+                return JsonResponse({"error": "Company or place is required"}, status=400)
+            if not description:
+                return JsonResponse({"error": "Description is required"}, status=400)
+            if not start_date:
+                return JsonResponse({"error": "Start date is required"}, status=400)
+            if start_date and end_date and str(end_date) < str(start_date):
+                return JsonResponse({"error": "End date must be after start date"}, status=400)
+            UserResumeInternship.objects.create(
+                resume=resume,
+                role=role,
+                provider=provider,
+                description=description,
+                start_date=start_date,
+                end_date=end_date,
+            )
+            return _mutate_studio(request, resume)
+        if action == "delete_item":
+            item_type = (body.get("item_type") or "").strip()
+            item_id = body.get("item_id")
+            model_map = {
+                "skill": UserResumeSkill,
+                "certificate": UserResumeCertificate,
+                "activity": UserResumeActivity,
+                "internship": UserResumeInternship,
+            }
+            model = model_map.get(item_type)
+            if model and item_id:
+                model.objects.filter(pk=int(item_id), resume=resume).delete()
+            return _mutate_studio(request, resume)
+        if action == "select_template":
+            template_id = (body.get("template_id") or "").strip()
+            if not apply_template_to_resume(resume, template_id, request):
+                return JsonResponse({"error": "Invalid template"}, status=400)
+            resume.refresh_from_db()
+            tpl = template_by_id(template_id)
+            return _json_studio_response(
+                request,
+                resume,
+                {
+                    "template_id": template_id,
+                    "prototype_key": tpl["prototype_key"] if tpl else "",
+                },
+            )
+        return JsonResponse({"error": "Unknown action"}, status=400)
+
+
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+class ResumeV2DeleteView(View):
+    """POST: permanently remove one resume and return to the V2 dashboard."""
+
+    http_method_names = ["post"]
+
+    def post(self, request, resume_id, *args, **kwargs):
+        resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
+        resume.delete(hard_delete=True)
+        messages.success(request, "That resume was deleted.")
+        return redirect("users:resume_v2_dashboard")
+
+
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+class ResumeV2SuggestView(View):
+    """GET ?q=python — keyword autocomplete suggestions."""
+
+    http_method_names = ["get"]
+
+    def get(self, request, resume_id, *args, **kwargs):
+        resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
+        q = (request.GET.get("q") or "").strip()
+        limit = min(12, max(1, int(request.GET.get("limit") or 8)))
+        suggestions = KeywordSuggestionService.suggest(request.user, resume, q, limit=limit)
+        return JsonResponse({"suggestions": suggestions})
+
+
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+class ResumeV2AnalyticsPartialView(View):
+    """HTMX partial: resume health metrics card."""
+
+    http_method_names = ["get"]
+
+    def get(self, request, resume_id, *args, **kwargs):
+        resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
+        strength = ResumeV2Metrics.resume_strength(resume, request)
+        return render(
+            request,
+            "template20/user/includes/resume_v2_analytics_partial.html",
+            {"strength": strength},
+        )

@@ -2,7 +2,6 @@
 
 from django import forms
 from django.contrib import admin, messages
-from django.contrib.admin.widgets import FilteredSelectMultiple
 
 from app.class12_aptitude_consolidated_csv import (
     export_consolidated_reports_csv,
@@ -10,31 +9,22 @@ from app.class12_aptitude_consolidated_csv import (
 )
 from app.class12_aptitude_consolidated_io import import_rows_to_db
 from app.class12_aptitude_report_utils import clear_consolidated_lookup_cache
-from app.class12_aptitude_signs_impact import (
-    build_sign_impact_ids_for_codes,
-    seed_consolidated_sign_impact_ids,
-)
-from app.models import (
-    Class12AptitudeConsolidatedReport,
-    Class12AptitudeDailyLifeImpact,
-    Class12AptitudeRealLifeSign,
-)
+from app.class12_aptitude_signs_impact import bullets_to_text, text_to_bullets
+from app.models import Class12AptitudeConsolidatedReport
 
 
 class Class12AptitudeConsolidatedReportForm(forms.ModelForm):
-    real_life_signs = forms.ModelMultipleChoiceField(
-        queryset=Class12AptitudeRealLifeSign.objects.filter(is_active=True).order_by('reasoning_code'),
+    real_life_signs_text = forms.CharField(
         required=False,
-        widget=FilteredSelectMultiple('Real-life sign areas', is_stacked=False),
+        widget=forms.Textarea(attrs={'rows': 8}),
         label='Real-life signs',
-        help_text='Select reasoning areas. Each area expands to its bullet list on the report.',
+        help_text='One bullet per line (imported from Excel per combination).',
     )
-    daily_life_impacts = forms.ModelMultipleChoiceField(
-        queryset=Class12AptitudeDailyLifeImpact.objects.filter(is_active=True).order_by('reasoning_code'),
+    daily_life_impact_text = forms.CharField(
         required=False,
-        widget=FilteredSelectMultiple('Daily-life impact areas', is_stacked=False),
-        label='Daily-life impacts',
-        help_text='Select reasoning areas. Each area expands to its bullet list on the report.',
+        widget=forms.Textarea(attrs={'rows': 8}),
+        label='Daily life impact',
+        help_text='One bullet per line (imported from Excel per combination).',
     )
 
     class Meta:
@@ -45,8 +35,8 @@ class Class12AptitudeConsolidatedReportForm(forms.ModelForm):
             'is_active',
             'aptitude_description',
             'interpretation_narrative',
-            'real_life_signs',
-            'daily_life_impacts',
+            'real_life_signs_text',
+            'daily_life_impact_text',
             'career_clusters',
             'career_pathways',
             'degree_pathways',
@@ -59,23 +49,21 @@ class Class12AptitudeConsolidatedReportForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.pk:
-            sign_ids = getattr(self.instance, 'real_life_sign_ids', None) or []
-            impact_ids = getattr(self.instance, 'daily_life_impact_ids', None) or []
-            self.fields['real_life_signs'].initial = Class12AptitudeRealLifeSign.objects.filter(
-                pk__in=sign_ids,
+            self.fields['real_life_signs_text'].initial = bullets_to_text(
+                self.instance.real_life_signs,
             )
-            self.fields['daily_life_impacts'].initial = Class12AptitudeDailyLifeImpact.objects.filter(
-                pk__in=impact_ids,
+            self.fields['daily_life_impact_text'].initial = bullets_to_text(
+                self.instance.daily_life_impact,
             )
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-        instance.real_life_sign_ids = [
-            row.pk for row in self.cleaned_data.get('real_life_signs', [])
-        ]
-        instance.daily_life_impact_ids = [
-            row.pk for row in self.cleaned_data.get('daily_life_impacts', [])
-        ]
+        instance.real_life_signs = text_to_bullets(
+            self.cleaned_data.get('real_life_signs_text', ''),
+        )
+        instance.daily_life_impact = text_to_bullets(
+            self.cleaned_data.get('daily_life_impact_text', ''),
+        )
         if commit:
             instance.save()
         return instance
@@ -99,8 +87,8 @@ class Class12AptitudeConsolidatedReportAdmin(admin.ModelAdmin):
     list_display = (
         'reasoning_combination',
         'code_count',
-        'sign_area_count',
-        'impact_area_count',
+        'sign_count',
+        'impact_count',
         'is_active',
         'modified',
     )
@@ -108,11 +96,7 @@ class Class12AptitudeConsolidatedReportAdmin(admin.ModelAdmin):
     search_fields = ('reasoning_combination', 'aptitude_description')
     ordering = ('reasoning_combination',)
     readonly_fields = ('created', 'modified')
-    actions = [
-        'import_from_json_file',
-        'seed_sign_impact_ids_from_codes',
-        'fill_sign_impact_ids_from_codes',
-    ]
+    actions = ['import_from_json_file']
 
     fieldsets = (
         (None, {
@@ -126,8 +110,8 @@ class Class12AptitudeConsolidatedReportAdmin(admin.ModelAdmin):
             'fields': (
                 'aptitude_description',
                 'interpretation_narrative',
-                'real_life_signs',
-                'daily_life_impacts',
+                'real_life_signs_text',
+                'daily_life_impact_text',
                 'career_clusters',
                 'career_pathways',
                 'degree_pathways',
@@ -214,19 +198,15 @@ class Class12AptitudeConsolidatedReportAdmin(admin.ModelAdmin):
         return len(obj.codes or [])
     code_count.short_description = 'Codes'
 
-    def sign_area_count(self, obj):
-        return len(obj.real_life_sign_ids or [])
-    sign_area_count.short_description = 'Sign areas'
+    def sign_count(self, obj):
+        return len(obj.real_life_signs or [])
+    sign_count.short_description = 'Signs'
 
-    def impact_area_count(self, obj):
-        return len(obj.daily_life_impact_ids or [])
-    impact_area_count.short_description = 'Impact areas'
+    def impact_count(self, obj):
+        return len(obj.daily_life_impact or [])
+    impact_count.short_description = 'Impacts'
 
     def save_model(self, request, obj, form, change):
-        if not obj.real_life_sign_ids and not obj.daily_life_impact_ids and obj.codes:
-            sign_ids, impact_ids = build_sign_impact_ids_for_codes(list(obj.codes))
-            obj.real_life_sign_ids = sign_ids
-            obj.daily_life_impact_ids = impact_ids
         super().save_model(request, obj, form, change)
         clear_consolidated_lookup_cache()
 
@@ -234,37 +214,9 @@ class Class12AptitudeConsolidatedReportAdmin(admin.ModelAdmin):
     def import_from_json_file(self, request, queryset):
         result = import_rows_to_db(source='json', replace=True)
         if result.get('ok'):
-            seed_consolidated_sign_impact_ids(overwrite=True)
             messages.success(
                 request,
                 f"Imported {result.get('count', 0)} consolidated aptitude rows.",
             )
         else:
             messages.error(request, result.get('error', 'Import failed.'))
-
-    @admin.action(description='Seed sign/impact areas from codes (skip rows that already have selections)')
-    def seed_sign_impact_ids_from_codes(self, request, queryset):
-        result = seed_consolidated_sign_impact_ids(
-            queryset if queryset.exists() else None,
-        )
-        if result.get('ok'):
-            messages.success(
-                request,
-                f"Updated sign/impact selections on {result.get('count', 0)} row(s).",
-            )
-        else:
-            messages.error(request, result.get('error', 'Seed failed.'))
-
-    @admin.action(description='Overwrite sign/impact area selections from codes for selected rows')
-    def fill_sign_impact_ids_from_codes(self, request, queryset):
-        result = seed_consolidated_sign_impact_ids(
-            queryset if queryset.exists() else None,
-            overwrite=True,
-        )
-        if result.get('ok'):
-            messages.success(
-                request,
-                f"Refreshed sign/impact selections on {result.get('count', 0)} row(s).",
-            )
-        else:
-            messages.error(request, result.get('error', 'Seed failed.'))

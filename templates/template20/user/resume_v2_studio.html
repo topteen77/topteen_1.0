@@ -1,0 +1,493 @@
+{% extends 'template20/user/student_base.html' %}
+
+{% block title_content %}Build Resume | Top Teen{% endblock %}
+{% block student_bodyclass %}rb2-studio-page user-dashboard-fullscreen{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<link rel="stylesheet" href="{{ static('resume-builder-prototype/styles.css') }}?v=1">
+<link rel="stylesheet" href="{{ static('resume-builder-v2/styles.css') }}?v=17">
+<style>
+  body.rb2-studio-page {
+    background: #f0f2f8;
+    font-family: inherit;
+  }
+  body.rb2-studio-page .student-dash-sidebar-col { display: none !important; }
+  body.rb2-studio-page .student-dash-main-col { flex: 0 0 100% !important; max-width: 100% !important; }
+  /* Keep top offset for fixed site header — do not zero padding-top */
+  body.rb2-studio-page .std-shell-main {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-bottom: 0 !important;
+    padding-top: 52px !important;
+  }
+  body.rb2-studio-page .user-dashboard-container { max-width: 100%; padding: 0; }
+  body.rb2-studio-page .student-dash-shell.row { margin: 0; min-height: 0; }
+</style>
+{% endblock %}
+
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = '' %}
+{% set student_shell_show_resume_toolbar = false %}
+{% endblock %}
+
+{% block student_section_class %}rb2-page{% endblock %}
+{% block student_container_class %}container-fluid px-0{% endblock %}
+{% block student_row_class %}row g-0{% endblock %}
+
+{% block student_main %}
+<div class="rb2-studio-app">
+  {# ——— Top bar ——— #}
+  <header class="rb2-studio-topbar mt-10">
+    <div class="rb2-studio-topbar__left">
+      <a href="{{ url('users:resume_v2_dashboard') }}" class="rb2-studio-back" title="Back to resumes">
+        <i class='bx bx-arrow-back'></i>
+      </a>
+      <div>
+        <p class="rb2-studio-topbar__doc-label">Resume file</p>
+        <h1 class="rb2-studio-topbar__title">
+          <span class="rb2-studio-topbar__title-badge">{{ resume.title|default('My Resume') }}</span>
+        </h1>
+        <p class="rb2-studio-topbar__sub" id="rb2ProgressLabel">{{ overall_completion }}% done · {{ strength.level }}</p>
+      </div>
+    </div>
+    <div class="rb2-studio-topbar__progress" aria-hidden="true">
+      <div class="rb2-strength-bar"><div class="rb2-strength-bar__fill" id="rb2ProgressBar" style="width:{{ overall_completion }}%"></div></div>
+    </div>
+    <div class="rb2-studio-topbar__actions">
+      <a href="{{ url('users:resume_v2_dashboard') }}" class="rb2-btn rb2-btn--outline rb2-btn--sm rb2-topbar-exit" title="Back to my resumes">
+        <i class='bx bx-grid-alt'></i> <span class="rb2-topbar-exit__text">My resumes</span>
+      </a>
+      <a href="{{ url('users:userdashboard') }}" class="rb2-btn rb2-btn--outline rb2-btn--sm rb2-topbar-exit" title="Go to dashboard">
+        <i class='bx bx-home'></i> <span class="rb2-topbar-exit__text">Home</span>
+      </a>
+      <a href="{{ pdf_url }}" class="rb2-btn rb2-btn--primary rb2-btn--sm" target="_blank" rel="noopener">
+        <i class='bx bx-download'></i> Download PDF
+      </a>
+    </div>
+  </header>
+
+  <div class="rb2-studio-body">
+    {# ——— Left: steps + tips ——— #}
+    <aside class="rb2-studio-steps">
+      <p class="rb2-steps-label">Resume sections</p>
+      <nav class="rb2-steps-nav" aria-label="Resume sections">
+        {% for sec in sections_list %}
+        {% set m = section_metrics.get(sec, {}) %}
+        <button type="button"
+          class="rb2-step-btn {% if loop.first %}is-active{% endif %}"
+          data-section="{{ sec }}">
+          <span class="rb2-step-btn__icon">
+            {% if m.status == 'complete' %}<i class='bx bx-check-circle'></i>
+            {% elif m.status == 'partial' %}<i class='bx bx-time-five'></i>
+            {% else %}<i class='bx bx-circle'></i>{% endif %}
+          </span>
+          <span class="rb2-step-btn__text">{{ m.label|default(sec|title) }}</span>
+          {% if m.status == 'missing' %}
+          <span class="rb2-step-btn__tag">Add</span>
+          {% elif m.status == 'partial' %}
+          <span class="rb2-step-btn__tag rb2-step-btn__tag--warn">{{ m.percent }}%</span>
+          {% elif m.status == 'complete' %}
+          <span class="rb2-step-btn__tag rb2-step-btn__tag--done" title="Complete"><i class='bx bx-check'></i></span>
+          {% endif %}
+        </button>
+        {% endfor %}
+      </nav>
+
+      {% if ai_suggestions %}
+      <div class="rb2-tips-card" id="rb2TipsCard">
+        <h3 class="rb2-tips-card__title"><i class='bx bx-bulb'></i> Tips for you</h3>
+        <div id="rb2TipsList">
+          {% for s in ai_suggestions[:5] %}
+          <button type="button"
+            class="rb2-coach-item"
+            data-section="{{ s.section|default('') }}"
+            data-coach-action="{{ s.coach_action|default('') }}">
+            {{ s.text }}
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="rb2-complete-sidebar {% if overall_completion >= 100 %}is-visible{% endif %}" id="rb2CompleteSidebar">
+        <div class="rb2-complete-sidebar__icon"><i class='bx bx-party'></i></div>
+        <h3 class="rb2-complete-sidebar__title">You're all set!</h3>
+        <p class="rb2-complete-sidebar__text">Your resume is ready. Download it or head back to your dashboard.</p>
+      </div>
+    </aside>
+
+    {# ——— Center: editor ——— #}
+    <main class="rb2-studio-form">
+      <div class="rb2-complete-banner {% if overall_completion >= 100 %}is-visible{% endif %}" id="rb2CompleteBanner">
+        <div class="rb2-complete-banner__content">
+          <div class="rb2-complete-banner__badge"><i class='bx bx-check-circle'></i></div>
+          <div>
+            <h2 class="rb2-complete-banner__title">Resume complete — nice work!</h2>
+            <p class="rb2-complete-banner__sub">Download your PDF, preview the final version, or return to your dashboard when you're done.</p>
+          </div>
+        </div>
+        <div class="rb2-complete-banner__actions">
+          <a href="{{ pdf_url }}" class="rb2-btn rb2-btn--primary" target="_blank" rel="noopener">
+            <i class='bx bx-download'></i> Download PDF
+          </a>
+          <a href="{{ preview_embed_url }}" class="rb2-btn rb2-btn--soft" target="_blank" rel="noopener">
+            <i class='bx bx-show'></i> Preview
+          </a>
+          <a href="{{ url('users:resume_v2_dashboard') }}" class="rb2-btn rb2-btn--outline">
+            <i class='bx bx-grid-alt'></i> My resumes
+          </a>
+          <a href="{{ url('users:userdashboard') }}" class="rb2-btn rb2-btn--ghost">
+            <i class='bx bx-home'></i> Home
+          </a>
+        </div>
+      </div>
+      <div class="rb2-editor-section" data-section="personal">
+        <div class="rb2-form-card">
+          <h2 class="rb2-form-card__title">About you</h2>
+          <p class="rb2-form-card__hint">We pulled this from your TopTeen profile. Empty fields can be filled in here — we'll save them to your profile too.</p>
+          <div class="rb2-photo-row">
+            <div class="rb2-photo-preview" id="rb2PhotoPreview">
+              {% if resume_photo_url %}
+              <img src="{{ resume_photo_url }}" alt="Your photo" class="rb2-photo-preview__img" id="rb2PhotoImg">
+              {% else %}
+              <span class="rb2-photo-preview__avatar-initials" id="rb2PhotoPlaceholder">{{ avatar_initial }}</span>
+              {% endif %}
+            </div>
+            <div class="rb2-photo-actions">
+              <p class="rb2-photo-actions__label">Resume photo</p>
+              <p class="rb2-photo-actions__hint">Shown on templates that support a photo. Uses your profile picture until you upload one here.</p>
+              <div class="rb2-photo-actions__btns">
+                <label class="rb2-btn rb2-btn--soft rb2-photo-upload-btn" id="rb2PhotoUploadBtn">
+                  <i class='bx bx-camera'></i> <span id="rb2PhotoUploadLabel">{% if resume_photo_url %}Change photo{% else %}Add photo{% endif %}</span>
+                  <input type="file" id="rb2PhotoInput" accept="image/*" hidden>
+                </label>
+                <button type="button" class="rb2-btn rb2-btn--outline rb2-photo-remove-btn" id="rb2PhotoRemove"
+                  {% if not resume_photo_url %}hidden{% endif %}>
+                  <i class='bx bx-trash'></i> Remove photo
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="rb2-field-grid">
+            {% set pf = personal_fields %}
+            <div class="rb2-field">
+              <label>Your name</label>
+              <input type="text" id="rb2Name" value="{{ pf.name|default('', true)|e }}"
+                {% if pf.can_edit_name %}placeholder="Your full name"{% else %}readonly{% endif %}
+                class="{% if not pf.can_edit_name %}rb2-field--readonly{% endif %}">
+              {% if pf.can_edit_name %}<p class="rb2-field-hint">Add your name — it will appear on the resume instead of your email.</p>{% endif %}
+            </div>
+            <div class="rb2-field rb2-field--full">
+              <label>Headline <span class="text-muted fw-normal">(shown under your name on the resume)</span></label>
+              <input type="text" id="rb2Headline" value="{{ resume_headline|default('', true)|e }}" placeholder="e.g. Grade 10 student · Don Bosco School" maxlength="200">
+            </div>
+            <div class="rb2-field">
+              <label>Email</label>
+              <input type="email" id="rb2Email" value="{{ pf.email|default('', true)|e }}" readonly class="rb2-field--readonly">
+            </div>
+            <div class="rb2-field">
+              <label>Phone</label>
+              <input type="text" id="rb2Phone" value="{{ pf.phone|default('', true)|e }}"
+                {% if pf.can_edit_phone %}placeholder="Phone number"{% else %}readonly{% endif %}
+                class="{% if not pf.can_edit_phone %}rb2-field--readonly{% endif %}">
+              {% if pf.can_edit_phone %}<p class="rb2-field-hint">Add a phone number so employers can reach you.</p>{% endif %}
+            </div>
+            {% if pf.school or pf.can_edit_school %}
+            <div class="rb2-field">
+              <label>School</label>
+              <input type="text" id="rb2School" value="{{ pf.school|default('', true)|e }}"
+                {% if pf.can_edit_school %}placeholder="School name"{% else %}readonly{% endif %}
+                class="{% if not pf.can_edit_school %}rb2-field--readonly{% endif %}">
+            </div>
+            {% endif %}
+          </div>
+          <button type="button" class="rb2-btn rb2-btn--primary" id="rb2SavePersonal">Save personal info</button>
+        </div>
+      </div>
+
+      <div class="rb2-editor-section" data-section="education" style="display:none">
+        <div class="rb2-form-card">
+          <h2 class="rb2-form-card__title">School &amp; class</h2>
+          <p class="rb2-form-card__hint">From your profile — empty fields can be filled here and saved to your account.</p>
+          <div class="rb2-field-grid">
+            {% set pf = personal_fields %}
+            <div class="rb2-field">
+              <label>School name</label>
+              <input type="text" id="rb2EduSchool" value="{{ pf.school|default(profile_analysis.school|default('', true), true)|e }}"
+                {% if pf.can_edit_school %}placeholder="School name"{% else %}readonly{% endif %}
+                class="{% if not pf.can_edit_school %}rb2-field--readonly{% endif %}">
+            </div>
+            <div class="rb2-field">
+              <label>Class / grade</label>
+              <input type="text" id="rb2EduGrade" value="{{ pf.grade|default(profile_analysis.grade|default('', true), true)|e }}"
+                {% if pf.can_edit_grade %}placeholder="e.g. Grade 12"{% else %}readonly{% endif %}
+                class="{% if not pf.can_edit_grade %}rb2-field--readonly{% endif %}">
+            </div>
+          </div>
+          {% if pf.can_edit_school or pf.can_edit_grade %}
+          <button type="button" class="rb2-btn rb2-btn--primary rb2-save-edu-btn" id="rb2SaveEducation">Save education</button>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="rb2-editor-section" data-section="skills" style="display:none">
+        <div class="rb2-form-card">
+          <h2 class="rb2-form-card__title">Your skills</h2>
+          <p class="rb2-form-card__hint">Type a skill — we'll suggest ideas as you go.</p>
+          <div class="rb2-field">
+            <label>Add a skill</label>
+            <div class="rb2-suggest-wrap">
+              <div class="rb2-input-row">
+                <input type="text" id="rb2SkillInput" class="rb2-suggest-input" placeholder="e.g. Teamwork, Python, Public speaking" autocomplete="off">
+                <button type="button" class="rb2-btn rb2-btn--primary" id="rb2AddSkill">Add</button>
+              </div>
+              <ul class="rb2-suggest-list" id="rb2SkillSuggest" hidden></ul>
+            </div>
+          </div>
+          <ul class="rb2-chip-list" id="rb2SkillsList"></ul>
+          {% if missing_keywords %}
+          <div class="rb2-suggest-chips">
+            <span class="rb2-suggest-chips__label">Try adding:</span>
+            <div class="rb2-suggest-chips__row" id="rb2MissingKeywords">
+              {% for kw in missing_keywords %}
+              <button type="button" class="rb2-kw-chip" data-keyword="{{ kw }}">+ {{ kw }}</button>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="rb2-editor-section" data-section="projects" style="display:none">
+        <div class="rb2-form-card">
+          <h2 class="rb2-form-card__title">Projects</h2>
+          <p class="rb2-form-card__hint">School projects, science fairs, apps you built — anything you're proud of.</p>
+          <div class="rb2-field">
+            <label>Project name</label>
+            <input type="text" id="rb2ProjectTitle" placeholder="e.g. Solar car for science fair">
+          </div>
+          <div class="rb2-field">
+            <label>Tools you used (optional)</label>
+            <input type="text" id="rb2ProjectTech" placeholder="e.g. Arduino, Canva, Python">
+          </div>
+          <div class="rb2-field">
+            <label>What did you do?</label>
+            <textarea id="rb2ProjectDesc" rows="4" placeholder="Describe what you built and what you learned…"></textarea>
+          </div>
+          <div class="rb2-form-actions">
+            <button type="button" class="rb2-ai-btn" id="rb2GenProjectDesc"><i class='bx bx-bot'></i> Help me write this</button>
+            <button type="button" class="rb2-btn rb2-btn--primary" id="rb2SaveProject">Save project</button>
+          </div>
+          <ul class="rb2-item-list" id="rb2ProjectsList"></ul>
+        </div>
+      </div>
+
+      <div class="rb2-editor-section" data-section="certificates" style="display:none">
+        <div class="rb2-form-card">
+          <h2 class="rb2-form-card__title">Certificates</h2>
+          <p class="rb2-form-card__hint">Online courses, workshops, or awards with a certificate.</p>
+          <div class="rb2-field">
+            <label>Certificate name</label>
+            <input type="text" id="rb2CertTitle" placeholder="e.g. Google Digital Garage">
+          </div>
+          <div class="rb2-field">
+            <label>Who gave it?</label>
+            <textarea id="rb2CertDesc" rows="2" placeholder="Organization or platform…"></textarea>
+          </div>
+          <div class="rb2-field rb2-field--narrow">
+            <label>Date (optional)</label>
+            <input type="date" id="rb2CertDate">
+          </div>
+          <button type="button" class="rb2-btn rb2-btn--primary" id="rb2SaveCert">Save certificate</button>
+          <ul class="rb2-item-list" id="rb2CertsList"></ul>
+        </div>
+      </div>
+
+      <div class="rb2-editor-section" data-section="achievements" style="display:none">
+        <div class="rb2-form-card">
+          <h2 class="rb2-form-card__title">Achievements &amp; activities</h2>
+          <p class="rb2-form-card__hint">Competitions, sports, clubs, volunteering — show what you do outside class.</p>
+          <div class="rb2-field">
+            <label>Title</label>
+            <input type="text" id="rb2AchieveTitle" placeholder="e.g. District debate champion">
+          </div>
+          <div class="rb2-field">
+            <label>Tell us more</label>
+            <textarea id="rb2AchieveDesc" rows="4" placeholder="What happened? What was your role?"></textarea>
+          </div>
+          <button type="button" class="rb2-btn rb2-btn--primary" id="rb2SaveAchieve">Save</button>
+          <ul class="rb2-item-list" id="rb2AchieveList"></ul>
+        </div>
+      </div>
+
+      <div class="rb2-editor-section" data-section="summary" style="display:none">
+        <div class="rb2-form-card">
+          <h2 class="rb2-form-card__title">About me (summary)</h2>
+          <p class="rb2-form-card__hint">A short intro at the top of your resume — who you are and what you're looking for.</p>
+          <div class="rb2-field">
+            <textarea id="rb2SummaryField" rows="6" placeholder="I'm a motivated student interested in…">{{ resume.about|default('', true)|e }}</textarea>
+          </div>
+          <div class="rb2-form-actions">
+            <button type="button" class="rb2-ai-btn" id="rb2GenSummary"><i class='bx bx-bot'></i> Write for me</button>
+            <button type="button" class="rb2-ai-btn" id="rb2ImproveSummary">Make it better</button>
+            <button type="button" class="rb2-btn rb2-btn--primary" id="rb2SaveSummary">Save</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="rb2-editor-section" data-section="experience" style="display:none">
+        <div class="rb2-form-card">
+          <h2 class="rb2-form-card__title">Work experience</h2>
+          <p class="rb2-form-card__hint">Internships, part-time jobs, or volunteer roles with set hours.</p>
+          <div class="rb2-field-grid">
+            <div class="rb2-field">
+              <label>Your role <span class="rb2-required">*</span></label>
+              <input type="text" id="rb2ExpRole" placeholder="e.g. Shop assistant" required>
+            </div>
+            <div class="rb2-field">
+              <label>Where <span class="rb2-required">*</span></label>
+              <input type="text" id="rb2ExpProvider" placeholder="Company or place" required>
+            </div>
+          </div>
+          <div class="rb2-field">
+            <label>What you did <span class="rb2-required">*</span></label>
+            <textarea id="rb2ExpDesc" rows="3" required></textarea>
+          </div>
+          <div class="rb2-field-grid">
+            <div class="rb2-field">
+              <label>Started <span class="rb2-required">*</span></label>
+              <input type="date" id="rb2ExpStart" required>
+            </div>
+            <div class="rb2-field">
+              <label>Ended <span class="text-muted fw-normal">(optional)</span></label>
+              <input type="date" id="rb2ExpEnd">
+            </div>
+          </div>
+          <button type="button" class="rb2-btn rb2-btn--primary" id="rb2SaveExp">Save</button>
+          <ul class="rb2-item-list" id="rb2ExpList"></ul>
+        </div>
+      </div>
+
+      <div class="rb2-score-card">
+        <h3 class="rb2-score-card__title">Resume strength</h3>
+        <div class="rb2-score-row">
+          <div class="rb2-score-pill">
+            <strong>{{ strength.score }}</strong>
+            <span>Overall</span>
+          </div>
+          <div class="rb2-score-pill">
+            <strong>{{ strength.completion }}%</strong>
+            <span>Complete</span>
+          </div>
+          <div class="rb2-score-pill">
+            <strong>{{ strength.ats.completeness }}%</strong>
+            <span>Details filled</span>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    {# ——— Right: live preview ——— #}
+    <aside class="rb2-studio-preview-pane">
+      <div class="rb2-preview-header">
+        <span class="rb2-preview-header__title"><i class='bx bx-show'></i> Live preview</span>
+        <button type="button" class="rb2-preview-header__link" id="rb2ChangeTemplateBtn" data-bs-toggle="modal" data-bs-target="#rb2TemplateModal">
+          Change look
+        </button>
+      </div>
+      <div class="rb2-preview-frame-wrap">
+        <iframe
+          id="rb2PreviewFrame"
+          class="rb2-preview-frame"
+          title="Your resume preview"
+          src="{{ preview_embed_url }}"
+        ></iframe>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="rb2-complete-sticky {% if overall_completion >= 100 %}is-visible{% endif %}" id="rb2CompleteSticky" aria-label="Resume complete actions">
+    <div class="rb2-complete-sticky__inner">
+      <span class="rb2-complete-sticky__label"><i class='bx bx-check-circle'></i> Resume complete</span>
+      <div class="rb2-complete-sticky__actions">
+        <a href="{{ pdf_url }}" class="rb2-btn rb2-btn--primary rb2-btn--sm" target="_blank" rel="noopener">
+          <i class='bx bx-download'></i> Download PDF
+        </a>
+        <a href="{{ preview_embed_url }}" class="rb2-btn rb2-btn--soft rb2-btn--sm" target="_blank" rel="noopener">Preview</a>
+        <a href="{{ url('users:resume_v2_dashboard') }}" class="rb2-btn rb2-btn--outline rb2-btn--sm">My resumes</a>
+        <a href="{{ url('users:userdashboard') }}" class="rb2-btn rb2-btn--outline rb2-btn--sm">Home</a>
+      </div>
+    </div>
+  </footer>
+</div>
+
+{# Template picker modal #}
+<div class="modal fade" id="rb2TemplateModal" tabindex="-1" aria-labelledby="rb2TemplateModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content rb2-modal-content">
+      <div class="modal-header border-0 pb-0">
+        <div>
+          <h5 class="modal-title fw-bold" id="rb2TemplateModalLabel">Pick a look for your resume</h5>
+          <p class="text-muted fs-14 mb-0">{{ template_count|default(v2_templates|length) }} templates · your content stays the same — only the design changes.</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body pt-3">
+        <div class="rb2-template-modal-grid">
+          {% for tpl in v2_templates %}
+          <button type="button"
+            class="rb2-template-pick {% if tpl.id == selected_template_id %}is-selected{% endif %}"
+            data-template-id="{{ tpl.id }}"
+            data-template-name="{{ tpl.name }}"
+            data-prototype-key="{{ tpl.prototype_key }}">
+            {% include 'template20/user/includes/resume_v2_template_thumb.html' %}
+            <div class="rb2-template-pick__body">
+              {% if tpl.badges %}
+              <div class="rb2-badges mb-1">
+                {% for badge in tpl.badges[:2] %}
+                <span class="rb2-badge {% if badge == 'ATS Friendly' %}rb2-badge--ats{% endif %}">{{ badge }}</span>
+                {% endfor %}
+              </div>
+              {% endif %}
+              <span class="rb2-template-pick__label">{{ tpl.name }}</span>
+            </div>
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0 rb2-template-modal-footer">
+        <p class="rb2-template-modal-footer__hint mb-0 me-auto" id="rb2TemplateModalHint">
+          Selected: <strong id="rb2TemplateModalSelectedName">{% for tpl in v2_templates %}{% if tpl.id == selected_template_id %}{{ tpl.name }}{% endif %}{% endfor %}</strong>
+        </p>
+        <button type="button" class="rb2-btn rb2-btn--outline" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="rb2-btn rb2-btn--primary" id="rb2ApplyTemplateBtn">
+          <i class='bx bx-check'></i> Apply template
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+window.__RB2_STUDIO = {
+  resumeId: {{ resume.pk }},
+  csrfToken: "{{ csrf_token }}",
+  autofillUrl: {{ url('users:resume_v2_autofill', resume_id=resume.pk)|tojson }},
+  aiUrl: {{ url('users:resume_v2_ai', resume_id=resume.pk)|tojson }},
+  suggestUrl: {{ url('users:resume_v2_suggest', resume_id=resume.pk)|tojson }},
+  goal: {{ goal|tojson }},
+  editorPayload: {{ editor_payload|tojson_for_script }},
+  selectedTemplateId: {{ selected_template_id|tojson }},
+  prototypeKey: {{ prototype_key|tojson }},
+  photoUploadUrl: {{ photo_upload_url|tojson }},
+  resumePhotoUrl: {{ resume_photo_url|tojson }},
+  avatarInitial: {{ avatar_initial|tojson }},
+  overallCompletion: {{ overall_completion }},
+  pdfUrl: {{ pdf_url|tojson }},
+  previewUrl: {{ preview_embed_url|tojson }},
+};
+</script>
+<script src="{{ static('resume-builder-v2/studio.js') }}?v=15" defer></script>
+{% endblock %}
