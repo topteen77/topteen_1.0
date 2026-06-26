@@ -20,6 +20,7 @@ from django.db import connection
 import json
 import logging
 import re
+from urllib.parse import parse_qs
 from django.db.utils import OperationalError, ProgrammingError
 
 logger = logging.getLogger(__name__)
@@ -280,26 +281,62 @@ def _get_chatbot_page_mode(request):
     return default_mode
 
 
-def _match_chatbot_rule(path, base_path, include_subpages=False):
-    base = (base_path or '/').strip() or '/'
-    if not base.startswith('/'):
-        base = '/' + base
-    if base != '/' and base.endswith('/'):
-        base = base.rstrip('/')
-    current = (path or '/').strip() or '/'
-    if current != '/' and current.endswith('/'):
-        current = current.rstrip('/')
+def _normalize_chatbot_path(raw):
+    """Normalize URL path for chatbot rule matching (strip query string and trailing slash)."""
+    value = (raw or '/').strip() or '/'
+    if '?' in value:
+        value = value.split('?', 1)[0]
+    if not value.startswith('/'):
+        value = '/' + value
+    if value != '/' and value.endswith('/'):
+        value = value.rstrip('/')
+    return value
 
-    if current == base:
+
+def _rule_query_params(raw):
+    raw = (raw or '').strip()
+    if '?' not in raw:
+        return {}
+    parsed = parse_qs(raw.split('?', 1)[1], keep_blank_values=True)
+    return parsed
+
+
+def _query_params_match(rule_raw, request):
+    expected = _rule_query_params(rule_raw)
+    if not expected:
         return True
-    if include_subpages:
+    if request is None:
+        return False
+    for key, values in expected.items():
+        actual = request.GET.getlist(key)
+        if not actual and request.GET.get(key) is not None:
+            actual = [request.GET.get(key)]
+        if not values:
+            continue
+        if not any(str(v) in [str(a) for a in actual] for v in values):
+            return False
+    return True
+
+
+def _match_chatbot_rule(path, base_path, include_subpages=False, request=None):
+    base = _normalize_chatbot_path(base_path)
+    current = _normalize_chatbot_path(path)
+
+    path_hit = False
+    if current == base:
+        path_hit = True
+    elif include_subpages:
         # include_subpages=True means this rule applies to the listing/base page
         # (already handled above) and all nested paths beneath it.
         if base == '/':
             # base + '/' would be '//' which never matches — treat "/" as "whole site"
-            return current != '/'
-        return current.startswith(base + '/')
-    return False
+            path_hit = current != '/'
+        else:
+            path_hit = current.startswith(base + '/')
+
+    if not path_hit:
+        return False
+    return _query_params_match(base_path, request)
 
 
 def _apply_user_analytics_chatbot_rules(
@@ -344,6 +381,7 @@ def _apply_user_analytics_chatbot_rules(
                 path,
                 rule.page_url,
                 include_subpages=bool(rule.include_subpages),
+                request=request,
             ):
                 continue
             matched_any_rule = True
@@ -460,6 +498,19 @@ def globals(request):
         # User Analytics per-page rules take precedence over legacy floating chatbot.
         show_chatbot = False
 
+    chatbot_widget_body_class = ''
+    body_class_parts = []
+    if show_ai_counsellor_bot and str(ai_counsellor_position or 'right').lower() == 'left':
+        body_class_parts.append('cb-ai-pos-left')
+    if (
+        show_ai_counsellor_bot
+        and show_page_chat_widget
+        and str(page_chat_position or 'left').lower() == str(ai_counsellor_position or 'right').lower()
+    ):
+        body_class_parts.append('cb-bots-stack')
+    if body_class_parts:
+        chatbot_widget_body_class = ' '.join(body_class_parts)
+
     kwargs = {
         "allow_search_engine_index": getattr(settings, 'ALLOW_SEARCH_ENGINE_INDEX', False),
         "freetrail_seconds": getattr(settings, 'FREETRAIL_TIME_SECONDS', 5),
@@ -469,6 +520,7 @@ def globals(request):
         "legacy_chatbot_enabled": legacy_chatbot_enabled,
         "page_chat_position": page_chat_position,
         "ai_counsellor_position": ai_counsellor_position,
+        "chatbot_widget_body_class": chatbot_widget_body_class,
         "enable_answering_carefully_widget": _config_bool('ENABLE_ANSWERING_CAREFULLY_WIDGET', getattr(settings, 'ENABLE_ANSWERING_CAREFULLY_WIDGET', True)),
         "enable_auto_forward": _config_bool('ENABLE_AUTO_FORWARD', getattr(settings, 'ENABLE_AUTO_FORWARD', True)),
         "show_missing_answers_validation": _config_bool('SHOW_MISSING_ANSWERS_VALIDATION', getattr(settings, 'SHOW_MISSING_ANSWERS_VALIDATION', True)),

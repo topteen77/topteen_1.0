@@ -241,6 +241,7 @@ TEMPLATES = [
                 'core.context_processors.master_classes_processor',
                 # Only ENVIRONMENT=production allows search engine indexing (noindex otherwise)
                 'core.context_processors.allow_search_engine_index_processor',
+                'topteens.context_processor.globals',
                 'social_django.context_processors.backends',
                 'social_django.context_processors.login_redirect',
             ],

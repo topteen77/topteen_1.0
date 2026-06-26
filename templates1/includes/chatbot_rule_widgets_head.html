@@ -1,0 +1,8 @@
+{% load static %}
+{# Rule-driven chat widgets for standalone pages (no site header/footer). #}
+{% if show_ai_counsellor_bot %}
+<link rel="stylesheet" href="{% static 'css_new/chatbot-widget.css' %}?v=20260326" type="text/css" media="all" />
+{% endif %}
+{% if show_page_chat_widget %}
+<link rel="stylesheet" href="{% static 'css_new/page-chat-widget.css' %}?v=20260326" type="text/css" media="all" />
+{% endif %}

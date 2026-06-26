@@ -15,6 +15,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    {% include 'includes/chatbot_rule_widgets_head.html' %}
     <!-- Include existing styles from the original file -->
 
     <style>
@@ -2489,7 +2490,7 @@
     </style>
 </head>
 
-<body{% if viewing_student_report or embed_mode %} class="ttv2-staff-report-embed"{% endif %}>
+<body class="{% if viewing_student_report or embed_mode %}ttv2-staff-report-embed {% endif %}{{ chatbot_widget_body_class }}">
 {% if viewing_student_report or embed_mode %}
 <style>
   body.ttv2-staff-report-embed {
@@ -4763,6 +4764,7 @@
         });
     </script>
     {% endif %}
+    {% include 'includes/chatbot_rule_widgets_foot.html' %}
 </body>
 
 <style>

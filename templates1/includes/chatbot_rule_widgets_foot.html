@@ -1,0 +1,48 @@
+{% load static %}
+{# Rule-driven chat widgets for standalone pages (no site header/footer). #}
+{% if show_ai_counsellor_bot or show_page_chat_widget %}
+{% if chatbot_student_localstorage %}{{ chatbot_student_localstorage|json_script:"chatbot-student-localstorage" }}{% endif %}
+<script>
+(function () {
+  try {
+    if (typeof localStorage === 'undefined') return;
+    var CHATBOT_KEYS = [
+      'student_id',
+      'student_class',
+      'psychometric_class10_status',
+      'psychometric_class12_status',
+    ];
+    function clearChatbotKeys() {
+      CHATBOT_KEYS.forEach(function (key) { localStorage.removeItem(key); });
+    }
+    var payload = null;
+    var payloadEl = document.getElementById('chatbot-student-localstorage');
+    if (payloadEl) {
+      try { payload = JSON.parse(payloadEl.textContent); } catch (e) { payload = null; }
+    }
+    if (payload && payload.student_id != null) {
+      localStorage.setItem('student_id', String(payload.student_id));
+      localStorage.setItem('student_class', String(payload.student_class || ''));
+      localStorage.setItem('psychometric_class10_status', String(payload.psychometric_class10_status || ''));
+      localStorage.setItem('psychometric_class12_status', String(payload.psychometric_class12_status || ''));
+    } else {
+      clearChatbotKeys();
+    }
+    {% if student_localstorage_enc %}
+    localStorage.setItem('student_data', "{{ student_localstorage_enc|escapejs }}");
+    localStorage.setItem('student_data_encrypted', '1');
+    {% elif student_localstorage %}
+    localStorage.setItem('student_data', JSON.stringify(payload));
+    localStorage.setItem('student_data_encrypted', '0');
+    {% endif %}
+  } catch (e) {}
+})();
+</script>
+{% if show_page_chat_widget and show_ai_counsellor_bot %}
+<script src="{% static 'js_new/page-chat-widget.js' %}?v=20260326"></script>
+<script src="{% static 'js_new/chatbot-widget.js' %}?v=20260326"></script>
+{% else %}
+{% if show_ai_counsellor_bot %}<script src="{% static 'js_new/chatbot-widget.js' %}?v=20260326"></script>{% endif %}
+{% if show_page_chat_widget %}<script src="{% static 'js_new/page-chat-widget.js' %}?v=20260326"></script>{% endif %}
+{% endif %}
+{% endif %}

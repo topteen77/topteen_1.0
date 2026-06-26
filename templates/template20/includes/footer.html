@@ -13,9 +13,11 @@
           <p class="text-gray text-center py-3 fw-400 fs-19">
             Discover your true potential, explore the world of careers, and design a future full of opportunity and success.
           </p>
+          {% if not request.user.is_authenticated %}
           <a href="#" class="btn custom-button purple-button align-items-center mx-auto student-login-popup-trigger" role="button">
             Get Started
           </a>
+          {% endif %}
         </div>
       </div>
     </div>
