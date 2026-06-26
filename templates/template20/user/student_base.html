@@ -29,7 +29,7 @@
 
 {% block additionaljs %}
 {{ super() }}
-<script src="{{ static('js/student-shell.js') }}?v=4" defer></script>
+<script src="{{ static('js/student-shell.js') }}?v=5" defer></script>
 {% block student_additionaljs %}{% endblock %}
 {% endblock %}
 
@@ -44,7 +44,7 @@
 
 <section class="{% block student_section_class %}std-shell-main{% endblock %}">
   <div class="{% block student_container_class %}container-fluid user-dashboard-container {% endblock %}">
-    <div class="{% block student_row_class %}row g-4 pt-3 pt-lg-4 student-dash-shell{% endblock %}" id="studentDashboardShell">
+    <div class="{% block student_row_class %}row g-4 pt-3 pt-lg-4 student-dash-shell sidebar-open{% endblock %}" id="studentDashboardShell">
       {% block student_sidebar %}
       {% include 'template20/user/includes/student_shell_sidebar_column.html' %}
       {% endblock %}

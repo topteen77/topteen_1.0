@@ -1,6 +1,6 @@
 /**
  * Student dashboard / resume shell: desktop sidebar collapse.
- * Sidebar is always closed on page load; click the top-bar button to show/hide.
+ * Sidebar is open by default on desktop (≥992px); closed on mobile/tablet.
  */
 (function () {
   var mq = window.matchMedia('(min-width: 992px)');
@@ -27,12 +27,16 @@
     desktopToggle.setAttribute('title', open ? 'Close sidebar' : 'Open sidebar');
   }
 
-  function ensureSidebarClosed() {
+  function setSidebarOpen(isOpen) {
     var shell = getShell();
     if (!shell) return;
 
-    shell.classList.remove('sidebar-open');
+    shell.classList.toggle('sidebar-open', !!isOpen);
     updateToggleUi();
+  }
+
+  function ensureSidebarDefaultState() {
+    setSidebarOpen(mq.matches);
   }
 
   function toggleSidebar() {
@@ -84,14 +88,12 @@
   }, true);
 
   mq.addEventListener('change', function () {
-    if (!mq.matches) {
-      ensureSidebarClosed();
-    }
+    ensureSidebarDefaultState();
   });
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', ensureSidebarClosed);
+    document.addEventListener('DOMContentLoaded', ensureSidebarDefaultState);
   } else {
-    ensureSidebarClosed();
+    ensureSidebarDefaultState();
   }
 })();
