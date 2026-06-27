@@ -453,12 +453,11 @@ body.ttv2-shell .ttv2-sidebar-toggle{
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 10px;
-  border: 1px solid var(--c-border2);
-  background: rgba(255,255,255,.03);
-  color: var(--c-text2);
+  padding: 0;
+  cursor: pointer;
 }
 body.ttv2-shell .ttv2-sidebar-toggle i{
   font-size: 20px;

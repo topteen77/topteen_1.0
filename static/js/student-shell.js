@@ -23,6 +23,7 @@
     if (icon) {
       icon.className = open ? 'bx bx-chevrons-left' : 'bx bx-menu';
     }
+    desktopToggle.classList.toggle('std-shell-sidebar-toggle--open', open);
     desktopToggle.setAttribute('aria-label', open ? 'Close sidebar' : 'Open sidebar');
     desktopToggle.setAttribute('title', open ? 'Close sidebar' : 'Open sidebar');
   }

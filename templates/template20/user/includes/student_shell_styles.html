@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="{{ static('css_new/std-shell-sidebar-toggle.css') }}?v=1">
 <style>
   :root {
     --dash-primary: #5c54d4;
@@ -93,24 +94,14 @@
     cursor: pointer;
   }
 
-  .std-shell-icon-btn:hover {
+  .std-shell-icon-btn:not(.std-shell-sidebar-toggle):not(.std-shell-menu):hover {
     background: #eef1fb;
     border-color: var(--dash-border);
   }
 
   @media (min-width: 992px) {
-    .std-shell-menu {
+    .std-shell-menu.d-lg-none {
       display: none !important;
-    }
-  }
-
-  .std-shell-sidebar-toggle {
-    display: none;
-  }
-
-  @media (min-width: 992px) {
-    .std-shell-sidebar-toggle {
-      display: inline-flex !important;
     }
   }
 

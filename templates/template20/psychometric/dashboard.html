@@ -1760,107 +1760,6 @@
 
       {% include 'template20/includes/psychometric_dashboard_statistics_section.html' %}
 
-            <!-- Suggested Streams based on aptitude best fit + alternative -->
-            {% set career_preview = 5 %}
-            {% set stream_combo_icons = {
-              'PCM': 'bx-flask',
-              'PCB': 'bx-test-tube',
-              'HUM': 'bx-book-open',
-              'HWL': 'bx-book-open',
-              'CWM': 'bx-calculator',
-              'CWOM': 'bx-calculator',
-              'CS': 'bx-chip',
-              'FINE ARTS': 'bx-palette',
-              'Fine Arts': 'bx-palette'
-            } %}
-            {% set stream_icon_images = {
-              'PCM': 'images/pcm-icon.png',
-              'PCB': 'images/pcb-icon.png',
-              'HUM': 'images/hum-icon.png',
-              'HWL': 'images/hum-icon.png',
-              'CWM': 'images/cwm-icon.png',
-              'CWOM': 'images/cwm-icon.png',
-              'CS': 'images/computer-sci-icon.png',
-              'FINE ARTS': 'images/fine-arts-icon.png',
-              'Fine Arts': 'images/fine-arts-icon.png'
-            } %}
-            {% if suitable_subject_combinations %}
-            <div class="my-md-6 my-4 psych-stream-intelligence-section">
-              <h3 class="psych-section-title mb-2"><span class="psych-section-dot" aria-hidden="true"></span>Suggested Streams from Aptitude </h3>
-       
-
-              <div class="psych-stream-columns psych-stream-columns--single">
-              {# Stream decision questionnaire result hidden from dashboard report view #}
-
-              <section class="psych-stream-part psych-stream-part--suggested" aria-labelledby="psychStreamSuggestedPartTitle">
-                <div class="psych-stream-part-head">
-                  <!-- <span class="psych-stream-part-kicker">
-                    <i class='bx bx-target-lock' aria-hidden="true"></i>
-                    {% if stream_questionnaire_completed and stream_questionnaire_answers %}Part 2{% else %}Suggested{% endif %}
-                  </span> -->
-
-                  {% if stream_recommendation and stream_recommendation.profile_label %}
-                  <p class="fs-13 text-gray mb-0 ">
-                    Based on your {{ stream_recommendation.profile_label }}
-                  </p>
-                  {% endif %}
-                </div>
-                <div class="psych-stream-part-body">
-                  <div class="psych-stream-suggested-list">
-                    {% for combo in suitable_subject_combinations %}
-                    {% set group = aptitude_suggested_career_groups[loop.index0] if aptitude_suggested_career_groups and loop.index0 < aptitude_suggested_career_groups|length else none %}
-                    {% if group %}
-                    {% set group_items = group.career_items|default([]) %}
-                    {% set career_total = group_items|length if group_items else group.careers|length %}
-                    {% endif %}
-                    <article class="psych-stream-combined-card">
-                      <div class="psych-stream-combined-head">
-                        <div class="stream-card-icon">
-                          {% if combo.icon %}
-                          <img src="{{ static('images/' ~ combo.icon) }}" alt="{{ combo.stream|default(combo.label) }}" style="width: 42px; height: 42px; object-fit: contain;">
-                          {% else %}
-                          <i class='bx bx-search-alt fs-28 text-primary'></i>
-                          {% endif %}
-                        </div>
-                        <div>
-                          {% if combo.stream_tier == 'best_fit' %}
-                          <p class="fs-11 text-primary fw-bold text-uppercase mb-1">Strong Fit</p>
-                          {% elif combo.stream_tier == 'alternative' %}
-                          <p class="fs-11 text-primary fw-bold text-uppercase mb-1">Good Fit</p>
-                          {% endif %}
-                          <p class="fw-bold mb-0 fs-16">{{ combo.stream|default(combo.label) }}</p>
-                          <p class="fs-13 text-gray mb-0 lh-sm">{{ combo.subjects|default('') }}</p>
-                        </div>
-                      </div>
-                      {% if group %}
-                      <div class="psych-stream-combined-careers">
-                        <p class="psych-stream-career-panel-label">Career Pathways</p>
-                        <div class="career-chip-grid career-group-chips{% if career_total > career_preview %} is-collapsed{% endif %}" data-career-group-chips>
-                          {% for item in group_items %}
-                          {% if item.url %}
-                          <a href="{{ item.url }}" class="career-chip" title="Explore {{ item.name }}">{{ item.name }}</a>
-                          {% else %}
-                          <span class="career-chip">{{ item.name }}</span>
-                          {% endif %}
-                          {% else %}
-                          {% for career in group.careers %}
-                          <span class="career-chip">{{ career }}</span>
-                          {% endfor %}
-                          {% endfor %}
-                          {% if career_total > career_preview %}
-                          <button type="button" class="career-chip career-chip-more career-chip-more-trigger" data-career-view-more aria-expanded="false">+{{ career_total - career_preview }} more</button>
-                          {% endif %}
-                        </div>
-                      </div>
-                      {% endif %}
-                    </article>
-                    {% endfor %}
-                  </div>
-                </div>
-              </section>
-              </div>
-            </div>
-            {% endif %}   
       <!-- Psychometric Test Report (modern combined-report style using DB data) -->
       <div class="mb-4 psych-report-section">
         <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Psychometric Test Report</h2>
@@ -2042,6 +1941,107 @@
         </div>
       </div>
 
+            <!-- Suggested Streams based on aptitude best fit + alternative -->
+            {% set career_preview = 5 %}
+            {% set stream_combo_icons = {
+              'PCM': 'bx-flask',
+              'PCB': 'bx-test-tube',
+              'HUM': 'bx-book-open',
+              'HWL': 'bx-book-open',
+              'CWM': 'bx-calculator',
+              'CWOM': 'bx-calculator',
+              'CS': 'bx-chip',
+              'FINE ARTS': 'bx-palette',
+              'Fine Arts': 'bx-palette'
+            } %}
+            {% set stream_icon_images = {
+              'PCM': 'images/pcm-icon.png',
+              'PCB': 'images/pcb-icon.png',
+              'HUM': 'images/hum-icon.png',
+              'HWL': 'images/hum-icon.png',
+              'CWM': 'images/cwm-icon.png',
+              'CWOM': 'images/cwm-icon.png',
+              'CS': 'images/computer-sci-icon.png',
+              'FINE ARTS': 'images/fine-arts-icon.png',
+              'Fine Arts': 'images/fine-arts-icon.png'
+            } %}
+            {% if suitable_subject_combinations %}
+            <div class="my-md-6 my-4 psych-stream-intelligence-section">
+              <h3 class="psych-section-title mb-2"><span class="psych-section-dot" aria-hidden="true"></span>Suggested Streams from Aptitude </h3>
+       
+
+              <div class="psych-stream-columns psych-stream-columns--single">
+              {# Stream decision questionnaire result hidden from dashboard report view #}
+
+              <section class="psych-stream-part psych-stream-part--suggested" aria-labelledby="psychStreamSuggestedPartTitle">
+                <div class="psych-stream-part-head">
+                  <!-- <span class="psych-stream-part-kicker">
+                    <i class='bx bx-target-lock' aria-hidden="true"></i>
+                    {% if stream_questionnaire_completed and stream_questionnaire_answers %}Part 2{% else %}Suggested{% endif %}
+                  </span> -->
+
+                  {% if stream_recommendation and stream_recommendation.profile_label %}
+                  <p class="fs-13 text-gray mb-0 ">
+                    Based on your {{ stream_recommendation.profile_label }}
+                  </p>
+                  {% endif %}
+                </div>
+                <div class="psych-stream-part-body">
+                  <div class="psych-stream-suggested-list">
+                    {% for combo in suitable_subject_combinations %}
+                    {% set group = aptitude_suggested_career_groups[loop.index0] if aptitude_suggested_career_groups and loop.index0 < aptitude_suggested_career_groups|length else none %}
+                    {% if group %}
+                    {% set group_items = group.career_items|default([]) %}
+                    {% set career_total = group_items|length if group_items else group.careers|length %}
+                    {% endif %}
+                    <article class="psych-stream-combined-card">
+                      <div class="psych-stream-combined-head">
+                        <div class="stream-card-icon">
+                          {% if combo.icon %}
+                          <img src="{{ static('images/' ~ combo.icon) }}" alt="{{ combo.stream|default(combo.label) }}" style="width: 42px; height: 42px; object-fit: contain;">
+                          {% else %}
+                          <i class='bx bx-search-alt fs-28 text-primary'></i>
+                          {% endif %}
+                        </div>
+                        <div>
+                          {% if combo.stream_tier == 'best_fit' %}
+                          <p class="fs-11 text-primary fw-bold text-uppercase mb-1">Strong Fit</p>
+                          {% elif combo.stream_tier == 'alternative' %}
+                          <p class="fs-11 text-primary fw-bold text-uppercase mb-1">Good Fit</p>
+                          {% endif %}
+                          <p class="fw-bold mb-0 fs-16">{{ combo.stream|default(combo.label) }}</p>
+                          <p class="fs-13 text-gray mb-0 lh-sm">{{ combo.subjects|default('') }}</p>
+                        </div>
+                      </div>
+                      {% if group %}
+                      <div class="psych-stream-combined-careers">
+                        <p class="psych-stream-career-panel-label">Career Pathways</p>
+                        <div class="career-chip-grid career-group-chips{% if career_total > career_preview %} is-collapsed{% endif %}" data-career-group-chips>
+                          {% for item in group_items %}
+                          {% if item.url %}
+                          <a href="{{ item.url }}" class="career-chip" title="Explore {{ item.name }}">{{ item.name }}</a>
+                          {% else %}
+                          <span class="career-chip">{{ item.name }}</span>
+                          {% endif %}
+                          {% else %}
+                          {% for career in group.careers %}
+                          <span class="career-chip">{{ career }}</span>
+                          {% endfor %}
+                          {% endfor %}
+                          {% if career_total > career_preview %}
+                          <button type="button" class="career-chip career-chip-more career-chip-more-trigger" data-career-view-more aria-expanded="false">+{{ career_total - career_preview }} more</button>
+                          {% endif %}
+                        </div>
+                      </div>
+                      {% endif %}
+                    </article>
+                    {% endfor %}
+                  </div>
+                </div>
+              </section>
+              </div>
+            </div>
+            {% endif %}   
       {% set career_preview = 5 %}
       {% set riasec_taglines = {
         'R': 'Build and fix things with hands-on, practical work.',

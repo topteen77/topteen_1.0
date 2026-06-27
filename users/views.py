@@ -3554,6 +3554,8 @@ class UserDashboard(TemplateView):
                     "start_url": ctx["test_dashboard_url"],
                     "action_label": psychometric_action_label,
                     "action_variant": psychometric_action_variant,
+                    "icon_src": "images_new/icons/psychometric.png",
+                    "icon_bg": "#eef6ff",
                 },
             )
 
@@ -3571,7 +3573,10 @@ class UserDashboard(TemplateView):
                     "start_url": reverse("core:multiple_intelligences_assessment"),
                     "action_label": "View report" if mi_done else "Start test",
                     "action_variant": "report" if mi_done else "start",
-                    "hide_kind_badge": True,
+                    "kind_badge": "FREE",
+                    "kind_badge_style": "free",
+                    "icon_src": "images_new/icons/multiple-intelligence.png",
+                    "icon_bg": "#eef6ff",
                 }
             )
         except Exception:
@@ -3591,7 +3596,10 @@ class UserDashboard(TemplateView):
                     "start_url": reverse("core:emotional_intelligences_assessment"),
                     "action_label": "View report" if eq_done else "Start test",
                     "action_variant": "report" if eq_done else "start",
-                    "hide_kind_badge": True,
+                    "kind_badge": "FREE",
+                    "kind_badge_style": "free",
+                    "icon_src": "images_new/icons/emotions.png",
+                    "icon_bg": "#fdf2f8",
                 }
             )
         except Exception:

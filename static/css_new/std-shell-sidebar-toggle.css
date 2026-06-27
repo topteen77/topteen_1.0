@@ -1,0 +1,140 @@
+/* Shared sidebar / nav toggle — student, institute, parent, counselor (v2) */
+.std-shell-icon-btn.std-shell-sidebar-toggle,
+.std-shell-icon-btn.std-shell-menu,
+.ttv2-sidebar-toggle {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: #5249df !important;
+  border: 2px solid rgba(255, 255, 255, 0.55) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(82, 73, 223, 0.38);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.std-shell-icon-btn.std-shell-sidebar-toggle::before,
+.std-shell-icon-btn.std-shell-menu::before,
+.ttv2-sidebar-toggle::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 12px;
+  background: conic-gradient(
+    from 0deg,
+    rgba(255, 255, 255, 0) 0deg,
+    rgba(255, 255, 255, 0) 210deg,
+    rgba(255, 255, 255, 0.35) 250deg,
+    rgba(255, 255, 255, 1) 285deg,
+    rgba(255, 255, 255, 0.35) 320deg,
+    rgba(255, 255, 255, 0) 360deg
+  );
+  animation: std-shell-toggle-border-rotate 2.8s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.std-shell-icon-btn.std-shell-sidebar-toggle::after,
+.std-shell-icon-btn.std-shell-menu::after,
+.ttv2-sidebar-toggle::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: 8px;
+  background: #5249df;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.std-shell-icon-btn.std-shell-sidebar-toggle i,
+.std-shell-icon-btn.std-shell-menu i,
+.ttv2-sidebar-toggle i {
+  position: relative;
+  z-index: 2;
+  font-family: "boxicons" !important;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 1.35rem;
+  line-height: 1;
+  color: #ffffff !important;
+}
+
+.std-shell-icon-btn.std-shell-sidebar-toggle:hover,
+.std-shell-icon-btn.std-shell-menu:hover,
+.ttv2-sidebar-toggle:hover {
+  background: #5249df !important;
+  border-color: rgba(255, 255, 255, 0.85) !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.25) inset,
+    0 6px 18px rgba(82, 73, 223, 0.48);
+  transform: translateY(-1px);
+  color: #ffffff !important;
+}
+
+.std-shell-icon-btn.std-shell-sidebar-toggle:hover::after,
+.std-shell-icon-btn.std-shell-menu:hover::after,
+.ttv2-sidebar-toggle:hover::after {
+  background: #5249df;
+}
+
+.std-shell-icon-btn.std-shell-sidebar-toggle.std-shell-sidebar-toggle--open,
+.std-shell-icon-btn.std-shell-menu.std-shell-sidebar-toggle--open,
+.ttv2-sidebar-toggle.ttv2-sidebar-toggle--open {
+  border-color: rgba(255, 255, 255, 0.75) !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.3) inset,
+    0 5px 16px rgba(82, 73, 223, 0.45);
+}
+
+@keyframes std-shell-toggle-border-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .std-shell-icon-btn.std-shell-sidebar-toggle::before,
+  .std-shell-icon-btn.std-shell-menu::before,
+  .ttv2-sidebar-toggle::before {
+    animation: none;
+  }
+
+  .std-shell-icon-btn.std-shell-sidebar-toggle:hover,
+  .std-shell-icon-btn.std-shell-menu:hover,
+  .ttv2-sidebar-toggle:hover {
+    transform: none;
+  }
+}
+
+/* Desktop: sidebar chevron toggle. Mobile: menu toggle. */
+.std-shell-icon-btn.std-shell-sidebar-toggle {
+  display: none;
+}
+
+@media (min-width: 992px) {
+  .std-shell-icon-btn.std-shell-sidebar-toggle {
+    display: inline-flex !important;
+  }
+
+  .std-shell-icon-btn.std-shell-menu {
+    display: none !important;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .std-shell-icon-btn.std-shell-sidebar-toggle {
+    display: none !important;
+  }
+
+  .std-shell-icon-btn.std-shell-menu {
+    display: inline-flex !important;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .ttv2-sidebar-toggle i {
+    font-size: 18px;
+  }
+}

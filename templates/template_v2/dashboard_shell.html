@@ -8,6 +8,7 @@
 
 {% block additionalhead %}
 {{ super() }}
+<link rel="stylesheet" href="{{ static('css_new/std-shell-sidebar-toggle.css') }}?v=1">
 <link rel="stylesheet" href="{{ static('css_new/template_v2_dashboard.css') }}">
 <link rel="stylesheet" href="{{ static('css_new/ttv2_csv_upload_components.css') }}">
 
@@ -258,6 +259,7 @@ body.ttv2-shell .ttv2-topbar-pay-now {
             icon.classList.remove('bx-menu', 'bx-x', 'bx-chevrons-left');
             icon.classList.add(isSidebarVisible ? 'bx-chevrons-left' : 'bx-menu');
           }
+          btn.classList.toggle('ttv2-sidebar-toggle--open', !!isSidebarVisible);
           btn.setAttribute('aria-label', isSidebarVisible ? 'Close sidebar' : 'Open sidebar');
         });
       } catch(e) {}

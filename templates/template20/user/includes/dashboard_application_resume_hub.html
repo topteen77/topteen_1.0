@@ -200,6 +200,93 @@
     letter-spacing: 0.04em;
     text-transform: uppercase;
   }
+  .tt-app-hub .tt-hub-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .tt-app-hub .tt-hub-hero-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px 8px 10px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  }
+  .tt-app-hub .tt-hub-hero-btn:hover {
+    transform: translateY(-2px);
+    color: #fff;
+  }
+  .tt-app-hub .tt-hub-hero-btn--filled {
+    background: linear-gradient(135deg, #5249df 0%, #6d63f0 100%);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.28);
+    box-shadow: 0 6px 18px rgba(31, 24, 120, 0.28);
+  }
+  .tt-app-hub .tt-hub-hero-btn--filled:hover {
+    background: linear-gradient(135deg, #4a41d4 0%, #645cf0 100%);
+    box-shadow: 0 8px 22px rgba(31, 24, 120, 0.36);
+  }
+  .tt-app-hub .tt-hub-hero-btn--ghost {
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.48);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+  }
+  .tt-app-hub .tt-hub-hero-btn--ghost:hover {
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.72);
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+  }
+  .tt-app-hub .tt-hub-hero-btn-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .tt-app-hub .tt-hub-hero-btn-icon::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0) 58%);
+    pointer-events: none;
+  }
+  .tt-app-hub .tt-hub-hero-btn--filled .tt-hub-hero-btn-icon {
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  }
+  .tt-app-hub .tt-hub-hero-btn--ghost .tt-hub-hero-btn-icon {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.34);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  }
+  .tt-app-hub .tt-hub-hero-btn-icon i {
+    font-family: "boxicons" !important;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 20px;
+    line-height: 1;
+    position: relative;
+    z-index: 1;
+    color: #fff;
+  }
+  .tt-app-hub .tt-hub-hero-btn-label {
+    position: relative;
+    z-index: 1;
+    white-space: nowrap;
+  }
   .tt-app-hub .tt-hub-analytics {
     background: #fff;
     border: 1px solid var(--tt-hub-line);
@@ -543,7 +630,8 @@
   @media (prefers-reduced-motion: reduce) {
     .tt-app-hub .tt-hub-focus-pill:hover,
     .tt-app-hub a.tt-hub-event-card:hover,
-    .tt-app-hub .tt-hub-cal-cta:hover {
+    .tt-app-hub .tt-hub-cal-cta:hover,
+    .tt-app-hub .tt-hub-hero-btn:hover {
       transform: none;
     }
   }
@@ -578,11 +666,11 @@
     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3">
       <div>
         <div class="d-flex flex-wrap gap-2 mb-2">
-          <span class="tt-hub-chip"><i class='bx bx-star'></i> TopTeen smart view</span>
+          <span class="tt-hub-chip"><i class='bx bx-star'></i> Pathfinder</span>
         </div>
-        <h2 class="tt-hub-hero-title">Applications &amp; resume hub</h2>
+        <h2 class="tt-hub-hero-title">Future Pathway Hub</h2>
         <p class="tt-hub-hero-subtitle text-white">
-          Track your shortlist, resume growth, profile readiness, and calendar deadlines in one premium view.
+          Discover opportunities, strengthen your profile, monitor readiness, and stay focused on your goals.
         </p>
       </div>
       <div class="d-flex align-items-center gap-3">
@@ -590,12 +678,18 @@
           <span class="num">{{ readiness_score }}%</span>
           <span class="lbl">Readiness</span>
         </div>
-        <div class="d-flex flex-wrap gap-2">
-          <a href="{{ url('users:resumebuilder') }}" class="btn btn-sm custom-button purple-button px-3" style="box-shadow:none;">
-            <i class='bx bx-file-blank me-1'></i> My resumes
+        <div class="tt-hub-hero-actions">
+          <a href="{{ url('users:resumebuilder') }}" class="tt-hub-hero-btn tt-hub-hero-btn--filled">
+            <span class="tt-hub-hero-btn-icon" aria-hidden="true">
+              <i class='bx bx-id-card'></i>
+            </span>
+            <span class="tt-hub-hero-btn-label">My resumes</span>
           </a>
-          <a href="{{ url('users:mycolleges') }}" class="btn btn-sm px-3 d-flex align-items-center justify-content-center" style="background:rgba(255,255,255,0.18);color:#fff;border:1px solid rgba(255,255,255,0.45);">
-            <i class='bx bx-buildings me-1'></i> My colleges
+          <a href="{{ url('users:mycolleges') }}" class="tt-hub-hero-btn tt-hub-hero-btn--ghost">
+            <span class="tt-hub-hero-btn-icon" aria-hidden="true">
+              <i class='bx bx-buildings'></i>
+            </span>
+            <span class="tt-hub-hero-btn-label">My colleges</span>
           </a>
         </div>
       </div>
@@ -623,8 +717,8 @@
         <div class="tt-hub-step">
           <span class="tt-hub-dot" style="background:#4cc875;"></span>
           <div>
-            <p class="fw-semibold text-dark mb-0 fs-13">Capture ideas</p>
-            <p class="fs-12 text-gray mb-0">Jot down achievements and links in <a class="tt-hub-link" href="{{ url('users:scrapbook') }}">Scrapbook</a> for essays and interviews.</p>
+            <p class="fw-semibold text-dark mb-0 fs-13">Career <a class="tt-hub-link" href="{{ url('users:scrapbook') }}">Scrapbook</a></p>
+            <p class="fs-12 text-gray mb-0">Collect achievements, project details, certificates, and portfolio links in one organized workspace.</p>
           </div>
         </div>
       </div>

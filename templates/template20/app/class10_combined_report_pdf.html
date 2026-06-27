@@ -149,6 +149,16 @@
     .cat-list ul { column-count: 3; padding-left: 20px; }
     .cat-list ul li { padding: 5px 0; font-size: 14px; }
     .test-title { color: #000; font-size: 16px; font-weight: 600; margin-top: 6px; margin-bottom: 6px; }
+    .interest-areas-stack { width: 100%; clear: both; }
+    .interest-area-block {
+      clear: both;
+      width: 100%;
+      margin-bottom: 20px;
+      overflow: visible;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .interest-area-block .test-title { float: none !important; width: 100% !important; }
     .combined-report-page { padding: 0; background: white; overflow-x: hidden; }
   
     .report-container img { max-width: 100%; height: auto; }
@@ -571,6 +581,7 @@
       margin-bottom: 10px !important;
     }
   </style>
+  {% include 'template20/app/partials/riasec_careers_wheel_styles.html' %}
 </head>
 <body class="combined-report-page">
   <div class="report-container">

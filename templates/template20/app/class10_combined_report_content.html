@@ -402,6 +402,8 @@
 
  
 
+      {% include 'template20/app/partials/riasec_careers_wheel_styles.html' %}
+
       <!-- Display Highest Interest (all tied top scores) -->
       <div class="interest-areas-stack">
       {% if dominant_interest_codes %}
@@ -421,17 +423,10 @@
         <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #057190;">• Problem-Solving:</strong> You are skilled at troubleshooting and fixing practical issues, often in technical or mechanical fields.</div>
         <div style="width:100%; float: left; margin:2px 0; font-size: 14px;"><strong style="color: #057190;">• Independence:</strong> You prefer working independently or with minimal supervision, often thriving in environments that require self-reliance.</div>
       </div>
-      <div class="test-title" style="color:#057190; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Careers to Choose:</div>
-      <div style="width:100%; float: left; background: #C9EDF8; border: 1px solid #057190; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #057190;">• Mechanical Engineering</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color:#057190;">• Construction Management</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #057190;">• Aviation (Pilots)</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #057190">• Surveying and Mapping</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #057190;">• Skilled Trades</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #057190;">• Industrial Engineering</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #057190;">• Automotive Engineering</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #057190;">• Environmental Health and Safety Specialist</strong></div>
-      </div>
+      <div class="test-title" style="color:#057190; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px; text-align:center;">Careers to Choose:</div>
+      {% with riasec_code='R', pdf_mode=(show_student_info_on_cover is defined and show_student_info_on_cover) %}
+      {% include 'template20/app/partials/riasec_careers_wheel.html' %}
+      {% endwith %}
       </div>
       {% endif %}
       <!--I-->
@@ -450,17 +445,10 @@
         <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A92CAF;">• Attention to Detail:</strong> You notice minute details, which is crucial in scientific research and data analysis.</div>
         <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A92CAF;">• Intellectual Pursuits:</strong> You enjoy intellectual challenges and pursuits, often excelling in academic and research settings.</div>
       </div>
-      <div class="test-title" style="color:#A92CAF; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Careers to Choose:</div>
-      <div style="width:100%; float: left; background: #FEECFF; border: 1px solid #A92CAF; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A92CAF;">• Research and Development</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A92CAF;">• Data Science and Analytics</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A92CAF">• Biotechnology and Life Sciences</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A92CAF;">• Software Engineering</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A92CAF;">• Forensic Science</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A92CAF;">• Medical Research</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A92CAF;">• Environmental Science</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A92CAF;">• Epidemiology</strong></div>
-      </div>
+      <div class="test-title" style="color:#A92CAF; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px; text-align:center;">Careers to Choose:</div>
+      {% with riasec_code='I', pdf_mode=(show_student_info_on_cover is defined and show_student_info_on_cover) %}
+      {% include 'template20/app/partials/riasec_careers_wheel.html' %}
+      {% endwith %}
       </div>
       {% endif %}
       <!--A-->
@@ -479,17 +467,10 @@
         <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #2A740E;">• Imagination:</strong> Your vivid imagination allows you to envision and create innovative works of art, literature, music, etc.</div>
         <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #2A740E;">• Flexibility:</strong> You are comfortable with ambiguity and open to exploring different methods and styles in your creative processes.</div>
       </div>
-      <div class="test-title" style="color:#2A740E; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Careers to Choose:</div>
-      <div style="width:100%; float: left; background: #EDFFE7; border: 1px solid #2A740E; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #2A740E;">• Graphic Design</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color:#2A740E;">• Writing and Publishing</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #2A740E;">• Music and Performing Arts</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #2A740E">• Film and Media Production</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #2A740E">• Art Direction</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #2A740E">• Animation</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #2A740E">• Interior Design</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #2A740E;">• Fashion Design</strong></div>
-      </div>
+      <div class="test-title" style="color:#2A740E; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px; text-align:center;">Careers to Choose:</div>
+      {% with riasec_code='A', pdf_mode=(show_student_info_on_cover is defined and show_student_info_on_cover) %}
+      {% include 'template20/app/partials/riasec_careers_wheel.html' %}
+      {% endwith %}
       </div>
       {% endif %}
       <!--S-->
@@ -508,17 +489,10 @@
         <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #6D5C04;">• Teaching and Mentoring:</strong> You are skilled at educating, mentoring, and supporting others in their personal or professional growth.</div>
         <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #6D5C04;">• Conflict Resolution:</strong> You are capable of mediating conflicts and facilitating harmonious interactions among individuals or groups.</div>
       </div>
-      <div class="test-title" style="color:#6D5C04; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Careers to Choose:</div>
-      <div style="width:100%; float: left; background: #FFFAE2; border: 1px solid #6D5C04; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #6D5C04;">• Counseling and Therapy</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color:#6D5C04;">• Education and Teaching</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #6D5C04;">• Healthcare (e.g., Nursing, Physician Assistant)</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #6D5C04">• Social Services</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #6D5C04;">• Human Resources</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #6D5C04;">• Occupational Therapy</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #6D5C04;">• Public Relations</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #6D5C04;">• Nonprofit Management</strong></div>
-      </div>
+      <div class="test-title" style="color:#6D5C04; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px; text-align:center;">Careers to Choose:</div>
+      {% with riasec_code='S', pdf_mode=(show_student_info_on_cover is defined and show_student_info_on_cover) %}
+      {% include 'template20/app/partials/riasec_careers_wheel.html' %}
+      {% endwith %}
       </div>
       {% endif %}
       <!--E-->
@@ -537,17 +511,10 @@
         <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A22717;">• Risk-Taking:</strong> You are willing to take calculated risks, which can lead to significant rewards in entrepreneurial ventures.</div>
         <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A22717;">• Decision-Making:</strong> You are decisive and capable of making strategic decisions, often under pressure.</div>
       </div>
-      <div class="test-title" style="color:#A22717; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Careers to Choose:</div>
-      <div style="width:100%; float: left; background: #FFFAE2; border: 1px solid #A22717; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A22717;">• Entrepreneurship</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color:#A22717;">• Marketing and Sales</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A22717;">• Real Estate</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A22717">• Business Consulting</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A22717;">• Executive Leadership</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A22717;">• Management Consulting</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A22717;">• Venture Capital</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #A22717;">• Investment Banking</strong></div>
-      </div>
+      <div class="test-title" style="color:#A22717; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px; text-align:center;">Careers to Choose:</div>
+      {% with riasec_code='E', pdf_mode=(show_student_info_on_cover is defined and show_student_info_on_cover) %}
+      {% include 'template20/app/partials/riasec_careers_wheel.html' %}
+      {% endwith %}
       </div>
       {% endif %}
       <!--C-->
@@ -566,17 +533,10 @@
         <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #0B5BA1;">• Administrative Skills:</strong> You are skilled in administrative tasks, including data entry, record-keeping, and managing schedules.</div>
         <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #0B5BA1;">• Preference for Structure:</strong> You thrive in structured environments with clear rules and procedures, ensuring efficiency and predictability.</div>
       </div>
-      <div class="test-title" style="color:#0B5BA1; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px;">Careers to Choose:</div>
-      <div style="width:100%; float: left; background: #EBF6FF; border: 1px solid #0B5BA1; border-radius: 5px; padding: 10px; margin-bottom: 30px;">
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #0B5BA1;">• Accounting and Finance</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color:#0B5BA1;">• Administrative and Office Management</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #0B5BA1;">• Data Analysis</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #0B5BA1">• Project Management</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #0B5BA1;">• Banking and Financial Services</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #0B5BA1;">• Compliance and Risk Management</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #0B5BA1;">• Supply Chain Management</strong></div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #0B5BA1;">• Investment Analysis</strong></div>
-      </div>
+      <div class="test-title" style="color:#0B5BA1; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px; text-align:center;">Careers to Choose:</div>
+      {% with riasec_code='C', pdf_mode=(show_student_info_on_cover is defined and show_student_info_on_cover) %}
+      {% include 'template20/app/partials/riasec_careers_wheel.html' %}
+      {% endwith %}
       </div>
       {% endif %}
       </div>

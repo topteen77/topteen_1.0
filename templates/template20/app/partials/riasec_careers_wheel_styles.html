@@ -1,0 +1,76 @@
+<style>
+  .riasec-careers-wheel {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto 10px !important;
+    padding: 0;
+    clear: both;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 0;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .riasec-careers-wheel .rcw-svg {
+    display: block;
+    width: 100%;
+    max-width: 480px;
+    height: auto;
+    margin: 0;
+    vertical-align: top;
+  }
+
+  .riasec-careers-wheel--pdf {
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto 6px !important;
+    display: block;
+    text-align: center;
+    line-height: 0;
+  }
+
+  .riasec-careers-wheel--pdf .rcw-svg {
+    width: 360px;
+    height: 360px;
+    max-width: 360px;
+    margin: 0 auto;
+  }
+
+  .interest-area-block > .test-title:nth-of-type(2) {
+    float: none;
+    width: 100% !important;
+    text-align: center;
+    margin-top: 10px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .interest-area-block > .test-title:nth-of-type(2) + .riasec-careers-wheel {
+    margin-top: 0 !important;
+  }
+
+  .interest-area-block .riasec-careers-wheel {
+    overflow: visible;
+  }
+
+  .interest-area-block:has(.riasec-careers-wheel) {
+    overflow: visible;
+    margin-bottom: 20px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  @media print {
+    .riasec-careers-wheel,
+    .interest-area-block:has(.riasec-careers-wheel) {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .interest-area-block > .test-title:nth-of-type(2) {
+      margin-top: 8px !important;
+      margin-bottom: 2px !important;
+    }
+  }
+</style>

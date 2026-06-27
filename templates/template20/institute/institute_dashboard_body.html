@@ -1128,9 +1128,15 @@
     }
 
     if (topbarDesktopToggle) {
+      function syncInstituteDesktopToggleUi() {
+        var collapsed = dashboardRoot.classList.contains('sidebar-collapsed-desktop');
+        topbarDesktopToggle.classList.toggle('std-shell-sidebar-toggle--open', !collapsed);
+      }
+      syncInstituteDesktopToggleUi();
       topbarDesktopToggle.addEventListener('click', function () {
         if (window.innerWidth >= 992) {
           dashboardRoot.classList.toggle('sidebar-collapsed-desktop');
+          syncInstituteDesktopToggleUi();
         }
       });
     }
