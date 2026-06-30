@@ -292,10 +292,8 @@
     margin: 20px 0;
   }
   
-  .graph img {
-    max-width: 550px;
-    height: auto;
-  }
+  {% include 'template20/app/partials/riasec_report_graph_styles.html' %}
+  {% include 'template20/app/partials/riasec_career_alignment_styles.html' %}
   
   .no-results {
     text-align: center;
@@ -460,17 +458,9 @@
       {% endif %}
     </div>
 
-    {% if top_category and top_category.summary %}
-    <div class="text-info-paragraph" style="background: #E5F9FF; width: 100%; border-radius:6px; float: left; padding:10px; margin:10px 0;">
-      <p style="font-size: 14px;">{{ top_category.summary }}</p>
-    </div>
-    {% endif %}
+    {% include 'template20/app/partials/riasec_career_alignment_block.html' %}
 
-    {% if user_name and user_ID %}
-    <div class="graph">
-      <img style="width:550px;" src="{{ graph_image_media_url(user_name, user_ID, 'personality') }}" alt="graph" />
-    </div>
-    {% endif %}
+    {% include 'template20/app/partials/riasec_personality_graph_pdf.html' %}
   </div>
 
   <div class="chapterPage">

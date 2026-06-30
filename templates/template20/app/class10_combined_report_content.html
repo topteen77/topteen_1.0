@@ -197,12 +197,12 @@
 
     <!-- Part 1: Personality Assessment Report -->
     {% if personality_data and personality_data.results %}
-    <div class="chapterPage">
+    <div class="chapterPage personality-interpretation-page">
       <div class="page-header" style="width:650px ;">
         <div class="page-header-content">
           <img style="width:120px;"  src="{{ static('images/logo.png') }}" alt="TOPTEEN Logo" />
         </div>
-              <hr class="page-header-line" style="width: 100%;" />
+        <hr class="page-header-line" style="width: 100%;" />
       </div>
 
       <div class="text-color-top">
@@ -317,31 +317,20 @@
         {% endif %}
       </div>
 
-      {% if top_category and top_category.summary %}
-      <div class="text-info-paragraph" style="background: #E5F9FF; width: 100%; border-radius:6px; float: left; padding:10px; margin:10px 0;">
-        <p style="font-size: 14px;">{{ top_category.summary }}</p>
-      </div>
-      {% endif %}
-
-      {% if user_name and user_ID %}
-      <div class="graph" style="width:100%; text-align: center; margin:20px 0; float: left;">
-        <img style="width:550px;" src="{{ graph_image_media_url(user_name, user_ID, 'personality') }}" alt="graph" />
-      </div>
-      {% endif %}
-
-
+      {% include 'template20/app/partials/riasec_career_alignment_block.html' %}
     </div>
 
+    <div class="chapterPage report-graph-page">
 
 
-
-    <div class="chapterPage">
       <div class="page-header" style="width:650px ;">
         <div class="page-header-content">
           <img style="width:120px;"  src="{{ static('images/logo.png') }}" alt="TOPTEEN Logo" />
         </div>
               <hr class="page-header-line" style="width: 100%;" />
       </div>
+
+      {% include 'template20/app/partials/riasec_personality_graph_pdf.html' %}
 
       <div class="two-box">
         {% if streamsubject %}
@@ -369,56 +358,16 @@
 
     <!-- Part 2: Interest Assessment Report -->
     {% if interest_data and interest_data.scores %}
+    {% set _interest_pdf_compact = show_student_info_on_cover is defined and show_student_info_on_cover %}
+
+    {% if _interest_pdf_compact %}
+    {% with interest_pdf_compact=true, interest_show_page_header=true %}
+    {% include 'template20/app/partials/riasec_interest_report_pdf_layout.html' %}
+    {% endwith %}
     <div class="chapterPage">
-      <div class="page-header" style="width:650px ;">
-        <div class="page-header-content">
-          <img style="width:120px;"  src="{{ static('images/logo.png') }}" alt="TOPTEEN Logo" />
-        </div>
-              <hr class="page-header-line" style="width: 100%;" />
-      </div>
-      <div class="text-color-top">
-        <div class="top-layout" style="font-size: 16px;">Part -2</div>
-      </div>
-      <div class="db-header" style="margin-top: 5px;">
-        <h1 style="color: #3F37C9; margin:0px;">CAREER INTEREST ASSESSMENT REPORT</h1>
-      </div>
-      <div class="text-info-paragraph">
-        <p>This report aims to provide you with insights into your career interests using the RIASEC framework. Each section describes a trait and highlights the strong points associated with it, helping you understand your potential strengths and suitable career paths. This report is based on the Career Interest Inventory, which helps identify your dominant traits, career interests, preferences, and potential paths</p>
-      </div>
-
-
-      <div class="riasec-mini-card0-list">
-
-        <div class="test-title" style="color:#000; font-size:16px; font-weight: 600; margin-top: 5px; width:600px;">
-          Your Dominant Interest {% if dominant_interest_tied %}areas are{% else %}area is{% endif %}:
-        </div>
-        {% if dominant_interest_labels %}
-        <span style="font-size: 15px; font-weight: 600; margin: 8px 0 12px; color: #3F37C9;">{{ dominant_interest_labels }}</span>
-        {% endif %}
-    
-    
-        </div>
-
-
- 
-
-      {% include 'template20/app/partials/riasec_careers_wheel_styles.html' %}
-
-      <!-- Display Highest Interest (all tied top scores) -->
-      <div class="interest-areas-stack">
-      {% if dominant_interest_codes %}
-      {% for code in dominant_interest_codes %}
-      {% with riasec_code=code, pdf_mode=(show_student_info_on_cover is defined and show_student_info_on_cover) %}
-      {% include 'template20/app/partials/riasec_interest_area_block.html' %}
-      {% endwith %}
-      {% endfor %}
-      {% endif %}
-      </div>
-
-
       {% if user_name and user_ID %}
-      <div class="graph" style="width:100%; text-align: center; margin-top: 30px; float: left; margin-bottom: 30px;">
-        <img style="width:550px;" src="{{ graph_image_media_url(user_name, user_ID, 'interest') }}" alt="graph" />
+      <div class="graph">
+        <img  style="width:550px;" src="{{ graph_image_media_url(user_name, user_ID, 'interest') }}" alt="Interest assessment graph" />
       </div>
       {% endif %}
 
@@ -450,6 +399,48 @@
         </div>
       </div>
     </div>
+    {% else %}
+    <div class="chapterPage">
+      {% include 'template20/app/partials/riasec_careers_wheel_styles.html' %}
+      {% with interest_pdf_compact=false, interest_show_page_header=true %}
+      {% include 'template20/app/partials/riasec_interest_report_pdf_layout.html' %}
+      {% endwith %}
+
+      {% if user_name and user_ID %}
+      <div class="graph">
+        <img  style="width:550px;" src="{{ graph_image_media_url(user_name, user_ID, 'interest') }}" alt="Interest assessment graph" />
+      </div>
+      {% endif %}
+
+      <!-- Next Steps -->
+      <div style="width: 100%; float: left; justify-content: center;">
+        <div class="text-color-top" style="display: flex; flex-direction: row; justify-content: center;">
+          <div class="top-layout" style="background: #FF7D04; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;">
+            Next Steps
+          </div>
+        </div>
+        <div style="width:100%; float: left; background:#FFF1E4; border: 1px solid #FF7D04; border-radius: 5px; padding: 10px; margin:0px auto;">
+          <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;">
+            <strong style="color: #FF7D04;">• Explore Careers:</strong> Research the careers mentioned in this report to learn more about what they entail.
+          </div>
+          <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;">
+            <strong style="color: #FF7D04;">• Gain Experience:</strong> Seek out internships, volunteer opportunities, or part-time jobs in fields that interest you.
+          </div>
+          <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;">
+            <strong style="color:#FF7D04;">• Further Education:</strong> Consider the educational requirements for your desired careers and plan your academic path accordingly.
+          </div>
+          <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;">
+            <strong style="color: #FF7D04;">• Seek Guidance:</strong> Talk to career counselors, mentors, and professionals in your fields of interest for advice and guidance.
+          </div>
+        </div>
+        <div class="text-info-paragraph" style="width: 550px; margin: 0px auto;">
+          <p style="font-style: italic; text-align: center;">
+            By aligning your career choices with your interests, you can find a fulfilling and rewarding career that leverages your strengths and passions. <strong style="color:#FF7D04;">Best wishes!</strong>
+          </p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
     {% endif %}
 
     <!-- Part 3: Aptitude Assessment Report -->
@@ -625,8 +616,8 @@
       {% include 'template20/app/partials/aptitude_performance_profile.html' %}
 
       {% if user_name and user_ID %}
-      <div class="graph" style="width:100%; text-align: center; margin-top: 10px; float: left; margin-bottom: 10px;">
-        <img style="width:500px;" src="{{ graph_image_media_url(user_name, user_ID, 'intelligence') }}" alt="graph" />
+      <div class="graph graph--intelligence">
+        <img   style="width:550px;" src="{{ graph_image_media_url(user_name, user_ID, 'intelligence') }}" alt="Intelligence assessment graph" />
       </div>
       {% endif %}
 

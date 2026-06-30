@@ -48,6 +48,11 @@ def get_col(row, *names):
     return ''
 
 
+def row_code_key(row) -> str | None:
+    """Code column (sheets 1–2) or Combination text (sheets 3–7)."""
+    return parse_codes(get_col(row, 'Code', 'Combination'))
+
+
 class Command(BaseCommand):
     help = 'Build class10_aptitude_combinations.json from the aptitude combinations Excel file.'
 
@@ -82,13 +87,15 @@ class Command(BaseCommand):
             header_row = 3 if sheet_idx == 7 else 2
             df = pd.read_excel(excel_path, sheet_name=f'Sheet{sheet_idx}', header=header_row)
             for _, row in df.iterrows():
-                code_key = parse_codes(row.get('Code'))
+                code_key = row_code_key(row)
                 if not code_key:
                     continue
                 combinations[code_key] = {
                     'code': code_key,
                     'section': sheet_idx,
-                    'profile': str(get_col(row, 'Aptitude Profile') or '').strip(),
+                    'profile': str(
+                        get_col(row, 'Enhanced Aptitude Profile', 'Aptitude Profile') or ''
+                    ).strip(),
                     'strong_fit_stream': str(get_col(row, 'Strong Fit') or '').strip(),
                     'good_fit_stream': str(get_col(row, 'Good Fit') or '').strip(),
                     'strong_fit_careers': split_pipe(
@@ -99,7 +106,11 @@ class Command(BaseCommand):
                         get_col(row, 'Strong Fit  Subject Combinations', 'Strong Fit Subject Combinations')
                     ),
                     'good_fit_subjects': split_slash_subjects(
-                        get_col(row, 'Good Fit Subject Combinations')
+                        get_col(
+                            row,
+                            'Good Fit  Subject Combinations',
+                            'Good Fit Subject Combinations',
+                        )
                     ),
                 }
 
@@ -118,6 +129,11 @@ class Command(BaseCommand):
             'six_area_present_keys': six_area_present_keys,
         }
         output_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding='utf-8')
+
+        from app.aptitude_combination_data import clear_combination_payload_cache
+
+        clear_combination_payload_cache()
+
         self.stdout.write(
             self.style.SUCCESS(
                 f'Wrote {len(combinations)} combinations to {output_path}'

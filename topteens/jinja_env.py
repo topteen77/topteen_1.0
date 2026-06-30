@@ -418,6 +418,11 @@ def environment(**options):
         APTITUDE_IMPROVEMENT_NOTE,
     )
     from app.graph_media_utils import graph_image_media_url
+    from app.riasec_report_utils import (
+        CAREER_ALIGNMENT_HEADING,
+        parse_career_alignment_summary,
+    )
+    env.filters['parse_career_alignment'] = parse_career_alignment_summary
     env.filters['aptitude_tier_label'] = aptitude_tier_label
     env.filters['aptitude_development_alert_body'] = aptitude_development_alert_body
     # expose master_classes() helper (returns list of {'value','label'}) to Jinja templates
@@ -462,5 +467,6 @@ def environment(**options):
         'aptitude_empty_state_skill_areas': APTITUDE_EMPTY_STATE_SKILL_AREAS,
         'aptitude_improvement_note': APTITUDE_IMPROVEMENT_NOTE,
         'graph_image_media_url': graph_image_media_url,
+        'career_alignment_heading': CAREER_ALIGNMENT_HEADING,
     })
     return env

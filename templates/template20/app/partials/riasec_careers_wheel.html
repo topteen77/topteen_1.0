@@ -19,7 +19,7 @@
   {'x2': 188.0, 'y2': 300.0, 'dot_x': 188.0, 'dot_y': 300.0},
   {'x2': 228.0, 'y2': 228.0, 'dot_x': 228.0, 'dot_y': 228.0}
 ] %}
-{% set rcw_size = 360 if pdf_mode else 480 %}
+{% set rcw_size = 320 if pdf_compact else (360 if pdf_mode else 480) %}
 {% set hub_label = wheel.label %}
 {% set hub_words = hub_label.split(' & ') %}
 {% if hub_words|length == 2 %}

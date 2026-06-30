@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import json
-from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -12,19 +11,37 @@ ALL_REASONING_CODES = frozenset({'CR', 'NR', 'VR', 'LR', 'LA', 'SR', 'MR'})
 
 DEFAULT_JSON_PATH = Path(settings.BASE_DIR) / 'app' / 'data' / 'class10_aptitude_combinations.json'
 
+_payload_cache: dict[str, Any] | None = None
+_payload_mtime: float | None = None
+
 
 def codes_to_key(codes: frozenset[str] | set[str]) -> str:
     """Sorted reasoning codes joined with '+', e.g. CR+NR+VR."""
     return '+'.join(sorted(codes))
 
 
-@lru_cache(maxsize=1)
+def clear_combination_payload_cache() -> None:
+    """Drop cached JSON so the next lookup reloads from disk."""
+    global _payload_cache, _payload_mtime
+    _payload_cache = None
+    _payload_mtime = None
+
+
 def _load_payload() -> dict[str, Any]:
+    global _payload_cache, _payload_mtime
+
     path = DEFAULT_JSON_PATH
     if not path.is_file():
         return {'combinations': {}, 'six_area_present_keys': {}}
+
+    mtime = path.stat().st_mtime
+    if _payload_cache is not None and _payload_mtime == mtime:
+        return _payload_cache
+
     with path.open(encoding='utf-8') as handle:
-        return json.load(handle)
+        _payload_cache = json.load(handle)
+    _payload_mtime = mtime
+    return _payload_cache
 
 
 def lookup_combination_profile(codes: frozenset[str]) -> dict[str, Any] | None:
