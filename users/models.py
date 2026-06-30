@@ -600,7 +600,68 @@ class UserResumeVolunteerInvolvement(UserResumeChild):
     def get_time_priode(self):
         delta = relativedelta.relativedelta(self.end_date, self.start_date)
         return delta
-    
+
+
+DEFAULT_RESUME_V2_AI_PROMPT = """You are an expert student resume writer.
+
+The student is building a resume for: {goal_label} (goal code: {goal_id}).
+
+Here is their current resume content as JSON:
+{sections_json}
+
+Improve and tailor the entire resume for the stated goal. Strengthen wording, fix grammar, and keep claims realistic based on the input.
+
+Return ONLY valid JSON (no markdown fences) with exactly these keys:
+- headline (string, max 200 chars)
+- summary (string, 2-4 sentences)
+- skills (array of strings)
+- education (array of objects with school, grade, dates)
+- projects (array of objects with title, technologies, description)
+- certificates (array of objects with title, issuer, issue_date as YYYY-MM-DD or empty string)
+- achievements (array of objects with title, description)
+- experience (array of objects with role, provider, description, start_date, end_date as YYYY-MM-DD or empty)
+- languages (array of objects with name, level)
+- hobbies (string)
+
+Do not invent schools, employers, or awards that contradict the input. Empty sections may receive light plausible student content only when appropriate for the goal."""
+
+
+class ResumeV2AISettings(models.Model):
+    """Singleton admin-editable OpenAI model + prompt for full-resume generation."""
+
+    openai_model = models.CharField(
+        max_length=120,
+        blank=True,
+        default="gpt-4o-mini",
+        help_text="OpenAI model name (e.g. gpt-4o-mini, gpt-4o). Falls back to OPENAI_MODEL in settings if empty.",
+    )
+    generate_resume_prompt = models.TextField(
+        blank=True,
+        default=DEFAULT_RESUME_V2_AI_PROMPT,
+        help_text="Prompt template. Placeholders: {goal_label}, {goal_id}, {sections_json}",
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Resume V2 AI settings"
+        verbose_name_plural = "Resume V2 AI settings"
+
+    def __str__(self):
+        return "Resume V2 AI settings"
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        if not (obj.generate_resume_prompt or "").strip():
+            obj.generate_resume_prompt = DEFAULT_RESUME_V2_AI_PROMPT
+            obj.save(update_fields=["generate_resume_prompt", "updated_at"])
+        return obj
+
+
 class UserFolder(BaseModel):
     user=models.ForeignKey(User,on_delete=models.CASCADE,related_name="user_folders")
     title=models.CharField(max_length=250)

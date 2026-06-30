@@ -43,6 +43,30 @@ def _v2_meta_from_wizard(wiz: dict | None) -> dict:
     return meta if isinstance(meta, dict) else {}
 
 
+def _v2_education_rows(wiz: dict | None) -> list[dict] | None:
+    """Prototype education rows from studio_proto_v2.education_entries, or None if unset."""
+    v2 = _v2_meta_from_wizard(wiz)
+    if "education_entries" not in v2:
+        return None
+    rows: list[dict] = []
+    for ed in v2.get("education_entries") or []:
+        if not isinstance(ed, dict):
+            continue
+        school = (ed.get("school") or "").strip()
+        grade = (ed.get("grade") or "").strip()
+        if not school and not grade:
+            continue
+        rows.append(
+            {
+                "degree": grade or "Student",
+                "school": school,
+                "dates": (ed.get("dates") or "").strip(),
+                "detail": (ed.get("detail") or "").strip(),
+            }
+        )
+    return rows
+
+
 def _is_meaningful_resume_headline(text: str) -> bool:
     t = (text or "").strip()
     if not t or len(t) < 3:
@@ -503,7 +527,17 @@ def resume_editor_payload(resume):
         )
     wiz = _wizard_draft_dict(resume)
     languages = _languages_from_resume_db(resume, wiz)
-    hobbies = _hobbies_from_resume_db(resume, wiz, None, [])
+    user = getattr(resume, "user", None)
+    profile = UserProfile.objects.filter(user=user).first() if user else None
+    hobby_names = (
+        [h.name for h in profile.hobbies.all()[:30] if getattr(h, "name", None)] if profile else []
+    )
+    hobbies = _hobbies_from_resume_db(resume, wiz, profile, hobby_names)
+    education = []
+    if user is not None:
+        from .resume_v2_services import ensure_resume_education_entries
+
+        education = ensure_resume_education_entries(resume, user)
     return {
         "skills": skills,
         "certificates": certificates,
@@ -512,6 +546,7 @@ def resume_editor_payload(resume):
         "volunteers": volunteers,
         "languages": languages,
         "hobbies": hobbies,
+        "education": education,
     }
 
 
@@ -1401,7 +1436,10 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
     if not str(user.mobile or "").strip() and meta_phone:
         phone = meta_phone
 
-    if meta_school or meta_grade:
+    v2_edu = _v2_education_rows(wiz)
+    if v2_edu is not None:
+        education_out = v2_edu
+    elif meta_school or meta_grade:
         if not education_out and profile:
             degree = meta_grade or (profile.grade or "").strip() or "Student"
             school_name = meta_school or (profile.schoolname or "").strip()

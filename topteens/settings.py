@@ -112,6 +112,8 @@ ENABLE_SEMANTIC_SEARCH = config('ENABLE_SEMANTIC_SEARCH', default=False, cast=bo
 AI_PROVIDER = config('AI_PROVIDER', default='none')  # openai, gemini, anthropic, local, none
 OPENAI_API_KEY = config('OPENAI_API_KEY', default='')
 GOOGLE_API_KEY = config('GOOGLE_API_KEY', default='')
+GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY', default='')
+GOOGLE_CSE_ID = config('GOOGLE_CSE_ID', default='')  # Programmable Search Engine ID for resume suggestions
 ANTHROPIC_API_KEY = config('ANTHROPIC_API_KEY', default='')
 AI_MODEL = config('AI_MODEL', default='gpt-3.5-turbo')  # or gemini-1.5-flash, claude-3-haiku, etc.
 GEMINI_MODEL = config('GEMINI_MODEL', default='gemini-1.5-flash')

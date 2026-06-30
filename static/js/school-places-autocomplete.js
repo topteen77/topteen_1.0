@@ -48,7 +48,7 @@
     }
 
     var autocomplete = new global.google.maps.places.Autocomplete(input, {
-      types: ['school'],
+      types: options.types || ['school'],
       componentRestrictions: { country: options.country || 'in' },
       fields: ['name', 'formatted_address'],
     });

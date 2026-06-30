@@ -9,6 +9,7 @@ from .models import (
     UserFolder,
     UserSearchHistory,
     ResumeStudioHtmlTemplate,
+    ResumeV2AISettings,
 )
 from django.urls import reverse, path
 from django.utils.html import format_html
@@ -748,3 +749,22 @@ admin.site.register(User,UserAdmin)
 
 admin.site.register(UserProfile,UserProfileAdmin)
 admin.site.register(UserCalender,UserCalenderAdmin)
+
+
+@admin.register(ResumeV2AISettings)
+class ResumeV2AISettingsAdmin(admin.ModelAdmin):
+    """Singleton: OpenAI model + prompt for Resume Builder V2 “Generate with AI”."""
+
+    list_display = ("openai_model", "updated_at")
+    fields = ("openai_model", "generate_resume_prompt", "updated_at")
+    readonly_fields = ("updated_at",)
+
+    def has_add_permission(self, request):
+        return not ResumeV2AISettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def changelist_view(self, request, extra_context=None):
+        ResumeV2AISettings.load()
+        return super().changelist_view(request, extra_context=extra_context)

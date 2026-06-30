@@ -12,6 +12,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.generic import TemplateView
+from django.utils import timezone
 
 from core.breadcrumbs import get_breadcrumb
 from core.utils import build_html_head
@@ -32,19 +33,29 @@ from .resume_payload import (
     studio_font_id_from_stack,
     studio_prefs_from_resume_record,
 )
+from .resume_v2_ai import friendly_openai_error
 from .resume_v2_services import (
     RESUME_GOALS,
     STUDENT_SECTIONS,
     ProfileAutofillDetector,
     ProjectDescriptionGenerator,
     ResumeProfileAnalyzer,
-    KeywordSuggestionService,
     ResumeSuggestionService,
     ResumeSummaryGenerator,
+    ResumeFullGenerator,
     ResumeV2Metrics,
     add_skills_to_resume,
+    add_resume_education_entry,
+    build_resume_sections_snapshot,
+    resume_goal_label,
     apply_template_to_resume,
     apply_theme_prefs_to_resume,
+    apply_ai_generated_resume,
+    build_ai_resume_comparison,
+    clear_ai_resume_pending,
+    get_ai_resume_pending,
+    delete_resume_education_entry,
+    update_resume_education_entry,
     filter_missing_keywords,
     get_v2_meta,
     resume_card_context,
@@ -265,6 +276,11 @@ class ResumeV2StudioView(TemplateView):
         prototype_key = tpl["prototype_key"]
         catalog = v2_templates_catalog()
         studio_prefs = studio_prefs_from_resume_record(resume)
+        profile = UserProfile.objects.filter(user=request.user).first()
+        profile_hobbies = (
+            [h.name for h in profile.hobbies.all() if getattr(h, "name", None)] if profile else []
+        )
+        goal_id = meta.get("goal") or ""
 
         ctx.update(
             {
@@ -279,7 +295,8 @@ class ResumeV2StudioView(TemplateView):
                 "v2_meta_json": json.dumps(meta, ensure_ascii=False, default=str),
                 "prototype_key": prototype_key,
                 "template_id": tpl["id"],
-                "goal": meta.get("goal") or "",
+                "goal": goal_id,
+                "goal_label": resume_goal_label(goal_id),
                 "studio_theme_colors": STUDIO_THEME_COLORS,
                 "studio_theme_fonts": STUDIO_FONT_FAMILIES,
                 "studio_theme_color": (studio_prefs.get("color") or "teal"),
@@ -306,6 +323,8 @@ class ResumeV2StudioView(TemplateView):
                 "resume_headline": payload.get("headline") or "",
                 "studio_hobbies": payload.get("hobbies") or "",
                 "personal_fields": studio_personal_context(request.user, resume),
+                "profile_hobbies": profile_hobbies,
+                "has_ai_pending": get_ai_resume_pending(resume) is not None,
             }
         )
         return ctx
@@ -354,11 +373,93 @@ class ResumeV2AIView(View):
             )
             return JsonResponse({"text": text})
         if action == "improve_summary":
-            text = ResumeSummaryGenerator.improve(body.get("text") or resume.about or "", body.get("mode") or "professional")
+            text = ResumeSummaryGenerator.improve(
+                request.user,
+                resume,
+                body.get("text") or resume.about or "",
+                body.get("mode") or "professional",
+            )
             return JsonResponse({"text": text})
         if action == "generate_project":
-            bullets = ProjectDescriptionGenerator.generate(body.get("title") or "", body.get("technologies") or "")
+            bullets = ProjectDescriptionGenerator.generate(
+                request.user,
+                resume,
+                body.get("title") or "",
+                body.get("technologies") or "",
+            )
             return JsonResponse({"bullets": bullets})
+        if action == "add_certificate":
+            title = (body.get("title") or "").strip()[:250]
+            if not title:
+                return JsonResponse({"error": "Certificate name is required"}, status=400)
+            desc = (body.get("description") or "").strip()[:2000]
+            if not desc:
+                return JsonResponse({"error": "Who gave it is required"}, status=400)
+            UserResumeCertificate.objects.create(
+                resume=resume,
+                title=title,
+                description=desc,
+                issue_date=body.get("issue_date") or None,
+            )
+            sync_certificate_to_user_profile(request.user, title, desc)
+            return _mutate_studio(request, resume)
+        if action == "update_certificate":
+            item_id = body.get("item_id")
+            title = (body.get("title") or "").strip()[:250]
+            desc = (body.get("description") or "").strip()[:2000]
+            if not item_id:
+                return JsonResponse({"error": "Certificate not found"}, status=400)
+            if not title:
+                return JsonResponse({"error": "Certificate name is required"}, status=400)
+            if not desc:
+                return JsonResponse({"error": "Who gave it is required"}, status=400)
+            cert = UserResumeCertificate.objects.filter(pk=int(item_id), resume=resume).first()
+            if not cert:
+                return JsonResponse({"error": "Certificate not found"}, status=404)
+            cert.title = title
+            cert.description = desc
+            cert.issue_date = body.get("issue_date") or None
+            cert.save(update_fields=["title", "description", "issue_date", "modified"])
+            sync_certificate_to_user_profile(request.user, title, desc)
+            return _mutate_studio(request, resume)
+        if action == "add_education":
+            school = (body.get("school") or "").strip()[:250]
+            grade = (body.get("grade") or "").strip()[:100]
+            if not school:
+                return JsonResponse({"error": "School name is required"}, status=400)
+            if not grade:
+                return JsonResponse({"error": "Class or grade is required"}, status=400)
+            add_resume_education_entry(
+                resume,
+                request.user,
+                school=school,
+                grade=grade,
+                dates=(body.get("dates") or "").strip(),
+                detail=(body.get("detail") or "").strip(),
+            )
+            return _mutate_studio(request, resume)
+        if action == "update_education":
+            entry_id = (body.get("entry_id") or body.get("item_id") or "").strip()
+            school = (body.get("school") or "").strip()[:250]
+            grade = (body.get("grade") or "").strip()[:100]
+            if not entry_id:
+                return JsonResponse({"error": "Education entry not found"}, status=400)
+            if not school:
+                return JsonResponse({"error": "School name is required"}, status=400)
+            if not grade:
+                return JsonResponse({"error": "Class or grade is required"}, status=400)
+            updated = update_resume_education_entry(
+                resume,
+                request.user,
+                entry_id,
+                school=school,
+                grade=grade,
+                dates=(body.get("dates") or "").strip(),
+                detail=(body.get("detail") or "").strip(),
+            )
+            if updated is None:
+                return JsonResponse({"error": "Education entry not found"}, status=404)
+            return _mutate_studio(request, resume)
         if action == "save_summary":
             summary = (body.get("text") or "").strip()[:5000]
             resume.about = summary
@@ -407,19 +508,6 @@ class ResumeV2AIView(View):
             add_skills_to_resume(resume, title)
             for part in title.replace(";", ",").split(","):
                 sync_skill_to_user_profile(request.user, part.strip())
-            return _mutate_studio(request, resume)
-        if action == "add_certificate":
-            title = (body.get("title") or "").strip()[:250]
-            if not title:
-                return JsonResponse({"error": "Certificate name is required"}, status=400)
-            desc = (body.get("description") or "").strip()[:2000]
-            UserResumeCertificate.objects.create(
-                resume=resume,
-                title=title,
-                description=desc,
-                issue_date=body.get("issue_date") or None,
-            )
-            sync_certificate_to_user_profile(request.user, title, desc)
             return _mutate_studio(request, resume)
         if action == "add_activity":
             title = (body.get("title") or "").strip()[:250]
@@ -476,6 +564,9 @@ class ResumeV2AIView(View):
         if action == "delete_item":
             item_type = (body.get("item_type") or "").strip()
             item_id = body.get("item_id")
+            if item_type == "education" and item_id:
+                delete_resume_education_entry(resume, request.user, str(item_id))
+                return _mutate_studio(request, resume)
             model_map = {
                 "skill": UserResumeSkill,
                 "certificate": UserResumeCertificate,
@@ -486,6 +577,73 @@ class ResumeV2AIView(View):
             if model and item_id:
                 model.objects.filter(pk=int(item_id), resume=resume).delete()
             return _mutate_studio(request, resume)
+        if action == "generate_resume":
+            goal = (body.get("career_goal") or get_v2_meta(resume).get("goal") or "").strip()
+            client_sections = body.get("sections") if isinstance(body.get("sections"), dict) else {}
+            snapshot = build_resume_sections_snapshot(resume, request.user, client_sections)
+            applied, generated, comparison, used_ai, err = ResumeFullGenerator.generate(
+                request.user, resume, snapshot, career_goal=goal, apply=False
+            )
+            if err:
+                return JsonResponse(
+                    {"error": friendly_openai_error(err)},
+                    status=400 if used_ai is False else 502,
+                )
+            review_url = reverse("users:resume_v2_ai_review", kwargs={"resume_id": resume.pk})
+            return JsonResponse(
+                {
+                    "success": True,
+                    "ai_generated": used_ai,
+                    "generated": generated,
+                    "original": snapshot,
+                    "comparison": comparison,
+                    "review_url": review_url,
+                    "message": "AI draft ready — review changes in the comparison window.",
+                }
+            )
+        if action == "apply_ai_resume":
+            pending = get_ai_resume_pending(resume)
+            if not pending:
+                return JsonResponse({"error": "No AI draft to apply. Generate again first."}, status=400)
+            generated = pending.get("generated")
+            if not isinstance(generated, dict):
+                return JsonResponse({"error": "Invalid AI draft data."}, status=400)
+            sections_raw = body.get("sections")
+            sections = None
+            if isinstance(sections_raw, list) and sections_raw:
+                sections = [str(s).strip() for s in sections_raw if str(s).strip()]
+            apply_all = bool(body.get("apply_all"))
+            if apply_all:
+                sections = None
+            elif not sections:
+                return JsonResponse({"error": "Select at least one section to apply."}, status=400)
+            applied = apply_ai_generated_resume(resume, request.user, generated, sections=sections)
+            clear_ai_resume_pending(resume)
+            return _mutate_studio(
+                request,
+                resume,
+                {"applied_fields": applied, "ai_applied": True},
+            )
+        if action == "discard_ai_resume":
+            clear_ai_resume_pending(resume)
+            return JsonResponse({"success": True, "discarded": True})
+        if action == "get_ai_pending_review":
+            pending = get_ai_resume_pending(resume)
+            if not pending:
+                return JsonResponse({"has_pending": False})
+            original = pending.get("original") or {}
+            generated = pending.get("generated") or {}
+            comparison = build_ai_resume_comparison(original, generated)
+            goal_id = (pending.get("goal") or get_v2_meta(resume).get("goal") or "").strip()
+            return JsonResponse(
+                {
+                    "has_pending": True,
+                    "comparison": comparison,
+                    "original": original,
+                    "generated": generated,
+                    "goal_label": resume_goal_label(goal_id),
+                }
+            )
         if action == "save_languages":
             langs_raw = body.get("languages")
             if not isinstance(langs_raw, list):
@@ -532,6 +690,35 @@ class ResumeV2AIView(View):
 
 
 @method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
+class ResumeV2AIReviewView(View):
+    """Popup page: section-wise old vs new AI resume comparison before applying."""
+
+    http_method_names = ["get"]
+    template_name = "template20/user/resume_v2_ai_review.html"
+
+    def get(self, request, resume_id, *args, **kwargs):
+        resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
+        pending = get_ai_resume_pending(resume)
+        if not pending:
+            messages.info(request, "No AI draft found. Generate a resume from the studio first.")
+            return redirect("users:resume_v2_studio", resume_id=resume.pk)
+        original = pending.get("original") or {}
+        generated = pending.get("generated") or {}
+        comparison = build_ai_resume_comparison(original, generated)
+        goal_id = (pending.get("goal") or get_v2_meta(resume).get("goal") or "").strip()
+        ctx = {
+            "resume": resume,
+            "goal_label": resume_goal_label(goal_id),
+            "comparison": comparison,
+            "original": original,
+            "generated": generated,
+            "ai_url": reverse("users:resume_v2_ai", kwargs={"resume_id": resume.pk}),
+            "studio_url": reverse("users:resume_v2_studio", kwargs={"resume_id": resume.pk}),
+        }
+        return render(request, self.template_name, ctx)
+
+
+@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
 class ResumeV2DeleteView(View):
     """POST: permanently remove one resume and return to the V2 dashboard."""
 
@@ -542,20 +729,6 @@ class ResumeV2DeleteView(View):
         resume.delete(hard_delete=True)
         messages.success(request, "That resume was deleted.")
         return redirect("users:resume_v2_dashboard")
-
-
-@method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")
-class ResumeV2SuggestView(View):
-    """GET ?q=python — keyword autocomplete suggestions."""
-
-    http_method_names = ["get"]
-
-    def get(self, request, resume_id, *args, **kwargs):
-        resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
-        q = (request.GET.get("q") or "").strip()
-        limit = min(12, max(1, int(request.GET.get("limit") or 8)))
-        suggestions = KeywordSuggestionService.suggest(request.user, resume, q, limit=limit)
-        return JsonResponse({"suggestions": suggestions})
 
 
 @method_decorator(login_required(login_url=reverse_lazy("users:login")), name="dispatch")

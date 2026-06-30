@@ -41,6 +41,27 @@ def resolve_wkhtmltopdf_path() -> str | None:
     return None
 
 
+def default_resume_pdf_options() -> dict:
+    """wkhtmltopdf options tuned for studio resume PDFs (A4, fonts, no shrink)."""
+    return {
+        "enable-local-file-access": "",
+        "page-size": "A4",
+        "orientation": "Portrait",
+        "margin-top": "6mm",
+        "margin-right": "6mm",
+        "margin-bottom": "6mm",
+        "margin-left": "6mm",
+        "encoding": "UTF-8",
+        "print-media-type": "",
+        "disable-smart-shrinking": "",
+        "enable-javascript": "",
+        "javascript-delay": "1500",
+        "load-error-handling": "ignore",
+        "load-media-error-handling": "ignore",
+        "no-stop-slow-scripts": "",
+    }
+
+
 def html_to_pdf_bytes(
     html: str,
     *,

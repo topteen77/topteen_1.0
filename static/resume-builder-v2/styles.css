@@ -1119,7 +1119,7 @@
 }
 
 .rb2-studio-app.rb2-studio-app--complete {
-  padding-bottom: 68px;
+  padding-bottom: 10px;
 }
 
 .rb2-studio-app.rb2-studio-app--complete .rb2-studio-nav {
@@ -1155,7 +1155,7 @@
   display: flex;
   align-items: flex-start;
   gap: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 0;
 }
 
 .rb2-complete-banner__badge {
@@ -1397,6 +1397,49 @@
 
 .rb2-topbar-exit {
   padding: 8px 12px;
+}
+
+.rb2-ai-pending-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 0 16px 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(82, 73, 223, 0.1), rgba(124, 58, 237, 0.08));
+  border: 1px solid rgba(82, 73, 223, 0.22);
+}
+
+.rb2-ai-pending-banner[hidden] {
+  display: none !important;
+}
+
+.rb2-ai-pending-banner__text {
+  flex: 1;
+  min-width: 180px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--rb2-heading);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rb2-ai-pending-banner__dismiss {
+  border: none;
+  background: transparent;
+  color: var(--rb2-muted);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.rb2-ai-pending-banner__dismiss:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--rb2-heading);
 }
 
 .rb2-btn--soft {
@@ -1890,10 +1933,54 @@
   cursor: pointer;
 }
 
+.rb2-suggest-chips--inline {
+  margin-top: 10px;
+  padding-top: 0;
+  border-top: none;
+}
+
+.rb2-suggest-chips--inline[hidden] {
+  display: none !important;
+}
+
+.rb2-suggest-chips--hobbies {
+  margin-bottom: 12px;
+}
+
+.rb2-field .rb2-suggest-wrap textarea.rb2-suggest-input {
+  width: 100%;
+}
+
+.rb2-suggest-chip {
+  font-size: 11px;
+  padding: 5px 10px;
+}
+
 .rb2-kw-chip.is-adding,
 .rb2-kw-chip:disabled {
   opacity: 0.55;
   cursor: wait;
+}
+
+.rb2-kw-chip.is-added {
+  background: rgba(17, 160, 129, 0.12);
+  border-color: var(--rb2-accent, #11a081);
+  color: var(--rb2-accent, #11a081);
+}
+
+.rb2-form-card.is-saving {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.72;
+}
+
+.rb2-form-card.is-saving::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.45);
+  pointer-events: none;
 }
 
 .rb2-score-card {
@@ -2105,6 +2192,22 @@
   display: block;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: auto;
+  position: relative;
+}
+
+.rb2-studio-app.is-saving .rb2-preview-frame-wrap::after {
+  content: "Updating preview…";
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 3;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rb2-muted, #64748b);
+  background: rgba(255, 255, 255, 0.92);
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--rb2-border, #e2e8f0);
 }
 
 .rb2-preview-frame-wrap .rb2-preview-frame {

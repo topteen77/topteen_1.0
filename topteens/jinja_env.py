@@ -309,11 +309,19 @@ def csrf_token_value(context):
 
 def tojson_filter(value):
     """Convert Python object to JSON string"""
-    return mark_safe(json.dumps(value))
+    from jinja2 import Undefined
+
+    if isinstance(value, Undefined):
+        value = None
+    return mark_safe(json.dumps(value, default=str))
 
 
 def tojson_for_script(value):
     """JSON safe inside <script> tags (avoids premature </script> / markup issues)."""
+    from jinja2 import Undefined
+
+    if isinstance(value, Undefined):
+        value = None
     s = json.dumps(value, ensure_ascii=False, default=str)
     s = s.translate(str.maketrans({"<": "\\u003c", ">": "\\u003e"}))
     return mark_safe(s)

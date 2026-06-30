@@ -77,7 +77,7 @@ import json
 import re
 from django.utils.safestring import mark_safe
 from user_analytics.tasks import link_analytics_session_to_user, reconcile_recent_user_events
-from .pdf_utils import html_to_pdf_bytes
+from .pdf_utils import default_resume_pdf_options, html_to_pdf_bytes
 from .resume_guided_ai import strip_markdown_fences
 from .parent_dashboard_ai import (
     process_psychometric_data,
@@ -4661,17 +4661,7 @@ def resume_pdf_download(request,*args, **kwargs):
     except TemplateDoesNotExist:
         template = get_template(fallback)
     html  = template.render(ctx)
-    pdf_options = {
-        "enable-local-file-access": "",
-        "page-size": "A4",
-        "orientation": "Portrait",
-        "margin-top": "6mm",
-        "margin-right": "6mm",
-        "margin-bottom": "6mm",
-        "margin-left": "6mm",
-        "encoding": "UTF-8",
-        "print-media-type": "",
-    }
+    pdf_options = default_resume_pdf_options()
     pdf = html_to_pdf_bytes(
         html,
         options=pdf_options,

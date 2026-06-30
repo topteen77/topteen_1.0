@@ -1,12 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="tt-pdf-export">
 <head>
   <meta charset="UTF-8">
   <title>Resume</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="{{ studio_google_fonts_href }}" rel="stylesheet" />
   <style>
+    {{ studio_embedded_fonts_css|safe }}
     {{ studio_resume_css_inline|safe }}
     {{ studio_root_style|safe }}
     {{ studio_pdf_page_css|safe }}

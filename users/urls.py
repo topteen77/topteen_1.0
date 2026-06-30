@@ -4,6 +4,7 @@ from django.conf.urls.static import static
 from django.views.generic import RedirectView
 from .import views
 from .resume_v2_views import (
+    ResumeV2AIReviewView,
     ResumeV2AIView,
     ResumeV2AnalyticsPartialView,
     ResumeV2AutofillView,
@@ -12,7 +13,6 @@ from .resume_v2_views import (
     ResumeV2DeleteView,
     ResumeV2GoalView,
     ResumeV2StudioView,
-    ResumeV2SuggestView,
     ResumeV2TemplatesView,
 )
 from django.contrib.auth import views as auth_views
@@ -117,7 +117,7 @@ urlpatterns = [
    path('resume-builder/v2/<int:resume_id>/studio/', ResumeV2StudioView.as_view(), name="resume_v2_studio"),
    path('resume-builder/v2/<int:resume_id>/autofill/', ResumeV2AutofillView.as_view(), name="resume_v2_autofill"),
    path('resume-builder/v2/<int:resume_id>/ai/', ResumeV2AIView.as_view(), name="resume_v2_ai"),
-   path('resume-builder/v2/<int:resume_id>/suggest/', ResumeV2SuggestView.as_view(), name="resume_v2_suggest"),
+   path('resume-builder/v2/<int:resume_id>/ai-review/', ResumeV2AIReviewView.as_view(), name="resume_v2_ai_review"),
    path('resume-builder/v2/<int:resume_id>/analytics/', ResumeV2AnalyticsPartialView.as_view(), name="resume_v2_analytics"),
    path(
        'resume-builder/setup/',

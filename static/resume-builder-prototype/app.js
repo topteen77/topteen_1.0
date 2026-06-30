@@ -233,6 +233,13 @@
       .replace(/"/g, "&quot;");
   }
 
+  /** Studio v2 saves hobbies; prototype templates label the section Interests. */
+  function interestsText(d) {
+    const interests = String((d && d.interests) || "").trim();
+    if (interests) return interests;
+    return String((d && d.hobbies) || "").trim();
+  }
+
   function hasDisplayText(v) {
     if (v == null) return false;
     const s = String(v).trim();
@@ -433,7 +440,7 @@
         <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--center">Skills</h2><ul class="tpl-bullets tpl-bullets--center">${skillsListHtml(d)}</ul></section>
         <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--center">Certifications</h2>${certificationsHtml(d)}</section>
         <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--center">Languages</h2><ul class="tpl-bullets tpl-bullets--center">${languagesHtml(d)}</ul></section>
-        <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--center">Interests</h2><p class="tpl-p">${esc(d.interests)}</p></section>
+        <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--center">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
       </div>`;
     },
 
@@ -454,7 +461,7 @@
           <section class="tpl-sec"><h2 class="tpl-h2">Experience</h2>${experienceHtml(d)}</section>
           <section class="tpl-sec"><h2 class="tpl-h2">Education</h2>${educationHtml(d)}</section>
           <section class="tpl-sec"><h2 class="tpl-h2">Certifications</h2>${certificationsHtml(d)}</section>
-          <section class="tpl-sec"><h2 class="tpl-h2">Interests</h2><p class="tpl-p">${esc(d.interests)}</p></section>
+          <section class="tpl-sec"><h2 class="tpl-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
         </div>
       </div>`;
     },
@@ -480,7 +487,7 @@
             <div class="tpl-two-col">${certificationsHtml(d)}</div>
             <ul class="tpl-bullets">${languagesHtml(d)}</ul>
           </section>
-          <section class="tpl-sec"><h2 class="tpl-h2">Interests</h2><p class="tpl-p">${esc(d.interests)}</p></section>
+          <section class="tpl-sec"><h2 class="tpl-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
         </div>
       </div>`;
     },
@@ -505,7 +512,7 @@
           <section class="tpl-sec"><h2 class="tpl-h2"><span class="tpl-ico">⚡</span> Skills</h2><ul class="tpl-bullets">${skillsListHtml(d)}</ul></section>
           <section class="tpl-sec"><h2 class="tpl-h2"><span class="tpl-ico">🌐</span> Languages</h2><ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
           <section class="tpl-sec tpl-ms-span2"><h2 class="tpl-h2"><span class="tpl-ico">🏅</span> Certifications</h2>${certificationsHtml(d)}</section>
-          <section class="tpl-sec tpl-ms-span2"><h2 class="tpl-h2">Interests</h2><p class="tpl-p">${esc(d.interests)}</p></section>
+          <section class="tpl-sec tpl-ms-span2"><h2 class="tpl-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
         </div>
       </div>`;
     },
@@ -522,7 +529,7 @@
           <section class="tpl-sec"><h2 class="tpl-h2">Experience</h2>${experienceHtml(d)}</section>
           <section class="tpl-sec"><h2 class="tpl-h2">Education</h2>${educationHtml(d)}</section>
           <section class="tpl-sec"><h2 class="tpl-h2">Certifications</h2>${certificationsHtml(d)}</section>
-          <section class="tpl-sec"><h2 class="tpl-h2">Interests</h2><p class="tpl-p">${esc(d.interests)}</p></section>
+          <section class="tpl-sec"><h2 class="tpl-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
         </div>
         <aside class="tpl-pb-side">
           ${photoHtml(d, "tpl-pb-avatar")}
@@ -547,7 +554,7 @@
           <section class="tpl-sec"><h2 class="tpl-h2">Education</h2>${educationHtml(d)}</section>
           <section class="tpl-sec"><h2 class="tpl-h2">Skills</h2><ul class="tpl-bullets">${skillsListHtml(d)}</ul></section>
           <section class="tpl-sec"><h2 class="tpl-h2">Certifications &amp; languages</h2>${certificationsHtml(d)}<ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
-          <section class="tpl-sec"><h2 class="tpl-h2">Interests</h2><p class="tpl-p">${esc(d.interests)}</p></section>
+          <section class="tpl-sec"><h2 class="tpl-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
         </div>
       </div>`;
     },
@@ -571,7 +578,7 @@
           <section class="tpl-sec"><h2 class="tpl-h2">Experience</h2>${experienceHtml(d)}</section>
           <section class="tpl-sec"><h2 class="tpl-h2">Education</h2>${educationHtml(d)}</section>
           <section class="tpl-sec"><h2 class="tpl-h2">Certifications</h2>${certificationsHtml(d)}</section>
-          <section class="tpl-sec"><h2 class="tpl-h2">Interests</h2><p class="tpl-p">${esc(d.interests)}</p></section>
+          <section class="tpl-sec"><h2 class="tpl-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
         </div>
       </div>`;
     },
@@ -590,7 +597,7 @@
         <section class="tpl-sec"><h2 class="tpl-el-h2">Skills</h2><p class="tpl-el-p">${(d.skills || []).map((s) => esc(s.name)).join(" · ")}</p></section>
         <section class="tpl-sec"><h2 class="tpl-el-h2">Certifications</h2>${certificationsHtml(d)}</section>
         <section class="tpl-sec"><h2 class="tpl-el-h2">Languages</h2><ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
-        <section class="tpl-sec"><h2 class="tpl-el-h2">Interests</h2><p class="tpl-el-p">${esc(d.interests)}</p></section>
+        <section class="tpl-sec"><h2 class="tpl-el-h2">Interests</h2><p class="tpl-el-p">${esc(interestsText(d))}</p></section>
       </div>`;
     },
 
@@ -611,7 +618,7 @@
           <section class="tpl-sec"><h2 class="tpl-geo-h2">Skills</h2><ul class="tpl-bullets">${skillsListHtml(d)}</ul></section>
         </div>
         <section class="tpl-sec"><h2 class="tpl-geo-h2">Certifications &amp; languages</h2>${certificationsHtml(d)}<ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
-        <section class="tpl-sec"><h2 class="tpl-geo-h2">Interests</h2><p class="tpl-p">${esc(d.interests)}</p></section>
+        <section class="tpl-sec"><h2 class="tpl-geo-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
       </div>`;
     },
 
@@ -629,7 +636,7 @@
             <h3 class="tpl-hc-h3">Languages</h3>
             <ul class="tpl-bullets">${languagesHtml(d)}</ul>
             <h3 class="tpl-hc-h3">Interests</h3>
-            <p class="tpl-hc-small">${esc(d.interests)}</p>
+            <p class="tpl-hc-small">${esc(interestsText(d))}</p>
           </aside>
           <div class="tpl-hc-main">
             <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--hc">Summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
@@ -659,7 +666,7 @@
             <section class="tpl-au-card tpl-au-card--half"><h2 class="tpl-au-h2">Skills</h2><ul class="tpl-bullets">${skillsListHtml(d)}</ul></section>
           </div>
           <section class="tpl-au-card"><h2 class="tpl-au-h2">Certifications &amp; languages</h2>${certificationsHtml(d)}<ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
-          <section class="tpl-au-card"><h2 class="tpl-au-h2">Interests</h2><p class="tpl-p">${esc(d.interests)}</p></section>
+          <section class="tpl-au-card"><h2 class="tpl-au-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
         </div>
       </div>`;
     },
@@ -688,7 +695,7 @@
             <h3 class="tpl-mz-h3">Education</h3>${educationHtml(d)}
             <h3 class="tpl-mz-h3">Languages</h3><ul class="tpl-bullets tpl-bullets--tight">${languagesHtml(d)}</ul>
             <h3 class="tpl-mz-h3">Certifications</h3>${certificationsHtml(d)}
-            <h3 class="tpl-mz-h3">Interests</h3><p class="tpl-p">${esc(d.interests)}</p>
+            <h3 class="tpl-mz-h3">Interests</h3><p class="tpl-p">${esc(interestsText(d))}</p>
           </aside>
         </div>
       </div>`;
@@ -712,7 +719,7 @@
         </div>
         <section class="tpl-sec"><h2 class="tpl-tl-section-title">Certifications</h2>${certificationsHtml(d)}</section>
         <section class="tpl-sec"><h2 class="tpl-tl-section-title">Languages</h2><ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
-        <section class="tpl-sec"><h2 class="tpl-tl-section-title">Interests</h2><p class="tpl-p">${esc(d.interests)}</p></section>
+        <section class="tpl-sec"><h2 class="tpl-tl-section-title">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
       </div>`;
     },
 
@@ -736,7 +743,7 @@
           <section class="tpl-sec"><h2 class="tpl-ex-h2-main">Experience</h2>${experienceHtml(d)}</section>
           <section class="tpl-sec"><h2 class="tpl-ex-h2-main">Education</h2>${educationHtml(d)}</section>
           <section class="tpl-sec"><h2 class="tpl-ex-h2-main">Certifications</h2>${certificationsHtml(d)}</section>
-          <section class="tpl-sec"><h2 class="tpl-ex-h2-main">Interests</h2><p class="tpl-p">${esc(d.interests)}</p></section>
+          <section class="tpl-sec"><h2 class="tpl-ex-h2-main">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
         </div>
       </div>`;
     },
@@ -762,7 +769,7 @@
             <section class="tpl-st-card"><h2 class="tpl-st-h2">Languages</h2><ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
           </div>
           <section class="tpl-st-card"><h2 class="tpl-st-h2">Certifications</h2>${certificationsHtml(d)}</section>
-          <section class="tpl-st-card"><h2 class="tpl-st-h2">Interests</h2><p class="tpl-p">${esc(d.interests)}</p></section>
+          <section class="tpl-st-card"><h2 class="tpl-st-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
         </div>
       </div>`;
     },
@@ -788,7 +795,7 @@
             <section class="tpl-nv-panel"><h2 class="tpl-nv-h2">Skills</h2><div class="tpl-nv-pills">${skillsPillsHtml(d)}</div></section>
           </div>
           <section class="tpl-nv-panel"><h2 class="tpl-nv-h2">Certifications &amp; languages</h2>${certificationsHtml(d)}<ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
-          <section class="tpl-nv-panel"><h2 class="tpl-nv-h2">Interests</h2><p class="tpl-p">${esc(d.interests)}</p></section>
+          <section class="tpl-nv-panel"><h2 class="tpl-nv-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
         </div>
       </div>`;
     },
@@ -806,7 +813,7 @@
         <section class="tpl-lg-block"><h2 class="tpl-lg-h2"><span class="tpl-lg-hash">#</span> Skills</h2><ul class="tpl-lg-list">${skillsListHtml(d)}</ul></section>
         <section class="tpl-lg-block"><h2 class="tpl-lg-h2"><span class="tpl-lg-hash">#</span> Certifications</h2>${certificationsHtml(d)}</section>
         <section class="tpl-lg-block"><h2 class="tpl-lg-h2"><span class="tpl-lg-hash">#</span> Languages</h2><ul class="tpl-lg-list">${languagesHtml(d)}</ul></section>
-        <section class="tpl-lg-block"><h2 class="tpl-lg-h2"><span class="tpl-lg-hash">#</span> Interests</h2><p class="tpl-lg-p">${esc(d.interests)}</p></section>
+        <section class="tpl-lg-block"><h2 class="tpl-lg-h2"><span class="tpl-lg-hash">#</span> Interests</h2><p class="tpl-lg-p">${esc(interestsText(d))}</p></section>
       </div>`;
     },
 
@@ -823,7 +830,7 @@
         <section class="tpl-hz-sec"><div class="tpl-hz-bar"></div><h2 class="tpl-hz-h2">Skills</h2><ul class="tpl-bullets">${skillsListHtml(d)}</ul></section>
         <section class="tpl-hz-sec"><div class="tpl-hz-bar"></div><h2 class="tpl-hz-h2">Certifications</h2>${certificationsHtml(d)}</section>
         <section class="tpl-hz-sec"><div class="tpl-hz-bar"></div><h2 class="tpl-hz-h2">Languages</h2><ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
-        <section class="tpl-hz-sec"><div class="tpl-hz-bar"></div><h2 class="tpl-hz-h2">Interests</h2><p class="tpl-p">${esc(d.interests)}</p></section>
+        <section class="tpl-hz-sec"><div class="tpl-hz-bar"></div><h2 class="tpl-hz-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
       </div>`;
     },
 
@@ -841,7 +848,7 @@
         <section class="tpl-fo-sec"><span class="tpl-fo-num">02</span><div class="tpl-fo-content"><h2 class="tpl-fo-h2">Experience</h2>${experienceHtml(d, "tpl-job tpl-job--fo")}</div></section>
         <section class="tpl-fo-sec"><span class="tpl-fo-num">03</span><div class="tpl-fo-content"><h2 class="tpl-fo-h2">Education</h2>${educationHtml(d)}</div></section>
         <section class="tpl-fo-sec"><span class="tpl-fo-num">04</span><div class="tpl-fo-content"><h2 class="tpl-fo-h2">Skills</h2><p class="tpl-p">${(d.skills || []).map((s) => esc(s.name)).join(" · ")}</p></div></section>
-        <section class="tpl-fo-sec"><span class="tpl-fo-num">05</span><div class="tpl-fo-content"><h2 class="tpl-fo-h2">More</h2>${certificationsHtml(d)}<ul class="tpl-bullets">${languagesHtml(d)}</ul><p class="tpl-p">${esc(d.interests)}</p></div></section>
+        <section class="tpl-fo-sec"><span class="tpl-fo-num">05</span><div class="tpl-fo-content"><h2 class="tpl-fo-h2">More</h2>${certificationsHtml(d)}<ul class="tpl-bullets">${languagesHtml(d)}</ul><p class="tpl-p">${esc(interestsText(d))}</p></div></section>
       </div>`;
     },
 
@@ -863,7 +870,7 @@
           </div>
           <section class="tpl-sec"><h2 class="tpl-vx-h2">Certifications</h2>${certificationsHtml(d)}</section>
           <section class="tpl-sec"><h2 class="tpl-vx-h2">Languages</h2><ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
-          <section class="tpl-sec"><h2 class="tpl-vx-h2">Interests</h2><p class="tpl-p">${esc(d.interests)}</p></section>
+          <section class="tpl-sec"><h2 class="tpl-vx-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
         </div>
       </div>`;
     },
@@ -888,7 +895,7 @@
           </aside>
         </div>
         <section class="tpl-sec"><h2 class="tpl-ap-h2">Education</h2>${educationHtml(d)}</section>
-        <section class="tpl-sec"><h2 class="tpl-ap-h2">Interests</h2><p class="tpl-p">${esc(d.interests)}</p></section>
+        <section class="tpl-sec"><h2 class="tpl-ap-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
       </div>`;
     },
 
@@ -904,7 +911,7 @@
         <section class="tpl-sec"><h2 class="tpl-zc-h2">Education</h2>${educationHtml(d)}</section>
         <section class="tpl-sec"><h2 class="tpl-zc-h2">Skills</h2><div class="tpl-zc-pills">${skillsPillsHtml(d)}</div></section>
         <section class="tpl-sec"><h2 class="tpl-zc-h2">Certifications &amp; Languages</h2>${certificationsHtml(d)}<ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
-        <section class="tpl-sec"><h2 class="tpl-zc-h2">Interests</h2><p class="tpl-p">${esc(d.interests)}</p></section>
+        <section class="tpl-sec"><h2 class="tpl-zc-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
       </div>`;
     },
 
@@ -925,7 +932,7 @@
           <section class="tpl-sec tpl-gg-half"><h2 class="tpl-gg-h2">Skills</h2><ul class="tpl-bullets">${skillsListHtml(d)}</ul></section>
           <section class="tpl-sec tpl-gg-half"><h2 class="tpl-gg-h2">Languages</h2><ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
           <section class="tpl-sec tpl-gg-half"><h2 class="tpl-gg-h2">Certifications</h2>${certificationsHtml(d)}</section>
-          <section class="tpl-sec tpl-gg-main"><h2 class="tpl-gg-h2">Interests</h2><p class="tpl-p">${esc(d.interests)}</p></section>
+          <section class="tpl-sec tpl-gg-main"><h2 class="tpl-gg-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
         </div>
       </div>`;
     },
@@ -1078,7 +1085,7 @@
       </fieldset>
       <fieldset class="editor-fs">
         <legend>Interests</legend>
-        <label><textarea data-bind="interests" rows="3">${esc(d.interests)}</textarea></label>
+        <label><textarea data-bind="interests" rows="3">${esc(interestsText(d))}</textarea></label>
       </fieldset>
       <div class="editor-actions">
         <button type="button" class="btn-reset" id="btnResetUserData">${
@@ -1403,7 +1410,7 @@
     add((d.education || []).length >= 1, 10);
     add((d.certifications || []).length >= 1, 6);
     add((d.languages || []).length >= 1, 6);
-    add(d.interests && d.interests.trim(), 4);
+    add(interestsText(d), 4);
     add(d.photo && String(d.photo).trim(), 6);
     return Math.min(100, n);
   }

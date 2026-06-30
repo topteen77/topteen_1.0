@@ -1110,6 +1110,33 @@ article#resume.resume .resume__mount > .tpl {
   padding: 1.75rem 1.5rem 2rem;
 }
 
+/* Live preview: education & skills without extra left inset */
+.tpl-classic-sidebar .tpl-cs-side .tpl-bullets.tpl-bullets--tight {
+  padding-left: 1rem;
+  margin: 0 0 0.35rem;
+}
+
+.tpl-classic-sidebar .tpl-cs-main .tpl-edu-block {
+  margin-left: 0;
+  padding-left: 0;
+}
+
+.tpl-classic-sidebar .tpl-cs-main .tpl-edu-block .tpl-job-head,
+.tpl-classic-sidebar .tpl-cs-main .tpl-edu-block .tpl-job-sub {
+  margin-left: 0;
+  padding-left: 0;
+}
+
+.tpl-ch-row .tpl-sec--half .tpl-edu-block {
+  margin-left: 0;
+  padding-left: 0;
+}
+
+.tpl-ch-row .tpl-sec--half > .tpl-bullets {
+  padding-left: 1rem;
+  margin-left: 0;
+}
+
 /* 3 Colored header */
 .tpl-colored-header {
   display: flex;
@@ -1491,6 +1518,34 @@ article#resume.resume .resume__mount > .tpl {
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
   padding: 0 1.75rem;
+}
+
+.tpl-geo-split .tpl-sec {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.tpl-geometric .tpl-sec > .tpl-bullets,
+.tpl-geometric .tpl-sec > .tpl-edu-block,
+.tpl-geometric .tpl-sec > .tpl-p,
+.tpl-geometric .tpl-sec > .tpl-job,
+.tpl-geometric .tpl-sec > .tpl-cert {
+  margin-left: 0;
+}
+
+.tpl-geometric .tpl-sec > .tpl-bullets {
+  padding-left: 0;
+  list-style-position: inside;
+}
+
+.tpl-tl-two .tpl-sec > .tpl-bullets {
+  padding-left: 0;
+  list-style-position: inside;
+}
+
+.tpl-tl-two .tpl-sec > .tpl-edu-block {
+  margin-left: 0;
+  padding-left: 0;
 }
 
 /* 10 High contrast */

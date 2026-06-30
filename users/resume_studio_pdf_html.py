@@ -7,12 +7,25 @@ the template chosen in the studio (same tpl-* markup + styles.css).
 
 from __future__ import annotations
 
+import base64
 import html
+import logging
 import re
+import urllib.error
+import urllib.request
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Callable
 
 from users.resume_payload import STUDIO_PROTO_V1_KEY, _STUDIO_COLOR_HEX, _wizard_draft_dict
+
+logger = logging.getLogger(__name__)
+
+_GOOGLE_FONTS_UA = (
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/534.34 "
+    "(KHTML, like Gecko) wkhtmltopdf Safari/534.34"
+)
+_FONTS_FETCH_CACHE_VERSION = 2
 
 
 def _esc(s: Any) -> str:
@@ -983,9 +996,17 @@ def studio_proto_pack_from_resume(resume) -> dict | None:
 
 
 def studio_pack_font_stack(pack: dict) -> str:
-    raw = (pack.get("font") or "").strip()[:240] or '"Inter", system-ui, sans-serif'
+    from users.resume_payload import (
+        DEFAULT_STUDIO_EMBED_FONT,
+        _STUDIO_FONT_IDS,
+        studio_font_stack_from_id,
+    )
+
+    raw = (pack.get("font") or "").strip()[:240] or DEFAULT_STUDIO_EMBED_FONT
+    if raw.lower() in _STUDIO_FONT_IDS:
+        return studio_font_stack_from_id(raw)
     if not re.match(r'^[\w\s\-",.()+]+$', raw):
-        raw = '"Inter", system-ui, sans-serif'
+        return DEFAULT_STUDIO_EMBED_FONT
     return raw
 
 
@@ -1000,6 +1021,97 @@ def studio_pack_font_size_vars(pack: dict) -> tuple[str, float]:
     fid = (pack.get("fontSize") or "standard").strip().lower()
     body_size, font_scale = _STUDIO_FONT_SIZES.get(fid, _STUDIO_FONT_SIZES["standard"])
     return body_size, font_scale
+
+
+def studio_pack_effective_body_size(pack: dict) -> str:
+    """Body font size with font-scale baked in (wkhtmltopdf ignores CSS zoom)."""
+    body_size, font_scale = studio_pack_font_size_vars(pack)
+    m = re.match(r"([\d.]+)\s*pt", body_size.strip(), re.I)
+    pt = float(m.group(1)) if m else 11.5
+    return f"{pt * font_scale:.2f}pt"
+
+
+_FONT_GOOGLE_FAMILY_PARAMS: dict[str, str] = {
+    "Inter": "Inter:wght@400;600;700",
+    "Source Sans 3": "Source+Sans+3:wght@400;600;700",
+    "DM Sans": "DM+Sans:wght@400;600;700",
+    "Open Sans": "Open+Sans:wght@400;600;700",
+    "IBM Plex Sans": "IBM+Plex+Sans:wght@400;600;700",
+    "Lora": "Lora:wght@400;600;700",
+    "Merriweather": "Merriweather:wght@400;700",
+    "Crimson Pro": "Crimson+Pro:wght@400;600;700",
+    "Playfair Display": "Playfair+Display:wght@400;600;700",
+    "Outfit": "Outfit:wght@400;600;700",
+}
+
+
+@lru_cache(maxsize=64)
+def _fetch_google_fonts_css_text(href: str, _cache_v: int = _FONTS_FETCH_CACHE_VERSION) -> str:
+    """Fetch Google Fonts CSS (request TTF for wkhtmltopdf — it cannot load woff2)."""
+    del _cache_v
+    try:
+        req = urllib.request.Request(href, headers={"User-Agent": _GOOGLE_FONTS_UA})
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            return resp.read().decode("utf-8", errors="replace")
+    except (urllib.error.URLError, OSError, TimeoutError) as exc:
+        logger.warning("Google Fonts CSS fetch failed for %s: %s", href, exc)
+        return ""
+
+
+@lru_cache(maxsize=256)
+def _fetch_font_binary(url: str, _cache_v: int = _FONTS_FETCH_CACHE_VERSION) -> bytes:
+    del _cache_v
+    req = urllib.request.Request(url, headers={"User-Agent": _GOOGLE_FONTS_UA})
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        return resp.read()
+
+
+def _embed_gstatic_urls_as_data_uris(css: str) -> str:
+    """Rewrite gstatic font URLs as data URIs so wkhtmltopdf needs no network for fonts."""
+
+    def _repl(match: re.Match[str]) -> str:
+        url = match.group(1)
+        if not url.startswith("https://fonts.gstatic.com/"):
+            return match.group(0)
+        try:
+            raw = _fetch_font_binary(url)
+        except (urllib.error.URLError, OSError, TimeoutError) as exc:
+            logger.warning("Font file fetch failed %s: %s", url, exc)
+            return match.group(0)
+        lower = url.lower()
+        if lower.endswith(".woff2") or "woff2" in lower:
+            return match.group(0)
+        if lower.endswith(".woff"):
+            fmt = "font/woff"
+        else:
+            fmt = "font/ttf"
+        b64 = base64.b64encode(raw).decode("ascii")
+        return f"url(data:{fmt};base64,{b64})"
+
+    return re.sub(r"url\((https://fonts\.gstatic\.com/[^)]+)\)", _repl, css)
+
+
+def studio_pdf_embedded_fonts_css(pack: dict) -> str:
+    """@font-face CSS with embedded binaries — matches live preview fonts in wkhtmltopdf."""
+    href = studio_pdf_google_fonts_href(pack)
+    css = _fetch_google_fonts_css_text(href)
+    if not css.strip():
+        return ""
+    return _embed_gstatic_urls_as_data_uris(css)
+
+
+def studio_pdf_google_fonts_href(pack: dict) -> str:
+    """Google Fonts URL for fonts used by this resume (faster load in wkhtmltopdf)."""
+    stack = studio_pack_font_stack(pack)
+    families = re.findall(r'"([^"]+)"', stack)
+    params: list[str] = []
+    for fam in families:
+        spec = _FONT_GOOGLE_FAMILY_PARAMS.get(fam)
+        if spec:
+            params.append(f"family={spec}")
+    if not params:
+        params.append(f"family={_FONT_GOOGLE_FAMILY_PARAMS['Inter']}")
+    return "https://fonts.googleapis.com/css2?" + "&".join(params) + "&display=swap"
 
 
 STUDIO_GOOGLE_FONTS_HREF = (
@@ -1019,13 +1131,24 @@ STUDIO_GOOGLE_FONTS_HREF = (
 
 STUDIO_PDF_PAGE_CSS = """
 @page { size: A4 portrait; margin: 6mm; }
-html, body.tt-pdf-export {
+html.tt-pdf-export {
   margin: 0;
   padding: 0;
   width: 100%;
   max-width: 100%;
   background: #fff;
-  overflow: visible !important;
+  /* Scale rem-based headings (preview uses zoom on .resume__mount). */
+  font-size: calc(16px * var(--font-scale, 1));
+  font-family: var(--font-stack, "Inter", system-ui, sans-serif);
+}
+body.tt-pdf-export {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+  background: #fff;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
   font-family: var(--font-stack, "Inter", system-ui, sans-serif);
 }
 body.tt-pdf-export .pdf-wrap,
@@ -1044,12 +1167,17 @@ body.tt-pdf-export article#resume.resume .tpl {
 body.tt-pdf-export article#resume.resume {
   box-shadow: none !important;
   border-radius: 0 !important;
-}
-body.tt-pdf-export article#resume.resume,
-body.tt-pdf-export article#resume.resume * {
+  min-height: auto !important;
+  font-size: var(--pdf-body-size, var(--body-size, 11.5pt)) !important;
   font-family: var(--font-stack, "Inter", system-ui, sans-serif) !important;
 }
 body.tt-pdf-export article#resume.resume .resume__mount {
+  min-height: auto !important;
+  zoom: 1 !important;
+  transform: none !important;
+}
+/* Override prototype pdf-exporting rule that resets zoom (font scale is baked above). */
+body.tt-pdf-export .resume.pdf-exporting .resume__mount {
   zoom: 1 !important;
 }
 /* Undo responsive breakpoints — PDF page is narrower than 1100px */
@@ -1070,22 +1198,145 @@ body.tt-pdf-export .tpl-ms-grid {
   gap: 1rem !important;
   width: 100% !important;
 }
+/* wkhtmltopdf: float columns (grid/table on div/aside is unreliable) */
 body.tt-pdf-export .tpl-classic-sidebar {
-  display: grid !important;
-  grid-template-columns: 30% 1fr !important;
+  display: block !important;
   width: 100% !important;
+  overflow: hidden !important;
+}
+body.tt-pdf-export .tpl-classic-sidebar::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-side {
+  float: left !important;
+  width: 29% !important;
+  display: block !important;
+  box-sizing: border-box !important;
+  padding: 1.15rem 0.85rem !important;
+}
+body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-main {
+  margin-left: 29% !important;
+  display: block !important;
+  box-sizing: border-box !important;
+  padding: 1.15rem 1rem 1.35rem !important;
 }
 body.tt-pdf-export .tpl-professional-border {
-  display: grid !important;
-  grid-template-columns: 1fr 26% !important;
+  display: block !important;
   width: 100% !important;
+  overflow: hidden !important;
 }
-body.tt-pdf-export .tpl-tech-focus,
+body.tt-pdf-export .tpl-professional-border::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+body.tt-pdf-export .tpl-professional-border > .tpl-pb-main {
+  margin-right: 28% !important;
+  display: block !important;
+  box-sizing: border-box !important;
+}
+body.tt-pdf-export .tpl-professional-border > .tpl-pb-side {
+  float: right !important;
+  width: 28% !important;
+  display: block !important;
+  box-sizing: border-box !important;
+}
+body.tt-pdf-export article#resume.resume,
+body.tt-pdf-export article#resume.resume * {
+  font-family: var(--font-stack, "Inter", system-ui, sans-serif) !important;
+  font-synthesis: none;
+}
+body.tt-pdf-export .tpl-bullets,
+body.tt-pdf-export .tpl-bullets li,
+body.tt-pdf-export .tpl-job,
+body.tt-pdf-export .tpl-job strong,
+body.tt-pdf-export .tpl-p,
+body.tt-pdf-export .tpl-h2,
+body.tt-pdf-export .tpl-cs-name,
+body.tt-pdf-export .tpl-cs-contact,
+body.tt-pdf-export .tpl-cs-h3 {
+  font-family: var(--font-stack, "Inter", system-ui, sans-serif) !important;
+}
+body.tt-pdf-export .resume[data-template="elegant-serif"],
+body.tt-pdf-export .resume[data-template="ledger"] {
+  font-family: var(--font-stack, "Inter", system-ui, sans-serif) !important;
+}
 body.tt-pdf-export .tpl-hc-body,
 body.tt-pdf-export .tpl-geo-split {
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;
   width: 100% !important;
+}
+body.tt-pdf-export .tpl-tech-focus {
+  display: block !important;
+  width: 100% !important;
+  overflow: hidden !important;
+}
+body.tt-pdf-export .tpl-tech-focus::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-side {
+  float: left !important;
+  width: 26% !important;
+  display: block !important;
+  box-sizing: border-box !important;
+  padding: 1rem 0.75rem 1.5rem !important;
+}
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-main {
+  margin-left: 26% !important;
+  display: block !important;
+  box-sizing: border-box !important;
+}
+body.tt-pdf-export .tpl-executive {
+  display: block !important;
+  width: 100% !important;
+  overflow: hidden !important;
+  min-height: auto !important;
+}
+body.tt-pdf-export .tpl-executive::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+body.tt-pdf-export .tpl-executive .tpl-ex-side {
+  float: left !important;
+  width: 28% !important;
+  display: block !important;
+  box-sizing: border-box !important;
+  padding: 1.15rem 0.9rem 1.5rem !important;
+}
+body.tt-pdf-export .tpl-executive .tpl-ex-main {
+  margin-left: 28% !important;
+  display: block !important;
+  box-sizing: border-box !important;
+  padding: 0 1rem 1.5rem !important;
+}
+body.tt-pdf-export .tpl-mz-grid {
+  display: block !important;
+  width: 100% !important;
+  overflow: hidden !important;
+  min-height: auto !important;
+}
+body.tt-pdf-export .tpl-mz-grid::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+body.tt-pdf-export .tpl-mz-grid .tpl-mz-col {
+  float: left !important;
+  width: 58% !important;
+  box-sizing: border-box !important;
+  padding: 1.15rem 1rem 1.5rem !important;
+}
+body.tt-pdf-export .tpl-mz-grid .tpl-mz-aside {
+  float: right !important;
+  width: 42% !important;
+  box-sizing: border-box !important;
+  padding: 1.15rem 0.9rem 1.5rem !important;
 }
 body.tt-pdf-export .tpl-sec--half,
 body.tt-pdf-export .tpl-ch-body,
@@ -1133,7 +1384,8 @@ def studio_pdf_template_context(
 ) -> dict:
     """Shared context for studio PDF shell template (matches live preview theme)."""
     return {
-        "studio_google_fonts_href": STUDIO_GOOGLE_FONTS_HREF,
+        "studio_google_fonts_href": studio_pdf_google_fonts_href(pack),
+        "studio_embedded_fonts_css": studio_pdf_embedded_fonts_css(pack),
         "studio_resume_css_inline": studio_resume_pdf_stylesheet_text(),
         "studio_root_style": studio_pack_root_css_block(pack),
         "studio_pdf_page_css": STUDIO_PDF_PAGE_CSS,
@@ -1150,11 +1402,12 @@ def studio_pack_root_css_block(pack: dict) -> str:
     if align not in ("start", "center", "end", "justify"):
         align = "start"
     body_size, font_scale = studio_pack_font_size_vars(pack)
+    pdf_body_size = studio_pack_effective_body_size(pack)
     font_esc = html.escape(font, quote=True)
     return (
         f":root{{--accent:{accent};--accent-contrast:#ffffff;--accent-rgb:{r}, {g}, {b};"
         f'--font-stack:{font_esc};--resume-text-align:{align};'
-        f"--body-size:{body_size};--font-scale:{font_scale};}}"
+        f"--body-size:{body_size};--pdf-body-size:{pdf_body_size};--font-scale:{font_scale};}}"
     )
 
 

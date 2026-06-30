@@ -5,8 +5,10 @@
 
 {% block additionalhead %}
 {{ super() }}
-<link rel="stylesheet" href="{{ static('resume-builder-prototype/styles.css') }}?v=1">
-<link rel="stylesheet" href="{{ static('resume-builder-v2/styles.css') }}?v=24">
+<link rel="stylesheet" href="{{ static('resume-builder-prototype/styles.css') }}?v=2">
+<link rel="stylesheet" href="{{ static('resume-builder-v2/styles.css') }}?v=28">
+<link rel="stylesheet" href="{{ static('resume-builder-v2/messages.css') }}?v=3">
+<link rel="stylesheet" href="{{ static('resume-builder-v2/ai-review.css') }}?v=2">
 <style>
   body.rb2-studio-page {
     background: #f0f2f8;
@@ -49,24 +51,42 @@
         <h1 class="rb2-studio-topbar__title">
           <span class="rb2-studio-topbar__title-badge">{{ resume.title|default('My Resume') }}</span>
         </h1>
-        <p class="rb2-studio-topbar__sub" id="rb2ProgressLabel">{{ overall_completion }}% done · {{ strength.level }}</p>
+        <p class="rb2-studio-topbar__sub" id="rb2ProgressLabel">
+          {{ overall_completion }}% done · {{ strength.level }}
+          {% if goal_label %} · Goal: {{ goal_label }}{% endif %}
+        </p>
       </div>
     </div>
     <div class="rb2-studio-topbar__progress" aria-hidden="true">
       <div class="rb2-strength-bar"><div class="rb2-strength-bar__fill" id="rb2ProgressBar" style="width:{{ overall_completion }}%"></div></div>
     </div>
     <div class="rb2-studio-topbar__actions">
-      <a href="{{ url('users:resume_v2_dashboard') }}" class="rb2-btn rb2-btn--outline rb2-btn--sm rb2-topbar-exit" title="Back to my resumes">
-        <i class='bx bx-grid-alt'></i> <span class="rb2-topbar-exit__text">My resumes</span>
-      </a>
-      <a href="{{ url('users:userdashboard') }}" class="rb2-btn rb2-btn--outline rb2-btn--sm rb2-topbar-exit" title="Go to dashboard">
-        <i class='bx bx-home'></i> <span class="rb2-topbar-exit__text">Home</span>
-      </a>
+      <button type="button" class="rb2-btn rb2-btn--soft rb2-btn--sm" id="rb2GenerateResumeAI" title="Enhance entire resume with AI for your goal">
+        <svg class="rb2-ai-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M7.5 5.6 10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.9959.9959 0 0 0-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"></path></svg>
+        Generate with AI
+      </button>
       <a href="{{ pdf_url }}" class="rb2-btn rb2-btn--primary rb2-btn--sm" target="_blank" rel="noopener">
         <i class='bx bx-download'></i> Download PDF
       </a>
+      <a href="{{ preview_embed_url }}" class="rb2-btn rb2-btn--soft rb2-btn--sm" target="_blank" rel="noopener">
+        <i class='bx bx-show'></i> Preview
+      </a>
+      <a href="{{ url('users:resume_v2_dashboard') }}" class="rb2-btn rb2-btn--outline rb2-btn--sm rb2-topbar-exit" title="Back to my resumes">
+        <i class='bx bx-grid-alt'></i> <span class="rb2-topbar-exit__text">My resumes</span>
+      </a>
     </div>
   </header>
+
+  {% if has_ai_pending %}
+  <div class="rb2-ai-pending-banner" id="rb2AiPendingBanner" role="status">
+    <span class="rb2-ai-pending-banner__text">
+      <i class='bx bx-bot' aria-hidden="true"></i>
+      You have an AI draft ready to review.
+    </span>
+    <button type="button" class="rb2-btn rb2-btn--soft rb2-btn--sm" id="rb2ReviewAiDraft">Review draft</button>
+    <button type="button" class="rb2-ai-pending-banner__dismiss" id="rb2DismissAiBanner" aria-label="Dismiss">&times;</button>
+  </div>
+  {% endif %}
 
   <div class="rb2-studio-body">
     {# ——— Left: steps + tips ——— #}
@@ -119,7 +139,7 @@
       <div class="rb2-complete-sidebar {% if overall_completion >= 100 %}is-visible{% endif %}" id="rb2CompleteSidebar">
         <div class="rb2-complete-sidebar__icon"><i class='bx bx-party'></i></div>
         <h3 class="rb2-complete-sidebar__title">You're all set!</h3>
-        <p class="rb2-complete-sidebar__text">Your resume is ready. Download it or head back to your dashboard.</p>
+        <p class="rb2-complete-sidebar__text">Your resume is ready. Use the header actions to download or preview.</p>
       </div>
     </aside>
 
@@ -130,28 +150,13 @@
           <div class="rb2-complete-banner__badge"><i class='bx bx-check-circle'></i></div>
           <div>
             <h2 class="rb2-complete-banner__title">Resume complete — nice work!</h2>
-            <p class="rb2-complete-banner__sub">Download your PDF, preview the final version, or return to your dashboard when you're done.</p>
+            <p class="rb2-complete-banner__sub">Your resume is ready. Use the actions in the header to download your PDF or open a full preview.</p>
           </div>
-        </div>
-        <div class="rb2-complete-banner__actions">
-          <a href="{{ pdf_url }}" class="rb2-btn rb2-btn--primary" target="_blank" rel="noopener">
-            <i class='bx bx-download'></i> Download PDF
-          </a>
-          <a href="{{ preview_embed_url }}" class="rb2-btn rb2-btn--soft" target="_blank" rel="noopener">
-            <i class='bx bx-show'></i> Preview
-          </a>
-          <a href="{{ url('users:resume_v2_dashboard') }}" class="rb2-btn rb2-btn--outline">
-            <i class='bx bx-grid-alt'></i> My resumes
-          </a>
-          <a href="{{ url('users:userdashboard') }}" class="rb2-btn rb2-btn--ghost">
-            <i class='bx bx-home'></i> Home
-          </a>
         </div>
       </div>
       <div class="rb2-editor-section" data-section="personal">
         <div class="rb2-form-card">
           <h2 class="rb2-form-card__title">About you</h2>
-          <p class="rb2-form-card__hint">We pulled this from your TopTeen profile. Empty fields can be filled in here — we'll save them to your profile too.</p>
           <div class="rb2-photo-row">
             <div class="rb2-photo-preview" id="rb2PhotoPreview">
               {% if resume_photo_url %}
@@ -208,32 +213,31 @@
             </div>
             {% endif %}
           </div>
-          <button type="button" class="rb2-btn rb2-btn--primary" id="rb2SavePersonal">Save personal info</button>
         </div>
       </div>
 
       <div class="rb2-editor-section" data-section="education" style="display:none">
         <div class="rb2-form-card">
-          <h2 class="rb2-form-card__title">School &amp; class</h2>
-          <p class="rb2-form-card__hint">From your profile — empty fields can be filled here and saved to your account.</p>
+          <h2 class="rb2-form-card__title">Education</h2>
+          <p class="rb2-form-card__hint">Add each school or class separately — previous schools, current grade, or extra courses.</p>
           <div class="rb2-field-grid">
-            {% set pf = personal_fields %}
             <div class="rb2-field">
               <label>School name</label>
-              <input type="text" id="rb2EduSchool" value="{{ pf.school|default(profile_analysis.school|default('', true), true)|e }}"
-                {% if pf.can_edit_school %}placeholder="School name"{% else %}readonly{% endif %}
-                class="{% if not pf.can_edit_school %}rb2-field--readonly{% endif %}">
+              <input type="text" id="rb2EduSchool" placeholder="School name">
             </div>
             <div class="rb2-field">
               <label>Class / grade</label>
-              <input type="text" id="rb2EduGrade" value="{{ pf.grade|default(profile_analysis.grade|default('', true), true)|e }}"
-                {% if pf.can_edit_grade %}placeholder="e.g. Grade 12"{% else %}readonly{% endif %}
-                class="{% if not pf.can_edit_grade %}rb2-field--readonly{% endif %}">
+              <input type="text" id="rb2EduGrade" placeholder="e.g. Grade 12">
+            </div>
+            <div class="rb2-field">
+              <label>Dates <span class="text-muted fw-normal">(optional)</span></label>
+              <input type="text" id="rb2EduDates" placeholder="e.g. 2022 — Present">
             </div>
           </div>
-          {% if pf.can_edit_school or pf.can_edit_grade %}
-          <button type="button" class="rb2-btn rb2-btn--primary rb2-save-edu-btn" id="rb2SaveEducation">Save education</button>
-          {% endif %}
+          <div class="rb2-form-actions rb2-form-actions--spaced">
+            <button type="button" class="rb2-btn rb2-btn--primary" id="rb2AddEducation">Add</button>
+          </div>
+          <ul class="rb2-item-list" id="rb2EduList"></ul>
         </div>
       </div>
 
@@ -243,25 +247,12 @@
           <p class="rb2-form-card__hint">Type a skill — we'll suggest ideas as you go.</p>
           <div class="rb2-field">
             <label>Add a skill</label>
-            <div class="rb2-suggest-wrap">
-              <div class="rb2-input-row">
-                <input type="text" id="rb2SkillInput" class="rb2-suggest-input" placeholder="e.g. Teamwork, Python, Public speaking" autocomplete="off">
-                <button type="button" class="rb2-btn rb2-btn--primary" id="rb2AddSkill">Add</button>
-              </div>
-              <ul class="rb2-suggest-list" id="rb2SkillSuggest" hidden></ul>
+            <div class="rb2-input-row">
+              <input type="text" id="rb2SkillInput" placeholder="e.g. Teamwork, Python, Public speaking" autocomplete="off">
+              <button type="button" class="rb2-btn rb2-btn--primary" id="rb2AddSkill">Add</button>
             </div>
           </div>
           <ul class="rb2-chip-list" id="rb2SkillsList"></ul>
-          {% if missing_keywords %}
-          <div class="rb2-suggest-chips">
-            <span class="rb2-suggest-chips__label">Try adding:</span>
-            <div class="rb2-suggest-chips__row" id="rb2MissingKeywords">
-              {% for kw in missing_keywords %}
-              <button type="button" class="rb2-kw-chip" data-keyword="{{ kw }}">+ {{ kw }}</button>
-              {% endfor %}
-            </div>
-          </div>
-          {% endif %}
         </div>
       </div>
 
@@ -283,7 +274,9 @@
           </div>
           <div class="rb2-form-actions">
             <button type="button" class="rb2-ai-btn" id="rb2GenProjectDesc"><svg class="rb2-ai-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M7.5 5.6 10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.9959.9959 0 0 0-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"></path></svg> Help me write this</button>
-            <button type="button" class="rb2-btn rb2-btn--primary" id="rb2SaveProject">Save project</button>
+          </div>
+          <div class="rb2-form-actions rb2-form-actions--spaced">
+            <button type="button" class="rb2-btn rb2-btn--primary" id="rb2AddProject">Add</button>
           </div>
           <ul class="rb2-item-list" id="rb2ProjectsList"></ul>
         </div>
@@ -298,14 +291,16 @@
             <input type="text" id="rb2CertTitle" placeholder="e.g. Google Digital Garage">
           </div>
           <div class="rb2-field">
-            <label>Who gave it?</label>
-            <textarea id="rb2CertDesc" rows="2" placeholder="Organization or platform…"></textarea>
+            <label>Who gave it? <span class="rb2-required">*</span></label>
+            <textarea id="rb2CertDesc" rows="2" placeholder="Organization or platform…" required></textarea>
           </div>
           <div class="rb2-field rb2-field--narrow">
             <label>Date (optional)</label>
             <input type="date" id="rb2CertDate">
           </div>
-          <button type="button" class="rb2-btn rb2-btn--primary" id="rb2SaveCert">Save certificate</button>
+          <div class="rb2-form-actions rb2-form-actions--spaced">
+            <button type="button" class="rb2-btn rb2-btn--primary" id="rb2AddCertificate">Add</button>
+          </div>
           <ul class="rb2-item-list" id="rb2CertsList"></ul>
         </div>
       </div>
@@ -317,7 +312,6 @@
           <div id="rb2LanguagesList" class="rb2-lang-rows"></div>
           <div class="rb2-form-actions rb2-form-actions--spaced">
             <button type="button" class="rb2-btn rb2-btn--soft" id="rb2AddLanguage">+ Add language</button>
-            <button type="button" class="rb2-btn rb2-btn--primary" id="rb2SaveLanguages">Save languages</button>
           </div>
         </div>
       </div>
@@ -326,11 +320,20 @@
         <div class="rb2-form-card">
           <h2 class="rb2-form-card__title">Hobbies</h2>
           <p class="rb2-form-card__hint">Sports, clubs, creative activities — helps employers see your personality.</p>
+          {% if profile_hobbies %}
+          <div class="rb2-suggest-chips rb2-suggest-chips--hobbies">
+            <span class="rb2-suggest-chips__label">Pick from your profile:</span>
+            <div class="rb2-suggest-chips__row" id="rb2ProfileHobbies">
+              {% for hobby in profile_hobbies %}
+              <button type="button" class="rb2-kw-chip" data-hobby="{{ hobby|e }}">+ {{ hobby }}</button>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
           <div class="rb2-field">
             <label>Your hobbies</label>
             <textarea id="rb2HobbiesField" rows="4" placeholder="e.g. Cricket, reading, debate club, painting">{{ studio_hobbies|default('', true)|e }}</textarea>
           </div>
-          <button type="button" class="rb2-btn rb2-btn--primary" id="rb2SaveHobbies">Save hobbies</button>
         </div>
       </div>
 
@@ -346,7 +349,9 @@
             <label>Tell us more</label>
             <textarea id="rb2AchieveDesc" rows="4" placeholder="What happened? What was your role?"></textarea>
           </div>
-          <button type="button" class="rb2-btn rb2-btn--primary" id="rb2SaveAchieve">Save</button>
+          <div class="rb2-form-actions rb2-form-actions--spaced">
+            <button type="button" class="rb2-btn rb2-btn--primary" id="rb2AddAchievement">Add</button>
+          </div>
           <ul class="rb2-item-list" id="rb2AchieveList"></ul>
         </div>
       </div>
@@ -361,7 +366,6 @@
           <div class="rb2-form-actions">
             <button type="button" class="rb2-ai-btn" id="rb2GenSummary"><svg class="rb2-ai-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M7.5 5.6 10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.9959.9959 0 0 0-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"></path></svg> Write for me</button>
             <button type="button" class="rb2-ai-btn" id="rb2ImproveSummary"><svg class="rb2-ai-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M7.5 5.6 10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.9959.9959 0 0 0-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"></path></svg> Make it better</button>
-            <button type="button" class="rb2-btn rb2-btn--primary" id="rb2SaveSummary">Save</button>
           </div>
         </div>
       </div>
@@ -394,7 +398,6 @@
               <input type="date" id="rb2ExpEnd">
             </div>
           </div>
-          <button type="button" class="rb2-btn rb2-btn--primary" id="rb2SaveExp">Save</button>
           <ul class="rb2-item-list" id="rb2ExpList"></ul>
         </div>
       </div>
@@ -440,26 +443,13 @@
       <button type="button" class="rb2-btn rb2-btn--outline rb2-btn--sm" id="rb2NavBack" disabled>
         <i class='bx bx-chevron-left'></i> Back
       </button>
-      <span class="rb2-studio-nav__step" id="rb2NavStepLabel">Personal Info</span>
+      <span class="rb2-studio-nav__step" id="rb2NavStepLabel">About you</span>
       <button type="button" class="rb2-btn rb2-btn--primary rb2-btn--sm" id="rb2NavContinue">
-        Save &amp; Continue <i class='bx bx-chevron-right'></i>
+        Continue <i class='bx bx-chevron-right'></i>
       </button>
     </div>
   </nav>
 
-  <footer class="rb2-complete-sticky {% if overall_completion >= 100 %}is-visible{% endif %}" id="rb2CompleteSticky" aria-label="Resume complete actions">
-    <div class="rb2-complete-sticky__inner">
-      <span class="rb2-complete-sticky__label"><i class='bx bx-check-circle'></i> Resume complete</span>
-      <div class="rb2-complete-sticky__actions">
-        <a href="{{ pdf_url }}" class="rb2-btn rb2-btn--primary rb2-btn--sm" target="_blank" rel="noopener">
-          <i class='bx bx-download'></i> Download PDF
-        </a>
-        <a href="{{ preview_embed_url }}" class="rb2-btn rb2-btn--soft rb2-btn--sm" target="_blank" rel="noopener">Preview</a>
-        <a href="{{ url('users:resume_v2_dashboard') }}" class="rb2-btn rb2-btn--outline rb2-btn--sm">My resumes</a>
-        <a href="{{ url('users:userdashboard') }}" class="rb2-btn rb2-btn--outline rb2-btn--sm">Home</a>
-      </div>
-    </div>
-  </footer>
 </div>
 
 {# Theme + template modal #}
@@ -558,8 +548,9 @@ window.__RB2_STUDIO = {
   csrfToken: "{{ csrf_token }}",
   autofillUrl: {{ url('users:resume_v2_autofill', resume_id=resume.pk)|tojson }},
   aiUrl: {{ url('users:resume_v2_ai', resume_id=resume.pk)|tojson }},
-  suggestUrl: {{ url('users:resume_v2_suggest', resume_id=resume.pk)|tojson }},
+  aiReviewUrl: {{ url('users:resume_v2_ai_review', resume_id=resume.pk)|tojson }},
   goal: {{ goal|tojson }},
+  goalLabel: {{ goal_label|tojson }},
   editorPayload: {{ editor_payload|tojson_for_script }},
   selectedTemplateId: {{ selected_template_id|tojson }},
   prototypeKey: {{ prototype_key|tojson }},
@@ -573,7 +564,10 @@ window.__RB2_STUDIO = {
   sectionsList: {{ sections_list|tojson }},
   pdfUrl: {{ pdf_url|tojson }},
   previewUrl: {{ preview_embed_url|tojson }},
+  hasAiPending: {{ has_ai_pending|tojson }},
 };
 </script>
-<script src="{{ static('resume-builder-v2/studio.js') }}?v=23" defer></script>
+<script src="{{ static('resume-builder-v2/messages.js') }}?v=2"></script>
+<script src="{{ static('resume-builder-v2/ai-review-modal.js') }}?v=3"></script>
+<script src="{{ static('resume-builder-v2/studio.js') }}?v=43"></script>
 {% endblock %}

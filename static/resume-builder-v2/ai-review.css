@@ -1,0 +1,424 @@
+:root {
+  --rb2-primary: #5249df;
+  --rb2-bg: #f0f2f8;
+  --rb2-surface: #ffffff;
+  --rb2-border: #e5e9f2;
+  --rb2-heading: #1a1d2e;
+  --rb2-muted: #6b7280;
+  --rb2-success: #10b981;
+  --rb2-danger: #ef4444;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body.rb2-ai-review {
+  margin: 0;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--rb2-bg);
+  color: var(--rb2-heading);
+  display: flex;
+  flex-direction: column;
+}
+
+.rb2-ai-review__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #5249df 0%, #7c3aed 100%);
+  color: #fff;
+}
+
+.rb2-ai-review__title {
+  margin: 0 0 4px;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.rb2-ai-review__sub {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.92;
+}
+
+.rb2-ai-review__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 24px;
+  background: var(--rb2-surface);
+  border-bottom: 1px solid var(--rb2-border);
+}
+
+.rb2-ai-review__hint {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--rb2-muted);
+  max-width: 560px;
+}
+
+.rb2-ai-review__toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.rb2-ai-review__select-all {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.rb2-ai-review__main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  padding: 20px 24px 100px;
+}
+
+.rb2-ai-review__main.has-json {
+  grid-template-columns: 1fr 360px;
+}
+
+.rb2-ai-review__sections {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rb2-ai-review__card {
+  background: var(--rb2-surface);
+  border: 1px solid var(--rb2-border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+}
+
+.rb2-ai-review__card.is-changed {
+  border-color: rgba(82, 73, 223, 0.35);
+}
+
+.rb2-ai-review__card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #f8f9fc;
+  border-bottom: 1px solid var(--rb2-border);
+}
+
+.rb2-ai-review__card-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.rb2-ai-review__card-title {
+  font-size: 0.95rem;
+}
+
+.rb2-ai-review__badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(82, 73, 223, 0.12);
+  color: var(--rb2-primary);
+}
+
+.rb2-ai-review__badge--muted {
+  background: #eef0f5;
+  color: var(--rb2-muted);
+}
+
+.rb2-ai-review__cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+
+@media (max-width: 800px) {
+  .rb2-ai-review__cols {
+    grid-template-columns: 1fr;
+  }
+  .rb2-ai-review__main.has-json {
+    grid-template-columns: 1fr;
+  }
+}
+
+.rb2-ai-review__col {
+  padding: 14px 16px;
+  min-width: 0;
+}
+
+.rb2-ai-review__col--old {
+  border-right: 1px solid var(--rb2-border);
+  background: #fafbfd;
+}
+
+@media (max-width: 800px) {
+  .rb2-ai-review__col--old {
+    border-right: none;
+    border-bottom: 1px solid var(--rb2-border);
+  }
+}
+
+.rb2-ai-review__col-label {
+  margin: 0 0 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--rb2-muted);
+}
+
+.rb2-ai-review__col--new .rb2-ai-review__col-label {
+  color: var(--rb2-primary);
+}
+
+.rb2-ai-review__text {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.rb2-ai-review__json-panel {
+  position: sticky;
+  top: 12px;
+  align-self: start;
+  max-height: calc(100vh - 140px);
+  overflow: auto;
+  background: var(--rb2-surface);
+  border: 1px solid var(--rb2-border);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.rb2-ai-review__json-block h3 {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  color: var(--rb2-muted);
+}
+
+.rb2-ai-review__json {
+  margin: 0 0 16px;
+  padding: 10px;
+  background: #1e1e2e;
+  color: #cdd6f4;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  line-height: 1.45;
+  overflow: auto;
+  max-height: 280px;
+}
+
+.rb2-ai-review__footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 24px;
+  background: var(--rb2-surface);
+  border-top: 1px solid var(--rb2-border);
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.06);
+}
+
+.rb2-ai-review__footer-right {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.rb2-ai-review__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+
+.rb2-ai-review__btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.rb2-ai-review__btn--primary {
+  background: var(--rb2-primary);
+  color: #fff;
+}
+
+.rb2-ai-review__btn--soft {
+  background: rgba(82, 73, 223, 0.12);
+  color: var(--rb2-primary);
+}
+
+.rb2-ai-review__btn--ghost {
+  background: transparent;
+  color: var(--rb2-heading);
+  border: 1px solid var(--rb2-border);
+}
+
+.rb2-ai-review__header .rb2-ai-review__btn--ghost {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.45);
+}
+
+.rb2-ai-review__btn:not(:disabled):hover {
+  opacity: 0.9;
+}
+
+/* ——— In-studio popup modal ——— */
+body.rb2-ai-review-open {
+  overflow: hidden;
+}
+
+.rb2-ai-review-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.52);
+  backdrop-filter: blur(5px);
+  animation: rb2-ai-overlay-in 0.22s ease;
+}
+
+.rb2-ai-review-overlay[hidden] {
+  display: none !important;
+}
+
+@keyframes rb2-ai-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.rb2-ai-review-dialog {
+  width: min(1080px, 100%);
+  max-height: min(88vh, 860px);
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 28px 90px rgba(15, 23, 42, 0.28);
+  overflow: hidden;
+  animation: rb2-ai-dialog-in 0.26s ease;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--rb2-heading);
+}
+
+@keyframes rb2-ai-dialog-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.rb2-ai-review-dialog__header {
+  flex-shrink: 0;
+  padding: 16px 20px;
+}
+
+.rb2-ai-review-dialog__toolbar {
+  flex-shrink: 0;
+  padding: 10px 20px;
+}
+
+.rb2-ai-review-dialog__body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.rb2-ai-review-dialog .rb2-ai-review__main {
+  padding: 16px 20px;
+  min-height: 0;
+}
+
+.rb2-ai-review-dialog .rb2-ai-review__footer {
+  position: static;
+  flex-shrink: 0;
+  box-shadow: none;
+  border-top: 1px solid var(--rb2-border);
+  padding: 12px 20px;
+}
+
+.rb2-ai-review__close {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rb2-ai-review__close:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Standalone review page: centered popup on dim backdrop */
+body.rb2-ai-review--popup {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.52);
+  backdrop-filter: blur(5px);
+}
+
+body.rb2-ai-review--popup .rb2-ai-review-popup-wrap {
+  width: min(1080px, 100%);
+  max-height: min(88vh, 860px);
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 28px 90px rgba(15, 23, 42, 0.28);
+  overflow: hidden;
+}
+
+body.rb2-ai-review--popup .rb2-ai-review__main {
+  flex: 1;
+  overflow: auto;
+  padding-bottom: 0;
+}
+
+body.rb2-ai-review--popup .rb2-ai-review__footer {
+  position: static;
+  box-shadow: none;
+}

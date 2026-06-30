@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Resume Review | {{ resume.title|default('Resume')|e }}</title>
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ static('resume-builder-v2/ai-review.css') }}?v=2">
+  <link rel="stylesheet" href="{{ static('resume-builder-v2/messages.css') }}?v=3">
+  <style>body { margin: 0; background: rgba(15, 23, 42, 0.52); min-height: 100vh; }</style>
+</head>
+<body>
+  <script>
+  window.__RB2_AI_REVIEW = {
+    resumeId: {{ resume.pk }},
+    csrfToken: "{{ csrf_token }}",
+    aiUrl: {{ ai_url|tojson }},
+    studioUrl: {{ studio_url|tojson }},
+    resumeTitle: {{ (resume.title|default('My Resume'))|tojson }},
+    goalLabel: {{ goal_label|tojson }},
+    comparison: {{ comparison|tojson }},
+    original: {{ original|tojson }},
+    generated: {{ generated|tojson }},
+  };
+  </script>
+  <script src="{{ static('resume-builder-v2/messages.js') }}?v=2"></script>
+  <script src="{{ static('resume-builder-v2/ai-review-modal.js') }}?v=2"></script>
+  <script>
+  (function () {
+    var c = window.__RB2_AI_REVIEW || {};
+    if (!window.RB2AiReviewModal) return;
+    window.RB2AiReviewModal.open({
+      comparison: c.comparison,
+      original: c.original,
+      generated: c.generated,
+      goalLabel: c.goalLabel,
+      resumeTitle: c.resumeTitle,
+      aiUrl: c.aiUrl,
+      csrfToken: c.csrfToken,
+      resumeId: c.resumeId,
+      onApplied: function () {
+        window.location.href = c.studioUrl;
+      },
+      onClose: function () {
+        window.location.href = c.studioUrl;
+      },
+    });
+  })();
+  </script>
+</body>
+</html>

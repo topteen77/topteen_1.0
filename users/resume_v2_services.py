@@ -19,6 +19,22 @@ from .resume_payload import resume_editor_payload, resume_studio_prototype_paylo
 
 STUDIO_PROTO_V2_KEY = "studio_proto_v2"
 
+AI_RESUME_REVIEW_KEY = "ai_resume_review"
+
+# Studio section ids → keys in the AI draft JSON payload.
+AI_DRAFT_SECTION_KEYS = {
+    "personal": ("headline",),
+    "summary": ("summary",),
+    "skills": ("skills",),
+    "education": ("education",),
+    "projects": ("projects",),
+    "certificates": ("certificates",),
+    "achievements": ("achievements",),
+    "experience": ("experience",),
+    "languages": ("languages",),
+    "hobbies": ("hobbies",),
+}
+
 RESUME_GOALS = [
     {"id": "internship", "label": "Internship", "icon": "briefcase"},
     {"id": "scholarship", "label": "Scholarship", "icon": "award"},
@@ -84,7 +100,7 @@ EXPERIENCED_SECTIONS = [
 ]
 
 SECTION_LABELS = {
-    "personal": "Personal Info",
+    "personal": "About you",
     "education": "Education",
     "skills": "Skills",
     "projects": "Projects",
@@ -674,10 +690,8 @@ class ResumeV2Metrics:
             return (0, "missing")
         if section == "languages":
             n = len(payload.get("languages") or [])
-            if n >= 2:
-                return (100, "complete")
             if n >= 1:
-                return (70, "partial")
+                return (100, "complete")
             return (0, "missing")
         if section == "hobbies":
             ok = bool((payload.get("hobbies") or "").strip())
@@ -719,55 +733,32 @@ class ResumeV2Metrics:
 
 
 class ResumeSummaryGenerator:
-    """Generate or improve summary text (prototype: template-based; real AI via resume_guided_ai)."""
+    """Generate or improve summary text via OpenAI (template fallback when unavailable)."""
 
     @staticmethod
     def generate(user, resume, career_goal: str = "") -> str:
-        profile = UserProfile.objects.filter(user=user).first()
-        name = (user.name or "Student").strip()
-        grade = (getattr(profile, "grade", None) or "student").strip()
-        school = (getattr(profile, "schoolname", None) or "").strip()
-        skills = [s.title for s in UserResumeSkill.objects.filter(resume=resume)[:5] if s.title]
-        skill_text = ", ".join(skills[:3]) if skills else "technology and problem solving"
+        from .resume_v2_ai import ai_generate_summary
 
-        goal = career_goal or "future career opportunities"
-        parts = [
-            f"Motivated {grade} student",
-        ]
-        if school:
-            parts[0] += f" at {school}"
-        parts.append(f"with strong interests in {skill_text}")
-        parts.append(f"Seeking {goal.replace('_', ' ')}.")
-        return " ".join(parts) + f" {name} is eager to apply analytical skills and a growth mindset to meaningful projects."
+        text, _used_ai = ai_generate_summary(user, resume, career_goal=career_goal)
+        return text
 
     @staticmethod
-    def improve(text: str, mode: str = "professional") -> str:
-        t = (text or "").strip()
-        if not t:
-            return t
-        if mode == "ats":
-            return t + " Demonstrated leadership, teamwork, and results-driven problem solving."
-        if mode == "shorten":
-            sentences = re.split(r"(?<=[.!?])\s+", t)
-            return " ".join(sentences[:2]).strip()
-        if mode == "expand":
-            return t + " Committed to continuous learning and delivering measurable impact in collaborative environments."
-        return t[0].upper() + t[1:] if t else t
+    def improve(user, resume, text: str, mode: str = "professional") -> str:
+        from .resume_v2_ai import ai_improve_summary
+
+        improved, _used_ai = ai_improve_summary(user, resume, text, mode=mode)
+        return improved
 
 
 class ProjectDescriptionGenerator:
-    """Generate ATS-friendly bullet points for a project."""
+    """Generate ATS-friendly bullet points for a project via OpenAI."""
 
     @staticmethod
-    def generate(title: str, technologies: str = "") -> list:
-        title = (title or "Project").strip()
-        tech = (technologies or "relevant tools").strip()
-        return [
-            f"Designed and implemented {title} using {tech} to solve a real-world problem.",
-            f"Collaborated with peers to plan, build, and iterate on {title} within project deadlines.",
-            f"Applied problem-solving and analytical skills to optimize outcomes in {title}.",
-            f"Documented process and results, demonstrating clear communication and technical proficiency.",
-        ]
+    def generate(user, resume, title: str, technologies: str = "") -> list:
+        from .resume_v2_ai import ai_generate_project_bullets
+
+        bullets, _used_ai = ai_generate_project_bullets(user, resume, title, technologies)
+        return bullets
 
 
 def apply_profile_autofill(user, resume) -> dict:
@@ -916,6 +907,138 @@ def save_resume_hobbies(resume, text: str) -> str:
             description=hobbies[:2000],
         )
     return hobbies
+
+
+def _norm_education_entry(raw: dict | None) -> dict | None:
+    if not isinstance(raw, dict):
+        return None
+    school = (raw.get("school") or "").strip()[:250]
+    grade = (raw.get("grade") or "").strip()[:100]
+    if not school and not grade:
+        return None
+    entry_id = (raw.get("id") or "").strip() or None
+    return {
+        "id": entry_id or "",
+        "school": school,
+        "grade": grade,
+        "dates": (raw.get("dates") or "").strip()[:100],
+        "detail": (raw.get("detail") or "").strip()[:500],
+    }
+
+
+def ensure_resume_education_entries(resume, user) -> list[dict]:
+    """Load education rows from v2 meta; seed once from profile school/grade."""
+    import uuid
+
+    meta = get_v2_meta(resume)
+    if "education_entries" in meta:
+        out: list[dict] = []
+        for raw in meta.get("education_entries") or []:
+            entry = _norm_education_entry(raw)
+            if not entry:
+                continue
+            if not entry["id"]:
+                entry["id"] = f"edu-{uuid.uuid4().hex[:8]}"
+            out.append(entry)
+        if out != (meta.get("education_entries") or []):
+            save_v2_meta(resume, {"education_entries": out})
+        return out
+
+    personal = studio_personal_context(user, resume)
+    school = (personal.get("school") or "").strip()
+    grade = (personal.get("grade") or "").strip()
+    seeded: list[dict] = []
+    if school or grade:
+        seeded.append(
+            {
+                "id": f"edu-{uuid.uuid4().hex[:8]}",
+                "school": school,
+                "grade": grade,
+                "dates": "",
+                "detail": "",
+            }
+        )
+    save_v2_meta(resume, {"education_entries": seeded})
+    return seeded
+
+
+def add_resume_education_entry(
+    resume,
+    user,
+    *,
+    school: str,
+    grade: str,
+    dates: str = "",
+    detail: str = "",
+) -> list[dict]:
+    import uuid
+
+    ensure_resume_education_entries(resume, user)
+    entries = list(get_v2_meta(resume).get("education_entries") or [])
+    entries.append(
+        {
+            "id": f"edu-{uuid.uuid4().hex[:8]}",
+            "school": (school or "").strip()[:250],
+            "grade": (grade or "").strip()[:100],
+            "dates": (dates or "").strip()[:100],
+            "detail": (detail or "").strip()[:500],
+        }
+    )
+    save_v2_meta(resume, {"education_entries": entries})
+    return [_norm_education_entry(e) for e in entries if _norm_education_entry(e)]
+
+
+def delete_resume_education_entry(resume, user, entry_id: str) -> list[dict]:
+    ensure_resume_education_entries(resume, user)
+    entry_id = (entry_id or "").strip()
+    entries = [
+        e
+        for e in (get_v2_meta(resume).get("education_entries") or [])
+        if isinstance(e, dict) and (e.get("id") or "").strip() != entry_id
+    ]
+    save_v2_meta(resume, {"education_entries": entries})
+    return [_norm_education_entry(e) for e in entries if _norm_education_entry(e)]
+
+
+def update_resume_education_entry(
+    resume,
+    user,
+    entry_id: str,
+    *,
+    school: str,
+    grade: str,
+    dates: str = "",
+    detail: str = "",
+) -> list[dict] | None:
+    ensure_resume_education_entries(resume, user)
+    entry_id = (entry_id or "").strip()
+    if not entry_id:
+        return None
+    entries: list[dict] = []
+    found = False
+    for raw in get_v2_meta(resume).get("education_entries") or []:
+        if not isinstance(raw, dict):
+            continue
+        eid = (raw.get("id") or "").strip()
+        if eid == entry_id:
+            found = True
+            entries.append(
+                {
+                    "id": eid,
+                    "school": (school or "").strip()[:250],
+                    "grade": (grade or "").strip()[:100],
+                    "dates": (dates or "").strip()[:100],
+                    "detail": (detail or "").strip()[:500],
+                }
+            )
+        else:
+            entry = _norm_education_entry(raw)
+            if entry:
+                entries.append(entry)
+    if not found:
+        return None
+    save_v2_meta(resume, {"education_entries": entries})
+    return [_norm_education_entry(e) for e in entries if _norm_education_entry(e)]
 
 
 def sync_studio_proto_resume_from_db(resume, request=None) -> None:
@@ -1169,105 +1292,515 @@ def studio_ui_state(user, resume, request=None, sections_list=None) -> dict:
     }
 
 
-# Curated skill/keyword bank for autocomplete (Google-suggest style UX)
-STUDENT_KEYWORDS = [
-    "Teamwork", "Leadership", "Communication", "Problem Solving", "Public Speaking",
-    "Time Management", "Creativity", "Research", "Writing", "Presentation",
-    "Mathematics", "Science", "English", "Hindi", "Computer Science",
-    "Python", "JavaScript", "HTML", "CSS", "Microsoft Office", "Excel",
-    "Volunteering", "Community Service", "Debate", "Sports", "Music", "Art",
-    "Robotics", "Science Fair", "Coding", "Web Design", "Canva",
-    "Critical Thinking", "Adaptability", "Organization", "Collaboration",
+
+def resume_goal_label(goal_id: str) -> str:
+    gid = (goal_id or "").strip()
+    for row in RESUME_GOALS:
+        if row["id"] == gid:
+            return row["label"]
+    return gid.replace("_", " ").title() if gid else "General"
+
+
+def build_resume_sections_snapshot(resume, user, client_sections: dict | None = None) -> dict:
+    """Merge saved resume rows with optional unsaved studio form snapshot from the client."""
+    from .resume_payload import _is_resume_meta_activity_title
+
+    personal = studio_personal_context(user, resume)
+    payload = resume_editor_payload(resume)
+    meta = get_v2_meta(resume)
+
+    projects: list[dict] = []
+    achievements: list[dict] = []
+    for activity in payload.get("activities") or []:
+        title = (activity.get("title") or "").strip()
+        desc = (activity.get("description") or "").strip()
+        if not title:
+            continue
+        if desc.startswith("Technologies: "):
+            tech = ""
+            body = desc
+            nl = desc.find("\n")
+            if nl >= 0:
+                tech = desc[len("Technologies: ") : nl].strip()
+                body = desc[nl + 1 :].strip()
+            else:
+                tech = desc[len("Technologies: ") :].strip()
+                body = ""
+            projects.append({"title": title, "technologies": tech, "description": body})
+        else:
+            achievements.append({"title": title, "description": desc})
+
+    snapshot = {
+        "personal": {
+            "name": personal.get("name") or "",
+            "headline": (meta.get("headline") or "").strip(),
+            "phone": personal.get("phone") or "",
+            "school": personal.get("school") or "",
+            "email": personal.get("email") or "",
+            "grade": personal.get("grade") or "",
+        },
+        "summary": (resume.about or "").strip(),
+        "skills": [s.get("title") for s in (payload.get("skills") or []) if s.get("title")],
+        "education": payload.get("education") or [],
+        "projects": projects,
+        "certificates": [
+            {
+                "title": c.get("title") or "",
+                "issuer": c.get("description") or "",
+                "issue_date": c.get("issue_date") or "",
+            }
+            for c in (payload.get("certificates") or [])
+        ],
+        "achievements": achievements,
+        "experience": [
+            {
+                "role": e.get("role") or "",
+                "provider": e.get("provider") or "",
+                "description": e.get("description") or "",
+                "start_date": e.get("start_date") or "",
+                "end_date": e.get("end_date") or "",
+            }
+            for e in (payload.get("internships") or [])
+        ],
+        "languages": payload.get("languages") or [],
+        "hobbies": payload.get("hobbies") or "",
+    }
+
+    if isinstance(client_sections, dict):
+        for key, val in client_sections.items():
+            if isinstance(val, dict) and isinstance(snapshot.get(key), dict):
+                snapshot[key] = {**snapshot[key], **val}
+            else:
+                snapshot[key] = val
+    return snapshot
+
+
+def _parse_optional_date(val) -> object | None:
+    from datetime import datetime
+
+    s = (str(val) if val is not None else "").strip()
+    if not s:
+        return None
+    try:
+        return datetime.strptime(s[:10], "%Y-%m-%d").date()
+    except ValueError:
+        return None
+
+
+AI_RESUME_PENDING_KEY = "ai_resume_pending"
+
+AI_COMPARE_SECTIONS: list[tuple[str, str]] = [
+    ("headline", "Personal / Headline"),
+    ("summary", "Summary"),
+    ("skills", "Skills"),
+    ("education", "Education"),
+    ("projects", "Projects"),
+    ("certificates", "Certificates"),
+    ("achievements", "Achievements"),
+    ("experience", "Experience"),
+    ("languages", "Languages"),
+    ("hobbies", "Hobbies"),
 ]
 
-# Merge with technical keywords for suggestions
-COMMON_KEYWORDS = STUDENT_KEYWORDS + [
-    "Python", "JavaScript", "Java", "C++", "C#", "SQL", "HTML", "CSS", "React", "Node.js",
-    "Django", "Flask", "Git", "GitHub", "Linux", "AWS", "Azure", "Docker", "Kubernetes",
-    "Machine Learning", "Data Analysis", "Excel", "PowerPoint", "Public Speaking",
-    "Leadership", "Teamwork", "Communication", "Problem Solving", "Critical Thinking",
-    "Time Management", "Project Management", "Research", "Writing", "Presentation",
-    "Mathematics", "Physics", "Chemistry", "Biology", "Economics", "Statistics",
-    "Digital Marketing", "Graphic Design", "UI/UX Design", "Figma", "Photoshop",
-    "Volunteering", "Community Service", "Debate", "Model UN", "Robotics",
-    "Hackathon", "Olympiad", "Science Fair", "Coding", "Web Development",
-    "Mobile Development", "Android", "iOS", "Swift", "Kotlin", "TypeScript",
-    "MongoDB", "PostgreSQL", "MySQL", "Redis", "REST API", "Agile", "Scrum",
-    "Customer Service", "Sales", "Marketing", "Finance", "Accounting",
-    "Creative Thinking", "Adaptability", "Collaboration", "Analytical Skills",
-    "Attention to Detail", "Organizational Skills", "Interpersonal Skills",
-    "Conflict Resolution", "Decision Making", "Strategic Planning",
-    "TensorFlow", "PyTorch", "Pandas", "NumPy", "Tableau", "Power BI",
-    "Canva", "Microsoft Office", "Google Workspace", "Scratch", "Arduino",
-]
+
+def _empty_compare_label() -> str:
+    return "(empty)"
 
 
-class KeywordSuggestionService:
-    """Filter keyword suggestions as the user types (Google-suggest style)."""
+def _headline_compare_text(snap: dict, *, generated_shape: bool = False) -> str:
+    if generated_shape:
+        text = (snap.get("headline") or "").strip()
+    else:
+        personal = snap.get("personal") if isinstance(snap.get("personal"), dict) else {}
+        text = (personal.get("headline") or "").strip()
+    return text or _empty_compare_label()
 
-    @staticmethod
-    def _profile_keywords(user) -> list[str]:
-        out = []
-        profile = UserProfile.objects.filter(user=user).first()
-        if not profile:
-            return out
-        for subj in profile.subject.all()[:20]:
-            name = getattr(subj, "name", None) or str(subj)
-            if name.strip():
-                out.append(name.strip())
-        for hobby in profile.hobbies.all()[:20]:
-            name = getattr(hobby, "name", None) or str(hobby)
-            if name.strip():
-                out.append(name.strip())
-        return out
 
-    @classmethod
-    def _existing_skill_keys(cls, resume) -> set:
-        if not resume:
-            return set()
-        return {
-            (s.title or "").strip().lower()
-            for s in UserResumeSkill.objects.filter(resume=resume)
-        }
+def _summary_compare_text(snap: dict) -> str:
+    return (snap.get("summary") or "").strip() or _empty_compare_label()
 
-    @classmethod
-    def _keyword_pool(cls, user, resume) -> list[str]:
-        pool = list(COMMON_KEYWORDS)
-        pool.extend(cls._profile_keywords(user))
-        if resume:
-            payload = resume_studio_prototype_payload(resume)
-            ats = ATSScoringService.score(payload)
-            pool.extend(ats.get("missing_keywords") or [])
-        return pool
 
-    @classmethod
-    def suggest(cls, user, resume, query: str, limit: int = 8) -> list[dict]:
-        q = (query or "").strip().lower()
-        existing = cls._existing_skill_keys(resume)
-        pool = cls._keyword_pool(user, resume)
+def _skills_compare_text(snap: dict) -> str:
+    raw = snap.get("skills") or []
+    if not isinstance(raw, list):
+        return _empty_compare_label()
+    items = [str(s).strip() for s in raw if str(s).strip()]
+    return ", ".join(items) if items else _empty_compare_label()
 
-        seen = set()
-        results = []
-        for kw in pool:
-            label = kw.strip()
-            if not label:
-                continue
-            key = label.lower()
-            if key in seen:
-                continue
-            seen.add(key)
-            if q and q not in key:
-                continue
-            results.append({
+
+def _education_compare_text(snap: dict) -> str:
+    lines: list[str] = []
+    for ed in snap.get("education") or []:
+        if not isinstance(ed, dict):
+            continue
+        parts = [
+            (ed.get("school") or "").strip(),
+            (ed.get("grade") or "").strip(),
+            (ed.get("dates") or "").strip(),
+        ]
+        head = " — ".join(p for p in parts if p)
+        detail = (ed.get("detail") or "").strip()
+        if head and detail:
+            lines.append(f"{head}\n  {detail}")
+        elif head:
+            lines.append(head)
+        elif detail:
+            lines.append(detail)
+    return "\n".join(lines) if lines else _empty_compare_label()
+
+
+def _projects_compare_text(snap: dict) -> str:
+    lines: list[str] = []
+    for proj in snap.get("projects") or []:
+        if not isinstance(proj, dict):
+            continue
+        title = (proj.get("title") or "").strip()
+        if not title:
+            continue
+        tech = (proj.get("technologies") or "").strip()
+        desc = (proj.get("description") or "").strip()
+        block = title
+        if tech:
+            block += f" ({tech})"
+        if desc:
+            block += f"\n  {desc}"
+        lines.append(block)
+    return "\n\n".join(lines) if lines else _empty_compare_label()
+
+
+def _certificates_compare_text(snap: dict) -> str:
+    lines: list[str] = []
+    for cert in snap.get("certificates") or []:
+        if not isinstance(cert, dict):
+            continue
+        title = (cert.get("title") or "").strip()
+        if not title:
+            continue
+        issuer = (cert.get("issuer") or cert.get("description") or "").strip()
+        date = (cert.get("issue_date") or "").strip()
+        extra = " — ".join(x for x in [issuer, date] if x)
+        lines.append(f"{title}" + (f" ({extra})" if extra else ""))
+    return "\n".join(lines) if lines else _empty_compare_label()
+
+
+def _achievements_compare_text(snap: dict) -> str:
+    lines: list[str] = []
+    for ach in snap.get("achievements") or []:
+        if not isinstance(ach, dict):
+            continue
+        title = (ach.get("title") or "").strip()
+        if not title:
+            continue
+        desc = (ach.get("description") or "").strip()
+        lines.append(f"{title}" + (f"\n  {desc}" if desc else ""))
+    return "\n\n".join(lines) if lines else _empty_compare_label()
+
+
+def _experience_compare_text(snap: dict) -> str:
+    lines: list[str] = []
+    for exp in snap.get("experience") or []:
+        if not isinstance(exp, dict):
+            continue
+        role = (exp.get("role") or "").strip()
+        provider = (exp.get("provider") or "").strip()
+        if not role and not provider:
+            continue
+        head = " — ".join(x for x in [role, provider] if x)
+        dates = " — ".join(
+            x for x in [(exp.get("start_date") or "").strip(), (exp.get("end_date") or "").strip()] if x
+        )
+        if dates:
+            head += f" ({dates})"
+        desc = (exp.get("description") or "").strip()
+        lines.append(head + (f"\n  {desc}" if desc else ""))
+    return "\n\n".join(lines) if lines else _empty_compare_label()
+
+
+def _languages_compare_text(snap: dict) -> str:
+    lines: list[str] = []
+    for lg in snap.get("languages") or []:
+        if isinstance(lg, dict):
+            name = (lg.get("name") or "").strip()
+            level = (lg.get("level") or "").strip()
+            if name:
+                lines.append(f"{name}" + (f" ({level})" if level else ""))
+        elif str(lg).strip():
+            lines.append(str(lg).strip())
+    return ", ".join(lines) if lines else _empty_compare_label()
+
+
+def _hobbies_compare_text(snap: dict) -> str:
+    return (snap.get("hobbies") or "").strip() or _empty_compare_label()
+
+
+_COMPARE_FORMATTERS = {
+    "headline": lambda snap, gen=False: _headline_compare_text(snap, generated_shape=gen),
+    "summary": _summary_compare_text,
+    "skills": _skills_compare_text,
+    "education": _education_compare_text,
+    "projects": _projects_compare_text,
+    "certificates": _certificates_compare_text,
+    "achievements": _achievements_compare_text,
+    "experience": _experience_compare_text,
+    "languages": _languages_compare_text,
+    "hobbies": _hobbies_compare_text,
+}
+
+
+def build_ai_resume_comparison(original: dict, generated: dict) -> list[dict]:
+    """Section-wise old vs new text for the AI review popup."""
+    rows: list[dict] = []
+    for key, label in AI_COMPARE_SECTIONS:
+        fmt = _COMPARE_FORMATTERS[key]
+        old_text = fmt(original, False) if key == "headline" else fmt(original)
+        new_text = fmt(generated, True) if key == "headline" else fmt(generated)
+        rows.append(
+            {
+                "id": key,
                 "label": label,
-                "already_added": key in existing,
-                "source": "suggest",
-            })
-            if len(results) >= limit:
-                break
+                "old": old_text,
+                "new": new_text,
+                "changed": old_text != new_text,
+            }
+        )
+    return rows
 
-        if q:
-            results.sort(
-                key=lambda x: (0 if x["label"].lower().startswith(q) else 1, x["label"].lower())
+
+def save_ai_resume_pending(resume, original: dict, generated: dict, *, career_goal: str = "") -> None:
+    from django.utils import timezone
+
+    save_v2_meta(
+        resume,
+        {
+            AI_RESUME_PENDING_KEY: {
+                "original": original,
+                "generated": generated,
+                "created_at": timezone.now().isoformat(),
+                "goal": (career_goal or "").strip(),
+            }
+        },
+    )
+
+
+def get_ai_resume_pending(resume) -> dict | None:
+    pending = get_v2_meta(resume).get(AI_RESUME_PENDING_KEY)
+    if not isinstance(pending, dict):
+        return None
+    original = pending.get("original")
+    generated = pending.get("generated")
+    if not isinstance(original, dict) or not isinstance(generated, dict):
+        return None
+    return pending
+
+
+def clear_ai_resume_pending(resume) -> None:
+    meta = get_v2_meta(resume)
+    if AI_RESUME_PENDING_KEY not in meta:
+        return
+    meta = dict(meta)
+    meta.pop(AI_RESUME_PENDING_KEY, None)
+    wiz = _wizard_v2_dict(resume)
+    wiz[STUDIO_PROTO_V2_KEY] = meta
+    resume.wizard_draft_json = json.dumps(wiz, ensure_ascii=False, default=str)
+    resume.save(update_fields=["wizard_draft_json", "modified"])
+
+
+def _activity_is_project(activity) -> bool:
+    return ((activity.description or "").strip()).startswith("Technologies: ")
+
+
+def _delete_resume_project_activities(resume) -> None:
+    from .resume_payload import _is_resume_meta_activity_title
+
+    for activity in UserResumeActivity.objects.filter(resume=resume):
+        title = (activity.title or "").strip()
+        if _is_resume_meta_activity_title(title):
+            continue
+        if _activity_is_project(activity):
+            activity.delete(hard_delete=True)
+
+
+def _delete_resume_achievement_activities(resume) -> None:
+    from .resume_payload import _is_resume_meta_activity_title
+
+    for activity in UserResumeActivity.objects.filter(resume=resume):
+        title = (activity.title or "").strip()
+        if _is_resume_meta_activity_title(title):
+            continue
+        if not _activity_is_project(activity):
+            activity.delete(hard_delete=True)
+
+
+def apply_ai_generated_resume(
+    resume, user, data: dict, sections: list[str] | None = None
+) -> dict:
+    """Persist AI-generated resume JSON to DB and v2 meta. Returns fields applied for the UI."""
+    from .resume_payload import _is_resume_meta_activity_title
+    from .resume_profile_store import sync_headline_to_user_profile, sync_summary_to_user_profile
+
+    apply_all = sections is None
+    chosen = {s.strip() for s in (sections or []) if s and str(s).strip()}
+
+    def want(key: str) -> bool:
+        return apply_all or key in chosen
+
+    applied: dict = {}
+
+    if want("headline"):
+        headline = (data.get("headline") or "").strip()[:200]
+        if headline:
+            save_v2_meta(resume, {"headline": headline})
+            sync_headline_to_user_profile(user, headline)
+            applied["headline"] = headline
+
+    if want("summary"):
+        summary = (data.get("summary") or "").strip()[:5000]
+        if summary:
+            resume.about = summary
+            resume.save(update_fields=["about", "modified"])
+            sync_summary_to_user_profile(user, summary)
+            applied["summary"] = summary
+
+    if want("skills"):
+        skills = data.get("skills") or []
+        if isinstance(skills, list):
+            UserResumeSkill.objects.filter(resume=resume).delete()
+            for raw in skills[:30]:
+                title = (str(raw) if raw is not None else "").strip()[:250]
+                if title:
+                    UserResumeSkill.objects.create(resume=resume, title=title, profficiency=3)
+
+    if want("education"):
+        education = data.get("education") or []
+        if isinstance(education, list):
+            import uuid
+
+            entries = []
+            for ed in education[:20]:
+                if not isinstance(ed, dict):
+                    continue
+                school = (ed.get("school") or "").strip()[:250]
+                grade = (ed.get("grade") or "").strip()[:100]
+                if not school and not grade:
+                    continue
+                entries.append(
+                    {
+                        "id": f"edu-{uuid.uuid4().hex[:8]}",
+                        "school": school,
+                        "grade": grade,
+                        "dates": (ed.get("dates") or "").strip()[:100],
+                        "detail": (ed.get("detail") or "").strip()[:500],
+                    }
+                )
+            save_v2_meta(resume, {"education_entries": entries})
+
+    if want("certificates"):
+        UserResumeCertificate.objects.filter(resume=resume).delete()
+        for cert in (data.get("certificates") or [])[:20]:
+            if not isinstance(cert, dict):
+                continue
+            title = (cert.get("title") or "").strip()[:250]
+            issuer = (cert.get("issuer") or cert.get("description") or "").strip()[:2000]
+            if not title:
+                continue
+            UserResumeCertificate.objects.create(
+                resume=resume,
+                title=title,
+                description=issuer or "—",
+                issue_date=_parse_optional_date(cert.get("issue_date")),
             )
-        return results[:limit]
+
+    if want("projects") or want("achievements"):
+        if want("projects") and want("achievements"):
+            for activity in UserResumeActivity.objects.filter(resume=resume):
+                title = (activity.title or "").strip()
+                if _is_resume_meta_activity_title(title):
+                    continue
+                activity.delete(hard_delete=True)
+        elif want("projects"):
+            _delete_resume_project_activities(resume)
+        else:
+            _delete_resume_achievement_activities(resume)
+
+    if want("projects"):
+        for proj in (data.get("projects") or [])[:20]:
+            if not isinstance(proj, dict):
+                continue
+            title = (proj.get("title") or "").strip()[:250]
+            desc = (proj.get("description") or "").strip()[:2000]
+            tech = (proj.get("technologies") or "").strip()[:500]
+            if not title:
+                continue
+            full_desc = f"Technologies: {tech}\n{desc}" if tech else desc
+            UserResumeActivity.objects.create(resume=resume, title=title, description=full_desc[:2000])
+
+    if want("achievements"):
+        for ach in (data.get("achievements") or [])[:20]:
+            if not isinstance(ach, dict):
+                continue
+            title = (ach.get("title") or "").strip()[:250]
+            desc = (ach.get("description") or "").strip()[:2000]
+            if not title:
+                continue
+            UserResumeActivity.objects.create(resume=resume, title=title, description=desc)
+
+    if want("experience"):
+        UserResumeInternship.objects.filter(resume=resume).delete()
+        for exp in (data.get("experience") or [])[:20]:
+            if not isinstance(exp, dict):
+                continue
+            role = (exp.get("role") or "").strip()[:250]
+            provider = (exp.get("provider") or "").strip()[:250]
+            description = (exp.get("description") or "").strip()[:2000]
+            if not role and not provider:
+                continue
+            UserResumeInternship.objects.create(
+                resume=resume,
+                role=role or "Role",
+                provider=provider or "Employer",
+                description=description,
+                start_date=_parse_optional_date(exp.get("start_date")),
+                end_date=_parse_optional_date(exp.get("end_date")),
+            )
+
+    if want("languages"):
+        languages = data.get("languages") or []
+        if isinstance(languages, list):
+            save_resume_languages(resume, languages)
+
+    if want("hobbies"):
+        hobbies = data.get("hobbies")
+        if hobbies is not None:
+            applied["hobbies"] = save_resume_hobbies(resume, str(hobbies))
+
+    return applied
+
+
+class ResumeFullGenerator:
+    @staticmethod
+    def generate(
+        user, resume, sections_snapshot: dict, *, career_goal: str = "", apply: bool = False
+    ) -> tuple[dict, dict | None, list[dict], bool, str | None]:
+        """
+        Return (applied_fields, generated_json, comparison_rows, used_ai, error).
+        When apply=False (default), stores pending JSON for review instead of writing to DB.
+        """
+        from .resume_v2_ai import ai_generate_full_resume
+
+        goal_id = (career_goal or get_v2_meta(resume).get("goal") or "").strip()
+        parsed, used_ai, err = ai_generate_full_resume(
+            user,
+            resume,
+            sections_snapshot,
+            career_goal=goal_id,
+            goal_label=resume_goal_label(goal_id),
+        )
+        if not parsed:
+            return {}, None, [], False, err
+        comparison = build_ai_resume_comparison(sections_snapshot, parsed)
+        if apply:
+            applied = apply_ai_generated_resume(resume, user, parsed)
+            clear_ai_resume_pending(resume)
+            return applied, parsed, comparison, used_ai, None
+        save_ai_resume_pending(resume, sections_snapshot, parsed, career_goal=goal_id)
+        return {}, parsed, comparison, used_ai, None
