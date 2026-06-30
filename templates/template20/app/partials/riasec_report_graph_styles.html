@@ -1,0 +1,38 @@
+  .report-graph-page {
+    clear: both;
+    overflow: visible;
+    padding: 12px 0 20px;
+  }
+  .report-graph-block,
+  .graph {
+    width: 100%;
+    text-align: center;
+    clear: both;
+    overflow: visible;
+    margin: 16px auto;
+    padding: 0;
+  }
+  .report-graph-block img,
+  .graph img {
+    display: block;
+    width: 100%;
+    max-width: 480px;
+    height: auto;
+    margin: 0 auto;
+  }
+  .graph--intelligence img {
+    max-width: 440px;
+  }
+  @media print {
+    .report-graph-page {
+      page-break-before: always;
+      page-break-after: always;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .report-graph-block,
+    .graph {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+  }

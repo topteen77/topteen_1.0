@@ -1,0 +1,38 @@
+{% if top_category and top_category.summary %}
+{% set alignment = top_category.summary|parse_career_alignment %}
+{% if alignment %}
+<div class="riasec-career-alignment{% if dashboard_mode %} riasec-career-alignment--dashboard{% endif %}" style="width: 100%; clear: both; margin: 10px 0; text-align: left;">
+  <div class="test-title riasec-career-alignment-heading" style="color: #000; font-weight: 600; margin-top: 10px; margin-bottom: 8px; font-size: 16px; width: 100%; text-align: center;">
+    {{ career_alignment_heading }}
+  </div>
+  <div class="text-info-paragraph riasec-career-alignment-body" style="background: #E5F9FF; width: 100%; border-radius: 6px; clear: both; padding: 12px 14px; margin: 0; text-align: left;">
+    {% if alignment.types_heading %}
+    <p style="font-size: 14px; color: #494949; line-height: 1.65; margin: 0 0 10px; text-align: left;">
+      <strong style="color: #2720A7;">{{ alignment.types_heading }}:</strong>
+      {% if alignment.intro %} {{ alignment.intro }}{% endif %}
+    </p>
+    {% elif alignment.intro %}
+    <p style="font-size: 14px; color: #494949; line-height: 1.65; margin: 0 0 10px; text-align: left;">{{ alignment.intro }}</p>
+    {% endif %}
+
+    {% if alignment.characteristics %}
+    <p style="font-size: 14px; color: #494949; line-height: 1.65; margin: 0 0 6px; text-align: left;">
+      <strong style="color: #2720A7;">Characteristics:</strong>
+    </p>
+    <ul style="margin: 0 0 10px 18px; padding: 0; font-size: 14px; color: #494949; line-height: 1.55; text-align: left;">
+      {% for item in alignment.characteristics %}
+      <li style="margin-bottom: 4px;">{{ item }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if alignment.trait_name or alignment.trait_description %}
+    <p style="font-size: 14px; color: #494949; line-height: 1.65; margin: 0; text-align: left;">
+      <strong style="color: #2720A7;">Personality Trait{% if alignment.trait_name %} — {{ alignment.trait_name }}{% endif %}:</strong>
+      {% if alignment.trait_description %} {{ alignment.trait_description }}{% endif %}
+    </p>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+{% endif %}

@@ -632,6 +632,7 @@ def dashboard(request, student_id=None):
         personality_suggested_careers = []
         personality_suggested_career_groups = []
         personality_display_name = ''
+        stream_career_sections = get_stream_career_sections(top_category)
         try:
             if top_category:
                 personality_display_name = (
@@ -640,20 +641,14 @@ def dashboard(request, student_id=None):
                     or getattr(top_category, 'category', None)
                     or ''
                 )
-            for section in get_stream_career_sections(top_category):
-                careers = list(section.get('careers') or [])
-                if not careers:
-                    continue
-                personality_suggested_career_groups.append({
-                    'code': section.get('code', ''),
-                    'name': section.get('title') or section.get('code', 'Suggested stream'),
-                    'careers': careers,
-                })
+            from app.riasec_report_utils import get_personality_career_groups as _personality_career_groups
+            personality_suggested_career_groups = _personality_career_groups(top_category)
             if not personality_suggested_career_groups and courseName:
                 personality_suggested_career_groups.append({
                     'code': str(getattr(top_category, 'category', '') or 'P').upper()[:1],
                     'name': personality_display_name or 'Personality match',
                     'careers': sorted(courseName),
+                    'combined': False,
                 })
             personality_suggested_careers = [
                 c for g in personality_suggested_career_groups for c in g.get('careers', [])
@@ -662,6 +657,7 @@ def dashboard(request, student_id=None):
             personality_suggested_careers = []
             personality_suggested_career_groups = []
             personality_display_name = ''
+            stream_career_sections = get_stream_career_sections(top_category)
 
         # Interest / personality / aptitude careers use report catalog labels (no fuzzy remap).
         # Statistics for template20 dashboard (trophies, points, streak, level)
@@ -795,6 +791,7 @@ def dashboard(request, student_id=None):
             'personality_suggested_careers': personality_suggested_careers,
             'personality_suggested_career_groups': personality_suggested_career_groups,
             'personality_display_name': personality_display_name,
+            'stream_career_sections': stream_career_sections,
             'career_suggestions_preview_count': 2,
             'suitable_subject_combinations': suitable_subject_combinations,
             'stream_recommendation': stream_recommendation,
@@ -1370,23 +1367,16 @@ def class10_report_download_pdf(request, user_id=None):
                 'above_avg': above_avg
             }
         
-        # Ensure graph images exist before PDF (same as backup download_pdf: gernate_graph first)
-        from app.graph_media_utils import graph_image_basenames, graph_images_directory
-
-        graph_dir = graph_images_directory()
-        graph_basename_name = (getattr(target_user, 'name', None) or target_user.email)
-        graph_files = graph_image_basenames(graph_basename_name, target_user.id)
-        need_graphs = any(not os.path.exists(os.path.join(graph_dir, f)) for f in graph_files)
-        if need_graphs:
-            original_user = getattr(request, 'user', None)
-            try:
-                request.user = target_user
-                gernate_graph(request)
-            except Exception as e:
-                logger.warning("class10_report_download_pdf: could not generate graphs for user %s: %s", target_user.id, e)
-            finally:
-                if original_user is not None:
-                    request.user = original_user
+        # Refresh graph images before PDF so chart layout/margins stay current
+        original_user = getattr(request, 'user', None)
+        try:
+            request.user = target_user
+            gernate_graph(request)
+        except Exception as e:
+            logger.warning("class10_report_download_pdf: could not generate graphs for user %s: %s", target_user.id, e)
+        finally:
+            if original_user is not None:
+                request.user = original_user
         
         # Student info for first page (same as test1 report)
         student_name = getattr(target_user, 'name', None) or target_user.email
@@ -2553,7 +2543,7 @@ def gernate_graph(request):
                 values.append(sorted_result[category])
 
         # Define figure and axis
-        fig, ax = plt.subplots(figsize=(20, 10))
+        fig, ax = plt.subplots(figsize=(14, 7))
         
         # Colors for the bars (matching RIASEC order)
         colors = ['#53BAD8', '#D17DD6', '#67BA48', '#BBA63A', '#CC4230', '#5999D1']
@@ -2562,13 +2552,13 @@ def gernate_graph(request):
         bars = ax.bar(labels, values, color=colors)
         
         # Title and labels
-        plt.title('PERSONALITY ASSESSMENT', fontsize=25, fontweight='bold')
+        plt.title('PERSONALITY ASSESSMENT', fontsize=20, fontweight='bold')
         ax.set_xlabel('')
-        ax.set_ylabel('Score (%)', fontsize=25, fontweight='bold')
+        ax.set_ylabel('Score (%)', fontsize=18, fontweight='bold')
         
         # Setting ticks and labels size
-        ax.tick_params(axis='x', labelsize=20)
-        ax.tick_params(axis='y', labelsize=20)
+        ax.tick_params(axis='x', labelsize=14)
+        ax.tick_params(axis='y', labelsize=14)
         
         # Set y-axis limits and scale to 0-100 with intervals of 10
         ax.set_ylim(0, 105)
@@ -2585,12 +2575,13 @@ def gernate_graph(request):
             ax.annotate(f'{value}%', xy=(bar.get_x() + bar.get_width() / 2, value), 
                         xytext=(0, 3),  # 3 points vertical offset
                         textcoords="offset points", 
-                        ha='center', va='bottom', fontsize=15, fontweight='bold')
+                        ha='center', va='bottom', fontsize=12, fontweight='bold')
         
+        fig.subplots_adjust(bottom=0.24, top=0.88, left=0.08, right=0.98)
         # Save the image
         image_path = graph_image_path(user_name, user_ID, 'personality')
         graph_images.append(image_path)
-        plt.savefig(image_path, bbox_inches='tight')  # Save image with tight layout
+        plt.savefig(image_path, bbox_inches='tight', pad_inches=0.3, dpi=120)
         plt.close()
 
     try:
@@ -3360,22 +3351,15 @@ def test1_report_pdf(request, user_id=None):
                 'top_category': top_category
             }
         
-        # Generate graph only if it doesn't exist (optimization)
-        user_name = target_user.name if target_user.name else target_user.email
-        user_ID = target_user.id
-        graph_filename = f"{user_name}-{user_ID}_personality_Assessment.png"
-        graph_path = os.path.join(settings.MEDIA_ROOT, 'graph_images', graph_filename)
-        
-        if not os.path.exists(graph_path):
-            try:
-                # Temporarily set request.user for graph generation
-                original_user = request.user
-                request.user = target_user
-                gernate_graph(request)
-                request.user = original_user
-            except Exception as e:
-                logger.warning("Error generating graph: %s", e)
-                pass
+        # Generate graph images for PDF (always refresh so chart margins stay current)
+        try:
+            original_user = request.user
+            request.user = target_user
+            gernate_graph(request)
+            request.user = original_user
+        except Exception as e:
+            logger.warning("Error generating graph for PDF: %s", e)
+            pass
         
         # Get created_date and student_name
         created_date = test1_result.created if hasattr(test1_result, 'created') else target_user.created

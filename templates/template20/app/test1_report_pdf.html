@@ -143,6 +143,9 @@
     .cat-list ul li { list-style: none; padding: 0; margin: 0; }
     .chapterPage h1 { margin-top: 1cm; text-transform: uppercase; }
     .disclaimer-heading { width: 120px; text-align: center; margin-bottom: 13px; }
+    .personality-interpretation-page { page-break-after: auto; }
+    {% include 'template20/app/partials/riasec_report_graph_styles.html' %}
+    {% include 'template20/app/partials/riasec_career_alignment_styles.html' %}
   </style>
 </head>
 <body>
@@ -359,7 +362,7 @@
 
 
 
-  <div class="chapterPage">
+  <div class="chapterPage personality-interpretation-page">
     <div class="db-header" style="margin-top: 10px; text-align: center;">
       <h1 style="color: #3F37C9;">Interpretation & Recommendations</h1>
     </div>
@@ -383,18 +386,11 @@
     {% endfor %}
     {% endif %}
 
-    {% if top_category and top_category.summary %}
-    <div class="text-info-paragraph" style="background: #E5F9FF; width: 100%; border-radius:6px; float: left; padding:10px;">
-      <p style="font-size: 14px;">{{ top_category.summary }}</p>
-    </div>
-    {% endif %}
-    <br>
-    <div class="graph" style="width:100%; text-align: center; margin-top: 40px; float: left;">
-      <img style="width:550px;" src="{{ graph_image_media_url(user_name, user_ID, 'personality') }}" alt="graph" />
-    </div>
+    {% include 'template20/app/partials/riasec_career_alignment_block.html' %}
   </div>
 
-  <div class="chapterPage">
+  <div class="chapterPage report-graph-page">
+    {% include 'template20/app/partials/riasec_personality_graph_pdf.html' %}
     <div class="two-box">
       {% if streamsubject %}
       {% for stream, subject in streamsubject %}

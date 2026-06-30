@@ -2115,7 +2115,7 @@
                 </span>
                 <div>
                   <strong>{{ group.name }}</strong>
-                  <span>{% if group.code %}Suggested careers — {{ group.code }}{% else %}Roles matched to your personality profile{% endif %}</span>
+                  <span>{% if group.combined %}Career pathways aligned with your personality combination{% elif group.code %}Suggested careers — {{ group.code }}{% else %}Roles matched to your personality profile{% endif %}</span>
                 </div>
               </div>
               <div class="personality-career-chips career-chip-grid">
