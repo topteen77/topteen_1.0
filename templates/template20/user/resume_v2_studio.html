@@ -5,9 +5,9 @@
 
 {% block additionalhead %}
 {{ super() }}
-<link rel="stylesheet" href="{{ static('resume-builder-prototype/styles.css') }}?v=2">
-<link rel="stylesheet" href="{{ static('resume-builder-v2/styles.css') }}?v=28">
-<link rel="stylesheet" href="{{ static('resume-builder-v2/messages.css') }}?v=3">
+<link rel="stylesheet" href="{{ static('resume-builder-prototype/styles.css') }}?v=3">
+<link rel="stylesheet" href="{{ static('resume-builder-v2/styles.css') }}?v=31">
+<link rel="stylesheet" href="{{ static('resume-builder-v2/messages.css') }}?v=4">
 <link rel="stylesheet" href="{{ static('resume-builder-v2/ai-review.css') }}?v=2">
 <style>
   body.rb2-studio-page {
@@ -65,7 +65,7 @@
         <svg class="rb2-ai-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M7.5 5.6 10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.9959.9959 0 0 0-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"></path></svg>
         Generate with AI
       </button>
-      <a href="{{ pdf_url }}" class="rb2-btn rb2-btn--primary rb2-btn--sm" target="_blank" rel="noopener">
+      <a href="{{ pdf_url }}" class="rb2-btn rb2-btn--primary rb2-btn--sm" id="rb2DownloadPdf" target="_blank" rel="noopener">
         <i class='bx bx-download'></i> Download PDF
       </a>
       <a href="{{ preview_embed_url }}" class="rb2-btn rb2-btn--soft rb2-btn--sm" target="_blank" rel="noopener">
@@ -223,15 +223,50 @@
           <div class="rb2-field-grid">
             <div class="rb2-field">
               <label>School name</label>
-              <input type="text" id="rb2EduSchool" placeholder="School name">
+              <input type="text" id="rb2EduSchool" list="rb2EduSchoolSuggestions" placeholder="School name">
+              <datalist id="rb2EduSchoolSuggestions"></datalist>
             </div>
             <div class="rb2-field">
               <label>Class / grade</label>
               <input type="text" id="rb2EduGrade" placeholder="e.g. Grade 12">
             </div>
             <div class="rb2-field">
-              <label>Dates <span class="text-muted fw-normal">(optional)</span></label>
-              <input type="text" id="rb2EduDates" placeholder="e.g. 2022 — Present">
+              <label>Passing year</label>
+              <select id="rb2EduPassingYear">
+                <option value="">—</option>
+              </select>
+            </div>
+            <div class="rb2-field">
+              <label>Marks <span class="text-muted fw-normal">(optional)</span></label>
+              <select id="rb2EduResultType">
+                <option value="">—</option>
+                <option value="percentage">Percentage</option>
+                <option value="grade">Grade</option>
+              </select>
+            </div>
+            <div class="rb2-field rb2-edu-result-field" id="rb2EduPercentageWrap" hidden>
+              <label>Percentage</label>
+              <div class="rb2-input-suffix-wrap">
+                <input type="number" id="rb2EduPercentage" min="0" max="100" step="0.01" placeholder="e.g. 85.50">
+                <span class="rb2-input-suffix" aria-hidden="true">%</span>
+              </div>
+            </div>
+            <div class="rb2-field rb2-edu-result-field" id="rb2EduResultGradeWrap" hidden>
+              <label>Grade</label>
+              <select id="rb2EduResultGrade">
+                <option value="">—</option>
+                <option value="A+">A+</option>
+                <option value="A">A</option>
+                <option value="B+">B+</option>
+                <option value="B">B</option>
+                <option value="C+">C+</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+                <option value="Pass">Pass</option>
+                <option value="Distinction">Distinction</option>
+                <option value="First Division">First Division</option>
+                <option value="Second Division">Second Division</option>
+              </select>
             </div>
           </div>
           <div class="rb2-form-actions rb2-form-actions--spaced">
@@ -243,7 +278,7 @@
 
       <div class="rb2-editor-section" data-section="skills" style="display:none">
         <div class="rb2-form-card">
-          <h2 class="rb2-form-card__title">Your skills</h2>
+          <h2 class="rb2-form-card__title">Skills</h2>
           <p class="rb2-form-card__hint">Type a skill — we'll suggest ideas as you go.</p>
           <div class="rb2-field">
             <label>Add a skill</label>
@@ -272,10 +307,8 @@
             <label>What did you do?</label>
             <textarea id="rb2ProjectDesc" rows="4" placeholder="Describe what you built and what you learned…"></textarea>
           </div>
-          <div class="rb2-form-actions">
+          <div class="rb2-form-actions rb2-form-actions--toolbar">
             <button type="button" class="rb2-ai-btn" id="rb2GenProjectDesc"><svg class="rb2-ai-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M7.5 5.6 10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.9959.9959 0 0 0-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"></path></svg> Help me write this</button>
-          </div>
-          <div class="rb2-form-actions rb2-form-actions--spaced">
             <button type="button" class="rb2-btn rb2-btn--primary" id="rb2AddProject">Add</button>
           </div>
           <ul class="rb2-item-list" id="rb2ProjectsList"></ul>
@@ -339,7 +372,7 @@
 
       <div class="rb2-editor-section" data-section="achievements" style="display:none">
         <div class="rb2-form-card">
-          <h2 class="rb2-form-card__title">Achievements &amp; activities</h2>
+          <h2 class="rb2-form-card__title">Achievements &amp; Activities</h2>
           <p class="rb2-form-card__hint">Competitions, sports, clubs, volunteering — show what you do outside class.</p>
           <div class="rb2-field">
             <label>Title</label>
@@ -348,6 +381,10 @@
           <div class="rb2-field">
             <label>Tell us more</label>
             <textarea id="rb2AchieveDesc" rows="4" placeholder="What happened? What was your role?"></textarea>
+          </div>
+          <div class="rb2-form-actions rb2-form-actions--ai">
+            <button type="button" class="rb2-ai-btn" id="rb2GenAchieve"><svg class="rb2-ai-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M7.5 5.6 10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.9959.9959 0 0 0-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"></path></svg> Write for me</button>
+            <button type="button" class="rb2-ai-btn" id="rb2ImproveAchieve" hidden><svg class="rb2-ai-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M7.5 5.6 10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.9959.9959 0 0 0-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"></path></svg> Make it better</button>
           </div>
           <div class="rb2-form-actions rb2-form-actions--spaced">
             <button type="button" class="rb2-btn rb2-btn--primary" id="rb2AddAchievement">Add</button>
@@ -358,21 +395,21 @@
 
       <div class="rb2-editor-section" data-section="summary" style="display:none">
         <div class="rb2-form-card">
-          <h2 class="rb2-form-card__title">About me (summary)</h2>
+          <h2 class="rb2-form-card__title">Career Objective</h2>
           <p class="rb2-form-card__hint">A short intro at the top of your resume — who you are and what you're looking for.</p>
           <div class="rb2-field">
             <textarea id="rb2SummaryField" rows="6" placeholder="I'm a motivated student interested in…">{{ resume.about|default('', true)|e }}</textarea>
           </div>
-          <div class="rb2-form-actions">
+          <div class="rb2-form-actions rb2-form-actions--ai">
             <button type="button" class="rb2-ai-btn" id="rb2GenSummary"><svg class="rb2-ai-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M7.5 5.6 10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.9959.9959 0 0 0-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"></path></svg> Write for me</button>
-            <button type="button" class="rb2-ai-btn" id="rb2ImproveSummary"><svg class="rb2-ai-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M7.5 5.6 10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.9959.9959 0 0 0-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"></path></svg> Make it better</button>
+            <button type="button" class="rb2-ai-btn" id="rb2ImproveSummary" hidden><svg class="rb2-ai-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M7.5 5.6 10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.9959.9959 0 0 0-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"></path></svg> Make it better</button>
           </div>
         </div>
       </div>
 
       <div class="rb2-editor-section" data-section="experience" style="display:none">
         <div class="rb2-form-card">
-          <h2 class="rb2-form-card__title">Work experience</h2>
+          <h2 class="rb2-form-card__title">Work Experience</h2>
           <p class="rb2-form-card__hint">Internships, part-time jobs, or volunteer roles with set hours.</p>
           <div class="rb2-field-grid">
             <div class="rb2-field">
@@ -565,9 +602,12 @@ window.__RB2_STUDIO = {
   pdfUrl: {{ pdf_url|tojson }},
   previewUrl: {{ preview_embed_url|tojson }},
   hasAiPending: {{ has_ai_pending|tojson }},
+  prototypePayload: {{ prototype_payload|tojson_for_script }},
+  sectionMetrics: {{ section_metrics|tojson_for_script }},
+  profileSchool: {{ personal_fields.school|default('', true)|tojson }},
 };
 </script>
-<script src="{{ static('resume-builder-v2/messages.js') }}?v=2"></script>
+<script src="{{ static('resume-builder-v2/messages.js') }}?v=3"></script>
 <script src="{{ static('resume-builder-v2/ai-review-modal.js') }}?v=3"></script>
-<script src="{{ static('resume-builder-v2/studio.js') }}?v=44"></script>
+<script src="{{ static('resume-builder-v2/studio.js') }}?v=57"></script>
 {% endblock %}

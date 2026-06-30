@@ -43,10 +43,11 @@
       "  </div>" +
       "</div>" +
       '<div class="rb2-success-panel" id="rb2SuccessPanel" hidden>' +
-      '  <div class="rb2-success-panel__card">' +
+      '  <div class="rb2-success-panel__card" role="dialog" aria-modal="true" aria-labelledby="rb2SuccessTitle">' +
       '    <div class="rb2-success-panel__icon"><i class="bx bx-check"></i></div>' +
       '    <h2 class="rb2-success-panel__title" id="rb2SuccessTitle">Done</h2>' +
       '    <p class="rb2-success-panel__text" id="rb2SuccessText"></p>' +
+      '    <button type="button" class="rb2-success-panel__btn" id="rb2SuccessDismiss">Continue</button>' +
       "  </div>" +
       "</div>";
     document.body.appendChild(root);
@@ -116,6 +117,37 @@
   }
 
   var confirmResolver = null;
+  var successKeyHandler = null;
+  var successAutoTimer = null;
+
+  function ensureSuccessPanelActions() {
+    var panel = document.getElementById("rb2SuccessPanel");
+    if (!panel || panel.querySelector("#rb2SuccessDismiss")) return;
+    var card = panel.querySelector(".rb2-success-panel__card");
+    if (!card) return;
+    card.setAttribute("role", "dialog");
+    card.setAttribute("aria-modal", "true");
+    card.setAttribute("aria-labelledby", "rb2SuccessTitle");
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "rb2-success-panel__btn";
+    btn.id = "rb2SuccessDismiss";
+    btn.textContent = "Continue";
+    card.appendChild(btn);
+  }
+
+  function hideSuccess() {
+    var panel = document.getElementById("rb2SuccessPanel");
+    if (panel) panel.setAttribute("hidden", "");
+    if (successKeyHandler) {
+      document.removeEventListener("keydown", successKeyHandler);
+      successKeyHandler = null;
+    }
+    if (successAutoTimer) {
+      clearTimeout(successAutoTimer);
+      successAutoTimer = null;
+    }
+  }
 
   function confirm(opts) {
     ensureShell();
@@ -181,17 +213,44 @@
 
   function showSuccess(opts) {
     ensureShell();
+    ensureSuccessPanelActions();
     opts = opts || {};
     var panel = document.getElementById("rb2SuccessPanel");
     var titleEl = document.getElementById("rb2SuccessTitle");
     var textEl = document.getElementById("rb2SuccessText");
-    if (!panel) return;
+    var dismissBtn = document.getElementById("rb2SuccessDismiss");
+    if (!panel) return hideSuccess;
+
+    hideSuccess();
+
     if (titleEl) titleEl.textContent = opts.title || "Success";
     if (textEl) textEl.textContent = opts.message || "";
-    panel.removeAttribute("hidden");
-    return function hide() {
-      panel.setAttribute("hidden", "");
+    if (dismissBtn) {
+      dismissBtn.textContent = opts.dismissLabel || "Continue";
+      dismissBtn.onclick = function () {
+        if (typeof opts.onDismiss === "function") opts.onDismiss();
+        hideSuccess();
+      };
+    }
+
+    panel.onclick = function (e) {
+      if (e.target === panel) hideSuccess();
     };
+
+    successKeyHandler = function (e) {
+      if (e.key === "Escape") hideSuccess();
+    };
+    document.addEventListener("keydown", successKeyHandler);
+
+    var autoMs = opts.autoDismiss !== undefined ? opts.autoDismiss : 0;
+    if (autoMs > 0) {
+      successAutoTimer = setTimeout(hideSuccess, autoMs);
+    }
+
+    panel.removeAttribute("hidden");
+    if (dismissBtn) dismissBtn.focus();
+
+    return hideSuccess;
   }
 
   global.RB2Messages = {

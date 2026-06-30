@@ -236,6 +236,51 @@ def ai_improve_summary(
     return _template_improve(t, mode=mode), False
 
 
+def ai_generate_achievement_description(
+    user, resume: UserResume, title: str
+) -> Tuple[str, bool]:
+    ctx = _student_context(user, resume)
+    title = (title or "Achievement").strip()
+    prompt = (
+        "Write a short resume achievement description (2-4 sentences) for a student.\n"
+        f"Achievement: {title}\n"
+        f"Student: {ctx['name']}, {ctx['grade']} at {ctx['school'] or 'school'}\n"
+        "Highlight impact, role, and skills shown. Return ONLY the description text."
+    )
+    text, _err = _openai_chat(prompt, max_tokens=300)
+    if text:
+        return text.strip()[:2000], True
+    return (
+        f"Recognized for {title.lower()} with a strong commitment to excellence and teamwork.",
+        False,
+    )
+
+
+def ai_improve_achievement_description(
+    user, resume: UserResume, title: str, text: str, mode: str = "professional"
+) -> Tuple[str, bool]:
+    t = (text or "").strip()
+    if not t:
+        return "", False
+    ctx = _student_context(user, resume)
+    title = (title or "Achievement").strip()
+    mode_instr = (
+        "Make it concise, ATS-friendly, and achievement-focused with strong verbs."
+        if mode == "ats"
+        else "Make it clearer and more professional while keeping the student's voice."
+    )
+    prompt = (
+        f"Improve this student resume achievement description. {mode_instr}\n"
+        f"Achievement title: {title}\n"
+        f"Student: {ctx['name']}, {ctx['grade']} at {ctx['school'] or 'school'}\n\n"
+        f"Original:\n{t}\n\nReturn ONLY the improved description, no headings."
+    )
+    improved, _err = _openai_chat(prompt, max_tokens=300)
+    if improved:
+        return improved.strip()[:2000], True
+    return _template_improve(t, mode=mode), False
+
+
 def ai_generate_project_bullets(
     user, resume: UserResume, title: str, technologies: str = ""
 ) -> Tuple[list[str], bool]:

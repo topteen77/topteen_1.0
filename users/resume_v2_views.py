@@ -39,6 +39,7 @@ from .resume_v2_services import (
     STUDENT_SECTIONS,
     ProfileAutofillDetector,
     ProjectDescriptionGenerator,
+    AchievementDescriptionGenerator,
     ResumeProfileAnalyzer,
     ResumeSuggestionService,
     ResumeSummaryGenerator,
@@ -55,7 +56,9 @@ from .resume_v2_services import (
     clear_ai_resume_pending,
     get_ai_resume_pending,
     delete_resume_education_entry,
+    is_profile_education_entry,
     update_resume_education_entry,
+    validate_education_entry_payload,
     filter_missing_keywords,
     get_v2_meta,
     resume_card_context,
@@ -77,12 +80,16 @@ from .resume_v2_services import (
 from .resume_profile_store import (
     apply_profile_autofill,
     bootstrap_user_resume_from_profile,
-    sync_activity_to_user_profile,
-    sync_certificate_to_user_profile,
-    sync_headline_to_user_profile,
-    sync_personal_fields_to_user_profile,
-    sync_skill_to_user_profile,
-    sync_summary_to_user_profile,
+)
+from .resume_profile_sync import (
+    apply_profile_sync_offer,
+    offer_activity_profile_sync,
+    offer_certificate_profile_sync,
+    offer_education_profile_sync,
+    offer_headline_profile_sync,
+    offer_personal_profile_sync,
+    offer_skills_profile_sync,
+    offer_summary_profile_sync,
 )
 from .views import (
     RESUME_TITLE_MAX_LEN,
@@ -292,6 +299,7 @@ class ResumeV2StudioView(TemplateView):
                 "ai_suggestions": suggestions,
                 "profile_analysis": analysis,
                 "resume_payload_json": json.dumps(payload, ensure_ascii=False, default=str),
+                "prototype_payload": payload,
                 "v2_meta_json": json.dumps(meta, ensure_ascii=False, default=str),
                 "prototype_key": prototype_key,
                 "template_id": tpl["id"],
@@ -307,7 +315,7 @@ class ResumeV2StudioView(TemplateView):
                 )
                 + "?mode=preview&template="
                 + prototype_key,
-                "pdf_url": reverse("users:resumepdf") + f"?resume_id={resume.pk}",
+                "pdf_url": reverse("users:resumepdf") + f"?resume_id={resume.pk}&inline=1",
                 "editor_payload": resume_editor_payload(resume),
                 "v2_templates": catalog,
                 "template_count": len(catalog),
@@ -367,6 +375,12 @@ class ResumeV2AIView(View):
             return JsonResponse({"error": "Invalid JSON"}, status=400)
 
         action = (body.get("action") or "").strip()
+        if action == "sync_to_profile":
+            offer = body.get("offer")
+            if not isinstance(offer, dict) or not offer.get("kind"):
+                return JsonResponse({"error": "Invalid profile sync request"}, status=400)
+            apply_profile_sync_offer(request.user, offer)
+            return _mutate_studio(request, resume, {"profile_synced": True})
         if action == "generate_summary":
             text = ResumeSummaryGenerator.generate(
                 request.user, resume, career_goal=body.get("career_goal") or get_v2_meta(resume).get("goal", "")
@@ -378,6 +392,22 @@ class ResumeV2AIView(View):
                 resume,
                 body.get("text") or resume.about or "",
                 body.get("mode") or "professional",
+            )
+            return JsonResponse({"text": text})
+        if action == "improve_achievement":
+            text = AchievementDescriptionGenerator.improve(
+                request.user,
+                resume,
+                body.get("title") or "",
+                body.get("text") or "",
+                body.get("mode") or "professional",
+            )
+            return JsonResponse({"text": text})
+        if action == "generate_achievement":
+            text = AchievementDescriptionGenerator.generate(
+                request.user,
+                resume,
+                body.get("title") or "",
             )
             return JsonResponse({"text": text})
         if action == "generate_project":
@@ -401,8 +431,10 @@ class ResumeV2AIView(View):
                 description=desc,
                 issue_date=body.get("issue_date") or None,
             )
-            sync_certificate_to_user_profile(request.user, title, desc)
-            return _mutate_studio(request, resume)
+            offer = offer_certificate_profile_sync(request.user, title, desc)
+            return _mutate_studio(
+                request, resume, {"profile_sync_offer": offer} if offer else None
+            )
         if action == "update_certificate":
             item_id = body.get("item_id")
             title = (body.get("title") or "").strip()[:250]
@@ -420,8 +452,10 @@ class ResumeV2AIView(View):
             cert.description = desc
             cert.issue_date = body.get("issue_date") or None
             cert.save(update_fields=["title", "description", "issue_date", "modified"])
-            sync_certificate_to_user_profile(request.user, title, desc)
-            return _mutate_studio(request, resume)
+            offer = offer_certificate_profile_sync(request.user, title, desc)
+            return _mutate_studio(
+                request, resume, {"profile_sync_offer": offer} if offer else None
+            )
         if action == "add_education":
             school = (body.get("school") or "").strip()[:250]
             grade = (body.get("grade") or "").strip()[:100]
@@ -429,6 +463,17 @@ class ResumeV2AIView(View):
                 return JsonResponse({"error": "School name is required"}, status=400)
             if not grade:
                 return JsonResponse({"error": "Class or grade is required"}, status=400)
+            edu_err = validate_education_entry_payload(
+                resume,
+                request.user,
+                school=school,
+                grade=grade,
+                passing_year=(body.get("passing_year") or "").strip(),
+                result_type=(body.get("result_type") or "").strip(),
+                result_value=(body.get("result_value") or "").strip(),
+            )
+            if edu_err:
+                return JsonResponse({"error": edu_err}, status=400)
             add_resume_education_entry(
                 resume,
                 request.user,
@@ -436,6 +481,9 @@ class ResumeV2AIView(View):
                 grade=grade,
                 dates=(body.get("dates") or "").strip(),
                 detail=(body.get("detail") or "").strip(),
+                passing_year=(body.get("passing_year") or "").strip(),
+                result_type=(body.get("result_type") or "").strip(),
+                result_value=(body.get("result_value") or "").strip(),
             )
             return _mutate_studio(request, resume)
         if action == "update_education":
@@ -448,6 +496,18 @@ class ResumeV2AIView(View):
                 return JsonResponse({"error": "School name is required"}, status=400)
             if not grade:
                 return JsonResponse({"error": "Class or grade is required"}, status=400)
+            edu_err = validate_education_entry_payload(
+                resume,
+                request.user,
+                school=school,
+                grade=grade,
+                passing_year=(body.get("passing_year") or "").strip(),
+                result_type=(body.get("result_type") or "").strip(),
+                result_value=(body.get("result_value") or "").strip(),
+                entry_id=entry_id,
+            )
+            if edu_err:
+                return JsonResponse({"error": edu_err}, status=400)
             updated = update_resume_education_entry(
                 resume,
                 request.user,
@@ -456,21 +516,35 @@ class ResumeV2AIView(View):
                 grade=grade,
                 dates=(body.get("dates") or "").strip(),
                 detail=(body.get("detail") or "").strip(),
+                passing_year=(body.get("passing_year") or "").strip(),
+                result_type=(body.get("result_type") or "").strip(),
+                result_value=(body.get("result_value") or "").strip(),
             )
             if updated is None:
                 return JsonResponse({"error": "Education entry not found"}, status=404)
-            return _mutate_studio(request, resume)
+            offer = None
+            if is_profile_education_entry(resume, request.user, entry_id):
+                offer = offer_education_profile_sync(
+                    request.user, school=school, grade=grade
+                )
+            return _mutate_studio(
+                request, resume, {"profile_sync_offer": offer} if offer else None
+            )
         if action == "save_summary":
             summary = (body.get("text") or "").strip()[:5000]
             resume.about = summary
             resume.save(update_fields=["about", "modified"])
-            sync_summary_to_user_profile(request.user, summary)
-            return _mutate_studio(request, resume)
+            offer = offer_summary_profile_sync(request.user, summary)
+            return _mutate_studio(
+                request, resume, {"profile_sync_offer": offer} if offer else None
+            )
         if action == "save_headline":
             headline = (body.get("headline") or "").strip()[:200]
             save_v2_meta(resume, {"headline": headline})
-            sync_headline_to_user_profile(request.user, headline)
-            return _mutate_studio(request, resume)
+            offer = offer_headline_profile_sync(request.user, headline)
+            return _mutate_studio(
+                request, resume, {"profile_sync_offer": offer} if offer else None
+            )
         if action == "save_personal":
             personal_ctx = studio_personal_context(request.user, resume)
             headline = (body.get("headline") or "").strip()[:200]
@@ -488,11 +562,11 @@ class ResumeV2AIView(View):
                 sync_kwargs["grade"] = (body.get("grade") or "").strip()[:100]
 
             if sync_kwargs:
-                sync_personal_fields_to_user_profile(request.user, **sync_kwargs)
                 for key, val in sync_kwargs.items():
                     if val:
                         personal_patch[key] = val
 
+            offer = offer_personal_profile_sync(request.user, resume, body)
             save_v2_meta(
                 resume,
                 {
@@ -500,15 +574,16 @@ class ResumeV2AIView(View):
                     "personal": personal_patch,
                 },
             )
-            if headline:
-                sync_headline_to_user_profile(request.user, headline)
-            return _mutate_studio(request, resume)
+            return _mutate_studio(
+                request, resume, {"profile_sync_offer": offer} if offer else None
+            )
         if action == "add_skill":
             title = (body.get("title") or "").strip()
             add_skills_to_resume(resume, title)
-            for part in title.replace(";", ",").split(","):
-                sync_skill_to_user_profile(request.user, part.strip())
-            return _mutate_studio(request, resume)
+            offer = offer_skills_profile_sync(request.user, title)
+            return _mutate_studio(
+                request, resume, {"profile_sync_offer": offer} if offer else None
+            )
         if action == "add_activity":
             title = (body.get("title") or "").strip()[:250]
             desc = (body.get("description") or "").strip()[:2000]
@@ -517,8 +592,10 @@ class ResumeV2AIView(View):
             if not desc:
                 return JsonResponse({"error": "Description is required"}, status=400)
             UserResumeActivity.objects.create(resume=resume, title=title, description=desc)
-            sync_activity_to_user_profile(request.user, title, desc)
-            return _mutate_studio(request, resume)
+            offer = offer_activity_profile_sync(request.user, title, desc)
+            return _mutate_studio(
+                request, resume, {"profile_sync_offer": offer} if offer else None
+            )
         if action == "update_activity":
             item_id = body.get("item_id")
             title = (body.get("title") or "").strip()[:250]
@@ -534,8 +611,10 @@ class ResumeV2AIView(View):
             ).update(title=title, description=desc)
             if not updated:
                 return JsonResponse({"error": "Project not found"}, status=404)
-            sync_activity_to_user_profile(request.user, title, desc)
-            return _mutate_studio(request, resume)
+            offer = offer_activity_profile_sync(request.user, title, desc)
+            return _mutate_studio(
+                request, resume, {"profile_sync_offer": offer} if offer else None
+            )
         if action == "add_internship":
             role = (body.get("role") or "").strip()[:250]
             provider = (body.get("provider") or "").strip()[:250]
@@ -565,7 +644,11 @@ class ResumeV2AIView(View):
             item_type = (body.get("item_type") or "").strip()
             item_id = body.get("item_id")
             if item_type == "education" and item_id:
-                delete_resume_education_entry(resume, request.user, str(item_id))
+                _, err = delete_resume_education_entry(
+                    resume, request.user, str(item_id)
+                )
+                if err:
+                    return JsonResponse({"error": err}, status=400)
                 return _mutate_studio(request, resume)
             model_map = {
                 "skill": UserResumeSkill,
@@ -619,11 +702,19 @@ class ResumeV2AIView(View):
                 return JsonResponse({"error": "Select at least one section to apply."}, status=400)
             applied = apply_ai_generated_resume(resume, request.user, generated, sections=sections)
             clear_ai_resume_pending(resume)
-            return _mutate_studio(
-                request,
-                resume,
-                {"applied_fields": applied, "ai_applied": True},
-            )
+            sync_offers = []
+            if applied.get("headline"):
+                offer = offer_headline_profile_sync(request.user, applied["headline"])
+                if offer:
+                    sync_offers.append(offer)
+            if applied.get("summary"):
+                offer = offer_summary_profile_sync(request.user, applied["summary"])
+                if offer:
+                    sync_offers.append(offer)
+            extra = {"applied_fields": applied, "ai_applied": True}
+            if sync_offers:
+                extra["profile_sync_offers"] = sync_offers
+            return _mutate_studio(request, resume, extra)
         if action == "discard_ai_resume":
             clear_ai_resume_pending(resume)
             return JsonResponse({"success": True, "discarded": True})

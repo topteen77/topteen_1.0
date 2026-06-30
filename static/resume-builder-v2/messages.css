@@ -240,8 +240,32 @@
 }
 
 .rb2-success-panel__text {
-  margin: 0;
+  margin: 0 0 20px;
   font-size: 0.9rem;
   color: #6b7280;
   line-height: 1.5;
+}
+
+.rb2-success-panel__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 140px;
+  padding: 10px 22px;
+  border: none;
+  border-radius: 10px;
+  background: #5249df;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rb2-success-panel__btn:hover {
+  background: #4338ca;
+}
+
+.rb2-success-panel__btn:focus-visible {
+  outline: 2px solid #5249df;
+  outline-offset: 2px;
 }

@@ -45,11 +45,25 @@ def _join_display(parts: list[Any], sep: str = " · ") -> str:
     return sep.join(bits)
 
 
+def _photo_initial_letter(d: dict) -> str:
+    initial = (d.get("photoInitial") or "").strip()
+    if initial:
+        return initial[0].upper()
+    name = (d.get("fullName") or "").strip()
+    if name:
+        return name[0].upper()
+    return "?"
+
+
 def _photo_html(d: dict, class_name: str) -> str:
     ph = (d.get("photo") or "").strip()
     if ph:
         return f'<img class="{class_name}" src="{_esc(ph)}" alt="" />'
-    return f'<div class="{class_name} tpl-photo tpl-photo--placeholder" aria-hidden="true"></div>'
+    letter = _esc(_photo_initial_letter(d))
+    return (
+        f'<div class="{class_name} tpl-photo tpl-photo--placeholder" aria-hidden="true">'
+        f'<span class="tpl-photo-initial">{letter}</span></div>'
+    )
 
 
 def _contact_parts(d: dict) -> list[str]:
@@ -98,8 +112,15 @@ def _skill_bars_html(d: dict) -> str:
 
 
 def _experience_html(d: dict, class_job: str = "tpl-job") -> str:
+    items = d.get("achievements")
+    if not isinstance(items, list):
+        items = [
+            exp
+            for exp in (d.get("experience") or [])
+            if isinstance(exp, dict) and (exp.get("company") or "").strip() != "Project"
+        ]
     parts: list[str] = []
-    for exp in d.get("experience") or []:
+    for exp in items:
         if not isinstance(exp, dict):
             continue
         title = _esc(exp.get("title") or "")
@@ -225,6 +246,7 @@ def _skills_join_text(d: dict) -> str:
 
 
 CAREER_OBJECTIVE_TITLE = "Career Objective"
+ACHIEVEMENTS_ACTIVITIES_TITLE = "Achievements & Activities"
 
 
 def _join_visible(parts: list[str], separator: str = "") -> str:
@@ -278,7 +300,7 @@ def _sec_summary(d: dict, **kwargs: Any) -> str:
 
 
 def _sec_experience(d: dict, class_job: str = "tpl-job", **kwargs: Any) -> str:
-    return _sec_block("Experience", _experience_html(d, class_job), **kwargs)
+    return _sec_block(ACHIEVEMENTS_ACTIVITIES_TITLE, _experience_html(d, class_job), **kwargs)
 
 
 def _sec_education(d: dict, **kwargs: Any) -> str:
@@ -427,7 +449,7 @@ def _tpl_colored_header(d: dict) -> str:
 def _tpl_modern_split(d: dict) -> str:
     contact = " · ".join(_contact_parts(d))
     ico_edu = '<span class="tpl-ico">🎓</span> Education'
-    ico_exp = '<span class="tpl-ico">💼</span> Experience'
+    ico_exp = f'<span class="tpl-ico">💼</span> {ACHIEVEMENTS_ACTIVITIES_TITLE}'
     ico_skills = '<span class="tpl-ico">⚡</span> Skills'
     ico_langs = '<span class="tpl-ico">🌐</span> Languages'
     ico_certs = '<span class="tpl-ico">🏅</span> Certifications'
@@ -629,7 +651,7 @@ def _tpl_magazine(d: dict) -> str:
         [
             _sec_summary(d, h2_class="tpl-mz-h2", p_class="tpl-mz-lead"),
             _sec_block(
-                "Experience",
+                ACHIEVEMENTS_ACTIVITIES_TITLE,
                 _experience_html(d, "tpl-job tpl-job--mz"),
                 h2_class="tpl-mz-h2",
                 wrap_class="",
@@ -675,7 +697,7 @@ def _tpl_timeline(d: dict) -> str:
     cj = " · ".join(_contact_parts(d))
     exp_timeline = _experience_timeline_html(d)
     exp_sec = (
-        f'<section class="tpl-sec"><h2 class="tpl-tl-section-title">Experience</h2>'
+        f'<section class="tpl-sec"><h2 class="tpl-tl-section-title">{ACHIEVEMENTS_ACTIVITIES_TITLE}</h2>'
         f'<div class="tpl-tl-track">{exp_timeline}</div></section>'
         if exp_timeline.strip()
         else ""
@@ -839,7 +861,7 @@ def _tpl_ledger(d: dict) -> str:
         f'<p class="tpl-lg-meta"><span class="tpl-lg-label">ROLE</span> {_esc(d.get("headline"))}</p>'
         f'<p class="tpl-lg-meta"><span class="tpl-lg-label">CONTACT</span> {cj}</p></header>'
         f'{_lg_block(CAREER_OBJECTIVE_TITLE, summary_inner)}'
-        f'{_lg_block("Experience", _experience_html(d, "tpl-job tpl-job--lg"))}'
+        f'{_lg_block(ACHIEVEMENTS_ACTIVITIES_TITLE, _experience_html(d, "tpl-job tpl-job--lg"))}'
         f'{_lg_block("Education", _education_html(d))}'
         f'{_lg_block("Skills", skills_inner)}'
         f'{_lg_block("Certifications", _certifications_html(d))}'
@@ -865,7 +887,7 @@ def _tpl_horizon(d: dict) -> str:
         f'<p class="tpl-hz-title">{_esc(d.get("headline"))}</p>'
         f'<p class="tpl-hz-contact">{cj}</p></header>'
         f'{_hz_sec(CAREER_OBJECTIVE_TITLE, sm)}'
-        f'{_hz_sec("Experience", _experience_html(d))}'
+        f'{_hz_sec(ACHIEVEMENTS_ACTIVITIES_TITLE, _experience_html(d))}'
         f'{_hz_sec("Education", _education_html(d))}'
         f'{_hz_sec("Skills", sk_html)}'
         f'{_hz_sec("Certifications", _certifications_html(d))}'
@@ -911,7 +933,7 @@ def _tpl_folio(d: dict) -> str:
         f'<p class="tpl-fo-line">{_esc(d.get("headline"))}</p>'
         f'<p class="tpl-fo-contact">{cj}</p></div></header>'
         f'{_fo_sec("01", CAREER_OBJECTIVE_TITLE, summary_inner)}'
-        f'{_fo_sec("02", "Experience", _experience_html(d, "tpl-job tpl-job--fo"))}'
+        f'{_fo_sec("02", ACHIEVEMENTS_ACTIVITIES_TITLE, _experience_html(d, "tpl-job tpl-job--fo"))}'
         f'{_fo_sec("03", "Education", _education_html(d))}'
         f'{_fo_sec("04", "Skills", skills_inner)}'
         f'{_fo_sec("05", "More", "".join(more_parts))}'
@@ -1403,10 +1425,9 @@ def studio_pack_root_css_block(pack: dict) -> str:
         align = "start"
     body_size, font_scale = studio_pack_font_size_vars(pack)
     pdf_body_size = studio_pack_effective_body_size(pack)
-    font_esc = html.escape(font, quote=True)
     return (
         f":root{{--accent:{accent};--accent-contrast:#ffffff;--accent-rgb:{r}, {g}, {b};"
-        f'--font-stack:{font_esc};--resume-text-align:{align};'
+        f"--font-stack:{font};--resume-text-align:{align};"
         f"--body-size:{body_size};--pdf-body-size:{pdf_body_size};--font-scale:{font_scale};}}"
     )
 

@@ -99,10 +99,12 @@
             </div>
             <div class="col-md-6">
               <label class="form-label fw-600" for="piSchool">School Name</label>
-              <input type="text" class="form-control school-places-input" id="piSchool" name="userschool"
-                     placeholder="Enter your school name"
-                     autocomplete="off"
-                     value="{% if profile_user.user_profile and profile_user.user_profile.schoolname %}{{ profile_user.user_profile.schoolname }}{% endif %}" />
+              <div class="school-search-wrap position-relative">
+                <input type="text" class="form-control school-search-input" id="piSchool" name="userschool"
+                       placeholder="Enter your school name"
+                       autocomplete="off"
+                       value="{% if profile_user.user_profile and profile_user.user_profile.schoolname %}{{ profile_user.user_profile.schoolname }}{% endif %}" />
+              </div>
             </div>
             <div class="col-md-6">
               <label class="form-label fw-600" for="piGrade">Grade/Class</label>

@@ -7,11 +7,14 @@
   var sections = cfg.sectionsList || [];
   var activeSection = sections[0] || "personal";
   var previewReloadTimer = null;
+  var draftPreviewTimer = null;
   var editingProjectId = null;
   var editingEducationId = null;
   var editingCertId = null;
   var editingAchieveId = null;
   var savePending = 0;
+  var profileSyncBatchDepth = 0;
+  var queuedProfileSyncOffers = [];
   var LANGUAGE_LEVELS = ["Native", "Fluent", "Advanced", "Intermediate", "Basic", "Beginner"];
 
   function $(sel, root) {
@@ -39,7 +42,106 @@
     }
   }
 
-  function apiPost(body) {
+  function collectProfileSyncOffers(data) {
+    var offers = [];
+    if (!data) return offers;
+    if (data.profile_sync_offer) offers.push(data.profile_sync_offer);
+    if (data.profile_sync_offers && data.profile_sync_offers.length) {
+      offers = offers.concat(data.profile_sync_offers);
+    }
+    return offers;
+  }
+
+  function mergeProfileSyncOffers(offers) {
+    var byKind = {};
+    (offers || []).forEach(function (offer) {
+      if (!offer || !offer.kind) return;
+      var kind = offer.kind;
+      if (!byKind[kind]) {
+        byKind[kind] = { kind: kind, labels: [], payload: {} };
+      }
+      var merged = byKind[kind];
+      (offer.labels || []).forEach(function (label) {
+        if (merged.labels.indexOf(label) === -1) merged.labels.push(label);
+      });
+      var payload = offer.payload || {};
+      if (kind === "skills" && payload.titles) {
+        merged.payload.titles = merged.payload.titles || [];
+        payload.titles.forEach(function (title) {
+          if (merged.payload.titles.indexOf(title) === -1) merged.payload.titles.push(title);
+        });
+      } else {
+        Object.keys(payload).forEach(function (key) {
+          merged.payload[key] = payload[key];
+        });
+      }
+    });
+    return Object.keys(byKind).map(function (key) {
+      return byKind[key];
+    });
+  }
+
+  function profileSyncPromptMessage(offer) {
+    var labels = offer.labels || [];
+    if (!labels.length) {
+      return "Do you want to update this information on your TopTeen profile?";
+    }
+    if (labels.length === 1) {
+      return "Do you want to update " + labels[0] + " on your TopTeen profile?";
+    }
+    return (
+      "Do you want to update the following on your TopTeen profile? " + labels.join(", ")
+    );
+  }
+
+  function promptProfileSyncOffers(offers) {
+    offers = mergeProfileSyncOffers(offers);
+    if (!offers.length) return Promise.resolve();
+    var msgs = window.RB2Messages;
+    if (!msgs || !msgs.confirm) return Promise.resolve();
+    return offers.reduce(function (chain, offer) {
+      return chain.then(function () {
+        return msgs
+          .confirm({
+            title: "Update profile?",
+            message: profileSyncPromptMessage(offer),
+            confirmLabel: "Yes",
+            cancelLabel: "No",
+          })
+          .then(function (yes) {
+            if (!yes) return;
+            return apiPost(
+              { action: "sync_to_profile", offer: offer },
+              { skipProfileSyncPrompt: true }
+            ).then(function (data) {
+              if (data && data.profile_synced && msgs.toast) {
+                msgs.toast("Your TopTeen profile was updated.", {
+                  type: "success",
+                  title: "Profile updated",
+                });
+              }
+            });
+          });
+      });
+    }, Promise.resolve());
+  }
+
+  function queueProfileSyncOffersFromResponse(data, options) {
+    options = options || {};
+    if (options.skipProfileSyncPrompt) return Promise.resolve(data);
+    var offers = collectProfileSyncOffers(data);
+    if (!offers.length) return Promise.resolve(data);
+    if (profileSyncBatchDepth > 0) {
+      queuedProfileSyncOffers = queuedProfileSyncOffers.concat(offers);
+      return Promise.resolve(data);
+    }
+    return promptProfileSyncOffers(offers).then(function () {
+      return data;
+    });
+  }
+
+  function apiPost(body, options) {
+    options = options || {};
     setSavingState(true);
     return fetch(cfg.aiUrl, {
       method: "POST",
@@ -52,7 +154,9 @@
           err.payload = data;
           throw err;
         }
-        return data;
+        return queueProfileSyncOffersFromResponse(data, options).then(function () {
+          return data;
+        });
       });
     }).finally(function () {
       setSavingState(false);
@@ -72,8 +176,7 @@
     });
   }
 
-  function setFieldError(id, message) {
-    var el = document.getElementById(id);
+  function setFieldErrorOnElement(el, message) {
     if (!el) return;
     var field = el.closest(".rb2-field");
     if (!field) return;
@@ -87,12 +190,422 @@
     hint.textContent = message;
   }
 
+  function setFieldError(id, message) {
+    setFieldErrorOnElement(document.getElementById(id), message);
+  }
+
   function validationReject() {
     return Promise.reject(new Error("validation"));
   }
 
+  function focusFirstInvalidInSection() {
+    var card = activeFormCard();
+    if (!card) return;
+    var firstInvalid = card.querySelector(
+      ".rb2-field.is-invalid input, .rb2-field.is-invalid select, .rb2-field.is-invalid textarea"
+    );
+    if (firstInvalid) firstInvalid.focus();
+  }
+
+  function showValidationToast() {
+    var msgs = window.RB2Messages;
+    if (msgs) {
+      msgs.toast("Please fix the highlighted fields before continuing.", {
+        type: "warning",
+        title: "Check your entries",
+      });
+    }
+  }
+
+  function validateLanguagesSection() {
+    var container = $("#rb2LanguagesList");
+    if (!container) return true;
+    var card = container.closest(".rb2-form-card");
+    if (card) clearFieldErrors(card);
+    var ok = true;
+    container.querySelectorAll(".rb2-lang-row").forEach(function (row) {
+      var nameEl = row.querySelector("[data-lang-name]");
+      var levelEl = row.querySelector("[data-lang-level]");
+      var name = nameEl ? nameEl.value.trim() : "";
+      var level = levelEl ? levelEl.value.trim() : "";
+      if (!name && !level) return;
+      if (name && !level) {
+        setFieldErrorOnElement(levelEl, "Select a level");
+        ok = false;
+      }
+      if (!name && level) {
+        setFieldErrorOnElement(nameEl, "Enter a language");
+        ok = false;
+      }
+    });
+    return ok;
+  }
+
+  function parseClassLevel(gradeStr) {
+    var g = (gradeStr || "").trim().toLowerCase();
+    if (!g) return null;
+    if (/\b12\b|12th|xii|twelfth/.test(g)) return 12;
+    if (/\b10\b|10th|tenth/.test(g)) return 10;
+    return null;
+  }
+
+  function normalizeGradeKey(gradeStr) {
+    var level = parseClassLevel(gradeStr);
+    if (level) return "class-" + level;
+    return (gradeStr || "").trim().toLowerCase();
+  }
+
+  function formatPercentageStore(val) {
+    var s = (val || "").trim();
+    if (!s) return "";
+    var n = parseFloat(s);
+    if (isNaN(n)) return s;
+    return (Math.round(n * 100) / 100).toFixed(2);
+  }
+
+  function validatePercentageValue(val) {
+    var s = (val || "").trim();
+    if (!s) return "Enter your percentage";
+    var n = parseFloat(s);
+    if (isNaN(n)) return "Enter a valid percentage";
+    if (n < 0 || n > 100) return "Percentage must be between 0 and 100";
+    if (Math.abs(n - Math.round(n * 100) / 100) > 1e-9) {
+      return "Percentage can have at most 2 decimal places";
+    }
+    return null;
+  }
+
+  function normalizeEducationEntryForValidation(ed) {
+    var entry = {
+      id: ed.id,
+      grade: ed.grade || "",
+      passing_year: ed.passing_year || inferPassingYearFromDates(ed.dates || ""),
+      result_type: ed.result_type || "",
+      result_value: ed.result_value || "",
+    };
+    if (!entry.result_type && ed.detail) {
+      var parsed = parseResultFromDetail(ed.detail);
+      entry.result_type = parsed.result_type;
+      entry.result_value = parsed.result_value;
+    }
+    return entry;
+  }
+
+  function educationEntryHasMarks(entry) {
+    var e = normalizeEducationEntryForValidation(entry);
+    if (e.result_type === "percentage") {
+      return validatePercentageValue(e.result_value) === null;
+    }
+    if (e.result_type === "grade") {
+      return !!(e.result_value || "").trim();
+    }
+    return false;
+  }
+
+  function buildEducationEntriesForValidation() {
+    var entries = (payload.education || []).map(function (ed) {
+      if (editingEducationId && String(ed.id) === String(editingEducationId)) {
+        var draft = collectEducationFormData();
+        draft.id = ed.id;
+        return draft;
+      }
+      return ed;
+    });
+    var form = collectEducationFormData();
+    if (educationFormHasInput(form) && !editingEducationId) {
+      entries.push(form);
+    }
+    return entries;
+  }
+
+  function validateEducationMarks(data) {
+    if (data.passing_year === "studying") return null;
+    if (data.result_type === "percentage") {
+      var pctErr = validatePercentageValue(data.result_value);
+      if (pctErr) return { field: "rb2EduPercentage", message: pctErr };
+    }
+    if (data.result_type === "grade" && !(data.result_value || "").trim()) {
+      return { field: "rb2EduResultGrade", message: "Select a grade" };
+    }
+    return null;
+  }
+
+  function validateEducationListDuplicates(entries) {
+    var gradeKeys = {};
+    var passingYears = {};
+    for (var i = 0; i < entries.length; i++) {
+      var ed = normalizeEducationEntryForValidation(entries[i]);
+      var gradeKey = normalizeGradeKey(ed.grade);
+      if (gradeKey) {
+        if (gradeKeys[gradeKey]) {
+          return { field: "rb2EduGrade", message: "This class or grade is already added" };
+        }
+        gradeKeys[gradeKey] = true;
+      }
+      var py = (ed.passing_year || "").trim();
+      if (py) {
+        if (passingYears[py]) {
+          return {
+            field: "rb2EduPassingYear",
+            message: py === "studying"
+              ? 'Only one entry can use "Currently studying"'
+              : "This passing year is already used for another entry",
+          };
+        }
+        passingYears[py] = true;
+      }
+    }
+    return null;
+  }
+
+  function validateClass12RequiresClass10Marks(entries) {
+    var normalized = entries.map(normalizeEducationEntryForValidation);
+    var has12 = normalized.some(function (e) {
+      return parseClassLevel(e.grade) === 12;
+    });
+    if (!has12) return null;
+    var class10 = normalized.find(function (e) {
+      return parseClassLevel(e.grade) === 10;
+    });
+    if (!class10) {
+      return {
+        message: "Add a Class 10 entry with your marks when you are in Class 12.",
+        entryId: null,
+      };
+    }
+    if (!educationEntryHasMarks(class10)) {
+      return {
+        message: "Class 10 percentage or grade is required when you are in Class 12.",
+        entryId: class10.id || null,
+      };
+    }
+    return null;
+  }
+
+  function syncPassingYearSelectOptions() {
+    populatePassingYearSelect();
+    var sel = $("#rb2EduPassingYear");
+    if (!sel) return;
+    var studyingOpt = sel.querySelector('option[value="studying"]');
+    if (!studyingOpt) return;
+    var otherStudying = (payload.education || []).some(function (ed) {
+      if (editingEducationId && String(ed.id) === String(editingEducationId)) return false;
+      var py = ed.passing_year || inferPassingYearFromDates(ed.dates || "");
+      return py === "studying";
+    });
+    studyingOpt.disabled = otherStudying;
+    if (otherStudying && sel.value === "studying") {
+      var editingStudying = editingEducationId && (payload.education || []).some(function (ed) {
+        if (String(ed.id) !== String(editingEducationId)) return false;
+        var py = ed.passing_year || inferPassingYearFromDates(ed.dates || "");
+        return py === "studying";
+      });
+      if (!editingStudying) sel.value = "";
+    }
+  }
+
+  function validateEducationSection() {
+    var card = sectionFormCard("education");
+    if (card) clearFieldErrors(card);
+    var data = collectEducationFormData();
+    var formActive = educationFormHasInput(data);
+    var entries = buildEducationEntriesForValidation();
+    var ok = true;
+
+    if (formActive) {
+      if (!data.school) {
+        setFieldError("rb2EduSchool", "Enter school name");
+        ok = false;
+      }
+      if (!data.grade) {
+        setFieldError("rb2EduGrade", "Enter class or grade");
+        ok = false;
+      }
+      if (data.result_type && data.passing_year !== "studying") {
+        var marksErr = validateEducationMarks(data);
+        if (marksErr) {
+          setFieldError(marksErr.field, marksErr.message);
+          ok = false;
+        }
+      }
+    }
+
+    var listDupErr = validateEducationListDuplicates(entries);
+    if (listDupErr) {
+      setFieldError(listDupErr.field, listDupErr.message);
+      ok = false;
+    }
+
+    var class10Err = validateClass12RequiresClass10Marks(entries);
+    if (class10Err) {
+      var formLevel = formActive ? parseClassLevel(data.grade) : null;
+      var editingClass10 =
+        formActive &&
+        formLevel === 10 &&
+        (!editingEducationId || String(class10Err.entryId) === String(editingEducationId));
+      if (editingClass10) {
+        if (!data.result_type) {
+          setFieldError("rb2EduResultType", "Add Class 10 percentage or grade");
+          ok = false;
+        } else {
+          var class10MarksErr = validateEducationMarks(data);
+          if (class10MarksErr) {
+            setFieldError(class10MarksErr.field, class10MarksErr.message);
+            ok = false;
+          } else if (!educationEntryHasMarks(data)) {
+            setFieldError("rb2EduResultType", "Add Class 10 percentage or grade");
+            ok = false;
+          }
+        }
+      } else if (class10Err.entryId) {
+        var msgs = window.RB2Messages;
+        if (msgs) {
+          msgs.toast(class10Err.message, { type: "warning", title: "Class 10 marks needed" });
+        }
+        startEducationEdit(class10Err.entryId);
+        ok = false;
+      } else {
+        setFieldError("rb2EduGrade", class10Err.message);
+        ok = false;
+      }
+    }
+
+    if (!formActive && entries.length === 0) return true;
+    return ok;
+  }
+
+  function validateProjectSection() {
+    var card = sectionFormCard("projects");
+    if (card) clearFieldErrors(card);
+    var title = trimVal("rb2ProjectTitle");
+    var desc = trimVal("rb2ProjectDesc");
+    if (!title && !desc) return true;
+    var ok = true;
+    if (!title) {
+      setFieldError("rb2ProjectTitle", "Enter a project title");
+      ok = false;
+    }
+    if (!desc) {
+      setFieldError("rb2ProjectDesc", "Describe what you did");
+      ok = false;
+    }
+    return ok;
+  }
+
+  function validateCertSection() {
+    var card = sectionFormCard("certificates");
+    if (card) clearFieldErrors(card);
+    var title = trimVal("rb2CertTitle");
+    var issuer = trimVal("rb2CertDesc");
+    if (!title && !issuer) return true;
+    var ok = true;
+    if (!title) {
+      setFieldError("rb2CertTitle", "Enter the certificate name");
+      ok = false;
+    }
+    if (!issuer) {
+      setFieldError("rb2CertDesc", "Enter who gave the certificate");
+      ok = false;
+    }
+    return ok;
+  }
+
+  function validateAchieveSection() {
+    var card = sectionFormCard("achievements");
+    if (card) clearFieldErrors(card);
+    var title = trimVal("rb2AchieveTitle");
+    var desc = trimVal("rb2AchieveDesc");
+    if (!title && !desc) return true;
+    var ok = true;
+    if (!title) {
+      setFieldError("rb2AchieveTitle", "Enter a title");
+      ok = false;
+    }
+    if (!desc) {
+      setFieldError("rb2AchieveDesc", "Tell us a bit more");
+      ok = false;
+    }
+    return ok;
+  }
+
+  function validateExpSection() {
+    var card = sectionFormCard("experience");
+    if (card) clearFieldErrors(card);
+    var role = trimVal("rb2ExpRole");
+    var provider = trimVal("rb2ExpProvider");
+    var description = trimVal("rb2ExpDesc");
+    var start = trimVal("rb2ExpStart");
+    var end = trimVal("rb2ExpEnd");
+    if (!role && !provider && !description && !start && !end) return true;
+    var ok = true;
+    if (!role) {
+      setFieldError("rb2ExpRole", "Enter your role");
+      ok = false;
+    }
+    if (!provider) {
+      setFieldError("rb2ExpProvider", "Enter the organization");
+      ok = false;
+    }
+    return ok;
+  }
+
+  function validateCurrentSection() {
+    switch (activeSection) {
+      case "education":
+        return validateEducationSection();
+      case "projects":
+        return validateProjectSection();
+      case "certificates":
+        return validateCertSection();
+      case "languages":
+        return validateLanguagesSection();
+      case "achievements":
+        return validateAchieveSection();
+      case "experience":
+        return validateExpSection();
+      default:
+        return true;
+    }
+  }
+
+  var SECTION_VALIDATORS = [
+    { id: "education", fn: validateEducationSection },
+    { id: "projects", fn: validateProjectSection },
+    { id: "certificates", fn: validateCertSection },
+    { id: "languages", fn: validateLanguagesSection },
+    { id: "achievements", fn: validateAchieveSection },
+    { id: "experience", fn: validateExpSection },
+  ];
+
+  function validateAllSections() {
+    for (var i = 0; i < SECTION_VALIDATORS.length; i++) {
+      var check = SECTION_VALIDATORS[i];
+      if (!check.fn()) {
+        setActiveSection(check.id);
+        focusFirstInvalidInSection();
+        showValidationToast();
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function navigateToSection(id) {
+    if (!id || id === activeSection) return;
+    if (!validateCurrentSection()) {
+      focusFirstInvalidInSection();
+      showValidationToast();
+      return;
+    }
+    setActiveSection(id);
+  }
+
   function activeFormCard() {
-    return document.querySelector('.rb2-editor-section[data-section="' + activeSection + '"] .rb2-form-card');
+    return sectionFormCard(activeSection);
+  }
+
+  function sectionFormCard(sectionId) {
+    return document.querySelector('.rb2-editor-section[data-section="' + sectionId + '"] .rb2-form-card');
   }
 
   /* ——— Preview refresh ——— */
@@ -141,6 +654,595 @@
     frame.addEventListener("load", resizePreviewFrame, { once: true });
   }
 
+  function proficiencyLabel(level) {
+    var map = { 1: "Beginner", 2: "Basic", 3: "Intermediate", 4: "Advanced", 5: "Expert" };
+    return map[level] || "";
+  }
+
+  function descToBullets(desc) {
+    var text = (desc || "").trim();
+    if (!text) return [];
+    return text.split(/\n+/).map(function (line) { return line.trim(); }).filter(Boolean);
+  }
+
+  function formatIsoRange(start, end) {
+    if (start && end) return start + " — " + end;
+    return start || end || "";
+  }
+
+  function populatePassingYearSelect() {
+    var sel = $("#rb2EduPassingYear");
+    if (!sel || sel.dataset.rb2YearsPopulated) return;
+    var year = new Date().getFullYear();
+    var html = '<option value="">—</option><option value="studying">Currently studying</option>';
+    for (var i = 1; i <= 10; i++) {
+      var y = year - i;
+      html += '<option value="' + y + '">' + y + "</option>";
+    }
+    sel.innerHTML = html;
+    sel.dataset.rb2YearsPopulated = "1";
+  }
+
+  function syncEduResultFields() {
+    var typeEl = $("#rb2EduResultType");
+    var pctWrap = $("#rb2EduPercentageWrap");
+    var gradeWrap = $("#rb2EduResultGradeWrap");
+    var passingYear = ($("#rb2EduPassingYear") || {}).value || "";
+    var studying = passingYear === "studying";
+    var resultTypeField = typeEl ? typeEl.closest(".rb2-field") : null;
+    if (resultTypeField) resultTypeField.hidden = studying;
+    if (!typeEl) return;
+    var type = studying ? "" : (typeEl.value || "");
+    if (pctWrap) pctWrap.hidden = studying || type !== "percentage";
+    if (gradeWrap) gradeWrap.hidden = studying || type !== "grade";
+  }
+
+  function syncEduStudyingState() {
+    var passingYear = ($("#rb2EduPassingYear") || {}).value || "";
+    if (passingYear === "studying") {
+      var typeEl = $("#rb2EduResultType");
+      var pctEl = $("#rb2EduPercentage");
+      var gradeSel = $("#rb2EduResultGrade");
+      if (typeEl) typeEl.value = "";
+      if (pctEl) pctEl.value = "";
+      if (gradeSel) gradeSel.value = "";
+    }
+    syncEduResultFields();
+  }
+
+  function populateEduSchoolSuggestions() {
+    var list = $("#rb2EduSchoolSuggestions");
+    if (!list) return;
+    var schools = [];
+    var profileSchool = trimVal("rb2School") || cfg.profileSchool || "";
+    if (profileSchool) schools.push(profileSchool);
+    (payload.education || []).forEach(function (ed) {
+      var name = (ed.school || "").trim();
+      if (name && schools.indexOf(name) === -1) schools.push(name);
+    });
+    list.innerHTML = schools
+      .map(function (name) {
+        return "<option value=\"" + esc(name) + "\"></option>";
+      })
+      .join("");
+    var schoolInput = $("#rb2EduSchool");
+    if (schoolInput && profileSchool && !schoolInput.value) {
+      schoolInput.placeholder = profileSchool;
+    }
+  }
+
+  function inferPassingYearFromDates(dates) {
+    var d = (dates || "").trim();
+    if (!d) return "";
+    var low = d.toLowerCase();
+    if (low === "present" || low.indexOf("currently studying") >= 0 || low === "studying" || low === "current") {
+      return "studying";
+    }
+    var match = d.match(/\b(19|20)\d{2}\b/);
+    if (match) return match[0];
+    if (/^\d{4}$/.test(d)) return d;
+    return "";
+  }
+
+  function parseResultFromDetail(detail) {
+    var d = (detail || "").trim();
+    if (!d) return { result_type: "", result_value: "" };
+    if (d.slice(-1) === "%") {
+      return { result_type: "percentage", result_value: d.slice(0, -1).trim() };
+    }
+    if (d.toLowerCase().indexOf("grade:") === 0) {
+      return { result_type: "grade", result_value: d.split(":")[1].trim() };
+    }
+    if (d.toLowerCase().indexOf("grade ") === 0) {
+      return { result_type: "grade", result_value: d.slice(6).trim() };
+    }
+    return { result_type: "", result_value: "" };
+  }
+
+  function formatEduPassingDisplay(entry) {
+    if (!entry) return "";
+    var py = entry.passing_year || inferPassingYearFromDates(entry.dates || "");
+    if (py === "studying") return "Currently studying";
+    if (py) return py;
+    return entry.dates || "";
+  }
+
+  function formatEduMarksDisplay(entry) {
+    if (!entry) return "";
+    if (entry.result_type === "percentage" && entry.result_value) {
+      return formatPercentageStore(entry.result_value) + "%";
+    }
+    if (entry.result_type === "grade" && entry.result_value) {
+      return "Grade " + entry.result_value;
+    }
+    if (entry.detail) {
+      var parsed = parseResultFromDetail(entry.detail);
+      if (parsed.result_type === "percentage" && parsed.result_value) return parsed.result_value + "%";
+      if (parsed.result_type === "grade" && parsed.result_value) return "Grade " + parsed.result_value;
+      return entry.detail;
+    }
+    return "";
+  }
+
+  function collectEducationFormData() {
+    var school = trimVal("rb2EduSchool");
+    var grade = trimVal("rb2EduGrade");
+    var passingYear = ($("#rb2EduPassingYear") || {}).value || "";
+    var resultType = "";
+    var resultValue = "";
+    if (passingYear !== "studying") {
+      resultType = ($("#rb2EduResultType") || {}).value || "";
+      if (resultType === "percentage") {
+        resultValue = formatPercentageStore(trimVal("rb2EduPercentage"));
+      } else if (resultType === "grade") {
+        resultValue = ($("#rb2EduResultGrade") || {}).value || "";
+      }
+    }
+    var dates = passingYear === "studying" ? "Currently studying" : passingYear;
+    var detail = "";
+    if (resultType === "percentage" && resultValue) detail = resultValue + "%";
+    else if (resultType === "grade" && resultValue) detail = "Grade: " + resultValue;
+    return {
+      school: school,
+      grade: grade,
+      dates: dates,
+      detail: detail,
+      passing_year: passingYear,
+      result_type: resultType,
+      result_value: resultValue,
+    };
+  }
+
+  function educationFormHasInput(data) {
+    data = data || collectEducationFormData();
+    return !!(data.school || data.grade || data.passing_year);
+  }
+
+  function fillEducationForm(entry) {
+    populatePassingYearSelect();
+    var schoolEl = $("#rb2EduSchool");
+    var gradeEl = $("#rb2EduGrade");
+    var yearEl = $("#rb2EduPassingYear");
+    var typeEl = $("#rb2EduResultType");
+    var pctEl = $("#rb2EduPercentage");
+    var gradeSel = $("#rb2EduResultGrade");
+    if (schoolEl) schoolEl.value = (entry && entry.school) || "";
+    if (gradeEl) gradeEl.value = (entry && entry.grade) || "";
+    var passingYear = (entry && entry.passing_year) || inferPassingYearFromDates((entry && entry.dates) || "");
+    if (yearEl) yearEl.value = passingYear;
+    var resultType = (entry && entry.result_type) || "";
+    var resultValue = (entry && entry.result_value) || "";
+    if (!resultType && entry && entry.detail) {
+      var parsed = parseResultFromDetail(entry.detail);
+      resultType = parsed.result_type;
+      resultValue = parsed.result_value;
+    }
+    if (typeEl) typeEl.value = resultType;
+    if (pctEl) pctEl.value = resultType === "percentage" ? resultValue : "";
+    if (gradeSel) gradeSel.value = resultType === "grade" ? resultValue : "";
+    syncEduStudyingState();
+    syncPassingYearSelectOptions();
+  }
+
+  function resetEducationForm() {
+    editingEducationId = null;
+    fillEducationForm(null);
+    updateMultiAddButtons();
+  }
+
+  function buildEducationPreview() {
+    var rows = (payload.education || []).map(function (ed) {
+      return {
+        degree: ed.grade || "",
+        school: ed.school || "",
+        dates: formatEduPassingDisplay(ed),
+        detail: formatEduMarksDisplay(ed),
+      };
+    });
+    var data = collectEducationFormData();
+    if (educationFormHasInput(data)) {
+      var draft = {
+        degree: data.grade,
+        school: data.school,
+        dates: data.dates,
+        detail: data.detail,
+      };
+      if (editingEducationId) {
+        rows = rows.map(function (row, idx) {
+          var src = (payload.education || [])[idx];
+          return src && String(src.id) === String(editingEducationId) ? draft : row;
+        });
+      } else {
+        rows.push(draft);
+      }
+    }
+    var schoolEl = $("#rb2School");
+    if (schoolEl && !schoolEl.readOnly) {
+      var profileSchool = trimVal("rb2School");
+      if (profileSchool) {
+        if (rows.length) rows[0] = Object.assign({}, rows[0], { school: profileSchool });
+        else rows.push({ degree: "Student", school: profileSchool, dates: "", detail: "" });
+      }
+    }
+    return rows;
+  }
+
+  function buildCertificationsPreview() {
+    var rows = (payload.certificates || []).map(function (c) {
+      return {
+        name: c.title || "",
+        issuer: c.description || "",
+        date: c.issue_date || "",
+      };
+    });
+    var title = trimVal("rb2CertTitle");
+    var issuer = trimVal("rb2CertDesc");
+    var dateEl = $("#rb2CertDate");
+    var date = dateEl ? dateEl.value : "";
+    if (title || issuer || date) {
+      var draft = { name: title, issuer: issuer, date: date };
+      if (editingCertId) {
+        rows = rows.map(function (row, idx) {
+          var src = (payload.certificates || [])[idx];
+          return src && String(src.id) === String(editingCertId) ? draft : row;
+        });
+      } else {
+        rows.push(draft);
+      }
+    }
+    return rows;
+  }
+
+  function buildProjectsPreview() {
+    var rows = (payload.activities || []).filter(isProjectActivity).map(function (a) {
+      var parsed = parseProjectActivity(a);
+      var fullDesc = parsed.tech
+        ? "Technologies: " + parsed.tech + (parsed.desc ? "\n" + parsed.desc : "")
+        : parsed.desc;
+      return {
+        title: a.title || "",
+        company: parsed.tech || "Project",
+        location: "",
+        dates: a.issue_date || "",
+        bullets: descToBullets(fullDesc),
+      };
+    });
+    var projTitle = trimVal("rb2ProjectTitle");
+    var projTech = trimVal("rb2ProjectTech");
+    var projDesc = trimVal("rb2ProjectDesc");
+    if (projTitle || projTech || projDesc) {
+      var fullDesc = projTech ? "Technologies: " + projTech + (projDesc ? "\n" + projDesc : "") : projDesc;
+      var draftProj = {
+        title: projTitle,
+        company: projTech || "Project",
+        location: "",
+        dates: "",
+        bullets: descToBullets(fullDesc),
+      };
+      if (editingProjectId) {
+        var replaced = false;
+        rows = rows.map(function (item, idx) {
+          var src = (payload.activities || []).filter(isProjectActivity)[idx];
+          if (!replaced && src && String(src.id) === String(editingProjectId)) {
+            replaced = true;
+            return draftProj;
+          }
+          return item;
+        });
+        if (!replaced) rows.push(draftProj);
+      } else {
+        rows.push(draftProj);
+      }
+    }
+    return rows;
+  }
+
+  function buildAchievementsPreview() {
+    var rows = (payload.activities || []).filter(function (a) {
+      return !isProjectActivity(a);
+    }).map(function (a) {
+      return {
+        title: a.title || "",
+        company: "",
+        location: "",
+        dates: a.issue_date || "",
+        bullets: descToBullets(a.description),
+      };
+    });
+    var achTitle = trimVal("rb2AchieveTitle");
+    var achDesc = trimVal("rb2AchieveDesc");
+    if (achTitle || achDesc) {
+      var draftAch = {
+        title: achTitle,
+        company: "",
+        location: "",
+        dates: "",
+        bullets: descToBullets(achDesc),
+      };
+      if (editingAchieveId) {
+        var achReplaced = false;
+        var achRows = (payload.activities || []).filter(function (a) {
+          return !isProjectActivity(a);
+        });
+        rows = rows.map(function (item, idx) {
+          var src = achRows[idx];
+          if (!achReplaced && src && String(src.id) === String(editingAchieveId)) {
+            achReplaced = true;
+            return draftAch;
+          }
+          return item;
+        });
+        if (!achReplaced) rows.push(draftAch);
+      } else {
+        rows.push(draftAch);
+      }
+    }
+    return rows;
+  }
+
+  function buildWorkExperiencePreview() {
+    var ex = (payload.internships || []).map(function (it) {
+      return {
+        title: it.role || "",
+        company: it.provider || "",
+        location: "",
+        dates: formatIsoRange(it.start_date, it.end_date),
+        bullets: descToBullets(it.description),
+      };
+    });
+    var role = trimVal("rb2ExpRole");
+    var provider = trimVal("rb2ExpProvider");
+    var expDesc = trimVal("rb2ExpDesc");
+    var start = trimVal("rb2ExpStart");
+    var end = trimVal("rb2ExpEnd");
+    if (role || provider || expDesc || start || end) {
+      ex.push({
+        title: role,
+        company: provider,
+        location: "",
+        dates: formatIsoRange(start, end),
+        bullets: descToBullets(expDesc),
+      });
+    }
+    return ex;
+  }
+
+  function buildExperiencePreview() {
+    return buildAchievementsPreview();
+  }
+
+  function buildPreviewResumeFromForms() {
+    var base = cfg.prototypePayload && typeof cfg.prototypePayload === "object"
+      ? JSON.parse(JSON.stringify(cfg.prototypePayload))
+      : {};
+    var nameEl = $("#rb2Name");
+    if (nameEl && !nameEl.readOnly) {
+      var name = trimVal("rb2Name");
+      if (name) base.fullName = name;
+    }
+    base.headline = trimVal("rb2Headline");
+    var phoneEl = $("#rb2Phone");
+    if (phoneEl && !phoneEl.readOnly) base.phone = trimVal("rb2Phone");
+    var emailEl = $("#rb2Email");
+    if (emailEl) base.email = emailEl.value.trim();
+    var summaryField = $("#rb2SummaryField");
+    if (summaryField) base.summary = summaryField.value.trim();
+    var hobbiesField = $("#rb2HobbiesField");
+    if (hobbiesField) base.hobbies = hobbiesField.value.trim();
+    base.languages = collectLanguageRows();
+    var skills = (payload.skills || []).map(function (s) {
+      return { name: s.title || "", level: proficiencyLabel(s.profficiency) };
+    });
+    var pendingSkill = trimVal("rb2SkillInput");
+    if (pendingSkill) skills.push({ name: pendingSkill, level: "" });
+    base.skills = skills;
+    base.education = buildEducationPreview();
+    base.certifications = buildCertificationsPreview();
+    base.projects = buildProjectsPreview();
+    base.achievements = buildAchievementsPreview();
+    base.workExperience = buildWorkExperiencePreview();
+    base.experience = base.achievements;
+    base.photo = cfg.resumePhotoUrl || "";
+    if (!base.photo) {
+      base.photoInitial = cfg.avatarInitial || "";
+    } else {
+      delete base.photoInitial;
+    }
+    return base;
+  }
+
+  function pushDraftToPreview() {
+    var frame = $("#rb2PreviewFrame");
+    if (!frame || !frame.contentWindow) return;
+    try {
+      frame.contentWindow.postMessage(
+        { type: "TT_STUDIO_DRAFT_UPDATE", resume: buildPreviewResumeFromForms() },
+        "*"
+      );
+    } catch (_) {}
+  }
+
+  var AI_ELABORATE_MIN_CHARS = 12;
+
+  function hasElaboratableText(value) {
+    return (value || "").trim().length >= AI_ELABORATE_MIN_CHARS;
+  }
+
+  function syncAiWriteButtons() {
+    var summary = ($("#rb2SummaryField") || {}).value || "";
+    var showImproveSummary = hasElaboratableText(summary);
+    var genSummary = $("#rb2GenSummary");
+    var impSummary = $("#rb2ImproveSummary");
+    if (genSummary) genSummary.hidden = showImproveSummary;
+    if (impSummary) impSummary.hidden = !showImproveSummary;
+
+    var achieveDesc = ($("#rb2AchieveDesc") || {}).value || "";
+    var showImproveAchieve = hasElaboratableText(achieveDesc);
+    var genAchieve = $("#rb2GenAchieve");
+    var impAchieve = $("#rb2ImproveAchieve");
+    if (genAchieve) genAchieve.hidden = showImproveAchieve;
+    if (impAchieve) impAchieve.hidden = !showImproveAchieve;
+  }
+
+  function localItemCounts(draft) {
+    var projects = (payload.activities || []).filter(isProjectActivity).length;
+    var achievements = (payload.activities || []).filter(function (a) {
+      return !isProjectActivity(a);
+    }).length;
+    if (trimVal("rb2ProjectTitle") || trimVal("rb2ProjectDesc") || trimVal("rb2ProjectTech")) {
+      if (!editingProjectId) projects += 1;
+    }
+    if (trimVal("rb2AchieveTitle") || trimVal("rb2AchieveDesc")) {
+      if (!editingAchieveId) achievements += 1;
+    }
+    var skills = (draft.skills || []).filter(function (s) {
+      return (s.name || "").trim();
+    }).length;
+    var certificates = (draft.certifications || []).filter(function (c) {
+      return (c.name || "").trim();
+    }).length;
+    var education = (draft.education || []).filter(function (ed) {
+      return (ed.school || "").trim() || (ed.degree || "").trim();
+    }).length;
+    var internships = (payload.internships || []).length;
+    if (trimVal("rb2ExpRole") || trimVal("rb2ExpProvider") || trimVal("rb2ExpDesc")) {
+      internships += 1;
+    }
+    return {
+      skills: skills,
+      projects: projects,
+      achievements: achievements,
+      certificates: certificates,
+      education: education,
+      internships: internships,
+    };
+  }
+
+  function localSectionStatus(section, draft, counts) {
+    if (section === "personal") {
+      var hasName = !!(draft.fullName || "").trim();
+      var hasEmail = !!(draft.email || "").trim();
+      var hasPhone = !!(draft.phone || "").trim();
+      if (hasName && hasEmail && hasPhone) return [100, "complete"];
+      if (hasName && hasEmail) return [70, "partial"];
+      return [40, "partial"];
+    }
+    if (section === "education") {
+      var eduOk = counts.education > 0;
+      return [eduOk ? 100 : 0, eduOk ? "complete" : "missing"];
+    }
+    if (section === "skills") {
+      var n = counts.skills;
+      if (n >= 3) return [100, "complete"];
+      if (n >= 1) return [Math.min(90, 40 + n * 15), "partial"];
+      return [0, "missing"];
+    }
+    if (section === "projects") {
+      var pn = counts.projects;
+      if (pn >= 2) return [100, "complete"];
+      if (pn >= 1) return [60, "partial"];
+      return [0, "missing"];
+    }
+    if (section === "certificates") {
+      return counts.certificates >= 1 ? [100, "complete"] : [0, "missing"];
+    }
+    if (section === "languages") {
+      var ln = (draft.languages || []).length;
+      return ln >= 1 ? [100, "complete"] : [0, "missing"];
+    }
+    if (section === "hobbies") {
+      var hobOk = !!(draft.hobbies || "").trim();
+      return [hobOk ? 100 : 0, hobOk ? "complete" : "missing"];
+    }
+    if (section === "achievements") {
+      return counts.achievements >= 1 ? [100, "complete"] : [0, "missing"];
+    }
+    if (section === "summary") {
+      var sumOk = !!(draft.summary || "").trim();
+      return [sumOk ? 100 : 0, sumOk ? "complete" : "missing"];
+    }
+    if (section === "experience") {
+      return counts.internships >= 1 ? [100, "complete"] : [0, "missing"];
+    }
+    return [0, "missing"];
+  }
+
+  function sectionMetricLabel(section) {
+    var fromCfg = cfg.sectionMetrics && cfg.sectionMetrics[section];
+    if (fromCfg && fromCfg.label) return fromCfg.label;
+    return section.replace(/_/g, " ").replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+  }
+
+  function computeLocalSectionMetrics() {
+    var draft = buildPreviewResumeFromForms();
+    var counts = localItemCounts(draft);
+    var result = {};
+    var total = 0;
+    sections.forEach(function (sec) {
+      var st = localSectionStatus(sec, draft, counts);
+      result[sec] = {
+        percent: st[0],
+        status: st[1],
+        label: sectionMetricLabel(sec),
+      };
+      total += st[0];
+    });
+    var overall = sections.length ? Math.round(total / sections.length) : 0;
+    return { sections: result, overall: overall };
+  }
+
+  function updateLocalUiFromForms() {
+    var metrics = computeLocalSectionMetrics();
+    updateSectionNav(metrics.sections);
+    updateProgress(metrics.overall);
+    var complete = document.getElementById("rb2StrengthComplete");
+    var details = document.getElementById("rb2StrengthDetails");
+    if (complete) complete.textContent = metrics.overall + "%";
+    if (details) details.textContent = metrics.overall + "%";
+    pushDraftToPreview();
+  }
+
+  function scheduleLocalUiSync() {
+    syncAiWriteButtons();
+    clearTimeout(draftPreviewTimer);
+    draftPreviewTimer = setTimeout(updateLocalUiFromForms, 150);
+  }
+
+  function bindLivePreview() {
+    var form = document.querySelector(".rb2-studio-form");
+    if (!form) return;
+    form.addEventListener("input", function (e) {
+      var field = e.target.closest(".rb2-field");
+      if (field && field.classList.contains("is-invalid")) {
+        field.classList.remove("is-invalid");
+        var hint = field.querySelector(".rb2-field-error");
+        if (hint) hint.remove();
+      }
+      scheduleLocalUiSync();
+    });
+    form.addEventListener("change", scheduleLocalUiSync);
+  }
+
   function setActiveSection(id) {
     activeSection = id;
     document.querySelectorAll(".rb2-section-nav-item, .rb2-step-btn").forEach(function (el) {
@@ -186,12 +1288,14 @@
 
   function goToPrevSection() {
     var idx = sectionIndex(activeSection);
-    if (idx > 0) setActiveSection(sections[idx - 1]);
+    if (idx <= 0) return;
+    navigateToSection(sections[idx - 1]);
   }
 
   function goToNextSection() {
     var idx = sectionIndex(activeSection);
-    if (idx < sections.length - 1) setActiveSection(sections[idx + 1]);
+    if (idx >= sections.length - 1) return;
+    navigateToSection(sections[idx + 1]);
   }
 
   function savePersonalData() {
@@ -214,36 +1318,44 @@
   function saveEducationIfFilled() {
     var card = activeFormCard();
     if (card) clearFieldErrors(card);
-    var school = trimVal("rb2EduSchool");
-    var grade = trimVal("rb2EduGrade");
-    var dates = trimVal("rb2EduDates");
-    if (!school && !grade && !dates) return Promise.resolve();
-    var ok = true;
-    if (!school) {
-      setFieldError("rb2EduSchool", "Enter school name");
-      ok = false;
+    var data = collectEducationFormData();
+    if (!educationFormHasInput(data)) return Promise.resolve();
+    if (!validateEducationSection()) return validationReject();
+    var syncProfileSchool = false;
+    if (editingEducationId) {
+      var existing = (payload.education || []).find(function (ed) {
+        return String(ed.id) === String(editingEducationId);
+      });
+      syncProfileSchool = !!(existing && existing.is_profile_school);
     }
-    if (!grade) {
-      setFieldError("rb2EduGrade", "Enter class or grade");
-      ok = false;
-    }
-    if (!ok) return validationReject();
     var body = editingEducationId
       ? {
           action: "update_education",
           entry_id: editingEducationId,
-          school: school,
-          grade: grade,
-          dates: dates,
+          school: data.school,
+          grade: data.grade,
+          dates: data.dates,
+          detail: data.detail,
+          passing_year: data.passing_year,
+          result_type: data.result_type,
+          result_value: data.result_value,
         }
       : {
           action: "add_education",
-          school: school,
-          grade: grade,
-          dates: dates,
+          school: data.school,
+          grade: data.grade,
+          dates: data.dates,
+          detail: data.detail,
+          passing_year: data.passing_year,
+          result_type: data.result_type,
+          result_value: data.result_value,
         };
-    return apiPost(body).then(function (data) {
-      onStudioUpdate(data);
+    return apiPost(body).then(function (resp) {
+      onStudioUpdate(resp);
+      if (syncProfileSchool) {
+        var schoolEl = $("#rb2School");
+        if (schoolEl) schoolEl.value = data.school;
+      }
       resetEducationForm();
       reloadPreview(cfg.prototypeKey, true);
     }).catch(function (err) {
@@ -355,6 +1467,7 @@
   }
 
   function saveLanguagesData(langsOverride) {
+    if (!validateLanguagesSection()) return validationReject();
     var langs = langsOverride || collectLanguageRows();
     return apiPost({ action: "save_languages", languages: langs }).then(function (data) {
       onStudioUpdate(data);
@@ -455,6 +1568,8 @@
   function saveAllSections() {
     /* Snapshot languages before earlier saves trigger renderLists() and wipe the form. */
     var languagesSnapshot = collectLanguageRows();
+    profileSyncBatchDepth += 1;
+    queuedProfileSyncOffers = [];
     var steps = [
       savePersonalData,
       saveEducationIfFilled,
@@ -481,7 +1596,18 @@
       return chain.then(function () {
         return step();
       });
-    }, Promise.resolve());
+    }, Promise.resolve()).then(function (result) {
+      profileSyncBatchDepth = Math.max(0, profileSyncBatchDepth - 1);
+      var offers = queuedProfileSyncOffers.slice();
+      queuedProfileSyncOffers = [];
+      return promptProfileSyncOffers(offers).then(function () {
+        return result;
+      });
+    }, function (err) {
+      profileSyncBatchDepth = Math.max(0, profileSyncBatchDepth - 1);
+      queuedProfileSyncOffers = [];
+      throw err;
+    });
   }
 
   function esc(s) {
@@ -522,12 +1648,27 @@
           var levelEl = container.querySelector("[data-lang-level]");
           if (nameEl) nameEl.value = "";
           if (levelEl) levelEl.value = "";
+          scheduleLocalUiSync();
           return;
         }
         btn.closest(".rb2-lang-row").remove();
+        scheduleLocalUiSync();
       });
     });
     bindLangNameSuggestions(container);
+  }
+
+  var langListEl = $("#rb2LanguagesList");
+  if (langListEl) {
+    function clearLangFieldError(e) {
+      var field = e.target.closest(".rb2-field");
+      if (!field) return;
+      field.classList.remove("is-invalid");
+      var hint = field.querySelector(".rb2-field-error");
+      if (hint) hint.remove();
+    }
+    langListEl.addEventListener("input", clearLangFieldError);
+    langListEl.addEventListener("change", clearLangFieldError);
   }
 
   function collectLanguageRows() {
@@ -553,7 +1694,17 @@
     renderExpList();
   }
 
-  function itemActionButtons(delType, id, editKind) {
+  function itemActionButtons(delType, id, editKind, opts) {
+    opts = opts || {};
+    var removeBtn = opts.hideRemove
+      ? ""
+      : '<button type="button" class="rb2-item-del" data-type="' +
+        delType +
+        '" data-kind="' +
+        (editKind || "") +
+        '" data-id="' +
+        id +
+        '">Remove</button>';
     return (
       '<div class="rb2-item-list__actions">' +
       '<button type="button" class="rb2-item-edit" data-kind="' +
@@ -561,13 +1712,7 @@
       '" data-id="' +
       id +
       '">Edit</button>' +
-      '<button type="button" class="rb2-item-del" data-type="' +
-      delType +
-      '" data-kind="' +
-      (editKind || "") +
-      '" data-id="' +
-      id +
-      '">Remove</button>' +
+      removeBtn +
       "</div>"
     );
   }
@@ -593,15 +1738,6 @@
     if (achBtn) achBtn.textContent = editingAchieveId ? "Save changes" : "Add";
   }
 
-  function resetEducationForm() {
-    editingEducationId = null;
-    ["rb2EduSchool", "rb2EduGrade", "rb2EduDates"].forEach(function (id) {
-      var el = document.getElementById(id);
-      if (el) el.value = "";
-    });
-    updateMultiAddButtons();
-  }
-
   function resetCertForm() {
     editingCertId = null;
     ["rb2CertTitle", "rb2CertDesc", "rb2CertDate"].forEach(function (id) {
@@ -625,14 +1761,19 @@
     (payload.education || []).forEach(function (ed) {
       var li = document.createElement("li");
       li.className = "rb2-item-list__row";
-      var subtitle = [ed.grade, ed.dates].filter(Boolean).join(" · ");
+      var parts = [ed.grade, formatEduPassingDisplay(ed), formatEduMarksDisplay(ed)].filter(Boolean);
+      var subtitle = parts.join(" · ");
       li.innerHTML =
         "<div><strong>" + esc(ed.school) + "</strong>" +
         (subtitle ? "<div class=\"fs-12 text-muted\">" + esc(subtitle) + "</div>" : "") +
         "</div>" +
-        itemActionButtons("education", ed.id || "", "education");
+        itemActionButtons("education", ed.id || "", "education", {
+          hideRemove: !!ed.is_profile_school,
+        });
       ul.appendChild(li);
     });
+    syncPassingYearSelectOptions();
+    populateEduSchoolSuggestions();
   }
 
   function renderSkillList() {
@@ -707,6 +1848,7 @@
     updateMultiAddButtons();
     setActiveSection("projects");
     if ($("#rb2ProjectTitle")) $("#rb2ProjectTitle").focus();
+    scheduleLocalUiSync();
   }
 
   function startEducationEdit(entryId) {
@@ -715,12 +1857,11 @@
     });
     if (!entry) return;
     editingEducationId = entry.id;
-    if ($("#rb2EduSchool")) $("#rb2EduSchool").value = entry.school || "";
-    if ($("#rb2EduGrade")) $("#rb2EduGrade").value = entry.grade || "";
-    if ($("#rb2EduDates")) $("#rb2EduDates").value = entry.dates || "";
+    fillEducationForm(entry);
     updateMultiAddButtons();
     setActiveSection("education");
     if ($("#rb2EduSchool")) $("#rb2EduSchool").focus();
+    scheduleLocalUiSync();
   }
 
   function startCertEdit(certId) {
@@ -735,6 +1876,7 @@
     updateMultiAddButtons();
     setActiveSection("certificates");
     if ($("#rb2CertTitle")) $("#rb2CertTitle").focus();
+    scheduleLocalUiSync();
   }
 
   function startAchieveEdit(activityId) {
@@ -748,6 +1890,7 @@
     updateMultiAddButtons();
     setActiveSection("achievements");
     if ($("#rb2AchieveTitle")) $("#rb2AchieveTitle").focus();
+    scheduleLocalUiSync();
   }
 
   function renderCertList() {
@@ -792,9 +1935,7 @@
         $("#rb2HobbiesField").value = data.payload.hobbies || "";
       }
     }
-    if (data.section_metrics) updateSectionNav(data.section_metrics);
     if (data.suggestions !== undefined) updateTips(data.suggestions);
-    if (data.overall_completion !== undefined) updateProgress(data.overall_completion);
     if (data.strength) updateStrengthCard(data.strength);
     if (data.applied_fields) applyGeneratedFieldsToForms(data.applied_fields);
     if (data.resume_photo_url !== undefined) {
@@ -804,6 +1945,7 @@
     if (!options.skipPreviewReload) {
       reloadPreview(cfg.prototypeKey, !options.deferPreview);
     }
+    scheduleLocalUiSync();
   }
 
   function setPhotoUploadLabel(hasPhoto) {
@@ -826,12 +1968,14 @@
           '<img src="' + esc(url) + '" alt="Your photo" class="rb2-photo-preview__img" id="rb2PhotoImg">';
       }
       setPhotoUploadLabel(true);
+      scheduleLocalUiSync();
       return;
     }
     var initial = cfg.avatarInitial || "?";
     wrap.innerHTML =
       '<span class="rb2-photo-preview__avatar-initials" id="rb2PhotoPlaceholder">' + esc(initial) + "</span>";
     setPhotoUploadLabel(false);
+    scheduleLocalUiSync();
   }
 
   function updatePhotoPreview(url) {
@@ -859,6 +2003,7 @@
       profficiency: 1,
     });
     renderSkillList();
+    scheduleLocalUiSync();
 
     if (sourceEl) {
       sourceEl.classList.add("is-adding");
@@ -952,8 +2097,6 @@
       var el = document.getElementById(id);
       if (el) el.classList.toggle("is-visible", complete);
     });
-    var nav = document.getElementById("rb2StudioNav");
-    if (nav) nav.style.display = complete ? "none" : "";
     var topbar = document.querySelector(".rb2-studio-topbar");
     if (topbar) topbar.classList.toggle("rb2-studio-topbar--complete", complete);
     var app = document.querySelector(".rb2-studio-app");
@@ -965,7 +2108,7 @@
       if (row._rb2Bound) return;
       row._rb2Bound = true;
       function activate() {
-        if (row.dataset.section) setActiveSection(row.dataset.section);
+        if (row.dataset.section) navigateToSection(row.dataset.section);
         if (row.dataset.coachAction) runCoachAction(row.dataset.coachAction);
       }
       row.addEventListener("click", activate);
@@ -1078,11 +2221,7 @@
           title: trimVal("rb2AchieveTitle"),
           description: trimVal("rb2AchieveDesc"),
         },
-        education: {
-          school: trimVal("rb2EduSchool"),
-          grade: trimVal("rb2EduGrade"),
-          dates: trimVal("rb2EduDates"),
-        },
+        education: collectEducationFormData(),
         experience: {
           role: trimVal("rb2ExpRole"),
           provider: trimVal("rb2ExpProvider"),
@@ -1100,12 +2239,14 @@
     if (applied.summary !== undefined && $("#rb2SummaryField")) $("#rb2SummaryField").value = applied.summary || "";
     if (applied.hobbies !== undefined && $("#rb2HobbiesField")) $("#rb2HobbiesField").value = applied.hobbies || "";
     ["rb2ProjectTitle", "rb2ProjectTech", "rb2ProjectDesc", "rb2CertTitle", "rb2CertDesc", "rb2CertDate",
-      "rb2AchieveTitle", "rb2AchieveDesc", "rb2EduSchool", "rb2EduGrade", "rb2EduDates",
+      "rb2AchieveTitle", "rb2AchieveDesc",
       "rb2ExpRole", "rb2ExpProvider", "rb2ExpDesc", "rb2ExpStart", "rb2ExpEnd"].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) el.value = "";
     });
+    resetEducationForm();
     resetProjectForm();
+    scheduleLocalUiSync();
   }
 
   function formatAiError(err) {
@@ -1258,7 +2399,7 @@
 
   /* ——— Section nav ——— */
   document.querySelectorAll(".rb2-section-nav-item, .rb2-step-btn").forEach(function (el) {
-    el.addEventListener("click", function () { setActiveSection(el.dataset.section); });
+    el.addEventListener("click", function () { navigateToSection(el.dataset.section); });
   });
 
   var navBackBtn = $("#rb2NavBack");
@@ -1275,6 +2416,7 @@
         goToNextSection();
         return;
       }
+      if (!validateAllSections()) return;
       saveAllSections()
         .then(function () {
           var msgs = window.RB2Messages;
@@ -1313,6 +2455,7 @@
         apiPost({ action: "generate_summary", career_goal: cfg.goal || "" }).then(function (data) {
           var field = $("#rb2SummaryField");
           if (field && data.text) field.value = data.text;
+          scheduleLocalUiSync();
         });
         break;
       default:
@@ -1350,6 +2493,7 @@
         current.push(name);
         field.value = current.join(", ");
         syncProfileHobbyChips();
+        scheduleLocalUiSync();
       });
     });
     syncProfileHobbyChips();
@@ -1376,6 +2520,7 @@
         var fieldId = targetId || "rb2SummaryField";
         if (data.text && $("#" + fieldId)) $("#" + fieldId).value = data.text;
         if (data.bullets && $("#" + fieldId)) $("#" + fieldId).value = data.bullets.join("\n");
+        scheduleLocalUiSync();
         btn.disabled = false;
         btn.innerHTML = defaultHtml;
       }).catch(function (err) {
@@ -1394,6 +2539,16 @@
   bindAi("rb2AtsSummary", "improve_summary", function () {
     return { text: ($("#rb2SummaryField") || {}).value || "", mode: "ats" };
   });
+  bindAi("rb2GenAchieve", "generate_achievement", function () {
+    return { title: ($("#rb2AchieveTitle") || {}).value || "" };
+  }, "rb2AchieveDesc");
+  bindAi("rb2ImproveAchieve", "improve_achievement", function () {
+    return {
+      title: ($("#rb2AchieveTitle") || {}).value || "",
+      text: ($("#rb2AchieveDesc") || {}).value || "",
+      mode: "professional",
+    };
+  }, "rb2AchieveDesc");
 
   /* ——— Add skill button ——— */
   var addSkillBtn = $("#rb2AddSkill");
@@ -1476,6 +2631,7 @@
       }).then(function (data) {
         var desc = $("#rb2ProjectDesc");
         if (desc && data.bullets) desc.value = data.bullets.join("\n");
+        scheduleLocalUiSync();
         genProjBtn.disabled = false;
         genProjBtn.innerHTML = genProjDefaultHtml;
       }).catch(function (err) {
@@ -1509,6 +2665,7 @@
       container.appendChild(row);
       row.querySelector(".rb2-lang-remove").addEventListener("click", function () {
         row.remove();
+        scheduleLocalUiSync();
       });
       var nameInput = row.querySelector("[data-lang-name]");
       if (nameInput) nameInput.focus();
@@ -1583,6 +2740,26 @@
   }
 
   function performDeleteItem(btn) {
+    if (btn.disabled || btn.classList.contains("is-processing")) return;
+    if (btn.dataset.type === "education" && btn.dataset.id) {
+      var eduEntry = (payload.education || []).find(function (ed) {
+        return String(ed.id) === String(btn.dataset.id);
+      });
+      if (eduEntry && eduEntry.is_profile_school) {
+        var msgs = window.RB2Messages;
+        if (msgs) {
+          msgs.toast("Your current school is linked to your profile. Edit it instead of removing.", {
+            type: "info",
+            title: "Cannot remove",
+          });
+        }
+        return;
+      }
+    }
+    var prevHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.classList.add("is-processing");
+    btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Removing…";
     if (btn.dataset.type === "activity" && editingProjectId && String(btn.dataset.id) === String(editingProjectId)) {
       resetProjectForm();
     }
@@ -1602,6 +2779,18 @@
     }).then(function (data) {
       onStudioUpdate(data);
       if (btn.dataset.type === "education") reloadPreview(cfg.prototypeKey, true);
+    }).catch(function (err) {
+      var msg = (err && err.payload && err.payload.error) || "";
+      if (msg) {
+        var msgs = window.RB2Messages;
+        if (msgs) msgs.toast(msg, { type: "warning", title: "Could not remove" });
+      }
+    }).finally(function () {
+      if (btn.isConnected) {
+        btn.disabled = false;
+        btn.classList.remove("is-processing");
+        btn.innerHTML = prevHtml;
+      }
     });
   }
 
@@ -1782,10 +2971,35 @@
   }
 
   bindPhotoUpload();
+  bindLivePreview();
+  populatePassingYearSelect();
+  populateEduSchoolSuggestions();
+  fillEducationForm(null);
+  var eduResultTypeEl = $("#rb2EduResultType");
+  if (eduResultTypeEl) {
+    eduResultTypeEl.addEventListener("change", function () {
+      syncEduResultFields();
+      scheduleLocalUiSync();
+    });
+  }
+  var eduPassingYearEl = $("#rb2EduPassingYear");
+  if (eduPassingYearEl) {
+    eduPassingYearEl.addEventListener("change", function () {
+      syncEduStudyingState();
+      syncPassingYearSelectOptions();
+      scheduleLocalUiSync();
+    });
+  }
+  window.addEventListener("message", function (event) {
+    if (event.data && event.data.type === "TT_STUDIO_PREVIEW_UPDATED") {
+      resizePreviewFrame();
+    }
+  });
   renderLists();
   updateMultiAddButtons();
   setActiveSection(activeSection);
-  if (cfg.overallCompletion != null) updateCompleteUI(cfg.overallCompletion);
+  syncAiWriteButtons();
+  updateLocalUiFromForms();
 
   var previewFrame = $("#rb2PreviewFrame");
   if (previewFrame) {
@@ -1812,7 +3026,7 @@
         .then(function (data) {
           if (data && data.ok) {
             setPhotoPreview(data.url || "");
-            reloadPreview(cfg.prototypeKey, true);
+            scheduleLocalUiSync();
           }
         })
         .finally(function () {
@@ -1846,7 +3060,7 @@
               .then(function (data) {
                 if (data && data.ok) {
                   setPhotoPreview("");
-                  reloadPreview(cfg.prototypeKey, true);
+                  scheduleLocalUiSync();
                   msgs.toast("Photo removed from this resume.", { type: "info", title: "Photo updated" });
                 }
               })
@@ -1856,5 +3070,28 @@
           });
       });
     }
+  }
+
+  function openResumePdf() {
+    var pdfBtn = $("#rb2DownloadPdf");
+    var url = (cfg.pdfUrl || (pdfBtn && pdfBtn.getAttribute("href")) || "").trim();
+    if (!url) return;
+    if (savePending > 0) return;
+    setSavingState(true);
+    saveCurrentSection()
+      .then(function () {
+        window.open(url, "_blank", "noopener");
+      })
+      .finally(function () {
+        setSavingState(false);
+      });
+  }
+
+  var pdfBtn = $("#rb2DownloadPdf");
+  if (pdfBtn) {
+    pdfBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      openResumePdf();
+    });
   }
 })();

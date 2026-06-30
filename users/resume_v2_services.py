@@ -107,8 +107,8 @@ SECTION_LABELS = {
     "certificates": "Certificates",
     "languages": "Languages",
     "hobbies": "Hobbies",
-    "achievements": "Achievements",
-    "summary": "Summary",
+    "achievements": "Achievements & Activities",
+    "summary": "Career Objective",
     "experience": "Work Experience",
 }
 
@@ -272,7 +272,7 @@ class ProfileAutofillDetector:
         if activity_count == 0:
             missing.append("Activities")
         if resume and not (resume.about or "").strip():
-            missing.append("Summary")
+            missing.append("Career Objective")
 
         return {
             "found": found,
@@ -599,7 +599,7 @@ class ResumeSuggestionService:
             and not any(i["action"] == "add_summary" for i in items)
         ):
             items.append({
-                "text": "Improve Summary for student profile",
+                "text": "Improve Career Objective for student profile",
                 "action": "improve_summary",
                 "section": "summary",
                 "coach_action": "generate_summary",
@@ -761,6 +761,24 @@ class ProjectDescriptionGenerator:
         return bullets
 
 
+class AchievementDescriptionGenerator:
+    """Generate or improve achievement / activity copy via OpenAI."""
+
+    @staticmethod
+    def generate(user, resume, title: str) -> str:
+        from .resume_v2_ai import ai_generate_achievement_description
+
+        text, _used_ai = ai_generate_achievement_description(user, resume, title)
+        return text
+
+    @staticmethod
+    def improve(user, resume, title: str, text: str, mode: str = "professional") -> str:
+        from .resume_v2_ai import ai_improve_achievement_description
+
+        improved, _used_ai = ai_improve_achievement_description(user, resume, title, text, mode=mode)
+        return improved
+
+
 def apply_profile_autofill(user, resume) -> dict:
     """Back-compat — delegates to per-user profile JSON bootstrap."""
     from .resume_profile_store import bootstrap_user_resume_from_profile
@@ -909,6 +927,234 @@ def save_resume_hobbies(resume, text: str) -> str:
     return hobbies
 
 
+def _parse_class_level(grade: str) -> int | None:
+    g = (grade or "").strip().lower()
+    if re.search(r"\b12\b|12th|xii|twelfth", g):
+        return 12
+    if re.search(r"\b10\b|10th|tenth", g):
+        return 10
+    return None
+
+
+def _normalize_grade_key(grade: str) -> str:
+    level = _parse_class_level(grade)
+    if level:
+        return f"class-{level}"
+    return (grade or "").strip().lower()
+
+
+def _normalize_percentage_store(result_value: str) -> str:
+    s = (result_value or "").strip()
+    if not s:
+        return ""
+    try:
+        n = float(s)
+    except ValueError:
+        return s[:50]
+    return f"{round(n, 2):.2f}"
+
+
+def _validate_percentage_value(result_value: str) -> str | None:
+    s = (result_value or "").strip()
+    if not s:
+        return "Enter your percentage"
+    try:
+        n = float(s)
+    except ValueError:
+        return "Enter a valid percentage"
+    if n < 0 or n > 100:
+        return "Percentage must be between 0 and 100"
+    if abs(n - round(n, 2)) > 1e-9:
+        return "Percentage can have at most 2 decimal places"
+    return None
+
+
+def _validate_education_duplicates(entries: list[dict]) -> str | None:
+    grade_keys: set[str] = set()
+    passing_years: set[str] = set()
+    for raw in entries:
+        grade_key = _normalize_grade_key(raw.get("grade") or "")
+        if grade_key:
+            if grade_key in grade_keys:
+                return "This class or grade is already added"
+            grade_keys.add(grade_key)
+        py = (raw.get("passing_year") or "").strip()
+        if not py:
+            py = _infer_passing_year((raw.get("dates") or "").strip())
+        if py:
+            if py in passing_years:
+                if py == "studying":
+                    return 'Only one entry can use "Currently studying"'
+                return "This passing year is already used for another entry"
+            passing_years.add(py)
+    return None
+
+
+def _education_entry_has_marks(raw: dict) -> bool:
+    if not isinstance(raw, dict):
+        return False
+    rt = (raw.get("result_type") or "").strip().lower()
+    rv = (raw.get("result_value") or "").strip()
+    if rt == "percentage" and rv:
+        try:
+            n = float(rv)
+            return 0 <= n <= 100
+        except ValueError:
+            return False
+    if rt == "grade" and rv:
+        return True
+    detail = (raw.get("detail") or "").strip()
+    if detail.endswith("%"):
+        try:
+            n = float(detail[:-1].strip())
+            return 0 <= n <= 100
+        except ValueError:
+            return False
+    if detail.lower().startswith("grade"):
+        return bool(detail.split(":", 1)[-1].strip()) if ":" in detail else len(detail) > 6
+    return False
+
+
+def validate_education_entry_payload(
+    resume,
+    user,
+    *,
+    school: str,
+    grade: str,
+    passing_year: str = "",
+    result_type: str = "",
+    result_value: str = "",
+    entry_id: str | None = None,
+) -> str | None:
+    """Return user-facing error message, or None if valid."""
+    school = (school or "").strip()
+    grade = (grade or "").strip()
+    passing_year = (passing_year or "").strip()
+    result_type = (result_type or "").strip().lower()
+    result_value = (result_value or "").strip()
+
+    if passing_year == "studying":
+        result_type = ""
+        result_value = ""
+
+    if result_type == "percentage":
+        pct_err = _validate_percentage_value(result_value)
+        if pct_err:
+            return pct_err
+        result_value = _normalize_percentage_store(result_value)
+    elif result_type == "grade" and not result_value:
+        return "Select a grade"
+
+    if passing_year == "studying":
+        for raw in get_v2_meta(resume).get("education_entries") or []:
+            if not isinstance(raw, dict):
+                continue
+            eid = (raw.get("id") or "").strip()
+            if entry_id and eid == entry_id:
+                continue
+            py = (raw.get("passing_year") or "").strip()
+            if not py:
+                py = _infer_passing_year((raw.get("dates") or "").strip())
+            if py == "studying":
+                return 'Only one entry can use "Currently studying"'
+
+    ensure_resume_education_entries(resume, user)
+    entries: list[dict] = []
+    for raw in get_v2_meta(resume).get("education_entries") or []:
+        if not isinstance(raw, dict):
+            continue
+        eid = (raw.get("id") or "").strip()
+        if entry_id and eid == entry_id:
+            entries.append(
+                {
+                    "grade": grade,
+                    "passing_year": passing_year,
+                    "result_type": result_type,
+                    "result_value": result_value,
+                    "detail": _education_detail_from_result(result_type, result_value, ""),
+                }
+            )
+        else:
+            norm = _norm_education_entry(raw)
+            if norm:
+                entries.append(norm)
+
+    if not entry_id:
+        entries.append(
+            {
+                "grade": grade,
+                "passing_year": passing_year,
+                "result_type": result_type,
+                "result_value": result_value,
+                "detail": _education_detail_from_result(result_type, result_value, ""),
+            }
+        )
+
+    has_12 = any(_parse_class_level(e.get("grade") or "") == 12 for e in entries)
+    if has_12:
+        class10 = next((e for e in entries if _parse_class_level(e.get("grade") or "") == 10), None)
+        if not class10:
+            return "Add a Class 10 entry with your marks when you are in Class 12."
+        if not _education_entry_has_marks(class10):
+            return "Class 10 percentage or grade is required when you are in Class 12."
+
+    dup_err = _validate_education_duplicates(entries)
+    if dup_err:
+        return dup_err
+    return None
+
+
+def _infer_passing_year(dates: str) -> str:
+    d = (dates or "").strip()
+    if not d:
+        return ""
+    low = d.lower()
+    if low in ("present", "currently studying", "studying", "current"):
+        return "studying"
+    year_match = re.search(r"\b(19|20)\d{2}\b", d)
+    if year_match:
+        return year_match.group(0)
+    if re.fullmatch(r"\d{4}", d):
+        return d
+    return ""
+
+
+def _parse_result_from_detail(detail: str) -> tuple[str, str]:
+    d = (detail or "").strip()
+    if not d:
+        return "", ""
+    if d.endswith("%"):
+        return "percentage", d[:-1].strip()
+    if d.lower().startswith("grade:"):
+        return "grade", d.split(":", 1)[1].strip()
+    if d.lower().startswith("grade "):
+        return "grade", d[6:].strip()
+    return "", ""
+
+
+def _education_dates_display(passing_year: str, dates_fallback: str = "") -> str:
+    py = (passing_year or "").strip()
+    if py == "studying":
+        return "Currently studying"
+    if py.isdigit() and len(py) == 4:
+        return py
+    return (dates_fallback or "").strip()[:100]
+
+
+def _education_detail_from_result(
+    result_type: str, result_value: str, detail_fallback: str = ""
+) -> str:
+    rt = (result_type or "").strip().lower()
+    rv = (result_value or "").strip()
+    if rt == "percentage" and rv:
+        return f"{rv}%" if not rv.endswith("%") else rv[:500]
+    if rt == "grade" and rv:
+        if rv.lower().startswith("grade"):
+            return rv[:500]
+        return f"Grade: {rv}"[:500]
+    return (detail_fallback or "").strip()[:500]
+
+
 def _norm_education_entry(raw: dict | None) -> dict | None:
     if not isinstance(raw, dict):
         return None
@@ -917,49 +1163,145 @@ def _norm_education_entry(raw: dict | None) -> dict | None:
     if not school and not grade:
         return None
     entry_id = (raw.get("id") or "").strip() or None
+    dates_fallback = (raw.get("dates") or "").strip()[:100]
+    detail_fallback = (raw.get("detail") or "").strip()[:500]
+    passing_year = (raw.get("passing_year") or "").strip()[:20]
+    if not passing_year:
+        passing_year = _infer_passing_year(dates_fallback)
+    result_type = (raw.get("result_type") or "").strip().lower()[:20]
+    result_value = (raw.get("result_value") or "").strip()[:50]
+    if passing_year == "studying":
+        result_type = ""
+        result_value = ""
+    elif not result_type and not result_value:
+        result_type, result_value = _parse_result_from_detail(detail_fallback)
+    if result_type == "percentage" and result_value:
+        result_value = _normalize_percentage_store(result_value)
+    dates = _education_dates_display(passing_year, dates_fallback)
+    detail = _education_detail_from_result(result_type, result_value, detail_fallback)
     return {
         "id": entry_id or "",
         "school": school,
         "grade": grade,
-        "dates": (raw.get("dates") or "").strip()[:100],
-        "detail": (raw.get("detail") or "").strip()[:500],
+        "dates": dates,
+        "detail": detail,
+        "passing_year": passing_year,
+        "result_type": result_type,
+        "result_value": result_value,
+        "is_profile_school": bool(raw.get("is_profile_school")),
     }
 
 
+def _tag_profile_education_entries(entries: list[dict], user, resume) -> list[dict]:
+    """Ensure the profile-linked school row is flagged (incl. legacy resumes)."""
+    if not entries:
+        return entries
+    meta = get_v2_meta(resume)
+    pinned_id = (meta.get("profile_education_entry_id") or "").strip()
+    personal = studio_personal_context(user, resume)
+    profile_school = (personal.get("school") or "").strip().lower()
+
+    flagged = [e for e in entries if e.get("is_profile_school")]
+    if len(flagged) == 1:
+        target_id = flagged[0].get("id") or ""
+    elif pinned_id and any(e.get("id") == pinned_id for e in entries):
+        target_id = pinned_id
+    elif profile_school:
+        target_id = ""
+        for e in entries:
+            if (e.get("school") or "").strip().lower() == profile_school:
+                target_id = e.get("id") or ""
+                break
+        if not target_id and len(entries) == 1:
+            target_id = entries[0].get("id") or ""
+    else:
+        target_id = ""
+
+    if not target_id:
+        return entries
+
+    changed = False
+    for e in entries:
+        want = e.get("id") == target_id
+        if bool(e.get("is_profile_school")) != want:
+            e["is_profile_school"] = want
+            changed = True
+
+    if changed or pinned_id != target_id:
+        save_v2_meta(resume, {"profile_education_entry_id": target_id})
+    return entries
+
+
+def is_profile_education_entry(resume, user, entry_id: str) -> bool:
+    ensure_resume_education_entries(resume, user)
+    entry_id = (entry_id or "").strip()
+    if not entry_id:
+        return False
+    for raw in get_v2_meta(resume).get("education_entries") or []:
+        if isinstance(raw, dict) and (raw.get("id") or "").strip() == entry_id:
+            return bool(raw.get("is_profile_school"))
+    return False
+
+
 def ensure_resume_education_entries(resume, user) -> list[dict]:
-    """Load education rows from v2 meta; seed once from profile school/grade."""
+    """Load education rows from v2 meta; seed from profile school/grade when empty."""
     import uuid
 
     meta = get_v2_meta(resume)
-    if "education_entries" in meta:
+    personal = studio_personal_context(user, resume)
+    school = (personal.get("school") or "").strip()
+    grade = (personal.get("grade") or "").strip()
+
+    def normalize_entries(raw_list) -> list[dict]:
         out: list[dict] = []
-        for raw in meta.get("education_entries") or []:
+        for raw in raw_list or []:
             entry = _norm_education_entry(raw)
             if not entry:
                 continue
             if not entry["id"]:
                 entry["id"] = f"edu-{uuid.uuid4().hex[:8]}"
+            if raw.get("is_profile_school"):
+                entry["is_profile_school"] = True
             out.append(entry)
-        if out != (meta.get("education_entries") or []):
-            save_v2_meta(resume, {"education_entries": out})
-        return out
+        return _tag_profile_education_entries(out, user, resume)
 
-    personal = studio_personal_context(user, resume)
-    school = (personal.get("school") or "").strip()
-    grade = (personal.get("grade") or "").strip()
-    seeded: list[dict] = []
-    if school or grade:
-        seeded.append(
-            {
-                "id": f"edu-{uuid.uuid4().hex[:8]}",
-                "school": school,
-                "grade": grade,
-                "dates": "",
-                "detail": "",
-            }
-        )
-    save_v2_meta(resume, {"education_entries": seeded})
-    return seeded
+    if "education_entries" in meta:
+        entries = normalize_entries(meta.get("education_entries"))
+    else:
+        entries = None
+
+    if not entries:
+        if school or grade:
+            entry_id = f"edu-{uuid.uuid4().hex[:8]}"
+            entries = [
+                {
+                    "id": entry_id,
+                    "school": school,
+                    "grade": grade,
+                    "dates": "Currently studying",
+                    "detail": "",
+                    "passing_year": "studying",
+                    "result_type": "",
+                    "result_value": "",
+                    "is_profile_school": True,
+                }
+            ]
+            save_v2_meta(
+                resume,
+                {
+                    "education_entries": entries,
+                    "profile_education_entry_id": entry_id,
+                },
+            )
+        else:
+            entries = []
+            if "education_entries" not in meta:
+                save_v2_meta(resume, {"education_entries": entries})
+        return entries
+
+    if entries != (meta.get("education_entries") or []):
+        save_v2_meta(resume, {"education_entries": entries})
+    return entries
 
 
 def add_resume_education_entry(
@@ -970,34 +1312,44 @@ def add_resume_education_entry(
     grade: str,
     dates: str = "",
     detail: str = "",
+    passing_year: str = "",
+    result_type: str = "",
+    result_value: str = "",
 ) -> list[dict]:
     import uuid
 
     ensure_resume_education_entries(resume, user)
     entries = list(get_v2_meta(resume).get("education_entries") or [])
-    entries.append(
-        {
-            "id": f"edu-{uuid.uuid4().hex[:8]}",
-            "school": (school or "").strip()[:250],
-            "grade": (grade or "").strip()[:100],
-            "dates": (dates or "").strip()[:100],
-            "detail": (detail or "").strip()[:500],
-        }
-    )
+    raw = {
+        "id": f"edu-{uuid.uuid4().hex[:8]}",
+        "school": (school or "").strip()[:250],
+        "grade": (grade or "").strip()[:100],
+        "dates": (dates or "").strip()[:100],
+        "detail": (detail or "").strip()[:500],
+        "passing_year": (passing_year or "").strip()[:20],
+        "result_type": (result_type or "").strip()[:20],
+        "result_value": (result_value or "").strip()[:50],
+    }
+    entry = _norm_education_entry(raw)
+    if entry:
+        entries.append(entry)
     save_v2_meta(resume, {"education_entries": entries})
     return [_norm_education_entry(e) for e in entries if _norm_education_entry(e)]
 
 
-def delete_resume_education_entry(resume, user, entry_id: str) -> list[dict]:
+def delete_resume_education_entry(resume, user, entry_id: str) -> tuple[list[dict], str | None]:
     ensure_resume_education_entries(resume, user)
     entry_id = (entry_id or "").strip()
-    entries = [
-        e
-        for e in (get_v2_meta(resume).get("education_entries") or [])
-        if isinstance(e, dict) and (e.get("id") or "").strip() != entry_id
+    entries_raw = [
+        e for e in (get_v2_meta(resume).get("education_entries") or []) if isinstance(e, dict)
     ]
+    for raw in entries_raw:
+        if (raw.get("id") or "").strip() == entry_id and raw.get("is_profile_school"):
+            current = [_norm_education_entry(e) for e in entries_raw if _norm_education_entry(e)]
+            return current, "Your current school cannot be removed. Edit it to update your profile."
+    entries = [e for e in entries_raw if (e.get("id") or "").strip() != entry_id]
     save_v2_meta(resume, {"education_entries": entries})
-    return [_norm_education_entry(e) for e in entries if _norm_education_entry(e)]
+    return [_norm_education_entry(e) for e in entries if _norm_education_entry(e)], None
 
 
 def update_resume_education_entry(
@@ -1009,6 +1361,9 @@ def update_resume_education_entry(
     grade: str,
     dates: str = "",
     detail: str = "",
+    passing_year: str = "",
+    result_type: str = "",
+    result_value: str = "",
 ) -> list[dict] | None:
     ensure_resume_education_entries(resume, user)
     entry_id = (entry_id or "").strip()
@@ -1022,15 +1377,21 @@ def update_resume_education_entry(
         eid = (raw.get("id") or "").strip()
         if eid == entry_id:
             found = True
-            entries.append(
+            normalized = _norm_education_entry(
                 {
                     "id": eid,
                     "school": (school or "").strip()[:250],
                     "grade": (grade or "").strip()[:100],
                     "dates": (dates or "").strip()[:100],
                     "detail": (detail or "").strip()[:500],
+                    "passing_year": (passing_year or "").strip()[:20],
+                    "result_type": (result_type or "").strip()[:20],
+                    "result_value": (result_value or "").strip()[:50],
+                    "is_profile_school": raw.get("is_profile_school"),
                 }
             )
+            if normalized:
+                entries.append(normalized)
         else:
             entry = _norm_education_entry(raw)
             if entry:
@@ -1391,7 +1752,7 @@ AI_RESUME_PENDING_KEY = "ai_resume_pending"
 
 AI_COMPARE_SECTIONS: list[tuple[str, str]] = [
     ("headline", "Personal / Headline"),
-    ("summary", "Summary"),
+    ("summary", "Career Objective"),
     ("skills", "Skills"),
     ("education", "Education"),
     ("projects", "Projects"),
@@ -1636,7 +1997,6 @@ def apply_ai_generated_resume(
 ) -> dict:
     """Persist AI-generated resume JSON to DB and v2 meta. Returns fields applied for the UI."""
     from .resume_payload import _is_resume_meta_activity_title
-    from .resume_profile_store import sync_headline_to_user_profile, sync_summary_to_user_profile
 
     apply_all = sections is None
     chosen = {s.strip() for s in (sections or []) if s and str(s).strip()}
@@ -1650,7 +2010,6 @@ def apply_ai_generated_resume(
         headline = (data.get("headline") or "").strip()[:200]
         if headline:
             save_v2_meta(resume, {"headline": headline})
-            sync_headline_to_user_profile(user, headline)
             applied["headline"] = headline
 
     if want("summary"):
@@ -1658,7 +2017,6 @@ def apply_ai_generated_resume(
         if summary:
             resume.about = summary
             resume.save(update_fields=["about", "modified"])
-            sync_summary_to_user_profile(user, summary)
             applied["summary"] = summary
 
     if want("skills"):

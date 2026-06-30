@@ -6,10 +6,15 @@
       ? window.__TT_STORAGE_KEY.trim()
       : "resume-builder-data-v2";
 
+  const CAREER_OBJECTIVE_TITLE = "Career Objective";
+  const ACHIEVEMENTS_ACTIVITIES_TITLE = "Achievements & Activities";
+  const PROJECTS_TITLE = "Projects";
+  const WORK_EXPERIENCE_TITLE = "Work Experience";
+
   function deepMergeResume(def, srv) {
     if (!srv || typeof srv !== "object") return { ...def };
     const o = { ...def, ...srv };
-    const arrKeys = ["skills", "experience", "education", "certifications", "languages"];
+    const arrKeys = ["skills", "experience", "projects", "achievements", "workExperience", "education", "certifications", "languages"];
     for (const k of arrKeys) {
       if (Array.isArray(srv[k])) o[k] = srv[k].map((x) => (x && typeof x === "object" ? { ...x } : x));
     }
@@ -167,6 +172,7 @@
   let activeFontSizeId = "standard";
   let saveTimer = null;
   let pdfBusy = false;
+  let forceClientPreview = false;
 
   function defaultResume() {
     return {
@@ -255,11 +261,20 @@
     return `<p class="${className}">${esc(d.headline)}</p>`;
   }
 
+  function photoInitialLetter(d) {
+    const fromField = String((d && d.photoInitial) || "").trim();
+    if (fromField) return fromField.charAt(0).toUpperCase();
+    const name = String((d && d.fullName) || "").trim();
+    if (name) return name.charAt(0).toUpperCase();
+    return "?";
+  }
+
   function photoHtml(d, className) {
     if (d.photo && String(d.photo).trim()) {
       return `<img class="${className}" src="${esc(d.photo)}" alt="" />`;
     }
-    return `<div class="${className} tpl-photo tpl-photo--placeholder" aria-hidden="true"></div>`;
+    const initial = esc(photoInitialLetter(d));
+    return `<div class="${className} tpl-photo tpl-photo--placeholder" aria-hidden="true"><span class="tpl-photo-initial">${initial}</span></div>`;
   }
 
   function contactParts(d) {
@@ -322,9 +337,36 @@
       .join("");
   }
 
-  function experienceHtml(d, classJob) {
+  function isProjectBlock(exp) {
+    if (!exp || typeof exp !== "object") return false;
+    return String(exp.company || "").trim() === "Project";
+  }
+
+  function isWorkExperienceBlock(exp) {
+    if (!exp || typeof exp !== "object") return false;
+    const c = String(exp.company || "").trim();
+    if (!c || c === "Project" || c === "Activity" || c.startsWith("Volunteer")) return false;
+    return true;
+  }
+
+  function projectsFromData(d) {
+    if (Array.isArray(d.projects)) return d.projects;
+    return (d.experience || []).filter(isProjectBlock);
+  }
+
+  function achievementsFromData(d) {
+    if (Array.isArray(d.achievements)) return d.achievements;
+    return (d.experience || []).filter((exp) => !isProjectBlock(exp) && !isWorkExperienceBlock(exp));
+  }
+
+  function workExperienceFromData(d) {
+    if (Array.isArray(d.workExperience)) return d.workExperience;
+    return (d.experience || []).filter(isWorkExperienceBlock);
+  }
+
+  function jobBlocksHtml(items, classJob) {
     const cj = classJob || "tpl-job";
-    return (d.experience || [])
+    return (items || [])
       .map((exp) => {
         const bullets = (exp.bullets || []).map((b) => `<li>${esc(b)}</li>`).join("");
         const dates = hasDisplayText(exp.dates)
@@ -342,6 +384,66 @@
         </div>`;
       })
       .join("");
+  }
+
+  function projectsHtml(d, classJob) {
+    return jobBlocksHtml(projectsFromData(d), classJob);
+  }
+
+  function achievementsHtml(d, classJob) {
+    return jobBlocksHtml(achievementsFromData(d), classJob);
+  }
+
+  function workExperienceHtml(d, classJob) {
+    return jobBlocksHtml(workExperienceFromData(d), classJob);
+  }
+
+  function experienceHtml(d, classJob) {
+    return achievementsHtml(d, classJob);
+  }
+
+  function projectsSection(d, opts) {
+    opts = opts || {};
+    const inner = projectsHtml(d, opts.jobClass);
+    if (!String(inner || "").trim()) return "";
+    const wrap = opts.wrap || "tpl-sec";
+    const h2 = opts.h2 || "tpl-h2";
+    const prefix = opts.titlePrefix || "";
+    return `<section class="${wrap}"><h2 class="${h2}">${prefix}${PROJECTS_TITLE}</h2>${inner}</section>`;
+  }
+
+  function achievementsSection(d, opts) {
+    opts = opts || {};
+    const inner = achievementsHtml(d, opts.jobClass);
+    if (!String(inner || "").trim()) return "";
+    const wrap = opts.wrap || "tpl-sec";
+    const h2 = opts.h2 || "tpl-h2";
+    const prefix = opts.titlePrefix || "";
+    return `<section class="${wrap}"><h2 class="${h2}">${prefix}${ACHIEVEMENTS_ACTIVITIES_TITLE}</h2>${inner}</section>`;
+  }
+
+  function workExperienceSection(d, opts) {
+    opts = opts || {};
+    const inner = workExperienceHtml(d, opts.jobClass);
+    if (!String(inner || "").trim()) return "";
+    const wrap = opts.wrap || "tpl-sec";
+    const h2 = opts.h2 || "tpl-h2";
+    const prefix = opts.titlePrefix || "";
+    return `<section class="${wrap}"><h2 class="${h2}">${prefix}${WORK_EXPERIENCE_TITLE}</h2>${inner}</section>`;
+  }
+
+  function resumeJobSections(d, opts) {
+    opts = opts || {};
+    return (
+      projectsSection(d, opts) +
+      achievementsSection(d, opts) +
+      workExperienceSection(d, opts)
+    );
+  }
+
+  function hzJobSection(title, inner) {
+    if (!String(inner || "").trim()) return "";
+    return `<section class="tpl-hz-sec"><div class="tpl-hz-bar"></div><h2 class="tpl-hz-h2">${title}</h2>${inner}</section>`;
   }
 
   function educationHtml(d) {
@@ -397,8 +499,9 @@
       .join("");
   }
 
-  function experienceTimelineHtml(d) {
-    return (d.experience || [])
+  function experienceTimelineHtml(d, items) {
+    const rows = items || achievementsFromData(d);
+    return rows
       .map((exp) => {
         const bullets = (exp.bullets || []).map((b) => `<li>${esc(b)}</li>`).join("");
         const dates = hasDisplayText(exp.dates)
@@ -431,9 +534,9 @@
           <p class="tpl-min-contact">${contact}</p>
         </header>
         <hr class="tpl-min-rule" />
-        <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--center">Summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+        <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--center">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
         <hr class="tpl-min-rule" />
-        <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--center">Experience</h2>${experienceHtml(d, "tpl-job tpl-job--min")}</section>
+        ${resumeJobSections(d, { h2: "tpl-h2 tpl-h2--center", jobClass: "tpl-job tpl-job--min" })}
         <hr class="tpl-min-rule" />
         <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--center">Education</h2>${educationHtml(d)}</section>
         <hr class="tpl-min-rule" />
@@ -457,8 +560,8 @@
           <ul class="tpl-bullets tpl-bullets--tight">${languagesHtml(d)}</ul>
         </aside>
         <div class="tpl-cs-main">
-          <section class="tpl-sec"><h2 class="tpl-h2">Summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-          <section class="tpl-sec"><h2 class="tpl-h2">Experience</h2>${experienceHtml(d)}</section>
+          <section class="tpl-sec"><h2 class="tpl-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+          ${resumeJobSections(d, { h2: "tpl-h2" })}
           <section class="tpl-sec"><h2 class="tpl-h2">Education</h2>${educationHtml(d)}</section>
           <section class="tpl-sec"><h2 class="tpl-h2">Certifications</h2>${certificationsHtml(d)}</section>
           <section class="tpl-sec"><h2 class="tpl-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
@@ -475,9 +578,9 @@
           <p class="tpl-ch-contact">${contact}</p>
         </header>
         <div class="tpl-ch-body">
-          <section class="tpl-sec"><h2 class="tpl-h2">Profile</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+          <section class="tpl-sec"><h2 class="tpl-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
           <div class="tpl-ch-row">
-            <section class="tpl-sec tpl-sec--half"><h2 class="tpl-h2">Experience</h2>${experienceHtml(d)}</section>
+            ${resumeJobSections(d, { h2: "tpl-h2", wrap: "tpl-sec tpl-sec--half" })}
             <section class="tpl-sec tpl-sec--half">
               <h2 class="tpl-h2">Education</h2>${educationHtml(d)}
               <h2 class="tpl-h2 tpl-h2--spaced">Skills</h2><ul class="tpl-bullets">${skillsListHtml(d)}</ul>
@@ -506,9 +609,9 @@
           <p class="tpl-ms-contact">${contact}</p>
         </header>
         <div class="tpl-ms-grid">
-          <section class="tpl-sec"><h2 class="tpl-h2"><span class="tpl-ico">📋</span> Summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+          <section class="tpl-sec"><h2 class="tpl-h2"><span class="tpl-ico">📋</span> Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
           <section class="tpl-sec"><h2 class="tpl-h2"><span class="tpl-ico">🎓</span> Education</h2>${educationHtml(d)}</section>
-          <section class="tpl-sec tpl-ms-span2"><h2 class="tpl-h2"><span class="tpl-ico">💼</span> Experience</h2>${experienceHtml(d)}</section>
+          ${resumeJobSections(d, { h2: "tpl-h2", wrap: "tpl-sec tpl-ms-span2", titlePrefix: '<span class="tpl-ico">💼</span> ' })}
           <section class="tpl-sec"><h2 class="tpl-h2"><span class="tpl-ico">⚡</span> Skills</h2><ul class="tpl-bullets">${skillsListHtml(d)}</ul></section>
           <section class="tpl-sec"><h2 class="tpl-h2"><span class="tpl-ico">🌐</span> Languages</h2><ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
           <section class="tpl-sec tpl-ms-span2"><h2 class="tpl-h2"><span class="tpl-ico">🏅</span> Certifications</h2>${certificationsHtml(d)}</section>
@@ -525,8 +628,8 @@
             ${tplHeadline("tpl-pb-title", d)}
             <p class="tpl-pb-contact">${contactParts(d).join(" · ")}</p>
           </header>
-          <section class="tpl-sec"><h2 class="tpl-h2">Summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-          <section class="tpl-sec"><h2 class="tpl-h2">Experience</h2>${experienceHtml(d)}</section>
+          <section class="tpl-sec"><h2 class="tpl-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+          ${resumeJobSections(d, { h2: "tpl-h2" })}
           <section class="tpl-sec"><h2 class="tpl-h2">Education</h2>${educationHtml(d)}</section>
           <section class="tpl-sec"><h2 class="tpl-h2">Certifications</h2>${certificationsHtml(d)}</section>
           <section class="tpl-sec"><h2 class="tpl-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
@@ -549,8 +652,8 @@
           <p class="tpl-bh-contact">${contactParts(d).join(" · ")}</p>
         </header>
         <div class="tpl-bh-body">
-          <section class="tpl-sec"><h2 class="tpl-h2">Summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-          <section class="tpl-sec"><h2 class="tpl-h2">Experience</h2>${experienceHtml(d)}</section>
+          <section class="tpl-sec"><h2 class="tpl-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+          ${resumeJobSections(d, { h2: "tpl-h2" })}
           <section class="tpl-sec"><h2 class="tpl-h2">Education</h2>${educationHtml(d)}</section>
           <section class="tpl-sec"><h2 class="tpl-h2">Skills</h2><ul class="tpl-bullets">${skillsListHtml(d)}</ul></section>
           <section class="tpl-sec"><h2 class="tpl-h2">Certifications &amp; languages</h2>${certificationsHtml(d)}<ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
@@ -574,8 +677,8 @@
             <h1 class="tpl-tf-name">${esc(d.fullName)}</h1>
             ${tplHeadline("tpl-tf-title", d)}
           </header>
-          <section class="tpl-sec"><h2 class="tpl-h2">Summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-          <section class="tpl-sec"><h2 class="tpl-h2">Experience</h2>${experienceHtml(d)}</section>
+          <section class="tpl-sec"><h2 class="tpl-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+          ${resumeJobSections(d, { h2: "tpl-h2" })}
           <section class="tpl-sec"><h2 class="tpl-h2">Education</h2>${educationHtml(d)}</section>
           <section class="tpl-sec"><h2 class="tpl-h2">Certifications</h2>${certificationsHtml(d)}</section>
           <section class="tpl-sec"><h2 class="tpl-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
@@ -591,8 +694,8 @@
           ${tplHeadline("tpl-el-title", d)}
           <p class="tpl-el-contact">${contact}</p>
         </header>
-        <section class="tpl-sec"><h2 class="tpl-el-h2">Summary</h2><p class="tpl-el-p">${esc(d.summary)}</p></section>
-        <section class="tpl-sec"><h2 class="tpl-el-h2">Experience</h2>${experienceHtml(d, "tpl-job tpl-job--elegant")}</section>
+        <section class="tpl-sec"><h2 class="tpl-el-h2">Career Objective</h2><p class="tpl-el-p">${esc(d.summary)}</p></section>
+        ${resumeJobSections(d, { h2: "tpl-el-h2", jobClass: "tpl-job tpl-job--elegant" })}
         <section class="tpl-sec"><h2 class="tpl-el-h2">Education</h2>${educationHtml(d)}</section>
         <section class="tpl-sec"><h2 class="tpl-el-h2">Skills</h2><p class="tpl-el-p">${(d.skills || []).map((s) => esc(s.name)).join(" · ")}</p></section>
         <section class="tpl-sec"><h2 class="tpl-el-h2">Certifications</h2>${certificationsHtml(d)}</section>
@@ -611,8 +714,8 @@
             <p class="tpl-geo-contact">${contactParts(d).join(" · ")}</p>
           </div>
         </header>
-        <section class="tpl-sec"><h2 class="tpl-geo-h2">Summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-        <section class="tpl-sec"><h2 class="tpl-geo-h2">Experience</h2>${experienceHtml(d)}</section>
+        <section class="tpl-sec"><h2 class="tpl-geo-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+        ${resumeJobSections(d, { h2: "tpl-geo-h2" })}
         <div class="tpl-geo-split">
           <section class="tpl-sec"><h2 class="tpl-geo-h2">Education</h2>${educationHtml(d)}</section>
           <section class="tpl-sec"><h2 class="tpl-geo-h2">Skills</h2><ul class="tpl-bullets">${skillsListHtml(d)}</ul></section>
@@ -639,8 +742,8 @@
             <p class="tpl-hc-small">${esc(interestsText(d))}</p>
           </aside>
           <div class="tpl-hc-main">
-            <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--hc">Summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-            <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--hc">Experience</h2>${experienceHtml(d)}</section>
+            <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--hc">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+            ${resumeJobSections(d, { h2: "tpl-h2 tpl-h2--hc" })}
             <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--hc">Education</h2>${educationHtml(d)}</section>
             <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--hc">Certifications</h2>${certificationsHtml(d)}</section>
           </div>
@@ -659,8 +762,10 @@
           </div>
         </div>
         <div class="tpl-au-body">
-          <section class="tpl-au-card"><h2 class="tpl-au-h2">Summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-          <section class="tpl-au-card"><h2 class="tpl-au-h2">Experience</h2>${experienceHtml(d)}</section>
+          <section class="tpl-au-card"><h2 class="tpl-au-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+          ${projectsSection(d, { h2: "tpl-au-h2", wrap: "tpl-au-card" })}
+          ${achievementsSection(d, { h2: "tpl-au-h2", wrap: "tpl-au-card" })}
+          ${workExperienceSection(d, { h2: "tpl-au-h2", wrap: "tpl-au-card" })}
           <div class="tpl-au-row">
             <section class="tpl-au-card tpl-au-card--half"><h2 class="tpl-au-h2">Education</h2>${educationHtml(d)}</section>
             <section class="tpl-au-card tpl-au-card--half"><h2 class="tpl-au-h2">Skills</h2><ul class="tpl-bullets">${skillsListHtml(d)}</ul></section>
@@ -684,9 +789,11 @@
         </header>
         <div class="tpl-mz-grid">
           <section class="tpl-mz-col">
-            <h2 class="tpl-mz-h2">Summary</h2>
+            <h2 class="tpl-mz-h2">Career Objective</h2>
             <p class="tpl-mz-lead">${esc(d.summary)}</p>
-            <h2 class="tpl-mz-h2">Experience</h2>${experienceHtml(d, "tpl-job tpl-job--mz")}
+            ${projectsFromData(d).length ? `<h2 class="tpl-mz-h2">${PROJECTS_TITLE}</h2>${projectsHtml(d, "tpl-job tpl-job--mz")}` : ""}
+            ${achievementsFromData(d).length ? `<h2 class="tpl-mz-h2">${ACHIEVEMENTS_ACTIVITIES_TITLE}</h2>${achievementsHtml(d, "tpl-job tpl-job--mz")}` : ""}
+            ${workExperienceFromData(d).length ? `<h2 class="tpl-mz-h2">${WORK_EXPERIENCE_TITLE}</h2>${workExperienceHtml(d, "tpl-job tpl-job--mz")}` : ""}
           </section>
           <aside class="tpl-mz-aside">
             ${photoHtml(d, "tpl-mz-photo")}
@@ -708,11 +815,10 @@
           ${tplHeadline("tpl-tl-sub", d)}
           <p class="tpl-tl-contact">${contactParts(d).join(" · ")}</p>
         </header>
-        <section class="tpl-sec"><h2 class="tpl-tl-section-title">Summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-        <section class="tpl-sec">
-          <h2 class="tpl-tl-section-title">Experience</h2>
-          <div class="tpl-tl-track">${experienceTimelineHtml(d)}</div>
-        </section>
+        <section class="tpl-sec"><h2 class="tpl-tl-section-title">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+        ${projectsFromData(d).length ? `<section class="tpl-sec"><h2 class="tpl-tl-section-title">${PROJECTS_TITLE}</h2><div class="tpl-tl-track">${experienceTimelineHtml(d, projectsFromData(d))}</div></section>` : ""}
+        ${achievementsFromData(d).length ? `<section class="tpl-sec"><h2 class="tpl-tl-section-title">${ACHIEVEMENTS_ACTIVITIES_TITLE}</h2><div class="tpl-tl-track">${experienceTimelineHtml(d, achievementsFromData(d))}</div></section>` : ""}
+        ${workExperienceFromData(d).length ? `<section class="tpl-sec"><h2 class="tpl-tl-section-title">${WORK_EXPERIENCE_TITLE}</h2><div class="tpl-tl-track">${experienceTimelineHtml(d, workExperienceFromData(d))}</div></section>` : ""}
         <div class="tpl-tl-two">
           <section class="tpl-sec"><h2 class="tpl-tl-section-title">Education</h2>${educationHtml(d)}</section>
           <section class="tpl-sec"><h2 class="tpl-tl-section-title">Skills</h2><ul class="tpl-bullets">${skillsListHtml(d)}</ul></section>
@@ -739,8 +845,8 @@
             <h1 class="tpl-ex-name">${esc(d.fullName)}</h1>
             ${tplHeadline("tpl-ex-title", d)}
           </header>
-          <section class="tpl-sec"><h2 class="tpl-ex-h2-main">Executive summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-          <section class="tpl-sec"><h2 class="tpl-ex-h2-main">Experience</h2>${experienceHtml(d)}</section>
+          <section class="tpl-sec"><h2 class="tpl-ex-h2-main">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+          ${resumeJobSections(d, { h2: "tpl-ex-h2-main" })}
           <section class="tpl-sec"><h2 class="tpl-ex-h2-main">Education</h2>${educationHtml(d)}</section>
           <section class="tpl-sec"><h2 class="tpl-ex-h2-main">Certifications</h2>${certificationsHtml(d)}</section>
           <section class="tpl-sec"><h2 class="tpl-ex-h2-main">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
@@ -762,8 +868,8 @@
           <div class="tpl-st-skills">${skillsPillsHtml(d)}</div>
         </header>
         <div class="tpl-st-body">
-          <section class="tpl-st-card"><h2 class="tpl-st-h2">About</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-          <section class="tpl-st-card"><h2 class="tpl-st-h2">Experience</h2>${experienceHtml(d, "tpl-job tpl-job--st")}</section>
+          <section class="tpl-st-card"><h2 class="tpl-st-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+          ${resumeJobSections(d, { h2: "tpl-st-h2", wrap: "tpl-st-card", jobClass: "tpl-job tpl-job--st" })}
           <div class="tpl-st-split">
             <section class="tpl-st-card"><h2 class="tpl-st-h2">Education</h2>${educationHtml(d)}</section>
             <section class="tpl-st-card"><h2 class="tpl-st-h2">Languages</h2><ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
@@ -788,8 +894,8 @@
           </div>
         </div>
         <div class="tpl-nv-body">
-          <section class="tpl-nv-panel"><h2 class="tpl-nv-h2">Summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-          <section class="tpl-nv-panel"><h2 class="tpl-nv-h2">Experience</h2>${experienceHtml(d)}</section>
+          <section class="tpl-nv-panel"><h2 class="tpl-nv-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+          ${resumeJobSections(d, { h2: "tpl-nv-h2", wrap: "tpl-nv-panel" })}
           <div class="tpl-nv-split">
             <section class="tpl-nv-panel"><h2 class="tpl-nv-h2">Education</h2>${educationHtml(d)}</section>
             <section class="tpl-nv-panel"><h2 class="tpl-nv-h2">Skills</h2><div class="tpl-nv-pills">${skillsPillsHtml(d)}</div></section>
@@ -807,8 +913,10 @@
           ${hasDisplayText(d.headline) ? `<p class="tpl-lg-meta"><span class="tpl-lg-label">ROLE</span> ${esc(d.headline)}</p>` : ""}
           <p class="tpl-lg-meta"><span class="tpl-lg-label">CONTACT</span> ${contactParts(d).join(" · ")}</p>
         </header>
-        <section class="tpl-lg-block"><h2 class="tpl-lg-h2"><span class="tpl-lg-hash">#</span> Summary</h2><p class="tpl-lg-p">${esc(d.summary)}</p></section>
-        <section class="tpl-lg-block"><h2 class="tpl-lg-h2"><span class="tpl-lg-hash">#</span> Experience</h2>${experienceHtml(d, "tpl-job tpl-job--lg")}</section>
+        <section class="tpl-lg-block"><h2 class="tpl-lg-h2"><span class="tpl-lg-hash">#</span> Career Objective</h2><p class="tpl-lg-p">${esc(d.summary)}</p></section>
+        ${projectsSection(d, { h2: "tpl-lg-h2", wrap: "tpl-lg-block", titlePrefix: '<span class="tpl-lg-hash">#</span> ', jobClass: "tpl-job tpl-job--lg" })}
+        ${achievementsSection(d, { h2: "tpl-lg-h2", wrap: "tpl-lg-block", titlePrefix: '<span class="tpl-lg-hash">#</span> ', jobClass: "tpl-job tpl-job--lg" })}
+        ${workExperienceSection(d, { h2: "tpl-lg-h2", wrap: "tpl-lg-block", titlePrefix: '<span class="tpl-lg-hash">#</span> ', jobClass: "tpl-job tpl-job--lg" })}
         <section class="tpl-lg-block"><h2 class="tpl-lg-h2"><span class="tpl-lg-hash">#</span> Education</h2>${educationHtml(d)}</section>
         <section class="tpl-lg-block"><h2 class="tpl-lg-h2"><span class="tpl-lg-hash">#</span> Skills</h2><ul class="tpl-lg-list">${skillsListHtml(d)}</ul></section>
         <section class="tpl-lg-block"><h2 class="tpl-lg-h2"><span class="tpl-lg-hash">#</span> Certifications</h2>${certificationsHtml(d)}</section>
@@ -824,8 +932,10 @@
           ${tplHeadline("tpl-hz-title", d)}
           <p class="tpl-hz-contact">${contactParts(d).join(" · ")}</p>
         </header>
-        <section class="tpl-hz-sec"><div class="tpl-hz-bar"></div><h2 class="tpl-hz-h2">Summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-        <section class="tpl-hz-sec"><div class="tpl-hz-bar"></div><h2 class="tpl-hz-h2">Experience</h2>${experienceHtml(d)}</section>
+        <section class="tpl-hz-sec"><div class="tpl-hz-bar"></div><h2 class="tpl-hz-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+        ${hzJobSection(PROJECTS_TITLE, projectsHtml(d))}
+        ${hzJobSection(ACHIEVEMENTS_ACTIVITIES_TITLE, achievementsHtml(d))}
+        ${hzJobSection(WORK_EXPERIENCE_TITLE, workExperienceHtml(d))}
         <section class="tpl-hz-sec"><div class="tpl-hz-bar"></div><h2 class="tpl-hz-h2">Education</h2>${educationHtml(d)}</section>
         <section class="tpl-hz-sec"><div class="tpl-hz-bar"></div><h2 class="tpl-hz-h2">Skills</h2><ul class="tpl-bullets">${skillsListHtml(d)}</ul></section>
         <section class="tpl-hz-sec"><div class="tpl-hz-bar"></div><h2 class="tpl-hz-h2">Certifications</h2>${certificationsHtml(d)}</section>
@@ -844,8 +954,10 @@
             <p class="tpl-fo-contact">${contactParts(d).join(" · ")}</p>
           </div>
         </header>
-        <section class="tpl-fo-sec"><span class="tpl-fo-num">01</span><div class="tpl-fo-content"><h2 class="tpl-fo-h2">Profile</h2><p class="tpl-p">${esc(d.summary)}</p></div></section>
-        <section class="tpl-fo-sec"><span class="tpl-fo-num">02</span><div class="tpl-fo-content"><h2 class="tpl-fo-h2">Experience</h2>${experienceHtml(d, "tpl-job tpl-job--fo")}</div></section>
+        <section class="tpl-fo-sec"><span class="tpl-fo-num">01</span><div class="tpl-fo-content"><h2 class="tpl-fo-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></div></section>
+        ${projectsFromData(d).length ? `<section class="tpl-fo-sec"><span class="tpl-fo-num">02</span><div class="tpl-fo-content"><h2 class="tpl-fo-h2">${PROJECTS_TITLE}</h2>${projectsHtml(d, "tpl-job tpl-job--fo")}</div></section>` : ""}
+        ${achievementsFromData(d).length ? `<section class="tpl-fo-sec"><span class="tpl-fo-num">02</span><div class="tpl-fo-content"><h2 class="tpl-fo-h2">${ACHIEVEMENTS_ACTIVITIES_TITLE}</h2>${achievementsHtml(d, "tpl-job tpl-job--fo")}</div></section>` : ""}
+        ${workExperienceFromData(d).length ? `<section class="tpl-fo-sec"><span class="tpl-fo-num">02</span><div class="tpl-fo-content"><h2 class="tpl-fo-h2">${WORK_EXPERIENCE_TITLE}</h2>${workExperienceHtml(d, "tpl-job tpl-job--fo")}</div></section>` : ""}
         <section class="tpl-fo-sec"><span class="tpl-fo-num">03</span><div class="tpl-fo-content"><h2 class="tpl-fo-h2">Education</h2>${educationHtml(d)}</div></section>
         <section class="tpl-fo-sec"><span class="tpl-fo-num">04</span><div class="tpl-fo-content"><h2 class="tpl-fo-h2">Skills</h2><p class="tpl-p">${(d.skills || []).map((s) => esc(s.name)).join(" · ")}</p></div></section>
         <section class="tpl-fo-sec"><span class="tpl-fo-num">05</span><div class="tpl-fo-content"><h2 class="tpl-fo-h2">More</h2>${certificationsHtml(d)}<ul class="tpl-bullets">${languagesHtml(d)}</ul><p class="tpl-p">${esc(interestsText(d))}</p></div></section>
@@ -862,8 +974,8 @@
           </div>
         </header>
         <div class="tpl-vx-body">
-          <section class="tpl-sec"><h2 class="tpl-vx-h2">Summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-          <section class="tpl-sec"><h2 class="tpl-vx-h2">Experience</h2>${experienceHtml(d)}</section>
+          <section class="tpl-sec"><h2 class="tpl-vx-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+          ${resumeJobSections(d, { h2: "tpl-vx-h2" })}
           <div class="tpl-vx-grid">
             <section class="tpl-sec"><h2 class="tpl-vx-h2">Education</h2>${educationHtml(d)}</section>
             <section class="tpl-sec"><h2 class="tpl-vx-h2">Skills</h2><ul class="tpl-bullets">${skillsListHtml(d)}</ul></section>
@@ -882,9 +994,9 @@
           ${tplHeadline("tpl-ap-title", d)}
           <p class="tpl-ap-contact">${contactParts(d).join(" · ")}</p>
         </header>
-        <section class="tpl-sec"><h2 class="tpl-ap-h2">Summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+        <section class="tpl-sec"><h2 class="tpl-ap-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
         <div class="tpl-ap-grid">
-          <section class="tpl-sec"><h2 class="tpl-ap-h2">Experience</h2>${experienceHtml(d)}</section>
+          ${resumeJobSections(d, { h2: "tpl-ap-h2" })}
           <aside class="tpl-ap-side">
             <h3 class="tpl-ap-h3">Skills</h3>
             <ul class="tpl-bullets tpl-bullets--tight">${skillsListHtml(d)}</ul>
@@ -906,8 +1018,8 @@
           ${tplHeadline("tpl-zc-title", d)}
           <p class="tpl-zc-contact">${contactParts(d).join(" · ")}</p>
         </header>
-        <section class="tpl-sec"><h2 class="tpl-zc-h2">Profile</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-        <section class="tpl-sec"><h2 class="tpl-zc-h2">Experience</h2>${experienceHtml(d, "tpl-job tpl-job--zc")}</section>
+        <section class="tpl-sec"><h2 class="tpl-zc-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+        ${resumeJobSections(d, { h2: "tpl-zc-h2", jobClass: "tpl-job tpl-job--zc" })}
         <section class="tpl-sec"><h2 class="tpl-zc-h2">Education</h2>${educationHtml(d)}</section>
         <section class="tpl-sec"><h2 class="tpl-zc-h2">Skills</h2><div class="tpl-zc-pills">${skillsPillsHtml(d)}</div></section>
         <section class="tpl-sec"><h2 class="tpl-zc-h2">Certifications &amp; Languages</h2>${certificationsHtml(d)}<ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
@@ -926,8 +1038,8 @@
         </header>
         <p class="tpl-gg-contact">${contactParts(d).join(" · ")}</p>
         <div class="tpl-gg-layout">
-          <section class="tpl-sec tpl-gg-main"><h2 class="tpl-gg-h2">Summary</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-          <section class="tpl-sec tpl-gg-main"><h2 class="tpl-gg-h2">Experience</h2>${experienceHtml(d)}</section>
+          <section class="tpl-sec tpl-gg-main"><h2 class="tpl-gg-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+          ${resumeJobSections(d, { h2: "tpl-gg-h2", wrap: "tpl-sec tpl-gg-main" })}
           <section class="tpl-sec tpl-gg-half"><h2 class="tpl-gg-h2">Education</h2>${educationHtml(d)}</section>
           <section class="tpl-sec tpl-gg-half"><h2 class="tpl-gg-h2">Skills</h2><ul class="tpl-bullets">${skillsListHtml(d)}</ul></section>
           <section class="tpl-sec tpl-gg-half"><h2 class="tpl-gg-h2">Languages</h2><ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
@@ -943,9 +1055,21 @@
   RENDERERS["tokyo-minimal"] = RENDERERS.minimalist;
   RENDERERS["nordic-clean"] = RENDERERS.horizon;
 
+  function applyStudioDraftUpdate(draft) {
+    if (!draft || typeof draft !== "object" || !draft.resume || typeof draft.resume !== "object") return;
+    resumeData = deepMergeResume(resumeData, draft.resume);
+    forceClientPreview = true;
+    renderPreview();
+    try {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: "TT_STUDIO_PREVIEW_UPDATED" }, "*");
+      }
+    } catch (_) {}
+  }
+
   function renderPreview() {
     const serverTpl = document.getElementById("tt-server-mount-html");
-    if (serverTpl && String(serverTpl.innerHTML || "").trim()) {
+    if (serverTpl && String(serverTpl.innerHTML || "").trim() && !forceClientPreview) {
       resumeMount.innerHTML = serverTpl.innerHTML;
       const tid = serverTpl.getAttribute("data-template") || activeTemplateId;
       activeTemplateId = tid;
@@ -1051,7 +1175,7 @@
         <p class="editor-note">Photo is optional. Use a square image for best results.</p>
       </fieldset>
       <fieldset class="editor-fs">
-        <legend>Summary</legend>
+        <legend>Career Objective</legend>
         <label><textarea data-bind="summary" rows="5">${esc(d.summary)}</textarea></label>
       </fieldset>
       <fieldset class="editor-fs">
@@ -1060,7 +1184,7 @@
         <button type="button" class="btn-add" data-action="add-skill">+ Add skill</button>
       </fieldset>
       <fieldset class="editor-fs">
-        <legend>Experience</legend>
+        <legend>Achievements & Activities</legend>
         ${expBlocks}
         <button type="button" class="btn-add" data-action="add-exp">+ Add job</button>
       </fieldset>
@@ -1643,6 +1767,12 @@
       }
     } catch (_) {}
   }
+
+  window.addEventListener("message", function (event) {
+    const data = event.data;
+    if (!data || data.type !== "TT_STUDIO_DRAFT_UPDATE") return;
+    applyStudioDraftUpdate(data);
+  });
 
   function init() {
     loadState();

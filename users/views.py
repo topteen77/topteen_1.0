@@ -4589,7 +4589,7 @@ def _resume_pdf_template_row_paths_and_style(
 
 
 @login_required
-def resume_pdf_download(request,*args, **kwargs):
+def resume_pdf_download(request, *args, **kwargs):
     rid = request.GET.get("resume_id")
     qs = UserResume.objects.filter(user=request.user)
     if rid:
@@ -4602,79 +4602,24 @@ def resume_pdf_download(request,*args, **kwargs):
     if not user_resume:
         messages.info(request, "Create or pick a resume before downloading a PDF.")
         return redirect("users:resume_v2_dashboard")
-    preview_tid = request.GET.get("template_id")
-    _tpl_row, classic_path, generated_path, pdf_lv, pdf_ac = _resume_pdf_template_row_paths_and_style(
-        user_resume, preview_template_id=preview_tid, restrict_template_user=request.user
-    )
-    ctx={}
-    ctx["request"]=request
-    ctx["profile"]=get_object_or_404(UserProfile,user=request.user)
-    ctx["user_resume"] = user_resume
-    ctx["pdf_layout_variant"] = pdf_lv
-    ctx["pdf_accent_color"] = pdf_ac
-    ctx.update(_ai_shell_ctx_from_row(_tpl_row))
-    ctx["skills"]=UserResumeSkill.objects.filter(resume=user_resume)
-    ctx["certificates"]=UserResumeCertificate.objects.filter(resume=user_resume).order_by("issue_date")
-    ctx["internships"]=UserResumeInternship.objects.filter(resume=user_resume)
-    ctx["activities"]=UserResumeActivity.objects.filter(resume=user_resume)
-    ctx["volunteers"]=UserResumeVolunteerInvolvement.objects.filter(resume=user_resume)
-    ctx["resume_contact"] = resume_studio_prototype_payload(user_resume, request)
-    user_image = getattr(request.user, "image", None)
-    if user_image:
-        try:
-            ctx["image_url"] = "https://www.topteen.in{}".format(user_image.url)
-        except ValueError:
-            ctx["image_url"] = ""
-    else:
-        ctx["image_url"] = ""
-    from django.template import TemplateDoesNotExist
 
-    studio_pack = (
-        None
-        if wizard_prefers_generated_pdf(user_resume)
-        else studio_proto_pack_from_resume(user_resume)
-    )
-    if studio_pack:
-        try:
-            from users.resume_v2_services import sync_studio_proto_resume_from_db
+    from users.resume_pdf_service import resume_pdf_response
 
-            sync_studio_proto_resume_from_db(user_resume, request)
-        except Exception:
-            pass
-        mount_html, template_id, studio_pack = studio_render_html_for_resume(
+    preview_tid = (request.GET.get("template_id") or "").strip() or None
+    inline_param = (request.GET.get("inline") or "").strip().lower()
+    # Default: open in browser (inline). Pass inline=0 for attachment download.
+    inline = inline_param not in ("0", "false", "no", "attachment")
+    try:
+        return resume_pdf_response(
             user_resume,
             request,
-            template_override=(preview_tid or None),
+            inline=inline,
+            preview_template_id=preview_tid,
         )
-        ctx.update(studio_pdf_template_context(mount_html, template_id, studio_pack))
-        ctx["generated_resume_html"] = mount_html
-        chosen = "mail/user/userresumepdf_studio_prototype.html"
-        fallback = "mail/user/userresumepdf_studio_prototype.html"
-    elif (user_resume.generated_html or "").strip():
-        ctx["generated_resume_html"] = strip_markdown_fences(user_resume.generated_html)
-        chosen, fallback = _choose_generated_mail_template(_tpl_row, generated_path)
-    else:
-        chosen = classic_path
-        fallback = "mail/user/userresumepdf.html"
-    try:
-        template = get_template(chosen)
-    except TemplateDoesNotExist:
-        template = get_template(fallback)
-    html  = template.render(ctx)
-    pdf_options = default_resume_pdf_options()
-    pdf = html_to_pdf_bytes(
-        html,
-        options=pdf_options,
-        base_url=request.build_absolute_uri("/"),
-    )
-    response= HttpResponse(pdf, content_type='application/pdf')
-    base = (request.user.name or "Student").strip() or "Student"
-    safe = re.sub(r"[^\w\-. ]+", "_", base, flags=re.UNICODE).strip(" .-_") or "Student"
-    filename = f"{safe}-resume.pdf"
-    inline = (request.GET.get("inline") or "").strip().lower() in ("1", "true", "yes")
-    disp = "inline" if inline else "attachment"
-    response["Content-Disposition"] = '{}; filename="{}"'.format(disp, filename)
-    return response
+    except Exception:
+        logger.exception("resume_pdf_download failed for resume_id=%s", user_resume.pk)
+        messages.error(request, "Could not generate your PDF. Please try again in a moment.")
+        return redirect("users:resume_v2_studio", resume_id=user_resume.pk)
 
 
 @login_required

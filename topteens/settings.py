@@ -518,6 +518,8 @@ S3_MEDIA_LIBRARY_BASE_FOLDER = config('S3_MEDIA_LIBRARY_BASE_FOLDER', default='m
 
 # Optional path to wkhtmltopdf for pdfkit. When unset/missing, PDFs fall back to WeasyPrint.
 WKHTMLTOPDF_PATH = config("WKHTMLTOPDF_PATH", default="")
+# Resume studio PDF engine: weasyprint (default) or wkhtmltopdf
+RESUME_PDF_ENGINE = config("RESUME_PDF_ENGINE", default="weasyprint")
 
 # Use S3 for media uploads (images, PDFs from admin). When True and AWS credentials exist,
 # FileField/ImageField uploads go to S3 instead of local MEDIA_ROOT.

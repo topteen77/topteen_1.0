@@ -42,6 +42,39 @@
     color: #212529;
     font-weight: 500;
   }
+  .school-search-wrap {
+    position: relative;
+  }
+  .school-search-dropdown {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 4px);
+    z-index: 1060;
+    max-height: 220px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  }
+  .school-search-option {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #1f2937;
+    cursor: pointer;
+  }
+  .school-search-option:hover,
+  .school-search-option.is-active {
+    background: #f3f0ff;
+    color: #3f37c9;
+  }
   .profile-badge {
     display: inline-block;
     background: #f0f0ff;
@@ -528,15 +561,13 @@
 </div>
 
 {% include 'template20/user/includes/profile_section_modals.html' %}
+<script type="application/json" id="school-suggestions-json">{{ school_suggestions|default([])|tojson }}</script>
 {% endif %}
 {% endblock %}
 
 {% block additionaljs %}
 {{ super() }}
-<script src="{{ static('js/school-places-autocomplete.js') }}"></script>
-{% if google_maps_api_key %}
-<script async defer src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key|urlencode }}&libraries=places&callback=initGoogleSchoolPlaces"></script>
-{% endif %}
+<script src="{{ static('js/school-name-search.js') }}"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const csrfToken = '{{ csrf_token }}';
@@ -706,6 +737,20 @@
       personalBtn.addEventListener('click', function() {
         setErr(personalErr, '');
         personalModal.show();
+        var piSchool = document.getElementById('piSchool');
+        if (piSchool) {
+          piSchool.removeAttribute('readonly');
+          piSchool.classList.remove('pac-target-input');
+        }
+        if (typeof initSchoolNameSearch === 'function') {
+          try {
+            var raw = document.getElementById('school-suggestions-json');
+            var suggestions = raw ? JSON.parse(raw.textContent || '[]') : [];
+            initSchoolNameSearch('piSchool', suggestions);
+          } catch (e) {
+            console.warn('School suggestions could not be loaded', e);
+          }
+        }
       });
 
       if (piMobile) {

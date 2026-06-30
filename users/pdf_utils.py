@@ -82,7 +82,32 @@ def html_to_pdf_bytes(
         return pdfkit.from_string(html, False, options=opts, configuration=config)
 
     logger.info("wkhtmltopdf not found; using WeasyPrint for PDF generation")
+    return _weasyprint_pdf_bytes(html, base_url=base_url)
+
+
+def _weasyprint_pdf_bytes(html: str, *, base_url: str | None = None) -> bytes:
     import weasyprint
 
     url = base_url or getattr(settings, "SITE_BASE_URL", None) or "http://localhost/"
     return weasyprint.HTML(string=html, base_url=url).write_pdf()
+
+
+def resume_html_to_pdf_bytes(
+    html: str,
+    *,
+    base_url: str | None = None,
+    engine: str | None = None,
+) -> bytes:
+    """
+    Resume PDF export — WeasyPrint by default (reliable CSS, fonts, colors, templates).
+
+    Set RESUME_PDF_ENGINE=wkhtmltopdf in settings to use pdfkit instead.
+    """
+    chosen = (engine or getattr(settings, "RESUME_PDF_ENGINE", "weasyprint") or "weasyprint").strip().lower()
+    if chosen == "wkhtmltopdf":
+        return html_to_pdf_bytes(
+            html,
+            options=default_resume_pdf_options(),
+            base_url=base_url,
+        )
+    return _weasyprint_pdf_bytes(html, base_url=base_url)

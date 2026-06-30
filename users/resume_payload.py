@@ -1224,6 +1224,36 @@ def _fallback_summary_from_about(about, max_len=900):
     return cut.rstrip() + "…"
 
 
+def _is_project_activity_description(description: str) -> bool:
+    return (description or "").strip().startswith("Technologies:")
+
+
+def _activity_to_job_block(activity, *, as_project: bool) -> dict:
+    title = (activity.title or "").strip() or ("Project" if as_project else "Activity")
+    dates = activity.issue_date.isoformat() if activity.issue_date else ""
+    bullets = _desc_bullets(activity.description)
+    if not bullets and (activity.description or "").strip():
+        bullets = [(activity.description or "").strip()[:500]]
+    company = "Project" if as_project else ""
+    if as_project:
+        desc = (activity.description or "").strip()
+        if desc.startswith("Technologies:"):
+            nl = desc.find("\n")
+            if nl >= 0:
+                tech = desc[len("Technologies: ") : nl].strip()
+            else:
+                tech = desc[len("Technologies: ") :].strip()
+            if tech:
+                company = tech[:120]
+    return {
+        "title": title,
+        "company": company,
+        "location": "",
+        "dates": dates,
+        "bullets": bullets,
+    }
+
+
 def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto_merge: bool = False):
     """
     Shape matches static resume-builder prototype (app.js resumeData):
@@ -1251,7 +1281,9 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
             continue
         skills_out.append({"name": title, "level": _proficiency_level(s.profficiency)})
 
-    experience_out = []
+    projects_out: list[dict] = []
+    achievements_out: list[dict] = []
+    work_experience_out: list[dict] = []
     for it in UserResumeInternship.objects.filter(resume=resume).order_by("id"):
         role = (it.role or "").strip() or "Internship"
         provider = (it.provider or "").strip()
@@ -1259,7 +1291,7 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
         bullets = _desc_bullets(it.description)
         if not bullets and (it.description or "").strip():
             bullets = [(it.description or "").strip()[:500]]
-        experience_out.append(
+        work_experience_out.append(
             {
                 "title": role,
                 "company": provider,
@@ -1270,36 +1302,30 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
         )
 
     for a in UserResumeActivity.objects.filter(resume=resume).order_by("id"):
-        title = (a.title or "").strip() or "Activity"
-        if _is_resume_meta_activity_title(title):
+        title = (a.title or "").strip()
+        if not title or _is_resume_meta_activity_title(title):
             continue
-        dates = a.issue_date.isoformat() if a.issue_date else ""
-        bullets = _desc_bullets(a.description)
-        experience_out.append(
+        if _is_project_activity_description(a.description or ""):
+            projects_out.append(_activity_to_job_block(a, as_project=True))
+        else:
+            achievements_out.append(_activity_to_job_block(a, as_project=False))
+
+    for v in UserResumeVolunteerInvolvement.objects.filter(resume=resume).order_by("id"):
+        title = (v.title or "").strip() or "Volunteer"
+        role = (v.role or "").strip()
+        dates = _iso_range(v.start_date, v.end_date)
+        bullets = _desc_bullets(v.description)
+        achievements_out.append(
             {
                 "title": title,
-                "company": "Activity",
+                "company": role,
                 "location": "",
                 "dates": dates,
                 "bullets": bullets,
             }
         )
 
-    for v in UserResumeVolunteerInvolvement.objects.filter(resume=resume).order_by("id"):
-        title = (v.title or "").strip() or "Volunteer"
-        role = (v.role or "").strip()
-        company = "Volunteer" + (f" · {role}" if role else "")
-        dates = _iso_range(v.start_date, v.end_date)
-        bullets = _desc_bullets(v.description)
-        experience_out.append(
-            {
-                "title": title,
-                "company": company,
-                "location": "",
-                "dates": dates,
-                "bullets": bullets,
-            }
-        )
+    experience_out = list(achievements_out)
 
     education_out = []
     if profile:
@@ -1468,6 +1494,9 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
         "summary": summary,
         "photo": photo,
         "skills": skills_out,
+        "projects": projects_out,
+        "achievements": achievements_out,
+        "workExperience": work_experience_out,
         "experience": experience_out,
         "education": education_out,
         "certifications": certs_out,
@@ -1487,6 +1516,9 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
     cleaned["headline"] = _studio_resume_headline(
         resume, profile, wiz, cleaned.get("headline") or ""
     )
+    if not (cleaned.get("photo") or "").strip() and user:
+        label = (getattr(user, "name", None) or getattr(user, "email", None) or "?").strip()
+        cleaned["photoInitial"] = label[0].upper() if label else "?"
     return cleaned
 
 
@@ -1499,6 +1531,26 @@ def _clean_studio_list_fields(out: dict) -> dict:
         if n:
             experience.append(n)
     cleaned["experience"] = experience
+    projects: list[dict] = []
+    for ex in cleaned.get("projects") or []:
+        n = _norm_experience_item(ex)
+        if n:
+            projects.append(n)
+    cleaned["projects"] = projects
+    achievements: list[dict] = []
+    for ex in cleaned.get("achievements") or []:
+        n = _norm_experience_item(ex)
+        if n:
+            achievements.append(n)
+    cleaned["achievements"] = achievements
+    work_experience: list[dict] = []
+    for ex in cleaned.get("workExperience") or []:
+        n = _norm_experience_item(ex)
+        if n:
+            work_experience.append(n)
+    cleaned["workExperience"] = work_experience
+    if not cleaned.get("achievements") and cleaned.get("experience"):
+        cleaned["achievements"] = list(cleaned["experience"])
     education: list[dict] = []
     for ed in cleaned.get("education") or []:
         n = _norm_education_item(ed)
@@ -1687,6 +1739,40 @@ def normalize_studio_resume_payload(raw: dict) -> dict:
         n = _norm_experience_item(ex)
         if n:
             experience.append(n)
+    projects: list[dict] = []
+    for ex in raw.get("projects") or []:
+        n = _norm_experience_item(ex)
+        if n:
+            projects.append(n)
+    achievements: list[dict] = []
+    for ex in raw.get("achievements") or []:
+        n = _norm_experience_item(ex)
+        if n:
+            achievements.append(n)
+    work_experience: list[dict] = []
+    for ex in raw.get("workExperience") or []:
+        n = _norm_experience_item(ex)
+        if n:
+            work_experience.append(n)
+    if not achievements and experience:
+        achievements = list(experience)
+    projects: list[dict] = []
+    for ex in raw.get("projects") or []:
+        n = _norm_experience_item(ex)
+        if n:
+            projects.append(n)
+    achievements: list[dict] = []
+    for ex in raw.get("achievements") or []:
+        n = _norm_experience_item(ex)
+        if n:
+            achievements.append(n)
+    work_experience: list[dict] = []
+    for ex in raw.get("workExperience") or []:
+        n = _norm_experience_item(ex)
+        if n:
+            work_experience.append(n)
+    if not achievements and experience:
+        achievements = list(experience)
     education: list[dict] = []
     for ed in raw.get("education") or []:
         n = _norm_education_item(ed)
@@ -1724,6 +1810,9 @@ def normalize_studio_resume_payload(raw: dict) -> dict:
         "summary": _norm_str(raw.get("summary") or raw.get("profile") or raw.get("objective"), 8000),
         "photo": photo,
         "skills": skills[:40],
+        "projects": projects[:20],
+        "achievements": achievements[:30],
+        "workExperience": work_experience[:30],
         "experience": experience[:30],
         "education": education[:20],
         "certifications": certs[:40],
@@ -1741,6 +1830,6 @@ def resume_studio_embed_finish_pdf_urls(request, resume):
 
     finish = request.build_absolute_uri(reverse("users:resume_v2_dashboard"))
     pdf_base = reverse("users:resumepdf")
-    q = urlencode({"resume_id": int(resume.pk)})
+    q = urlencode({"resume_id": int(resume.pk), "inline": "1"})
     pdf = request.build_absolute_uri(f"{pdf_base}?{q}")
     return finish, pdf

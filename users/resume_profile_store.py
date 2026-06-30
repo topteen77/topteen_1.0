@@ -273,6 +273,30 @@ def sync_headline_to_user_profile(user, headline: str) -> None:
     _save_doc(profile, doc)
 
 
+def sync_profile_education_to_user_profile(user, *, school: str, grade: str) -> None:
+    """Persist current-school education edits to the user account profile."""
+    profile = _get_profile(user)
+    doc = _load_doc(profile.resume_profile_json)
+    personal = doc.setdefault("personal", {})
+    profile_updates: list[str] = []
+
+    school_clean = (school or "").strip()[:250]
+    if school_clean:
+        personal["school"] = school_clean
+        profile.schoolname = school_clean
+        profile_updates.append("schoolname")
+
+    grade_clean = (grade or "").strip()[:100]
+    if grade_clean:
+        personal["grade"] = grade_clean
+        profile.grade = grade_clean
+        profile_updates.append("grade")
+
+    if profile_updates:
+        profile.save(update_fields=profile_updates + ["modified"])
+    _save_doc(profile, doc)
+
+
 def sync_personal_fields_to_user_profile(
     user,
     *,

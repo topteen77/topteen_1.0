@@ -828,6 +828,17 @@ article#resume.resume .resume__mount > .tpl {
 .tpl-photo--placeholder {
   background: rgba(255, 255, 255, 0.35);
   border: 2px solid rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tpl-photo-initial {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.95);
+  user-select: none;
 }
 
 .tpl-sec {
