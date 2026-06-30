@@ -8,6 +8,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Merriweather:ital,wght@0,400;0,700;1,400&family=Open+Sans:wght@400;600;700&family=Outfit:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="{{ static('resume-builder-prototype/styles.css') }}" />
+  {% if use_server_preview and studio_root_style %}
+  <style id="tt-studio-root-vars">{{ studio_root_style|safe }}</style>
+  {% endif %}
 </head>
 <body>
   <div class="app">
@@ -116,6 +119,9 @@
   </footer>
 
   <script type="application/json" id="tt-studio-template-catalog">{{ studio_templates_catalog_json }}</script>
+  {% if use_server_preview and studio_server_mount_html %}
+  <template id="tt-server-mount-html" data-template="{{ studio_server_template_id|e }}">{{ studio_server_mount_html|safe }}</template>
+  {% endif %}
   <script>
   window.__TT_RESUME_INITIAL = {{ resume_initial_json }};
   window.__TT_STORAGE_KEY = {{ storage_key|tojson }};

@@ -1,6 +1,10 @@
 {# Reusable Strong Fit / Good Fit plan block. Expects: plan, plan_heading (optional) #}
 {% from 'template20/app/partials/aptitude_fit_svg_icons.html' import fit_icon_star, fit_icon_thumbs_up, fit_icon_book, fit_icon_briefcase, fit_icon_graduation, fit_icon_insight %}
 {% set cp = plan.combination_profile %}
+{% set is_pdf = show_student_info_on_cover is defined and show_student_info_on_cover %}
+{% set pdf_icon_center = 'display:inline-flex;align-items:center;justify-content:center;text-align:center;line-height:0;box-sizing:border-box;padding:0;margin:0;' %}
+{% set strong_fill = '#166534' %}
+{% set good_fill = '#4338ca' %}
 {% if cp %}
 <div class="aptitude-plan-block{% if plan.is_backup %} aptitude-plan-block--backup{% endif %}">
   {% if plan_heading %}
@@ -20,7 +24,7 @@
   <div class="aptitude-combination-narrative">
     <div class="aptitude-combination-narrative__accent" aria-hidden="true"></div>
     <div class="aptitude-combination-narrative__body">
-      <div class="aptitude-combination-narrative__icon aptitude-fit-icon-box aptitude-fit-icon-box--narrative" aria-hidden="true">{{ fit_icon_insight() }}</div>
+      <div class="aptitude-combination-narrative__icon aptitude-fit-icon-box aptitude-fit-icon-box--narrative" aria-hidden="true"{% if is_pdf %} style="{{ pdf_icon_center }}width:42px;height:42px;min-width:42px;min-height:42px;"{% endif %}>{{ fit_icon_insight('#3F37C9') }}</div>
       <p class="aptitude-combination-narrative__text">{{ cp.profile }}</p>
     </div>
   </div>
@@ -35,20 +39,20 @@
   <div class="aptitude-fit-columns">
     <div class="aptitude-fit-col aptitude-fit-col--strong">
       <div class="aptitude-fit-col-header">
-        <div class="aptitude-fit-badge aptitude-fit-badge--strong aptitude-fit-icon-box aptitude-fit-icon-box--badge" aria-hidden="true">{{ fit_icon_star() }}</div>
+        <div class="aptitude-fit-badge aptitude-fit-badge--strong aptitude-fit-icon-box aptitude-fit-icon-box--badge" aria-hidden="true"{% if is_pdf %} style="{{ pdf_icon_center }}width:32px;height:32px;min-width:32px;min-height:32px;"{% endif %}>{{ fit_icon_star('#ffffff') }}</div>
         <span class="aptitude-fit-col-title">Strong Fit</span>
       </div>
 
       <div class="aptitude-fit-section aptitude-fit-section--stream">
         <div class="aptitude-fit-stream-row">
-          <div class="aptitude-fit-section-icon aptitude-fit-section-icon--strong aptitude-fit-icon-box aptitude-fit-icon-box--section" aria-hidden="true">{{ fit_icon_book() }}</div>
+          <div class="aptitude-fit-section-icon aptitude-fit-section-icon--strong aptitude-fit-icon-box aptitude-fit-icon-box--section" aria-hidden="true"{% if is_pdf %} style="{{ pdf_icon_center }}width:30px;height:30px;min-width:30px;min-height:30px;"{% endif %}>{{ fit_icon_book(strong_fill) }}</div>
           <p class="aptitude-fit-stream-text">{{ cp.strong_fit_stream }}</p>
         </div>
       </div>
 
       <div class="aptitude-fit-section">
         <div class="aptitude-fit-section-head">
-          <div class="aptitude-fit-section-icon aptitude-fit-section-icon--strong aptitude-fit-icon-box aptitude-fit-icon-box--section" aria-hidden="true">{{ fit_icon_briefcase() }}</div>
+          <div class="aptitude-fit-section-icon aptitude-fit-section-icon--strong aptitude-fit-icon-box aptitude-fit-icon-box--section" aria-hidden="true"{% if is_pdf %} style="{{ pdf_icon_center }}width:30px;height:30px;min-width:30px;min-height:30px;"{% endif %}>{{ fit_icon_briefcase(strong_fill) }}</div>
           <span>Career Pathways</span>
         </div>
         {% if cp.strong_fit_careers %}
@@ -62,7 +66,7 @@
 
       <div class="aptitude-fit-section aptitude-fit-section--last">
         <div class="aptitude-fit-section-head">
-          <div class="aptitude-fit-section-icon aptitude-fit-section-icon--strong aptitude-fit-icon-box aptitude-fit-icon-box--section" aria-hidden="true">{{ fit_icon_graduation() }}</div>
+          <div class="aptitude-fit-section-icon aptitude-fit-section-icon--strong aptitude-fit-icon-box aptitude-fit-icon-box--section" aria-hidden="true"{% if is_pdf %} style="{{ pdf_icon_center }}width:30px;height:30px;min-width:30px;min-height:30px;"{% endif %}>{{ fit_icon_graduation(strong_fill) }}</div>
           <span>Subject Combinations</span>
         </div>
         {% if cp.strong_fit_subjects %}
@@ -77,20 +81,20 @@
 
     <div class="aptitude-fit-col aptitude-fit-col--good">
       <div class="aptitude-fit-col-header">
-        <div class="aptitude-fit-badge aptitude-fit-badge--good aptitude-fit-icon-box aptitude-fit-icon-box--badge" aria-hidden="true">{{ fit_icon_thumbs_up() }}</div>
+        <div class="aptitude-fit-badge aptitude-fit-badge--good aptitude-fit-icon-box aptitude-fit-icon-box--badge" aria-hidden="true"{% if is_pdf %} style="{{ pdf_icon_center }}width:32px;height:32px;min-width:32px;min-height:32px;"{% endif %}>{{ fit_icon_thumbs_up('#ffffff') }}</div>
         <span class="aptitude-fit-col-title">Good Fit</span>
       </div>
 
       <div class="aptitude-fit-section aptitude-fit-section--stream">
         <div class="aptitude-fit-stream-row">
-          <div class="aptitude-fit-section-icon aptitude-fit-section-icon--good aptitude-fit-icon-box aptitude-fit-icon-box--section" aria-hidden="true">{{ fit_icon_book() }}</div>
+          <div class="aptitude-fit-section-icon aptitude-fit-section-icon--good aptitude-fit-icon-box aptitude-fit-icon-box--section" aria-hidden="true"{% if is_pdf %} style="{{ pdf_icon_center }}width:30px;height:30px;min-width:30px;min-height:30px;"{% endif %}>{{ fit_icon_book(good_fill) }}</div>
           <p class="aptitude-fit-stream-text">{{ cp.good_fit_stream }}</p>
         </div>
       </div>
 
       <div class="aptitude-fit-section">
         <div class="aptitude-fit-section-head">
-          <div class="aptitude-fit-section-icon aptitude-fit-section-icon--good aptitude-fit-icon-box aptitude-fit-icon-box--section" aria-hidden="true">{{ fit_icon_briefcase() }}</div>
+          <div class="aptitude-fit-section-icon aptitude-fit-section-icon--good aptitude-fit-icon-box aptitude-fit-icon-box--section" aria-hidden="true"{% if is_pdf %} style="{{ pdf_icon_center }}width:30px;height:30px;min-width:30px;min-height:30px;"{% endif %}>{{ fit_icon_briefcase(good_fill) }}</div>
           <span>Career Pathways</span>
         </div>
         {% if cp.good_fit_careers %}
@@ -104,7 +108,7 @@
 
       <div class="aptitude-fit-section aptitude-fit-section--last">
         <div class="aptitude-fit-section-head">
-          <div class="aptitude-fit-section-icon aptitude-fit-section-icon--good aptitude-fit-icon-box aptitude-fit-icon-box--section" aria-hidden="true">{{ fit_icon_graduation() }}</div>
+          <div class="aptitude-fit-section-icon aptitude-fit-section-icon--good aptitude-fit-icon-box aptitude-fit-icon-box--section" aria-hidden="true"{% if is_pdf %} style="{{ pdf_icon_center }}width:30px;height:30px;min-width:30px;min-height:30px;"{% endif %}>{{ fit_icon_graduation(good_fill) }}</div>
           <span>Subject Combinations</span>
         </div>
         {% if cp.good_fit_subjects %}

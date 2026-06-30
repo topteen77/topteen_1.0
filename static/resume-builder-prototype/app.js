@@ -221,6 +221,7 @@
         { name: "Spanish", level: "Professional working proficiency" },
       ],
       interests: "Cycling, reading, open-source contributions",
+      hobbies: "Cricket, music, volunteering",
     };
   }
 
@@ -936,6 +937,15 @@
   RENDERERS["nordic-clean"] = RENDERERS.horizon;
 
   function renderPreview() {
+    const serverTpl = document.getElementById("tt-server-mount-html");
+    if (serverTpl && String(serverTpl.innerHTML || "").trim()) {
+      resumeMount.innerHTML = serverTpl.innerHTML;
+      const tid = serverTpl.getAttribute("data-template") || activeTemplateId;
+      activeTemplateId = tid;
+      resumeEl.setAttribute("data-template", tid);
+      updateScore();
+      return;
+    }
     let tid = activeTemplateId;
     if (!RENDERERS[tid]) {
       const fb = (TEMPLATES[0] && TEMPLATES[0].id) || "classic-sidebar";
@@ -1061,6 +1071,10 @@
         <legend>Languages</legend>
         ${langBlocks}
         <button type="button" class="btn-add" data-action="add-lang">+ Add language</button>
+      </fieldset>
+      <fieldset class="editor-fs">
+        <legend>Hobbies</legend>
+        <label><textarea data-bind="hobbies" rows="3">${esc(d.hobbies)}</textarea></label>
       </fieldset>
       <fieldset class="editor-fs">
         <legend>Interests</legend>
@@ -1698,7 +1712,7 @@
     renderFontSizes();
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
+      if (raw && !isPreviewOnly) {
         const o = JSON.parse(raw);
         if (o.font) {
           fontFamily.value = o.font;

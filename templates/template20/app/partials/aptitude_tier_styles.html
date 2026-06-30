@@ -320,11 +320,20 @@
     flex: 1 1 calc(50% - 12px);
     max-width: none;
     min-width: 280px;
-    border: 1px solid #e5e7eb;
     border-radius: 14px;
     overflow: hidden;
-    background: #fff;
     box-sizing: border-box;
+    box-shadow: 0 6px 22px rgba(15, 23, 42, 0.06);
+  }
+
+  .aptitude-fit-col--strong {
+    border: 1px solid #bbf7d0;
+    background: linear-gradient(180deg, #f6fff2 0%, #ecfdf3 38%, #ffffff 100%);
+  }
+
+  .aptitude-fit-col--good {
+    border: 1px solid #c7d2fe;
+    background: linear-gradient(180deg, #f8f9ff 0%, #eef2ff 38%, #ffffff 100%);
   }
 
   .aptitude-fit-col-header {
@@ -332,15 +341,17 @@
     align-items: center;
     gap: 12px;
     padding: 16px 18px;
-    border-bottom: 1px solid #e8e8e8;
+    border-bottom: 1px solid transparent;
   }
 
   .aptitude-fit-col--strong .aptitude-fit-col-header {
-    background: #f0fdf4;
+    background: linear-gradient(135deg, #dcfce7 0%, #ecfdf3 55%, #f0fdf4 100%);
+    border-bottom-color: #bbf7d0;
   }
 
   .aptitude-fit-col--good .aptitude-fit-col-header {
-    background: #f5f7ff;
+    background: linear-gradient(135deg, #e0e7ff 0%, #eef2ff 55%, #f5f7ff 100%);
+    border-bottom-color: #c7d2fe;
   }
 
   .aptitude-fit-badge {
@@ -349,11 +360,11 @@
   }
 
   .aptitude-fit-badge--strong {
-    background: #2A740E;
+    background: linear-gradient(145deg, #2A740E 0%, #166534 100%);
   }
 
   .aptitude-fit-badge--good {
-    background: #3F37C9;
+    background: linear-gradient(145deg, #3F37C9 0%, #2720A7 100%);
   }
 
   /* PDF-safe icon centering — avoids double background from flex + shadow in WeasyPrint */
@@ -400,14 +411,14 @@
 
   .aptitude-fit-section-icon--strong .aptitude-fit-svg,
   .aptitude-fit-section-icon--strong .aptitude-fit-svg path {
-    fill: #2A740E !important;
-    color: #2A740E !important;
+    fill: #166534 !important;
+    color: #166534 !important;
   }
 
   .aptitude-fit-section-icon--good .aptitude-fit-svg,
   .aptitude-fit-section-icon--good .aptitude-fit-svg path {
-    fill: #3F37C9 !important;
-    color: #3F37C9 !important;
+    fill: #4338ca !important;
+    color: #4338ca !important;
   }
 
   .aptitude-combination-narrative__icon .aptitude-fit-svg,
@@ -429,6 +440,13 @@
     height: 16px !important;
     max-width: 16px !important;
     max-height: 16px !important;
+  }
+
+  .aptitude-fit-icon-box--badge .aptitude-fit-svg--thumbs-up {
+    width: 15px !important;
+    height: 13px !important;
+    max-width: 15px !important;
+    max-height: 13px !important;
   }
 
   .aptitude-fit-icon-box--section {
@@ -461,23 +479,32 @@
     max-height: 22px !important;
   }
 
+  .aptitude-fit-icon-box--narrative .aptitude-fit-svg--lamp {
+    width: 20px !important;
+    height: 22px !important;
+    max-width: 20px !important;
+    max-height: 22px !important;
+  }
+
   .aptitude-fit-col-title {
     font-size: 20px;
     font-weight: 700;
     line-height: 1.2;
+    letter-spacing: 0.01em;
   }
 
   .aptitude-fit-col--strong .aptitude-fit-col-title {
-    color: #2A740E;
+    color: #166534;
   }
 
   .aptitude-fit-col--good .aptitude-fit-col-title {
-    color: #3F37C9;
+    color: #2720A7;
   }
 
   .aptitude-fit-section {
     padding: 16px 18px;
-    border-bottom: 1px solid #ececec;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+    background: transparent;
   }
 
   .aptitude-fit-section--last {
@@ -506,11 +533,11 @@
   }
 
   .aptitude-fit-col--strong .aptitude-fit-section-head {
-    color: #2A740E;
+    color: #15803d;
   }
 
   .aptitude-fit-col--good .aptitude-fit-section-head {
-    color: #3F37C9;
+    color: #4338ca;
   }
 
   .aptitude-fit-section-icon {
@@ -518,20 +545,20 @@
   }
 
   .aptitude-fit-section-icon--strong {
-    background: #dcfce7;
-    color: #2A740E;
+    background: linear-gradient(145deg, #dcfce7 0%, #bbf7d0 100%);
+    color: #166534;
   }
 
   .aptitude-fit-section-icon--good {
-    background: #eef2ff;
-    color: #3F37C9;
+    background: linear-gradient(145deg, #e0e7ff 0%, #c7d2fe 100%);
+    color: #4338ca;
   }
 
   .aptitude-fit-stream-text {
     margin: 0;
     font-size: 15px;
     font-weight: 700;
-    color: #111827;
+    color: #0f172a;
     line-height: 1.5;
   }
 
@@ -557,11 +584,11 @@
   }
 
   .aptitude-fit-list--strong li::marker {
-    color: #2A740E;
+    color: #15803d;
   }
 
   .aptitude-fit-list--good li::marker {
-    color: #3F37C9;
+    color: #4338ca;
   }
 
   @media (max-width: 768px) {
@@ -613,6 +640,9 @@
     .aptitude-combination-narrative,
     .aptitude-combination-narrative__accent,
     .aptitude-combination-narrative__icon,
+    .aptitude-fit-col,
+    .aptitude-fit-col--strong,
+    .aptitude-fit-col--good,
     .aptitude-fit-col-header,
     .aptitude-fit-badge--strong,
     .aptitude-fit-badge--good,

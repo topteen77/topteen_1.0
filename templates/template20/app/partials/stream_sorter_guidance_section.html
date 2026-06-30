@@ -2,17 +2,26 @@
 {% set pathways_is_pdf = show_student_info_on_cover is defined and show_student_info_on_cover %}
 {% macro stream_pathway_cards(groups, variant='recommended') %}
   {% for group in groups %}
-  <article class="stream-pathways-stream-card stream-pathways-stream-card--{{ variant }}">
+  <article class="stream-pathways-stream-card stream-pathways-stream-card--{{ variant }}"{% if pathways_is_pdf %} style="display:block;width:100%;margin:0 0 12px;clear:both;overflow:visible;"{% endif %}>
     <div class="stream-pathways-stream-card__head">
       <h3>{{ group.stream }}</h3>
     </div>
-    <ul class="stream-pathways-career-list">
+    <ul class="stream-pathways-career-list"{% if pathways_is_pdf %} style="display:block;padding:10px 12px 12px;margin:0;list-style:none;overflow:visible;"{% endif %}>
       {% for career in group.careers %}
-      <li>
-        {% if career.url %}
-        <a href="{{ career.url }}" class="stream-pathways-career-pill stream-pathways-career-pill--{{ variant }} stream-pathways-career-pill--linked">{{ career.name }}</a>
+      <li{% if pathways_is_pdf %} style="display:inline-block;margin:0 8px 8px 0;padding:0;vertical-align:top;"{% endif %}>
+        {% if pathways_is_pdf %}
+          {% if variant == 'recommended' %}
+            {% set pill_style = 'display:inline-block;padding:4px 10px;border-radius:999px;font-size:8.5pt;font-weight:600;line-height:1.4;white-space:nowrap;color:#065f46;background:#ecfdf5;border:1px solid #6ee7b7;text-decoration:none;' %}
+          {% else %}
+            {% set pill_style = 'display:inline-block;padding:4px 10px;border-radius:999px;font-size:8.5pt;font-weight:600;line-height:1.4;white-space:nowrap;color:#374151;background:#f3f4f6;border:1px solid #d1d5db;text-decoration:none;' %}
+          {% endif %}
         {% else %}
-        <span class="stream-pathways-career-pill stream-pathways-career-pill--{{ variant }}">{{ career.name }}</span>
+          {% set pill_style = '' %}
+        {% endif %}
+        {% if career.url %}
+        <a href="{{ career.url }}" class="stream-pathways-career-pill stream-pathways-career-pill--{{ variant }} stream-pathways-career-pill--linked"{% if pathways_is_pdf %} style="{{ pill_style }}"{% endif %}>{{ career.name }}</a>
+        {% else %}
+        <span class="stream-pathways-career-pill stream-pathways-career-pill--{{ variant }}"{% if pathways_is_pdf %} style="{{ pill_style }}"{% endif %}>{{ career.name }}</span>
         {% endif %}
       </li>
       {% endfor %}
@@ -91,7 +100,7 @@
         <p class="stream-pathways-recommended-subtitle">Aligned with your aptitude stream recommendation</p>
         {% endif %}
       </div>
-      <div class="stream-pathways-stream-grid stream-pathways-stream-grid--recommended">
+      <div class="stream-pathways-stream-grid stream-pathways-stream-grid--recommended"{% if pathways_is_pdf %} style="display:block;width:100%;clear:both;overflow:visible;"{% endif %}>
         {{ stream_pathway_cards(stream_sorter_guidance.stream_wise_premium_careers, 'recommended') }}
       </div>
     </div>
@@ -113,13 +122,13 @@
       class="stream-pathways-zone stream-pathways-zone--other is-collapsed"
       data-stream-pathways-other
       id="stream-pathways-other-streams"
-      hidden
+      {% if pathways_is_pdf %}style="clear:both;overflow:visible;display:block;margin-bottom:14px;padding-bottom:10px;"{% else %}hidden{% endif %}
     >
       <div class="stream-pathways-zone-heading stream-pathways-zone-heading--other">
         <h3 class="stream-pathways-other-title">Additional stream options</h3>
         <p class="stream-pathways-other-subtitle">Explore premium careers for streams beyond your recommendations.</p>
       </div>
-      <div class="stream-pathways-stream-grid stream-pathways-stream-grid--other">
+      <div class="stream-pathways-stream-grid stream-pathways-stream-grid--other"{% if pathways_is_pdf %} style="display:block;width:100%;clear:both;overflow:visible;"{% endif %}>
         {{ stream_pathway_cards(stream_sorter_guidance.stream_wise_other_careers, 'other') }}
       </div>
     </div>
@@ -127,15 +136,15 @@
   </div>
 
   {% if stream_sorter_guidance.future_relevant_careers %}
-  <div class="stream-pathways-block">
-    <h2 class="stream-pathways-block-title">{{ stream_sorter_guidance.future_relevant_title }}</h2>
-    <ul class="stream-pathways-future-grid">
+  <div class="stream-pathways-block"{% if pathways_is_pdf %} style="clear:both;overflow:visible;margin-top:28px;padding-top:10px;"{% endif %}>
+    <h2 class="stream-pathways-block-title"{% if pathways_is_pdf %} style="clear:both;display:block;position:static;margin:0 0 10px;padding:0 0 8px;"{% endif %}>{{ stream_sorter_guidance.future_relevant_title }}</h2>
+    <ul class="stream-pathways-future-grid"{% if pathways_is_pdf %} style="display:block;clear:both;overflow:visible;margin:0;padding:0;list-style:none;"{% endif %}>
       {% for career in stream_sorter_guidance.future_relevant_careers %}
-      <li>
+      <li{% if pathways_is_pdf %} style="display:inline-block;width:31%;margin:0 1.5% 8px 0;padding:0;vertical-align:top;box-sizing:border-box;"{% endif %}>
         {% if career.url %}
-        <a href="{{ career.url }}" class="stream-pathways-future-item stream-pathways-future-item--linked">{{ career.name }}</a>
+        <a href="{{ career.url }}" class="stream-pathways-future-item stream-pathways-future-item--linked"{% if pathways_is_pdf %} style="display:block;padding:6px 8px;font-size:8.5pt;line-height:1.35;text-align:center;box-sizing:border-box;"{% endif %}>{{ career.name }}</a>
         {% else %}
-        <span class="stream-pathways-future-item">{{ career.name }}</span>
+        <span class="stream-pathways-future-item"{% if pathways_is_pdf %} style="display:block;padding:6px 8px;font-size:8.5pt;line-height:1.35;text-align:center;box-sizing:border-box;"{% endif %}>{{ career.name }}</span>
         {% endif %}
       </li>
       {% endfor %}

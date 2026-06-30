@@ -6,7 +6,7 @@
 {% block additionalhead %}
 {{ super() }}
 <link rel="stylesheet" href="{{ static('resume-builder-prototype/styles.css') }}?v=1">
-<link rel="stylesheet" href="{{ static('resume-builder-v2/styles.css') }}?v=17">
+<link rel="stylesheet" href="{{ static('resume-builder-v2/styles.css') }}?v=24">
 <style>
   body.rb2-studio-page {
     background: #f0f2f8;
@@ -39,7 +39,7 @@
 {% block student_main %}
 <div class="rb2-studio-app">
   {# ——— Top bar ——— #}
-  <header class="rb2-studio-topbar mt-10">
+  <header class="rb2-studio-topbar mt-8">
     <div class="rb2-studio-topbar__left">
       <a href="{{ url('users:resume_v2_dashboard') }}" class="rb2-studio-back" title="Back to resumes">
         <i class='bx bx-arrow-back'></i>
@@ -97,17 +97,22 @@
 
       {% if ai_suggestions %}
       <div class="rb2-tips-card" id="rb2TipsCard">
-        <h3 class="rb2-tips-card__title"><i class='bx bx-bulb'></i> Tips for you</h3>
-        <div id="rb2TipsList">
+        <h3 class="rb2-tips-card__title">
+          {% include 'template20/user/includes/resume_v2_tips_lamp_icon.html' %}
+          Tips for you
+        </h3>
+        <ul class="rb2-tips-list" id="rb2TipsList">
           {% for s in ai_suggestions[:5] %}
-          <button type="button"
-            class="rb2-coach-item"
+          <li class="rb2-tip-row"
             data-section="{{ s.section|default('') }}"
-            data-coach-action="{{ s.coach_action|default('') }}">
-            {{ s.text }}
-          </button>
+            data-coach-action="{{ s.coach_action|default('') }}"
+            tabindex="0"
+            role="button">
+            {% include 'template20/user/includes/resume_v2_tip_check_icon.html' %}
+            <span class="rb2-tip-text">{{ s.text }}</span>
+          </li>
           {% endfor %}
-        </div>
+        </ul>
       </div>
       {% endif %}
 
@@ -277,7 +282,7 @@
             <textarea id="rb2ProjectDesc" rows="4" placeholder="Describe what you built and what you learned…"></textarea>
           </div>
           <div class="rb2-form-actions">
-            <button type="button" class="rb2-ai-btn" id="rb2GenProjectDesc"><i class='bx bx-bot'></i> Help me write this</button>
+            <button type="button" class="rb2-ai-btn" id="rb2GenProjectDesc"><svg class="rb2-ai-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M7.5 5.6 10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.9959.9959 0 0 0-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"></path></svg> Help me write this</button>
             <button type="button" class="rb2-btn rb2-btn--primary" id="rb2SaveProject">Save project</button>
           </div>
           <ul class="rb2-item-list" id="rb2ProjectsList"></ul>
@@ -302,6 +307,30 @@
           </div>
           <button type="button" class="rb2-btn rb2-btn--primary" id="rb2SaveCert">Save certificate</button>
           <ul class="rb2-item-list" id="rb2CertsList"></ul>
+        </div>
+      </div>
+
+      <div class="rb2-editor-section" data-section="languages" style="display:none">
+        <div class="rb2-form-card">
+          <h2 class="rb2-form-card__title">Languages</h2>
+          <p class="rb2-form-card__hint">Languages you speak or are learning — shown on your resume and PDF.</p>
+          <div id="rb2LanguagesList" class="rb2-lang-rows"></div>
+          <div class="rb2-form-actions rb2-form-actions--spaced">
+            <button type="button" class="rb2-btn rb2-btn--soft" id="rb2AddLanguage">+ Add language</button>
+            <button type="button" class="rb2-btn rb2-btn--primary" id="rb2SaveLanguages">Save languages</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="rb2-editor-section" data-section="hobbies" style="display:none">
+        <div class="rb2-form-card">
+          <h2 class="rb2-form-card__title">Hobbies</h2>
+          <p class="rb2-form-card__hint">Sports, clubs, creative activities — helps employers see your personality.</p>
+          <div class="rb2-field">
+            <label>Your hobbies</label>
+            <textarea id="rb2HobbiesField" rows="4" placeholder="e.g. Cricket, reading, debate club, painting">{{ studio_hobbies|default('', true)|e }}</textarea>
+          </div>
+          <button type="button" class="rb2-btn rb2-btn--primary" id="rb2SaveHobbies">Save hobbies</button>
         </div>
       </div>
 
@@ -330,8 +359,8 @@
             <textarea id="rb2SummaryField" rows="6" placeholder="I'm a motivated student interested in…">{{ resume.about|default('', true)|e }}</textarea>
           </div>
           <div class="rb2-form-actions">
-            <button type="button" class="rb2-ai-btn" id="rb2GenSummary"><i class='bx bx-bot'></i> Write for me</button>
-            <button type="button" class="rb2-ai-btn" id="rb2ImproveSummary">Make it better</button>
+            <button type="button" class="rb2-ai-btn" id="rb2GenSummary"><svg class="rb2-ai-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M7.5 5.6 10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.9959.9959 0 0 0-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"></path></svg> Write for me</button>
+            <button type="button" class="rb2-ai-btn" id="rb2ImproveSummary"><svg class="rb2-ai-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M7.5 5.6 10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.9959.9959 0 0 0-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"></path></svg> Make it better</button>
             <button type="button" class="rb2-btn rb2-btn--primary" id="rb2SaveSummary">Save</button>
           </div>
         </div>
@@ -374,27 +403,25 @@
         <h3 class="rb2-score-card__title">Resume strength</h3>
         <div class="rb2-score-row">
           <div class="rb2-score-pill">
-            <strong>{{ strength.score }}</strong>
+            <strong id="rb2StrengthOverall">{{ strength.score }}</strong>
             <span>Overall</span>
           </div>
           <div class="rb2-score-pill">
-            <strong>{{ strength.completion }}%</strong>
+            <strong id="rb2StrengthComplete">{{ strength.completion }}%</strong>
             <span>Complete</span>
           </div>
           <div class="rb2-score-pill">
-            <strong>{{ strength.ats.completeness }}%</strong>
+            <strong id="rb2StrengthDetails">{{ strength.ats.completeness }}%</strong>
             <span>Details filled</span>
           </div>
         </div>
       </div>
     </main>
-
-    {# ——— Right: live preview ——— #}
     <aside class="rb2-studio-preview-pane">
       <div class="rb2-preview-header">
         <span class="rb2-preview-header__title"><i class='bx bx-show'></i> Live preview</span>
         <button type="button" class="rb2-preview-header__link" id="rb2ChangeTemplateBtn" data-bs-toggle="modal" data-bs-target="#rb2TemplateModal">
-          Change look
+          Theme Style
         </button>
       </div>
       <div class="rb2-preview-frame-wrap">
@@ -407,6 +434,18 @@
       </div>
     </aside>
   </div>
+
+  <nav class="rb2-studio-nav" id="rb2StudioNav" aria-label="Section navigation">
+    <div class="rb2-studio-nav__inner">
+      <button type="button" class="rb2-btn rb2-btn--outline rb2-btn--sm" id="rb2NavBack" disabled>
+        <i class='bx bx-chevron-left'></i> Back
+      </button>
+      <span class="rb2-studio-nav__step" id="rb2NavStepLabel">Personal Info</span>
+      <button type="button" class="rb2-btn rb2-btn--primary rb2-btn--sm" id="rb2NavContinue">
+        Save &amp; Continue <i class='bx bx-chevron-right'></i>
+      </button>
+    </div>
+  </nav>
 
   <footer class="rb2-complete-sticky {% if overall_completion >= 100 %}is-visible{% endif %}" id="rb2CompleteSticky" aria-label="Resume complete actions">
     <div class="rb2-complete-sticky__inner">
@@ -423,19 +462,61 @@
   </footer>
 </div>
 
-{# Template picker modal #}
+{# Theme + template modal #}
 <div class="modal fade" id="rb2TemplateModal" tabindex="-1" aria-labelledby="rb2TemplateModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content rb2-modal-content">
       <div class="modal-header border-0 pb-0">
         <div>
-          <h5 class="modal-title fw-bold" id="rb2TemplateModalLabel">Pick a look for your resume</h5>
-          <p class="text-muted fs-14 mb-0">{{ template_count|default(v2_templates|length) }} templates · your content stays the same — only the design changes.</p>
+          <h5 class="modal-title fw-bold" id="rb2TemplateModalLabel">Theme style</h5>
+          <p class="text-muted fs-14 mb-0">Adjust accent color, font family, font size, and layout — your content stays the same.</p>
         </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body pt-3">
-        <div class="rb2-template-modal-grid">
+        <section class="rb2-theme-panel">
+          <h6 class="rb2-theme-panel__title">Accent color</h6>
+          <div class="rb2-theme-colors" id="rb2ThemeColors" role="listbox" aria-label="Accent color">
+            {% for color in studio_theme_colors %}
+            <button type="button"
+              class="rb2-theme-color {% if color.id == studio_theme_color %}is-selected{% endif %}"
+              data-color-id="{{ color.id }}"
+              style="--rb2-swatch: {{ color.hex }}"
+              title="{{ color.label }}"
+              aria-label="{{ color.label }}"
+              aria-selected="{% if color.id == studio_theme_color %}true{% else %}false{% endif %}">
+              <span class="rb2-theme-color__dot"></span>
+            </button>
+            {% endfor %}
+          </div>
+        </section>
+
+        <section class="rb2-theme-panel">
+          <h6 class="rb2-theme-panel__title">Font family</h6>
+          <select class="rb2-theme-font-family" id="rb2ThemeFontFamily" aria-label="Font family">
+            {% for font in studio_theme_fonts %}
+            <option value="{{ font.id }}" {% if font.id == studio_theme_font_id %}selected{% endif %}>{{ font.label }}</option>
+            {% endfor %}
+          </select>
+        </section>
+
+        <section class="rb2-theme-panel">
+          <h6 class="rb2-theme-panel__title">Font size</h6>
+          <div class="rb2-theme-font-size">
+            <button type="button" class="rb2-theme-font-btn" id="rb2ThemeFontDecrease" aria-label="Decrease font size">
+              <i class='bx bx-minus'></i>
+            </button>
+            <span class="rb2-theme-font-size__label" id="rb2ThemeFontSizeLabel">Standard</span>
+            <button type="button" class="rb2-theme-font-btn" id="rb2ThemeFontIncrease" aria-label="Increase font size">
+              <i class='bx bx-plus'></i>
+            </button>
+          </div>
+        </section>
+
+        <section class="rb2-theme-panel rb2-theme-panel--templates">
+          <h6 class="rb2-theme-panel__title">Layout template</h6>
+          <p class="rb2-theme-panel__hint">{{ template_count|default(v2_templates|length) }} templates · pick a design, then click Apply template.</p>
+          <div class="rb2-template-modal-grid">
           {% for tpl in v2_templates %}
           <button type="button"
             class="rb2-template-pick {% if tpl.id == selected_template_id %}is-selected{% endif %}"
@@ -455,7 +536,8 @@
             </div>
           </button>
           {% endfor %}
-        </div>
+          </div>
+        </section>
       </div>
       <div class="modal-footer border-0 pt-0 rb2-template-modal-footer">
         <p class="rb2-template-modal-footer__hint mb-0 me-auto" id="rb2TemplateModalHint">
@@ -481,13 +563,17 @@ window.__RB2_STUDIO = {
   editorPayload: {{ editor_payload|tojson_for_script }},
   selectedTemplateId: {{ selected_template_id|tojson }},
   prototypeKey: {{ prototype_key|tojson }},
+  themeColor: {{ studio_theme_color|tojson }},
+  themeFontSize: {{ studio_theme_font_size|tojson }},
+  themeFontId: {{ studio_theme_font_id|tojson }},
   photoUploadUrl: {{ photo_upload_url|tojson }},
   resumePhotoUrl: {{ resume_photo_url|tojson }},
   avatarInitial: {{ avatar_initial|tojson }},
   overallCompletion: {{ overall_completion }},
+  sectionsList: {{ sections_list|tojson }},
   pdfUrl: {{ pdf_url|tojson }},
   previewUrl: {{ preview_embed_url|tojson }},
 };
 </script>
-<script src="{{ static('resume-builder-v2/studio.js') }}?v=15" defer></script>
+<script src="{{ static('resume-builder-v2/studio.js') }}?v=23" defer></script>
 {% endblock %}

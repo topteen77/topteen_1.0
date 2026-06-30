@@ -22,8 +22,8 @@ STUDIO_PROTO_V2_KEY = "studio_proto_v2"
 RESUME_GOALS = [
     {"id": "internship", "label": "Internship", "icon": "briefcase"},
     {"id": "scholarship", "label": "Scholarship", "icon": "award"},
-    {"id": "college_admission", "label": "College Admission", "icon": "school"},
-    {"id": "part_time", "label": "Part-Time Job", "icon": "clock"},
+    {"id": "college_admission", "label": "College Admission", "icon": "graduation", "solid": True},
+    {"id": "part_time", "label": "Part-Time Job", "icon": "time-five"},
     {"id": "full_time", "label": "Full-Time Job", "icon": "building"},
     {"id": "volunteer", "label": "Volunteer Program", "icon": "heart"},
     {"id": "competition", "label": "Competition", "icon": "trophy"},
@@ -66,6 +66,8 @@ STUDENT_SECTIONS = [
     "skills",
     "projects",
     "certificates",
+    "languages",
+    "hobbies",
     "achievements",
     "summary",
 ]
@@ -77,6 +79,8 @@ EXPERIENCED_SECTIONS = [
     "projects",
     "skills",
     "certificates",
+    "languages",
+    "hobbies",
 ]
 
 SECTION_LABELS = {
@@ -85,10 +89,55 @@ SECTION_LABELS = {
     "skills": "Skills",
     "projects": "Projects",
     "certificates": "Certificates",
+    "languages": "Languages",
+    "hobbies": "Hobbies",
     "achievements": "Achievements",
     "summary": "Summary",
     "experience": "Work Experience",
 }
+
+LANGUAGE_LEVEL_OPTIONS = [
+    "Native",
+    "Fluent",
+    "Advanced",
+    "Intermediate",
+    "Basic",
+    "Beginner",
+]
+
+
+def studio_sections_for_user(user, resume=None) -> list[str]:
+    """Canonical studio section order — always current (not stale v2 meta)."""
+    analysis = ResumeProfileAnalyzer.analyze(user, resume)
+    if analysis["type"] == "student":
+        return list(STUDENT_SECTIONS)
+    return list(EXPERIENCED_SECTIONS)
+
+
+def sync_v2_recommended_sections(resume, user) -> list[str]:
+    """Keep wizard v2 meta aligned with current section list."""
+    sections = studio_sections_for_user(user, resume)
+    meta = get_v2_meta(resume)
+    if meta.get("recommended_sections") != sections:
+        save_v2_meta(resume, {"recommended_sections": sections})
+    return sections
+
+
+def _studio_activity_counts(resume) -> tuple[int, int]:
+    """Projects vs achievements, excluding Language/Hobbies/Interests meta rows."""
+    from users.resume_payload import _is_resume_meta_activity_title
+
+    projects = 0
+    achievements = 0
+    for a in UserResumeActivity.objects.filter(resume=resume).order_by("id"):
+        title = (a.title or "").strip()
+        if _is_resume_meta_activity_title(title):
+            continue
+        if (a.description or "").strip().startswith("Technologies:"):
+            projects += 1
+        else:
+            achievements += 1
+    return projects, achievements
 
 
 def _wizard_v2_dict(resume) -> dict:
@@ -272,6 +321,8 @@ class ATSScoringService:
             bool(resume_data.get("skills")),
             bool(resume_data.get("education")),
             bool(resume_data.get("experience") or resume_data.get("certifications")),
+            bool(resume_data.get("languages")),
+            bool((resume_data.get("hobbies") or "").strip()),
         ]
         return round(100 * sum(checks) / len(checks))
 
@@ -295,10 +346,12 @@ class ResumeSuggestionService:
             "skills": counts["skills"],
             "projects": counts["projects"],
             "certificates": counts["certificates"],
-            "activities": counts["activities"],
+            "activities": counts["achievements"],
             "has_summary": bool(
                 (payload.get("summary") or "").strip() or (resume.about or "").strip()
             ),
+            "has_languages": bool(payload.get("languages")),
+            "has_hobbies": bool((payload.get("hobbies") or "").strip()),
         }
 
     @staticmethod
@@ -498,6 +551,22 @@ class ResumeSuggestionService:
                 "coach_action": "focus_certificate",
                 "priority": "medium",
             })
+        if not counts.get("has_languages"):
+            items.append({
+                "text": "Add Languages you speak",
+                "action": "add_languages",
+                "section": "languages",
+                "coach_action": "focus_languages",
+                "priority": "medium",
+            })
+        if not counts.get("has_hobbies"):
+            items.append({
+                "text": "Add Hobbies to show your interests outside class",
+                "action": "add_hobbies",
+                "section": "hobbies",
+                "coach_action": "focus_hobbies",
+                "priority": "low",
+            })
         if counts["activities"] < 1:
             items.append({
                 "text": "Add Volunteer Activity",
@@ -536,13 +605,16 @@ class ResumeV2Metrics:
                 "projects": 0,
                 "certificates": 0,
                 "activities": 0,
+                "achievements": 0,
                 "internships": 0,
             }
+        projects, achievements = _studio_activity_counts(resume)
         return {
             "skills": UserResumeSkill.objects.filter(resume=resume).count(),
-            "projects": UserResumeActivity.objects.filter(resume=resume).count(),
+            "projects": projects,
             "certificates": UserResumeCertificate.objects.filter(resume=resume).count(),
-            "activities": UserResumeActivity.objects.filter(resume=resume).count(),
+            "activities": projects + achievements,
+            "achievements": achievements,
             "internships": UserResumeInternship.objects.filter(resume=resume).count(),
         }
 
@@ -600,8 +672,18 @@ class ResumeV2Metrics:
             if n >= 1:
                 return (100, "complete")
             return (0, "missing")
+        if section == "languages":
+            n = len(payload.get("languages") or [])
+            if n >= 2:
+                return (100, "complete")
+            if n >= 1:
+                return (70, "partial")
+            return (0, "missing")
+        if section == "hobbies":
+            ok = bool((payload.get("hobbies") or "").strip())
+            return (100 if ok else 0, "complete" if ok else "missing")
         if section == "achievements":
-            n = counts["activities"]
+            n = counts["achievements"]
             if n >= 1:
                 return (100, "complete")
             return (0, "missing")
@@ -800,6 +882,42 @@ def resume_card_context(resume, request) -> dict:
     }
 
 
+def save_resume_languages(resume, languages_raw: list | None) -> list[dict]:
+    """Persist languages in v2 meta and Language:* activity rows for PDF sync."""
+    cleaned: list[dict] = []
+    for lg in languages_raw or []:
+        if not isinstance(lg, dict):
+            continue
+        name = (lg.get("name") or "").strip()[:200]
+        if not name:
+            continue
+        level = (lg.get("level") or "").strip()[:200]
+        cleaned.append({"name": name, "level": level})
+    save_v2_meta(resume, {"languages": cleaned})
+    UserResumeActivity.objects.filter(resume=resume, title__startswith="Language:").delete()
+    for lg in cleaned:
+        UserResumeActivity.objects.create(
+            resume=resume,
+            title=f"Language: {lg['name']}"[:250],
+            description=lg["level"][:500],
+        )
+    return cleaned
+
+
+def save_resume_hobbies(resume, text: str) -> str:
+    """Persist hobbies in v2 meta and a Hobbies activity row."""
+    hobbies = (text or "").strip()[:2000]
+    save_v2_meta(resume, {"hobbies": hobbies})
+    UserResumeActivity.objects.filter(resume=resume, title="Hobbies").delete()
+    if hobbies:
+        UserResumeActivity.objects.create(
+            resume=resume,
+            title="Hobbies",
+            description=hobbies[:2000],
+        )
+    return hobbies
+
+
 def sync_studio_proto_resume_from_db(resume, request=None) -> None:
     """Refresh studio_proto_v1.resume from DB so preview picks up photo/skills changes."""
     from .resume_payload import (
@@ -958,6 +1076,7 @@ def apply_template_to_resume(resume, template_id: str, request=None) -> bool:
     sp.setdefault("color", sp.get("color") or "teal")
     sp.setdefault("font", sp.get("font") or DEFAULT_STUDIO_EMBED_FONT)
     sp.setdefault("textAlign", sp.get("textAlign") or "start")
+    sp.setdefault("fontSize", sp.get("fontSize") or "standard")
     wiz[STUDIO_PROTO_V1_KEY] = sp
     resume.wizard_draft_json = json.dumps(wiz, ensure_ascii=False, default=str)
     resume.save(update_fields=["wizard_draft_json", "modified"])
@@ -968,14 +1087,70 @@ def apply_template_to_resume(resume, template_id: str, request=None) -> bool:
     return True
 
 
+def apply_theme_prefs_to_resume(
+    resume,
+    request=None,
+    *,
+    color: str | None = None,
+    font_size: str | None = None,
+    font_id: str | None = None,
+) -> bool:
+    """Persist accent color, font family, and resume font size into studio_proto_v1."""
+    from .resume_payload import (
+        DEFAULT_STUDIO_EMBED_FONT,
+        STUDIO_PROTO_V1_KEY,
+        STUDIO_THEME_COLORS,
+        _STUDIO_FONT_IDS,
+        _STUDIO_FONT_SIZES,
+        ensure_studio_proto_v1_defaults_saved,
+        resume_studio_prototype_payload,
+        studio_font_stack_from_id,
+    )
+
+    valid_colors = {row["id"] for row in STUDIO_THEME_COLORS}
+    valid_sizes = set(_STUDIO_FONT_SIZES.keys())
+    color = (color or "").strip().lower()
+    font_size = (font_size or "").strip().lower()
+    font_id = (font_id or "").strip().lower()
+    if color and color not in valid_colors:
+        return False
+    if font_size and font_size not in valid_sizes:
+        return False
+    if font_id and font_id not in _STUDIO_FONT_IDS:
+        return False
+    if not color and not font_size and not font_id:
+        return False
+
+    ensure_studio_proto_v1_defaults_saved(resume, request)
+    resume.refresh_from_db()
+    wiz = _wizard_v2_dict(resume)
+    sp = wiz.get(STUDIO_PROTO_V1_KEY)
+    if not isinstance(sp, dict):
+        sp = {}
+    sp = dict(sp)
+    if color:
+        sp["color"] = color
+    if font_size:
+        sp["fontSize"] = font_size
+    if font_id:
+        sp["font"] = studio_font_stack_from_id(font_id)
+    sp["resume"] = resume_studio_prototype_payload(resume, request, ignore_studio_proto_merge=True)
+    sp.setdefault("template", sp.get("template") or "classic-sidebar")
+    sp.setdefault("color", sp.get("color") or "teal")
+    sp.setdefault("font", sp.get("font") or DEFAULT_STUDIO_EMBED_FONT)
+    sp.setdefault("textAlign", sp.get("textAlign") or "start")
+    sp.setdefault("fontSize", sp.get("fontSize") or "standard")
+    wiz[STUDIO_PROTO_V1_KEY] = sp
+    resume.wizard_draft_json = json.dumps(wiz, ensure_ascii=False, default=str)
+    resume.save(update_fields=["wizard_draft_json", "modified"])
+    return True
+
+
 def studio_ui_state(user, resume, request=None, sections_list=None) -> dict:
     """Section metrics + tips for client-side refresh after saves."""
     analysis = ResumeProfileAnalyzer.analyze(user, resume)
-    meta = get_v2_meta(resume)
     if sections_list is None:
-        sections_list = meta.get("recommended_sections") or analysis["recommended_sections"]
-    if analysis["type"] == "student":
-        sections_list = STUDENT_SECTIONS
+        sections_list = studio_sections_for_user(user, resume)
     metrics = ResumeV2Metrics.section_completion(resume, sections_list)
     strength = ResumeV2Metrics.resume_strength(resume, request)
     return {
@@ -985,6 +1160,12 @@ def studio_ui_state(user, resume, request=None, sections_list=None) -> dict:
         "payload": resume_editor_payload(resume),
         "missing_keywords": filter_missing_keywords(strength, resume),
         "resume_photo_url": resume_photo_url(request, resume, user),
+        "strength": {
+            "score": strength["score"],
+            "completion": strength["completion"],
+            "level": strength["level"],
+            "ats_completeness": strength["ats"]["completeness"],
+        },
     }
 
 

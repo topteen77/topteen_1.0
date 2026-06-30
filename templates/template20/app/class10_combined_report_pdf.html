@@ -363,6 +363,158 @@
     .stream-pathways-hero__meta {
       display: none !important;
     }
+
+    /* Extended career pathways — tag pills and stream cards (WeasyPrint-safe) */
+    .stream-pathways-section {
+      clear: both !important;
+      overflow: visible !important;
+    }
+    .stream-pathways-block {
+      clear: both !important;
+      overflow: visible !important;
+      margin: 0 0 18px !important;
+      page-break-inside: auto !important;
+    }
+    .stream-pathways-block + .stream-pathways-block {
+      clear: both !important;
+      margin-top: 28px !important;
+      padding-top: 10px !important;
+    }
+    .stream-pathways-block-title {
+      clear: both !important;
+      position: static !important;
+      display: block !important;
+      margin: 0 0 10px !important;
+      padding: 0 0 8px !important;
+      page-break-after: avoid !important;
+    }
+    .stream-pathways-block-title::after {
+      position: static !important;
+      display: block !important;
+      margin-top: 4px !important;
+      width: 64px !important;
+      height: 2px !important;
+    }
+    .stream-pathways-zone {
+      clear: both !important;
+      overflow: visible !important;
+      margin-bottom: 14px !important;
+      padding-bottom: 10px !important;
+    }
+    .stream-pathways-zone--other {
+      page-break-before: always !important;
+      break-before: page !important;
+      clear: both !important;
+      margin-top: 0 !important;
+      padding-top: 12px !important;
+    }
+    .stream-pathways-zone-heading--recommended,
+    .stream-pathways-zone-heading--other {
+      clear: both !important;
+      margin-bottom: 10px !important;
+      page-break-after: avoid !important;
+    }
+    .stream-pathways-stream-grid,
+    .stream-pathways-stream-grid--recommended,
+    .stream-pathways-stream-grid--other {
+      display: block !important;
+      width: 100% !important;
+      clear: both !important;
+      overflow: visible !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    .stream-pathways-stream-grid::after,
+    .stream-pathways-stream-grid--recommended::after,
+    .stream-pathways-stream-grid--other::after {
+      content: "" !important;
+      display: block !important;
+      clear: both !important;
+      height: 0 !important;
+    }
+    .stream-pathways-stream-grid .stream-pathways-stream-card,
+    .stream-pathways-stream-grid--recommended .stream-pathways-stream-card,
+    .stream-pathways-stream-grid--other .stream-pathways-stream-card {
+      float: none !important;
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 0 0 12px !important;
+      box-sizing: border-box !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+      overflow: visible !important;
+    }
+    .stream-pathways-stream-grid .stream-pathways-stream-card:last-child,
+    .stream-pathways-stream-grid--recommended .stream-pathways-stream-card:last-child,
+    .stream-pathways-stream-grid--other .stream-pathways-stream-card:last-child {
+      margin-bottom: 0 !important;
+    }
+    .stream-pathways-career-list {
+      display: block !important;
+      padding: 10px 12px 12px !important;
+      margin: 0 !important;
+      list-style: none !important;
+      overflow: visible !important;
+    }
+    .stream-pathways-career-list li {
+      display: inline-block !important;
+      margin: 0 8px 8px 0 !important;
+      padding: 0 !important;
+      vertical-align: top !important;
+    }
+    .stream-pathways-career-pill {
+      display: inline-block !important;
+      padding: 4px 10px !important;
+      margin: 0 !important;
+      border-radius: 999px !important;
+      font-size: 8.5pt !important;
+      font-weight: 600 !important;
+      line-height: 1.4 !important;
+      white-space: nowrap !important;
+    }
+    .stream-pathways-career-pill--recommended {
+      color: #065f46 !important;
+      background: #ecfdf5 !important;
+      border: 1px solid #6ee7b7 !important;
+    }
+    .stream-pathways-career-pill--other {
+      color: #374151 !important;
+      background: #f3f4f6 !important;
+      border: 1px solid #d1d5db !important;
+    }
+    .stream-pathways-future-grid {
+      display: block !important;
+      clear: both !important;
+      overflow: visible !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      list-style: none !important;
+    }
+    .stream-pathways-future-grid li {
+      display: inline-block !important;
+      width: 31% !important;
+      margin: 0 1.5% 8px 0 !important;
+      padding: 0 !important;
+      vertical-align: top !important;
+      box-sizing: border-box !important;
+    }
+    .stream-pathways-future-item {
+      display: block !important;
+      padding: 6px 8px !important;
+      font-size: 8.5pt !important;
+      line-height: 1.35 !important;
+      text-align: center !important;
+      box-sizing: border-box !important;
+    }
+    .stream-pathways-stream-card,
+    .stream-pathways-career-pill,
+    .stream-pathways-stream-card__head,
+    .stream-pathways-future-item {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
     .aptitude-performance-profile {
       clear: both;
       width: 100%;
@@ -530,8 +682,29 @@
       fill: #ffffff !important;
       color: #ffffff !important;
     }
+    .aptitude-fit-section-icon--strong .aptitude-fit-svg,
+    .aptitude-fit-section-icon--strong .aptitude-fit-svg path {
+      fill: #166534 !important;
+      color: #166534 !important;
+    }
+    .aptitude-fit-section-icon--good .aptitude-fit-svg,
+    .aptitude-fit-section-icon--good .aptitude-fit-svg path {
+      fill: #4338ca !important;
+      color: #4338ca !important;
+    }
+    .aptitude-combination-narrative__icon .aptitude-fit-svg,
+    .aptitude-combination-narrative__icon .aptitude-fit-svg path {
+      fill: #3F37C9 !important;
+      color: #3F37C9 !important;
+    }
     .aptitude-combination-narrative__icon {
       color: #3F37C9 !important;
+    }
+    .aptitude-fit-col-header,
+    .aptitude-fit-stream-row,
+    .aptitude-fit-section-head {
+      display: flex !important;
+      align-items: center !important;
     }
   </style>
   {% include 'template20/app/partials/aptitude_tier_styles.html' %}

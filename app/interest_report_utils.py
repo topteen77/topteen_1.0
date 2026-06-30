@@ -15,69 +15,171 @@ RIASEC_NAME_TO_CODE = {
 
 RIASEC_CODE_TO_NAME = {code: name for name, code in RIASEC_NAME_TO_CODE.items()}
 
+RIASEC_DISPLAY_LABELS = {
+    'R': 'Realistic & Adventurous',
+    'I': 'Investigative & Knowledgeable',
+    'A': 'Artistic & Creative',
+    'S': 'Social & Collaborative',
+    'E': 'Enterprising & Bold Leader',
+    'C': 'Conventional & Organized',
+}
+
+RIASEC_THEME = {
+    'R': {'color': '#057190', 'bg': '#C9EDF8'},
+    'I': {'color': '#A92CAF', 'bg': '#FEECFF'},
+    'A': {'color': '#2A740E', 'bg': '#EDFFE7'},
+    'S': {'color': '#6D5C04', 'bg': '#FFFAE2'},
+    'E': {'color': '#A22717', 'bg': '#FFFAE2'},
+    'C': {'color': '#0B5BA1', 'bg': '#EBF6FF'},
+}
+
+RIASEC_STORY_DESCRIPTIONS = {
+    'R': (
+        'Hey! Your dominant interest area turned out to be Realistic. From a young age, you may have '
+        'shown strong practical skills and a natural ability to build, repair, or work with tools, '
+        'machines, or physical systems. You prefer action over excessive discussion and enjoy solving '
+        'real-world problems through hands-on work. You are resilient, practical, and often the person '
+        'others rely on when something needs fixing or improving. You are likely to thrive in careers '
+        'involving technical systems, engineering, operations, and physical problem-solving.'
+    ),
+    'I': (
+        'Hey! Your dominant interest area turned out to be Investigative. You are naturally curious '
+        'and enjoy asking deep questions about how things work. You love exploring ideas, analyzing '
+        'data, and solving complex problems. Your strong observation skills and analytical mindset help '
+        'you notice patterns that others may miss. You are drawn toward learning, research, and '
+        'discovery, and likely enjoy intellectual challenges that require critical thinking and '
+        'evidence-based reasoning.'
+    ),
+    'A': (
+        'Hey! Your dominant interest area turned out to be Artistic. You are imaginative, expressive, '
+        'and full of original ideas. You enjoy creating, designing, writing, performing, or bringing '
+        'concepts to life in unique ways. You likely have strong aesthetic sense and creative '
+        'intuition, and people often admire your originality. You thrive in environments where '
+        'innovation, storytelling, design, and self-expression are valued.'
+    ),
+    'S': (
+        'Hey! Your dominant interest area turned out to be Social. You connect easily with people and '
+        'naturally understand emotions, relationships, and group dynamics. You are empathetic, '
+        'supportive, and often the person others trust for advice or help. You enjoy teamwork, '
+        'mentoring, teaching, and contributing to the well-being of others. You are likely to thrive '
+        'in careers centered around helping, guiding, healing, or empowering people.'
+    ),
+    'E': (
+        'Hey! Your dominant interest area turned out to be Enterprising. You are ambitious, confident, '
+        'and naturally inclined toward leadership. You enjoy influencing people, taking initiative, and '
+        'turning ideas into action. You are comfortable making decisions, taking calculated risks, and '
+        'motivating others toward goals. You thrive in dynamic environments where persuasion, strategy, '
+        'leadership, and business thinking drive success and impact.'
+    ),
+    'C': (
+        'Hey! Your dominant interest area turned out to be Conventional. You are highly organized, '
+        'dependable, and excellent at managing systems, processes, and details. You like structure, '
+        'clarity, and well-defined workflows. You are often the one who keeps things running smoothly '
+        'by planning carefully and ensuring nothing is overlooked. You thrive in careers that value '
+        'accuracy, efficiency, organization, and systematic execution.'
+    ),
+}
+
 # Canonical "Careers to Choose" lists — keep aligned with test2_report.html / combined report.
 RIASEC_CAREERS_TO_CHOOSE = {
     'R': [
         'Mechanical Engineering',
         'Construction Management',
-        'Aviation (Pilots)',
-        'Surveying and Mapping',
-        'Skilled Trades',
+        'Aviation (Pilot / Aviation Operations)',
+        'Surveying & Mapping',
+        'Skilled Technical Trades',
         'Industrial Engineering',
         'Automotive Engineering',
-        'Environmental Health and Safety Specialist',
+        'Robotics & Automation',
     ],
     'I': [
-        'Research and Development',
-        'Data Science and Analytics',
-        'Biotechnology and Life Sciences',
+        'Research & Development',
+        'Data Science & Analytics',
+        'Biotechnology & Life Sciences',
         'Software Engineering',
         'Forensic Science',
         'Medical Research',
         'Environmental Science',
-        'Epidemiology',
+        'AI / Machine Learning',
     ],
     'A': [
         'Graphic Design',
-        'Writing and Publishing',
-        'Music and Performing Arts',
-        'Film and Media Production',
-        'Art Direction',
+        'Writing & Publishing',
+        'Music & Performing Arts',
+        'Film & Media Production',
+        'Fashion Design',
         'Animation',
         'Interior Design',
-        'Fashion Design',
+        'UI/UX Design',
     ],
     'S': [
-        'Counseling and Therapy',
-        'Education and Teaching',
-        'Healthcare (e.g., Nursing, Physician Assistant)',
+        'Counseling & Therapy',
+        'Education & Teaching',
+        'Healthcare & Allied Health Sciences',
         'Social Services',
-        'Human Resources',
+        'Human Resource Management',
         'Occupational Therapy',
         'Public Relations',
-        'Nonprofit Management',
+        'NGO / Nonprofit Management',
     ],
     'E': [
         'Entrepreneurship',
-        'Marketing and Sales',
-        'Real Estate',
-        'Business Consulting',
-        'Executive Leadership',
-        'Management Consulting',
-        'Venture Capital',
-        'Investment Banking',
+        'Marketing & Sales',
+        'Real Estate & Infrastructure',
+        'Business Management',
+        'Brand Management',
+        'Digital Marketing',
+        'Business Development',
+        'Product Management',
     ],
     'C': [
-        'Accounting and Finance',
-        'Administrative and Office Management',
+        'Accounting & Finance',
+        'Administrative Management',
         'Data Analysis',
         'Project Management',
-        'Banking and Financial Services',
-        'Compliance and Risk Management',
+        'Banking & Financial Services',
+        'Compliance & Risk Management',
         'Supply Chain Management',
-        'Investment Analysis',
+        'Audit & Compliance',
     ],
 }
+
+
+def _split_story_description(description):
+    """Split 'Hey! ... turned out to be X.' intro from the rest of the paragraph."""
+    text = str(description or '').strip()
+    marker = 'turned out to be '
+    marker_idx = text.find(marker)
+    if marker_idx == -1:
+        return text, ''
+    after_type = text[marker_idx + len(marker):]
+    dot_idx = after_type.find('. ')
+    if dot_idx == -1:
+        return text, ''
+    intro_end = marker_idx + len(marker) + dot_idx + 1
+    intro = text[:intro_end].strip()
+    body = text[intro_end:].strip()
+    return intro, body
+
+
+def riasec_report_sections():
+    """Full section payload for test2 HTML/PDF templates and careers wheel."""
+    sections = {}
+    for code in RIASEC_ORDER:
+        theme = RIASEC_THEME[code]
+        description = RIASEC_STORY_DESCRIPTIONS[code]
+        description_intro, description_body = _split_story_description(description)
+        sections[code] = {
+            'code': code,
+            'label': RIASEC_DISPLAY_LABELS[code],
+            'description': description,
+            'description_intro': description_intro,
+            'description_body': description_body,
+            'careers': list(RIASEC_CAREERS_TO_CHOOSE[code]),
+            'color': theme['color'],
+            'bg': theme['bg'],
+        }
+    return sections
 
 
 def _category_to_code(name):
@@ -237,4 +339,5 @@ def interest_report_context_fields(scores=None, max_length='', min_length=''):
         'dominant_interest_labels': dominant_interest_labels,
         'dominant_interest_display': riasec_code_display_label(max_length),
         'dominant_interest_tied': len(dominant_names) > 1,
+        'riasec_sections': riasec_report_sections(),
     }

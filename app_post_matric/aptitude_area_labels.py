@@ -68,11 +68,27 @@ def aptitude_tier_label(tier_key):
 # changes required by management (01-Jun-2025): Below Average → professional copy (display only)
 APTITUDE_DEVELOPMENT_ALERT_TITLE = "Growth areas"
 
-APTITUDE_DEVELOPMENT_ALERT_BODY_TEMPLATE = (
-    "{count} reasoning area(s) have been identified as growth areas for skill strengthening. "
-    "Targeted practice and the recommended vocational guidance below can help you build "
-    "confidence in these areas before final stream selection."
+APTITUDE_DEVELOPMENT_ALERT_BODY_SINGULAR = (
+    "1 reasoning area offers opportunities for growth. "
+    "Strengthen these skills with the personalized recommendations below before selecting your stream."
 )
+
+APTITUDE_DEVELOPMENT_ALERT_BODY_PLURAL = (
+    "{count} reasoning areas offer opportunities for growth. "
+    "Strengthen these skills with the personalized recommendations below before selecting your stream."
+)
+
+
+def aptitude_development_alert_body(count):
+    """Format dashboard alert body for the number of development/growth areas."""
+    try:
+        n = int(count)
+    except (TypeError, ValueError):
+        n = 0
+    if n == 1:
+        return APTITUDE_DEVELOPMENT_ALERT_BODY_SINGULAR
+    return APTITUDE_DEVELOPMENT_ALERT_BODY_PLURAL.format(count=n)
+
 
 APTITUDE_VOCATIONAL_SECTION_TITLE = "Vocational guidance for skill development"
 
@@ -87,12 +103,3 @@ APTITUDE_IMPROVEMENT_NOTE = (
     "If you have growth areas for skill strengthening in your profile, vocational training "
     "and guidance can help you develop your other reasoning areas."
 )
-
-
-def aptitude_development_alert_body(count):
-    """Format dashboard alert body for the number of development/growth areas."""
-    try:
-        n = int(count)
-    except (TypeError, ValueError):
-        n = 0
-    return APTITUDE_DEVELOPMENT_ALERT_BODY_TEMPLATE.format(count=n)

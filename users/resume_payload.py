@@ -74,18 +74,58 @@ def _studio_resume_headline(resume, profile, wiz: dict | None = None, proto_head
 
     return ""
 
-_STUDIO_COLOR_HEX = {
-    "teal": "#1b9e7a",
-    "blue": "#2563eb",
-    "sky": "#0ea5e9",
-    "indigo": "#4f46e5",
-    "green": "#16a34a",
-    "purple": "#7c3aed",
-    "orange": "#ea580c",
-    "rose": "#e11d48",
-    "slate": "#334155",
-    "black": "#171717",
+_STUDIO_FONT_SIZES: dict[str, tuple[str, float]] = {
+    "compact": ("10.5pt", 0.94),
+    "standard": ("11.5pt", 1.0),
+    "readable": ("12.5pt", 1.08),
+    "large": ("13.5pt", 1.16),
 }
+
+STUDIO_THEME_COLORS: list[dict[str, str]] = [
+    {"id": "teal", "label": "Teal", "hex": "#1b9e7a"},
+    {"id": "blue", "label": "Blue", "hex": "#2563eb"},
+    {"id": "sky", "label": "Sky", "hex": "#0ea5e9"},
+    {"id": "indigo", "label": "Indigo", "hex": "#4f46e5"},
+    {"id": "green", "label": "Green", "hex": "#16a34a"},
+    {"id": "purple", "label": "Purple", "hex": "#7c3aed"},
+    {"id": "orange", "label": "Orange", "hex": "#ea580c"},
+    {"id": "rose", "label": "Rose", "hex": "#e11d48"},
+    {"id": "slate", "label": "Slate", "hex": "#334155"},
+    {"id": "black", "label": "Black", "hex": "#171717"},
+]
+
+STUDIO_FONT_FAMILIES: list[dict[str, str]] = [
+    {"id": "source-sans-3", "label": "Source Sans 3", "stack": '"Source Sans 3", system-ui, sans-serif'},
+    {"id": "inter", "label": "Inter", "stack": DEFAULT_STUDIO_EMBED_FONT},
+    {"id": "dm-sans", "label": "DM Sans", "stack": '"DM Sans", system-ui, sans-serif'},
+    {"id": "open-sans", "label": "Open Sans", "stack": '"Open Sans", system-ui, sans-serif'},
+    {"id": "ibm-plex-sans", "label": "IBM Plex Sans", "stack": '"IBM Plex Sans", system-ui, sans-serif'},
+    {"id": "lora", "label": "Lora", "stack": '"Lora", Georgia, serif'},
+    {"id": "merriweather", "label": "Merriweather", "stack": '"Merriweather", Georgia, serif'},
+    {"id": "crimson-pro", "label": "Crimson Pro", "stack": '"Crimson Pro", Georgia, serif'},
+    {"id": "playfair-display", "label": "Playfair Display", "stack": '"Playfair Display", Georgia, serif'},
+    {"id": "outfit", "label": "Outfit", "stack": '"Outfit", system-ui, sans-serif'},
+]
+
+_STUDIO_FONT_BY_ID = {row["id"]: row["stack"] for row in STUDIO_FONT_FAMILIES}
+_STUDIO_FONT_IDS = set(_STUDIO_FONT_BY_ID.keys())
+
+_STUDIO_COLOR_HEX = {row["id"]: row["hex"] for row in STUDIO_THEME_COLORS}
+
+
+def studio_font_id_from_stack(stack: str) -> str:
+    """Map stored CSS font stack to catalog id (default: inter)."""
+    raw = (stack or "").strip()
+    for row in STUDIO_FONT_FAMILIES:
+        if row["stack"] == raw:
+            return row["id"]
+    return "inter"
+
+
+def studio_font_stack_from_id(font_id: str) -> str:
+    """Resolve catalog id to CSS font stack."""
+    fid = (font_id or "").strip().lower()
+    return _STUDIO_FONT_BY_ID.get(fid, DEFAULT_STUDIO_EMBED_FONT)
 
 
 def _wizard_is_studio_only(wiz: dict) -> bool:
@@ -131,6 +171,7 @@ def ensure_studio_proto_v1_defaults_saved(resume, request=None) -> bool:
         "color": "teal",
         "font": DEFAULT_STUDIO_EMBED_FONT,
         "textAlign": "start",
+        "fontSize": "standard",
     }
     new_wiz = dict(wiz)
     new_wiz[STUDIO_PROTO_V1_KEY] = pack
@@ -161,6 +202,7 @@ def _merge_studio_proto_resume_into_payload(payload: dict, proto_resume: dict) -
         "certifications",
         "languages",
         "interests",
+        "hobbies",
     )
     out = dict(payload)
     preserve_if_empty = frozenset(
@@ -178,6 +220,8 @@ def _merge_studio_proto_resume_into_payload(payload: dict, proto_resume: dict) -
                 out[k] = v
         elif k == "interests":
             out[k] = str(v or "")
+        elif k == "hobbies":
+            out[k] = str(v or "")
         else:
             out[k] = v
     return out
@@ -193,7 +237,7 @@ def studio_prefs_from_resume_record(resume) -> dict:
     if not isinstance(sp, dict):
         return {}
     out = {}
-    for k in ("template", "color", "font", "textAlign"):
+    for k in ("template", "color", "font", "textAlign", "fontSize"):
         v = sp.get(k)
         if v is not None and str(v).strip():
             out[k] = v
@@ -294,6 +338,15 @@ def apply_studio_resume_to_userresume_children(resume, rd: dict) -> None:
             resume=resume,
             title="Interests",
             description=interests[:2000],
+            issue_date=None,
+        )
+
+    hobbies = (rd.get("hobbies") or "").strip()
+    if hobbies:
+        UserResumeActivity.objects.create(
+            resume=resume,
+            title="Hobbies",
+            description=hobbies[:2000],
             issue_date=None,
         )
 
@@ -425,6 +478,9 @@ def resume_editor_payload(resume):
         )
     activities = []
     for a in UserResumeActivity.objects.filter(resume=resume).order_by("id"):
+        title = (a.title or "").strip()
+        if _is_resume_meta_activity_title(title):
+            continue
         activities.append(
             {
                 "id": a.pk,
@@ -445,12 +501,17 @@ def resume_editor_payload(resume):
                 "end_date": dstr(v.end_date),
             }
         )
+    wiz = _wizard_draft_dict(resume)
+    languages = _languages_from_resume_db(resume, wiz)
+    hobbies = _hobbies_from_resume_db(resume, wiz, None, [])
     return {
         "skills": skills,
         "certificates": certificates,
         "internships": internships,
         "activities": activities,
         "volunteers": volunteers,
+        "languages": languages,
+        "hobbies": hobbies,
     }
 
 
@@ -968,6 +1029,62 @@ def _parse_langs_text(txt):
     return out
 
 
+_RESUME_SKIP_ACTIVITY_TITLES = frozenset({"Interests", "Hobbies"})
+
+
+def _languages_from_resume_db(resume, wiz: dict | None) -> list[dict]:
+    v2_meta = _v2_meta_from_wizard(wiz)
+    stored = v2_meta.get("languages")
+    if isinstance(stored, list):
+        out: list[dict] = []
+        for lg in stored:
+            n = _norm_lang_item(lg)
+            if n:
+                out.append(n)
+        if out:
+            return out
+    langs: list[dict] = []
+    for a in UserResumeActivity.objects.filter(resume=resume).order_by("id"):
+        title = (a.title or "").strip()
+        if not title.startswith("Language:"):
+            continue
+        nm = title[9:].strip()
+        if nm:
+            langs.append({"name": nm, "level": (a.description or "").strip()})
+    return langs
+
+
+def _hobbies_from_resume_db(resume, wiz: dict | None, profile, hobby_names: list[str]) -> str:
+    v2_meta = _v2_meta_from_wizard(wiz)
+    stored = _norm_str(v2_meta.get("hobbies"), 2000)
+    if stored:
+        return _strip_resume_placeholder(stored)
+    for a in UserResumeActivity.objects.filter(resume=resume, title="Hobbies").order_by("-id"):
+        desc = (a.description or "").strip()
+        if desc:
+            return _strip_resume_placeholder(desc)
+    if hobby_names:
+        return ", ".join(hobby_names)
+    return ""
+
+
+def _interests_from_resume_db(resume, wiz: dict | None) -> str:
+    for a in UserResumeActivity.objects.filter(resume=resume, title="Interests").order_by("-id"):
+        desc = (a.description or "").strip()
+        if desc:
+            return _strip_resume_placeholder(desc)
+    v2_meta = _v2_meta_from_wizard(wiz)
+    stored = _norm_str(v2_meta.get("interests"), 2000)
+    if stored:
+        return _strip_resume_placeholder(stored)
+    return ""
+
+
+def _is_resume_meta_activity_title(title: str) -> bool:
+    t = (title or "").strip()
+    return t.startswith("Language:") or t in _RESUME_SKIP_ACTIVITY_TITLES
+
+
 def _wizard_experience_blocks(d):
     pairs = [
         ("Internships", d.get("intern")),
@@ -1119,6 +1236,8 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
 
     for a in UserResumeActivity.objects.filter(resume=resume).order_by("id"):
         title = (a.title or "").strip() or "Activity"
+        if _is_resume_meta_activity_title(title):
+            continue
         dates = a.issue_date.isoformat() if a.issue_date else ""
         bullets = _desc_bullets(a.description)
         experience_out.append(
@@ -1202,8 +1321,9 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
     linkedin = ""
     website = ""
     summary = (resume.about or "").strip()
-    languages_out = []
-    interests = ", ".join(hobby_names)
+    languages_out = _languages_from_resume_db(resume, wiz)
+    hobbies = _hobbies_from_resume_db(resume, wiz, profile, hobby_names)
+    interests = _interests_from_resume_db(resume, wiz)
 
     wiz_guided = None
     if wiz:
@@ -1248,11 +1368,15 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
         if wiz_certs:
             certs_out = wiz_certs + certs_out
 
-        languages_out = _parse_langs_text(wiz_guided.get("langs") or "")
+        languages_out = _parse_langs_text(wiz_guided.get("langs") or "") or languages_out
 
         wh = (wiz_guided.get("hobbies") or "").strip()
         if wh:
-            interests = ", ".join(x for x in [wh, interests] if x)
+            hobbies = ", ".join(x for x in [wh, hobbies] if x)
+
+        wi = (wiz_guided.get("interests") or "").strip()
+        if wi:
+            interests = ", ".join(x for x in [wi, interests] if x)
 
     elif summary:
         summary = _fallback_summary_from_about(summary, 1000)
@@ -1311,6 +1435,7 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
         "certifications": certs_out,
         "languages": languages_out,
         "interests": interests,
+        "hobbies": hobbies,
     }
     if (
         not ignore_studio_proto_merge
@@ -1355,6 +1480,8 @@ def _clean_studio_list_fields(out: dict) -> dict:
             langs.append(n)
     cleaned["languages"] = langs
     cleaned["headline"] = _strip_resume_placeholder(str(cleaned.get("headline") or ""))
+    cleaned["interests"] = _strip_resume_placeholder(str(cleaned.get("interests") or ""))
+    cleaned["hobbies"] = _strip_resume_placeholder(str(cleaned.get("hobbies") or ""))
     return cleaned
 
 
@@ -1542,6 +1669,7 @@ def normalize_studio_resume_payload(raw: dict) -> dict:
         interests = ", ".join(_norm_str(x, 500) for x in interests_val if _norm_str(x, 500))[:2000]
     else:
         interests = _norm_str(interests_val, 2000)
+    hobbies = _norm_str(raw.get("hobbies"), 2000)
     photo = _norm_str(raw.get("photo"), 500000)
     if photo and not photo.startswith(("data:", "http://", "https://", "/")):
         photo = ""
@@ -1563,6 +1691,7 @@ def normalize_studio_resume_payload(raw: dict) -> dict:
         "certifications": certs[:40],
         "languages": langs[:30],
         "interests": interests,
+        "hobbies": hobbies,
     }
 
 

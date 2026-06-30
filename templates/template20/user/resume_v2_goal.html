@@ -5,7 +5,7 @@
 
 {% block additionalhead %}
 {{ super() }}
-<link rel="stylesheet" href="{{ static('resume-builder-v2/styles.css') }}">
+<link rel="stylesheet" href="{{ static('resume-builder-v2/styles.css') }}?v=11">
 {% endblock %}
 
 {% block student_shell_vars %}
@@ -26,19 +26,30 @@
     <p class="text-muted mb-0">{{ resume.title|default('Untitled resume') }}</p>
 
     <div class="rb2-recommend-box mt-4">
-      <p class="fw-semibold mb-2">We detected:</p>
-      <ul class="list-unstyled mb-3 fs-14">
-        <li>✓ {{ 'Student' if profile_analysis.type == 'student' else 'Experienced professional' }}</li>
-        {% if profile_analysis.grade %}<li>✓ {{ profile_analysis.grade }}</li>{% endif %}
-        {% if profile_analysis.school %}<li>✓ {{ profile_analysis.school }}</li>{% endif %}
-        {% if not profile_analysis.has_experience %}<li>✓ No work experience</li>{% endif %}
+      <div class="rb2-recommend-box__head">
+        <span class="rb2-widget__icon rb2-widget__icon--success" aria-hidden="true">
+          <i class='bx bx-check-shield'></i>
+        </span>
+        <div class="rb2-widget__head-text">
+          <p class="rb2-recommend-box__title mb-0">We detected</p>
+          <p class="mb-0">Based on your TopTeen profile</p>
+        </div>
+      </div>
+      <ul class="rb2-detect-list rb2-recommend-box__list">
+        <li>{{ 'Student' if profile_analysis.type == 'student' else 'Experienced professional' }}</li>
+        {% if profile_analysis.grade %}<li>Class {{ profile_analysis.grade }}</li>{% endif %}
+        {% if profile_analysis.school %}<li>{{ profile_analysis.school }}</li>{% endif %}
+        {% if not profile_analysis.has_experience %}<li>No work experience</li>{% endif %}
       </ul>
-      <p class="mb-3"><strong>Recommended:</strong> {{ 'Student Resume' if profile_analysis.type == 'student' else 'Professional Resume' }}</p>
-      <form method="post" action="">
+      <div class="rb2-setup-result rb2-recommend-box__result">
+        <i class='bx bx-file'></i>
+        <span>Recommended: {{ 'Student Resume' if profile_analysis.type == 'student' else 'Professional Resume' }}</span>
+      </div>
+      <form method="post" action="" class="rb2-recommend-box__form">
         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
         <input type="hidden" name="use_recommended" value="1">
         <input type="hidden" name="goal" value="{{ selected_goal or 'internship' }}">
-        <button type="submit" class="rb2-btn rb2-btn--primary">
+        <button type="submit" class="rb2-btn rb2-btn--primary rb2-btn--sm">
           <i class='bx bx-magic-wand'></i> Use Recommended Setup
         </button>
       </form>
@@ -51,7 +62,7 @@
         <label class="rb2-goal-option">
           <input type="radio" name="goal" value="{{ goal.id }}" {% if selected_goal == goal.id or (not selected_goal and loop.first) %}checked{% endif %}>
           <span class="rb2-goal-label">
-            <span class="rb2-goal-icon"><i class='bx bx-{{ goal.icon }}'></i></span>
+            <span class="rb2-goal-icon"><i class='bx {% if goal.solid %}bxs{% else %}bx{% endif %}-{{ goal.icon }}'></i></span>
             {{ goal.label }}
           </span>
         </label>

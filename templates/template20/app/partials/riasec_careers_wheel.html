@@ -1,96 +1,4 @@
-{% set riasec_wheel_data = {
-  'R': {
-    'color': '#057190',
-    'bg': '#C9EDF8',
-    'label': 'Realistic (R)',
-    'careers': [
-      'Mechanical Engineering',
-      'Construction Management',
-      'Aviation (Pilots)',
-      'Surveying and Mapping',
-      'Skilled Trades',
-      'Industrial Engineering',
-      'Automotive Engineering',
-      'Environmental Health and Safety Specialist'
-    ]
-  },
-  'I': {
-    'color': '#A92CAF',
-    'bg': '#FEECFF',
-    'label': 'Investigative (I)',
-    'careers': [
-      'Research and Development',
-      'Data Science and Analytics',
-      'Biotechnology and Life Sciences',
-      'Software Engineering',
-      'Forensic Science',
-      'Medical Research',
-      'Environmental Science',
-      'Epidemiology'
-    ]
-  },
-  'A': {
-    'color': '#2A740E',
-    'bg': '#EDFFE7',
-    'label': 'Artistic (A)',
-    'careers': [
-      'Graphic Design',
-      'Writing and Publishing',
-      'Music and Performing Arts',
-      'Film and Media Production',
-      'Art Direction',
-      'Animation',
-      'Interior Design',
-      'Fashion Design'
-    ]
-  },
-  'S': {
-    'color': '#6D5C04',
-    'bg': '#FFFAE2',
-    'label': 'Social (S)',
-    'careers': [
-      'Counseling and Therapy',
-      'Education and Teaching',
-      'Healthcare (e.g., Nursing, Physician Assistant)',
-      'Social Services',
-      'Human Resources',
-      'Occupational Therapy',
-      'Public Relations',
-      'Nonprofit Management'
-    ]
-  },
-  'E': {
-    'color': '#A22717',
-    'bg': '#FFFAE2',
-    'label': 'Enterprising (E)',
-    'careers': [
-      'Entrepreneurship',
-      'Marketing and Sales',
-      'Real Estate',
-      'Business Consulting',
-      'Executive Leadership',
-      'Management Consulting',
-      'Venture Capital',
-      'Investment Banking'
-    ]
-  },
-  'C': {
-    'color': '#0B5BA1',
-    'bg': '#EBF6FF',
-    'label': 'Conventional (C)',
-    'careers': [
-      'Accounting and Finance',
-      'Administrative and Office Management',
-      'Data Analysis',
-      'Project Management',
-      'Banking and Financial Services',
-      'Compliance and Risk Management',
-      'Supply Chain Management',
-      'Investment Analysis'
-    ]
-  }
-} %}
-{% set wheel = riasec_wheel_data[riasec_code] %}
+{% set wheel = riasec_sections[riasec_code] %}
 {% set rcw_nodes = [
   {'x': 300.0, 'y': 132.0},
   {'x': 417.0, 'y': 183.0},
@@ -112,42 +20,36 @@
   {'x2': 228.0, 'y2': 228.0, 'dot_x': 228.0, 'dot_y': 228.0}
 ] %}
 {% set rcw_size = 360 if pdf_mode else 480 %}
+{% set hub_label = wheel.label %}
+{% set hub_words = hub_label.split(' & ') %}
+{% if hub_words|length == 2 %}
+  {% set hub_line1 = hub_words[0] ~ ' &' %}
+  {% set hub_line2 = hub_words[1] %}
+{% else %}
+  {% set hub_line1 = hub_label %}
+  {% set hub_line2 = '' %}
+{% endif %}
 <div class="riasec-careers-wheel{% if pdf_mode %} riasec-careers-wheel--pdf{% endif %}">
-    <svg class="rcw-svg" width="{{ rcw_size }}" height="{{ rcw_size }}" viewBox="72 72 456 456" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Careers to choose for {{ wheel.label }}">
+  <svg class="rcw-svg" width="{{ rcw_size }}" height="{{ rcw_size }}" viewBox="72 72 456 456" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Careers to choose for {{ wheel.label }}">
     {% for spoke in rcw_spokes %}
     <line x1="300" y1="300" x2="{{ spoke.x2 }}" y2="{{ spoke.y2 }}" stroke="{{ wheel.color }}" stroke-width="1.5" opacity="0.55"></line>
     <circle cx="{{ spoke.dot_x }}" cy="{{ spoke.dot_y }}" r="4" fill="{{ wheel.color }}"></circle>
     {% endfor %}
     <circle cx="300" cy="300" r="58" fill="{{ wheel.color }}"></circle>
-    {% if ' (' in wheel.label %}
-    {% set hub_name = wheel.label.split(' (')[0] %}
-    {% set hub_code = '(' ~ wheel.label.split(' (')[1] %}
+    {% if hub_line2 %}
+    <text x="300" y="292" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="700" font-family="Galano Grotesque, Arial, sans-serif">{{ hub_line1 }}</text>
+    <text x="300" y="306" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="700" font-family="Galano Grotesque, Arial, sans-serif">{{ hub_line2 }}</text>
     {% else %}
-    {% set hub_name = wheel.label %}
-    {% set hub_code = '' %}
-    {% endif %}
-    {% set hub_name_len = hub_name|length %}
-    {% if hub_name_len > 11 %}
-      {% set hub_font = 10 if pdf_mode else 11 %}
-    {% elif hub_name_len > 9 %}
-      {% set hub_font = 11 if pdf_mode else 12 %}
-    {% elif hub_name_len > 7 %}
-      {% set hub_font = 12 if pdf_mode else 13 %}
-    {% else %}
-      {% set hub_font = 13 if pdf_mode else 14 %}
-    {% endif %}
-    {% if hub_code %}
-    <text x="300" y="296" text-anchor="middle" fill="#ffffff" font-size="{{ hub_font }}" font-weight="700" font-family="Galano Grotesque, Arial, sans-serif">{{ hub_name }}</text>
-    <text x="300" y="{{ 296 + (hub_font + 2) }}" text-anchor="middle" fill="#ffffff" font-size="{{ hub_font - 1 if hub_font > 9 else hub_font }}" font-weight="700" font-family="Galano Grotesque, Arial, sans-serif">{{ hub_code }}</text>
-    {% else %}
-    <text x="300" y="304" text-anchor="middle" fill="#ffffff" font-size="{{ hub_font }}" font-weight="700" font-family="Galano Grotesque, Arial, sans-serif">{{ hub_name }}</text>
+    <text x="300" y="304" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="700" font-family="Galano Grotesque, Arial, sans-serif">{{ hub_line1 }}</text>
     {% endif %}
     {% for career in wheel.careers %}
     {% set node = rcw_nodes[loop.index0] %}
-    {% set max_chars = 14 if pdf_mode else 16 %}
+    {% set max_chars = 11 if pdf_mode else 12 %}
+    {% set inner_width = 82 if pdf_mode else 88 %}
     {% set ns = namespace(lines=[], current='') %}
-    {% for word in career.split(' ') %}
-      {% if ns.current and (ns.current|length + 1 + word|length) > max_chars %}
+    {% for word in career.replace('/', ' / ').split(' ') %}
+      {% if not word %}
+      {% elif ns.current and (ns.current|length + 1 + word|length) > max_chars %}
         {% set ns.lines = ns.lines + [ns.current] %}
         {% set ns.current = word %}
       {% else %}
@@ -157,21 +59,54 @@
     {% if ns.current %}
       {% set ns.lines = ns.lines + [ns.current] %}
     {% endif %}
+    {% if ns.lines|length > 3 %}
+      {% set ns.lines = ns.lines[:2] + [ns.lines[2] ~ ' ' ~ ns.lines[3]] %}
+    {% endif %}
     {% set line_count = ns.lines|length %}
-    {% set font_size = 11 if line_count <= 2 else 10 %}
-    {% if pdf_mode and career|length > 24 %}
-      {% set font_size = 9 %}
+    {% set ln = namespace(longest=0) %}
+    {% for line in ns.lines %}
+      {% if line|length > ln.longest %}
+        {% set ln.longest = line|length %}
+      {% endif %}
+    {% endfor %}
+    {% set longest_line = ln.longest %}
+    {% if line_count == 1 %}
+      {% if longest_line > 14 %}
+        {% set font_size = 8 %}
+      {% elif longest_line > 12 %}
+        {% set font_size = 9 %}
+      {% elif longest_line > 10 %}
+        {% set font_size = 10 %}
+      {% else %}
+        {% set font_size = 11 %}
+      {% endif %}
+      {% set use_text_length = longest_line > 10 %}
+    {% elif line_count == 2 %}
+      {% if longest_line > 12 %}
+        {% set font_size = 8 %}
+      {% elif longest_line > 10 %}
+        {% set font_size = 9 %}
+      {% else %}
+        {% set font_size = 10 %}
+      {% endif %}
+      {% set use_text_length = false %}
+    {% else %}
+      {% set font_size = 8 if longest_line > 11 else 9 %}
+      {% set use_text_length = false %}
+    {% endif %}
+    {% if pdf_mode and font_size > 9 %}
+      {% set font_size = font_size - 1 %}
     {% endif %}
     <circle cx="{{ node.x }}" cy="{{ node.y }}" r="52" fill="#ffffff" stroke="{{ wheel.color }}" stroke-width="2"></circle>
     {% if line_count == 1 %}
-    <text x="{{ node.x }}" y="{{ node.y + 4 }}" text-anchor="middle" fill="{{ wheel.color }}" font-size="{{ font_size }}" font-weight="600" font-family="Galano Grotesque, Arial, sans-serif">{{ ns.lines[0] }}</text>
+    <text x="{{ node.x }}" y="{{ node.y + 4 }}" text-anchor="middle" fill="{{ wheel.color }}" font-size="{{ font_size }}" font-weight="600" font-family="Galano Grotesque, Arial, sans-serif"{% if use_text_length %} textLength="{{ inner_width }}" lengthAdjust="spacingAndGlyphs"{% endif %}>{{ ns.lines[0] }}</text>
     {% elif line_count == 2 %}
-    <text x="{{ node.x }}" y="{{ node.y - 6 }}" text-anchor="middle" fill="{{ wheel.color }}" font-size="{{ font_size }}" font-weight="600" font-family="Galano Grotesque, Arial, sans-serif">{{ ns.lines[0] }}</text>
-    <text x="{{ node.x }}" y="{{ node.y + 10 }}" text-anchor="middle" fill="{{ wheel.color }}" font-size="{{ font_size }}" font-weight="600" font-family="Galano Grotesque, Arial, sans-serif">{{ ns.lines[1] }}</text>
+    <text x="{{ node.x }}" y="{{ node.y - 5 }}" text-anchor="middle" fill="{{ wheel.color }}" font-size="{{ font_size }}" font-weight="600" font-family="Galano Grotesque, Arial, sans-serif">{{ ns.lines[0] }}</text>
+    <text x="{{ node.x }}" y="{{ node.y + 11 }}" text-anchor="middle" fill="{{ wheel.color }}" font-size="{{ font_size }}" font-weight="600" font-family="Galano Grotesque, Arial, sans-serif">{{ ns.lines[1] }}</text>
     {% else %}
-    <text x="{{ node.x }}" y="{{ node.y - 12 }}" text-anchor="middle" fill="{{ wheel.color }}" font-size="{{ font_size }}" font-weight="600" font-family="Galano Grotesque, Arial, sans-serif">{{ ns.lines[0] }}</text>
-    <text x="{{ node.x }}" y="{{ node.y + 2 }}" text-anchor="middle" fill="{{ wheel.color }}" font-size="{{ font_size }}" font-weight="600" font-family="Galano Grotesque, Arial, sans-serif">{{ ns.lines[1] }}</text>
-    <text x="{{ node.x }}" y="{{ node.y + 16 }}" text-anchor="middle" fill="{{ wheel.color }}" font-size="{{ font_size }}" font-weight="600" font-family="Galano Grotesque, Arial, sans-serif">{{ ns.lines[2] }}</text>
+    <text x="{{ node.x }}" y="{{ node.y - 13 }}" text-anchor="middle" fill="{{ wheel.color }}" font-size="{{ font_size }}" font-weight="600" font-family="Galano Grotesque, Arial, sans-serif">{{ ns.lines[0] }}</text>
+    <text x="{{ node.x }}" y="{{ node.y + 1 }}" text-anchor="middle" fill="{{ wheel.color }}" font-size="{{ font_size }}" font-weight="600" font-family="Galano Grotesque, Arial, sans-serif">{{ ns.lines[1] }}</text>
+    <text x="{{ node.x }}" y="{{ node.y + 15 }}" text-anchor="middle" fill="{{ wheel.color }}" font-size="{{ font_size }}" font-weight="600" font-family="Galano Grotesque, Arial, sans-serif"{% if ns.lines[2]|length > 10 %} textLength="{{ inner_width }}" lengthAdjust="spacingAndGlyphs"{% endif %}>{{ ns.lines[2] }}</text>
     {% endif %}
     {% endfor %}
   </svg>

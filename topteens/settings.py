@@ -514,6 +514,9 @@ S3_MAX_FILE_SIZE_MB = config('S3_MAX_FILE_SIZE_MB', default=2, cast=int)
 # Media Library Base Folder
 S3_MEDIA_LIBRARY_BASE_FOLDER = config('S3_MEDIA_LIBRARY_BASE_FOLDER', default='medialibrary')
 
+# Optional path to wkhtmltopdf for pdfkit. When unset/missing, PDFs fall back to WeasyPrint.
+WKHTMLTOPDF_PATH = config("WKHTMLTOPDF_PATH", default="")
+
 # Use S3 for media uploads (images, PDFs from admin). When True and AWS credentials exist,
 # FileField/ImageField uploads go to S3 instead of local MEDIA_ROOT.
 USE_S3_FOR_MEDIA = config('USE_S3_FOR_MEDIA', default=True, cast=bool)

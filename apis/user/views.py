@@ -142,10 +142,15 @@ class UserNoteSave(APIView):
             title = request.data.get('title',None)
             content = request.data.get('content',None)
             if id:    
-                note=get_object_or_404(UserNote,id=id,user=request.user)  
-                note.title=title
-                note.content=content
-                note.save()    
+                note=get_object_or_404(UserNote,id=id,user=request.user)
+                note.title = (title or "").strip() or None
+                note.content = content
+                from django.utils.html import strip_tags
+                body = strip_tags(content or "").replace("\xa0", " ").strip()
+                if not (note.title or body):
+                    note.delete()
+                else:
+                    note.save()
                 return Response("note save successfully", status=status.HTTP_200_OK)
             else:
                 return Response("Something went wrong.try again", status=status.HTTP_400_BAD_REQUEST)      

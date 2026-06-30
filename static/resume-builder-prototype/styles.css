@@ -81,6 +81,11 @@ body.tt-mode-preview-only .resume {
   min-height: auto;
 }
 
+body.tt-mode-preview-only article#resume.resume,
+body.tt-mode-preview-only article#resume.resume * {
+  font-family: var(--font-stack, "Inter", system-ui, sans-serif) !important;
+}
+
 /* Full-page preview (?mode=preview opened in its own tab) */
 .tt-preview-standalone-bar {
   display: none;

@@ -24,7 +24,14 @@ from .models import (
     UserResumeInternship,
     UserResumeSkill,
 )
-from .resume_payload import resume_editor_payload, resume_studio_prototype_payload
+from .resume_payload import (
+    STUDIO_THEME_COLORS,
+    STUDIO_FONT_FAMILIES,
+    resume_editor_payload,
+    resume_studio_prototype_payload,
+    studio_font_id_from_stack,
+    studio_prefs_from_resume_record,
+)
 from .resume_v2_services import (
     RESUME_GOALS,
     STUDENT_SECTIONS,
@@ -37,6 +44,7 @@ from .resume_v2_services import (
     ResumeV2Metrics,
     add_skills_to_resume,
     apply_template_to_resume,
+    apply_theme_prefs_to_resume,
     filter_missing_keywords,
     get_v2_meta,
     resume_card_context,
@@ -45,10 +53,13 @@ from .resume_v2_services import (
     user_avatar_initial,
     user_has_profile_photo,
     save_v2_meta,
+    save_resume_hobbies,
+    save_resume_languages,
     resolve_resume_template,
     studio_ui_state,
     studio_personal_context,
     sync_studio_proto_resume_from_db,
+    sync_v2_recommended_sections,
     template_by_id,
     v2_templates_catalog,
 )
@@ -241,9 +252,7 @@ class ResumeV2StudioView(TemplateView):
 
         meta = get_v2_meta(resume)
         analysis = ResumeProfileAnalyzer.analyze(request.user, resume)
-        sections_list = meta.get("recommended_sections") or analysis["recommended_sections"]
-        if analysis["type"] == "student":
-            sections_list = STUDENT_SECTIONS
+        sections_list = sync_v2_recommended_sections(resume, request.user)
 
         metrics = ResumeV2Metrics.section_completion(resume, sections_list)
         strength = ResumeV2Metrics.resume_strength(resume, request)
@@ -255,6 +264,7 @@ class ResumeV2StudioView(TemplateView):
         tpl = resolve_resume_template(meta, analysis.get("recommended_template") or "classic-sidebar")
         prototype_key = tpl["prototype_key"]
         catalog = v2_templates_catalog()
+        studio_prefs = studio_prefs_from_resume_record(resume)
 
         ctx.update(
             {
@@ -270,6 +280,11 @@ class ResumeV2StudioView(TemplateView):
                 "prototype_key": prototype_key,
                 "template_id": tpl["id"],
                 "goal": meta.get("goal") or "",
+                "studio_theme_colors": STUDIO_THEME_COLORS,
+                "studio_theme_fonts": STUDIO_FONT_FAMILIES,
+                "studio_theme_color": (studio_prefs.get("color") or "teal"),
+                "studio_theme_font_size": (studio_prefs.get("fontSize") or "standard"),
+                "studio_theme_font_id": studio_font_id_from_stack(studio_prefs.get("font")),
                 "preview_embed_url": reverse(
                     "users:resumebuilder_templates_embed", kwargs={"resume_id": resume.pk}
                 )
@@ -289,6 +304,7 @@ class ResumeV2StudioView(TemplateView):
                     "users:resumebuilder_studio_photo_upload", kwargs={"resume_id": resume.pk}
                 ),
                 "resume_headline": payload.get("headline") or "",
+                "studio_hobbies": payload.get("hobbies") or "",
                 "personal_fields": studio_personal_context(request.user, resume),
             }
         )
@@ -297,11 +313,7 @@ class ResumeV2StudioView(TemplateView):
 
 def _json_studio_response(request, resume, extra=None):
     """Merge mutation result with fresh UI state for the studio."""
-    analysis = ResumeProfileAnalyzer.analyze(request.user, resume)
-    meta = get_v2_meta(resume)
-    sections_list = meta.get("recommended_sections") or analysis["recommended_sections"]
-    if analysis["type"] == "student":
-        sections_list = STUDENT_SECTIONS
+    sections_list = sync_v2_recommended_sections(resume, request.user)
     state = studio_ui_state(request.user, resume, request, sections_list)
     out = {"success": True, **state}
     if extra:
@@ -474,6 +486,15 @@ class ResumeV2AIView(View):
             if model and item_id:
                 model.objects.filter(pk=int(item_id), resume=resume).delete()
             return _mutate_studio(request, resume)
+        if action == "save_languages":
+            langs_raw = body.get("languages")
+            if not isinstance(langs_raw, list):
+                return JsonResponse({"error": "languages must be a list"}, status=400)
+            save_resume_languages(resume, langs_raw)
+            return _mutate_studio(request, resume)
+        if action == "save_hobbies":
+            save_resume_hobbies(resume, (body.get("text") or body.get("hobbies") or ""))
+            return _mutate_studio(request, resume)
         if action == "select_template":
             template_id = (body.get("template_id") or "").strip()
             if not apply_template_to_resume(resume, template_id, request):
@@ -486,6 +507,25 @@ class ResumeV2AIView(View):
                 {
                     "template_id": template_id,
                     "prototype_key": tpl["prototype_key"] if tpl else "",
+                },
+            )
+        if action == "save_theme":
+            if not apply_theme_prefs_to_resume(
+                resume,
+                request,
+                color=body.get("color"),
+                font_size=body.get("font_size"),
+                font_id=body.get("font_id") or body.get("font_family"),
+            ):
+                return JsonResponse({"error": "Invalid theme options"}, status=400)
+            prefs = studio_prefs_from_resume_record(resume)
+            return _json_studio_response(
+                request,
+                resume,
+                {
+                    "theme_color": prefs.get("color") or "teal",
+                    "theme_font_size": prefs.get("fontSize") or "standard",
+                    "theme_font_id": studio_font_id_from_stack(prefs.get("font")),
                 },
             )
         return JsonResponse({"error": "Unknown action"}, status=400)

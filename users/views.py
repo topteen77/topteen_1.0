@@ -60,7 +60,6 @@ import logging
 logger = logging.getLogger(__name__)
 from django.http import HttpResponse
 from django.template.loader import get_template
-import pdfkit 
 from django.core.files import File
 from django.conf import settings
 from institute.models import (
@@ -78,6 +77,7 @@ import json
 import re
 from django.utils.safestring import mark_safe
 from user_analytics.tasks import link_analytics_session_to_user, reconcile_recent_user_events
+from .pdf_utils import html_to_pdf_bytes
 from .resume_guided_ai import strip_markdown_fences
 from .parent_dashboard_ai import (
     process_psychometric_data,
@@ -103,8 +103,10 @@ from .resume_studio_html import (
 )
 from .resume_studio_pdf_html import (
     studio_pack_root_css_block,
+    studio_pdf_template_context,
     studio_proto_pack_from_resume,
     studio_proto_pack_to_mount_html,
+    studio_render_html_for_resume,
 )
 
 
@@ -3332,7 +3334,7 @@ class UserDashboard(TemplateView):
         except:
             ctx['central_test_candidate']=False
         ctx["html_head"] = self.html_head()
-        ctx["notes"]=UserNote.objects.filter(user=profile_user)[:3]
+        ctx["notes"] = _meaningful_user_notes_qs(profile_user)[:3]
 
         # Dashboard statistics (trophies, points, streak, level) - for student dashboard
         try:
@@ -3576,7 +3578,7 @@ class UserDashboard(TemplateView):
                     "kind_badge": "FREE",
                     "kind_badge_style": "free",
                     "icon_src": "images_new/icons/multiple-intelligence.png",
-                    "icon_bg": "#eef6ff",
+                    "icon_bg": "#fff4e6",
                 }
             )
         except Exception:
@@ -3749,7 +3751,7 @@ class MyNotePad(TemplateView):
         ctx={}
         ctx["html_head"] = self.html_head()
         ctx['breadcrumb']=self.__breadcrumb()
-        ctx['notes']=request.user.user_notes.all().exclude(title__isnull=True,content__isnull=True)
+        ctx['notes'] = _meaningful_user_notes_qs(request.user)
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -3799,7 +3801,10 @@ class CreateNote(TemplateView):
 
         note.title = title
         note.content = content
-        note.save()
+        if not _note_has_meaningful_content(note.title, note.content):
+            note.delete()
+        else:
+            note.save()
         return redirect(reverse_lazy("users:mynotepad"))
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
@@ -3961,6 +3966,22 @@ def _validate_new_resume_title(user, title):
     return None
 
 
+def _note_has_meaningful_content(title, content):
+    """True when a note has a non-empty title or body (ignores blank HTML drafts)."""
+    from django.utils.html import strip_tags
+
+    if (title or "").strip():
+        return True
+    body = strip_tags(content or "").replace("\xa0", " ").strip()
+    return bool(body)
+
+
+def _meaningful_user_notes_qs(user):
+    """Active notes with content; excludes empty drafts left from Create note."""
+    candidates = UserNote.objects.filter(user=user).order_by("-modified")
+    return [note for note in candidates if _note_has_meaningful_content(note.title, note.content)]
+
+
 def _hub_nav_counts(user):
     """Sidebar badge counts (mirrors UserDashboard resume/shortlist/notes slice)."""
     ctx = {
@@ -3983,7 +4004,7 @@ def _hub_nav_counts(user):
     except Exception:
         pass
     try:
-        ctx["hub_notes_count"] = UserNote.objects.filter(user=user).count()
+        ctx["hub_notes_count"] = len(_meaningful_user_notes_qs(user))
     except Exception:
         pass
     return ctx
@@ -4259,22 +4280,13 @@ class ResumeGeneratedPreviewView(TemplateView):
         ctx.update(_hub_nav_counts(self.request.user))
         if wizard_prefers_generated_pdf(resume):
             ctx["resume_html_display"] = strip_markdown_fences(resume.generated_html or "")
+        elif studio_proto_pack_from_resume(resume):
+            mount_html, template_id, studio_pack = studio_render_html_for_resume(resume, self.request)
+            ctx["resume_html_display"] = get_template(
+                "mail/user/userresumepdf_studio_prototype.html"
+            ).render(studio_pdf_template_context(mount_html, template_id, studio_pack))
         else:
-            studio_pack = studio_proto_pack_from_resume(resume)
-            if studio_pack:
-                mount_html, template_id = studio_proto_pack_to_mount_html(studio_pack)
-                ctx["resume_html_display"] = get_template(
-                    "mail/user/userresumepdf_studio_prototype.html"
-                ).render(
-                    {
-                        "studio_resume_css_url": _studio_resume_pdf_stylesheet_url(self.request),
-                        "studio_root_style": studio_pack_root_css_block(studio_pack),
-                        "studio_mount_html": mount_html,
-                        "studio_template_id": template_id,
-                    }
-                )
-            else:
-                ctx["resume_html_display"] = strip_markdown_fences(resume.generated_html or "")
+            ctx["resume_html_display"] = strip_markdown_fences(resume.generated_html or "")
         return ctx
 
 
@@ -4576,19 +4588,6 @@ def _resume_pdf_template_row_paths_and_style(
     )
 
 
-def _studio_resume_pdf_stylesheet_url(request) -> str:
-    """Prefer file:// for wkhtmltopdf; else absolute URL to static."""
-    from pathlib import Path
-
-    from django.contrib.staticfiles import finders
-    from django.templatetags.static import static
-
-    p = finders.find("resume-builder-prototype/styles.css")
-    if p and Path(p).is_file():
-        return Path(p).as_uri()
-    return request.build_absolute_uri(static("resume-builder-prototype/styles.css"))
-
-
 @login_required
 def resume_pdf_download(request,*args, **kwargs):
     rid = request.GET.get("resume_id")
@@ -4636,11 +4635,18 @@ def resume_pdf_download(request,*args, **kwargs):
         else studio_proto_pack_from_resume(user_resume)
     )
     if studio_pack:
-        mount_html, template_id = studio_proto_pack_to_mount_html(studio_pack)
-        ctx["studio_resume_css_url"] = _studio_resume_pdf_stylesheet_url(request)
-        ctx["studio_root_style"] = studio_pack_root_css_block(studio_pack)
-        ctx["studio_mount_html"] = mount_html
-        ctx["studio_template_id"] = template_id
+        try:
+            from users.resume_v2_services import sync_studio_proto_resume_from_db
+
+            sync_studio_proto_resume_from_db(user_resume, request)
+        except Exception:
+            pass
+        mount_html, template_id, studio_pack = studio_render_html_for_resume(
+            user_resume,
+            request,
+            template_override=(preview_tid or None),
+        )
+        ctx.update(studio_pdf_template_context(mount_html, template_id, studio_pack))
         ctx["generated_resume_html"] = mount_html
         chosen = "mail/user/userresumepdf_studio_prototype.html"
         fallback = "mail/user/userresumepdf_studio_prototype.html"
@@ -4666,10 +4672,10 @@ def resume_pdf_download(request,*args, **kwargs):
         "encoding": "UTF-8",
         "print-media-type": "",
     }
-    pdf = pdfkit.from_string(
+    pdf = html_to_pdf_bytes(
         html,
-        False,
         options=pdf_options,
+        base_url=request.build_absolute_uri("/"),
     )
     response= HttpResponse(pdf, content_type='application/pdf')
     base = (request.user.name or "Student").strip() or "Student"
@@ -4729,11 +4735,18 @@ def resume_html_preview(request, *args, **kwargs):
         else studio_proto_pack_from_resume(user_resume)
     )
     if studio_pack:
-        mount_html, template_id = studio_proto_pack_to_mount_html(studio_pack)
-        ctx["studio_resume_css_url"] = _studio_resume_pdf_stylesheet_url(request)
-        ctx["studio_root_style"] = studio_pack_root_css_block(studio_pack)
-        ctx["studio_mount_html"] = mount_html
-        ctx["studio_template_id"] = template_id
+        try:
+            from users.resume_v2_services import sync_studio_proto_resume_from_db
+
+            sync_studio_proto_resume_from_db(user_resume, request)
+        except Exception:
+            pass
+        mount_html, template_id, studio_pack = studio_render_html_for_resume(
+            user_resume,
+            request,
+            template_override=(preview_tid or None),
+        )
+        ctx.update(studio_pdf_template_context(mount_html, template_id, studio_pack))
         ctx["generated_resume_html"] = mount_html
         chosen = "mail/user/userresumepdf_studio_prototype.html"
         fallback = "mail/user/userresumepdf_studio_prototype.html"
@@ -4795,6 +4808,18 @@ class ResumeTemplateStudioEmbedView(View):
         )
         finish, pdf_url = resume_studio_embed_finish_pdf_urls(request, resume)
         force_tpl = (request.GET.get("template") or "").strip()
+        mode = (request.GET.get("mode") or "").strip()
+        use_server_preview = mode == "preview" and studio_proto_pack_from_resume(resume)
+        studio_server_mount_html = ""
+        studio_server_template_id = ""
+        studio_root_style = ""
+        if use_server_preview:
+            mount_html, template_id, pack = studio_render_html_for_resume(
+                resume, request, template_override=force_tpl or None
+            )
+            studio_server_mount_html = mount_html
+            studio_server_template_id = template_id
+            studio_root_style = studio_pack_root_css_block(pack)
         ctx = {
             "resume": resume,
             "resume_initial_json": mark_safe(raw),
@@ -4808,6 +4833,10 @@ class ResumeTemplateStudioEmbedView(View):
             "studio_templates_catalog_json": studio_html_template_catalog_json(),
             "studio_force_template": force_tpl,
             "studio_template_row": None,
+            "use_server_preview": use_server_preview,
+            "studio_server_mount_html": mark_safe(studio_server_mount_html),
+            "studio_server_template_id": studio_server_template_id,
+            "studio_root_style": mark_safe(studio_root_style),
         }
         return render(request, "template20/user/resume_builder_prototype_embed.html", ctx)
 

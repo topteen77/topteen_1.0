@@ -211,6 +211,78 @@
       page-break-after: avoid !important;
       break-after: avoid-page !important;
     }
+    .aptitude-fit-columns {
+      display: table !important;
+      width: 100% !important;
+      table-layout: fixed !important;
+      border-collapse: separate !important;
+      border-spacing: 10px 0 !important;
+    }
+    .aptitude-fit-col {
+      display: table-cell !important;
+      vertical-align: top !important;
+      width: 50% !important;
+      max-width: none !important;
+      min-width: 0 !important;
+      page-break-inside: avoid;
+    }
+    .aptitude-combination-narrative__body {
+      display: flex !important;
+      align-items: flex-start !important;
+      gap: 16px !important;
+      width: 100% !important;
+    }
+    .aptitude-combination-narrative__icon {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 42px !important;
+      height: 42px !important;
+      min-width: 42px !important;
+      min-height: 42px !important;
+      flex-shrink: 0 !important;
+    }
+    .aptitude-fit-icon-box {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      overflow: hidden !important;
+      text-align: center !important;
+      line-height: 0 !important;
+    }
+    .aptitude-fit-icon-box .aptitude-fit-svg {
+      position: static !important;
+      transform: none !important;
+      display: block !important;
+      margin: 0 auto !important;
+      vertical-align: middle !important;
+    }
+    .aptitude-fit-badge .aptitude-fit-svg,
+    .aptitude-fit-badge .aptitude-fit-svg path {
+      fill: #ffffff !important;
+      color: #ffffff !important;
+    }
+    .aptitude-fit-section-icon--strong .aptitude-fit-svg,
+    .aptitude-fit-section-icon--strong .aptitude-fit-svg path {
+      fill: #166534 !important;
+      color: #166534 !important;
+    }
+    .aptitude-fit-section-icon--good .aptitude-fit-svg,
+    .aptitude-fit-section-icon--good .aptitude-fit-svg path {
+      fill: #4338ca !important;
+      color: #4338ca !important;
+    }
+    .aptitude-combination-narrative__icon .aptitude-fit-svg,
+    .aptitude-combination-narrative__icon .aptitude-fit-svg path {
+      fill: #3F37C9 !important;
+      color: #3F37C9 !important;
+    }
+    .aptitude-fit-col-header,
+    .aptitude-fit-stream-row,
+    .aptitude-fit-section-head {
+      display: flex !important;
+      align-items: center !important;
+    }
   </style>
   {% include 'template20/app/partials/aptitude_tier_styles.html' %}
 </head>
