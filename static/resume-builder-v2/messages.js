@@ -171,7 +171,7 @@
         };
       }
       backdrop.onclick = function (e) {
-        if (e.target === backdrop) {
+        if (e.target === backdrop && !isDanger) {
           document.removeEventListener("keydown", onKey);
           finish(false);
         }

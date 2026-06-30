@@ -7,6 +7,7 @@
 {% block additionalhead %}
 {{ super() }}
 <link rel="stylesheet" href="{{ static('resume-builder-v2/styles.css') }}?v=10">
+<link rel="stylesheet" href="{{ static('resume-builder-v2/messages.css') }}?v=3">
 {% endblock %}
 
 {% block student_shell_vars %}
@@ -252,7 +253,8 @@
           <a href="{{ card.preview_url }}" target="_blank" class="rb2-btn rb2-btn--outline">Preview</a>
           <a href="{{ url('users:resumepdf') }}?resume_id={{ card.resume.pk }}" class="rb2-btn rb2-btn--outline">PDF</a>
           <form method="post" action="{{ url('users:resume_v2_delete', resume_id=card.resume.pk) }}" class="rb2-resume-delete-form"
-            onsubmit="return confirm('Delete this resume and all of its sections? This cannot be undone.');">
+            data-delete-title="Delete this resume?"
+            data-delete-message="“{{ card.resume.title|default('My Resume')|e }}” and all of its sections will be permanently removed. This cannot be undone.">
             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
             <button type="submit" class="rb2-btn rb2-btn--danger-outline" title="Delete resume">
               <i class='bx bx-trash'></i> Delete
@@ -309,6 +311,8 @@
 {% endblock %}
 
 {% block student_additionaljs %}
+<script src="{{ static('resume-builder-v2/messages.js') }}?v=2"></script>
+<script src="{{ static('resume-builder-v2/delete-forms.js') }}?v=1"></script>
 <script>
 (function () {
   var form = document.getElementById("rb2-create-form");

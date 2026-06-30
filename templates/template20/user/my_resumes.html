@@ -6,6 +6,7 @@
 
 {% block additionalhead %}
 {{ super() }}
+<link rel="stylesheet" href="{{ static('resume-builder-v2/messages.css') }}?v=3">
 <style>
   .my-resumes-page {
     padding-top: 0;
@@ -360,7 +361,8 @@
             </div>
           </div>
           <form method="post" action="{{ url('users:resumebuilder_delete') }}" class="my-resume-delete-form d-inline"
-            onsubmit="return confirm('Delete this resume and all of its sections? This cannot be undone.');">
+            data-delete-title="Delete this resume?"
+            data-delete-message="This resume and all of its sections will be permanently removed. This cannot be undone.">
             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
             <input type="hidden" name="resume_id" value="{{ row.resume.pk }}">
             <button type="submit" class="btn btn-outline-danger btn-sm my-resume-delete-btn mt-md-0 mt-2"><i class='bx bx-trash'></i>Delete</button>
@@ -374,6 +376,8 @@
         </div>
         {% endif %}
  </div>
+<script src="{{ static('resume-builder-v2/messages.js') }}?v=2"></script>
+<script src="{{ static('resume-builder-v2/delete-forms.js') }}?v=1"></script>
 <script>
 (function () {
   var form = document.getElementById('resume-create-form');

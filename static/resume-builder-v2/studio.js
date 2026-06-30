@@ -563,6 +563,8 @@
       '">Edit</button>' +
       '<button type="button" class="rb2-item-del" data-type="' +
       delType +
+      '" data-kind="' +
+      (editKind || "") +
       '" data-id="' +
       id +
       '">Remove</button>' +
@@ -1513,20 +1515,74 @@
       bindLangNameSuggestions(row);
     });
   }
-  /* ——— Delete items ——— */
-  document.addEventListener("click", function (e) {
-    var editBtn = e.target.closest(".rb2-item-edit");
-    if (editBtn) {
-      var kind = editBtn.dataset.kind;
-      var itemId = editBtn.dataset.id;
-      if (kind === "project") startProjectEdit(itemId);
-      else if (kind === "education") startEducationEdit(itemId);
-      else if (kind === "certificate") startCertEdit(itemId);
-      else if (kind === "achievement") startAchieveEdit(itemId);
-      return;
+  function deleteItemConfirmOpts(btn) {
+    var type = btn.dataset.type || "";
+    var kind = btn.dataset.kind || "";
+    if (type === "skill") {
+      return {
+        title: "Remove skill?",
+        message: "This skill will be removed from your resume.",
+        confirmLabel: "Remove skill",
+        cancelLabel: "Keep skill",
+      };
     }
-    var btn = e.target.closest(".rb2-item-del");
-    if (!btn) return;
+    if (type === "education") {
+      return {
+        title: "Remove education?",
+        message: "This school entry will be removed from your resume.",
+        confirmLabel: "Remove entry",
+        cancelLabel: "Keep entry",
+      };
+    }
+    if (type === "certificate") {
+      return {
+        title: "Remove certificate?",
+        message: "This certificate will be removed from your resume.",
+        confirmLabel: "Remove certificate",
+        cancelLabel: "Keep certificate",
+      };
+    }
+    if (type === "internship") {
+      return {
+        title: "Remove experience?",
+        message: "This experience entry will be removed from your resume.",
+        confirmLabel: "Remove entry",
+        cancelLabel: "Keep entry",
+      };
+    }
+    if (type === "activity" && kind === "project") {
+      return {
+        title: "Remove project?",
+        message: "This project will be removed from your resume.",
+        confirmLabel: "Remove project",
+        cancelLabel: "Keep project",
+      };
+    }
+    if (type === "activity" && kind === "achievement") {
+      return {
+        title: "Remove achievement?",
+        message: "This achievement will be removed from your resume.",
+        confirmLabel: "Remove achievement",
+        cancelLabel: "Keep achievement",
+      };
+    }
+    if (type === "activity") {
+      return {
+        title: "Remove entry?",
+        message: "This item will be removed from your resume.",
+        confirmLabel: "Remove",
+        cancelLabel: "Keep",
+      };
+    }
+    return {
+      title: "Remove item?",
+      message: "This cannot be undone.",
+      confirmLabel: "Remove",
+      cancelLabel: "Keep",
+    };
+  }
+
+  function performDeleteItem(btn) {
     if (btn.dataset.type === "activity" && editingProjectId && String(btn.dataset.id) === String(editingProjectId)) {
       resetProjectForm();
     }
@@ -1546,6 +1602,31 @@
     }).then(function (data) {
       onStudioUpdate(data);
       if (btn.dataset.type === "education") reloadPreview(cfg.prototypeKey, true);
+    });
+  }
+
+  /* ——— Delete items ——— */
+  document.addEventListener("click", function (e) {
+    var editBtn = e.target.closest(".rb2-item-edit");
+    if (editBtn) {
+      var kind = editBtn.dataset.kind;
+      var itemId = editBtn.dataset.id;
+      if (kind === "project") startProjectEdit(itemId);
+      else if (kind === "education") startEducationEdit(itemId);
+      else if (kind === "certificate") startCertEdit(itemId);
+      else if (kind === "achievement") startAchieveEdit(itemId);
+      return;
+    }
+    var btn = e.target.closest(".rb2-item-del");
+    if (!btn) return;
+    var msgs = window.RB2Messages;
+    var confirmOpts = Object.assign({ variant: "danger" }, deleteItemConfirmOpts(btn));
+    if (!msgs || typeof msgs.confirm !== "function") {
+      performDeleteItem(btn);
+      return;
+    }
+    msgs.confirm(confirmOpts).then(function (ok) {
+      if (ok) performDeleteItem(btn);
     });
   });
 
