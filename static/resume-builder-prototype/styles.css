@@ -997,6 +997,7 @@ article#resume.resume .resume__mount > .tpl {
 .tpl-minimalist {
   padding: 2rem 2.25rem 2.5rem;
   text-align: center;
+  min-height: 1020px;
 }
 
 .tpl-min-head {
@@ -1474,6 +1475,7 @@ article#resume.resume .resume__mount > .tpl {
 /* 9 Geometric */
 .tpl-geometric {
   padding: 0 0 2rem;
+  min-height: 1020px;
 }
 
 .tpl-geo-head {
@@ -1533,6 +1535,45 @@ article#resume.resume .resume__mount > .tpl {
   padding: 0 1.75rem;
 }
 
+.tpl-geo-layout {
+  display: grid;
+  grid-template-columns: 1fr minmax(190px, 34%);
+  gap: 1.25rem;
+  padding: 0 1.75rem;
+  align-items: start;
+}
+
+.tpl-geo-main .tpl-sec {
+  padding: 0;
+  margin-bottom: 1rem;
+}
+
+.tpl-geo-main .tpl-sec:last-child {
+  margin-bottom: 0;
+}
+
+.tpl-geo-aside {
+  padding: 1rem 1rem 1.25rem;
+  background: rgba(var(--accent-rgb), 0.07);
+  border-left: 4px solid var(--resume-accent);
+  align-self: stretch;
+}
+
+.tpl-geo-aside .tpl-geo-h2 {
+  display: block;
+  margin-bottom: 0.65rem;
+}
+
+.tpl-geo-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.tpl-geo-pills .tpl-pill {
+  margin: 0;
+}
+
 .tpl-geo-split .tpl-sec {
   padding-left: 0;
   padding-right: 0;
@@ -1547,13 +1588,34 @@ article#resume.resume .resume__mount > .tpl {
 }
 
 .tpl-geometric .tpl-sec > .tpl-bullets {
+  padding-left: 1.1rem;
+  list-style-position: outside;
+}
+
+.tpl-geo-aside .tpl-pill,
+.tpl-geo-aside .tpl-bullets,
+.tpl-geo-aside .tpl-edu-block,
+.tpl-geo-aside .tpl-tl-track {
+  border-left: none;
   padding-left: 0;
-  list-style-position: inside;
+  margin-left: 0;
 }
 
 .tpl-tl-two .tpl-sec > .tpl-bullets {
-  padding-left: 0;
-  list-style-position: inside;
+  padding-left: 1.1rem;
+  list-style-position: outside;
+}
+
+.tpl-tl-skills-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  list-style: disc;
+  list-style-position: outside;
+  border-left: none;
+}
+
+.tpl-tl-two .tpl-sec > .tpl-tl-skills-list {
+  padding-left: 1.1rem;
 }
 
 .tpl-tl-two .tpl-sec > .tpl-edu-block {
@@ -1921,8 +1983,18 @@ article#resume.resume .resume__mount > .tpl {
 
 .tpl-lg-block {
   margin-bottom: 1.15rem;
-  padding-bottom: 1rem;
+  padding: 0.75rem 0 1rem;
   border-bottom: 1px dashed var(--line);
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 4px,
+    rgba(0, 0, 0, 0.04) 4px,
+    rgba(0, 0, 0, 0.04) 5px
+  );
+  background-size: 100% 5px;
+  background-position: 0 100%;
+  background-repeat: repeat-x;
 }
 
 .tpl-lg-block:last-child {
@@ -1989,6 +2061,31 @@ article#resume.resume .resume__mount > .tpl {
   margin: 0.5rem 0 0;
   font-size: 0.85rem;
   color: var(--muted);
+}
+
+.tpl-hz-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  padding: 0 1.75rem;
+}
+
+.tpl-hz-panel {
+  padding: 0;
+}
+
+.tpl-hz-panel .tpl-hz-bar {
+  margin-bottom: 0.5rem;
+}
+
+.tpl-hz-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.tpl-hz-pills .tpl-pill {
+  margin: 0;
 }
 
 .tpl-hz-sec {
@@ -2075,6 +2172,13 @@ article#resume.resume .resume__mount > .tpl {
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: #111;
+}
+
+.tpl-fo-skills {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: var(--text);
 }
 
 .tpl-job--fo .tpl-job-head {
@@ -3377,7 +3481,12 @@ body.tt-mode-preview-only .tpl-ms-grid {
   grid-template-columns: 1fr 1fr !important;
 }
 
-body.tt-mode-preview-only .tpl-geo-split {
+body.tt-mode-preview-only .tpl-geo-split,
+body.tt-mode-preview-only .tpl-geo-layout {
+  grid-template-columns: 1fr minmax(190px, 34%) !important;
+}
+
+body.tt-mode-preview-only .tpl-hz-split {
   grid-template-columns: 1fr 1fr !important;
 }
 

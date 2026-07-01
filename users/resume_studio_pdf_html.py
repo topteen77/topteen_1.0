@@ -209,9 +209,80 @@ def _skills_pills_html(d: dict) -> str:
     return "".join(parts)
 
 
-def _experience_timeline_html(d: dict) -> str:
+def _is_project_block(exp: dict) -> bool:
+    return (exp.get("company") or "").strip() == "Project"
+
+
+def _is_work_experience_block(exp: dict) -> bool:
+    company = (exp.get("company") or "").strip()
+    if not company or company == "Project" or company == "Activity":
+        return False
+    return not company.startswith("Volunteer")
+
+
+def _projects_from_data(d: dict) -> list[dict]:
+    items = d.get("projects")
+    if isinstance(items, list):
+        return [x for x in items if isinstance(x, dict)]
+    return [
+        x
+        for x in (d.get("experience") or [])
+        if isinstance(x, dict) and _is_project_block(x)
+    ]
+
+
+def _achievements_from_data(d: dict) -> list[dict]:
+    items = d.get("achievements")
+    if isinstance(items, list):
+        return [x for x in items if isinstance(x, dict)]
+    return [
+        x
+        for x in (d.get("experience") or [])
+        if isinstance(x, dict) and not _is_project_block(x) and not _is_work_experience_block(x)
+    ]
+
+
+def _work_experience_from_data(d: dict) -> list[dict]:
+    items = d.get("workExperience")
+    if isinstance(items, list):
+        return [x for x in items if isinstance(x, dict)]
+    return [
+        x
+        for x in (d.get("experience") or [])
+        if isinstance(x, dict) and _is_work_experience_block(x)
+    ]
+
+
+def _job_blocks_html(items: list[dict], class_job: str = "tpl-job") -> str:
     parts: list[str] = []
-    for exp in d.get("experience") or []:
+    for exp in items:
+        if not isinstance(exp, dict):
+            continue
+        title = _esc(exp.get("title") or "")
+        if not title:
+            continue
+        bullets = "".join(
+            f"<li>{_esc(b)}</li>" for b in (exp.get("bullets") or []) if str(b).strip()
+        )
+        dates = (
+            f'<span class="tpl-job-dates">{_esc(exp.get("dates") or "")}</span>'
+            if _has_display_text(exp.get("dates"))
+            else ""
+        )
+        sub = _join_display([exp.get("company"), exp.get("location")])
+        sub_html = f'<div class="tpl-job-sub">{sub}</div>' if sub else ""
+        bul_html = f'<ul class="tpl-bullets">{bullets}</ul>' if bullets else ""
+        parts.append(
+            f'<div class="{class_job}"><div class="tpl-job-head"><strong>{title}</strong>'
+            f"{dates}</div>"
+            f"{sub_html}{bul_html}</div>"
+        )
+    return "".join(parts)
+
+
+def _experience_timeline_html(items: list[dict]) -> str:
+    parts: list[str] = []
+    for exp in items:
         if not isinstance(exp, dict):
             continue
         title = _esc(exp.get("title") or "")
@@ -557,19 +628,28 @@ def _tpl_elegant_serif(d: dict) -> str:
 
 def _tpl_geometric(d: dict) -> str:
     cj = " · ".join(_contact_parts(d))
-    edu_html = _education_html(d)
-    skills_html = _skills_list_html(d)
-    split_parts: list[str] = []
-    if edu_html.strip():
-        split_parts.append(
-            f'<section class="tpl-sec"><h2 class="tpl-geo-h2">Education</h2>{edu_html}</section>'
+    pills = _skills_pills_html(d)
+    skills_aside = ""
+    if pills.strip():
+        skills_aside = (
+            f'<aside class="tpl-geo-aside"><h2 class="tpl-geo-h2">Skills</h2>'
+            f'<div class="tpl-geo-pills">{pills}</div></aside>'
         )
-    if skills_html.strip():
-        split_parts.append(
-            f'<section class="tpl-sec"><h2 class="tpl-geo-h2">Skills</h2>'
-            f'<ul class="tpl-bullets">{skills_html}</ul></section>'
+    main_parts = _join_visible(
+        [
+            _sec_education(d, h2_class="tpl-geo-h2"),
+            _sec_certifications(d, h2_class="tpl-geo-h2"),
+            _sec_languages(d, h2_class="tpl-geo-h2"),
+            _sec_hobbies(d, h2_class="tpl-geo-h2"),
+            _sec_interests(d, h2_class="tpl-geo-h2"),
+        ]
+    )
+    layout_html = ""
+    if main_parts.strip() or skills_aside:
+        layout_html = (
+            f'<div class="tpl-geo-layout"><div class="tpl-geo-main">{main_parts}</div>'
+            f"{skills_aside}</div>"
         )
-    split_html = f'<div class="tpl-geo-split">{"".join(split_parts)}</div>' if split_parts else ""
     return (
         f'<div class="tpl tpl-geometric"><header class="tpl-geo-head">{_photo_html(d, "tpl-geo-photo")}'
         f'<div class="tpl-geo-text"><h1 class="tpl-geo-name">{_esc(d.get("fullName"))}</h1>'
@@ -577,9 +657,7 @@ def _tpl_geometric(d: dict) -> str:
         f'<p class="tpl-geo-contact">{cj}</p></div></header>'
         f'{_sec_summary(d, h2_class="tpl-geo-h2")}'
         f'{_sec_experience(d, h2_class="tpl-geo-h2")}'
-        f'{split_html}{_sec_certifications(d, h2_class="tpl-geo-h2")}{_sec_languages(d, h2_class="tpl-geo-h2")}'
-        f'{_sec_hobbies(d, h2_class="tpl-geo-h2")}'
-        f'{_sec_interests(d, h2_class="tpl-geo-h2")}'
+        f"{layout_html}"
         f"</div>"
     )
 
@@ -693,14 +771,24 @@ def _tpl_magazine(d: dict) -> str:
     )
 
 
+def _timeline_track_section(title: str, items: list[dict]) -> str:
+    inner = _experience_timeline_html(items)
+    if not inner.strip():
+        return ""
+    return (
+        f'<section class="tpl-sec"><h2 class="tpl-tl-section-title">{title}</h2>'
+        f'<div class="tpl-tl-track">{inner}</div></section>'
+    )
+
+
 def _tpl_timeline(d: dict) -> str:
     cj = " · ".join(_contact_parts(d))
-    exp_timeline = _experience_timeline_html(d)
-    exp_sec = (
-        f'<section class="tpl-sec"><h2 class="tpl-tl-section-title">{ACHIEVEMENTS_ACTIVITIES_TITLE}</h2>'
-        f'<div class="tpl-tl-track">{exp_timeline}</div></section>'
-        if exp_timeline.strip()
-        else ""
+    timeline_secs = _join_visible(
+        [
+            _timeline_track_section("Projects", _projects_from_data(d)),
+            _timeline_track_section(ACHIEVEMENTS_ACTIVITIES_TITLE, _achievements_from_data(d)),
+            _timeline_track_section("Work Experience", _work_experience_from_data(d)),
+        ]
     )
     edu_html = _education_html(d)
     skills_html = _skills_list_html(d)
@@ -712,7 +800,7 @@ def _tpl_timeline(d: dict) -> str:
     if skills_html.strip():
         two_col_parts.append(
             f'<section class="tpl-sec"><h2 class="tpl-tl-section-title">Skills</h2>'
-            f'<ul class="tpl-bullets">{skills_html}</ul></section>'
+            f'<ul class="tpl-bullets tpl-tl-skills-list">{skills_html}</ul></section>'
         )
     two_col = f'<div class="tpl-tl-two">{"".join(two_col_parts)}</div>' if two_col_parts else ""
     return (
@@ -721,7 +809,7 @@ def _tpl_timeline(d: dict) -> str:
         f'<p class="tpl-tl-sub">{_esc(d.get("headline"))}</p>'
         f'<p class="tpl-tl-contact">{cj}</p></header>'
         f'{_sec_summary(d, h2_class="tpl-tl-section-title")}'
-        f'{exp_sec}{two_col}'
+        f"{timeline_secs}{two_col}"
         f'{_sec_certifications(d, h2_class="tpl-tl-section-title")}'
         f'{_sec_languages(d, h2_class="tpl-tl-section-title")}'
         f'{_sec_hobbies(d, h2_class="tpl-tl-section-title")}'
@@ -875,8 +963,20 @@ def _tpl_ledger(d: dict) -> str:
 def _tpl_horizon(d: dict) -> str:
     cj = " · ".join(_contact_parts(d))
     sm = f'<p class="tpl-p">{_esc(d.get("summary"))}</p>' if _has_display_text(d.get("summary")) else ""
-    sk = _skills_list_html(d)
-    sk_html = f'<ul class="tpl-bullets">{sk}</ul>' if sk.strip() else ""
+    edu_html = _education_html(d)
+    pills = _skills_pills_html(d)
+    split_parts: list[str] = []
+    if edu_html.strip():
+        split_parts.append(
+            f'<section class="tpl-hz-panel"><div class="tpl-hz-bar"></div>'
+            f'<h2 class="tpl-hz-h2">Education</h2>{edu_html}</section>'
+        )
+    if pills.strip():
+        split_parts.append(
+            f'<section class="tpl-hz-panel"><div class="tpl-hz-bar"></div>'
+            f'<h2 class="tpl-hz-h2">Skills</h2><div class="tpl-hz-pills">{pills}</div></section>'
+        )
+    split_html = f'<div class="tpl-hz-split">{"".join(split_parts)}</div>' if split_parts else ""
     ln = _languages_html(d)
     ln_html = f'<ul class="tpl-bullets">{ln}</ul>' if ln.strip() else ""
     hob = f'<p class="tpl-p">{_esc(d.get("hobbies"))}</p>' if _has_display_text(d.get("hobbies")) else ""
@@ -888,8 +988,9 @@ def _tpl_horizon(d: dict) -> str:
         f'<p class="tpl-hz-contact">{cj}</p></header>'
         f'{_hz_sec(CAREER_OBJECTIVE_TITLE, sm)}'
         f'{_hz_sec(ACHIEVEMENTS_ACTIVITIES_TITLE, _experience_html(d))}'
-        f'{_hz_sec("Education", _education_html(d))}'
-        f'{_hz_sec("Skills", sk_html)}'
+        f'{_hz_sec("Projects", _job_blocks_html(_projects_from_data(d)))}'
+        f'{_hz_sec("Work Experience", _job_blocks_html(_work_experience_from_data(d)))}'
+        f"{split_html}"
         f'{_hz_sec("Certifications", _certifications_html(d))}'
         f'{_hz_sec("Languages", ln_html)}'
         f'{_hz_sec("Hobbies", hob)}'
@@ -900,43 +1001,64 @@ def _tpl_horizon(d: dict) -> str:
 
 def _tpl_folio(d: dict) -> str:
     cj = " · ".join(_contact_parts(d))
+    counter = 0
 
-    def _fo_sec(num: str, title: str, inner: str) -> str:
+    def _fo_num() -> str:
+        nonlocal counter
+        counter += 1
+        return str(counter).zfill(2)
+
+    def _fo_sec(title: str, inner: str) -> str:
         if not inner.strip():
             return ""
         return (
-            f'<section class="tpl-fo-sec"><span class="tpl-fo-num">{num}</span>'
+            f'<section class="tpl-fo-sec"><span class="tpl-fo-num">{_fo_num()}</span>'
             f'<div class="tpl-fo-content"><h2 class="tpl-fo-h2">{title}</h2>{inner}</div></section>'
         )
 
-    more_parts: list[str] = []
-    certs = _certifications_html(d)
-    if certs.strip():
-        more_parts.append(certs)
-    langs = _languages_html(d)
-    if langs.strip():
-        more_parts.append(f'<ul class="tpl-bullets">{langs}</ul>')
-    if _has_display_text(d.get("hobbies")):
-        more_parts.append(f'<p class="tpl-p">{_esc(d.get("hobbies"))}</p>')
-    if _has_display_text(d.get("interests")):
-        more_parts.append(f'<p class="tpl-p">{_esc(d.get("interests"))}</p>')
-    skills_text = _skills_join_text(d)
     summary_inner = (
         f'<p class="tpl-p">{_esc(d.get("summary"))}</p>'
         if _has_display_text(d.get("summary"))
         else ""
     )
-    skills_inner = f'<p class="tpl-p">{skills_text}</p>' if skills_text.strip() else ""
+    skills_text = _skills_join_text(d)
+    skills_inner = f'<p class="tpl-fo-skills">{skills_text}</p>' if skills_text.strip() else ""
+    sections = _join_visible(
+        [
+            _fo_sec(CAREER_OBJECTIVE_TITLE, summary_inner),
+            _fo_sec("Projects", _job_blocks_html(_projects_from_data(d), "tpl-job tpl-job--fo")),
+            _fo_sec(
+                ACHIEVEMENTS_ACTIVITIES_TITLE,
+                _job_blocks_html(_achievements_from_data(d), "tpl-job tpl-job--fo"),
+            ),
+            _fo_sec(
+                "Work Experience",
+                _job_blocks_html(_work_experience_from_data(d), "tpl-job tpl-job--fo"),
+            ),
+            _fo_sec("Education", _education_html(d)),
+            _fo_sec("Skills", skills_inner),
+            _fo_sec("Certifications", _certifications_html(d)),
+            _fo_sec("Languages", f'<ul class="tpl-bullets">{_languages_html(d)}</ul>'),
+            _fo_sec(
+                "Hobbies",
+                f'<p class="tpl-p">{_esc(d.get("hobbies"))}</p>'
+                if _has_display_text(d.get("hobbies"))
+                else "",
+            ),
+            _fo_sec(
+                "Interests",
+                f'<p class="tpl-p">{_esc(d.get("interests"))}</p>'
+                if _has_display_text(d.get("interests"))
+                else "",
+            ),
+        ]
+    )
     return (
         f'<div class="tpl tpl-folio"><header class="tpl-fo-head">{_photo_html(d, "tpl-fo-photo")}<div>'
         f'<h1 class="tpl-fo-name">{_esc(d.get("fullName"))}</h1>'
         f'<p class="tpl-fo-line">{_esc(d.get("headline"))}</p>'
         f'<p class="tpl-fo-contact">{cj}</p></div></header>'
-        f'{_fo_sec("01", CAREER_OBJECTIVE_TITLE, summary_inner)}'
-        f'{_fo_sec("02", ACHIEVEMENTS_ACTIVITIES_TITLE, _experience_html(d, "tpl-job tpl-job--fo"))}'
-        f'{_fo_sec("03", "Education", _education_html(d))}'
-        f'{_fo_sec("04", "Skills", skills_inner)}'
-        f'{_fo_sec("05", "More", "".join(more_parts))}'
+        f"{sections}"
         f"</div>"
     )
 

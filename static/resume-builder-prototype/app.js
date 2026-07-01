@@ -441,6 +441,11 @@
     );
   }
 
+  function hzBarSection(title, inner) {
+    if (!String(inner || "").trim()) return "";
+    return `<section class="tpl-hz-sec"><div class="tpl-hz-bar"></div><h2 class="tpl-hz-h2">${title}</h2>${inner}</section>`;
+  }
+
   function hzJobSection(title, inner) {
     if (!String(inner || "").trim()) return "";
     return `<section class="tpl-hz-sec"><div class="tpl-hz-bar"></div><h2 class="tpl-hz-h2">${title}</h2>${inner}</section>`;
@@ -524,6 +529,26 @@
       .join("");
   }
 
+  function hobbiesSection(d, opts) {
+    opts = opts || {};
+    const text = String((d && d.hobbies) || "").trim();
+    if (!text) return "";
+    const wrap = opts.wrap || "tpl-sec";
+    const h2 = opts.h2 || "tpl-h2";
+    const pClass = opts.pClass || "tpl-p";
+    return `<section class="${wrap}"><h2 class="${h2}">Hobbies</h2><p class="${pClass}">${esc(text)}</p></section>`;
+  }
+
+  function interestsSection(d, opts) {
+    opts = opts || {};
+    const text = interestsText(d);
+    if (!text) return "";
+    const wrap = opts.wrap || "tpl-sec";
+    const h2 = opts.h2 || "tpl-h2";
+    const pClass = opts.pClass || "tpl-p";
+    return `<section class="${wrap}"><h2 class="${h2}">Interests</h2><p class="${pClass}">${esc(text)}</p></section>`;
+  }
+
   const RENDERERS = {
     minimalist(d) {
       const contact = contactParts(d).join(" · ");
@@ -543,7 +568,8 @@
         <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--center">Skills</h2><ul class="tpl-bullets tpl-bullets--center">${skillsListHtml(d)}</ul></section>
         <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--center">Certifications</h2>${certificationsHtml(d)}</section>
         <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--center">Languages</h2><ul class="tpl-bullets tpl-bullets--center">${languagesHtml(d)}</ul></section>
-        <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--center">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
+        ${hobbiesSection(d, { h2: "tpl-h2 tpl-h2--center", pClass: "tpl-p" })}
+        ${interestsSection(d, { h2: "tpl-h2 tpl-h2--center", pClass: "tpl-p" })}
       </div>`;
     },
 
@@ -705,6 +731,23 @@
     },
 
     geometric(d) {
+      const pills = skillsPillsHtml(d);
+      const skillsAside = pills
+        ? `<aside class="tpl-geo-aside"><h2 class="tpl-geo-h2">Skills</h2><div class="tpl-geo-pills">${pills}</div></aside>`
+        : "";
+      const mainParts = [
+        `<section class="tpl-sec"><h2 class="tpl-geo-h2">Education</h2>${educationHtml(d)}</section>`,
+        `<section class="tpl-sec"><h2 class="tpl-geo-h2">Certifications</h2>${certificationsHtml(d)}</section>`,
+        `<section class="tpl-sec"><h2 class="tpl-geo-h2">Languages</h2><ul class="tpl-bullets">${languagesHtml(d)}</ul></section>`,
+        hobbiesSection(d, { h2: "tpl-geo-h2" }),
+        interestsSection(d, { h2: "tpl-geo-h2" }),
+      ]
+        .filter(Boolean)
+        .join("");
+      const layout =
+        mainParts || skillsAside
+          ? `<div class="tpl-geo-layout"><div class="tpl-geo-main">${mainParts}</div>${skillsAside}</div>`
+          : "";
       return `<div class="tpl tpl-geometric">
         <header class="tpl-geo-head">
           ${photoHtml(d, "tpl-geo-photo")}
@@ -716,12 +759,7 @@
         </header>
         <section class="tpl-sec"><h2 class="tpl-geo-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
         ${resumeJobSections(d, { h2: "tpl-geo-h2" })}
-        <div class="tpl-geo-split">
-          <section class="tpl-sec"><h2 class="tpl-geo-h2">Education</h2>${educationHtml(d)}</section>
-          <section class="tpl-sec"><h2 class="tpl-geo-h2">Skills</h2><ul class="tpl-bullets">${skillsListHtml(d)}</ul></section>
-        </div>
-        <section class="tpl-sec"><h2 class="tpl-geo-h2">Certifications &amp; languages</h2>${certificationsHtml(d)}<ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
-        <section class="tpl-sec"><h2 class="tpl-geo-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
+        ${layout}
       </div>`;
     },
 
@@ -821,11 +859,12 @@
         ${workExperienceFromData(d).length ? `<section class="tpl-sec"><h2 class="tpl-tl-section-title">${WORK_EXPERIENCE_TITLE}</h2><div class="tpl-tl-track">${experienceTimelineHtml(d, workExperienceFromData(d))}</div></section>` : ""}
         <div class="tpl-tl-two">
           <section class="tpl-sec"><h2 class="tpl-tl-section-title">Education</h2>${educationHtml(d)}</section>
-          <section class="tpl-sec"><h2 class="tpl-tl-section-title">Skills</h2><ul class="tpl-bullets">${skillsListHtml(d)}</ul></section>
+          <section class="tpl-sec"><h2 class="tpl-tl-section-title">Skills</h2><ul class="tpl-bullets tpl-tl-skills-list">${skillsListHtml(d)}</ul></section>
         </div>
         <section class="tpl-sec"><h2 class="tpl-tl-section-title">Certifications</h2>${certificationsHtml(d)}</section>
         <section class="tpl-sec"><h2 class="tpl-tl-section-title">Languages</h2><ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
-        <section class="tpl-sec"><h2 class="tpl-tl-section-title">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
+        ${hobbiesSection(d, { h2: "tpl-tl-section-title" })}
+        ${interestsSection(d, { h2: "tpl-tl-section-title" })}
       </div>`;
     },
 
@@ -921,11 +960,27 @@
         <section class="tpl-lg-block"><h2 class="tpl-lg-h2"><span class="tpl-lg-hash">#</span> Skills</h2><ul class="tpl-lg-list">${skillsListHtml(d)}</ul></section>
         <section class="tpl-lg-block"><h2 class="tpl-lg-h2"><span class="tpl-lg-hash">#</span> Certifications</h2>${certificationsHtml(d)}</section>
         <section class="tpl-lg-block"><h2 class="tpl-lg-h2"><span class="tpl-lg-hash">#</span> Languages</h2><ul class="tpl-lg-list">${languagesHtml(d)}</ul></section>
-        <section class="tpl-lg-block"><h2 class="tpl-lg-h2"><span class="tpl-lg-hash">#</span> Interests</h2><p class="tpl-lg-p">${esc(interestsText(d))}</p></section>
+        ${hasDisplayText(d.hobbies) ? `<section class="tpl-lg-block"><h2 class="tpl-lg-h2"><span class="tpl-lg-hash">#</span> Hobbies</h2><p class="tpl-lg-p">${esc(d.hobbies)}</p></section>` : ""}
+        ${hasDisplayText(interestsText(d)) ? `<section class="tpl-lg-block"><h2 class="tpl-lg-h2"><span class="tpl-lg-hash">#</span> Interests</h2><p class="tpl-lg-p">${esc(interestsText(d))}</p></section>` : ""}
       </div>`;
     },
 
     horizon(d) {
+      const pills = skillsPillsHtml(d);
+      const splitParts = [];
+      if ((d.education || []).length) {
+        splitParts.push(
+          `<section class="tpl-hz-panel"><div class="tpl-hz-bar"></div><h2 class="tpl-hz-h2">Education</h2>${educationHtml(d)}</section>`
+        );
+      }
+      if (pills) {
+        splitParts.push(
+          `<section class="tpl-hz-panel"><div class="tpl-hz-bar"></div><h2 class="tpl-hz-h2">Skills</h2><div class="tpl-hz-pills">${pills}</div></section>`
+        );
+      }
+      const splitHtml = splitParts.length
+        ? `<div class="tpl-hz-split">${splitParts.join("")}</div>`
+        : "";
       return `<div class="tpl tpl-horizon">
         <header class="tpl-hz-head">
           <h1 class="tpl-hz-name">${esc(d.fullName)}</h1>
@@ -933,18 +988,28 @@
           <p class="tpl-hz-contact">${contactParts(d).join(" · ")}</p>
         </header>
         <section class="tpl-hz-sec"><div class="tpl-hz-bar"></div><h2 class="tpl-hz-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-        ${hzJobSection(PROJECTS_TITLE, projectsHtml(d))}
         ${hzJobSection(ACHIEVEMENTS_ACTIVITIES_TITLE, achievementsHtml(d))}
+        ${hzJobSection(PROJECTS_TITLE, projectsHtml(d))}
         ${hzJobSection(WORK_EXPERIENCE_TITLE, workExperienceHtml(d))}
-        <section class="tpl-hz-sec"><div class="tpl-hz-bar"></div><h2 class="tpl-hz-h2">Education</h2>${educationHtml(d)}</section>
-        <section class="tpl-hz-sec"><div class="tpl-hz-bar"></div><h2 class="tpl-hz-h2">Skills</h2><ul class="tpl-bullets">${skillsListHtml(d)}</ul></section>
-        <section class="tpl-hz-sec"><div class="tpl-hz-bar"></div><h2 class="tpl-hz-h2">Certifications</h2>${certificationsHtml(d)}</section>
-        <section class="tpl-hz-sec"><div class="tpl-hz-bar"></div><h2 class="tpl-hz-h2">Languages</h2><ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
-        <section class="tpl-hz-sec"><div class="tpl-hz-bar"></div><h2 class="tpl-hz-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
+        ${splitHtml}
+        ${hzBarSection("Certifications", certificationsHtml(d))}
+        ${hzBarSection("Languages", `<ul class="tpl-bullets">${languagesHtml(d)}</ul>`)}
+        ${hzBarSection("Hobbies", hasDisplayText(d.hobbies) ? `<p class="tpl-p">${esc(d.hobbies)}</p>` : "")}
+        ${hzBarSection("Interests", hasDisplayText(interestsText(d)) ? `<p class="tpl-p">${esc(interestsText(d))}</p>` : "")}
       </div>`;
     },
 
     folio(d) {
+      let foNum = 0;
+      function nextFoNum() {
+        foNum += 1;
+        return String(foNum).padStart(2, "0");
+      }
+      function foSec(title, inner) {
+        if (!String(inner || "").trim()) return "";
+        return `<section class="tpl-fo-sec"><span class="tpl-fo-num">${nextFoNum()}</span><div class="tpl-fo-content"><h2 class="tpl-fo-h2">${title}</h2>${inner}</div></section>`;
+      }
+      const skillNames = (d.skills || []).map((s) => esc(s.name)).filter(Boolean).join(" · ");
       return `<div class="tpl tpl-folio">
         <header class="tpl-fo-head">
           ${photoHtml(d, "tpl-fo-photo")}
@@ -954,13 +1019,16 @@
             <p class="tpl-fo-contact">${contactParts(d).join(" · ")}</p>
           </div>
         </header>
-        <section class="tpl-fo-sec"><span class="tpl-fo-num">01</span><div class="tpl-fo-content"><h2 class="tpl-fo-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></div></section>
-        ${projectsFromData(d).length ? `<section class="tpl-fo-sec"><span class="tpl-fo-num">02</span><div class="tpl-fo-content"><h2 class="tpl-fo-h2">${PROJECTS_TITLE}</h2>${projectsHtml(d, "tpl-job tpl-job--fo")}</div></section>` : ""}
-        ${achievementsFromData(d).length ? `<section class="tpl-fo-sec"><span class="tpl-fo-num">02</span><div class="tpl-fo-content"><h2 class="tpl-fo-h2">${ACHIEVEMENTS_ACTIVITIES_TITLE}</h2>${achievementsHtml(d, "tpl-job tpl-job--fo")}</div></section>` : ""}
-        ${workExperienceFromData(d).length ? `<section class="tpl-fo-sec"><span class="tpl-fo-num">02</span><div class="tpl-fo-content"><h2 class="tpl-fo-h2">${WORK_EXPERIENCE_TITLE}</h2>${workExperienceHtml(d, "tpl-job tpl-job--fo")}</div></section>` : ""}
-        <section class="tpl-fo-sec"><span class="tpl-fo-num">03</span><div class="tpl-fo-content"><h2 class="tpl-fo-h2">Education</h2>${educationHtml(d)}</div></section>
-        <section class="tpl-fo-sec"><span class="tpl-fo-num">04</span><div class="tpl-fo-content"><h2 class="tpl-fo-h2">Skills</h2><p class="tpl-p">${(d.skills || []).map((s) => esc(s.name)).join(" · ")}</p></div></section>
-        <section class="tpl-fo-sec"><span class="tpl-fo-num">05</span><div class="tpl-fo-content"><h2 class="tpl-fo-h2">More</h2>${certificationsHtml(d)}<ul class="tpl-bullets">${languagesHtml(d)}</ul><p class="tpl-p">${esc(interestsText(d))}</p></div></section>
+        ${foSec("Career Objective", `<p class="tpl-p">${esc(d.summary)}</p>`)}
+        ${foSec(PROJECTS_TITLE, projectsHtml(d, "tpl-job tpl-job--fo"))}
+        ${foSec(ACHIEVEMENTS_ACTIVITIES_TITLE, achievementsHtml(d, "tpl-job tpl-job--fo"))}
+        ${foSec(WORK_EXPERIENCE_TITLE, workExperienceHtml(d, "tpl-job tpl-job--fo"))}
+        ${foSec("Education", educationHtml(d))}
+        ${foSec("Skills", skillNames ? `<p class="tpl-fo-skills">${skillNames}</p>` : "")}
+        ${foSec("Certifications", certificationsHtml(d))}
+        ${foSec("Languages", languagesHtml(d) ? `<ul class="tpl-bullets">${languagesHtml(d)}</ul>` : "")}
+        ${foSec("Hobbies", hasDisplayText(d.hobbies) ? `<p class="tpl-p">${esc(d.hobbies)}</p>` : "")}
+        ${foSec("Interests", hasDisplayText(interestsText(d)) ? `<p class="tpl-p">${esc(interestsText(d))}</p>` : "")}
       </div>`;
     },
 
