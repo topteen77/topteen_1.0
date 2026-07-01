@@ -34,6 +34,13 @@ ALLOWED_STUDIO_HTML_TEMPLATE_KEYS = frozenset(
         "horizon",
         "folio",
         "vertex",
+        "atlantic-pro",
+        "zen-column",
+        "global-grid",
+        "global-elegance",
+        "euro-corporate",
+        "tokyo-minimal",
+        "nordic-clean",
     }
 )
 

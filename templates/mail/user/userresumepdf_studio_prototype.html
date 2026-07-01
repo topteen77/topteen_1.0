@@ -10,7 +10,7 @@
     {{ studio_pdf_page_css|safe }}
   </style>
 </head>
-<body class="tt-pdf-export">
+<body class="tt-pdf-export" data-pdf-engine="{{ studio_pdf_engine }}">
   <div class="pdf-wrap">
     <main class="preview-wrap">
       <article class="resume pdf-exporting" id="resume" data-template="{{ studio_template_id }}">

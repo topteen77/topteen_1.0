@@ -1152,6 +1152,7 @@ article#resume.resume .resume__mount > .tpl {
 .tpl-colored-header {
   display: flex;
   flex-direction: column;
+  gap: 4px;
 }
 
 .tpl-ch-bar {
@@ -1314,6 +1315,7 @@ article#resume.resume .resume__mount > .tpl {
 .tpl-bold-header {
   display: flex;
   flex-direction: column;
+  gap: 4px;
 }
 
 .tpl-bh-bar {
@@ -1563,6 +1565,7 @@ article#resume.resume .resume__mount > .tpl {
 .tpl-high-contrast {
   display: flex;
   flex-direction: column;
+  gap: 4px;
 }
 
 .tpl-hc-top {
@@ -2406,6 +2409,9 @@ article#resume.resume .resume__mount > .tpl {
 /* Magazine */
 .tpl-magazine {
   min-height: 1020px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .tpl-mz-header {
@@ -3308,4 +3314,145 @@ article#resume.resume .resume__mount > .tpl {
     border-top: none;
     justify-content: flex-start;
   }
+}
+
+/*
+ * Studio live-preview iframe is ~400–700px wide but must match desktop/print layout
+ * (theme modal thumbnails show sidebar-on-side). Undo max-width: 1100px stack rules.
+ */
+body.tt-mode-preview-only .tpl-classic-sidebar {
+  display: grid !important;
+  grid-template-columns: 220px 1fr !important;
+}
+
+body.tt-mode-preview-only .tpl-hc-body {
+  display: grid !important;
+  grid-template-columns: 200px 1fr !important;
+}
+
+body.tt-mode-preview-only .tpl-hc-side {
+  order: 0 !important;
+}
+
+body.tt-mode-preview-only .tpl-professional-border {
+  display: grid !important;
+  grid-template-columns: 1fr 200px !important;
+}
+
+body.tt-mode-preview-only .tpl-pb-side {
+  border-left: 1px solid var(--line) !important;
+  border-top: none !important;
+}
+
+body.tt-mode-preview-only .tpl-tech-focus {
+  display: grid !important;
+  grid-template-columns: 200px 1fr !important;
+}
+
+body.tt-mode-preview-only .tpl-executive {
+  display: grid !important;
+  grid-template-columns: 230px 1fr !important;
+}
+
+body.tt-mode-preview-only .tpl-ex-side {
+  border-right: 4px solid color-mix(in srgb, var(--resume-accent) 70%, #fbbf24) !important;
+  border-bottom: none !important;
+}
+
+body.tt-mode-preview-only .tpl-mz-grid {
+  display: grid !important;
+  grid-template-columns: 1.15fr 0.85fr !important;
+}
+
+body.tt-mode-preview-only .tpl-mz-aside {
+  border-left: 1px solid var(--line) !important;
+  border-top: none !important;
+}
+
+body.tt-mode-preview-only .tpl-ch-row {
+  grid-template-columns: 1fr 1fr !important;
+}
+
+body.tt-mode-preview-only .tpl-ms-grid {
+  grid-template-columns: 1fr 1fr !important;
+}
+
+body.tt-mode-preview-only .tpl-geo-split {
+  grid-template-columns: 1fr 1fr !important;
+}
+
+body.tt-mode-preview-only .tpl-ap-grid {
+  grid-template-columns: 1fr 230px !important;
+}
+
+body.tt-mode-preview-only .tpl-gg-layout {
+  grid-template-columns: 1fr 1fr !important;
+}
+
+body.tt-mode-preview-only .tpl-tl-two {
+  grid-template-columns: 1fr 1fr !important;
+}
+
+body.tt-mode-preview-only .tpl-nv-split {
+  grid-template-columns: 1fr 1fr !important;
+}
+
+body.tt-mode-preview-only .tpl-vx-grid {
+  grid-template-columns: 1fr 1fr !important;
+}
+
+body.tt-mode-preview-only .tpl-st-split {
+  grid-template-columns: 1fr 1fr !important;
+}
+
+/* Full-height accent sidebars in embed preview */
+body.tt-mode-preview-only .tpl,
+body.tt-mode-preview-only .resume__mount {
+  min-height: 1020px;
+}
+
+body.tt-mode-preview-only .tpl-cs-side,
+body.tt-mode-preview-only .tpl-tf-side,
+body.tt-mode-preview-only .tpl-ex-side,
+body.tt-mode-preview-only .tpl-pb-side {
+  min-height: 100%;
+  align-self: stretch;
+}
+
+body.tt-mode-preview-only .tpl-high-contrast {
+  min-height: 1020px;
+  gap: 4px;
+}
+
+body.tt-mode-preview-only .tpl-hc-body {
+  flex: 1 1 auto;
+  min-height: calc(1020px - 5rem - 4px);
+  align-items: stretch;
+}
+
+body.tt-mode-preview-only .tpl-hc-side {
+  min-height: 100%;
+  align-self: stretch;
+}
+
+body.tt-mode-preview-only .tpl-magazine {
+  gap: 4px;
+}
+
+body.tt-mode-preview-only .tpl-mz-aside {
+  align-self: stretch;
+}
+
+/* Render at print width; scroll horizontally in narrow iframe if needed */
+body.tt-mode-preview-only .preview-scroll {
+  overflow-x: auto;
+  overflow-y: visible;
+  justify-content: flex-start;
+}
+
+body.tt-mode-preview-only .resume {
+  width: 720px;
+  min-width: 720px;
+  max-width: none;
+  flex-shrink: 0;
 }

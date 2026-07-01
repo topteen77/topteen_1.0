@@ -972,6 +972,117 @@ def _tpl_vertex(d: dict) -> str:
     )
 
 
+def _tpl_atlantic_pro(d: dict) -> str:
+    cj = " · ".join(_contact_parts(d))
+    headline = (
+        f'<p class="tpl-ap-title">{_esc(d.get("headline"))}</p>'
+        if _has_display_text(d.get("headline"))
+        else ""
+    )
+    skills = _skills_list_html(d)
+    langs = _languages_html(d)
+    side_parts: list[str] = []
+    if skills.strip():
+        side_parts.append(
+            f'<h3 class="tpl-ap-h3">Skills</h3>'
+            f'<ul class="tpl-bullets tpl-bullets--tight">{skills}</ul>'
+        )
+    if langs.strip():
+        side_parts.append(
+            f'<h3 class="tpl-ap-h3">Languages</h3>'
+            f'<ul class="tpl-bullets tpl-bullets--tight">{langs}</ul>'
+        )
+    certs = _certifications_html(d)
+    if certs.strip():
+        side_parts.append(f'<h3 class="tpl-ap-h3">Certifications</h3>{certs}')
+    return (
+        f'<div class="tpl tpl-atlantic-pro"><header class="tpl-ap-head">'
+        f'<h1 class="tpl-ap-name">{_esc(d.get("fullName"))}</h1>'
+        f"{headline}"
+        f'<p class="tpl-ap-contact">{cj}</p></header>'
+        f'{_sec_summary(d, h2_class="tpl-ap-h2")}'
+        f'<div class="tpl-ap-grid">'
+        f'{_sec_experience(d, h2_class="tpl-ap-h2")}'
+        f'<aside class="tpl-ap-side">{"".join(side_parts)}</aside></div>'
+        f'{_sec_education(d, h2_class="tpl-ap-h2")}'
+        f'{_sec_interests(d, h2_class="tpl-ap-h2")}'
+        f"</div>"
+    )
+
+
+def _tpl_zen_column(d: dict) -> str:
+    cj = " · ".join(_contact_parts(d))
+    headline = (
+        f'<p class="tpl-zc-title">{_esc(d.get("headline"))}</p>'
+        if _has_display_text(d.get("headline"))
+        else ""
+    )
+    pills = _skills_pills_html(d)
+    pills_html = f'<div class="tpl-zc-pills">{pills}</div>' if pills.strip() else ""
+    certs_langs = _join_visible(
+        [
+            _certifications_html(d),
+            f'<ul class="tpl-bullets">{_languages_html(d)}</ul>' if _languages_html(d).strip() else "",
+        ]
+    )
+    return (
+        f'<div class="tpl tpl-zen-column"><header class="tpl-zc-head">'
+        f'<h1 class="tpl-zc-name">{_esc(d.get("fullName"))}</h1>'
+        f"{headline}"
+        f'<p class="tpl-zc-contact">{cj}</p></header>'
+        f'{_sec_summary(d, h2_class="tpl-zc-h2")}'
+        f'{_sec_experience(d, h2_class="tpl-zc-h2", class_job="tpl-job tpl-job--zc")}'
+        f'{_sec_education(d, h2_class="tpl-zc-h2")}'
+        f'{_sec_block("Skills", pills_html, h2_class="tpl-zc-h2")}'
+        f'{_sec_block("Certifications & Languages", certs_langs, h2_class="tpl-zc-h2")}'
+        f'{_sec_interests(d, h2_class="tpl-zc-h2")}'
+        f"</div>"
+    )
+
+
+def _tpl_global_grid(d: dict) -> str:
+    cj = " · ".join(_contact_parts(d))
+    headline = (
+        f'<p class="tpl-gg-title">{_esc(d.get("headline"))}</p>'
+        if _has_display_text(d.get("headline"))
+        else ""
+    )
+    return (
+        f'<div class="tpl tpl-global-grid"><header class="tpl-gg-head"><div>'
+        f'<h1 class="tpl-gg-name">{_esc(d.get("fullName"))}</h1>'
+        f"{headline}"
+        f"</div>{_photo_html(d, 'tpl-gg-photo')}</header>"
+        f'<p class="tpl-gg-contact">{cj}</p><div class="tpl-gg-layout">'
+        f'{_sec_summary(d, wrap_class="tpl-sec tpl-gg-main", h2_class="tpl-gg-h2")}'
+        f'{_sec_experience(d, wrap_class="tpl-sec tpl-gg-main", h2_class="tpl-gg-h2")}'
+        f'{_sec_education(d, wrap_class="tpl-sec tpl-gg-half", h2_class="tpl-gg-h2")}'
+        f'{_sec_skills_list(d, wrap_class="tpl-sec tpl-gg-half", h2_class="tpl-gg-h2")}'
+        f'{_sec_languages(d, wrap_class="tpl-sec tpl-gg-half", h2_class="tpl-gg-h2")}'
+        f'{_sec_certifications(d, wrap_class="tpl-sec tpl-gg-half", h2_class="tpl-gg-h2")}'
+        f'{_sec_interests(d, wrap_class="tpl-sec tpl-gg-main", h2_class="tpl-gg-h2")}'
+        f"</div></div>"
+    )
+
+
+STUDIO_TEMPLATE_ALIASES: dict[str, str] = {
+    "global-elegance": "magazine",
+    "euro-corporate": "executive",
+    "tokyo-minimal": "minimalist",
+    "nordic-clean": "horizon",
+}
+
+
+SIDEBAR_PDF_TEMPLATE_ROOTS = frozenset(
+    {
+        "tpl-classic-sidebar",
+        "tpl-professional-border",
+        "tpl-tech-focus",
+        "tpl-high-contrast",
+        "tpl-executive",
+        "tpl-magazine",
+    }
+)
+
 TPL_RENDERERS: dict[str, Callable[[dict], str]] = {
     "minimalist": _tpl_minimalist,
     "classic-sidebar": _tpl_classic_sidebar,
@@ -993,7 +1104,27 @@ TPL_RENDERERS: dict[str, Callable[[dict], str]] = {
     "horizon": _tpl_horizon,
     "folio": _tpl_folio,
     "vertex": _tpl_vertex,
+    "atlantic-pro": _tpl_atlantic_pro,
+    "zen-column": _tpl_zen_column,
+    "global-grid": _tpl_global_grid,
 }
+
+
+def resolve_studio_template_id(template_id: str) -> str:
+    tid = (template_id or "classic-sidebar").strip().lower()
+    tid = STUDIO_TEMPLATE_ALIASES.get(tid, tid)
+    if tid not in TPL_RENDERERS:
+        return "classic-sidebar"
+    return tid
+
+
+def all_studio_template_ids() -> list[str]:
+    """Every template id accepted by the studio (including aliases)."""
+    ids = sorted(TPL_RENDERERS.keys())
+    for alias in STUDIO_TEMPLATE_ALIASES:
+        if alias not in ids:
+            ids.append(alias)
+    return sorted(set(ids))
 
 
 def _hex_to_rgb_triplet(hex_s: str) -> tuple[int, int, int]:
@@ -1151,19 +1282,21 @@ STUDIO_GOOGLE_FONTS_HREF = (
     "display=swap"
 )
 
-STUDIO_PDF_PAGE_CSS = """
-@page { size: A4 portrait; margin: 6mm; }
-html.tt-pdf-export {
+PDF_CONTENT_MIN_HEIGHT = "285mm"
+
+STUDIO_PDF_PAGE_CSS = f"""
+@page {{ size: A4 portrait; margin: 6mm; }}
+html.tt-pdf-export {{
   margin: 0;
   padding: 0;
   width: 100%;
   max-width: 100%;
   background: #fff;
-  /* Scale rem-based headings (preview uses zoom on .resume__mount). */
+  --pdf-page-min-height: {PDF_CONTENT_MIN_HEIGHT};
   font-size: calc(16px * var(--font-scale, 1));
   font-family: var(--font-stack, "Inter", system-ui, sans-serif);
-}
-body.tt-pdf-export {
+}}
+body.tt-pdf-export {{
   margin: 0;
   padding: 0;
   width: 100%;
@@ -1172,104 +1305,268 @@ body.tt-pdf-export {
   overflow-x: hidden !important;
   overflow-y: visible !important;
   font-family: var(--font-stack, "Inter", system-ui, sans-serif);
-}
+}}
 body.tt-pdf-export .pdf-wrap,
 body.tt-pdf-export .preview-wrap,
 body.tt-pdf-export article#resume.resume,
-body.tt-pdf-export article#resume.resume .resume__mount,
-body.tt-pdf-export article#resume.resume .tpl {
+body.tt-pdf-export article#resume.resume .resume__mount {{
   width: 100% !important;
   max-width: 100% !important;
   margin: 0 !important;
   padding: 0;
   box-sizing: border-box;
   overflow: visible !important;
-  min-height: auto !important;
-}
-body.tt-pdf-export article#resume.resume {
+}}
+body.tt-pdf-export article#resume.resume,
+body.tt-pdf-export article#resume.resume .resume__mount,
+body.tt-pdf-export .resume.pdf-exporting .tpl,
+body.tt-pdf-export article#resume.resume .tpl {{
+  min-height: var(--pdf-page-min-height) !important;
+}}
+body.tt-pdf-export article#resume.resume {{
   box-shadow: none !important;
   border-radius: 0 !important;
-  min-height: auto !important;
   font-size: var(--pdf-body-size, var(--body-size, 11.5pt)) !important;
   font-family: var(--font-stack, "Inter", system-ui, sans-serif) !important;
-}
-body.tt-pdf-export article#resume.resume .resume__mount {
-  min-height: auto !important;
+}}
+body.tt-pdf-export article#resume.resume .resume__mount {{
   zoom: 1 !important;
   transform: none !important;
-}
-/* Override prototype pdf-exporting rule that resets zoom (font scale is baked above). */
-body.tt-pdf-export .resume.pdf-exporting .resume__mount {
+}}
+body.tt-pdf-export .resume.pdf-exporting .resume__mount {{
   zoom: 1 !important;
-}
+}}
+/* Sidebar accent columns — full printable page height */
+body.tt-pdf-export .tpl-cs-side,
+body.tt-pdf-export .tpl-tf-side,
+body.tt-pdf-export .tpl-ex-side,
+body.tt-pdf-export .tpl-pb-side,
+body.tt-pdf-export .tpl-mz-aside {{
+  min-height: var(--pdf-page-min-height) !important;
+}}
+body.tt-pdf-export .tpl-high-contrast {{
+  min-height: var(--pdf-page-min-height) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}}
+body.tt-pdf-export .tpl-hc-body {{
+  flex: 1 1 auto !important;
+  min-height: calc(var(--pdf-page-min-height) - 5rem - 4px) !important;
+  display: grid !important;
+  grid-template-columns: 200px 1fr !important;
+  align-items: stretch !important;
+}}
+body.tt-pdf-export .tpl-hc-side {{
+  min-height: 100% !important;
+  align-self: stretch !important;
+}}
 /* Undo responsive breakpoints — PDF page is narrower than 1100px */
-body.tt-pdf-export .tpl-ch-row {
+body.tt-pdf-export .tpl-ch-row {{
   display: flex !important;
   flex-direction: row !important;
   align-items: flex-start !important;
   gap: 1rem !important;
   width: 100% !important;
-}
-body.tt-pdf-export .tpl-ch-row > .tpl-sec {
+}}
+body.tt-pdf-export .tpl-ch-row > .tpl-sec {{
   flex: 1 1 0 !important;
   min-width: 0 !important;
-}
-body.tt-pdf-export .tpl-ms-grid {
+}}
+body.tt-pdf-export .tpl-ms-grid {{
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;
   gap: 1rem !important;
   width: 100% !important;
-}
-/* wkhtmltopdf: float columns (grid/table on div/aside is unreliable) */
-body.tt-pdf-export .tpl-classic-sidebar {
+}}
+body.tt-pdf-export .tpl-ap-grid {{
+  display: grid !important;
+  grid-template-columns: 1fr 230px !important;
+  gap: 1rem !important;
+  width: 100% !important;
+}}
+body.tt-pdf-export .tpl-gg-layout {{
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 1rem !important;
+  width: 100% !important;
+}}
+body.tt-pdf-export .tpl-gg-main {{
+  grid-column: 1 / -1 !important;
+}}
+/* WeasyPrint (default): keep CSS grid/flex layouts from prototype */
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-classic-sidebar {{
+  display: grid !important;
+  grid-template-columns: 29% 1fr !important;
+  width: 100% !important;
+  overflow: visible !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-classic-sidebar .tpl-cs-side,
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-classic-sidebar .tpl-cs-main {{
+  float: none !important;
+  width: auto !important;
+  margin: 0 !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-professional-border {{
+  display: grid !important;
+  grid-template-columns: 1fr 28% !important;
+  width: 100% !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-professional-border > .tpl-pb-main,
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-professional-border > .tpl-pb-side {{
+  float: none !important;
+  width: auto !important;
+  margin: 0 !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-tech-focus {{
+  display: grid !important;
+  grid-template-columns: 26% 1fr !important;
+  width: 100% !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-tech-focus .tpl-tf-side,
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-tech-focus .tpl-tf-main {{
+  float: none !important;
+  width: auto !important;
+  margin: 0 !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-executive {{
+  display: grid !important;
+  grid-template-columns: 28% 1fr !important;
+  width: 100% !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-executive .tpl-ex-side,
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-executive .tpl-ex-main {{
+  float: none !important;
+  width: auto !important;
+  margin: 0 !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-mz-grid {{
+  display: grid !important;
+  grid-template-columns: 58% 42% !important;
+  width: 100% !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-mz-grid .tpl-mz-col,
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-mz-grid .tpl-mz-aside {{
+  float: none !important;
+  width: auto !important;
+}}
+/* wkhtmltopdf: float columns (grid on div/aside is unreliable) */
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-classic-sidebar {{
   display: block !important;
   width: 100% !important;
   overflow: hidden !important;
-}
-body.tt-pdf-export .tpl-classic-sidebar::after {
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-classic-sidebar::after {{
   content: "";
   display: table;
   clear: both;
-}
-body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-side {
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-classic-sidebar .tpl-cs-side {{
   float: left !important;
   width: 29% !important;
   display: block !important;
   box-sizing: border-box !important;
   padding: 1.15rem 0.85rem !important;
-}
-body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-main {
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-classic-sidebar .tpl-cs-main {{
   margin-left: 29% !important;
   display: block !important;
   box-sizing: border-box !important;
   padding: 1.15rem 1rem 1.35rem !important;
-}
-body.tt-pdf-export .tpl-professional-border {
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-professional-border {{
   display: block !important;
   width: 100% !important;
   overflow: hidden !important;
-}
-body.tt-pdf-export .tpl-professional-border::after {
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-professional-border::after {{
   content: "";
   display: table;
   clear: both;
-}
-body.tt-pdf-export .tpl-professional-border > .tpl-pb-main {
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-professional-border > .tpl-pb-main {{
   margin-right: 28% !important;
   display: block !important;
   box-sizing: border-box !important;
-}
-body.tt-pdf-export .tpl-professional-border > .tpl-pb-side {
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-professional-border > .tpl-pb-side {{
   float: right !important;
   width: 28% !important;
   display: block !important;
   box-sizing: border-box !important;
-}
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-tech-focus {{
+  display: block !important;
+  width: 100% !important;
+  overflow: hidden !important;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-tech-focus::after {{
+  content: "";
+  display: table;
+  clear: both;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-tech-focus .tpl-tf-side {{
+  float: left !important;
+  width: 26% !important;
+  display: block !important;
+  box-sizing: border-box !important;
+  padding: 1rem 0.75rem 1.5rem !important;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-tech-focus .tpl-tf-main {{
+  margin-left: 26% !important;
+  display: block !important;
+  box-sizing: border-box !important;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-executive {{
+  display: block !important;
+  width: 100% !important;
+  overflow: hidden !important;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-executive::after {{
+  content: "";
+  display: table;
+  clear: both;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-executive .tpl-ex-side {{
+  float: left !important;
+  width: 28% !important;
+  display: block !important;
+  box-sizing: border-box !important;
+  padding: 1.15rem 0.9rem 1.5rem !important;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-executive .tpl-ex-main {{
+  margin-left: 28% !important;
+  display: block !important;
+  box-sizing: border-box !important;
+  padding: 0 1rem 1.5rem !important;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-mz-grid {{
+  display: block !important;
+  width: 100% !important;
+  overflow: hidden !important;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-mz-grid::after {{
+  content: "";
+  display: table;
+  clear: both;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-mz-grid .tpl-mz-col {{
+  float: left !important;
+  width: 58% !important;
+  box-sizing: border-box !important;
+  padding: 1.15rem 1rem 1.5rem !important;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-mz-grid .tpl-mz-aside {{
+  float: right !important;
+  width: 42% !important;
+  box-sizing: border-box !important;
+  padding: 1.15rem 0.9rem 1.5rem !important;
+}}
 body.tt-pdf-export article#resume.resume,
-body.tt-pdf-export article#resume.resume * {
+body.tt-pdf-export article#resume.resume * {{
   font-family: var(--font-stack, "Inter", system-ui, sans-serif) !important;
   font-synthesis: none;
-}
+}}
 body.tt-pdf-export .tpl-bullets,
 body.tt-pdf-export .tpl-bullets li,
 body.tt-pdf-export .tpl-job,
@@ -1278,88 +1575,18 @@ body.tt-pdf-export .tpl-p,
 body.tt-pdf-export .tpl-h2,
 body.tt-pdf-export .tpl-cs-name,
 body.tt-pdf-export .tpl-cs-contact,
-body.tt-pdf-export .tpl-cs-h3 {
+body.tt-pdf-export .tpl-cs-h3 {{
   font-family: var(--font-stack, "Inter", system-ui, sans-serif) !important;
-}
+}}
 body.tt-pdf-export .resume[data-template="elegant-serif"],
-body.tt-pdf-export .resume[data-template="ledger"] {
+body.tt-pdf-export .resume[data-template="ledger"] {{
   font-family: var(--font-stack, "Inter", system-ui, sans-serif) !important;
-}
-body.tt-pdf-export .tpl-hc-body,
-body.tt-pdf-export .tpl-geo-split {
+}}
+body.tt-pdf-export .tpl-geo-split {{
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;
   width: 100% !important;
-}
-body.tt-pdf-export .tpl-tech-focus {
-  display: block !important;
-  width: 100% !important;
-  overflow: hidden !important;
-}
-body.tt-pdf-export .tpl-tech-focus::after {
-  content: "";
-  display: table;
-  clear: both;
-}
-body.tt-pdf-export .tpl-tech-focus .tpl-tf-side {
-  float: left !important;
-  width: 26% !important;
-  display: block !important;
-  box-sizing: border-box !important;
-  padding: 1rem 0.75rem 1.5rem !important;
-}
-body.tt-pdf-export .tpl-tech-focus .tpl-tf-main {
-  margin-left: 26% !important;
-  display: block !important;
-  box-sizing: border-box !important;
-}
-body.tt-pdf-export .tpl-executive {
-  display: block !important;
-  width: 100% !important;
-  overflow: hidden !important;
-  min-height: auto !important;
-}
-body.tt-pdf-export .tpl-executive::after {
-  content: "";
-  display: table;
-  clear: both;
-}
-body.tt-pdf-export .tpl-executive .tpl-ex-side {
-  float: left !important;
-  width: 28% !important;
-  display: block !important;
-  box-sizing: border-box !important;
-  padding: 1.15rem 0.9rem 1.5rem !important;
-}
-body.tt-pdf-export .tpl-executive .tpl-ex-main {
-  margin-left: 28% !important;
-  display: block !important;
-  box-sizing: border-box !important;
-  padding: 0 1rem 1.5rem !important;
-}
-body.tt-pdf-export .tpl-mz-grid {
-  display: block !important;
-  width: 100% !important;
-  overflow: hidden !important;
-  min-height: auto !important;
-}
-body.tt-pdf-export .tpl-mz-grid::after {
-  content: "";
-  display: table;
-  clear: both;
-}
-body.tt-pdf-export .tpl-mz-grid .tpl-mz-col {
-  float: left !important;
-  width: 58% !important;
-  box-sizing: border-box !important;
-  padding: 1.15rem 1rem 1.5rem !important;
-}
-body.tt-pdf-export .tpl-mz-grid .tpl-mz-aside {
-  float: right !important;
-  width: 42% !important;
-  box-sizing: border-box !important;
-  padding: 1.15rem 0.9rem 1.5rem !important;
-}
+}}
 body.tt-pdf-export .tpl-sec--half,
 body.tt-pdf-export .tpl-ch-body,
 body.tt-pdf-export .tpl-ch-row > *,
@@ -1367,22 +1594,22 @@ body.tt-pdf-export .tpl-ms-grid > *,
 body.tt-pdf-export .tpl-pb-main,
 body.tt-pdf-export .tpl-pb-side,
 body.tt-pdf-export .tpl-cs-side,
-body.tt-pdf-export .tpl-cs-main {
+body.tt-pdf-export .tpl-cs-main {{
   min-width: 0 !important;
   max-width: 100% !important;
   overflow: visible !important;
   box-sizing: border-box !important;
-}
-body.tt-pdf-export .tpl-ch-body {
+}}
+body.tt-pdf-export .tpl-ch-body {{
   padding: 1.25rem 1.1rem 1.5rem !important;
-}
+}}
 body.tt-pdf-export .tpl-h2,
 body.tt-pdf-export .tpl-p,
 body.tt-pdf-export .tpl-bullets,
-body.tt-pdf-export .tpl-job {
+body.tt-pdf-export .tpl-job {{
   overflow-wrap: anywhere !important;
   word-break: break-word !important;
-}
+}}
 """
 
 
@@ -1405,6 +1632,9 @@ def studio_pdf_template_context(
     pack: dict,
 ) -> dict:
     """Shared context for studio PDF shell template (matches live preview theme)."""
+    from django.conf import settings
+
+    engine = (getattr(settings, "RESUME_PDF_ENGINE", "weasyprint") or "weasyprint").strip().lower()
     return {
         "studio_google_fonts_href": studio_pdf_google_fonts_href(pack),
         "studio_embedded_fonts_css": studio_pdf_embedded_fonts_css(pack),
@@ -1413,6 +1643,7 @@ def studio_pdf_template_context(
         "studio_pdf_page_css": STUDIO_PDF_PAGE_CSS,
         "studio_mount_html": mount_html,
         "studio_template_id": template_id,
+        "studio_pdf_engine": engine,
     }
 
 
@@ -1434,10 +1665,9 @@ def studio_pack_root_css_block(pack: dict) -> str:
 
 def studio_proto_pack_to_mount_html(pack: dict) -> tuple[str, str]:
     rd = pack.get("resume") if isinstance(pack.get("resume"), dict) else {}
-    tid = (pack.get("template") or "classic-sidebar").strip().lower()
-    if tid not in TPL_RENDERERS:
-        tid = "classic-sidebar"
-    return TPL_RENDERERS[tid](rd), tid
+    requested = (pack.get("template") or "classic-sidebar").strip().lower()
+    tid = resolve_studio_template_id(requested)
+    return TPL_RENDERERS[tid](rd), requested
 
 
 def build_studio_render_pack(resume, request=None, *, template_override: str | None = None) -> dict:
