@@ -287,6 +287,11 @@ class ResumeV2StudioView(TemplateView):
         profile_hobbies = (
             [h.name for h in profile.hobbies.all() if getattr(h, "name", None)] if profile else []
         )
+        studio_hobbies = (payload.get("hobbies") or "").strip()
+        if not studio_hobbies:
+            studio_hobbies = (payload.get("interests") or "").strip()
+        if not studio_hobbies and profile_hobbies:
+            studio_hobbies = ", ".join(profile_hobbies[:15])
         goal_id = meta.get("goal") or ""
 
         ctx.update(
@@ -329,7 +334,7 @@ class ResumeV2StudioView(TemplateView):
                     "users:resumebuilder_studio_photo_upload", kwargs={"resume_id": resume.pk}
                 ),
                 "resume_headline": payload.get("headline") or "",
-                "studio_hobbies": payload.get("hobbies") or "",
+                "studio_hobbies": studio_hobbies,
                 "personal_fields": studio_personal_context(request.user, resume),
                 "profile_hobbies": profile_hobbies,
                 "has_ai_pending": get_ai_resume_pending(resume) is not None,

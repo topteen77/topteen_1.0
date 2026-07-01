@@ -1677,16 +1677,10 @@ def build_resume_sections_snapshot(resume, user, client_sections: dict | None = 
         desc = (activity.get("description") or "").strip()
         if not title:
             continue
-        if desc.startswith("Technologies: "):
-            tech = ""
-            body = desc
-            nl = desc.find("\n")
-            if nl >= 0:
-                tech = desc[len("Technologies: ") : nl].strip()
-                body = desc[nl + 1 :].strip()
-            else:
-                tech = desc[len("Technologies: ") :].strip()
-                body = ""
+        if desc.startswith("Technologies:"):
+            from .resume_payload import _parse_project_activity_description
+
+            tech, body = _parse_project_activity_description(desc)
             projects.append({"title": title, "technologies": tech, "description": body})
         else:
             achievements.append({"title": title, "description": desc})
@@ -1967,7 +1961,7 @@ def clear_ai_resume_pending(resume) -> None:
 
 
 def _activity_is_project(activity) -> bool:
-    return ((activity.description or "").strip()).startswith("Technologies: ")
+    return (activity.description or "").strip().startswith("Technologies:")
 
 
 def _delete_resume_project_activities(resume) -> None:
@@ -2087,10 +2081,10 @@ def apply_ai_generated_resume(
             title = (proj.get("title") or "").strip()[:250]
             desc = (proj.get("description") or "").strip()[:2000]
             tech = (proj.get("technologies") or "").strip()[:500]
-            if not title:
+            if not title or not desc:
                 continue
-            full_desc = f"Technologies: {tech}\n{desc}" if tech else desc
-            UserResumeActivity.objects.create(resume=resume, title=title, description=full_desc[:2000])
+            full_desc = f"Technologies: {tech}\n{desc}"[:2000]
+            UserResumeActivity.objects.create(resume=resume, title=title, description=full_desc)
 
     if want("achievements"):
         for ach in (data.get("achievements") or [])[:20]:

@@ -916,29 +916,13 @@
   function buildProjectsPreview() {
     var rows = (payload.activities || []).filter(isProjectActivity).map(function (a) {
       var parsed = parseProjectActivity(a);
-      var fullDesc = parsed.tech
-        ? "Technologies: " + parsed.tech + (parsed.desc ? "\n" + parsed.desc : "")
-        : parsed.desc;
-      return {
-        title: a.title || "",
-        company: parsed.tech || "Project",
-        location: "",
-        dates: a.issue_date || "",
-        bullets: descToBullets(fullDesc),
-      };
+      return projectToPreviewBlock(a.title, parsed.tech, parsed.desc, a.issue_date);
     });
     var projTitle = trimVal("rb2ProjectTitle");
     var projTech = trimVal("rb2ProjectTech");
     var projDesc = trimVal("rb2ProjectDesc");
     if (projTitle || projTech || projDesc) {
-      var fullDesc = projTech ? "Technologies: " + projTech + (projDesc ? "\n" + projDesc : "") : projDesc;
-      var draftProj = {
-        title: projTitle,
-        company: projTech || "Project",
-        location: "",
-        dates: "",
-        bullets: descToBullets(fullDesc),
-      };
+      var draftProj = projectToPreviewBlock(projTitle, projTech, projDesc, "");
       if (editingProjectId) {
         var replaced = false;
         rows = rows.map(function (item, idx) {
@@ -1385,7 +1369,7 @@
       return validationReject();
     }
     var tech = trimVal("rb2ProjectTech");
-    var fullDesc = tech ? "Technologies: " + tech + "\n" + desc : desc;
+    var fullDesc = formatProjectStorage(tech, desc);
     var body = editingProjectId
       ? { action: "update_activity", item_id: editingProjectId, title: title, description: fullDesc }
       : { action: "add_activity", title: title, description: fullDesc };
@@ -1718,7 +1702,24 @@
   }
 
   function isProjectActivity(a) {
-    return ((a && a.description) || "").indexOf("Technologies: ") === 0;
+    return String((a && a.description) || "").trim().indexOf("Technologies:") === 0;
+  }
+
+  function formatProjectStorage(tech, desc) {
+    var tools = (tech || "").trim();
+    var body = (desc || "").trim();
+    if (!body) return "";
+    return "Technologies: " + tools + "\n" + body;
+  }
+
+  function projectToPreviewBlock(title, tech, desc, dates) {
+    return {
+      title: title || "",
+      company: (tech || "").trim(),
+      location: "",
+      dates: dates || "",
+      bullets: descToBullets((desc || "").trim()),
+    };
   }
 
   function activityMatchesKind(a, kind) {
@@ -1798,9 +1799,18 @@
       if (!activityMatchesKind(a, kind)) return;
       var li = document.createElement("li");
       li.className = "rb2-item-list__row";
+      var snippet = "";
+      if (kind === "project") {
+        var parsed = parseProjectActivity(a);
+        snippet = parsed.tech && parsed.desc
+          ? parsed.tech + " — " + parsed.desc
+          : (parsed.desc || parsed.tech || "");
+      } else {
+        snippet = (a.description || "").trim();
+      }
       li.innerHTML =
         "<div><strong>" + esc(a.title) + "</strong>" +
-        (a.description ? "<div class=\"fs-12 text-muted\">" + esc(a.description).slice(0, 120) + "</div>" : "") +
+        (snippet ? "<div class=\"fs-12 text-muted\">" + esc(snippet).slice(0, 140) + "</div>" : "") +
         "</div>" +
         itemActionButtons("activity", a.id, kind);
       ul.appendChild(li);
@@ -1808,15 +1818,15 @@
   }
 
   function parseProjectActivity(activity) {
-    var desc = (activity && activity.description) || "";
+    var desc = String((activity && activity.description) || "").trim();
     var tech = "";
-    if (desc.indexOf("Technologies: ") === 0) {
+    if (desc.indexOf("Technologies:") === 0) {
       var nl = desc.indexOf("\n");
       if (nl >= 0) {
-        tech = desc.slice("Technologies: ".length, nl);
-        desc = desc.slice(nl + 1);
+        tech = desc.slice("Technologies:".length, nl).trim();
+        desc = desc.slice(nl + 1).trim();
       } else {
-        tech = desc.slice("Technologies: ".length);
+        tech = desc.slice("Technologies:".length).trim();
         desc = "";
       }
     }
@@ -2479,6 +2489,15 @@
     });
   }
 
+  var hobbiesSaveTimer = null;
+
+  function scheduleHobbiesAutoSave() {
+    clearTimeout(hobbiesSaveTimer);
+    hobbiesSaveTimer = setTimeout(function () {
+      saveHobbiesData().catch(function () {});
+    }, 900);
+  }
+
   function bindProfileHobbyChips() {
     var row = $("#rb2ProfileHobbies");
     if (!row) return;
@@ -2494,16 +2513,37 @@
         field.value = current.join(", ");
         syncProfileHobbyChips();
         scheduleLocalUiSync();
+        scheduleHobbiesAutoSave();
       });
     });
     syncProfileHobbyChips();
     var hobbiesField = $("#rb2HobbiesField");
     if (hobbiesField) {
-      hobbiesField.addEventListener("input", syncProfileHobbyChips);
+      hobbiesField.addEventListener("input", function () {
+        syncProfileHobbyChips();
+        scheduleHobbiesAutoSave();
+      });
     }
   }
 
+  function prefillHobbiesFieldIfEmpty() {
+    var field = $("#rb2HobbiesField");
+    if (!field || field.value.trim()) return;
+    var chips = document.querySelectorAll("#rb2ProfileHobbies .rb2-kw-chip");
+    if (!chips.length) return;
+    var names = [];
+    chips.forEach(function (chip) {
+      var name = (chip.dataset.hobby || "").trim();
+      if (name) names.push(name);
+    });
+    if (!names.length) return;
+    field.value = names.join(", ");
+    scheduleLocalUiSync();
+    scheduleHobbiesAutoSave();
+  }
+
   bindProfileHobbyChips();
+  prefillHobbiesFieldIfEmpty();
   bindCoachItems();
 
   /* ——— Summary AI ——— */
@@ -3003,7 +3043,10 @@
 
   var previewFrame = $("#rb2PreviewFrame");
   if (previewFrame) {
-    previewFrame.addEventListener("load", resizePreviewFrame);
+    previewFrame.addEventListener("load", function () {
+      pushDraftToPreview();
+      resizePreviewFrame();
+    });
   }
 
   function bindPhotoUpload() {
@@ -3078,7 +3121,7 @@
     if (!url) return;
     if (savePending > 0) return;
     setSavingState(true);
-    saveCurrentSection()
+    saveAllSections()
       .then(function () {
         window.open(url, "_blank", "noopener");
       })

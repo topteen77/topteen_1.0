@@ -1228,23 +1228,36 @@ def _is_project_activity_description(description: str) -> bool:
     return (description or "").strip().startswith("Technologies:")
 
 
+def _parse_project_activity_description(description: str) -> tuple[str, str]:
+    """Return (tools/skills line, project body) from stored activity text."""
+    raw = (description or "").strip()
+    if not raw.startswith("Technologies:"):
+        return "", raw
+    nl = raw.find("\n")
+    if nl >= 0:
+        tech = raw[len("Technologies:") : nl].strip()
+        body = raw[nl + 1 :].strip()
+    else:
+        tech = raw[len("Technologies:") :].strip()
+        body = ""
+    return tech, body
+
+
 def _activity_to_job_block(activity, *, as_project: bool) -> dict:
     title = (activity.title or "").strip() or ("Project" if as_project else "Activity")
     dates = activity.issue_date.isoformat() if activity.issue_date else ""
-    bullets = _desc_bullets(activity.description)
-    if not bullets and (activity.description or "").strip():
-        bullets = [(activity.description or "").strip()[:500]]
-    company = "Project" if as_project else ""
     if as_project:
-        desc = (activity.description or "").strip()
-        if desc.startswith("Technologies:"):
-            nl = desc.find("\n")
-            if nl >= 0:
-                tech = desc[len("Technologies: ") : nl].strip()
-            else:
-                tech = desc[len("Technologies: ") :].strip()
-            if tech:
-                company = tech[:120]
+        tech, body = _parse_project_activity_description(activity.description or "")
+        company = tech[:120] if tech else ""
+        bullets = _desc_bullets(body)
+        if not bullets and body:
+            bullets = [body[:500]]
+    else:
+        company = ""
+        raw = (activity.description or "").strip()
+        bullets = _desc_bullets(raw)
+        if not bullets and raw:
+            bullets = [raw[:500]]
     return {
         "title": title,
         "company": company,

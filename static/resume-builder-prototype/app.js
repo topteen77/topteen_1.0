@@ -239,11 +239,37 @@
       .replace(/"/g, "&quot;");
   }
 
-  /** Studio v2 saves hobbies; prototype templates label the section Interests. */
+  function ordinalSuffix(n) {
+    const mod100 = n % 100;
+    if (mod100 >= 11 && mod100 <= 13) return "th";
+    return ({ 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th");
+  }
+
+  /** School grades: 10 → 10<sup>th</sup>, 12 → 12<sup>th</sup>, etc. */
+  function formatEducationDegree(text) {
+    const raw = String(text ?? "").trim();
+    if (!raw) return "";
+    const m = raw.match(/^(?:(?:class|grade)\s+)?(\d{1,2})(?:\s*(?:st|nd|rd|th))?$/i);
+    if (m) {
+      const n = parseInt(m[1], 10);
+      if (n >= 1 && n <= 12) {
+        return `${n}<sup>${ordinalSuffix(n)}</sup>`;
+      }
+    }
+    return esc(raw);
+  }
+
+  /** Studio v2 saves hobbies; some templates label the section Interests. */
   function interestsText(d) {
     const interests = String((d && d.interests) || "").trim();
     if (interests) return interests;
     return String((d && d.hobbies) || "").trim();
+  }
+
+  function hobbiesDisplayText(d) {
+    const hobbies = String((d && d.hobbies) || "").trim();
+    if (hobbies) return hobbies;
+    return String((d && d.interests) || "").trim();
   }
 
   function hasDisplayText(v) {
@@ -465,7 +491,7 @@
             : "";
           return `<div class="tpl-edu-block">
         <div class="tpl-job-head">
-          <strong>${esc(ed.degree)}</strong>
+          <strong>${formatEducationDegree(ed.degree)}</strong>
           ${dates}
         </div>
         ${sub}
@@ -504,6 +530,82 @@
       .join("");
   }
 
+  function languagesPillsHtml(d) {
+    return (d.languages || [])
+      .filter((l) => hasDisplayText(l.name))
+      .map((l) => {
+        const level = hasDisplayText(l.level) ? ` · ${esc(l.level)}` : "";
+        return `<span class="tpl-pill tpl-pill--lang">${esc(l.name)}${level}</span>`;
+      })
+      .join("");
+  }
+
+  function languagesChipsHtml(d) {
+    const chips = (d.languages || [])
+      .filter((l) => hasDisplayText(l.name))
+      .map((l) => {
+        const level = hasDisplayText(l.level) ? `<span class="tpl-ch-lang-level">${esc(l.level)}</span>` : "";
+        return `<span class="tpl-ch-lang-chip"><span class="tpl-ch-lang-name">${esc(l.name)}</span>${level}</span>`;
+      })
+      .join("");
+    return chips ? `<div class="tpl-ch-lang-list">${chips}</div>` : "";
+  }
+
+  function coloredHeaderJobsColumn(d) {
+    const parts = [];
+    const add = (title, html) => {
+      if (String(html || "").trim()) {
+        parts.push(`<div class="tpl-ch-subsec"><h2 class="tpl-h2">${title}</h2>${html}</div>`);
+      }
+    };
+    add(PROJECTS_TITLE, projectsHtml(d));
+    add(ACHIEVEMENTS_ACTIVITIES_TITLE, achievementsHtml(d));
+    add(WORK_EXPERIENCE_TITLE, workExperienceHtml(d));
+    if (!parts.length) return "";
+    return `<section class="tpl-sec tpl-sec--half"><div class="tpl-ch-stack">${parts.join("")}</div></section>`;
+  }
+
+  function coloredHeaderEduSkillsColumn(d) {
+    const parts = [];
+    const eduInner = educationHtml(d);
+    const skillsInner = skillsListHtml(d);
+    if (String(eduInner || "").trim()) {
+      parts.push(`<div class="tpl-ch-subsec"><h2 class="tpl-h2">Education</h2>${eduInner}</div>`);
+    }
+    if (String(skillsInner || "").trim()) {
+      parts.push(
+        `<div class="tpl-ch-subsec"><h2 class="tpl-h2">Skills</h2><ul class="tpl-bullets tpl-bullets--tight">${skillsInner}</ul></div>`
+      );
+    }
+    if (!parts.length) return "";
+    return `<section class="tpl-sec tpl-sec--half"><div class="tpl-ch-stack">${parts.join("")}</div></section>`;
+  }
+
+  function coloredHeaderCertsLangsRow(d) {
+    const certsInner = certificationsHtml(d);
+    const langsInner = languagesChipsHtml(d);
+    const sections = [];
+    if (String(certsInner || "").trim()) {
+      sections.push(
+        `<section class="tpl-sec tpl-sec--half"><h2 class="tpl-h2">Certifications</h2><div class="tpl-ch-cert-list">${certsInner}</div></section>`
+      );
+    }
+    if (String(langsInner || "").trim()) {
+      sections.push(`<section class="tpl-sec tpl-sec--half"><h2 class="tpl-h2">Languages</h2>${langsInner}</section>`);
+    }
+    if (!sections.length) return "";
+    if (sections.length === 1) {
+      return sections[0].replace("tpl-sec--half", "tpl-sec tpl-sec--full");
+    }
+    return `<div class="tpl-ch-row tpl-ch-row--bottom">${sections.join("")}</div>`;
+  }
+
+  function contactRowHtml(d, wrapClass) {
+    const parts = contactParts(d);
+    if (!parts.length) return "";
+    return `<div class="${wrapClass || "tpl-min-contact-row"}">${parts.join("")}</div>`;
+  }
+
   function experienceTimelineHtml(d, items) {
     const rows = items || achievementsFromData(d);
     return rows
@@ -529,9 +631,16 @@
       .join("");
   }
 
+  function msRow() {
+    const sections = Array.from(arguments).filter((x) => String(x || "").trim());
+    if (!sections.length) return "";
+    if (sections.length === 1) return sections[0];
+    return `<div class="tpl-ms-row">${sections.join("")}</div>`;
+  }
+
   function hobbiesSection(d, opts) {
     opts = opts || {};
-    const text = String((d && d.hobbies) || "").trim();
+    const text = hobbiesDisplayText(d);
     if (!text) return "";
     const wrap = opts.wrap || "tpl-sec";
     const h2 = opts.h2 || "tpl-h2";
@@ -551,80 +660,170 @@
 
   const RENDERERS = {
     minimalist(d) {
-      const contact = contactParts(d).join(" · ");
+      const h2 = "tpl-h2";
+      const sections = [];
+      if (hasDisplayText(d.summary)) {
+        sections.push(
+          `<section class="tpl-sec"><h2 class="${h2}">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>`
+        );
+      }
+      const jobs = resumeJobSections(d, { h2, jobClass: "tpl-job tpl-job--min" });
+      if (String(jobs || "").trim()) sections.push(jobs);
+      const edu = educationHtml(d);
+      if (String(edu || "").trim()) {
+        sections.push(`<section class="tpl-sec"><h2 class="${h2}">Education</h2>${edu}</section>`);
+      }
+      const skills = skillsPillsHtml(d);
+      if (String(skills || "").trim()) {
+        sections.push(`<section class="tpl-sec"><h2 class="${h2}">Skills</h2><div class="tpl-min-tags">${skills}</div></section>`);
+      }
+      const certs = certificationsHtml(d);
+      if (String(certs || "").trim()) {
+        sections.push(`<section class="tpl-sec"><h2 class="${h2}">Certifications</h2>${certs}</section>`);
+      }
+      const langs = languagesPillsHtml(d);
+      if (String(langs || "").trim()) {
+        sections.push(`<section class="tpl-sec"><h2 class="${h2}">Languages</h2><div class="tpl-min-tags">${langs}</div></section>`);
+      }
+      const hob = hobbiesSection(d, { h2, pClass: "tpl-p" });
+      if (hob) sections.push(hob);
+      const hobText = String(d.hobbies || "").trim();
+      const intrText = interestsText(d);
+      if (intrText && (!hobText || intrText !== hobText)) {
+        const intr = interestsSection(d, { h2, pClass: "tpl-p" });
+        if (intr) sections.push(intr);
+      }
+      const body = sections.filter(Boolean).join('<hr class="tpl-min-rule" />');
+      const bodyBlock = body ? `<hr class="tpl-min-rule" />${body}` : "";
+      const contactRow = contactRowHtml(d, "tpl-min-contact-row");
       return `<div class="tpl tpl-minimalist">
         <header class="tpl-min-head">
           <h1 class="tpl-min-name">${esc(d.fullName)}</h1>
           ${tplHeadline("tpl-min-title", d)}
-          <p class="tpl-min-contact">${contact}</p>
-        </header>
-        <hr class="tpl-min-rule" />
-        <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--center">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-        <hr class="tpl-min-rule" />
-        ${resumeJobSections(d, { h2: "tpl-h2 tpl-h2--center", jobClass: "tpl-job tpl-job--min" })}
-        <hr class="tpl-min-rule" />
-        <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--center">Education</h2>${educationHtml(d)}</section>
-        <hr class="tpl-min-rule" />
-        <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--center">Skills</h2><ul class="tpl-bullets tpl-bullets--center">${skillsListHtml(d)}</ul></section>
-        <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--center">Certifications</h2>${certificationsHtml(d)}</section>
-        <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--center">Languages</h2><ul class="tpl-bullets tpl-bullets--center">${languagesHtml(d)}</ul></section>
-        ${hobbiesSection(d, { h2: "tpl-h2 tpl-h2--center", pClass: "tpl-p" })}
-        ${interestsSection(d, { h2: "tpl-h2 tpl-h2--center", pClass: "tpl-p" })}
+          ${contactRow}
+        </header>${bodyBlock}
       </div>`;
     },
 
     "classic-sidebar"(d) {
+      const skillsInner = skillsListHtml(d);
+      const langsInner = languagesHtml(d);
+      const eduInner = educationHtml(d);
+      const certsInner = certificationsHtml(d);
+      const mainParts = [];
+      if (hasDisplayText(d.summary)) {
+        mainParts.push(
+          `<section class="tpl-sec"><h2 class="tpl-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>`
+        );
+      }
+      const jobs = resumeJobSections(d, { h2: "tpl-h2" });
+      if (String(jobs || "").trim()) mainParts.push(jobs);
+      if (String(eduInner || "").trim()) {
+        mainParts.push(`<section class="tpl-sec"><h2 class="tpl-h2">Education</h2>${eduInner}</section>`);
+      }
+      if (String(certsInner || "").trim()) {
+        mainParts.push(`<section class="tpl-sec"><h2 class="tpl-h2">Certifications</h2>${certsInner}</section>`);
+      }
+      const hob = hobbiesSection(d, { h2: "tpl-h2" });
+      if (hob) mainParts.push(hob);
+      const sideSkills = String(skillsInner || "").trim()
+        ? `<h3 class="tpl-cs-h3">Skills</h3><ul class="tpl-bullets tpl-bullets--tight">${skillsInner}</ul>`
+        : "";
+      const sideLangs = String(langsInner || "").trim()
+        ? `<h3 class="tpl-cs-h3">Languages</h3><ul class="tpl-bullets tpl-bullets--tight">${langsInner}</ul>`
+        : "";
+      const contactItems = contactParts(d)
+        .map((x) => `<li>${x}</li>`)
+        .join("");
       return `<div class="tpl tpl-classic-sidebar">
         <aside class="tpl-cs-side">
           ${photoHtml(d, "tpl-avatar")}
           <h1 class="tpl-cs-name">${esc(d.fullName)}</h1>
           ${tplHeadline("tpl-cs-title", d)}
-          <ul class="tpl-cs-contact">${contactParts(d).map((x) => `<li>${x}</li>`).join("")}</ul>
-          <h3 class="tpl-cs-h3">Skills</h3>
-          <ul class="tpl-bullets tpl-bullets--tight">${skillsListHtml(d)}</ul>
-          <h3 class="tpl-cs-h3">Languages</h3>
-          <ul class="tpl-bullets tpl-bullets--tight">${languagesHtml(d)}</ul>
+          ${contactItems ? `<ul class="tpl-cs-contact">${contactItems}</ul>` : ""}
+          ${sideSkills}
+          ${sideLangs}
         </aside>
         <div class="tpl-cs-main">
-          <section class="tpl-sec"><h2 class="tpl-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-          ${resumeJobSections(d, { h2: "tpl-h2" })}
-          <section class="tpl-sec"><h2 class="tpl-h2">Education</h2>${educationHtml(d)}</section>
-          <section class="tpl-sec"><h2 class="tpl-h2">Certifications</h2>${certificationsHtml(d)}</section>
-          <section class="tpl-sec"><h2 class="tpl-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
+          ${mainParts.join("")}
         </div>
       </div>`;
     },
 
     "colored-header"(d) {
-      const contact = contactParts(d).join(" · ");
+      const contactRow = contactRowHtml(d, "tpl-ch-contact-row");
+      const bodyParts = [];
+      if (hasDisplayText(d.summary)) {
+        bodyParts.push(
+          `<section class="tpl-sec"><h2 class="tpl-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>`
+        );
+      }
+      const topCol = [coloredHeaderJobsColumn(d), coloredHeaderEduSkillsColumn(d)].filter((x) =>
+        String(x || "").trim()
+      );
+      if (topCol.length) {
+        bodyParts.push(`<div class="tpl-ch-row">${topCol.join("")}</div>`);
+      }
+      const certsLangs = coloredHeaderCertsLangsRow(d);
+      if (certsLangs) bodyParts.push(certsLangs);
+      const hob = hobbiesSection(d, { h2: "tpl-h2" });
+      if (hob) bodyParts.push(hob);
       return `<div class="tpl tpl-colored-header">
-        <header class="tpl-ch-bar">
+        <div class="tpl-ch-bar">
           <h1 class="tpl-ch-name">${esc(d.fullName)}</h1>
           ${tplHeadline("tpl-ch-title", d)}
-          <p class="tpl-ch-contact">${contact}</p>
-        </header>
-        <div class="tpl-ch-body">
-          <section class="tpl-sec"><h2 class="tpl-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-          <div class="tpl-ch-row">
-            ${resumeJobSections(d, { h2: "tpl-h2", wrap: "tpl-sec tpl-sec--half" })}
-            <section class="tpl-sec tpl-sec--half">
-              <h2 class="tpl-h2">Education</h2>${educationHtml(d)}
-              <h2 class="tpl-h2 tpl-h2--spaced">Skills</h2><ul class="tpl-bullets">${skillsListHtml(d)}</ul>
-            </section>
-          </div>
-          <section class="tpl-sec"><h2 class="tpl-h2">Certifications &amp; languages</h2>
-            <div class="tpl-two-col">${certificationsHtml(d)}</div>
-            <ul class="tpl-bullets">${languagesHtml(d)}</ul>
-          </section>
-          <section class="tpl-sec"><h2 class="tpl-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
+          ${contactRow}
         </div>
+        <div class="tpl-ch-body">${bodyParts.join("")}</div>
       </div>`;
     },
 
     "modern-split"(d) {
-      const contact = contactParts(d).join(" · ");
+      const contactRow = contactRowHtml(d, "tpl-ms-contact-row");
+      const gridParts = [];
+      let summarySec = "";
+      if (hasDisplayText(d.summary)) {
+        summarySec = `<section class="tpl-sec"><h2 class="tpl-h2"><span class="tpl-ico">📋</span> Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>`;
+      }
+      const eduInner = educationHtml(d);
+      let eduSec = "";
+      if (String(eduInner || "").trim()) {
+        eduSec = `<section class="tpl-sec"><h2 class="tpl-h2"><span class="tpl-ico">🎓</span> Education</h2>${eduInner}</section>`;
+      }
+      const topRow = msRow(summarySec, eduSec);
+      if (topRow) gridParts.push(topRow);
+      const jobs = resumeJobSections(d, {
+        h2: "tpl-h2",
+        wrap: "tpl-sec tpl-ms-span2",
+        titlePrefix: '<span class="tpl-ico">💼</span> ',
+      });
+      if (String(jobs || "").trim()) gridParts.push(jobs);
+      const skillsInner = skillsListHtml(d);
+      let skillsSec = "";
+      if (String(skillsInner || "").trim()) {
+        skillsSec = `<section class="tpl-sec"><h2 class="tpl-h2"><span class="tpl-ico">⚡</span> Skills</h2><ul class="tpl-bullets">${skillsInner}</ul></section>`;
+      }
+      const langsInner = languagesHtml(d);
+      let langsSec = "";
+      if (String(langsInner || "").trim()) {
+        langsSec = `<section class="tpl-sec"><h2 class="tpl-h2"><span class="tpl-ico">🌐</span> Languages</h2><ul class="tpl-bullets">${langsInner}</ul></section>`;
+      }
+      const skillsLangsRow = msRow(skillsSec, langsSec);
+      if (skillsLangsRow) gridParts.push(skillsLangsRow);
+      const certsInner = certificationsHtml(d);
+      if (String(certsInner || "").trim()) {
+        gridParts.push(
+          `<section class="tpl-sec tpl-ms-span2"><h2 class="tpl-h2"><span class="tpl-ico">🏅</span> Certifications</h2>${certsInner}</section>`
+        );
+      }
+      const hobbiesText = hobbiesDisplayText(d);
+      if (hobbiesText) {
+        gridParts.push(
+          `<section class="tpl-sec tpl-ms-span2"><h2 class="tpl-h2"><span class="tpl-ico">🎯</span> Hobbies</h2><p class="tpl-p">${esc(hobbiesText)}</p></section>`
+        );
+      }
       return `<div class="tpl tpl-modern-split">
-        <header class="tpl-ms-top">
+        <div class="tpl-ms-top">
           <div class="tpl-ms-brand">
             ${photoHtml(d, "tpl-ms-photo")}
             <div>
@@ -632,82 +831,145 @@
               ${tplHeadline("tpl-ms-title", d)}
             </div>
           </div>
-          <p class="tpl-ms-contact">${contact}</p>
-        </header>
-        <div class="tpl-ms-grid">
-          <section class="tpl-sec"><h2 class="tpl-h2"><span class="tpl-ico">📋</span> Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-          <section class="tpl-sec"><h2 class="tpl-h2"><span class="tpl-ico">🎓</span> Education</h2>${educationHtml(d)}</section>
-          ${resumeJobSections(d, { h2: "tpl-h2", wrap: "tpl-sec tpl-ms-span2", titlePrefix: '<span class="tpl-ico">💼</span> ' })}
-          <section class="tpl-sec"><h2 class="tpl-h2"><span class="tpl-ico">⚡</span> Skills</h2><ul class="tpl-bullets">${skillsListHtml(d)}</ul></section>
-          <section class="tpl-sec"><h2 class="tpl-h2"><span class="tpl-ico">🌐</span> Languages</h2><ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
-          <section class="tpl-sec tpl-ms-span2"><h2 class="tpl-h2"><span class="tpl-ico">🏅</span> Certifications</h2>${certificationsHtml(d)}</section>
-          <section class="tpl-sec tpl-ms-span2"><h2 class="tpl-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
+          ${contactRow}
         </div>
+        <div class="tpl-ms-grid">${gridParts.join("")}</div>
       </div>`;
     },
 
     "professional-border"(d) {
+      const contactRow = contactRowHtml(d, "tpl-pb-contact-row");
+      const mainParts = [];
+      if (hasDisplayText(d.summary)) {
+        mainParts.push(
+          `<section class="tpl-sec"><h2 class="tpl-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>`
+        );
+      }
+      const jobs = resumeJobSections(d, { h2: "tpl-h2" });
+      if (String(jobs || "").trim()) mainParts.push(jobs);
+      const eduInner = educationHtml(d);
+      if (String(eduInner || "").trim()) {
+        mainParts.push(`<section class="tpl-sec"><h2 class="tpl-h2">Education</h2>${eduInner}</section>`);
+      }
+      const certsInner = certificationsHtml(d);
+      if (String(certsInner || "").trim()) {
+        mainParts.push(`<section class="tpl-sec"><h2 class="tpl-h2">Certifications</h2>${certsInner}</section>`);
+      }
+      const hobbiesText = hobbiesDisplayText(d);
+      if (hobbiesText) {
+        mainParts.push(`<section class="tpl-sec"><h2 class="tpl-h2">Hobbies</h2><p class="tpl-p">${esc(hobbiesText)}</p></section>`);
+      }
+      const skillsInner = skillsListHtml(d);
+      const sideSkills = String(skillsInner || "").trim()
+        ? `<h3 class="tpl-pb-h3">Skills</h3><ul class="tpl-bullets tpl-bullets--tight">${skillsInner}</ul>`
+        : "";
+      const langsInner = languagesHtml(d);
+      const sideLangs = String(langsInner || "").trim()
+        ? `<h3 class="tpl-pb-h3">Languages</h3><ul class="tpl-bullets tpl-bullets--tight">${langsInner}</ul>`
+        : "";
       return `<div class="tpl tpl-professional-border">
         <div class="tpl-pb-main">
-          <header class="tpl-pb-header">
+          <div class="tpl-pb-header">
             <h1 class="tpl-pb-name">${esc(d.fullName)}</h1>
             ${tplHeadline("tpl-pb-title", d)}
-            <p class="tpl-pb-contact">${contactParts(d).join(" · ")}</p>
-          </header>
-          <section class="tpl-sec"><h2 class="tpl-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-          ${resumeJobSections(d, { h2: "tpl-h2" })}
-          <section class="tpl-sec"><h2 class="tpl-h2">Education</h2>${educationHtml(d)}</section>
-          <section class="tpl-sec"><h2 class="tpl-h2">Certifications</h2>${certificationsHtml(d)}</section>
-          <section class="tpl-sec"><h2 class="tpl-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
+            ${contactRow}
+          </div>
+          ${mainParts.join("")}
         </div>
         <aside class="tpl-pb-side">
           ${photoHtml(d, "tpl-pb-avatar")}
-          <h3 class="tpl-pb-h3">Skills</h3>
-          <ul class="tpl-bullets tpl-bullets--tight">${skillsListHtml(d)}</ul>
-          <h3 class="tpl-pb-h3">Languages</h3>
-          <ul class="tpl-bullets tpl-bullets--tight">${languagesHtml(d)}</ul>
+          ${sideSkills}
+          ${sideLangs}
         </aside>
       </div>`;
     },
 
     "bold-header"(d) {
+      const h2 = "tpl-h2";
+      const sections = [];
+      if (hasDisplayText(d.summary)) {
+        sections.push(
+          `<section class="tpl-sec"><h2 class="${h2}">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>`
+        );
+      }
+      const jobs = resumeJobSections(d, { h2 });
+      if (String(jobs || "").trim()) sections.push(jobs);
+      const edu = educationHtml(d);
+      if (String(edu || "").trim()) {
+        sections.push(`<section class="tpl-sec"><h2 class="${h2}">Education</h2>${edu}</section>`);
+      }
+      const skills = skillsListHtml(d);
+      if (String(skills || "").trim()) {
+        sections.push(`<section class="tpl-sec"><h2 class="${h2}">Skills</h2><ul class="tpl-bullets">${skills}</ul></section>`);
+      }
+      const certs = certificationsHtml(d);
+      if (String(certs || "").trim()) {
+        sections.push(`<section class="tpl-sec"><h2 class="${h2}">Certifications</h2>${certs}</section>`);
+      }
+      const langs = languagesHtml(d);
+      if (String(langs || "").trim()) {
+        sections.push(`<section class="tpl-sec"><h2 class="${h2}">Languages</h2><ul class="tpl-bullets">${langs}</ul></section>`);
+      }
+      const hob = hobbiesSection(d, { h2, pClass: "tpl-p" });
+      if (hob) sections.push(hob);
+      const contactRow = contactRowHtml(d, "tpl-bh-contact-row");
       return `<div class="tpl tpl-bold-header">
         <header class="tpl-bh-bar">
           <h1 class="tpl-bh-name">${esc(d.fullName)}</h1>
           ${tplHeadline("tpl-bh-title", d)}
-          <p class="tpl-bh-contact">${contactParts(d).join(" · ")}</p>
+          ${contactRow}
         </header>
-        <div class="tpl-bh-body">
-          <section class="tpl-sec"><h2 class="tpl-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-          ${resumeJobSections(d, { h2: "tpl-h2" })}
-          <section class="tpl-sec"><h2 class="tpl-h2">Education</h2>${educationHtml(d)}</section>
-          <section class="tpl-sec"><h2 class="tpl-h2">Skills</h2><ul class="tpl-bullets">${skillsListHtml(d)}</ul></section>
-          <section class="tpl-sec"><h2 class="tpl-h2">Certifications &amp; languages</h2>${certificationsHtml(d)}<ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
-          <section class="tpl-sec"><h2 class="tpl-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
-        </div>
+        <div class="tpl-bh-body">${sections.join("")}</div>
       </div>`;
     },
 
     "tech-focus"(d) {
+      const h2 = "tpl-h2";
+      const sideParts = [];
+      const skills = skillBarsHtml(d);
+      if (String(skills || "").trim()) {
+        sideParts.push(`<h2 class="tpl-tf-h2">Skills</h2>${skills}`);
+      }
+      const langsInner = languagesHtml(d);
+      if (String(langsInner || "").trim()) {
+        sideParts.push(
+          `<h2 class="tpl-tf-h2">Languages</h2><ul class="tpl-bullets tpl-bullets--tight">${langsInner}</ul>`
+        );
+      }
+      const contactItems = contactParts(d)
+        .map((x) => `<li>${x}</li>`)
+        .join("");
+      if (contactItems) {
+        sideParts.push(
+          `<h2 class="tpl-tf-h2">Contact</h2><ul class="tpl-bullets tpl-bullets--tight tpl-tf-contact">${contactItems}</ul>`
+        );
+      }
+      const mainParts = [];
+      if (hasDisplayText(d.summary)) {
+        mainParts.push(
+          `<section class="tpl-sec"><h2 class="${h2}">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>`
+        );
+      }
+      const jobs = resumeJobSections(d, { h2 });
+      if (String(jobs || "").trim()) mainParts.push(jobs);
+      const edu = educationHtml(d);
+      if (String(edu || "").trim()) {
+        mainParts.push(`<section class="tpl-sec"><h2 class="${h2}">Education</h2>${edu}</section>`);
+      }
+      const certs = certificationsHtml(d);
+      if (String(certs || "").trim()) {
+        mainParts.push(`<section class="tpl-sec"><h2 class="${h2}">Certifications</h2>${certs}</section>`);
+      }
+      const hob = hobbiesSection(d, { h2, pClass: "tpl-p" });
+      if (hob) mainParts.push(hob);
       return `<div class="tpl tpl-tech-focus">
-        <aside class="tpl-tf-side">
-          <h2 class="tpl-tf-h2">Skills</h2>
-          ${skillBarsHtml(d)}
-          <h2 class="tpl-tf-h2">Languages</h2>
-          <ul class="tpl-bullets tpl-bullets--tight">${languagesHtml(d)}</ul>
-          <h2 class="tpl-tf-h2">Contact</h2>
-          <ul class="tpl-bullets tpl-bullets--tight">${contactParts(d).map((x) => `<li>${x}</li>`).join("")}</ul>
-        </aside>
+        <aside class="tpl-tf-side">${sideParts.join("")}</aside>
         <div class="tpl-tf-main">
           <header class="tpl-tf-head">
             <h1 class="tpl-tf-name">${esc(d.fullName)}</h1>
             ${tplHeadline("tpl-tf-title", d)}
           </header>
-          <section class="tpl-sec"><h2 class="tpl-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-          ${resumeJobSections(d, { h2: "tpl-h2" })}
-          <section class="tpl-sec"><h2 class="tpl-h2">Education</h2>${educationHtml(d)}</section>
-          <section class="tpl-sec"><h2 class="tpl-h2">Certifications</h2>${certificationsHtml(d)}</section>
-          <section class="tpl-sec"><h2 class="tpl-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
+          ${mainParts.join("")}
         </div>
       </div>`;
     },
@@ -731,90 +993,212 @@
     },
 
     geometric(d) {
+      const h2 = "tpl-geo-h2";
       const pills = skillsPillsHtml(d);
-      const skillsAside = pills
-        ? `<aside class="tpl-geo-aside"><h2 class="tpl-geo-h2">Skills</h2><div class="tpl-geo-pills">${pills}</div></aside>`
+      const skillsAside = String(pills || "").trim()
+        ? `<aside class="tpl-geo-aside"><h2 class="${h2}">Skills</h2><div class="tpl-geo-pills">${pills}</div></aside>`
         : "";
-      const mainParts = [
-        `<section class="tpl-sec"><h2 class="tpl-geo-h2">Education</h2>${educationHtml(d)}</section>`,
-        `<section class="tpl-sec"><h2 class="tpl-geo-h2">Certifications</h2>${certificationsHtml(d)}</section>`,
-        `<section class="tpl-sec"><h2 class="tpl-geo-h2">Languages</h2><ul class="tpl-bullets">${languagesHtml(d)}</ul></section>`,
-        hobbiesSection(d, { h2: "tpl-geo-h2" }),
-        interestsSection(d, { h2: "tpl-geo-h2" }),
-      ]
-        .filter(Boolean)
-        .join("");
+      const mainParts = [];
+      const edu = educationHtml(d);
+      if (String(edu || "").trim()) {
+        mainParts.push(`<section class="tpl-sec"><h2 class="${h2}">Education</h2>${edu}</section>`);
+      }
+      const certs = certificationsHtml(d);
+      if (String(certs || "").trim()) {
+        mainParts.push(`<section class="tpl-sec"><h2 class="${h2}">Certifications</h2>${certs}</section>`);
+      }
+      const langsInner = languagesHtml(d);
+      if (String(langsInner || "").trim()) {
+        mainParts.push(
+          `<section class="tpl-sec"><h2 class="${h2}">Languages</h2><ul class="tpl-bullets">${langsInner}</ul></section>`
+        );
+      }
+      const hob = hobbiesSection(d, { h2 });
+      if (hob) mainParts.push(hob);
       const layout =
-        mainParts || skillsAside
-          ? `<div class="tpl-geo-layout"><div class="tpl-geo-main">${mainParts}</div>${skillsAside}</div>`
+        mainParts.length || skillsAside
+          ? `<div class="tpl-geo-layout"><div class="tpl-geo-main">${mainParts.join("")}</div>${skillsAside}</div>`
           : "";
+      const contactItems = contactParts(d);
+      const contactHtml = contactItems.length
+        ? `<div class="tpl-geo-contact-row">${contactItems.join('<span class="tpl-geo-contact-sep" aria-hidden="true"> · </span>')}</div>`
+        : "";
+      const topParts = [];
+      if (hasDisplayText(d.summary)) {
+        topParts.push(
+          `<section class="tpl-sec"><h2 class="${h2}">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>`
+        );
+      }
+      const jobs = resumeJobSections(d, { h2 });
+      if (String(jobs || "").trim()) topParts.push(jobs);
       return `<div class="tpl tpl-geometric">
         <header class="tpl-geo-head">
           ${photoHtml(d, "tpl-geo-photo")}
           <div class="tpl-geo-text">
             <h1 class="tpl-geo-name">${esc(d.fullName)}</h1>
             ${tplHeadline("tpl-geo-title", d)}
-            <p class="tpl-geo-contact">${contactParts(d).join(" · ")}</p>
+            ${contactHtml}
           </div>
         </header>
-        <section class="tpl-sec"><h2 class="tpl-geo-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-        ${resumeJobSections(d, { h2: "tpl-geo-h2" })}
+        ${topParts.join("")}
         ${layout}
       </div>`;
     },
 
     "high-contrast"(d) {
+      const h2 = "tpl-h2 tpl-h2--hc";
+      const sideParts = [];
+      const skills = skillsListHtml(d);
+      if (String(skills || "").trim()) {
+        sideParts.push(`<h3 class="tpl-hc-h3">Skills</h3><ul class="tpl-bullets">${skills}</ul>`);
+      }
+      const langs = languagesHtml(d);
+      if (String(langs || "").trim()) {
+        sideParts.push(`<h3 class="tpl-hc-h3">Languages</h3><ul class="tpl-bullets">${langs}</ul>`);
+      }
+      const hob = hobbiesDisplayText(d);
+      if (hob) {
+        sideParts.push(`<h3 class="tpl-hc-h3">Hobbies</h3><p class="tpl-hc-small">${esc(hob)}</p>`);
+      }
+      const contactItems = contactParts(d);
+      const contactHtml = contactItems.length
+        ? `<div class="tpl-hc-contact-row">${contactItems.join('<span class="tpl-hc-contact-sep" aria-hidden="true"> · </span>')}</div>`
+        : "";
+      const mainParts = [];
+      if (hasDisplayText(d.summary)) {
+        mainParts.push(
+          `<section class="tpl-sec"><h2 class="${h2}">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>`
+        );
+      }
+      const jobs = resumeJobSections(d, { h2 });
+      if (String(jobs || "").trim()) mainParts.push(jobs);
+      const edu = educationHtml(d);
+      if (String(edu || "").trim()) {
+        mainParts.push(`<section class="tpl-sec"><h2 class="${h2}">Education</h2>${edu}</section>`);
+      }
+      const certs = certificationsHtml(d);
+      if (String(certs || "").trim()) {
+        mainParts.push(`<section class="tpl-sec"><h2 class="${h2}">Certifications</h2>${certs}</section>`);
+      }
       return `<div class="tpl tpl-high-contrast">
         <header class="tpl-hc-top">
           <h1 class="tpl-hc-name">${esc(d.fullName)}</h1>
           ${tplHeadline("tpl-hc-title", d)}
-          <p class="tpl-hc-contact">${contactParts(d).join(" · ")}</p>
+          ${contactHtml}
         </header>
         <div class="tpl-hc-body">
-          <aside class="tpl-hc-side">
-            <h3 class="tpl-hc-h3">Skills</h3>
-            <ul class="tpl-bullets">${skillsListHtml(d)}</ul>
-            <h3 class="tpl-hc-h3">Languages</h3>
-            <ul class="tpl-bullets">${languagesHtml(d)}</ul>
-            <h3 class="tpl-hc-h3">Interests</h3>
-            <p class="tpl-hc-small">${esc(interestsText(d))}</p>
-          </aside>
-          <div class="tpl-hc-main">
-            <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--hc">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-            ${resumeJobSections(d, { h2: "tpl-h2 tpl-h2--hc" })}
-            <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--hc">Education</h2>${educationHtml(d)}</section>
-            <section class="tpl-sec"><h2 class="tpl-h2 tpl-h2--hc">Certifications</h2>${certificationsHtml(d)}</section>
-          </div>
+          <aside class="tpl-hc-side">${sideParts.join("")}</aside>
+          <div class="tpl-hc-main">${mainParts.join("")}</div>
         </div>
       </div>`;
     },
 
     aurora(d) {
+      const h2 = "tpl-au-h2";
+      const wrap = "tpl-au-card";
+      const contactItems = contactParts(d);
+      const contactHtml = contactItems.length
+        ? `<div class="tpl-au-contact-row">${contactItems.join('<span class="tpl-au-contact-sep" aria-hidden="true"> · </span>')}</div>`
+        : "";
+      const jobs = resumeJobSections(d, { h2, wrap });
+      const rowParts = [];
+      const edu = educationHtml(d);
+      if (String(edu || "").trim()) {
+        rowParts.push(
+          `<section class="${wrap} ${wrap}--half"><h2 class="${h2}">Education</h2>${edu}</section>`
+        );
+      }
+      const skills = skillsListHtml(d);
+      if (String(skills || "").trim()) {
+        rowParts.push(
+          `<section class="${wrap} ${wrap}--half"><h2 class="${h2}">Skills</h2><ul class="tpl-bullets">${skills}</ul></section>`
+        );
+      }
+      const rowHtml = rowParts.length ? `<div class="tpl-au-row">${rowParts.join("")}</div>` : "";
+      const certs = certificationsHtml(d);
+      const langs = languagesHtml(d);
+      const certRowParts = [];
+      if (String(certs || "").trim()) {
+        certRowParts.push(
+          `<section class="${wrap} ${wrap}--half"><h2 class="${h2}">Certifications</h2>${certs}</section>`
+        );
+      }
+      if (String(langs || "").trim()) {
+        certRowParts.push(
+          `<section class="${wrap} ${wrap}--half"><h2 class="${h2}">Languages</h2><ul class="tpl-bullets">${langs}</ul></section>`
+        );
+      }
+      const certRowHtml = certRowParts.length
+        ? `<div class="tpl-au-row">${certRowParts.join("")}</div>`
+        : "";
+      const hob = hobbiesSection(d, { h2, wrap, pClass: "tpl-p" });
+      const bodyHtml = [
+        hasDisplayText(d.summary)
+          ? `<section class="${wrap}"><h2 class="${h2}">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>`
+          : "",
+        jobs,
+        rowHtml,
+        certRowHtml,
+        hob,
+      ]
+        .filter((part) => String(part || "").trim())
+        .join("");
       return `<div class="tpl tpl-aurora">
         <div class="tpl-au-hero">
           ${photoHtml(d, "tpl-au-photo")}
           <div class="tpl-au-hero-text">
             <h1 class="tpl-au-name">${esc(d.fullName)}</h1>
             ${tplHeadline("tpl-au-tagline", d)}
-            <p class="tpl-au-contact">${contactParts(d).join(" · ")}</p>
+            ${contactHtml}
           </div>
         </div>
-        <div class="tpl-au-body">
-          <section class="tpl-au-card"><h2 class="tpl-au-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
-          ${projectsSection(d, { h2: "tpl-au-h2", wrap: "tpl-au-card" })}
-          ${achievementsSection(d, { h2: "tpl-au-h2", wrap: "tpl-au-card" })}
-          ${workExperienceSection(d, { h2: "tpl-au-h2", wrap: "tpl-au-card" })}
-          <div class="tpl-au-row">
-            <section class="tpl-au-card tpl-au-card--half"><h2 class="tpl-au-h2">Education</h2>${educationHtml(d)}</section>
-            <section class="tpl-au-card tpl-au-card--half"><h2 class="tpl-au-h2">Skills</h2><ul class="tpl-bullets">${skillsListHtml(d)}</ul></section>
-          </div>
-          <section class="tpl-au-card"><h2 class="tpl-au-h2">Certifications &amp; languages</h2>${certificationsHtml(d)}<ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
-          <section class="tpl-au-card"><h2 class="tpl-au-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
-        </div>
+        <div class="tpl-au-body">${bodyHtml}</div>
       </div>`;
     },
 
     magazine(d) {
+      const jobClass = "tpl-job tpl-job--mz";
+      const contactItems = contactParts(d);
+      const contactHtml = contactItems.length
+        ? `<div class="tpl-mz-contact-row">${contactItems.join('<span class="tpl-mz-contact-sep" aria-hidden="true"> · </span>')}</div>`
+        : "";
+      const mainParts = [];
+      if (hasDisplayText(d.summary)) {
+        mainParts.push(
+          `<h2 class="tpl-mz-h2">Career Objective</h2><p class="tpl-mz-lead">${esc(d.summary)}</p>`
+        );
+      }
+      const addMain = (title, html) => {
+        if (String(html || "").trim()) {
+          mainParts.push(`<h2 class="tpl-mz-h2">${title}</h2>${html}`);
+        }
+      };
+      addMain(PROJECTS_TITLE, projectsHtml(d, jobClass));
+      addMain(ACHIEVEMENTS_ACTIVITIES_TITLE, achievementsHtml(d, jobClass));
+      addMain(WORK_EXPERIENCE_TITLE, workExperienceHtml(d, jobClass));
+      const asideParts = [photoHtml(d, "tpl-mz-photo")];
+      const skills = skillsPillsHtml(d);
+      if (String(skills || "").trim()) {
+        asideParts.push(`<h3 class="tpl-mz-h3">Skills</h3><div class="tpl-mz-pills">${skills}</div>`);
+      }
+      const edu = educationHtml(d);
+      if (String(edu || "").trim()) {
+        asideParts.push(`<h3 class="tpl-mz-h3">Education</h3>${edu}`);
+      }
+      const langs = languagesHtml(d);
+      if (String(langs || "").trim()) {
+        asideParts.push(
+          `<h3 class="tpl-mz-h3">Languages</h3><ul class="tpl-bullets tpl-bullets--tight">${langs}</ul>`
+        );
+      }
+      const certs = certificationsHtml(d);
+      if (String(certs || "").trim()) {
+        asideParts.push(`<h3 class="tpl-mz-h3">Certifications</h3>${certs}`);
+      }
+      const hob = hobbiesDisplayText(d);
+      if (hob) {
+        asideParts.push(`<h3 class="tpl-mz-h3">Hobbies</h3><p class="tpl-p">${esc(hob)}</p>`);
+      }
       return `<div class="tpl tpl-magazine">
         <header class="tpl-mz-header">
           <div class="tpl-mz-accent"></div>
@@ -822,26 +1206,12 @@
             <p class="tpl-mz-kicker">Professional profile</p>
             <h1 class="tpl-mz-name">${esc(d.fullName)}</h1>
             ${tplHeadline("tpl-mz-title", d)}
-            <p class="tpl-mz-contact">${contactParts(d).join(" · ")}</p>
+            ${contactHtml}
           </div>
         </header>
         <div class="tpl-mz-grid">
-          <section class="tpl-mz-col">
-            <h2 class="tpl-mz-h2">Career Objective</h2>
-            <p class="tpl-mz-lead">${esc(d.summary)}</p>
-            ${projectsFromData(d).length ? `<h2 class="tpl-mz-h2">${PROJECTS_TITLE}</h2>${projectsHtml(d, "tpl-job tpl-job--mz")}` : ""}
-            ${achievementsFromData(d).length ? `<h2 class="tpl-mz-h2">${ACHIEVEMENTS_ACTIVITIES_TITLE}</h2>${achievementsHtml(d, "tpl-job tpl-job--mz")}` : ""}
-            ${workExperienceFromData(d).length ? `<h2 class="tpl-mz-h2">${WORK_EXPERIENCE_TITLE}</h2>${workExperienceHtml(d, "tpl-job tpl-job--mz")}` : ""}
-          </section>
-          <aside class="tpl-mz-aside">
-            ${photoHtml(d, "tpl-mz-photo")}
-            <h3 class="tpl-mz-h3">Skills</h3>
-            <div class="tpl-mz-pills">${skillsPillsHtml(d)}</div>
-            <h3 class="tpl-mz-h3">Education</h3>${educationHtml(d)}
-            <h3 class="tpl-mz-h3">Languages</h3><ul class="tpl-bullets tpl-bullets--tight">${languagesHtml(d)}</ul>
-            <h3 class="tpl-mz-h3">Certifications</h3>${certificationsHtml(d)}
-            <h3 class="tpl-mz-h3">Interests</h3><p class="tpl-p">${esc(interestsText(d))}</p>
-          </aside>
+          <section class="tpl-mz-col">${mainParts.join("")}</section>
+          <aside class="tpl-mz-aside">${asideParts.join("")}</aside>
         </div>
       </div>`;
     },

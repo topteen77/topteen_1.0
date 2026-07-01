@@ -32,6 +32,32 @@ def _esc(s: Any) -> str:
     return html.escape(str(s or ""), quote=True)
 
 
+_EDUCATION_GRADE_RE = re.compile(
+    r"^(?:(?:class|grade)\s+)?(\d{1,2})(?:\s*(?:st|nd|rd|th))?$",
+    re.IGNORECASE,
+)
+
+
+def _ordinal_suffix(n: int) -> str:
+    if 11 <= (n % 100) <= 13:
+        return "th"
+    return {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+
+
+def _format_education_degree_html(text: Any) -> str:
+    """Render school grades like 10 as 10<sup>th</sup> for education rows."""
+    raw = str(text or "").strip()
+    if not raw:
+        return ""
+    m = _EDUCATION_GRADE_RE.match(raw)
+    if m:
+        n = int(m.group(1))
+        if 1 <= n <= 12:
+            suffix = _ordinal_suffix(n)
+            return f"{n}<sup>{suffix}</sup>"
+    return _esc(raw)
+
+
 _PLACEHOLDER_DASHES = frozenset({"—", "-", "–"})
 
 
@@ -57,11 +83,29 @@ def _photo_initial_letter(d: dict) -> str:
 
 def _photo_html(d: dict, class_name: str) -> str:
     ph = (d.get("photo") or "").strip()
+    dims = {
+        "tpl-pb-avatar": (100, 100),
+        "tpl-ms-photo": (72, 72),
+        "tpl-avatar": (88, 88),
+        "tpl-geo-photo": (88, 88),
+        "tpl-au-photo": (100, 100),
+        "tpl-mz-photo": (80, 80),
+        "tpl-ex-photo": (88, 88),
+        "tpl-st-photo": (72, 72),
+        "tpl-nv-photo": (80, 80),
+        "tpl-fo-photo": (88, 88),
+        "tpl-gg-photo": (88, 88),
+    }
+    w, h = dims.get(class_name, (88, 88))
     if ph:
-        return f'<img class="{class_name}" src="{_esc(ph)}" alt="" />'
+        return (
+            f'<img class="{class_name}" src="{_esc(ph)}" alt="" '
+            f'width="{w}" height="{h}" />'
+        )
     letter = _esc(_photo_initial_letter(d))
     return (
-        f'<div class="{class_name} tpl-photo tpl-photo--placeholder" aria-hidden="true">'
+        f'<div class="{class_name} tpl-photo tpl-photo--placeholder" aria-hidden="true" '
+        f'style="width:{w}px;height:{h}px;">'
         f'<span class="tpl-photo-initial">{letter}</span></div>'
     )
 
@@ -73,6 +117,223 @@ def _contact_parts(d: dict) -> list[str]:
         if v:
             out.append(_esc(v))
     return out
+
+
+_CONTACT_ICON_SVG: dict[str, str] = {
+    "phone": (
+        '<svg viewBox="0 0 16 16" aria-hidden="true">'
+        '<path d="M3.654 1.328a.678.678 0 0 1 .737-.124l2.522 1.01c.289.116.445.423.365.723l-.547 2.05a.68.68 0 0 1-.59.5l-1.12.112a11.77 11.77 0 0 0 5.38 5.38l.112-1.12a.68.68 0 0 1 .5-.59l2.05-.547a.678.678 0 0 1 .723.365l1.01 2.522a.678.678 0 0 1-.124.737l-1.14 1.14a1.745 1.745 0 0 1-1.81.422c-1.93-.644-4.54-2.382-6.56-4.402-2.02-2.02-3.758-4.63-4.402-6.56a1.745 1.745 0 0 1 .422-1.81l1.14-1.14z"/>'
+        "</svg>"
+    ),
+    "email": (
+        '<svg viewBox="0 0 16 16" aria-hidden="true">'
+        '<path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v.217L8 8.94.001 4.217V4z"/>'
+        '<path d="M0 5.383v6.617a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V5.383l-7.445 4.654a1 1 0 0 1-1.11 0L0 5.383z"/>'
+        "</svg>"
+    ),
+    "location": (
+        '<svg viewBox="0 0 16 16" aria-hidden="true">'
+        '<path d="M8 16s6-5.686 6-10A6 6 0 1 0 2 6c0 4.314 6 10 6 10zm0-7.5A2.5 2.5 0 1 1 8 3a2.5 2.5 0 0 1 0 5.5z"/>'
+        "</svg>"
+    ),
+    "linkedin": (
+        '<svg viewBox="0 0 16 16" aria-hidden="true">'
+        '<path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175A1.16 1.16 0 0 1 0 14.854V1.146zM4.943 13.5V6.169H2.542V13.5h2.401zM3.742 5.163c.837 0 1.358-.554 1.358-1.248-.015-.71-.52-1.248-1.342-1.248S2.4 3.205 2.4 3.915c0 .694.521 1.248 1.326 1.248h.016zM13.5 13.5V9.359c0-2.217-1.183-3.248-2.762-3.248-1.274 0-1.845.7-2.165 1.193v.026h-.016a5.54 5.54 0 0 1 .016-.026V6.169H6.17c.03.752 0 7.331 0 7.331h2.401V9.405c0-.219.016-.438.08-.594.176-.438.578-.892 1.253-.892.884 0 1.237.673 1.237 1.66V13.5H13.5z"/>'
+        "</svg>"
+    ),
+    "website": (
+        '<svg viewBox="0 0 16 16" aria-hidden="true">'
+        '<path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm5.939 7h-2.027a13.54 13.54 0 0 0-.65-3.145A6.02 6.02 0 0 1 13.939 7zM8 1.018c.655 0 1.58 1.23 2.027 3.982H5.973C6.42 2.248 7.345 1.018 8 1.018zM4.738 3.855A13.54 13.54 0 0 0 4.088 7H2.061a6.02 6.02 0 0 1 2.677-3.145zM2.061 9h2.027c.112 1.118.34 2.19.65 3.145A6.02 6.02 0 0 1 2.061 9zM8 14.982c-.655 0-1.58-1.23-2.027-3.982h4.054C9.58 13.752 8.655 14.982 8 14.982zM10.26 12.145c.31-.955.538-2.027.65-3.145h2.028a6.02 6.02 0 0 1-2.678 3.145z"/>'
+        "</svg>"
+    ),
+}
+
+_CONTACT_ICON_FALLBACK: dict[str, str] = {
+    "phone": "\u260e",
+    "email": "@",
+    "location": "\u25cf",
+    "linkedin": "in",
+    "website": "www",
+}
+
+
+def _contact_icon_html(kind: str) -> str:
+    svg = _CONTACT_ICON_SVG.get(kind, "")
+    fb = _esc(_CONTACT_ICON_FALLBACK.get(kind, "•"))
+    return (
+        f'<span class="tpl-contact-icon" data-icon-kind="{kind}" aria-hidden="true">'
+        f'<span class="tpl-contact-fallback">{fb}</span>{svg}</span>'
+    )
+
+
+def _contact_item_html(kind: str, val: str) -> str:
+    return (
+        f'<span class="tpl-contact-item">{_contact_icon_html(kind)}'
+        f'<span class="tpl-contact-text">{_esc(val)}</span></span>'
+    )
+
+
+def _contact_row_html(d: dict, wrap_class: str = "tpl-min-contact-row") -> str:
+    items: list[str] = []
+    for kind, key in (
+        ("phone", "phone"),
+        ("email", "email"),
+        ("location", "address"),
+        ("linkedin", "linkedin"),
+        ("website", "website"),
+    ):
+        val = (d.get(key) or "").strip()
+        if not val:
+            continue
+        items.append(_contact_item_html(kind, val))
+    if not items:
+        return ""
+    return f'<div class="{wrap_class}">{"".join(items)}</div>'
+
+
+def _contact_geo_row_html(d: dict) -> str:
+    items: list[str] = []
+    for kind, key in (
+        ("phone", "phone"),
+        ("email", "email"),
+        ("location", "address"),
+        ("linkedin", "linkedin"),
+        ("website", "website"),
+    ):
+        val = (d.get(key) or "").strip()
+        if not val:
+            continue
+        items.append(_contact_item_html(kind, val))
+    if not items:
+        return ""
+    inner = '<span class="tpl-geo-contact-sep" aria-hidden="true"> · </span>'.join(items)
+    return f'<div class="tpl-geo-contact-row">{inner}</div>'
+
+
+def _contact_hc_row_html(d: dict) -> str:
+    items: list[str] = []
+    for kind, key in (
+        ("phone", "phone"),
+        ("email", "email"),
+        ("location", "address"),
+        ("linkedin", "linkedin"),
+        ("website", "website"),
+    ):
+        val = (d.get(key) or "").strip()
+        if not val:
+            continue
+        items.append(_contact_item_html(kind, val))
+    if not items:
+        return ""
+    inner = '<span class="tpl-hc-contact-sep" aria-hidden="true"> · </span>'.join(items)
+    return f'<div class="tpl-hc-contact-row">{inner}</div>'
+
+
+def _contact_au_row_html(d: dict) -> str:
+    items: list[str] = []
+    for kind, key in (
+        ("phone", "phone"),
+        ("email", "email"),
+        ("location", "address"),
+        ("linkedin", "linkedin"),
+        ("website", "website"),
+    ):
+        val = (d.get(key) or "").strip()
+        if not val:
+            continue
+        items.append(_contact_item_html(kind, val))
+    if not items:
+        return ""
+    inner = '<span class="tpl-au-contact-sep" aria-hidden="true"> · </span>'.join(items)
+    return f'<div class="tpl-au-contact-row">{inner}</div>'
+
+
+def _contact_mz_row_html(d: dict) -> str:
+    items: list[str] = []
+    for kind, key in (
+        ("phone", "phone"),
+        ("email", "email"),
+        ("location", "address"),
+        ("linkedin", "linkedin"),
+        ("website", "website"),
+    ):
+        val = (d.get(key) or "").strip()
+        if not val:
+            continue
+        items.append(_contact_item_html(kind, val))
+    if not items:
+        return ""
+    inner = '<span class="tpl-mz-contact-sep" aria-hidden="true"> · </span>'.join(items)
+    return f'<div class="tpl-mz-contact-row">{inner}</div>'
+
+
+def _contact_inline_html(d: dict, wrap_class: str = "tpl-geo-contact") -> str:
+    """Legacy wrapper — geometric uses _contact_geo_row_html."""
+    return _contact_geo_row_html(d)
+
+
+def _contact_list_items_html(d: dict) -> str:
+    items: list[str] = []
+    for kind, key in (
+        ("phone", "phone"),
+        ("email", "email"),
+        ("location", "address"),
+        ("linkedin", "linkedin"),
+        ("website", "website"),
+    ):
+        val = (d.get(key) or "").strip()
+        if not val:
+            continue
+        items.append(f"<li>{_contact_item_html(kind, val)}</li>")
+    return "".join(items)
+
+
+def _languages_chips_html(d: dict) -> str:
+    parts: list[str] = []
+    for ln in d.get("languages") or []:
+        if not isinstance(ln, dict) or not _has_display_text(ln.get("name")):
+            continue
+        name = _esc(ln.get("name") or "")
+        level = _esc(ln.get("level") or "") if _has_display_text(ln.get("level")) else ""
+        level_html = f'<span class="tpl-ch-lang-level">{level}</span>' if level else ""
+        parts.append(
+            f'<span class="tpl-ch-lang-chip"><span class="tpl-ch-lang-name">{name}</span>{level_html}</span>'
+        )
+    if not parts:
+        return ""
+    return f'<div class="tpl-ch-lang-list">{"".join(parts)}</div>'
+
+
+def _languages_pills_html(d: dict) -> str:
+    parts: list[str] = []
+    for ln in d.get("languages") or []:
+        if not isinstance(ln, dict) or not _has_display_text(ln.get("name")):
+            continue
+        name = _esc(ln.get("name") or "")
+        level = _esc(ln.get("level") or "") if _has_display_text(ln.get("level")) else ""
+        level_bit = f" · {level}" if level else ""
+        parts.append(f'<span class="tpl-pill tpl-pill--lang">{name}{level_bit}</span>')
+    return "".join(parts)
+
+
+def _sec_min_skills_row(d: dict, h2_class: str = "tpl-h2") -> str:
+    inner = _skills_pills_html(d)
+    if not inner.strip():
+        return ""
+    return (
+        f'<section class="tpl-sec"><h2 class="{h2_class}">Skills</h2>'
+        f'<div class="tpl-min-tags">{inner}</div></section>'
+    )
+
+
+def _sec_min_languages_row(d: dict, h2_class: str = "tpl-h2") -> str:
+    inner = _languages_pills_html(d)
+    if not inner.strip():
+        return ""
+    return (
+        f'<section class="tpl-sec"><h2 class="{h2_class}">Languages</h2>'
+        f'<div class="tpl-min-tags">{inner}</div></section>'
+    )
 
 
 def _skills_list_html(d: dict, numbered: bool = False) -> str:
@@ -150,7 +411,7 @@ def _education_html(d: dict) -> str:
     for ed in d.get("education") or []:
         if not isinstance(ed, dict):
             continue
-        deg = _esc(ed.get("degree") or "")
+        deg = _format_education_degree_html(ed.get("degree") or "")
         sch = _esc(ed.get("school") or "") if _has_display_text(ed.get("school")) else ""
         if not deg and not sch:
             continue
@@ -318,10 +579,96 @@ def _skills_join_text(d: dict) -> str:
 
 CAREER_OBJECTIVE_TITLE = "Career Objective"
 ACHIEVEMENTS_ACTIVITIES_TITLE = "Achievements & Activities"
+PROJECTS_TITLE = "Projects"
+WORK_EXPERIENCE_TITLE = "Work Experience"
+
+
+def _ch_jobs_column_html(d: dict, class_job: str = "tpl-job") -> str:
+    parts: list[str] = []
+    for title, items in (
+        (PROJECTS_TITLE, _projects_from_data(d)),
+        (ACHIEVEMENTS_ACTIVITIES_TITLE, _achievements_from_data(d)),
+        (WORK_EXPERIENCE_TITLE, _work_experience_from_data(d)),
+    ):
+        inner = _job_blocks_html(items, class_job)
+        if inner.strip():
+            parts.append(f'<div class="tpl-ch-subsec"><h2 class="tpl-h2">{_esc(title)}</h2>{inner}</div>')
+    if not parts:
+        return ""
+    return (
+        f'<section class="tpl-sec tpl-sec--half"><div class="tpl-ch-stack">{"".join(parts)}</div></section>'
+    )
+
+
+def _ch_edu_skills_column_html(d: dict) -> str:
+    edu_html = _education_html(d)
+    skills_html = _skills_list_html(d)
+    parts: list[str] = []
+    if edu_html.strip():
+        parts.append(f'<div class="tpl-ch-subsec"><h2 class="tpl-h2">Education</h2>{edu_html}</div>')
+    if skills_html.strip():
+        parts.append(
+            f'<div class="tpl-ch-subsec"><h2 class="tpl-h2">Skills</h2>'
+            f'<ul class="tpl-bullets tpl-bullets--tight">{skills_html}</ul></div>'
+        )
+    if not parts:
+        return ""
+    return f'<section class="tpl-sec tpl-sec--half"><div class="tpl-ch-stack">{"".join(parts)}</div></section>'
+
+
+def _ch_certs_langs_row_html(d: dict) -> str:
+    certs = _certifications_html(d)
+    langs = _languages_chips_html(d)
+    sections: list[str] = []
+    if certs.strip():
+        sections.append(
+            _sec_block(
+                "Certifications",
+                f'<div class="tpl-ch-cert-list">{certs}</div>',
+                wrap_class="tpl-sec tpl-sec--half",
+            )
+        )
+    if langs.strip():
+        sections.append(_sec_block("Languages", langs, wrap_class="tpl-sec tpl-sec--half"))
+    row = _join_visible(sections)
+    if not row:
+        return ""
+    if len(sections) == 1:
+        return row.replace("tpl-sec--half", "tpl-sec tpl-sec--full", 1)
+    return f'<div class="tpl-ch-row tpl-ch-row--bottom">{row}</div>'
+
+
+def _tpl_headline(class_name: str, d: dict) -> str:
+    if not _has_display_text(d.get("headline")):
+        return ""
+    return f'<p class="{class_name}">{_esc(d.get("headline"))}</p>'
+
+
+def _interests_text(d: dict) -> str:
+    interests = str(d.get("interests") or "").strip()
+    if interests:
+        return interests
+    return str(d.get("hobbies") or "").strip()
+
+
+def _hobbies_text(d: dict) -> str:
+    hobbies = str(d.get("hobbies") or "").strip()
+    if hobbies:
+        return hobbies
+    return str(d.get("interests") or "").strip()
 
 
 def _join_visible(parts: list[str], separator: str = "") -> str:
     return separator.join(p for p in parts if (p or "").strip())
+
+
+def _ms_row_html(*sections: str) -> str:
+    parts = [p for p in sections if (p or "").strip()]
+    if not parts:
+        return ""
+    if len(parts) == 1:
+        return parts[0]
+    return f'<div class="tpl-ms-row">{"".join(parts)}</div>'
 
 
 def _sec_text(
@@ -364,14 +711,52 @@ def _aside_block(title: str, inner: str, *, h_class: str = "tpl-cs-h3", tag: str
 
 def _sec_summary(d: dict, **kwargs: Any) -> str:
     icon = kwargs.pop("icon", None)
-    title_html = (
-        f'<span class="tpl-ico">{icon}</span> {CAREER_OBJECTIVE_TITLE}' if icon else None
-    )
+    title_html = kwargs.pop("title_html", None)
+    if title_html is None and icon:
+        title_html = f'<span class="tpl-ico">{icon}</span> {CAREER_OBJECTIVE_TITLE}'
     return _sec_text(CAREER_OBJECTIVE_TITLE, d.get("summary"), title_html=title_html, **kwargs)
 
 
 def _sec_experience(d: dict, class_job: str = "tpl-job", **kwargs: Any) -> str:
-    return _sec_block(ACHIEVEMENTS_ACTIVITIES_TITLE, _experience_html(d, class_job), **kwargs)
+    return _sec_achievements(d, class_job=class_job, **kwargs)
+
+
+def _prefixed_section_title(title: str, prefix: str = "") -> str | None:
+    if prefix:
+        return f"{prefix}{_esc(title)}"
+    return None
+
+
+def _sec_projects(d: dict, class_job: str = "tpl-job", title_prefix: str = "", **kwargs: Any) -> str:
+    inner = _job_blocks_html(_projects_from_data(d), class_job)
+    title_html = _prefixed_section_title(PROJECTS_TITLE, title_prefix)
+    return _sec_block(PROJECTS_TITLE, inner, title_html=title_html, **kwargs)
+
+
+def _sec_achievements(d: dict, class_job: str = "tpl-job", title_prefix: str = "", **kwargs: Any) -> str:
+    inner = _job_blocks_html(_achievements_from_data(d), class_job)
+    title_html = kwargs.pop("title_html", None) or _prefixed_section_title(
+        ACHIEVEMENTS_ACTIVITIES_TITLE, title_prefix
+    )
+    return _sec_block(ACHIEVEMENTS_ACTIVITIES_TITLE, inner, title_html=title_html, **kwargs)
+
+
+def _sec_work_experience(
+    d: dict, class_job: str = "tpl-job", title_prefix: str = "", **kwargs: Any
+) -> str:
+    inner = _job_blocks_html(_work_experience_from_data(d), class_job)
+    title_html = _prefixed_section_title(WORK_EXPERIENCE_TITLE, title_prefix)
+    return _sec_block(WORK_EXPERIENCE_TITLE, inner, title_html=title_html, **kwargs)
+
+
+def _resume_job_sections(
+    d: dict, class_job: str = "tpl-job", title_prefix: str = "", **kwargs: Any
+) -> str:
+    return (
+        _sec_projects(d, class_job=class_job, title_prefix=title_prefix, **kwargs)
+        + _sec_achievements(d, class_job=class_job, title_prefix=title_prefix, **kwargs)
+        + _sec_work_experience(d, class_job=class_job, title_prefix=title_prefix, **kwargs)
+    )
 
 
 def _sec_education(d: dict, **kwargs: Any) -> str:
@@ -397,11 +782,11 @@ def _sec_languages(d: dict, ul_class: str = "tpl-bullets", **kwargs: Any) -> str
 
 
 def _sec_interests(d: dict, **kwargs: Any) -> str:
-    return _sec_text("Interests", d.get("interests"), **kwargs)
+    return _sec_text("Interests", _interests_text(d), **kwargs)
 
 
 def _sec_hobbies(d: dict, **kwargs: Any) -> str:
-    return _sec_text("Hobbies", d.get("hobbies"), **kwargs)
+    return _sec_text("Hobbies", _hobbies_text(d), **kwargs)
 
 
 def _aside_skills(
@@ -445,131 +830,149 @@ def _hz_sec(title: str, inner: str) -> str:
 
 
 def _tpl_minimalist(d: dict) -> str:
-    contact = " · ".join(_contact_parts(d))
-    sections = _join_visible(
-        [
-            _sec_summary(d, h2_class="tpl-h2 tpl-h2--center"),
-            _sec_experience(d, h2_class="tpl-h2 tpl-h2--center", class_job="tpl-job tpl-job--min"),
-            _sec_education(d, h2_class="tpl-h2 tpl-h2--center"),
-            _sec_skills_list(
-                d, h2_class="tpl-h2 tpl-h2--center", ul_class="tpl-bullets tpl-bullets--center"
-            ),
-            _sec_certifications(d, h2_class="tpl-h2 tpl-h2--center"),
-            _sec_languages(
-                d, h2_class="tpl-h2 tpl-h2--center", ul_class="tpl-bullets tpl-bullets--center"
-            ),
-            _sec_hobbies(d, h2_class="tpl-h2 tpl-h2--center"),
-            _sec_interests(d, h2_class="tpl-h2 tpl-h2--center"),
-        ],
-        '<hr class="tpl-min-rule" />',
-    )
-    header_rule = '<hr class="tpl-min-rule" />' if sections else ""
+    h2 = "tpl-h2"
+    hob_text = str(d.get("hobbies") or "").strip()
+    intr_text = _interests_text(d)
+    section_parts = [
+        _sec_summary(d, h2_class=h2),
+        _resume_job_sections(d, h2_class=h2, class_job="tpl-job tpl-job--min"),
+        _sec_education(d, h2_class=h2),
+        _sec_min_skills_row(d, h2_class=h2),
+        _sec_certifications(d, h2_class=h2),
+        _sec_min_languages_row(d, h2_class=h2),
+        _sec_hobbies(d, h2_class=h2),
+    ]
+    if intr_text and (not hob_text or intr_text != hob_text):
+        section_parts.append(_sec_interests(d, h2_class=h2))
+    sections = _join_visible(section_parts, '<hr class="tpl-min-rule" />')
+    body_block = f'<hr class="tpl-min-rule" />{sections}' if sections else ""
+    contact_html = _contact_row_html(d)
     return (
         f'<div class="tpl tpl-minimalist"><header class="tpl-min-head">'
         f'<h1 class="tpl-min-name">{_esc(d.get("fullName"))}</h1>'
-        f'<p class="tpl-min-title">{_esc(d.get("headline"))}</p>'
-        f'<p class="tpl-min-contact">{contact}</p></header>{header_rule}{sections}</div>'
+        f'{_tpl_headline("tpl-min-title", d)}'
+        f'{contact_html}</header>{body_block}</div>'
     )
 
 
 def _tpl_classic_sidebar(d: dict) -> str:
-    citems = "".join(f"<li>{x}</li>" for x in _contact_parts(d))
+    citems = _contact_list_items_html(d)
     return (
         f'<div class="tpl tpl-classic-sidebar"><aside class="tpl-cs-side">{_photo_html(d, "tpl-avatar")}'
         f'<h1 class="tpl-cs-name">{_esc(d.get("fullName"))}</h1>'
-        f'<p class="tpl-cs-title">{_esc(d.get("headline"))}</p>'
+        f'{_tpl_headline("tpl-cs-title", d)}'
         f'<ul class="tpl-cs-contact">{citems}</ul>'
         f'{_aside_skills(d)}{_aside_languages(d)}'
         f'</aside><div class="tpl-cs-main">'
-        f'{_sec_summary(d)}{_sec_experience(d)}{_sec_education(d)}'
-        f'{_sec_certifications(d)}{_sec_hobbies(d)}{_sec_interests(d)}'
+        f'{_sec_summary(d)}{_resume_job_sections(d)}{_sec_education(d)}'
+        f'{_sec_certifications(d)}{_sec_text("Hobbies", _hobbies_text(d))}'
         f"</div></div>"
     )
 
 
 def _tpl_colored_header(d: dict) -> str:
-    contact = " · ".join(_contact_parts(d))
-    exp_sec = _sec_experience(d, wrap_class="tpl-sec tpl-sec--half")
-    edu_html = _education_html(d)
-    skills_html = _skills_list_html(d)
-    edu_skills_parts: list[str] = []
-    if edu_html.strip():
-        edu_skills_parts.append(f'<h2 class="tpl-h2">Education</h2>{edu_html}')
-    if skills_html.strip():
-        spaced = " tpl-h2--spaced" if edu_html.strip() else ""
-        edu_skills_parts.append(
-            f'<h2 class="tpl-h2{spaced}">Skills</h2><ul class="tpl-bullets">{skills_html}</ul>'
-        )
-    edu_skills_sec = (
-        f'<section class="tpl-sec tpl-sec--half">{"".join(edu_skills_parts)}</section>'
-        if edu_skills_parts
-        else ""
-    )
-    row = _join_visible([exp_sec, edu_skills_sec])
-    row_html = f'<div class="tpl-ch-row">{row}</div>' if row else ""
+    contact_html = _contact_row_html(d, "tpl-ch-contact-row")
+    top_row = _join_visible([_ch_jobs_column_html(d), _ch_edu_skills_column_html(d)])
+    top_row_html = f'<div class="tpl-ch-row">{top_row}</div>' if top_row else ""
     return (
-        f'<div class="tpl tpl-colored-header"><header class="tpl-ch-bar">'
+        f'<div class="tpl tpl-colored-header"><div class="tpl-ch-bar">'
         f'<h1 class="tpl-ch-name">{_esc(d.get("fullName"))}</h1>'
-        f'<p class="tpl-ch-title">{_esc(d.get("headline"))}</p>'
-        f'<p class="tpl-ch-contact">{contact}</p></header><div class="tpl-ch-body">'
-        f'{_sec_summary(d)}{row_html}{_sec_certifications(d)}{_sec_languages(d)}{_sec_hobbies(d)}{_sec_interests(d)}'
+        f'{_tpl_headline("tpl-ch-title", d)}'
+        f'{contact_html}</div><div class="tpl-ch-body">'
+        f'{_sec_summary(d)}{top_row_html}{_ch_certs_langs_row_html(d)}'
+        f'{_sec_text("Hobbies", _hobbies_text(d))}'
         f"</div></div>"
     )
 
 
 def _tpl_modern_split(d: dict) -> str:
-    contact = " · ".join(_contact_parts(d))
+    contact_html = _contact_row_html(d, "tpl-ms-contact-row")
+    ico_obj = f'<span class="tpl-ico">📋</span> {CAREER_OBJECTIVE_TITLE}'
     ico_edu = '<span class="tpl-ico">🎓</span> Education'
-    ico_exp = f'<span class="tpl-ico">💼</span> {ACHIEVEMENTS_ACTIVITIES_TITLE}'
+    ico_job = '<span class="tpl-ico">💼</span> '
     ico_skills = '<span class="tpl-ico">⚡</span> Skills'
     ico_langs = '<span class="tpl-ico">🌐</span> Languages'
     ico_certs = '<span class="tpl-ico">🏅</span> Certifications'
+    ico_hobbies = '<span class="tpl-ico">🎯</span> Hobbies'
+    hobbies_val = _hobbies_text(d)
+    grid_parts: list[str] = []
+    top_row = _ms_row_html(
+        _sec_summary(d, title_html=ico_obj),
+        _sec_education(d, title_html=ico_edu),
+    )
+    if top_row:
+        grid_parts.append(top_row)
+    jobs_html = _resume_job_sections(d, wrap_class="tpl-sec tpl-ms-span2", title_prefix=ico_job)
+    if jobs_html.strip():
+        grid_parts.append(jobs_html)
+    skills_langs_row = _ms_row_html(
+        _sec_skills_list(d, title_html=ico_skills),
+        _sec_languages(d, title_html=ico_langs),
+    )
+    if skills_langs_row:
+        grid_parts.append(skills_langs_row)
+    certs_html = _sec_certifications(d, wrap_class="tpl-sec tpl-ms-span2", title_html=ico_certs)
+    if certs_html.strip():
+        grid_parts.append(certs_html)
+    hobbies_html = _sec_text(
+        "Hobbies",
+        hobbies_val,
+        wrap_class="tpl-sec tpl-ms-span2",
+        title_html=ico_hobbies,
+    )
+    if hobbies_html.strip():
+        grid_parts.append(hobbies_html)
+    grid_html = "".join(grid_parts)
     return (
-        f'<div class="tpl tpl-modern-split"><header class="tpl-ms-top"><div class="tpl-ms-brand">'
+        f'<div class="tpl tpl-modern-split"><div class="tpl-ms-top"><div class="tpl-ms-brand">'
         f'{_photo_html(d, "tpl-ms-photo")}<div><h1 class="tpl-ms-name">{_esc(d.get("fullName"))}</h1>'
-        f'<p class="tpl-ms-title">{_esc(d.get("headline"))}</p></div></div>'
-        f'<p class="tpl-ms-contact">{contact}</p></header><div class="tpl-ms-grid">'
-        f'{_sec_summary(d, icon="📋")}'
-        f'{_sec_education(d, title_html=ico_edu)}'
-        f'{_sec_experience(d, wrap_class="tpl-sec tpl-ms-span2", title_html=ico_exp)}'
-        f'{_sec_skills_list(d, title_html=ico_skills)}'
-        f'{_sec_languages(d, title_html=ico_langs)}'
-        f'{_sec_certifications(d, wrap_class="tpl-sec tpl-ms-span2", title_html=ico_certs)}'
-        f'{_sec_hobbies(d, wrap_class="tpl-sec tpl-ms-span2")}'
-        f'{_sec_interests(d, wrap_class="tpl-sec tpl-ms-span2")}'
-        f"</div></div>"
+        f'{_tpl_headline("tpl-ms-title", d)}</div></div>'
+        f'{contact_html}</div><div class="tpl-ms-grid">{grid_html}</div></div>'
     )
 
 
 def _tpl_professional_border(d: dict) -> str:
-    cj = " · ".join(_contact_parts(d))
+    contact_html = _contact_row_html(d, "tpl-pb-contact-row")
+    hobbies_val = _hobbies_text(d)
+    side_skills = _aside_skills(d, h_class="tpl-pb-h3")
+    side_langs = _aside_languages(d, h_class="tpl-pb-h3")
     return (
         f'<div class="tpl tpl-professional-border"><div class="tpl-pb-main">'
-        f'<header class="tpl-pb-header"><h1 class="tpl-pb-name">{_esc(d.get("fullName"))}</h1>'
-        f'<p class="tpl-pb-title">{_esc(d.get("headline"))}</p><p class="tpl-pb-contact">{cj}</p></header>'
-        f'{_sec_summary(d)}{_sec_experience(d)}{_sec_education(d)}'
-        f'{_sec_certifications(d)}{_sec_hobbies(d)}{_sec_interests(d)}'
+        f'<div class="tpl-pb-header"><h1 class="tpl-pb-name">{_esc(d.get("fullName"))}</h1>'
+        f'{_tpl_headline("tpl-pb-title", d)}'
+        f'{contact_html}</div>'
+        f'{_sec_summary(d)}{_resume_job_sections(d)}{_sec_education(d)}'
+        f'{_sec_certifications(d)}{_sec_text("Hobbies", hobbies_val)}'
         f'</div><aside class="tpl-pb-side">{_photo_html(d, "tpl-pb-avatar")}'
-        f'{_aside_skills(d, h_class="tpl-pb-h3")}{_aside_languages(d, h_class="tpl-pb-h3")}'
+        f'{side_skills}{side_langs}'
         f"</aside></div>"
     )
 
 
 def _tpl_bold_header(d: dict) -> str:
-    cj = " · ".join(_contact_parts(d))
+    contact_html = _contact_row_html(d, "tpl-bh-contact-row")
+    body = _join_visible(
+        [
+            _sec_summary(d),
+            _resume_job_sections(d),
+            _sec_education(d),
+            _sec_skills_list(d),
+            _sec_certifications(d),
+            _sec_languages(d),
+            _sec_hobbies(d),
+        ],
+        "",
+    )
     return (
         f'<div class="tpl tpl-bold-header"><header class="tpl-bh-bar">'
         f'<h1 class="tpl-bh-name">{_esc(d.get("fullName"))}</h1>'
-        f'<p class="tpl-bh-title">{_esc(d.get("headline"))}</p>'
-        f'<p class="tpl-bh-contact">{cj}</p></header><div class="tpl-bh-body">'
-        f'{_sec_summary(d)}{_sec_experience(d)}{_sec_education(d)}'
-        f'{_sec_skills_list(d)}{_sec_certifications(d)}{_sec_languages(d)}{_sec_hobbies(d)}{_sec_interests(d)}'
-        f"</div></div>"
+        f'{_tpl_headline("tpl-bh-title", d)}'
+        f'{contact_html}</header><div class="tpl-bh-body">{body}</div></div>'
     )
 
 
 def _tpl_tech_focus(d: dict) -> str:
-    citems = "".join(f"<li>{x}</li>" for x in _contact_parts(d))
+    citems = _contact_list_items_html(d)
     skill_bars = _skill_bars_html(d)
     langs = _languages_html(d)
     side_parts: list[str] = []
@@ -583,15 +986,22 @@ def _tpl_tech_focus(d: dict) -> str:
     if citems:
         side_parts.append(
             f'<h2 class="tpl-tf-h2">Contact</h2>'
-            f'<ul class="tpl-bullets tpl-bullets--tight">{citems}</ul>'
+            f'<ul class="tpl-bullets tpl-bullets--tight tpl-tf-contact">{citems}</ul>'
         )
+    body = _join_visible(
+        [
+            _sec_summary(d),
+            _resume_job_sections(d),
+            _sec_education(d),
+            _sec_certifications(d),
+            _sec_hobbies(d),
+        ],
+        "",
+    )
     return (
         f'<div class="tpl tpl-tech-focus"><aside class="tpl-tf-side">{"".join(side_parts)}</aside>'
         f'<div class="tpl-tf-main"><header class="tpl-tf-head"><h1 class="tpl-tf-name">{_esc(d.get("fullName"))}</h1>'
-        f'<p class="tpl-tf-title">{_esc(d.get("headline"))}</p></header>'
-        f'{_sec_summary(d)}{_sec_experience(d)}{_sec_education(d)}'
-        f'{_sec_certifications(d)}{_sec_hobbies(d)}{_sec_interests(d)}'
-        f"</div></div>"
+        f'{_tpl_headline("tpl-tf-title", d)}</header>{body}</div></div>'
     )
 
 
@@ -627,7 +1037,6 @@ def _tpl_elegant_serif(d: dict) -> str:
 
 
 def _tpl_geometric(d: dict) -> str:
-    cj = " · ".join(_contact_parts(d))
     pills = _skills_pills_html(d)
     skills_aside = ""
     if pills.strip():
@@ -641,8 +1050,8 @@ def _tpl_geometric(d: dict) -> str:
             _sec_certifications(d, h2_class="tpl-geo-h2"),
             _sec_languages(d, h2_class="tpl-geo-h2"),
             _sec_hobbies(d, h2_class="tpl-geo-h2"),
-            _sec_interests(d, h2_class="tpl-geo-h2"),
-        ]
+        ],
+        "",
     )
     layout_html = ""
     if main_parts.strip() or skills_aside:
@@ -650,51 +1059,56 @@ def _tpl_geometric(d: dict) -> str:
             f'<div class="tpl-geo-layout"><div class="tpl-geo-main">{main_parts}</div>'
             f"{skills_aside}</div>"
         )
+    body = _join_visible(
+        [
+            _sec_summary(d, h2_class="tpl-geo-h2"),
+            _resume_job_sections(d, h2_class="tpl-geo-h2"),
+        ],
+        "",
+    )
     return (
         f'<div class="tpl tpl-geometric"><header class="tpl-geo-head">{_photo_html(d, "tpl-geo-photo")}'
         f'<div class="tpl-geo-text"><h1 class="tpl-geo-name">{_esc(d.get("fullName"))}</h1>'
-        f'<p class="tpl-geo-title">{_esc(d.get("headline"))}</p>'
-        f'<p class="tpl-geo-contact">{cj}</p></div></header>'
-        f'{_sec_summary(d, h2_class="tpl-geo-h2")}'
-        f'{_sec_experience(d, h2_class="tpl-geo-h2")}'
-        f"{layout_html}"
-        f"</div>"
+        f'{_tpl_headline("tpl-geo-title", d)}'
+        f"{_contact_geo_row_html(d)}</div></header>"
+        f"{body}{layout_html}</div>"
     )
 
 
 def _tpl_high_contrast(d: dict) -> str:
-    cj = " · ".join(_contact_parts(d))
     side_parts = [
         _aside_skills(d, h_class="tpl-hc-h3"),
         _aside_languages(d, h_class="tpl-hc-h3"),
     ]
-    if _has_display_text(d.get("hobbies")):
+    hobbies_val = _hobbies_text(d)
+    if hobbies_val:
         side_parts.append(
             f'<h3 class="tpl-hc-h3">Hobbies</h3>'
-            f'<p class="tpl-hc-small">{_esc(d.get("hobbies"))}</p>'
+            f'<p class="tpl-hc-small">{_esc(hobbies_val)}</p>'
         )
-    if _has_display_text(d.get("interests")):
-        side_parts.append(
-            f'<h3 class="tpl-hc-h3">Interests</h3>'
-            f'<p class="tpl-hc-small">{_esc(d.get("interests"))}</p>'
-        )
+    body = _join_visible(
+        [
+            _sec_summary(d, h2_class="tpl-h2 tpl-h2--hc"),
+            _resume_job_sections(d, h2_class="tpl-h2 tpl-h2--hc"),
+            _sec_education(d, h2_class="tpl-h2 tpl-h2--hc"),
+            _sec_certifications(d, h2_class="tpl-h2 tpl-h2--hc"),
+        ],
+        "",
+    )
     return (
         f'<div class="tpl tpl-high-contrast"><header class="tpl-hc-top">'
         f'<h1 class="tpl-hc-name">{_esc(d.get("fullName"))}</h1>'
-        f'<p class="tpl-hc-title">{_esc(d.get("headline"))}</p>'
-        f'<p class="tpl-hc-contact">{cj}</p></header><div class="tpl-hc-body">'
+        f'{_tpl_headline("tpl-hc-title", d)}'
+        f"{_contact_hc_row_html(d)}</header>"
+        f'<div class="tpl-hc-body">'
         f'<aside class="tpl-hc-side">{"".join(p for p in side_parts if p)}</aside>'
-        f'<div class="tpl-hc-main">'
-        f'{_sec_summary(d, h2_class="tpl-h2 tpl-h2--hc")}'
-        f'{_sec_experience(d, h2_class="tpl-h2 tpl-h2--hc")}'
-        f'{_sec_education(d, h2_class="tpl-h2 tpl-h2--hc")}'
-        f'{_sec_certifications(d, h2_class="tpl-h2 tpl-h2--hc")}'
-        f"</div></div></div>"
+        f'<div class="tpl-hc-main">{body}</div>'
+        f"</div></div>"
     )
 
 
 def _tpl_aurora(d: dict) -> str:
-    cj = " · ".join(_contact_parts(d))
+    contact_html = _contact_au_row_html(d)
     edu_html = _education_html(d)
     skills_html = _skills_list_html(d)
     row_parts: list[str] = []
@@ -709,31 +1123,68 @@ def _tpl_aurora(d: dict) -> str:
             f'<ul class="tpl-bullets">{skills_html}</ul></section>'
         )
     row_html = f'<div class="tpl-au-row">{"".join(row_parts)}</div>' if row_parts else ""
+    certs = _certifications_html(d)
+    langs = _languages_html(d)
+    cert_row_parts: list[str] = []
+    if certs.strip():
+        cert_row_parts.append(
+            f'<section class="tpl-au-card tpl-au-card--half"><h2 class="tpl-au-h2">Certifications</h2>'
+            f"{certs}</section>"
+        )
+    if langs.strip():
+        cert_row_parts.append(
+            f'<section class="tpl-au-card tpl-au-card--half"><h2 class="tpl-au-h2">Languages</h2>'
+            f'<ul class="tpl-bullets">{langs}</ul></section>'
+        )
+    cert_row_html = (
+        f'<div class="tpl-au-row">{"".join(cert_row_parts)}</div>' if cert_row_parts else ""
+    )
+    body = (
+        _sec_summary(d, wrap_class="tpl-au-card", h2_class="tpl-au-h2")
+        + _resume_job_sections(d, wrap_class="tpl-au-card", h2_class="tpl-au-h2")
+        + row_html
+        + cert_row_html
+        + _sec_hobbies(d, wrap_class="tpl-au-card", h2_class="tpl-au-h2")
+    )
     return (
         f'<div class="tpl tpl-aurora"><div class="tpl-au-hero">{_photo_html(d, "tpl-au-photo")}'
         f'<div class="tpl-au-hero-text"><h1 class="tpl-au-name">{_esc(d.get("fullName"))}</h1>'
-        f'<p class="tpl-au-tagline">{_esc(d.get("headline"))}</p>'
-        f'<p class="tpl-au-contact">{cj}</p></div></div><div class="tpl-au-body">'
-        f'{_sec_summary(d, wrap_class="tpl-au-card", h2_class="tpl-au-h2")}'
-        f'{_sec_experience(d, wrap_class="tpl-au-card", h2_class="tpl-au-h2")}'
-        f'{row_html}{_sec_certifications(d, wrap_class="tpl-au-card", h2_class="tpl-au-h2")}{_sec_languages(d, wrap_class="tpl-au-card", h2_class="tpl-au-h2")}'
-        f'{_sec_hobbies(d, wrap_class="tpl-au-card", h2_class="tpl-au-h2")}'
-        f'{_sec_interests(d, wrap_class="tpl-au-card", h2_class="tpl-au-h2")}'
-        f"</div></div>"
+        f'{_tpl_headline("tpl-au-tagline", d)}'
+        f'{contact_html}</div></div><div class="tpl-au-body">{body}</div></div>'
+    )
+
+
+def _mz_sec_block(title: str, inner: str) -> str:
+    if not (inner or "").strip():
+        return ""
+    return f'<h2 class="tpl-mz-h2">{_esc(title)}</h2>{inner}'
+
+
+def _mz_resume_job_sections(d: dict, class_job: str = "tpl-job tpl-job--mz") -> str:
+    return (
+        _mz_sec_block(PROJECTS_TITLE, _job_blocks_html(_projects_from_data(d), class_job))
+        + _mz_sec_block(
+            ACHIEVEMENTS_ACTIVITIES_TITLE,
+            _job_blocks_html(_achievements_from_data(d), class_job),
+        )
+        + _mz_sec_block(
+            WORK_EXPERIENCE_TITLE,
+            _job_blocks_html(_work_experience_from_data(d), class_job),
+        )
     )
 
 
 def _tpl_magazine(d: dict) -> str:
-    cj = " · ".join(_contact_parts(d))
+    contact_html = _contact_mz_row_html(d)
     main_col = _join_visible(
         [
-            _sec_summary(d, h2_class="tpl-mz-h2", p_class="tpl-mz-lead"),
-            _sec_block(
-                ACHIEVEMENTS_ACTIVITIES_TITLE,
-                _experience_html(d, "tpl-job tpl-job--mz"),
-                h2_class="tpl-mz-h2",
-                wrap_class="",
+            (
+                f'<h2 class="tpl-mz-h2">{CAREER_OBJECTIVE_TITLE}</h2>'
+                f'<p class="tpl-mz-lead">{_esc(d.get("summary"))}</p>'
+                if _has_display_text(d.get("summary"))
+                else ""
             ),
+            _mz_resume_job_sections(d),
         ]
     )
     aside_parts: list[str] = [_photo_html(d, "tpl-mz-photo")]
@@ -752,20 +1203,15 @@ def _tpl_magazine(d: dict) -> str:
     certs = _certifications_html(d)
     if certs.strip():
         aside_parts.append(f'<h3 class="tpl-mz-h3">Certifications</h3>{certs}')
-    if _has_display_text(d.get("hobbies")):
-        aside_parts.append(
-            f'<h3 class="tpl-mz-h3">Hobbies</h3><p class="tpl-p">{_esc(d.get("hobbies"))}</p>'
-        )
-    if _has_display_text(d.get("interests")):
-        aside_parts.append(
-            f'<h3 class="tpl-mz-h3">Interests</h3><p class="tpl-p">{_esc(d.get("interests"))}</p>'
-        )
+    hob = _hobbies_text(d)
+    if hob.strip():
+        aside_parts.append(f'<h3 class="tpl-mz-h3">Hobbies</h3><p class="tpl-p">{_esc(hob)}</p>')
     return (
         f'<div class="tpl tpl-magazine"><header class="tpl-mz-header"><div class="tpl-mz-accent"></div>'
         f'<div class="tpl-mz-intro"><p class="tpl-mz-kicker">Professional profile</p>'
         f'<h1 class="tpl-mz-name">{_esc(d.get("fullName"))}</h1>'
-        f'<p class="tpl-mz-title">{_esc(d.get("headline"))}</p>'
-        f'<p class="tpl-mz-contact">{cj}</p></div></header><div class="tpl-mz-grid">'
+        f'{_tpl_headline("tpl-mz-title", d)}'
+        f'{contact_html}</div></header><div class="tpl-mz-grid">'
         f'<section class="tpl-mz-col">{main_col}</section>'
         f'<aside class="tpl-mz-aside">{"".join(aside_parts)}</aside></div></div>'
     )
@@ -1443,7 +1889,20 @@ body.tt-pdf-export article#resume.resume,
 body.tt-pdf-export article#resume.resume .resume__mount,
 body.tt-pdf-export .resume.pdf-exporting .tpl,
 body.tt-pdf-export article#resume.resume .tpl {{
+  min-height: auto !important;
+}}
+/* Sidebar / two-column templates — stretch accent column to full page */
+body.tt-pdf-export .tpl-classic-sidebar,
+body.tt-pdf-export .tpl-executive {{
   min-height: var(--pdf-page-min-height) !important;
+}}
+body.tt-pdf-export .tpl-tech-focus {{
+  min-height: auto !important;
+  align-items: stretch !important;
+}}
+body.tt-pdf-export .tpl-professional-border {{
+  min-height: auto !important;
+  align-items: stretch !important;
 }}
 body.tt-pdf-export article#resume.resume {{
   box-shadow: none !important;
@@ -1460,46 +1919,690 @@ body.tt-pdf-export .resume.pdf-exporting .resume__mount {{
 }}
 /* Sidebar accent columns — full printable page height */
 body.tt-pdf-export .tpl-cs-side,
-body.tt-pdf-export .tpl-tf-side,
-body.tt-pdf-export .tpl-ex-side,
-body.tt-pdf-export .tpl-pb-side,
-body.tt-pdf-export .tpl-mz-aside {{
+body.tt-pdf-export .tpl-ex-side {{
   min-height: var(--pdf-page-min-height) !important;
+}}
+body.tt-pdf-export .tpl-tf-side {{
+  min-height: auto !important;
+  align-self: stretch !important;
+}}
+body.tt-pdf-export .tpl-pb-side {{
+  min-height: auto !important;
+  align-self: stretch !important;
 }}
 body.tt-pdf-export .tpl-high-contrast {{
   min-height: var(--pdf-page-min-height) !important;
   display: flex !important;
   flex-direction: column !important;
   gap: 4px !important;
+  width: 100% !important;
+}}
+body.tt-pdf-export .tpl-hc-top {{
+  background: #111111 !important;
+  color: #ffffff !important;
+  padding: 1.35rem 1.75rem !important;
+  text-align: center !important;
+}}
+body.tt-pdf-export .tpl-hc-name,
+body.tt-pdf-export .tpl-hc-title {{
+  color: #ffffff !important;
+}}
+body.tt-pdf-export .tpl-high-contrast .tpl-hc-contact-row {{
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 0 0.1rem !important;
+  margin: 0 !important;
+  width: 100% !important;
+}}
+body.tt-pdf-export .tpl-high-contrast .tpl-hc-contact-row .tpl-contact-item {{
+  display: inline-flex !important;
+  align-items: center !important;
+  flex: 0 0 auto !important;
+  gap: 0.3rem !important;
+}}
+body.tt-pdf-export .tpl-high-contrast .tpl-hc-contact-row .tpl-contact-icon,
+body.tt-pdf-export .tpl-high-contrast .tpl-hc-contact-row .tpl-contact-fallback {{
+  color: #ffffff !important;
+}}
+body.tt-pdf-export .tpl-high-contrast .tpl-hc-contact-row .tpl-contact-text {{
+  color: #ffffff !important;
+  white-space: nowrap !important;
 }}
 body.tt-pdf-export .tpl-hc-body {{
   flex: 1 1 auto !important;
   min-height: calc(var(--pdf-page-min-height) - 5rem - 4px) !important;
-  display: grid !important;
-  grid-template-columns: 200px 1fr !important;
-  align-items: stretch !important;
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+  border-collapse: collapse !important;
+  border-spacing: 0 !important;
+}}
+body.tt-pdf-export .tpl-hc-side,
+body.tt-pdf-export .tpl-hc-main {{
+  display: table-cell !important;
+  float: none !important;
+  vertical-align: top !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
 }}
 body.tt-pdf-export .tpl-hc-side {{
+  width: 26% !important;
   min-height: 100% !important;
-  align-self: stretch !important;
+  background: #111111 !important;
+  color: #ffffff !important;
+  padding: 1.25rem 1rem 2rem !important;
 }}
-/* Undo responsive breakpoints — PDF page is narrower than 1100px */
-body.tt-pdf-export .tpl-ch-row {{
+body.tt-pdf-export .tpl-hc-main {{
+  width: 74% !important;
+  padding: 1.5rem 1.5rem 2rem !important;
+}}
+body.tt-pdf-export .tpl-hc-side .tpl-bullets,
+body.tt-pdf-export .tpl-hc-side .tpl-hc-small,
+body.tt-pdf-export .tpl-hc-side .tpl-hc-h3 {{
+  color: #e5e7eb !important;
+  visibility: visible !important;
+}}
+body.tt-pdf-export .tpl-high-contrast .tpl-h2--hc {{
+  color: #111111 !important;
+  border-bottom-color: #111111 !important;
+}}
+body.tt-pdf-export .tpl-high-contrast .tpl-hc-main .tpl-p,
+body.tt-pdf-export .tpl-high-contrast .tpl-hc-main .tpl-job,
+body.tt-pdf-export .tpl-high-contrast .tpl-hc-main .tpl-edu-block,
+body.tt-pdf-export .tpl-high-contrast .tpl-hc-main .tpl-cert,
+body.tt-pdf-export .tpl-high-contrast .tpl-hc-main .tpl-bullets {{
+  display: block !important;
+  visibility: visible !important;
+  color: #111111 !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-hc-body {{
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-hc-side,
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-hc-main {{
+  display: table-cell !important;
+  float: none !important;
+  margin: 0 !important;
+  vertical-align: top !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-hc-side {{
+  width: 26% !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-hc-main {{
+  width: 74% !important;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-hc-body {{
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-hc-side,
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-hc-main {{
+  display: table-cell !important;
+  float: none !important;
+  margin: 0 !important;
+  vertical-align: top !important;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-hc-side {{
+  width: 26% !important;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-hc-main {{
+  width: 74% !important;
+}}
+body.tt-pdf-export .tpl-magazine {{
+  min-height: auto !important;
+  display: block !important;
+  width: 100% !important;
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+}}
+body.tt-pdf-export .tpl-mz-header {{
+  display: grid !important;
+  grid-template-columns: 10px 1fr !important;
+  width: 100% !important;
+  min-height: auto !important;
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+  break-after: avoid !important;
+  page-break-after: avoid !important;
+}}
+body.tt-pdf-export .tpl-mz-intro {{
+  padding: 1rem 1.35rem 0.85rem !important;
+}}
+body.tt-pdf-export .tpl-mz-name {{
+  font-size: 1.55rem !important;
+  line-height: 1.15 !important;
+}}
+body.tt-pdf-export .tpl-mz-title {{
+  font-size: 0.92rem !important;
+  margin-top: 0.35rem !important;
+}}
+body.tt-pdf-export .tpl-mz-accent {{
+  background: var(--resume-accent) !important;
+}}
+body.tt-pdf-export .tpl-magazine .tpl-mz-contact-row {{
   display: flex !important;
   flex-direction: row !important;
-  align-items: flex-start !important;
-  gap: 1rem !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 0 0.1rem !important;
+  margin: 0.45rem 0 0 !important;
+  font-size: 0.78rem !important;
+}}
+body.tt-pdf-export .tpl-magazine .tpl-mz-contact-row .tpl-contact-item {{
+  display: inline-flex !important;
+  align-items: center !important;
+  flex: 0 0 auto !important;
+  gap: 0.25rem !important;
+}}
+body.tt-pdf-export .tpl-magazine .tpl-mz-contact-row .tpl-contact-text {{
+  white-space: nowrap !important;
+}}
+body.tt-pdf-export .tpl-mz-grid {{
+  display: table !important;
+  table-layout: fixed !important;
   width: 100% !important;
+  border-collapse: collapse !important;
+  border-spacing: 0 !important;
+  min-height: auto !important;
+  flex: none !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-mz-col,
+body.tt-pdf-export .tpl-mz-aside {{
+  display: table-cell !important;
+  float: none !important;
+  vertical-align: top !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+  min-height: auto !important;
+}}
+body.tt-pdf-export .tpl-mz-col {{
+  width: 58% !important;
+  padding: 0.85rem 1rem 1rem !important;
+}}
+body.tt-pdf-export .tpl-mz-aside {{
+  width: 42% !important;
+  padding: 0.85rem 0.85rem 1rem !important;
+  background: #f8fafc !important;
+  border-left: 1px solid #e5e7eb !important;
+}}
+body.tt-pdf-export .tpl-magazine .tpl-mz-h2 {{
+  margin: 0 0 0.35rem !important;
+  font-size: 0.82rem !important;
+  padding-left: 0.5rem !important;
+  border-left-width: 3px !important;
+}}
+body.tt-pdf-export .tpl-magazine .tpl-mz-h2 + .tpl-mz-h2,
+body.tt-pdf-export .tpl-magazine .tpl-mz-lead + .tpl-mz-h2,
+body.tt-pdf-export .tpl-magazine .tpl-job + .tpl-mz-h2 {{
+  margin-top: 0.65rem !important;
+}}
+body.tt-pdf-export .tpl-magazine .tpl-mz-h3 {{
+  margin: 0.65rem 0 0.25rem !important;
+  font-size: 0.66rem !important;
+}}
+body.tt-pdf-export .tpl-magazine .tpl-mz-h3:first-of-type {{
+  margin-top: 0 !important;
+}}
+body.tt-pdf-export .tpl-magazine .tpl-mz-lead {{
+  margin: 0 0 0.65rem !important;
+  font-size: 0.82rem !important;
+  line-height: 1.45 !important;
+}}
+body.tt-pdf-export .tpl-magazine .tpl-p,
+body.tt-pdf-export .tpl-magazine .tpl-job,
+body.tt-pdf-export .tpl-magazine .tpl-edu-block,
+body.tt-pdf-export .tpl-magazine .tpl-cert,
+body.tt-pdf-export .tpl-magazine .tpl-bullets,
+body.tt-pdf-export .tpl-magazine .tpl-mz-pills {{
+  display: block !important;
+  visibility: visible !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}}
+body.tt-pdf-export .tpl-magazine .tpl-job {{
+  margin-bottom: 0.45rem !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-magazine .tpl-job-head {{
+  font-size: 0.8rem !important;
+}}
+body.tt-pdf-export .tpl-magazine .tpl-bullets {{
+  margin: 0.15rem 0 0 !important;
+  padding-left: 1rem !important;
+  font-size: 0.78rem !important;
+  line-height: 1.35 !important;
+}}
+body.tt-pdf-export .tpl-magazine .tpl-bullets li {{
+  margin-bottom: 0.12rem !important;
+}}
+body.tt-pdf-export .tpl-magazine .tpl-mz-pills {{
+  margin-bottom: 0.15rem !important;
+}}
+body.tt-pdf-export .tpl-magazine .tpl-mz-pills .tpl-pill {{
+  display: inline-block !important;
+  font-size: 0.68rem !important;
+  padding: 0.12rem 0.45rem !important;
+  margin: 0 0.18rem 0.18rem 0 !important;
+}}
+body.tt-pdf-export .tpl-mz-photo {{
+  width: 100% !important;
+  max-width: 120px !important;
+  height: auto !important;
+  aspect-ratio: auto !important;
+  margin: 0 auto 0.65rem !important;
+  display: block !important;
+  border-radius: 4px !important;
+  object-fit: cover !important;
+  border-width: 2px !important;
+}}
+body.tt-pdf-export .tpl-aurora {{
+  min-height: var(--pdf-page-min-height) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+}}
+body.tt-pdf-export .tpl-au-hero {{
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 1.5rem !important;
+  padding: 2rem 1.75rem !important;
+  background: var(--resume-accent) !important;
+  color: #ffffff !important;
+}}
+body.tt-pdf-export .tpl-au-name,
+body.tt-pdf-export .tpl-au-tagline {{
+  color: #ffffff !important;
+}}
+body.tt-pdf-export .tpl-aurora .tpl-au-contact-row {{
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 0 0.1rem !important;
+  margin: 0.5rem 0 0 !important;
+  font-size: 0.85rem !important;
+}}
+body.tt-pdf-export .tpl-aurora .tpl-au-contact-row .tpl-contact-item {{
+  display: inline-flex !important;
+  align-items: center !important;
+  flex: 0 0 auto !important;
+  gap: 0.3rem !important;
+}}
+body.tt-pdf-export .tpl-aurora .tpl-au-contact-row .tpl-contact-icon,
+body.tt-pdf-export .tpl-aurora .tpl-au-contact-row .tpl-contact-fallback,
+body.tt-pdf-export .tpl-aurora .tpl-au-contact-row .tpl-contact-text {{
+  color: #ffffff !important;
+}}
+body.tt-pdf-export .tpl-aurora .tpl-au-contact-row .tpl-contact-text {{
+  white-space: nowrap !important;
+}}
+body.tt-pdf-export .tpl-au-photo {{
+  width: 100px !important;
+  height: 100px !important;
+  flex-shrink: 0 !important;
+  border-radius: 20px !important;
+  border: 3px solid rgba(255, 255, 255, 0.5) !important;
+  object-fit: cover !important;
+}}
+body.tt-pdf-export .tpl-au-body {{
+  padding: 1.5rem 1.5rem 2rem !important;
+  display: block !important;
+}}
+body.tt-pdf-export .tpl-au-card {{
+  display: block !important;
+  visibility: visible !important;
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+  margin-bottom: 1rem !important;
+}}
+body.tt-pdf-export .tpl-aurora .tpl-au-h2 {{
+  color: var(--resume-accent) !important;
+}}
+body.tt-pdf-export .tpl-aurora .tpl-p,
+body.tt-pdf-export .tpl-aurora .tpl-job,
+body.tt-pdf-export .tpl-aurora .tpl-edu-block,
+body.tt-pdf-export .tpl-aurora .tpl-cert,
+body.tt-pdf-export .tpl-aurora .tpl-bullets {{
+  display: block !important;
+  visibility: visible !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}}
+body.tt-pdf-export .tpl-au-row {{
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 1rem 0 !important;
+  margin-bottom: 1rem !important;
+}}
+body.tt-pdf-export .tpl-au-row .tpl-au-card--half {{
+  display: table-cell !important;
+  width: 50% !important;
+  vertical-align: top !important;
+}}
+/* Undo responsive breakpoints — PDF page is narrower than 1100px */
+body.tt-pdf-export article#resume.resume .tpl-colored-header {{
+  min-height: auto !important;
+}}
+body.tt-pdf-export .tpl-ch-row {{
+  display: block !important;
+  width: 100% !important;
+  overflow: hidden !important;
+  margin-bottom: 0.35rem !important;
+}}
+body.tt-pdf-export .tpl-ch-row::after {{
+  content: "" !important;
+  display: table !important;
+  clear: both !important;
 }}
 body.tt-pdf-export .tpl-ch-row > .tpl-sec {{
-  flex: 1 1 0 !important;
+  display: block !important;
+  float: left !important;
+  width: 49% !important;
   min-width: 0 !important;
+  max-width: 49% !important;
+  box-sizing: border-box !important;
+  padding-right: 0.65rem !important;
+  vertical-align: top !important;
+}}
+body.tt-pdf-export .tpl-ch-row > .tpl-sec:last-child {{
+  float: right !important;
+  padding-right: 0 !important;
+  padding-left: 0.65rem !important;
+}}
+body.tt-pdf-export .tpl-ch-row > .tpl-sec:only-child {{
+  float: none !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+}}
+body.tt-pdf-export .tpl-colored-header {{
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: auto !important;
+}}
+body.tt-pdf-export .tpl-colored-header .tpl-ch-bar,
+body.tt-pdf-export .tpl-colored-header .tpl-ch-body {{
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: auto !important;
+  height: auto !important;
+  max-height: none !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+  position: static !important;
+}}
+body.tt-pdf-export .tpl-colored-header .tpl-ch-bar {{
+  flex: 0 0 auto !important;
+}}
+body.tt-pdf-export .tpl-colored-header .tpl-ch-body {{
+  color: var(--text, #1a1a2e) !important;
+}}
+body.tt-pdf-export .tpl-colored-header .tpl-ch-body > .tpl-sec {{
+  display: block !important;
+  visibility: visible !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}}
+body.tt-pdf-export .tpl-colored-header .tpl-ch-row > .tpl-sec {{
+  display: block !important;
+  visibility: visible !important;
+  width: 49% !important;
+  max-width: 49% !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}}
+body.tt-pdf-export .tpl-colored-header .tpl-ch-body .tpl-h2,
+body.tt-pdf-export .tpl-colored-header .tpl-ch-body .tpl-p,
+body.tt-pdf-export .tpl-colored-header .tpl-ch-body .tpl-job,
+body.tt-pdf-export .tpl-colored-header .tpl-ch-body .tpl-edu-block,
+body.tt-pdf-export .tpl-colored-header .tpl-ch-body .tpl-cert,
+body.tt-pdf-export .tpl-colored-header .tpl-ch-body .tpl-bullets,
+body.tt-pdf-export .tpl-colored-header .tpl-ch-body .tpl-ch-subsec,
+body.tt-pdf-export .tpl-colored-header .tpl-ch-body .tpl-ch-stack,
+body.tt-pdf-export .tpl-colored-header .tpl-ch-body .tpl-ch-lang-list {{
+  display: block !important;
+  visibility: visible !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}}
+body.tt-pdf-export .tpl-colored-header .tpl-ch-body .tpl-ch-subsec,
+body.tt-pdf-export .tpl-colored-header .tpl-ch-body .tpl-ch-stack {{
+  width: 100% !important;
+  max-width: 100% !important;
+}}
+body.tt-pdf-export .tpl-colored-header .tpl-h2 {{
+  color: var(--resume-accent) !important;
+  border-bottom: 2px solid var(--resume-accent) !important;
+  padding-bottom: 0.3rem !important;
+  margin: 0 0 0.45rem !important;
+}}
+body.tt-pdf-export .tpl-colored-header .tpl-job-head {{
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  align-items: baseline !important;
+  gap: 0.5rem !important;
+}}
+body.tt-pdf-export .tpl-colored-header .tpl-job-dates {{
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}}
+body.tt-pdf-export .tpl-colored-header .tpl-ch-lang-chip {{
+  background: rgba(var(--accent-rgb), 0.1) !important;
+  border: 1px solid rgba(var(--accent-rgb), 0.28) !important;
+  border-radius: 999px !important;
+  padding: 0.28rem 0.72rem !important;
+  font-size: 0.82rem !important;
+  line-height: 1.35 !important;
+}}
+body.tt-pdf-export .tpl-colored-header .tpl-ch-lang-name {{
+  font-weight: 600 !important;
+}}
+body.tt-pdf-export .tpl-colored-header .tpl-ch-lang-level {{
+  opacity: 0.78 !important;
+  font-size: 0.78rem !important;
+}}
+body.tt-pdf-export .tpl-colored-header .tpl-sec--full {{
+  display: block !important;
+  width: 100% !important;
+}}
+body.tt-pdf-export .tpl-ch-contact-row {{
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 0 1rem !important;
+  width: 100% !important;
+}}
+body.tt-pdf-export .tpl-colored-header .tpl-ch-contact-row .tpl-contact-item {{
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+}}
+body.tt-pdf-export .tpl-colored-header .tpl-ch-contact-row .tpl-contact-icon {{
+  color: var(--resume-accent-text, #ffffff) !important;
+}}
+body.tt-pdf-export .tpl-colored-header .tpl-ch-contact-row .tpl-contact-text {{
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}}
+body.tt-pdf-export .tpl-ch-row--bottom {{
+  width: 100% !important;
+}}
+body.tt-pdf-export .tpl-ch-lang-list {{
+  display: block !important;
+  line-height: 1.7;
+}}
+body.tt-pdf-export .tpl-ch-lang-chip {{
+  display: inline-block !important;
+  vertical-align: top;
+  margin: 0 0.35rem 0.35rem 0 !important;
+}}
+body.tt-pdf-export .tpl-ch-stack {{
+  display: block !important;
+  width: 100% !important;
+  min-height: auto !important;
+}}
+body.tt-pdf-export .tpl-ch-subsec {{
+  display: block !important;
+}}
+body.tt-pdf-export .tpl-ch-subsec {{
+  width: 100% !important;
+  margin-bottom: 0.85rem !important;
+}}
+body.tt-pdf-export .tpl-ch-subsec:last-child {{
+  margin-bottom: 0 !important;
 }}
 body.tt-pdf-export .tpl-ms-grid {{
-  display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
-  gap: 1rem !important;
+  display: block !important;
   width: 100% !important;
+  padding: 1.25rem 1.1rem 1.5rem !important;
+  box-sizing: border-box !important;
+}}
+body.tt-pdf-export .tpl-ms-row {{
+  display: block !important;
+  width: 100% !important;
+  overflow: hidden !important;
+  margin-bottom: 1rem !important;
+}}
+body.tt-pdf-export .tpl-ms-row::after {{
+  content: "" !important;
+  display: table !important;
+  clear: both !important;
+}}
+body.tt-pdf-export .tpl-ms-row > .tpl-sec {{
+  display: block !important;
+  float: left !important;
+  width: 49% !important;
+  max-width: 49% !important;
+  min-width: auto !important;
+  box-sizing: border-box !important;
+  padding-right: 0.65rem !important;
+  overflow: visible !important;
+}}
+body.tt-pdf-export .tpl-ms-row > .tpl-sec:last-child {{
+  float: right !important;
+  padding-right: 0 !important;
+  padding-left: 0.65rem !important;
+}}
+body.tt-pdf-export .tpl-ms-row > .tpl-sec:only-child {{
+  float: none !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+}}
+body.tt-pdf-export .tpl-ms-grid > .tpl-sec.tpl-ms-span2,
+body.tt-pdf-export .tpl-ms-span2 {{
+  display: block !important;
+  clear: both !important;
+  float: none !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: auto !important;
+  margin-bottom: 1rem !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}}
+body.tt-pdf-export .tpl-modern-split {{
+  display: block !important;
+  min-height: auto !important;
+  width: 100% !important;
+}}
+body.tt-pdf-export .tpl-ms-top {{
+  display: block !important;
+  width: 100% !important;
+  background: var(--resume-accent) !important;
+  color: var(--resume-accent-text, #ffffff) !important;
+  padding: 1.15rem 1.25rem !important;
+  box-sizing: border-box !important;
+}}
+body.tt-pdf-export .tpl-ms-brand {{
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 1rem !important;
+}}
+body.tt-pdf-export .tpl-ms-photo {{
+  flex-shrink: 0 !important;
+  width: 72px !important;
+  height: 72px !important;
+}}
+body.tt-pdf-export .tpl-ms-contact-row {{
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 0 1rem !important;
+  width: 100% !important;
+  margin-top: 0.75rem !important;
+}}
+body.tt-pdf-export .tpl-modern-split .tpl-ms-contact-row .tpl-contact-item {{
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+}}
+body.tt-pdf-export .tpl-modern-split .tpl-ms-contact-row .tpl-contact-icon {{
+  color: var(--resume-accent-text, #ffffff) !important;
+}}
+body.tt-pdf-export .tpl-modern-split .tpl-ms-contact-row .tpl-contact-text {{
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}}
+body.tt-pdf-export .tpl-modern-split .tpl-h2 {{
+  color: var(--resume-accent) !important;
+  border-bottom: 2px solid var(--resume-accent) !important;
+  padding-bottom: 0.3rem !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}}
+body.tt-pdf-export .tpl-modern-split .tpl-p,
+body.tt-pdf-export .tpl-modern-split .tpl-bullets,
+body.tt-pdf-export .tpl-modern-split .tpl-job,
+body.tt-pdf-export .tpl-modern-split .tpl-edu-block,
+body.tt-pdf-export .tpl-modern-split .tpl-cert {{
+  color: #111111 !important;
+  display: block !important;
+  visibility: visible !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}}
+body.tt-pdf-export .tpl-modern-split .tpl-ms-grid > .tpl-sec.tpl-ms-span2:last-child .tpl-p {{
+  margin-top: 0.35rem !important;
+}}
+body.tt-pdf-export .tpl-modern-split .tpl-job-head {{
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  align-items: baseline !important;
+  gap: 0.5rem !important;
+}}
+body.tt-pdf-export .tpl-modern-split .tpl-ms-grid .tpl-sec {{
+  display: block !important;
+  visibility: visible !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
 }}
 body.tt-pdf-export .tpl-ap-grid {{
   display: grid !important;
@@ -1517,36 +2620,147 @@ body.tt-pdf-export .tpl-gg-main {{
   grid-column: 1 / -1 !important;
 }}
 /* WeasyPrint (default): keep CSS grid/flex layouts from prototype */
-body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-classic-sidebar {{
-  display: grid !important;
-  grid-template-columns: 29% 1fr !important;
+body.tt-pdf-export .preview-wrap {{
+  display: block !important;
+  padding: 0 !important;
   width: 100% !important;
-  overflow: visible !important;
+  max-width: 100% !important;
+}}
+body.tt-pdf-export article#resume.resume,
+body.tt-pdf-export article#resume.resume .resume__mount,
+body.tt-pdf-export article#resume.resume .tpl-classic-sidebar {{
+  width: 100% !important;
+  max-width: 100% !important;
+}}
+/* Classic sidebar: table layout fills page width reliably in WeasyPrint/wkhtmltopdf */
+body.tt-pdf-export .tpl-classic-sidebar {{
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  border-collapse: collapse !important;
+  border-spacing: 0 !important;
+}}
+body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-side,
+body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-main {{
+  display: table-cell !important;
+  float: none !important;
+  vertical-align: top !important;
+  margin: 0 !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+}}
+body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-side {{
+  width: 30% !important;
+  padding: 1.15rem 0.85rem !important;
+}}
+body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-main {{
+  width: 70% !important;
+  padding: 1.15rem 1.1rem 1.35rem 1.25rem !important;
+}}
+body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-main .tpl-sec,
+body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-main .tpl-h2,
+body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-main .tpl-p,
+body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-main .tpl-job,
+body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-main .tpl-edu-block,
+body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-main .tpl-cert {{
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}}
+/* Tech focus: table layout fills page width reliably in WeasyPrint/wkhtmltopdf */
+body.tt-pdf-export .tpl-tech-focus {{
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  border-collapse: collapse !important;
+  border-spacing: 0 !important;
+  grid-template-columns: none !important;
+}}
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-side,
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-main {{
+  display: table-cell !important;
+  float: none !important;
+  vertical-align: top !important;
+  margin: 0 !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+}}
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-side {{
+  width: 28% !important;
+  padding: 1rem 0.75rem 1.5rem !important;
+}}
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-main {{
+  width: 72% !important;
+  padding: 0 0.75rem 1.5rem 1rem !important;
+}}
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-main .tpl-sec,
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-main .tpl-h2,
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-main .tpl-p,
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-main .tpl-job,
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-main .tpl-edu-block,
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-main .tpl-cert,
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-head,
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-name,
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-title {{
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-classic-sidebar {{
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
 }}
 body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-classic-sidebar .tpl-cs-side,
 body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-classic-sidebar .tpl-cs-main {{
+  display: table-cell !important;
   float: none !important;
   width: auto !important;
   margin: 0 !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-classic-sidebar .tpl-cs-side {{
+  width: 30% !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-classic-sidebar .tpl-cs-main {{
+  width: 70% !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-tech-focus {{
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-tech-focus .tpl-tf-side,
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-tech-focus .tpl-tf-main {{
+  display: table-cell !important;
+  float: none !important;
+  margin: 0 !important;
+  vertical-align: top !important;
+  box-sizing: border-box !important;
+  max-width: none !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-tech-focus .tpl-tf-side {{
+  width: 28% !important;
+  padding: 1rem 0.75rem 1.5rem !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-tech-focus .tpl-tf-main {{
+  width: 72% !important;
+  padding: 0 0.75rem 1.5rem 1rem !important;
 }}
 body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-professional-border {{
   display: grid !important;
   grid-template-columns: 1fr 28% !important;
   width: 100% !important;
+  align-items: stretch !important;
+  min-height: auto !important;
 }}
 body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-professional-border > .tpl-pb-main,
 body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-professional-border > .tpl-pb-side {{
-  float: none !important;
-  width: auto !important;
-  margin: 0 !important;
-}}
-body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-tech-focus {{
-  display: grid !important;
-  grid-template-columns: 26% 1fr !important;
-  width: 100% !important;
-}}
-body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-tech-focus .tpl-tf-side,
-body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-tech-focus .tpl-tf-main {{
   float: none !important;
   width: auto !important;
   margin: 0 !important;
@@ -1563,38 +2777,82 @@ body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-executive .tpl-ex-main {{
   margin: 0 !important;
 }}
 body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-mz-grid {{
-  display: grid !important;
-  grid-template-columns: 58% 42% !important;
+  display: table !important;
+  table-layout: fixed !important;
   width: 100% !important;
+  min-height: auto !important;
 }}
 body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-mz-grid .tpl-mz-col,
 body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-mz-grid .tpl-mz-aside {{
+  display: table-cell !important;
   float: none !important;
-  width: auto !important;
+  vertical-align: top !important;
+  min-height: auto !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-mz-grid .tpl-mz-col {{
+  width: 58% !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-mz-grid .tpl-mz-aside {{
+  width: 42% !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-magazine {{
+  min-height: auto !important;
+  display: block !important;
 }}
 /* wkhtmltopdf: float columns (grid on div/aside is unreliable) */
 body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-classic-sidebar {{
-  display: block !important;
+  display: table !important;
+  table-layout: fixed !important;
   width: 100% !important;
-  overflow: hidden !important;
 }}
 body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-classic-sidebar::after {{
-  content: "";
-  display: table;
-  clear: both;
+  content: none !important;
+  display: none !important;
 }}
 body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-classic-sidebar .tpl-cs-side {{
-  float: left !important;
-  width: 29% !important;
-  display: block !important;
+  display: table-cell !important;
+  float: none !important;
+  width: 30% !important;
+  vertical-align: top !important;
   box-sizing: border-box !important;
   padding: 1.15rem 0.85rem !important;
 }}
 body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-classic-sidebar .tpl-cs-main {{
-  margin-left: 29% !important;
-  display: block !important;
+  display: table-cell !important;
+  float: none !important;
+  width: 70% !important;
+  margin-left: 0 !important;
+  vertical-align: top !important;
   box-sizing: border-box !important;
-  padding: 1.15rem 1rem 1.35rem !important;
+  max-width: none !important;
+  padding: 1.15rem 1.1rem 1.35rem 1.25rem !important;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-tech-focus {{
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-tech-focus::after {{
+  content: none !important;
+  display: none !important;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-tech-focus .tpl-tf-side {{
+  display: table-cell !important;
+  float: none !important;
+  width: 28% !important;
+  vertical-align: top !important;
+  box-sizing: border-box !important;
+  padding: 1rem 0.75rem 1.5rem !important;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-tech-focus .tpl-tf-main {{
+  display: table-cell !important;
+  float: none !important;
+  width: 72% !important;
+  margin-left: 0 !important;
+  vertical-align: top !important;
+  box-sizing: border-box !important;
+  max-width: none !important;
+  padding: 0 0.75rem 1.5rem 1rem !important;
 }}
 body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-professional-border {{
   display: block !important;
@@ -1614,28 +2872,6 @@ body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-professional-border > .tp
 body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-professional-border > .tpl-pb-side {{
   float: right !important;
   width: 28% !important;
-  display: block !important;
-  box-sizing: border-box !important;
-}}
-body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-tech-focus {{
-  display: block !important;
-  width: 100% !important;
-  overflow: hidden !important;
-}}
-body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-tech-focus::after {{
-  content: "";
-  display: table;
-  clear: both;
-}}
-body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-tech-focus .tpl-tf-side {{
-  float: left !important;
-  width: 26% !important;
-  display: block !important;
-  box-sizing: border-box !important;
-  padding: 1rem 0.75rem 1.5rem !important;
-}}
-body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-tech-focus .tpl-tf-main {{
-  margin-left: 26% !important;
   display: block !important;
   box-sizing: border-box !important;
 }}
@@ -1709,21 +2945,314 @@ body.tt-pdf-export .tpl-geo-split {{
   grid-template-columns: 1fr 1fr !important;
   width: 100% !important;
 }}
+body.tt-pdf-export .tpl-geometric {{
+  min-height: auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  padding-bottom: 1.5rem !important;
+}}
+body.tt-pdf-export .tpl-geo-head {{
+  display: flex !important;
+  align-items: center !important;
+  gap: 1.25rem !important;
+  padding: 1.5rem 1.75rem !important;
+  border-left: 6px solid var(--resume-accent) !important;
+  background: rgba(var(--accent-rgb), 0.15) !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+}}
+body.tt-pdf-export .tpl-geo-text {{
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}}
+body.tt-pdf-export .tpl-geo-title {{
+  margin: 0.25rem 0 0 !important;
+  font-weight: 600 !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}}
+body.tt-pdf-export .tpl-geometric .tpl-geo-contact-row {{
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 0 0.1rem !important;
+  margin: 0.5rem 0 0 !important;
+  font-size: 0.85rem !important;
+  color: #6b7280 !important;
+  width: 100% !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}}
+body.tt-pdf-export .tpl-geometric .tpl-geo-head + .tpl-sec {{
+  margin-top: 1.25rem !important;
+}}
+body.tt-pdf-export .tpl-geo-photo {{
+  width: 88px !important;
+  height: 88px !important;
+  flex-shrink: 0 !important;
+  border-radius: 8px !important;
+  border: 3px solid var(--resume-accent) !important;
+  object-fit: cover !important;
+}}
+body.tt-pdf-export .tpl-geo-name {{
+  color: var(--resume-accent) !important;
+}}
+body.tt-pdf-export .tpl-geo-h2 {{
+  display: inline-block !important;
+  background: var(--resume-accent) !important;
+  color: var(--resume-accent-text, #ffffff) !important;
+  padding: 0.25rem 0.85rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+}}
+body.tt-pdf-export .tpl-geo-layout {{
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0 1.75rem !important;
+  box-sizing: border-box !important;
+  border-collapse: collapse !important;
+  border-spacing: 0 !important;
+  page-break-inside: auto !important;
+  break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-geo-main,
+body.tt-pdf-export .tpl-geo-aside {{
+  display: table-cell !important;
+  float: none !important;
+  vertical-align: top !important;
+  margin: 0 !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}}
+body.tt-pdf-export .tpl-geo-main {{
+  width: 66% !important;
+  padding-right: 1rem !important;
+}}
+body.tt-pdf-export .tpl-geo-aside {{
+  width: 34% !important;
+  background: rgba(var(--accent-rgb), 0.07) !important;
+  border-left: 4px solid var(--resume-accent) !important;
+  padding: 1rem 1rem 1.25rem !important;
+  text-align: left !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}}
+body.tt-pdf-export .tpl-geo-aside .tpl-geo-h2 {{
+  display: inline-block !important;
+  text-align: left !important;
+}}
+body.tt-pdf-export .tpl-geo-pills {{
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  gap: 0.35rem !important;
+  width: 100% !important;
+}}
+body.tt-pdf-export .tpl-geo-pills .tpl-pill {{
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  visibility: visible !important;
+  margin: 0 !important;
+  min-height: 1.65rem !important;
+  padding: 0.28rem 0.75rem !important;
+  line-height: 1.2 !important;
+  text-align: center !important;
+  box-sizing: border-box !important;
+  vertical-align: middle !important;
+}}
+body.tt-pdf-export .tpl-geometric .tpl-sec {{
+  padding: 0 1.75rem !important;
+  display: block !important;
+  visibility: visible !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}}
+body.tt-pdf-export .tpl-geometric .tpl-geo-main .tpl-sec {{
+  padding: 0 !important;
+}}
+body.tt-pdf-export .tpl-geometric .tpl-geo-contact-row .tpl-contact-item {{
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.3rem !important;
+  flex: 0 0 auto !important;
+  vertical-align: middle !important;
+}}
+body.tt-pdf-export .tpl-geometric .tpl-geo-contact-row .tpl-contact-icon {{
+  color: #6b7280 !important;
+  flex-shrink: 0 !important;
+  margin-top: 0 !important;
+}}
+body.tt-pdf-export .tpl-geometric .tpl-geo-contact-row .tpl-contact-text {{
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}}
+body.tt-pdf-export .tpl-geometric .tpl-geo-contact .tpl-contact-item {{
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.3rem !important;
+  vertical-align: middle !important;
+}}
+body.tt-pdf-export .tpl-geometric .tpl-geo-contact .tpl-contact-icon {{
+  color: #6b7280 !important;
+  flex-shrink: 0 !important;
+}}
+body.tt-pdf-export .tpl-geometric .tpl-p,
+body.tt-pdf-export .tpl-geometric .tpl-job,
+body.tt-pdf-export .tpl-geometric .tpl-edu-block,
+body.tt-pdf-export .tpl-geometric .tpl-cert,
+body.tt-pdf-export .tpl-geometric .tpl-bullets {{
+  display: block !important;
+  visibility: visible !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}}
+body.tt-pdf-export .tpl-geometric .tpl-geo-main .tpl-sec {{
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-geo-layout {{
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-geo-main,
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-geo-aside {{
+  display: table-cell !important;
+  float: none !important;
+  margin: 0 !important;
+  vertical-align: top !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-geo-main {{
+  width: 66% !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-geo-aside {{
+  width: 34% !important;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-geo-layout {{
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-geo-main,
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-geo-aside {{
+  display: table-cell !important;
+  float: none !important;
+  margin: 0 !important;
+  vertical-align: top !important;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-geo-main {{
+  width: 66% !important;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-geo-aside {{
+  width: 34% !important;
+}}
 body.tt-pdf-export .tpl-sec--half,
 body.tt-pdf-export .tpl-ch-body,
 body.tt-pdf-export .tpl-ch-row > *,
-body.tt-pdf-export .tpl-ms-grid > *,
 body.tt-pdf-export .tpl-pb-main,
 body.tt-pdf-export .tpl-pb-side,
 body.tt-pdf-export .tpl-cs-side,
 body.tt-pdf-export .tpl-cs-main {{
   min-width: 0 !important;
-  max-width: 100% !important;
   overflow: visible !important;
   box-sizing: border-box !important;
 }}
+body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-main {{
+  max-width: none !important;
+}}
 body.tt-pdf-export .tpl-ch-body {{
   padding: 1.25rem 1.1rem 1.5rem !important;
+}}
+body.tt-pdf-export .tpl-professional-border .tpl-pb-main {{
+  min-width: auto !important;
+  max-width: none !important;
+  overflow: visible !important;
+  padding-bottom: 1.5rem !important;
+}}
+body.tt-pdf-export .tpl-professional-border .tpl-pb-side {{
+  min-width: auto !important;
+  min-height: auto !important;
+  overflow: visible !important;
+}}
+body.tt-pdf-export .tpl-professional-border .tpl-pb-main .tpl-sec:last-child {{
+  margin-bottom: 0 !important;
+  page-break-inside: avoid !important;
+}}
+body.tt-pdf-export .tpl-pb-contact-row {{
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 0 1rem !important;
+  width: 100% !important;
+}}
+body.tt-pdf-export .tpl-professional-border .tpl-pb-contact-row .tpl-contact-item {{
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+}}
+body.tt-pdf-export .tpl-professional-border .tpl-pb-contact-row .tpl-contact-icon {{
+  color: var(--resume-accent) !important;
+}}
+body.tt-pdf-export .tpl-professional-border .tpl-pb-contact-row .tpl-contact-text {{
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}}
+body.tt-pdf-export .tpl-professional-border .tpl-h2,
+body.tt-pdf-export .tpl-professional-border .tpl-p,
+body.tt-pdf-export .tpl-professional-border .tpl-job,
+body.tt-pdf-export .tpl-professional-border .tpl-edu-block,
+body.tt-pdf-export .tpl-professional-border .tpl-cert,
+body.tt-pdf-export .tpl-professional-border .tpl-bullets,
+body.tt-pdf-export .tpl-professional-border .tpl-pb-h3 {{
+  color: #111111 !important;
+  display: block !important;
+  visibility: visible !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}}
+body.tt-pdf-export .tpl-professional-border .tpl-pb-main {{
+  overflow: visible !important;
+  padding-bottom: 2rem !important;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-professional-border {{
+  overflow: visible !important;
+}}
+body.tt-pdf-export .tpl-bold-header .tpl-bh-body .tpl-h2 {{
+  color: var(--resume-accent) !important;
+  border-bottom: 2px solid var(--resume-accent) !important;
+  padding-bottom: 0.3rem !important;
+}}
+body.tt-pdf-export .tpl-bold-header .tpl-bh-body .tpl-p,
+body.tt-pdf-export .tpl-bold-header .tpl-bh-body .tpl-bullets,
+body.tt-pdf-export .tpl-bold-header .tpl-bh-body .tpl-job,
+body.tt-pdf-export .tpl-bold-header .tpl-bh-body .tpl-edu-block,
+body.tt-pdf-export .tpl-bold-header .tpl-bh-body .tpl-cert {{
+  color: #111111 !important;
+  display: block !important;
+  visibility: visible !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}}
+body.tt-pdf-export .tpl-bold-header .tpl-bh-bar {{
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+  color: #ffffff !important;
+}}
+body.tt-pdf-export .tpl-bold-header .tpl-bh-name,
+body.tt-pdf-export .tpl-bold-header .tpl-bh-title,
+body.tt-pdf-export .tpl-bold-header .tpl-bh-contact {{
+  color: #ffffff !important;
 }}
 body.tt-pdf-export .tpl-h2,
 body.tt-pdf-export .tpl-p,
@@ -1731,6 +3260,250 @@ body.tt-pdf-export .tpl-bullets,
 body.tt-pdf-export .tpl-job {{
   overflow-wrap: anywhere !important;
   word-break: break-word !important;
+}}
+body.tt-pdf-export .tpl-min-contact-row {{
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 0 1.1rem !important;
+  width: 100% !important;
+  line-height: 1.45;
+}}
+body.tt-pdf-export .tpl-min-contact-row .tpl-contact-item {{
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  flex-shrink: 0 !important;
+  align-items: center !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+}}
+body.tt-pdf-export .tpl-min-contact-row .tpl-contact-icon {{
+  margin-top: 0 !important;
+}}
+body.tt-pdf-export .tpl-min-contact-row .tpl-contact-text {{
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}}
+body.tt-pdf-export .tpl-min-tags {{
+  display: block !important;
+  line-height: 1.6;
+}}
+body.tt-pdf-export .tpl-min-tags .tpl-pill {{
+  display: inline-block !important;
+  vertical-align: top;
+  margin: 0 0.35rem 0.35rem 0 !important;
+}}
+body.tt-pdf-export .tpl-cs-contact .tpl-contact-item {{
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 0.35rem !important;
+  max-width: 100% !important;
+}}
+body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-contact .tpl-contact-icon {{
+  color: var(--resume-accent-text, #ffffff) !important;
+  flex-shrink: 0 !important;
+  margin-top: 1px !important;
+}}
+body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-contact .tpl-contact-icon svg {{
+  fill: currentColor !important;
+}}
+/* PDF engines: inline SVG contact icons often fail — show text fallbacks instead */
+body.tt-pdf-export .tpl-contact-icon svg {{
+  display: none !important;
+}}
+body.tt-pdf-export .tpl-contact-icon .tpl-contact-fallback {{
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  width: 0.9rem !important;
+  height: 0.9rem !important;
+  min-width: 0.9rem !important;
+  min-height: 0.9rem !important;
+  flex: 0 0 auto !important;
+}}
+body.tt-pdf-export .tpl-contact-fallback {{
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 0.68rem !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  width: 0.85rem !important;
+  height: 0.85rem !important;
+  flex: 0 0 auto !important;
+}}
+body.tt-pdf-export .tpl-contact-icon-img {{
+  display: inline-block !important;
+  width: 0.85rem !important;
+  height: 0.85rem !important;
+  flex: 0 0 auto !important;
+}}
+body.tt-pdf-export .tpl-bh-contact-row {{
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 0 1rem !important;
+  width: 100% !important;
+  margin-top: 0.5rem !important;
+}}
+body.tt-pdf-export .tpl-bold-header .tpl-bh-contact-row .tpl-contact-item {{
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+}}
+body.tt-pdf-export .tpl-bold-header .tpl-bh-contact-row .tpl-contact-icon,
+body.tt-pdf-export .tpl-bold-header .tpl-bh-contact-row .tpl-contact-fallback {{
+  color: #ffffff !important;
+}}
+body.tt-pdf-export .tpl-bold-header .tpl-bh-contact-row .tpl-contact-text {{
+  color: #ffffff !important;
+  white-space: nowrap !important;
+}}
+body.tt-pdf-export article#resume.resume {{
+  max-width: none !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}}
+body.tt-pdf-export article#resume.resume .tpl-tech-focus {{
+  width: 100% !important;
+  max-width: 100% !important;
+}}
+body.tt-pdf-export article#resume.resume.pdf-exporting .tpl-tech-focus .tpl-tf-main {{
+  display: table-cell !important;
+  float: none !important;
+  width: 72% !important;
+  margin-left: 0 !important;
+  max-width: none !important;
+}}
+body.tt-pdf-export article#resume.resume.pdf-exporting .tpl-tech-focus .tpl-tf-side {{
+  display: table-cell !important;
+  float: none !important;
+  width: 28% !important;
+  margin-left: 0 !important;
+}}
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-side {{
+  background: #e5e7eb !important;
+  overflow: visible !important;
+}}
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-main {{
+  overflow: visible !important;
+}}
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-contact .tpl-contact-item {{
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 0.35rem !important;
+  max-width: 100% !important;
+}}
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-contact .tpl-contact-icon {{
+  color: var(--resume-accent) !important;
+  flex-shrink: 0 !important;
+}}
+body.tt-pdf-export .tpl-tech-focus .tpl-skill-bar {{
+  display: block !important;
+  height: 6px !important;
+  background: #d1d5db !important;
+  border-radius: 999px !important;
+  overflow: hidden !important;
+}}
+body.tt-pdf-export .tpl-tech-focus .tpl-skill-bar span {{
+  display: block !important;
+  height: 100% !important;
+  background: var(--resume-accent) !important;
+  border-radius: 999px !important;
+}}
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-main .tpl-h2 {{
+  color: var(--resume-accent) !important;
+  border-bottom: 2px solid var(--resume-accent) !important;
+  padding-bottom: 0.3rem !important;
+}}
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-main .tpl-p,
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-main .tpl-bullets,
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-main .tpl-job,
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-main .tpl-edu-block,
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-main .tpl-cert,
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-name,
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-title {{
+  color: #111111 !important;
+  display: block !important;
+  visibility: visible !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}}
+body.tt-pdf-export .tpl-edu-block strong sup {{
+  font-size: 0.62em !important;
+  vertical-align: super !important;
+  line-height: 0 !important;
+  font-weight: 700 !important;
+}}
+body.tt-pdf-export img[class*="tpl-"],
+body.tt-pdf-export .tpl-photo,
+body.tt-pdf-export .tpl-photo--placeholder,
+body.tt-pdf-export .tpl-photo-initial {{
+  display: block !important;
+  visibility: visible !important;
+}}
+body.tt-pdf-export .tpl-pb-avatar,
+body.tt-pdf-export .tpl-ms-photo,
+body.tt-pdf-export .tpl-avatar,
+body.tt-pdf-export .tpl-cs-side img,
+body.tt-pdf-export .tpl-pb-side img,
+body.tt-pdf-export .tpl-geo-photo,
+body.tt-pdf-export .tpl-au-photo,
+body.tt-pdf-export .tpl-mz-photo,
+body.tt-pdf-export .tpl-ex-photo,
+body.tt-pdf-export .tpl-st-photo,
+body.tt-pdf-export .tpl-nv-photo,
+body.tt-pdf-export .tpl-fo-photo,
+body.tt-pdf-export .tpl-gg-photo {{
+  display: block !important;
+  visibility: visible !important;
+  object-fit: cover !important;
+  max-width: none !important;
+}}
+body.tt-pdf-export .tpl-pb-avatar,
+body.tt-pdf-export img.tpl-pb-avatar {{
+  width: 100px !important;
+  height: 100px !important;
+  border-radius: 50% !important;
+}}
+body.tt-pdf-export .tpl-ms-photo,
+body.tt-pdf-export img.tpl-ms-photo {{
+  width: 72px !important;
+  height: 72px !important;
+  border-radius: 12px !important;
+}}
+body.tt-pdf-export .tpl-avatar,
+body.tt-pdf-export img.tpl-avatar {{
+  width: 88px !important;
+  height: 88px !important;
+  border-radius: 50% !important;
+}}
+body.tt-pdf-export .tpl-photo--placeholder {{
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}}
+body.tt-pdf-export .tpl-photo-initial {{
+  display: block !important;
+  visibility: visible !important;
+  font-size: 1.35rem !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  color: var(--resume-accent) !important;
 }}
 """
 
@@ -1803,6 +3576,17 @@ def build_studio_render_pack(resume, request=None, *, template_override: str | N
     payload = resume_studio_prototype_payload(
         resume, request, ignore_studio_proto_merge=True
     )
+    hobbies = str(payload.get("hobbies") or "").strip()
+    if not hobbies:
+        interests = str(payload.get("interests") or "").strip()
+        if interests:
+            payload = dict(payload)
+            payload["hobbies"] = interests
+    if request is not None:
+        from users.resume_pdf_service import embed_resume_photo_data_uri
+
+        user = getattr(resume, "user", None)
+        payload = embed_resume_photo_data_uri(payload, resume, user, request=request)
     prefs = studio_prefs_from_resume_record(resume)
     tid = (template_override or prefs.get("template") or "classic-sidebar").strip().lower()
     align = (prefs.get("textAlign") or "start").strip().lower()
