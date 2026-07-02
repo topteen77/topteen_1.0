@@ -325,38 +325,82 @@
 
   .parent-dashboard .parent-assessment-report-host .combined-report-wrap {
     margin-top: 0;
-  }
-
-  .parent-dashboard .parent-assessment-report-host .report-shell {
-    padding-left: 0;
-    padding-right: 0;
-    padding-top: 0;
     width: 100%;
     max-width: 100%;
   }
 
-  .parent-dashboard .parent-assessment-report-host .mapping-grid,
-  .parent-dashboard .parent-assessment-report-host .aptitude-analysis-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .parent-dashboard .parent-assessment-report-host .report-shell {
+    padding: 0 !important;
     width: 100%;
+    max-width: 100%;
+  }
+
+  .parent-dashboard .parent-assessment-report-host .report-card {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .parent-dashboard .parent-assessment-report-host .career-dashboard-panel,
+  .parent-dashboard .parent-assessment-report-host .mapping-grid,
+  .parent-dashboard .parent-assessment-report-host .aptitude-analysis-grid,
+  .parent-dashboard .parent-assessment-report-host .aptitude-mapped-grid,
+  .parent-dashboard .parent-assessment-report-host .aptitude-analysis-section,
+  .parent-dashboard .parent-assessment-report-host .aptitude-mapped-section {
+    width: 100%;
+    max-width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .parent-dashboard .parent-assessment-report-host .aptitude-analysis-grid .list-grid {
     grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   }
 
+  .parent-dashboard .parent-assessment-report-host .assessment-timeline-section,
+  .parent-dashboard .parent-assessment-report-host .assessment-deep-dive-section,
+  .parent-dashboard .parent-assessment-report-host .test-list.timeline-grid,
+  .parent-dashboard .parent-assessment-report-host .deep-dive-grid {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .parent-dashboard .parent-assessment-report-host .test-list.timeline-grid,
+  .parent-dashboard .parent-assessment-report-host .deep-dive-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (min-width: 1400px) {
+    .parent-dashboard .parent-assessment-report-host .test-list.timeline-grid,
+    .parent-dashboard .parent-assessment-report-host .deep-dive-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
   @media (max-width: 767.98px) {
     .parent-dashboard .parent-assessment-report-host .mapping-grid,
-    .parent-dashboard .parent-assessment-report-host .aptitude-analysis-grid {
+    .parent-dashboard .parent-assessment-report-host .aptitude-analysis-grid,
+    .parent-dashboard .parent-assessment-report-host .aptitude-mapped-grid,
+    .parent-dashboard .parent-assessment-report-host .career-dashboard-panel,
+    .parent-dashboard .parent-assessment-report-host .test-list.timeline-grid,
+    .parent-dashboard .parent-assessment-report-host .deep-dive-grid {
       grid-template-columns: 1fr;
     }
   }
 
   .parent-dashboard .parent-assessment-report-host .parent-inline-psychometric-dashboard .psych-dashboard-main {
-    padding: 1rem 0 1.25rem;
+    padding: 0 0 1.25rem !important;
     margin-bottom: 0;
     background: transparent;
     box-shadow: none;
+  }
+
+  .parent-dashboard .parent-assessment-report-host .parent-inline-psychometric-dashboard .psych-report-section {
+    margin-bottom: 1rem;
+  }
+
+  .parent-dashboard .parent-assessment-report-host .parent-inline-psychometric-dashboard .psych-section-title {
+    margin-top: 0;
   }
 
   .parent-dashboard .parent-assessment-report-host .class10-combined-report-inline .report-container {

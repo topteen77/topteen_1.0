@@ -1065,7 +1065,7 @@ class ParentStudentAssessmentReportFragmentView(View):
     """
 
     CACHE_TTL_SECONDS = 900  # 15 minutes
-    CACHE_VERSION = "v3"
+    CACHE_VERSION = "v6"
 
     def get(self, request, student_id, *args, **kwargs):
         import logging

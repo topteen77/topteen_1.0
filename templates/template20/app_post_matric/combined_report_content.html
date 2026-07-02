@@ -1,4 +1,4 @@
-<div class="mt-8 combined-report-wrap">
+  <div class="{% if parent_inline_mode %}mt-0{% else %}mt-8{% endif %} combined-report-wrap">
 
 
   {% if not embed_mode %}
@@ -10,7 +10,7 @@
   {% if not parent_inline_mode %}
   <script>window.TTV2_COMBINED_REPORT_USER_ID = "{{ report_student_id }}";</script>
   {% endif %}
-  <main class="container-fluid user-dashboard-container px-0 px-lg-4 px-xl-5 py-4 report-shell" data-report-student-id="{{ report_student_id }}">
+  <main class="container-fluid user-dashboard-container px-0{% if not parent_inline_mode %} px-lg-4 px-xl-5{% endif %}{% if parent_inline_mode %} py-0{% else %} py-4{% endif %} report-shell" data-report-student-id="{{ report_student_id }}">
     {% if not parent_inline_mode %}
     <div class="row justify-content-center {% if embed_mode %}mt-0{% else %}mt-5{% endif %}">
       <div class="col-12">
@@ -108,9 +108,9 @@
         </div>
       </div>
       <!-- hide section -->
-      <div class="mt-4">
-        <div class="timeline-head mb-6">
-          <h3 class="section-title mb-0">Assessment Timeline</h3>
+      <div class="mt-4 assessment-timeline-section">
+        <div class="timeline-head mb-3">
+          <h3 class="section-title mb-0 text-center assessment-timeline-title">Assessment Timeline</h3>
         </div>
         {% if completed_tests %}
         <div class="test-list timeline-grid">
@@ -174,8 +174,8 @@
 
             <!-- hide section -->
 
-      <div class="mt-4">
-        <h3 class="section-title">Assessment Deep Dive</h3>
+      <div class="mt-4 assessment-deep-dive-section">
+        <h3 class="section-title text-center assessment-deep-dive-title">Assessment Deep Dive</h3>
         
       <!-- hide section -->
         <div class="data-status mb-3 d-none">
@@ -593,11 +593,11 @@
       </div>
 
       {% if aptitude_mapping and (aptitude_mapping.clusters or aptitude_mapping.roles or aptitude_mapping.pathways) %}
-      <div class="mt-4">
-        <h3 class="section-title">Aptitude Mapped Opportunities</h3>
+      <div class="mt-4 aptitude-mapped-section">
+        <h3 class="section-title text-center aptitude-mapped-title">Aptitude Mapped Opportunities</h3>
         <p class="muted-small mb-3 d-none">Combination Code: {{ aptitude_mapping.aptitude_code }}{% if
           aptitude_mapping.aptitude_areas %} | Areas: {{ aptitude_mapping.aptitude_areas }}{% endif %}</p>
-        <div class="mapping-grid">
+        <div class="mapping-grid aptitude-mapped-grid">
           <div class="mapping-card">
             <h4>Career Clusters</h4>
             {% set cluster_ns = namespace(items=[], has_items=false) %}

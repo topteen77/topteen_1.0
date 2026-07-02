@@ -1,4 +1,4 @@
-      <div class="psych-dashboard-main pt-9">
+      <div class="psych-dashboard-main{% if not parent_inline_mode|default(false) %} pt-9{% endif %}">
       {% if messages %}
       <div class="mb-4">
         {% for message in messages %}
