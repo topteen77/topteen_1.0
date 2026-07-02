@@ -218,6 +218,7 @@ TEMPLATES = [
                 # 'core.context_processors.set_upg_variables',
                 'topteens.context_processor.globals',
                 'core.ttv2_role_context.ttv2_role_ctx',
+                'users.context_processors.student_scrapbook_hub',
                 'social_django.context_processors.backends',
                 'social_django.context_processors.login_redirect',
             ],

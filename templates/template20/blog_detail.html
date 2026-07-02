@@ -100,6 +100,47 @@
 .blog-content figure figcaption p:last-child {margin: 0;}
 .blog-content figure figcaption p:first-child {margin: 0;}
 .blog-content figure figcaption p:last-child {margin: 0;}
+
+.blog-shortlist-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 27px;
+  border: 1px solid #f6f6f6;
+  background: #ffffffbf;
+  color: #333;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 21px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+.blog-image .blog-shortlist-btn {
+  position: absolute;
+  left: 10px;
+  top: 6px;
+  z-index: 10;
+}
+.blog-shortlist-btn:hover { transform: scale(1.06); }
+.blog-shortlist-btn.is-shortlisted {
+  background: #3f37c9;
+  border-color: #3f37c9;
+  color: #fff;
+}
+.blog-shortlist-btn.is-shortlisted i { color: #fff !important; }
+.blog-shortlist-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+  height: auto;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
 </style>
 
 <!-- Blog Content Section -->
@@ -167,17 +208,17 @@
           </div>
         </div>
 
-        {% if request.user.is_authenticated %}
-        <div class="mt-3 d-none">
+        <div class="mt-3">
           <button id="blogBookmarkBtn"
                   type="button"
-                  class="btn btn-sm {% if is_blog_bookmarked %}btn-success{% else %}btn-outline-success{% endif %}"
-                  data-blog-id="{{ blog.id }}">
-            <i class="bx {% if is_blog_bookmarked %}bxs-bookmark{% else %}bx-bookmark{% endif %}"></i>
-            <span>{% if is_blog_bookmarked %}Bookmarked{% else %}Bookmark{% endif %}</span>
+                  class="blog-shortlist-btn blog-shortlist-inline blog-bookmark-btn{% if request.user.is_authenticated and is_blog_bookmarked %} is-shortlisted{% endif %}"
+                  data-blog-id="{{ blog.id }}"
+                  title="{% if request.user.is_authenticated %}{% if is_blog_bookmarked %}Remove from shortlist{% else %}Shortlist this blog{% endif %}{% else %}Shortlist (login to save){% endif %}"
+                  aria-pressed="{% if request.user.is_authenticated and is_blog_bookmarked %}true{% else %}false{% endif %}">
+            <i class="bx {% if request.user.is_authenticated and is_blog_bookmarked %}bxs-bookmark{% else %}bx-bookmark{% endif %}"></i>
+            <span>{% if request.user.is_authenticated and is_blog_bookmarked %}Shortlisted{% else %}Shortlist{% endif %}</span>
           </button>
         </div>
-        {% endif %}
         
         {% if blog.image %}
         <div class="blog-featured-image">
@@ -294,13 +335,16 @@
               {{ related_blog.category.name|blog_category_display }}
             </a>
             {% endif %}
-            <a href="{{ url('blog:blogdetail', args=[related_blog.slug]) }}">
+            <a href="{{ url('blog:blogdetail', args=[related_blog.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}">
               {% if related_blog.image %}
               <img src="{{ related_blog.image.url }}" alt="{{ related_blog.title }}">
               {% else %}
               <img src="{{ static('images_new/blogs/main-blog.png') }}" alt="{{ related_blog.title }}">
               {% endif %}
             </a>
+            {% with blog=related_blog %}
+            {% include 'template20/includes/blog_shortlist_btn.html' %}
+            {% endwith %}
           </div>
           <div class="blog-content">
             <div class="blog-meta mb-3 d-none">
@@ -540,45 +584,91 @@
     return cookieValue;
   }
 
+  window.PARENT_STUDENT_ID = {% if is_parent_student_context and parent_student_id %}{{ parent_student_id }}{% else %}null{% endif %};
+
+  function showBlogShortlistToast(message, icon) {
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        title: message,
+        icon: icon || 'success',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2000
+      });
+    }
+  }
+
   // Blog bookmark toggle (supports parent->student context via ?student_id=)
   document.addEventListener('DOMContentLoaded', function () {
-    const btn = document.getElementById('blogBookmarkBtn');
-    if (!btn) return;
-    btn.addEventListener('click', function () {
-      const blogId = this.getAttribute('data-blog-id');
-      const csrfToken = getCookie('csrftoken');
-      const params = new URLSearchParams(window.location.search || '');
-      const studentId = params.get('student_id');
-      const targetUrl = (studentId ? ('/parents/student/' + studentId + '/bookmark/blog/') : '{{ url("blog:toggle_blog_bookmark") }}');
-      this.disabled = true;
-      fetch(targetUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'X-CSRFToken': csrfToken,
-          'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: 'blog_id=' + encodeURIComponent(blogId) + '&csrfmiddlewaretoken=' + csrfToken
-      })
-      .then(r => r.json())
-      .then(data => {
-        this.disabled = false;
-        if (!data || !data.success) return;
-        const icon = this.querySelector('i');
-        const text = this.querySelector('span');
-        if (data.bookmarked) {
-          this.classList.remove('btn-outline-success');
-          this.classList.add('btn-success');
-          if (icon) { icon.classList.remove('bx-bookmark'); icon.classList.add('bxs-bookmark'); }
-          if (text) { text.textContent = 'Bookmarked'; }
+    const buttons = document.querySelectorAll('.blog-bookmark-btn');
+    if (!buttons || !buttons.length) return;
+    buttons.forEach(btn => {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        {% if request.user.is_authenticated %}
+        const blogId = this.getAttribute('data-blog-id');
+        const csrfToken = getCookie('csrftoken');
+        const params = new URLSearchParams(window.location.search || '');
+        const studentId = window.PARENT_STUDENT_ID || params.get('student_id');
+        const targetUrl = (studentId ? ('/parents/student/' + studentId + '/bookmark/blog/') : '{{ url("blog:toggle_blog_bookmark") }}');
+        this.disabled = true;
+        fetch(targetUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: 'blog_id=' + encodeURIComponent(blogId) + '&csrfmiddlewaretoken=' + csrfToken
+        })
+        .then(r => r.json())
+        .then(data => {
+          this.disabled = false;
+          if (!data || data.success === false) {
+            showBlogShortlistToast(data && data.message ? data.message : 'Failed to update shortlist', 'error');
+            return;
+          }
+          const icon = this.querySelector('i');
+          const text = this.querySelector('span');
+          const isBookmarked = !!data.bookmarked;
+          if (isBookmarked) {
+            this.classList.add('is-shortlisted');
+            this.setAttribute('aria-pressed', 'true');
+            this.setAttribute('title', 'Remove from shortlist');
+            if (icon) {
+              icon.classList.remove('bx-bookmark');
+              icon.classList.add('bxs-bookmark');
+              icon.style.color = this.classList.contains('blog-shortlist-inline') ? '' : '#28a745';
+            }
+            if (text) { text.textContent = 'Shortlisted'; }
+            showBlogShortlistToast(data.message || 'Blog shortlisted', 'success');
+          } else {
+            this.classList.remove('is-shortlisted');
+            this.setAttribute('aria-pressed', 'false');
+            this.setAttribute('title', 'Shortlist this blog');
+            if (icon) {
+              icon.classList.remove('bxs-bookmark');
+              icon.classList.add('bx-bookmark');
+              icon.style.color = 'inherit';
+            }
+            if (text) { text.textContent = 'Shortlist'; }
+            showBlogShortlistToast(data.message || 'Removed from shortlist', 'success');
+          }
+        })
+        .catch(() => {
+          this.disabled = false;
+          showBlogShortlistToast('Failed to update shortlist', 'error');
+        });
+        {% else %}
+        if (typeof window.showLoginRequiredPopup === 'function') {
+          window.showLoginRequiredPopup();
         } else {
-          this.classList.remove('btn-success');
-          this.classList.add('btn-outline-success');
-          if (icon) { icon.classList.remove('bxs-bookmark'); icon.classList.add('bx-bookmark'); }
-          if (text) { text.textContent = 'Bookmark'; }
+          window.location.href = '{{ url("student_login") }}';
         }
-      })
-      .catch(() => { this.disabled = false; });
+        {% endif %}
+      });
     });
   });
 

@@ -183,6 +183,8 @@
 </section>
 <!-- Hero Section -->
 
+{% include "template20/includes/parent_suggested_section.html" %}
+
 <!-- Videos Section -->
 <section class="pb-10">
   <div class="container">
@@ -273,11 +275,11 @@
                               class="btn btn-sm btn-light video-shortlist-btn {% if bookmarked_video_ids and video.id in bookmarked_video_ids %}bookmarked{% endif %}"
                               onclick="shortlistVideo('{{ video.id }}')"
                               id="shortlist_{{ video.id }}"
-                              title="{% if bookmarked_video_ids and video.id in bookmarked_video_ids %}Remove bookmark{% else %}Add bookmark{% endif %}"
+                              title="{% if bookmarked_video_ids and video.id in bookmarked_video_ids %}Remove from shortlist{% else %}Shortlist this video{% endif %}"
                               aria-pressed="{% if bookmarked_video_ids and video.id in bookmarked_video_ids %}true{% else %}false{% endif %}"
                               data-bookmarked="{% if bookmarked_video_ids and video.id in bookmarked_video_ids %}1{% else %}0{% endif %}">
                         <i class="bx {% if bookmarked_video_ids and video.id in bookmarked_video_ids %}bxs{% else %}bx{% endif %}-bookmark "></i>
-                        <span class="shortlist-text">{% if bookmarked_video_ids and video.id in bookmarked_video_ids %}Bookmarked{% else %}Bookmark{% endif %}</span>
+                        <span class="shortlist-text">{% if bookmarked_video_ids and video.id in bookmarked_video_ids %}Shortlisted{% else %}Shortlist{% endif %}</span>
                       </button>
                     </div>
                     {% endif %}
@@ -912,29 +914,34 @@ function shortlistVideo(videoId) {
     const icon = btnEl.querySelector('i');
     const textEl = btnEl.querySelector('.shortlist-text');
     // server may return different signals; preserve existing checks and allow for explicit bookmarked flag
-    const isBookmarked = (data.message === 'Video Shortlisted') || (data.success === 'true' || data.success === true) || (data.bookmarked === true);
+    const isBookmarked = (
+      data.message === 'Video Shortlisted'
+      || data.message === 'Video shortlisted'
+      || data.success === 'true'
+      || data.success === true
+      || data.bookmarked === true
+    );
 
     if (isBookmarked) {
       if (icon) { icon.classList.remove('bx-bookmark'); icon.classList.add('bxs-bookmark'); }
       // Add bookmarked + active state for consistent UI
       btnEl.classList.add('bookmarked', 'active');
-      btnEl.setAttribute('title', 'Remove bookmark');
+      btnEl.setAttribute('title', 'Remove from shortlist');
       btnEl.setAttribute('aria-pressed', 'true');
       btnEl.dataset.bookmarked = '1';
-      if (textEl) textEl.textContent = 'Bookmarked';
+      if (textEl) textEl.textContent = 'Shortlisted';
       if (typeof Swal !== 'undefined') {
-        Swal.fire({ title: 'Bookmarked!', text: 'Video added to bookmarks', icon: 'success', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+        Swal.fire({ title: 'Shortlisted!', text: 'Video added to your shortlist', icon: 'success', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
       }
     } else {
       if (icon) { icon.classList.remove('bxs-bookmark'); icon.classList.add('bx-bookmark'); }
-      // Remove bookmarked + active state
       btnEl.classList.remove('bookmarked', 'active');
-      btnEl.setAttribute('title', 'Add bookmark');
+      btnEl.setAttribute('title', 'Shortlist this video');
       btnEl.setAttribute('aria-pressed', 'false');
       btnEl.dataset.bookmarked = '0';
-      if (textEl) textEl.textContent = 'Bookmark';
+      if (textEl) textEl.textContent = 'Shortlist';
       if (typeof Swal !== 'undefined') {
-        Swal.fire({ title: 'Removed!', text: 'Video removed from bookmarks', icon: 'success', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+        Swal.fire({ title: 'Removed!', text: 'Video removed from shortlist', icon: 'success', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
       }
     }
   })
@@ -942,7 +949,7 @@ function shortlistVideo(videoId) {
     if (btn) btn.disabled = false;
     console.error('Error:', error);
     if (typeof Swal !== 'undefined') {
-      Swal.fire({ title: 'Error!', text: 'Failed to update bookmark', icon: 'error', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+      Swal.fire({ title: 'Error!', text: 'Failed to update shortlist', icon: 'error', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
     }
   });
 }

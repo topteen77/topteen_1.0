@@ -7,6 +7,12 @@
 {% block additionalhead %}
 {{ super() }}
 <link rel="stylesheet" href="{{ static('css/parent-sidebar.css') }}">
+{% include 'template20/app_post_matric/combined_report_styles.html' %}
+{% include 'template20/psychometric/includes/dashboard_styles.html' %}
+<link rel="stylesheet" href="{{ static('css_new/stream-decision-questionnaire.css') }}?v=25">
+<link rel="stylesheet" href="{{ static('css_new/stream-sorter-guidance-report.css') }}" />
+{% include 'template20/includes/student_dashboard_stat_detail_styles.html' %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <style>
 
 .std-shell-main {
@@ -75,42 +81,6 @@
     background: #fff;
   }
 
-  .parent-dashboard .psychometric-card {
-    background: linear-gradient(160deg, #ffffff 0%, #f9fbff 100%);
-    border: 1px solid var(--dash-border-soft);
-    border-radius: 14px;
-    box-shadow: 0 12px 26px rgba(66, 81, 151, 0.1);
-    padding: 14px;
-    height: 100%;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .parent-dashboard .psychometric-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 18px 28px rgba(60, 80, 162, 0.14);
-  }
-
-  .parent-dashboard .psychometric-bar {
-    height: 8px;
-    border-radius: 999px;
-    background: #ecedf3;
-    overflow: hidden;
-  }
-
-  .parent-dashboard .psychometric-bar > span {
-    height: 100%;
-    border-radius: inherit;
-    display: block;
-    background: linear-gradient(90deg, #5c54d4 0%, #34b6f3 100%);
-  }
-
-  .parent-dashboard .psychometric-pill {
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 4px 10px;
-  }
-
   .parent-dashboard .viz-card {
     background: linear-gradient(140deg, #ffffff 0%, #f9fbff 100%);
     border: 1px solid #dfe5fb;
@@ -124,15 +94,6 @@
   .parent-dashboard .viz-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 18px 30px rgba(63, 81, 155, 0.14);
-  }
-
-  .parent-dashboard .alert-item {
-    background: linear-gradient(140deg, #fff8eb 0%, #fffdf8 100%);
-    border: 1px solid #f8deaf;
-    border-left: 4px solid #f2b955;
-    border-radius: 11px;
-    padding: 10px 12px;
-    font-size: 13px;
   }
 
   .parent-dashboard .focus-gradient {
@@ -154,22 +115,6 @@
     color: #4b4f7a;
   }
 
-  .parent-dashboard table.table thead th {
-    border-bottom: 1px solid #dde4fb;
-    color: #495283;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    white-space: nowrap;
-  }
-
-  .parent-dashboard table.table tbody td {
-    border-color: #edf1ff;
-    color: #2f365c;
-    font-size: 13px;
-    vertical-align: middle;
-  }
-
   .parent-dashboard .tile {
     border-radius: 12px;
     border: 1px solid #dde5ff;
@@ -181,102 +126,286 @@
     border-radius: 10px;
   }
 
-  .parent-dashboard #loanCalcBtn {
+  .parent-dashboard .parent-dashboard-sticky {
+    position: sticky;
+    top: 52px;
+    z-index: 102;
+    margin: 0 -0.25rem 16px;
+    padding: 0 0.25rem 8px;
+    background: linear-gradient(180deg, #f4f7ff 0%, #f4f7ff 90%, rgba(244, 247, 255, 0) 100%);
+  }
+
+  .parent-dashboard .parent-dashboard-sticky.is-stuck {
+    box-shadow: 0 6px 18px rgba(76, 94, 177, 0.08);
+    border-bottom: 1px solid rgba(110, 129, 228, 0.12);
+  }
+
+  .parent-dashboard .parent-dashboard-sticky.is-stuck .parent-sticky-intro {
+    display: none;
+  }
+
+  .parent-dashboard .parent-dashboard-sticky.is-stuck .parent-sticky-panel {
+    padding: 8px 12px;
     border-radius: 12px;
-    font-weight: 700;
-    letter-spacing: 0.2px;
-    box-shadow: 0 10px 22px rgba(73, 86, 175, 0.2);
   }
 
-  .parent-dashboard .loan-apply-btn {
-    border: 0;
-    border-radius: 12px;
-    background: linear-gradient(120deg, #16a34a 0%, #0ea5a4 52%, #2563eb 100%);
-    color: #fff;
-    font-weight: 700;
-    letter-spacing: 0.2px;
-    box-shadow: 0 12px 26px rgba(36, 99, 235, 0.28);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
-  }
-
-  .parent-dashboard .loan-apply-btn:hover,
-  .parent-dashboard .loan-apply-btn:focus-visible {
-    color: #fff;
-    transform: translateY(-1px);
-    filter: saturate(1.05);
-    box-shadow: 0 16px 30px rgba(37, 99, 235, 0.34);
-  }
-
-  .parent-dashboard .loan-apply-btn:disabled,
-  .parent-dashboard .loan-apply-btn.disabled {
-    background: linear-gradient(120deg, #b9c2e9 0%, #cad2ee 100%);
-    color: #f5f7ff;
-    box-shadow: none;
-    cursor: not-allowed;
-    opacity: 1;
-  }
-
-  .parent-dashboard #loanResultRow .tile {
+  .parent-dashboard .parent-sticky-panel {
+    background: #fff;
+    border: 1px solid rgba(110, 129, 228, 0.14);
     border-radius: 14px;
-    border: 1px solid #dce3fd;
-    background: linear-gradient(145deg, #ffffff 0%, #f5f8ff 100%);
-    box-shadow: 0 10px 24px rgba(89, 104, 181, 0.12);
-    padding: 13px 14px;
-    position: relative;
-    overflow: hidden;
+    padding: 10px 14px;
+    box-shadow: 0 4px 16px rgba(76, 94, 177, 0.06);
   }
 
-  .parent-dashboard #loanResultRow .tile::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #5c54d4 0%, #20b7e8 60%, #3ecf8e 100%);
-  }
-
-  .parent-dashboard #loanResultRow h5 {
-    font-size: 24px;
-    font-weight: 800;
-    color: #1f2a61;
-    letter-spacing: -0.2px;
-  }
-
-  .parent-dashboard .loan-cta-note {
-    margin-top: 6px;
-    font-size: 12px;
-    color: #5e6696;
-  }
-
-  .parent-dashboard .loan-cta-note i {
-    color: #5c54d4;
-  }
-
-  .parent-dashboard .career-suggestion-list {
+  .parent-dashboard .parent-sticky-intro {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 12px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eef1f8;
   }
 
-  .parent-dashboard .career-suggestion-item {
-    border: 1px solid #dbe4ff;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #ffffff 0%, #f5f8ff 100%);
-    padding: 11px 12px;
-  }
-
-  .parent-dashboard .career-suggestion-title {
-    font-size: 14px;
+  .parent-dashboard .parent-sticky-intro-title {
+    font-size: 17px;
     font-weight: 700;
     color: #25306f;
-    margin: 0 0 2px;
+    margin: 0;
+    line-height: 1.2;
   }
 
-  .parent-dashboard .career-suggestion-meta {
+  .parent-dashboard .parent-sticky-intro-sub {
     font-size: 12px;
-    color: #5f6898;
+    color: #6b7280;
+    margin: 2px 0 0;
+  }
+
+  .parent-dashboard .parent-sticky-select-wrap label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #7c83a8;
+    margin: 0 0 2px;
+    display: block;
+  }
+
+  .parent-dashboard .parent-sticky-select {
+    min-width: 200px;
+    max-width: 280px;
+    font-size: 13px;
+    border-color: #d6ddf6;
+    border-radius: 10px;
+    padding: 6px 10px;
+  }
+
+  .parent-dashboard .parent-sticky-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e8ebf4;
+  }
+
+  .parent-dashboard .parent-sticky-meta-grid {
+    flex: 1 1 520px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .parent-dashboard .parent-sticky-meta-item {
+    background: linear-gradient(135deg, #4f46d2 0%, #3f37c9 55%, #2f2aa8 100%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 12px;
+    padding: 10px 12px;
+    min-width: 0;
+  }
+
+  .parent-dashboard .parent-sticky-meta-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.82);
+    margin-bottom: 4px;
+  }
+
+  .parent-dashboard .parent-sticky-meta-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .parent-dashboard .parent-report-group {
+    margin-bottom: 14px;
+  }
+
+  .parent-dashboard .parent-report-group:last-child {
+    margin-bottom: 0;
+  }
+
+  .parent-dashboard .parent-report-group-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #7c83a8;
+    margin-bottom: 8px;
+  }
+
+  .parent-dashboard .parent-report-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .parent-dashboard .parent-report-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    border-radius: 10px;
+    border: 1px solid #dbe4ff;
+    background: #fff;
+    color: #403fa6;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+
+  .parent-dashboard .parent-report-link:hover {
+    color: #403fa6;
+    border-color: #b8c4f5;
+    box-shadow: 0 4px 12px rgba(76, 94, 177, 0.1);
+  }
+
+  .parent-dashboard .parent-report-link--combined {
+    background: linear-gradient(135deg, #f8f7ff 0%, #eef6ff 100%);
+    border-color: #c4c9f2;
+  }
+
+  .parent-dashboard .parent-report-link i {
+    font-size: 15px;
+  }
+
+  .parent-dashboard .parent-readiness-card {
+    background: linear-gradient(135deg, #fff 0%, #f6fffd 45%, #fff9ef 100%);
+    border: 1px solid #dfe5ff;
+    border-radius: 14px;
+    padding: 16px 18px;
+  }
+
+  .parent-dashboard .parent-empty-note {
+    font-size: 13px;
+    color: #6b7280;
     margin: 0;
+  }
+
+  .parent-dashboard .parent-assessment-report-host {
+    margin-top: 8px;
+  }
+
+  .parent-dashboard .parent-assessment-report-pane[hidden] {
+    display: none !important;
+  }
+
+  .parent-dashboard .parent-assessment-report-host .combined-report-page {
+    min-height: auto;
+    background: transparent;
+    padding-top: 0;
+  }
+
+  .parent-dashboard .parent-assessment-report-host .combined-report-wrap {
+    margin-top: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .parent-dashboard .parent-assessment-report-host .report-shell {
+    padding: 0 !important;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .parent-dashboard .parent-assessment-report-host .report-card {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .parent-dashboard .parent-assessment-report-host .career-dashboard-panel,
+  .parent-dashboard .parent-assessment-report-host .mapping-grid,
+  .parent-dashboard .parent-assessment-report-host .aptitude-analysis-grid,
+  .parent-dashboard .parent-assessment-report-host .aptitude-mapped-grid,
+  .parent-dashboard .parent-assessment-report-host .aptitude-analysis-section,
+  .parent-dashboard .parent-assessment-report-host .aptitude-mapped-section {
+    width: 100%;
+    max-width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .parent-dashboard .parent-assessment-report-host .aptitude-analysis-grid .list-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+
+  .parent-dashboard .parent-assessment-report-host .assessment-timeline-section,
+  .parent-dashboard .parent-assessment-report-host .assessment-deep-dive-section,
+  .parent-dashboard .parent-assessment-report-host .test-list.timeline-grid,
+  .parent-dashboard .parent-assessment-report-host .deep-dive-grid {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .parent-dashboard .parent-assessment-report-host .test-list.timeline-grid,
+  .parent-dashboard .parent-assessment-report-host .deep-dive-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (min-width: 1400px) {
+    .parent-dashboard .parent-assessment-report-host .test-list.timeline-grid,
+    .parent-dashboard .parent-assessment-report-host .deep-dive-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .parent-dashboard .parent-assessment-report-host .mapping-grid,
+    .parent-dashboard .parent-assessment-report-host .aptitude-analysis-grid,
+    .parent-dashboard .parent-assessment-report-host .aptitude-mapped-grid,
+    .parent-dashboard .parent-assessment-report-host .career-dashboard-panel,
+    .parent-dashboard .parent-assessment-report-host .test-list.timeline-grid,
+    .parent-dashboard .parent-assessment-report-host .deep-dive-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .parent-dashboard .parent-assessment-report-host .parent-inline-psychometric-dashboard .psych-dashboard-main {
+    padding: 0 0 1.25rem !important;
+    margin-bottom: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .parent-dashboard .parent-assessment-report-host .parent-inline-psychometric-dashboard .psych-report-section {
+    margin-bottom: 1rem;
+  }
+
+  .parent-dashboard .parent-assessment-report-host .parent-inline-psychometric-dashboard .psych-section-title {
+    margin-top: 0;
+  }
+
+  .parent-dashboard .parent-assessment-report-host .class10-combined-report-inline .report-container {
+    max-width: 100%;
+    padding: 0;
   }
 
   .parent-dashboard .readiness-meter {
@@ -380,13 +509,12 @@
   }
 
   @media (max-width: 991.98px) {
-    .parent-dashboard .parent-page-title {
-      font-size: 24px;
+    .parent-dashboard .parent-sticky-intro-title {
+      font-size: 16px;
     }
 
-    .parent-dashboard .student-cta-actions .btn {
-      flex: 1 1 auto;
-      justify-content: center;
+    .parent-dashboard .parent-sticky-meta-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
@@ -415,342 +543,93 @@
 {% block student_main %}
 <section class="pt-4 px-3 px-lg-4 px-xl-5 mb-4">
   <div class="container-fluid px-0">
-    <div class="parent-overview-card py-3">
-      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
-        <div>
-          <h2 class="parent-page-title fw-700 mb-1">Parent Dashboard</h2>
-          <p class="parent-page-subtitle mb-0">Track student progress, insights, and opportunities in one place.</p>
+    {% if psychometric_students %}
+    <div class="parent-dashboard-sticky" id="parentDashboardSticky">
+      <div class="parent-sticky-panel">
+        <div class="parent-sticky-intro">
+          <div>
+            <h2 class="parent-sticky-intro-title">Parent Dashboard</h2>
+            <p class="parent-sticky-intro-sub">Track assessments and career planning for linked students.</p>
+          </div>
+          <div class="parent-sticky-select-wrap">
+            <label for="studentFocusSelect">Student</label>
+            <select id="studentFocusSelect" class="form-select form-select-sm parent-sticky-select" aria-label="Choose linked student">
+              {% for item in psychometric_students %}
+              <option value="{{ item.student.id }}" {% if selected_student_id and selected_student_id == item.student.id %}selected{% endif %}>
+                {{ item.student.name }} — {{ item.grade_label }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
         </div>
-        <div class="d-flex align-items-center gap-2 flex-wrap">
-          {% if psychometric_students %}
-          <select id="studentFocusSelect" class="form-select form-select-sm" style="min-width:220px;">
-            {% for item in psychometric_students %}
-            <option value="{{ item.student.id }}" {% if selected_student_id and selected_student_id == item.student.id %}selected{% endif %}>
-              {{ item.student.name }} ({{ item.grade_label }})
-            </option>
-            {% endfor %}
-          </select>
-          {% endif %}
+
+        <div class="parent-sticky-bar">
+          <div class="parent-sticky-meta-grid">
+            <div class="parent-sticky-meta-item">
+              <div class="parent-sticky-meta-label">Student Name</div>
+              <div class="parent-sticky-meta-value" id="ctaStudentName">—</div>
+            </div>
+            <div class="parent-sticky-meta-item">
+              <div class="parent-sticky-meta-label">Email ID</div>
+              <div class="parent-sticky-meta-value" id="ctaStudentEmail">—</div>
+            </div>
+            <div class="parent-sticky-meta-item">
+              <div class="parent-sticky-meta-label">Mobile</div>
+              <div class="parent-sticky-meta-value" id="ctaStudentMobile">—</div>
+            </div>
+            <div class="parent-sticky-meta-item">
+              <div class="parent-sticky-meta-label">Class</div>
+              <div class="parent-sticky-meta-value" id="ctaStudentClassText">—</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-
-    {% if psychometric_students %}
-    <div class="student-cta-card mb-4 mt-4">
-      <div class="row g-3 align-items-center">
-        <div class="col-12 col-lg-8">
-          <p class="mb-1 text-white fs-12">Selected student</p>
-          <p class="student-cta-title mb-0" id="ctaStudentName">{{ selected_student.student.name if selected_student else '-' }}</p>
-          <p class="student-cta-subtext mb-0" id="ctaStudentEmail">{{ selected_student.student.email if selected_student else '' }}</p>
-          <div class="student-cta-tags">
-            <span class="student-cta-tag" id="ctaStudentClass">{{ selected_student.grade_label if selected_student else '-' }}</span>
-            <span class="student-cta-tag" id="ctaStudentReadiness">Readiness: {{ selected_student.career_readiness if selected_student else 0 }}%</span>
-            <span class="student-cta-tag" id="ctaStudentStatus">{% if selected_student and selected_student.results_enabled %}Report available{% else %}Report pending{% endif %}</span>
-          </div>
-        </div>
-        <div class="col-12 col-lg-4">
-          <div class="d-flex flex-wrap gap-2 justify-content-lg-end student-cta-actions">
-            <a href="{% if selected_student %}{{ url('parents_student_dashboard', args=[selected_student.student.id]) }}{% else %}#{% endif %}" id="ctaOpenDashboard" class="btn btn-light btn-cta-main">
-              <i class='bx bx-right-arrow-alt me-1'></i>Open Student Dashboard
-            </a>
-            <a href="{% if selected_student %}{{ url('parents_student_view_profile', args=[selected_student.student.id]) }}{% else %}#{% endif %}" id="ctaViewProfile" class="btn btn-outline-light btn-cta-outline">
-              <i class='bx bx-user-circle me-1'></i>View Profile
-            </a>
-            <a href="{% if selected_student %}{{ url('parents_student_results', args=[selected_student.student.id]) }}{% else %}#{% endif %}" id="ctaViewResults" class="btn btn-warning btn-cta-accent {% if not selected_student or not selected_student.results_enabled %}disabled{% endif %}">
-              <i class='bx bx-file-find me-1'></i>View Result
-            </a>
-          </div>
-        </div>
-      </div>
+    {% else %}
+    <div class="parent-overview-card py-3 mb-4">
+      <h2 class="parent-page-title fw-700 mb-1">Parent Dashboard</h2>
+      <p class="parent-page-subtitle mb-0">Link a student account to see progress and recommendations here.</p>
     </div>
     {% endif %}
 
     <div class="parent-students-card">
-      <h3 class="fs-18 fw-700 mb-3">Psychometric Insights (Class 10 & 12)</h3>
-      <div class="row g-3 mb-4">
-        <div class="col-12 col-lg-4">
-          <div class="psychometric-card">
-            <p class="text-muted fs-12 mb-1">Overall Completion</p>
-            <h4 class="fs-28 fw-700 mb-2">{{ psychometric_summary.completion_percent|default(0) }}%</h4>
-            <div class="psychometric-bar mb-2">
-              <span data-progress="{{ psychometric_summary.completion_percent|default(0) }}"></span>
-            </div>
-            <p class="mb-0 fs-12 text-muted">
-              {{ psychometric_summary.tested_students|default(0) }} completed out of
-              {{ psychometric_summary.total_students|default(0) }} linked students
-            </p>
-          </div>
-        </div>
-        <div class="col-6 col-lg-4">
-          <div class="psychometric-card">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <p class="mb-0 fw-600">Class 10</p>
-              <span class="psychometric-pill bg-success-subtle text-success">{{ psychometric_summary.class10.completed|default(0) }}/{{ psychometric_summary.class10.total|default(0) }}</span>
-            </div>
-            <div class="psychometric-bar mb-2">
-              <span data-progress="{{ psychometric_summary.class10.percent|default(0) }}"></span>
-            </div>
-            <p class="mb-0 fs-12 text-muted">Completed: {{ psychometric_summary.class10.completed|default(0) }} | Pending: {{ psychometric_summary.class10.pending|default(0) }}</p>
-          </div>
-        </div>
-        <div class="col-6 col-lg-4">
-          <div class="psychometric-card">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <p class="mb-0 fw-600">Class 12</p>
-              <span class="psychometric-pill bg-info-subtle text-info">{{ psychometric_summary.class12.completed|default(0) }}/{{ psychometric_summary.class12.total|default(0) }}</span>
-            </div>
-            <div class="psychometric-bar mb-2">
-              <span data-progress="{{ psychometric_summary.class12.percent|default(0) }}"></span>
-            </div>
-            <p class="mb-0 fs-12 text-muted">Completed: {{ psychometric_summary.class12.completed|default(0) }} | Pending: {{ psychometric_summary.class12.pending|default(0) }}</p>
-          </div>
-        </div>
-      </div>
-
-      {% if psychometric_students %}
-      <div class="focus-gradient mb-4">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-          <h4 class="fs-18 fw-700 mb-0">Selected Student Focus</h4>
-          <div class="d-flex gap-2 flex-wrap">
-            <span class="focus-chip" id="focusStudentName">{{ selected_student.student.name if selected_student else '-' }}</span>
-            <span class="focus-chip" id="focusStudentClass">{{ selected_student.grade_label if selected_student else '-' }}</span>
-          </div>
-        </div>
-        <p class="fs-12 text-muted mb-2">Career Readiness Score: <strong id="focusReadinessValue">{{ selected_student.career_readiness if selected_student else 0 }}%</strong></p>
-        <div class="readiness-meter">
-          <span id="focusReadinessBar"></span>
-        </div>
-      </div>
-
-      {% endif %}
+      <h3 class="fs-18 fw-700 mb-1">Psychometric insights</h3>
+      <p class="text-muted fs-12 mb-3">Assessment report for the student selected above.</p>
 
       <div class="row g-3 mb-4 mt-1">
         <div class="col-12">
           <div class="viz-card">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <h4 class="fs-16 fw-700 mb-0">Academic Performance Trend (Selected Student)</h4>
-              <span class="text-muted fs-12">Line chart</span>
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+              <!-- <div>
+                <h4 class="fs-16 fw-700 mb-0">Assessment reports</h4>
+                <p class="text-muted fs-12 mb-0" id="testReportsSummary">Individual tests and combined report for the selected student.</p>
+              </div> -->
             </div>
-            <canvas id="academicTrendChart" height="90"></canvas>
-          </div>
-        </div>
-        <div class="col-12 col-lg-6">
-          <div class="viz-card">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <h4 class="fs-16 fw-700 mb-0">Psychometric Profile</h4>
-              <span class="text-muted fs-12">Radar chart</span>
+            <div id="parentAssessmentReportHost" class="parent-assessment-report-host" data-initial-student-id="{{ selected_student_id or '' }}">
+              {% if student_assessment_reports %}
+              {% for report in student_assessment_reports %}
+              <div class="parent-assessment-report-pane" data-student-id="{{ report.student_id }}" data-loaded="{% if report.loaded %}1{% else %}0{% endif %}"{% if selected_student_id != report.student_id %} hidden{% endif %}>
+                {% if report.loaded %}{{ report.html|safe }}{% endif %}
+              </div>
+              {% endfor %}
+              {% else %}
+              <p class="parent-empty-note mb-0">Select a student to load their assessment report.</p>
+              {% endif %}
             </div>
-            <canvas id="psychometricRadarChart" height="220"></canvas>
           </div>
-        </div>
-        <div class="col-12 col-lg-6">
-          <div class="viz-card">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <h4 class="fs-16 fw-700 mb-0">Student Career Suggestions</h4>
-              <span class="text-muted fs-12">Psychometric based</span>
-            </div>
-            <div id="careerSuggestionWrap" class="career-suggestion-list"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="row g-3 mb-4">
-        <div class="col-12 col-lg-6">
-          <div class="viz-card">
-            <h4 class="fs-16 fw-700 mb-2">AI Alerts & Recommendations</h4>
-            {% if ai_alerts %}
-            <div class="d-flex flex-column gap-2" id="aiAlertsWrap">{% for alert in ai_alerts %}<div class="alert-item">{{ alert }}</div>{% endfor %}</div>
-            {% else %}
-            <div class="d-flex flex-column gap-2" id="aiAlertsWrap"></div>
-            {% endif %}
-          </div>
-        </div>
-        <div class="col-12 col-lg-6">
-          <div class="viz-card">
-            <h4 class="fs-16 fw-700 mb-2">Study Abroad Suggestions</h4>
-            {% if study_abroad_options %}
-            <div class="table-responsive">
-              <table class="table table-sm align-middle mb-0">
-                <thead>
-                  <tr>
-                    <th>Country</th>
-                    <th>Top Courses</th>
-                    <th>Estimated Cost (USD)</th>
-                  </tr>
-                </thead>
-                <tbody id="studyAbroadBody">
-                  {% for row in study_abroad_options %}
-                  <tr>
-                    <td>{{ row.country }}</td>
-                    <td>{{ row.recommended_courses|join(', ') }}</td>
-                    <td>${{ row.estimated_cost_usd }}</td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-            {% else %}
-            <div class="table-responsive">
-              <table class="table table-sm align-middle mb-0">
-                <thead>
-                  <tr>
-                    <th>Country</th>
-                    <th>Top Courses</th>
-                    <th>Estimated Cost (USD)</th>
-                  </tr>
-                </thead>
-                <tbody id="studyAbroadBody"></tbody>
-              </table>
-            </div>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-
-      <div class="viz-card mb-4">
-        <h4 class="fs-16 fw-700 mb-3">Education Loan Calculator</h4>
-        <p class="text-muted fs-12 mb-3">Estimate EMI with moratorium interest loading before repayment starts.</p>
-        <div class="row g-3 align-items-end">
-          <div class="col-12 col-md-3">
-            <label class="form-label fs-12 text-muted">Loan Amount</label>
-            <input type="number" class="form-control" id="loanAmount" placeholder="500000" min="1">
-          </div>
-          <div class="col-12 col-md-3">
-            <label class="form-label fs-12 text-muted">Interest Rate % (Annual)</label>
-            <input type="number" class="form-control" id="interestRate" placeholder="10.5" min="0.1" step="0.01">
-          </div>
-          <div class="col-12 col-md-3">
-            <label class="form-label fs-12 text-muted">Loan Tenure (Years)</label>
-            <input type="number" class="form-control" id="tenureYears" placeholder="7" min="1" step="0.5">
-          </div>
-          <div class="col-12 col-md-3">
-            <label class="form-label fs-12 text-muted">Moratorium (Months)</label>
-            <input type="number" class="form-control" id="moratoriumMonths" placeholder="12" min="0" step="1">
-          </div>
-          <div class="col-12 col-md-6">
-            <label class="form-label fs-12 text-muted">Country Preference</label>
-            <select class="form-select" id="loanCountryPreference">
-              <option value="">Select country</option>
-              <option value="USA">USA</option>
-              <option value="Canada">Canada</option>
-              <option value="UK">UK</option>
-              <option value="Australia">Australia</option>
-              <option value="Germany">Germany</option>
-              <option value="Singapore">Singapore</option>
-              <option value="New Zealand">New Zealand</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-        </div>
-        <div class="row g-3 align-items-end mt-1">
-          <div class="col-12 col-md-6">
-            <p class="mb-0 fs-12 text-muted">Moratorium interest is added to principal before EMI starts.</p>
-          </div>
-          <div class="col-12 col-md-3">
-            <button type="button" class="btn custom-button purple-button w-100" id="loanCalcBtn">Calculate EMI</button>
-          </div>
-          <div class="col-12 col-md-3">
-            <button type="button" class="btn w-100 loan-apply-btn" id="loanApplyBtn" data-bs-toggle="modal" data-bs-target="#educationLoanApplyModal" disabled>
-              <i class='bx bx-send me-1'></i>Apply Loan
-            </button>
-            <p class="loan-cta-note mb-0"><i class='bx bx-info-circle me-1'></i>Enabled after EMI calculation</p>
-          </div>
-        </div>
-        <div class="row g-3 mt-1" id="loanResultRow" style="display:none;">
-          <div class="col-12 col-md-4"><div class="tile"><p class="fs-12 text-muted mb-1">EMI</p><h5 class="mb-0" id="emiValue">-</h5></div></div>
-          <div class="col-12 col-md-4"><div class="tile"><p class="fs-12 text-muted mb-1">Total Interest</p><h5 class="mb-0" id="interestValue">-</h5></div></div>
-          <div class="col-12 col-md-4"><div class="tile"><p class="fs-12 text-muted mb-1">Total Payable</p><h5 class="mb-0" id="payableValue">-</h5></div></div>
         </div>
       </div>
 
     </div>
   </div>
 </section>
-
-<div class="modal fade" id="educationLoanApplyModal" tabindex="-1" aria-labelledby="educationLoanApplyModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title fw-700" id="educationLoanApplyModalLabel">Education Loan Application</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form id="educationLoanApplyForm">
-          <div class="row g-3">
-            <div class="col-12 col-md-6">
-              <label class="form-label">Student Name</label>
-              <input type="text" class="form-control" id="loanStudentName" placeholder="Enter student full name" required>
-            </div>
-            <div class="col-12 col-md-6">
-              <label class="form-label">Parent Name</label>
-              <input type="text" class="form-control" id="loanParentName" placeholder="Enter parent full name" required>
-            </div>
-            <div class="col-12 col-md-6">
-              <label class="form-label">Mobile Number</label>
-              <input type="tel" class="form-control" id="loanMobile" placeholder="10 digit mobile number" required>
-            </div>
-            <div class="col-12 col-md-6">
-              <label class="form-label">Email</label>
-              <input type="email" class="form-control" id="loanEmail" placeholder="name@example.com" required>
-            </div>
-            <div class="col-12 col-md-6">
-              <label class="form-label">Institute / College Name</label>
-              <input type="text" class="form-control" id="loanInstitute" placeholder="Enter institute name" required>
-            </div>
-            <div class="col-12 col-md-6">
-              <label class="form-label">Course Name</label>
-              <input type="text" class="form-control" id="loanCourse" placeholder="Enter course name" required>
-            </div>
-            <div class="col-12 col-md-4">
-              <label class="form-label">Requested Amount (INR)</label>
-              <input type="text" class="form-control" id="loanReqAmount" readonly>
-            </div>
-            <div class="col-12 col-md-4">
-              <label class="form-label">Estimated EMI (INR)</label>
-              <input type="text" class="form-control" id="loanReqEmi" readonly>
-            </div>
-            <div class="col-12 col-md-4">
-              <label class="form-label">Repayment Tenure (Years)</label>
-              <input type="text" class="form-control" id="loanReqTenure" readonly>
-            </div>
-            <div class="col-12 col-md-6">
-              <label class="form-label">Country Preference</label>
-              <input type="text" class="form-control" id="loanReqCountry" placeholder="Preferred country" readonly>
-            </div>
-            <div class="col-12">
-              <label class="form-label">Additional Details</label>
-              <textarea class="form-control" id="loanAdditionalDetails" rows="3" placeholder="Share any relevant details (scholarship, co-applicant, collateral, etc.)"></textarea>
-            </div>
-          </div>
-        </form>
-        <div class="alert alert-success mt-3 mb-0 d-none" id="loanApplySuccessMsg">
-          Loan application details captured successfully. Our team will contact you soon.
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary" id="loanSubmitBtn">Submit Application</button>
-      </div>
-    </div>
-  </div>
-</div>
 {% endblock %}
 
 {% block additionaljs %}
 {{ super() }}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script type="application/json" id="studentsDashboardPayload">{{ students_dashboard_payload_json }}</script>
 <script>
   (function () {
-    var bars = document.querySelectorAll('.psychometric-bar > span[data-progress]');
-    bars.forEach(function (bar) {
-      var value = parseInt(bar.getAttribute('data-progress') || '0', 10);
-      if (isNaN(value)) value = 0;
-      if (value < 0) value = 0;
-      if (value > 100) value = 100;
-      bar.style.width = value + '%';
-    });
-
     function parseJsonScript(id) {
       var el = document.getElementById(id);
       if (!el) return null;
@@ -758,177 +637,205 @@
     }
     var studentsPayload = parseJsonScript('studentsDashboardPayload') || [];
     var studentSelect = document.getElementById('studentFocusSelect');
-    var lineChart = null;
-    var radarChart = null;
+    var reportHost = document.getElementById('parentAssessmentReportHost');
+    var initialStudentId = reportHost
+      ? parseInt(reportHost.getAttribute('data-initial-student-id') || '0', 10) || null
+      : null;
+    var activeReportStudentId = null;
+    var activatedReportIds = {};
 
     function byId(id) { return document.getElementById(id); }
-    function clamp(v) {
-      var n = parseInt(v || 0, 10);
-      if (isNaN(n)) n = 0;
-      return Math.min(100, Math.max(0, n));
+
+    function whenChartReady(cb) {
+      if (typeof Chart !== 'undefined') {
+        cb();
+        return;
+      }
+      var attempts = 0;
+      var timer = setInterval(function () {
+        attempts += 1;
+        if (typeof Chart !== 'undefined' || attempts > 80) {
+          clearInterval(timer);
+          cb();
+        }
+      }, 50);
+    }
+
+    function activateInjectedHtml(container) {
+      if (!container) return Promise.resolve();
+      return new Promise(function (resolve) {
+        function runNext() {
+          var pending;
+          try {
+            pending = container.querySelector('script:not([data-parent-activated])');
+          } catch (e) {
+            resolve();
+            return;
+          }
+          if (!pending) {
+            resolve();
+            return;
+          }
+          // Mark first so a failure on this script can never cause an infinite
+          // loop; we always move on to the next pending script.
+          pending.setAttribute('data-parent-activated', '1');
+          try {
+            var scriptType = (pending.getAttribute('type') || '').trim().toLowerCase();
+            var isDeferredReportScript = pending.hasAttribute('data-parent-report-script');
+            if (
+              scriptType
+              && scriptType !== 'text/javascript'
+              && scriptType !== 'module'
+              && !(scriptType === 'text/plain' && isDeferredReportScript)
+            ) {
+              runNext();
+              return;
+            }
+            var src = pending.getAttribute('src') || '';
+            if (src && /chart\.js/i.test(src)) {
+              if (pending.parentNode) pending.remove();
+              whenChartReady(runNext);
+              return;
+            }
+            var newScript = document.createElement('script');
+            Array.prototype.forEach.call(pending.attributes, function (attr) {
+              if (attr.name === 'src' || attr.name === 'type') return;
+              try { newScript.setAttribute(attr.name, attr.value); } catch (e) {}
+            });
+            if (isDeferredReportScript) {
+              newScript.type = 'text/javascript';
+            }
+            if (!pending.parentNode) {
+              runNext();
+              return;
+            }
+            if (src) {
+              newScript.onload = function () {
+                if (newScript.parentNode) newScript.remove();
+                runNext();
+              };
+              newScript.onerror = function () {
+                if (newScript.parentNode) newScript.remove();
+                runNext();
+              };
+              newScript.src = src;
+              pending.parentNode.replaceChild(newScript, pending);
+              return;
+            }
+            newScript.textContent = pending.textContent;
+            // Expose the pane root so injected scripts can scope correctly even
+            // though document.currentScript is null for injected <script> nodes.
+            window.__ttParentReportRoot = container;
+            pending.parentNode.replaceChild(newScript, pending);
+            window.__ttParentReportRoot = null;
+            runNext();
+          } catch (err) {
+            if (window.console && console.error) {
+              console.error('Parent report script activation error', err);
+            }
+            // Never abort the whole report because one script failed.
+            runNext();
+          }
+        }
+        whenChartReady(runNext);
+      });
+    }
+
+    function hostHasReportMarkup(host) {
+      return !!(host && host.querySelector('.parent-assessment-report-pane, .parent-inline-psychometric-dashboard, .parent-inline-assessment-report'));
+    }
+
+    function getReportPane(studentId) {
+      if (!reportHost || !studentId) return null;
+      return reportHost.querySelector('.parent-assessment-report-pane[data-student-id="' + studentId + '"]');
+    }
+
+    function resizeChartsInPane(pane) {
+      if (!pane || typeof Chart === 'undefined') return;
+      pane.querySelectorAll('canvas').forEach(function (canvas) {
+        var chart = Chart.getChart(canvas);
+        if (chart) chart.resize();
+      });
+    }
+
+    function activateAndResize(target, studentId) {
+      if (activatedReportIds[studentId]) {
+        resizeChartsInPane(target);
+        return Promise.resolve();
+      }
+      return activateInjectedHtml(target).then(function () {
+        activatedReportIds[studentId] = true;
+        requestAnimationFrame(function () {
+          resizeChartsInPane(target);
+        });
+      });
+    }
+
+    function fetchAssessmentReport(target, studentId) {
+      target.setAttribute('data-loading', '1');
+      target.innerHTML = '<p class="parent-empty-note mb-0">Loading assessment report...</p>';
+      return fetch('/parents/student/' + studentId + '/assessment-report/', {
+        credentials: 'same-origin',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      })
+        .then(function (response) {
+          if (!response.ok) throw new Error('load failed');
+          return response.text();
+        })
+        .then(function (html) {
+          target.innerHTML = html;
+          target.setAttribute('data-loaded', '1');
+          target.removeAttribute('data-loading');
+          activatedReportIds[studentId] = false;
+          // Activation/chart errors must NOT wipe the already-rendered report,
+          // so swallow them here (the report HTML stays visible either way).
+          return activateAndResize(target, studentId).catch(function (err) {
+            if (window.console && console.error) {
+              console.error('Report activation failed', err);
+            }
+          });
+        })
+        .catch(function () {
+          // Only reached when the fetch itself fails (network / non-2xx).
+          target.removeAttribute('data-loading');
+          target.innerHTML = '<p class="parent-empty-note mb-0">Could not load the assessment report. Please refresh and try again.</p>';
+        });
+    }
+
+    function showAssessmentReport(studentId) {
+      if (!reportHost || !studentId) return Promise.resolve();
+      var panes = reportHost.querySelectorAll('.parent-assessment-report-pane');
+      var target = getReportPane(studentId);
+      if (!target && !panes.length) {
+        activeReportStudentId = null;
+        return Promise.resolve();
+      }
+      panes.forEach(function (pane) {
+        pane.hidden = parseInt(pane.getAttribute('data-student-id'), 10) !== studentId;
+      });
+      if (!target) {
+        activeReportStudentId = null;
+        return Promise.resolve();
+      }
+      activeReportStudentId = studentId;
+      if (target.getAttribute('data-loading') === '1') {
+        return Promise.resolve();
+      }
+      if (target.getAttribute('data-loaded') !== '1') {
+        return fetchAssessmentReport(target, studentId);
+      }
+      return activateAndResize(target, studentId);
     }
 
     function setFocusHeader(student) {
       if (!student) return;
-      if (byId('focusStudentName')) byId('focusStudentName').textContent = student.name || 'Student';
-      if (byId('focusStudentClass')) byId('focusStudentClass').textContent = student.grade_label || 'Class';
-      var readiness = clamp(student.career_readiness);
-      if (byId('focusReadinessValue')) byId('focusReadinessValue').textContent = readiness + '%';
-      if (byId('focusReadinessBar')) byId('focusReadinessBar').style.width = readiness + '%';
-      if (byId('ctaStudentName')) byId('ctaStudentName').textContent = student.name || 'Student';
-      if (byId('ctaStudentEmail')) byId('ctaStudentEmail').textContent = student.email || '';
-      if (byId('ctaStudentClass')) byId('ctaStudentClass').textContent = student.grade_label || 'Class';
-      if (byId('ctaStudentReadiness')) byId('ctaStudentReadiness').textContent = 'Readiness: ' + readiness + '%';
-      if (byId('ctaStudentStatus')) byId('ctaStudentStatus').textContent = student.results_enabled ? 'Report available' : 'Report pending';
-      if (byId('ctaOpenDashboard')) byId('ctaOpenDashboard').setAttribute('href', student.dashboard_url || '#');
-      if (byId('ctaViewProfile')) byId('ctaViewProfile').setAttribute('href', student.profile_url || '#');
-      if (byId('ctaViewResults')) {
-        byId('ctaViewResults').setAttribute('href', student.results_url || '#');
-        if (student.results_enabled) byId('ctaViewResults').classList.remove('disabled');
-        else byId('ctaViewResults').classList.add('disabled');
-      }
-    }
+      var name = student.name || 'Student';
+      var classText = student.class_display || (student.grade_label || '—').replace(/^Class\s+/i, '') || '—';
 
-    function renderAlerts(student) {
-      var wrap = byId('aiAlertsWrap');
-      if (!wrap) return;
-      var recs = (((student || {}).ai_insights || {}).recommendations || []);
-      if (!recs.length) {
-        wrap.innerHTML = '<div class="alert-item">No AI alerts currently. Keep monitoring student activity.</div>';
-        return;
-      }
-      wrap.innerHTML = recs.map(function (x) { return '<div class="alert-item">' + x + '</div>'; }).join('');
-    }
-
-    function renderStudyAbroad(student) {
-      var tbody = byId('studyAbroadBody');
-      if (!tbody) return;
-      var rows = (student && student.study_abroad) ? student.study_abroad : [];
-      if (!rows.length) {
-        tbody.innerHTML = '<tr><td colspan="3" class="text-muted">No data available yet.</td></tr>';
-        return;
-      }
-      tbody.innerHTML = rows.map(function (r) {
-        var courses = (r.recommended_courses || []).join(', ');
-        return '<tr><td>' + (r.country || '-') + '</td><td>' + courses + '</td><td>$' + (r.estimated_cost_usd || 0) + '</td></tr>';
-      }).join('');
-    }
-
-    function renderLine(student) {
-      var lineEl = document.getElementById('academicTrendChart');
-      if (!lineEl || !student) return;
-      if (lineChart) lineChart.destroy();
-      lineChart = new Chart(lineEl, {
-        type: 'line',
-        data: {
-          labels: ['Term 1', 'Term 2', 'Term 3', 'Term 4'],
-          datasets: [
-            {
-              label: (student.name || 'Student') + ' Trend',
-              data: student.academic_trend || [0, 0, 0, 0],
-              borderColor: '#5c54d4',
-              backgroundColor: 'rgba(92,84,212,0.22)',
-              fill: true,
-              tension: 0.35
-            },
-            {
-              label: 'Benchmark',
-              data: [60, 60, 60, 60],
-              borderColor: '#f59e0b',
-              borderDash: [6, 6],
-              pointRadius: 0,
-              tension: 0
-            }
-          ]
-        },
-        options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { y: { min: 0, max: 100 } } }
-      });
-    }
-
-    function renderRadar(student) {
-      var radarEl = document.getElementById('psychometricRadarChart');
-      if (!radarEl || !student) return;
-      if (radarChart) radarChart.destroy();
-      var radar = student.radar || { labels: [], values: [] };
-      radarChart = new Chart(radarEl, {
-        type: 'radar',
-        data: {
-          labels: radar.labels || [],
-          datasets: [{
-            label: 'Psychometric Score',
-            data: radar.values || [],
-            borderColor: '#5c54d4',
-            backgroundColor: 'rgba(92,84,212,0.2)',
-            pointBackgroundColor: '#5c54d4'
-          }]
-        },
-        options: { scales: { r: { beginAtZero: true, max: 100 } } }
-      });
-    }
-
-    function mapDomainToCareers(domain) {
-      var d = String(domain || '').toLowerCase();
-      if (d.indexOf('analytical') !== -1 || d.indexOf('logic') !== -1 || d.indexOf('math') !== -1) {
-        return ['Data Scientist', 'Software Engineer', 'Actuary'];
-      }
-      if (d.indexOf('creative') !== -1 || d.indexOf('design') !== -1 || d.indexOf('art') !== -1) {
-        return ['UI/UX Designer', 'Architect', 'Content Strategist'];
-      }
-      if (d.indexOf('lead') !== -1 || d.indexOf('social') !== -1 || d.indexOf('communication') !== -1) {
-        return ['Business Manager', 'Law Professional', 'Public Relations Specialist'];
-      }
-      if (d.indexOf('science') !== -1 || d.indexOf('research') !== -1 || d.indexOf('bio') !== -1) {
-        return ['Medical Researcher', 'Biotechnologist', 'Clinical Psychologist'];
-      }
-      return ['Career Counselor Review Recommended'];
-    }
-
-    function getPsychometricCareerSuggestions(student) {
-      if (!student) return [];
-      var direct = student.career_suggestions ||
-        (student.ai_insights && student.ai_insights.career_suggestions) ||
-        (student.ai_insights && student.ai_insights.recommended_careers) || [];
-      if (Array.isArray(direct) && direct.length) {
-        return direct.slice(0, 4).map(function (name) {
-          return { title: String(name), reason: 'Suggested from psychometric profile.' };
-        });
-      }
-
-      var radar = student.radar || {};
-      var labels = Array.isArray(radar.labels) ? radar.labels : [];
-      var values = Array.isArray(radar.values) ? radar.values : [];
-      var pairs = [];
-      for (var i = 0; i < labels.length; i++) {
-        pairs.push({ label: labels[i], score: Number(values[i] || 0) });
-      }
-      pairs.sort(function (a, b) { return b.score - a.score; });
-      var top = pairs.slice(0, 2);
-      var out = [];
-      top.forEach(function (item) {
-        var mapped = mapDomainToCareers(item.label);
-        mapped.forEach(function (career) {
-          if (out.length < 4) {
-            out.push({
-              title: career,
-              reason: 'Strong ' + item.label + ' score (' + item.score + '%).'
-            });
-          }
-        });
-      });
-      return out.slice(0, 4);
-    }
-
-    function renderCareerSuggestions(student) {
-      var wrap = byId('careerSuggestionWrap');
-      if (!wrap) return;
-      var suggestions = getPsychometricCareerSuggestions(student);
-      if (!suggestions.length) {
-        wrap.innerHTML = '<div class="career-suggestion-item"><p class="career-suggestion-title">No suggestion available yet</p><p class="career-suggestion-meta">Complete psychometric assessment to unlock personalized careers.</p></div>';
-        return;
-      }
-      wrap.innerHTML = suggestions.map(function (s) {
-        return '<div class="career-suggestion-item"><p class="career-suggestion-title">' + (s.title || '-') + '</p><p class="career-suggestion-meta">' + (s.reason || 'Based on psychometric report.') + '</p></div>';
-      }).join('');
+      if (byId('ctaStudentName')) byId('ctaStudentName').textContent = name;
+      if (byId('ctaStudentEmail')) byId('ctaStudentEmail').textContent = student.email || '—';
+      if (byId('ctaStudentMobile')) byId('ctaStudentMobile').textContent = student.mobile || '—';
+      if (byId('ctaStudentClassText')) byId('ctaStudentClassText').textContent = classText;
     }
 
     function getCurrentStudent() {
@@ -944,98 +851,35 @@
       var student = getCurrentStudent();
       if (!student) return;
       setFocusHeader(student);
-      renderLine(student);
-      renderRadar(student);
-      renderCareerSuggestions(student);
-      renderAlerts(student);
-      renderStudyAbroad(student);
+      showAssessmentReport(parseInt(student.id, 10));
+    }
+
+    function bootParentDashboard() {
+      var student = getCurrentStudent();
+      if (student) setFocusHeader(student);
+      var sid = initialStudentId || (student ? parseInt(student.id, 10) : null);
+      if (sid && getReportPane(sid)) {
+        showAssessmentReport(sid);
+        return;
+      }
+      if (student) renderSelectedStudent();
     }
 
     if (studentSelect) {
       studentSelect.addEventListener('change', renderSelectedStudent);
     }
-    renderSelectedStudent();
-
-    function formatInr(num) {
-      return 'INR ' + Number(num || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bootParentDashboard);
+    } else {
+      bootParentDashboard();
     }
 
-    function getLoanSummary() {
-      var amount = parseFloat((byId('loanAmount') && byId('loanAmount').value) || '0');
-      var annualRate = parseFloat((byId('interestRate') && byId('interestRate').value) || '0');
-      var tenureYears = parseFloat((byId('tenureYears') && byId('tenureYears').value) || '0');
-      var moratorium = parseInt((byId('moratoriumMonths') && byId('moratoriumMonths').value) || '0', 10);
-
-      if (!(amount > 0 && annualRate > 0 && tenureYears > 0) || moratorium < 0 || isNaN(moratorium)) {
-        return { valid: false };
-      }
-
-      var monthlyRate = annualRate / 12 / 100;
-      var tenureMonths = Math.max(1, Math.round(tenureYears * 12));
-
-      // During moratorium, interest accumulates and increases principal.
-      var principalAfterMoratorium = amount * Math.pow(1 + monthlyRate, moratorium);
-      var emi = (principalAfterMoratorium * monthlyRate * Math.pow(1 + monthlyRate, tenureMonths)) /
-        (Math.pow(1 + monthlyRate, tenureMonths) - 1);
-      var totalPayable = emi * tenureMonths;
-      var totalInterest = totalPayable - amount;
-
-      return {
-        valid: true,
-        amount: amount,
-        tenureYears: tenureYears,
-        emi: emi,
-        totalInterest: totalInterest,
-        totalPayable: totalPayable
-      };
-    }
-
-    var loanBtn = byId('loanCalcBtn');
-    var loanApplyBtn = byId('loanApplyBtn');
-    if (loanBtn) {
-      loanBtn.addEventListener('click', function () {
-        var summary = getLoanSummary();
-        if (!summary.valid) {
-          alert('Please enter valid loan amount, interest rate, tenure and moratorium months.');
-          return;
-        }
-        if (byId('loanResultRow')) byId('loanResultRow').style.display = '';
-        if (byId('emiValue')) byId('emiValue').textContent = formatInr(summary.emi);
-        if (byId('interestValue')) byId('interestValue').textContent = formatInr(summary.totalInterest);
-        if (byId('payableValue')) byId('payableValue').textContent = formatInr(summary.totalPayable);
-        if (loanApplyBtn) {
-          loanApplyBtn.disabled = false;
-          loanApplyBtn.classList.add('is-ready');
-        }
-      });
-    }
-
-    if (loanApplyBtn) {
-      loanApplyBtn.addEventListener('click', function () {
-        var summary = getLoanSummary();
-        if (summary.valid) {
-          if (byId('loanReqAmount')) byId('loanReqAmount').value = Math.round(summary.amount).toLocaleString('en-IN');
-          if (byId('loanReqEmi')) byId('loanReqEmi').value = Math.round(summary.emi).toLocaleString('en-IN');
-          if (byId('loanReqTenure')) byId('loanReqTenure').value = summary.tenureYears;
-          if (byId('loanReqCountry')) {
-            byId('loanReqCountry').value = (byId('loanCountryPreference') && byId('loanCountryPreference').value) || '';
-          }
-        }
-      });
-    }
-
-    var loanSubmitBtn = byId('loanSubmitBtn');
-    if (loanSubmitBtn) {
-      loanSubmitBtn.addEventListener('click', function () {
-        var form = byId('educationLoanApplyForm');
-        if (!form) return;
-        if (!form.checkValidity()) {
-          form.reportValidity();
-          return;
-        }
-        if (byId('loanApplySuccessMsg')) byId('loanApplySuccessMsg').classList.remove('d-none');
-        form.reset();
-      });
+    var stickyBar = document.getElementById('parentDashboardSticky');
+    if (stickyBar) {
+      var stickyTop = stickyBar.offsetTop;
+      window.addEventListener('scroll', function () {
+        stickyBar.classList.toggle('is-stuck', window.scrollY > stickyTop - 52);
+      }, { passive: true });
     }
   })();
 </script>

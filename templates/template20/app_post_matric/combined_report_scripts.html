@@ -1,0 +1,818 @@
+{% if not defer_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+{% else %}
+<script type="text/plain" data-parent-report-script>
+{% endif %}
+  (function () {
+    const scriptEl = document.currentScript;
+    const root = (window.__ttParentReportRoot)
+      || (scriptEl && (
+        scriptEl.closest('.parent-inline-assessment-report')
+        || scriptEl.closest('.combined-report-page')
+        || scriptEl.closest('.parent-assessment-report-pane')
+        || scriptEl.closest('[data-report-student-id]')
+      ))
+      || document;
+    const byId = (id) => root.querySelector('#' + id);
+    const qsa = (selector) => root.querySelectorAll(selector);
+
+    const statsEl = byId('report-stats');
+    const chartInstances = [];
+    const chartAvailable = typeof Chart !== 'undefined';
+
+    function createChart(ctx, config) {
+      if (!ctx || !chartAvailable) return null;
+      try {
+        const instance = new Chart(ctx, config);
+        chartInstances.push(instance);
+        return instance;
+      } catch (error) {
+        console.error('Combined report chart render failed', error);
+        return null;
+      }
+    }
+
+    if (!statsEl) return;
+
+    const totalTests = Number(statsEl.dataset.totalTests || 4);
+    const completedTests = Number(statsEl.dataset.completedTests || 0);
+    const pendingTests = Math.max(totalTests - completedTests, 0);
+
+    const above = Number(statsEl.dataset.above || 0);
+    const average = Number(statsEl.dataset.average || 0);
+    const below = Number(statsEl.dataset.below || 0);
+
+    const sourcePersonality = Number(statsEl.dataset.careerPersonality || 0);
+    const sourceRiasec = Number(statsEl.dataset.careerRiasec || 0);
+    const sourceMotivation = Number(statsEl.dataset.careerMotivation || 0);
+    const renderedCareerItems = Array.from(qsa('.career-grid .career-item.recommended'))
+      .map((el) => (el.textContent || '').trim())
+      .filter(Boolean);
+    const totalCareers = new Set(renderedCareerItems).size || (sourcePersonality + sourceRiasec + sourceMotivation);
+
+    const totalCareersEl = byId('careerTotalCount');
+    if (totalCareersEl) totalCareersEl.textContent = String(totalCareers);
+
+    const commonOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 12, usePointStyle: true } }
+      }
+    };
+
+    const completionCtx = byId('completionChart');
+    const completionCenter = byId('completionChartCenter');
+    const completionFraction = byId('completionChartFraction');
+    const allAssessmentsComplete = totalTests > 0 && completedTests >= totalTests;
+
+    if (completionFraction) {
+      completionFraction.textContent = completedTests + '/' + totalTests;
+    }
+    if (completionCenter) {
+      if (allAssessmentsComplete) {
+        completionCenter.classList.add('is-visible');
+        completionCenter.setAttribute('aria-hidden', 'false');
+      } else {
+        completionCenter.classList.remove('is-visible');
+        completionCenter.setAttribute('aria-hidden', 'true');
+      }
+    }
+
+    if (completionCtx) {
+      const completionLabels = allAssessmentsComplete
+        ? ['Completed']
+        : ['Completed', 'Pending'];
+      const completionData = allAssessmentsComplete
+        ? [totalTests]
+        : [completedTests, pendingTests];
+      const completionColors = allAssessmentsComplete
+        ? ['#16a34a']
+        : ['#3f37c9', '#d1d5db'];
+
+      createChart(completionCtx, {
+        type: 'doughnut',
+        data: {
+          labels: completionLabels,
+          datasets: [{
+            data: completionData,
+            backgroundColor: completionColors,
+            borderWidth: 0
+          }]
+        },
+        options: {
+          ...commonOptions,
+          cutout: '68%',
+          plugins: {
+            ...commonOptions.plugins,
+            legend: {
+              position: 'bottom',
+              labels: { boxWidth: 12, usePointStyle: true }
+            },
+            tooltip: {
+              callbacks: {
+                label: function (ctx) {
+                  const label = ctx.label || '';
+                  const value = ctx.parsed || 0;
+                  if (allAssessmentsComplete) {
+                    return label + ': ' + totalTests + ' of ' + totalTests;
+                  }
+                  return label + ': ' + value;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    const aptitudeCtx = byId('aptitudeDistributionChart');
+    if (aptitudeCtx) {
+      createChart(aptitudeCtx, {
+        type: 'bar',
+        data: {
+          labels: ['Above Average', 'Average', 'Growth Area'],
+          datasets: [{
+            label: 'Areas',
+            data: [above, average, below],
+            backgroundColor: ['#16a34a', '#0284c7', '#dc2626'],
+            borderRadius: 8
+          }]
+        },
+        options: {
+          ...commonOptions,
+          scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+        }
+      });
+    }
+
+    const sourceCtx = byId('recommendationSourceChart');
+    if (sourceCtx) {
+      createChart(sourceCtx, {
+        type: 'pie',
+        data: {
+          labels: ['Personality', 'Career Interest', 'Motivation'],
+          datasets: [{
+            data: [sourcePersonality, sourceRiasec, sourceMotivation],
+            backgroundColor: ['#4f46e5', '#0ea5e9', '#10b981'],
+            borderWidth: 0
+          }]
+        },
+        options: commonOptions
+      });
+    }
+
+    function parseResultsJson() {
+      const el = byId('test-results-json');
+      if (!el) return [];
+      try {
+        const parsed = JSON.parse(el.textContent || '[]');
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function extractSeries(input) {
+      if (!input || typeof input !== 'object') return { labels: [], values: [] };
+      const labels = [];
+      const values = [];
+      Object.keys(input).forEach((key) => {
+        const raw = input[key];
+        let value = null;
+        if (typeof raw === 'number') value = raw;
+        else if (raw && typeof raw === 'object' && typeof raw.score === 'number') value = raw.score;
+        if (value !== null && Number.isFinite(value)) {
+          labels.push(String(key));
+          values.push(Number(value));
+        }
+      });
+      return { labels, values };
+    }
+
+    function extractPersonalitySeries(input) {
+      if (!input || typeof input !== 'object') return { labels: [], values: [] };
+
+      const allowed = new Set(['h', 'e', 'x', 'a', 'c', 'o']);
+      const labels = [];
+      const values = [];
+
+      Object.keys(input).forEach((key) => {
+        const normalized = String(key || '').trim().toLowerCase();
+        if (!allowed.has(normalized)) return;
+
+        const raw = input[key];
+        let value = null;
+        if (typeof raw === 'number') value = raw;
+        else if (raw && typeof raw === 'object' && typeof raw.score === 'number') value = raw.score;
+        if (value !== null && Number.isFinite(value)) {
+          labels.push(normalized.toUpperCase());
+          values.push(Number(value));
+        }
+      });
+
+      const orderedLabels = ['H', 'E', 'X', 'A', 'C', 'O'];
+      const combined = labels.map((label, idx) => ({ label, value: values[idx] }))
+        .sort((a, b) => orderedLabels.indexOf(a.label) - orderedLabels.indexOf(b.label));
+
+      return {
+        labels: combined.map((item) => item.label),
+        values: combined.map((item) => item.value)
+      };
+    }
+
+    function extractRiasecSeries(input) {
+      const safeInput = (input && typeof input === 'object') ? input : {};
+      const allowed = new Set(['r', 'i', 'a', 's', 'e', 'c']);
+      const order = ['R', 'I', 'A', 'S', 'E', 'C'];
+      const labelMap = {
+        R: 'Realistic (R)',
+        I: 'Investigative (I)',
+        A: 'Artistic (A)',
+        S: 'Social (S)',
+        E: 'Enterprising (E)',
+        C: 'Conventional (C)'
+      };
+      const valueMap = {};
+      Object.keys(safeInput).forEach((key) => {
+        const normalized = String(key || '').trim().toLowerCase();
+        if (!allowed.has(normalized)) return;
+        const raw = safeInput[key];
+        let value = null;
+        if (typeof raw === 'number') value = raw;
+        else if (raw && typeof raw === 'object' && typeof raw.score === 'number') value = raw.score;
+        if (value !== null && Number.isFinite(value)) valueMap[normalized.toUpperCase()] = Number(value);
+      });
+
+      const items = order.map((key) => ({
+        key,
+        value: Object.prototype.hasOwnProperty.call(valueMap, key) ? valueMap[key] : null
+      }));
+      return {
+        keys: items.map((item) => item.key),
+        labels: items.map((item) => labelMap[item.key] || item.key),
+        values: items.map((item) => item.value)
+      };
+    }
+
+    function updateDataNote(id, text) {
+      const noteEl = byId(id);
+      if (noteEl) noteEl.textContent = text;
+    }
+
+    const personalityColors = ['#c6e1ff', '#99dbfb', '#b9fbee', '#bdfdd4', '#fde185', '#fbc6c6'];
+
+    function updatePersonalityScoreNote(labels, values, colors) {
+      const noteEl = byId('personalityDeepNote');
+      const topEl = byId('personalityTopBlock');
+      if (!noteEl) return;
+      if (!labels.length || !values.length) {
+        noteEl.textContent = 'Personality scores are not available yet.';
+        if (topEl) topEl.textContent = 'Top Personality Dimensions: --';
+        return;
+      }
+      const scored = labels.map((label, idx) => ({
+        label,
+        idx,
+        score: Number(values[idx] || 0)
+      }));
+      const ranked = [...scored].sort((a, b) => b.score - a.score);
+      const fullNameMap = {
+        H: 'Honesty-Humility',
+        E: 'Emotionality',
+        X: 'Extraversion',
+        A: 'Agreeableness',
+        C: 'Conscientiousness',
+        O: 'Openness'
+      };
+
+      const chips = labels
+        .map((label, idx) => {
+          const score = Number(values[idx] || 0);
+          const color = (colors && colors[idx]) || personalityColors[idx] || '#64748b';
+          return `<span class="hexaco-chip" style="background:${color}">${label}: ${score}</span>`;
+        })
+        .join('');
+      noteEl.innerHTML = `<div class="hexaco-scores-line">${chips}</div>`;
+      if (topEl) {
+        const topNames = ranked.slice(0, 2).map((row) => `${fullNameMap[row.label] || row.label} (${row.label})`);
+        topEl.textContent = topNames.length ? `Top Personality Dimensions: ${topNames.join(', ')}` : 'Top Personality Dimensions: --';
+      }
+    }
+
+    const riasecCodeFromContext = "{{ riasec_high_categories|default('', true)|escapejs }}";
+    const riasecOrder = ['R', 'I', 'A', 'S', 'E', 'C'];
+
+    function normalizeRiasecCode(code) {
+      const raw = String(code || '').trim();
+      if (!raw) return '';
+      const labelToCode = {
+        realistic: 'R',
+        investigative: 'I',
+        artistic: 'A',
+        social: 'S',
+        enterprising: 'E',
+        conventional: 'C'
+      };
+
+      const cleaned = raw.replace(/^\[|\]$/g, '').trim();
+      if (/^[RIASEC]+$/i.test(cleaned)) {
+        return cleaned.toUpperCase().slice(0, 3);
+      }
+
+      const maybeList = raw.trim();
+      if (maybeList.startsWith('[') && maybeList.endsWith(']')) {
+        const quotedItems = maybeList
+          .slice(1, -1)
+          .split(',')
+          .map((s) => s.trim().replace(/^['"]|['"]$/g, ''))
+          .filter(Boolean);
+        if (quotedItems.length) {
+          const codes = [];
+          quotedItems.forEach((token) => {
+            const t = token.toLowerCase();
+            let c = '';
+            if (token.length === 1 && /[RIASEC]/i.test(token)) c = token.toUpperCase();
+            else c = labelToCode[t] || '';
+            if (c && !codes.includes(c)) codes.push(c);
+          });
+          return codes.join('').slice(0, 3);
+        }
+      }
+
+      const compact = raw.toUpperCase().replace(/[^RIASEC]/g, '');
+      if (compact && compact.length <= 6) {
+        return Array.from(new Set(compact.split(''))).join('').slice(0, 3);
+      }
+      return '';
+    }
+
+    function getRiasecCodeFromReport(careerResultData, keys, values) {
+      const data = (careerResultData && typeof careerResultData === 'object') ? careerResultData : {};
+      const contextCode = normalizeRiasecCode(riasecCodeFromContext);
+
+      const top3 = data._top_3_categories;
+
+      if (Array.isArray(top3) && top3.length) {
+        const topCode = top3
+          .map((item) => {
+            if (typeof item === 'string') return normalizeRiasecCode(item);
+            if (item && typeof item === 'object') {
+              return normalizeRiasecCode(item.code || item.category || item.dimension || item.label || '');
+            }
+            return '';
+          })
+          .join('')
+          .slice(0, 3);
+        if (topCode) return topCode;
+      }
+
+      if (typeof top3 === 'string' && top3.trim()) {
+        const topCode = normalizeRiasecCode(top3);
+        if (topCode) return topCode;
+      }
+
+      if (contextCode) return contextCode;
+
+      const ranked = keys.map((key, idx) => ({
+        key,
+        score: values[idx] == null ? -Infinity : Number(values[idx])
+      }))
+        .filter((row) => Number.isFinite(row.score))
+        .sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          return riasecOrder.indexOf(a.key) - riasecOrder.indexOf(b.key);
+        })
+        .slice(0, 3)
+        .map((row) => row.key);
+
+      const rankedCode = ranked.join('').slice(0, 3);
+      if (rankedCode) return rankedCode;
+      return contextCode || '';
+    }
+
+    function updateRiasecNote(keys, labels, values, colors, riasecCode) {
+      const noteEl = byId('careerDeepNote');
+      if (!noteEl) return;
+      if (!labels.length || !values.length) {
+        noteEl.textContent = 'Career interest scores are not available yet.';
+        return;
+      }
+
+      const chips = labels.map((label, idx) => {
+        const rawScore = values[idx];
+        const scoreText = (rawScore === null || rawScore === undefined || rawScore === '') ? '' : String(rawScore);
+        const color = colors[idx] || '#334155';
+        return `<span class="riasec-chip" style="background:${color}">${label}: ${scoreText}</span>`;
+      }).join('');
+
+      const codeValue = riasecCode || 'NA';
+      noteEl.innerHTML = `<div class="riasec-note-wrap"><div class="riasec-code-badge">RIASEC Code: ${codeValue}</div><div class="riasec-legend">${chips}</div></div>`;
+    }
+
+    function updateMotivationPrimary(labels, values) {
+      const blockEl = byId('motivationPrimaryBlock');
+      if (!blockEl) return;
+      if (!labels.length || !values.length) {
+        blockEl.textContent = 'Your Primary Motivation: --';
+        return;
+      }
+
+      let maxIdx = 0;
+      let maxScore = Number(values[0] || 0);
+      for (let i = 1; i < values.length; i += 1) {
+        const current = Number(values[i] || 0);
+        if (current > maxScore) {
+          maxScore = current;
+          maxIdx = i;
+        }
+      }
+      const primaryName = labels[maxIdx] || '--';
+      const motivationColorMap = {
+        Social: '#22c55e',
+        Medical: '#6366f1',
+        Business: '#f59e0b',
+        Engineer: '#ef4444'
+      };
+      const chips = labels.map((label, idx) => {
+        const value = Number(values[idx] || 0);
+        const color = motivationColorMap[label] || '#64748b';
+        return `<span class="motivation-chip" style="background:${color}">${label}: ${value}</span>`;
+      }).join('');
+      blockEl.innerHTML = `Your Primary Motivation: ${primaryName}<div class="motivation-score-line">${chips}</div>`;
+    }
+
+    function truncateLabel(label, maxLength) {
+      const text = String(label || '').trim();
+      if (!text) return '';
+      return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+    }
+
+    function normalizeAptitudeName(name) {
+      return String(name || '')
+        .replace(/\breasoning\b/ig, '')
+        .replace(/&/g, 'and')
+        .replace(/[_-]/g, ' ')
+        .replace(/\s{2,}/g, ' ')
+        .trim()
+        .toLowerCase();
+    }
+
+    const aptitudeBandEl = byId('aptitude-band-json');
+    let aptitudeBands = { above: [], average: [], below: [] };
+    if (aptitudeBandEl) {
+      try {
+        aptitudeBands = JSON.parse(aptitudeBandEl.textContent || '{}') || aptitudeBands;
+      } catch (e) {}
+    }
+    const aboveSet = new Set((aptitudeBands.above || []).map(normalizeAptitudeName));
+    const averageSet = new Set((aptitudeBands.average || []).map(normalizeAptitudeName));
+    const belowSet = new Set((aptitudeBands.below || []).map(normalizeAptitudeName));
+
+    // changes required by management (01-Jun-2025): Below Average → Development Areas in UI only; band id 'Below Average' kept for logic/colors
+    function getAptitudeBandByName(name) {
+      const n = normalizeAptitudeName(name);
+      if (aboveSet.has(n)) return 'Above Average';
+      if (averageSet.has(n)) return 'Average';
+      if (belowSet.has(n)) return 'Below Average';
+      return 'Average';
+    }
+
+    function getAptitudeColorByBand(band) {
+      if (band === 'Above Average') return '#16a34a';
+      if (band === 'Below Average') return '#dc2626';
+      return '#0284c7';
+    }
+
+    const resultRecords = parseResultsJson();
+    const recordCountEl = byId('jsonRecordCount');
+    if (recordCountEl) recordCountEl.textContent = String(resultRecords.length);
+
+    const personalityData = resultRecords.find((row) => (row.test_title || '').toLowerCase().includes('personality'));
+    const careerData = resultRecords.find((row) => {
+      const title = (row.test_title || '').toLowerCase();
+      return title.includes('career') || title.includes('interest');
+    });
+    const motivationData = resultRecords.find((row) => (row.test_title || '').toLowerCase().includes('motivation'));
+    const aptitudeData = resultRecords.find((row) => (row.test_title || '').toLowerCase().includes('aptitude'));
+
+    const personalitySeries = extractPersonalitySeries(personalityData ? personalityData.result_data : null);
+    if (personalitySeries.labels.length) {
+      const ctx = byId('personalityDeepChart');
+      if (ctx) {
+        createChart(ctx, {
+          type: 'polarArea',
+          data: {
+            labels: personalitySeries.labels,
+            datasets: [{
+              data: personalitySeries.values.map((v) => v == null ? 0 : v),
+              backgroundColor: personalityColors
+            }]
+          },
+          options: {
+            ...commonOptions,
+            scales: {
+              r: {
+                beginAtZero: true,
+                ticks: {
+                  display: false
+                }
+              }
+            },
+            plugins: {
+              ...commonOptions.plugins,
+              legend: { display: false }
+            }
+          }
+        });
+        updatePersonalityScoreNote(personalitySeries.labels, personalitySeries.values, personalityColors);
+      }
+    } else {
+      updatePersonalityScoreNote([], [], personalityColors);
+    }
+
+    const careerSeries = extractRiasecSeries(careerData ? careerData.result_data : null);
+    if (careerSeries.labels.length) {
+      const ctx = byId('careerDeepChart');
+      if (ctx) {
+        const riasecBarColors = ['#c6e1ff', '#99dbfb', '#b9fbee', '#bdfdd4', '#fde185', '#fbc6c6'];
+        const riasecCode = getRiasecCodeFromReport(careerData ? careerData.result_data : null, careerSeries.keys, careerSeries.values);
+        createChart(ctx, {
+          type: 'bar',
+          data: {
+            labels: careerSeries.labels,
+            datasets: [{
+              label: 'RIASEC Score',
+              data: careerSeries.values.map((v) => v == null ? 0 : v),
+              backgroundColor: riasecBarColors,
+              borderColor: riasecBarColors.map((color) => color),
+              borderWidth: 1,
+              borderRadius: 8
+            }]
+          },
+          options: {
+            ...commonOptions,
+            scales: {
+              x: {
+                ticks: {
+                  autoSkip: false,
+                  maxRotation: 35,
+                  minRotation: 20,
+                  font: { size: 10 }
+                }
+              },
+              y: {
+                beginAtZero: true,
+                max: 25,
+                ticks: {
+                  display: false
+                },
+                grid: {
+                  display: false
+                },
+                border: {
+                  display: false
+                }
+              }
+            },
+            plugins: {
+              ...commonOptions.plugins,
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  title: function (tooltipItems) {
+                    if (!tooltipItems || !tooltipItems.length) return '';
+                    const index = tooltipItems[0].dataIndex;
+                    return careerSeries.labels[index] || '';
+                  },
+                  label: function (context) {
+                    const score = Number(context.parsed.y || 0);
+                    return `Score: ${score}`;
+                  }
+                }
+              }
+            }
+          }
+        });
+        updateRiasecNote(careerSeries.keys, careerSeries.labels, careerSeries.values, riasecBarColors, riasecCode);
+      }
+    } else {
+      updateRiasecNote([], [], [], [], '');
+    }
+
+    const motivationSource = motivationData ? (
+      motivationData.category_counts
+      || (motivationData.result_data && motivationData.result_data.category_distribution)
+      || motivationData.result_data
+    ) : null;
+    const motivationSeries = extractSeries(motivationSource);
+    if (motivationSeries.labels.length) {
+      const ctx = byId('motivationDeepChart');
+      if (ctx) {
+        createChart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: motivationSeries.labels,
+            datasets: [{
+              data: motivationSeries.values,
+              backgroundColor: ['#22c55e', '#6366f1', '#f59e0b', '#ef4444']
+            }]
+          },
+          options: { ...commonOptions, cutout: '62%' }
+        });
+        updateMotivationPrimary(motivationSeries.labels, motivationSeries.values);
+        updateDataNote('motivationDeepNote', '');
+      }
+    } else {
+      updateMotivationPrimary([], []);
+      updateDataNote('motivationDeepNote', 'Motivation scores are not available yet.');
+    }
+
+    const aptitudeSeries = extractSeries(aptitudeData ? aptitudeData.result_data : null);
+    if (aptitudeSeries.labels.length) {
+      const ctx = byId('aptitudeDeepChart');
+      if (ctx) {
+        const aptitudeLabels = aptitudeSeries.labels.map((label) => {
+          const cleaned = String(label || '').replace(/\breasoning\b/ig, '').replace(/\s{2,}/g, ' ').trim();
+          return cleaned || String(label || '');
+        });
+        const aptitudeBandsByIndex = aptitudeLabels.map((label) => getAptitudeBandByName(label));
+        const aptitudeColors = aptitudeBandsByIndex.map((band) => getAptitudeColorByBand(band));
+        createChart(ctx, {
+          type: 'bar',
+          data: {
+            labels: aptitudeLabels,
+            datasets: [{
+              label: '',
+              data: aptitudeSeries.values,
+              borderRadius: 8,
+              backgroundColor: aptitudeColors
+            }]
+          },
+          options: {
+            ...commonOptions,
+            scales: {
+              x: {
+                ticks: {
+                  autoSkip: false,
+                  maxRotation: 35,
+                  minRotation: 20,
+                  font: { size: 10 },
+                  callback: function (value) {
+                    const rawLabel = this.getLabelForValue(value);
+                    return truncateLabel(rawLabel, 12);
+                  }
+                }
+              },
+              y: {
+                beginAtZero: true,
+                max: 15,
+                ticks: {
+                  display: false
+                }
+              }
+            },
+            plugins: {
+              ...commonOptions.plugins,
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  title: function (tooltipItems) {
+                    if (!tooltipItems || !tooltipItems.length) return '';
+                    const index = tooltipItems[0].dataIndex;
+                    return aptitudeLabels[index] || '';
+                  },
+                  label: function (context) {
+                    const score = Number(context.parsed.y || 0);
+                    const band = aptitudeBandsByIndex[context.dataIndex] || 'Average';
+                    return `${score} - ${band}`;
+                  }
+                }
+              }
+            }
+          }
+        });
+        updateDataNote('aptitudeDeepNote', '');
+      }
+    } else {
+      updateDataNote('aptitudeDeepNote', 'Aptitude scores are not available yet.');
+    }
+
+    const chartCountEl = byId('jsonChartsCount');
+    if (chartCountEl) chartCountEl.textContent = String(chartInstances.length);
+
+    function resolveReportStudentId(el) {
+      try {
+        var pathMatch = window.location.pathname.match(/combined_report\/(\d+)/);
+        if (pathMatch) return pathMatch[1];
+      } catch (e) {}
+      if (el && el.getAttribute('data-student-id')) {
+        return el.getAttribute('data-student-id');
+      }
+      if (root.getAttribute('data-report-student-id')) {
+        return root.getAttribute('data-report-student-id');
+      }
+      var shell = root.querySelector('[data-report-student-id]');
+      if (shell && shell.getAttribute('data-report-student-id')) {
+        return shell.getAttribute('data-report-student-id');
+      }
+      if (window.TTV2_COMBINED_REPORT_USER_ID) {
+        return String(window.TTV2_COMBINED_REPORT_USER_ID);
+      }
+      return null;
+    }
+
+    function buildIndividualReportUrl(baseUrl, studentId, useEmbed) {
+      var href = baseUrl || '';
+      if (!href) return '';
+      try {
+        var u = new URL(href, window.location.origin);
+        var pathId = (window.location.pathname.match(/combined_report\/(\d+)/) || [])[1];
+        var shell = root.querySelector('[data-report-student-id]');
+        var shellId = shell ? shell.getAttribute('data-report-student-id') : null;
+        var effectiveId = pathId || shellId || studentId;
+        if (effectiveId) {
+          u.searchParams.set('user_id', String(effectiveId));
+        }
+        if (useEmbed) {
+          u.searchParams.set('embed', '1');
+        }
+        return u.toString();
+      } catch (e) {
+        return href;
+      }
+    }
+
+    function openStaffReport(url, title, studentId, useEmbed) {
+      var sid = studentId || resolveReportStudentId(null);
+      var href = buildIndividualReportUrl(url, sid, useEmbed !== false);
+      if (!href) return;
+      window.open(href, '_blank', 'noopener');
+    }
+
+    var useEmbedReports = {{ 'true' if embed_mode else 'false' }};
+
+    qsa('a.ttv2-report-open').forEach((link) => {
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        openStaffReport(
+          link.getAttribute('href'),
+          link.getAttribute('data-report-title'),
+          resolveReportStudentId(link),
+          useEmbedReports
+        );
+      });
+    });
+
+    const reportLinkCards = qsa('.report-link-card[data-report-url]');
+    reportLinkCards.forEach((card) => {
+      const url = card.getAttribute('data-report-url');
+      if (!url) return;
+      const title = (card.querySelector('.chart-title') || {}).textContent || 'Assessment report';
+      const sid = resolveReportStudentId(card);
+      card.addEventListener('click', (event) => {
+        if (event.target && event.target.closest('a, button')) return;
+        event.preventDefault();
+        openStaffReport(url, title, sid, useEmbedReports);
+      });
+      card.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          openStaffReport(url, title, sid, useEmbedReports);
+        }
+      });
+    });
+
+    const courseCards = Array.from(qsa('.js-course-card'));
+    const toggleCourseRecoBtn = byId('toggleCourseRecoBtn');
+    const initialCourseVisible = 8;
+    if (toggleCourseRecoBtn && courseCards.length > initialCourseVisible) {
+      let expanded = false;
+      courseCards.forEach((card, idx) => {
+        if (idx >= initialCourseVisible) card.classList.add('is-hidden');
+      });
+      toggleCourseRecoBtn.style.display = 'inline-flex';
+      toggleCourseRecoBtn.addEventListener('click', () => {
+        expanded = !expanded;
+        courseCards.forEach((card, idx) => {
+          if (idx >= initialCourseVisible) card.classList.toggle('is-hidden', !expanded);
+        });
+        toggleCourseRecoBtn.innerHTML = expanded
+          ? "<i class='fas fa-chevron-up'></i> Show Less Courses"
+          : "<i class='fas fa-chevron-down'></i> Show More Courses";
+      });
+    }
+
+    qsa('[data-career-view-more]').forEach((btn) => {
+      const grid = btn.closest('[data-career-group-chips]') || btn.previousElementSibling;
+      if (!grid || !grid.matches('[data-career-group-chips]')) return;
+      btn.addEventListener('click', () => {
+        grid.classList.remove('is-collapsed');
+        btn.hidden = true;
+        btn.setAttribute('aria-expanded', 'true');
+      });
+    });
+
+  })();
+</script>

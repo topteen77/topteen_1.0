@@ -31,6 +31,7 @@
   var LS_LEADER = 'tt_notif_leader_' + userId;
   var LS_STATE = 'tt_notif_state_' + userId;
   var LEADER_TTL_MS = 25000;
+  var STATE_TTL_MS = 15000;
 
   function csrfToken() {
     var m = document.cookie.match(/csrftoken=([^;]+)/);
@@ -95,10 +96,10 @@
       var raw = localStorage.getItem(LS_STATE);
       if (!raw) return;
       var parsed = JSON.parse(raw);
-      if (parsed && parsed.data && parsed.data.success) {
-        setBadgeCount(parsed.data.unread_count || 0);
-        paintLists(parsed.data);
-      }
+      if (!parsed || !parsed.data || !parsed.data.success) return;
+      if (!parsed.ts || Date.now() - parsed.ts > STATE_TTL_MS) return;
+      setBadgeCount(parsed.data.unread_count || 0);
+      paintLists(parsed.data);
     } catch (e) {}
   }
 
@@ -183,6 +184,7 @@
     }
     listEl.innerHTML = items.map(function (n) {
       var pay = n.payload || {};
+      var dest = (n.destination_url || pay.item_url || '').trim();
       var retry = '';
       if (pay.retry_payment_path && pay.show_retry_payment) {
         var rl = esc(pay.retry_payment_label || 'Retry payment');
@@ -192,7 +194,7 @@
       var unreadClass = n.is_read ? '' : ' tt-notification-item--unread';
       var tipText = [n.title || '', bodyRaw].filter(Boolean).join(' — ');
       var tip = esc(tipText);
-      return '<div class="tt-notification-item' + unreadClass + '" data-id="' + n.id + '" title="' + tip + '">' +
+      return '<div class="tt-notification-item' + unreadClass + '" data-id="' + n.id + '" data-url="' + esc(dest) + '" title="' + tip + '">' +
         '<div class="tt-notification-title">' + esc(n.title) + '</div>' +
         (bodyRaw ? '<div class="tt-notification-body">' + esc(bodyRaw) + '</div>' : '') +
         retry +
@@ -206,13 +208,14 @@
         }
         e.preventDefault();
         var nid = el.getAttribute('data-id');
+        var dest = (el.getAttribute('data-url') || '').trim();
         markRead(nid).then(function () {
           return loadLatest(true);
         }).then(function (data) {
           if (data && data.success) setBadgeCount(data.unread_count || 0);
-          window.location.href = notificationsPageUrl;
+          window.location.href = dest || notificationsPageUrl;
         }).catch(function () {
-          window.location.href = notificationsPageUrl;
+          window.location.href = dest || notificationsPageUrl;
         });
       });
     });
@@ -344,7 +347,9 @@
 
   window.addEventListener('pageshow', function () {
     bindDropdownHandlers();
-    if (!isLeader()) {
+    if (isLeader()) {
+      loadLatest(true);
+    } else {
       applySharedState();
     }
   });

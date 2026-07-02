@@ -539,6 +539,28 @@ class ReasoningArea:
         return code in cls.ALL
 
 
+class EducationLoanApplicationStatus(object):
+    DRAFT = 0
+    ENQUIRY_SENT = 1
+    CHOICES = (
+        (DRAFT, "Draft"),
+        (ENQUIRY_SENT, "Application Enquiry Sent"),
+    )
+
+
+class EducationLoanCRMSyncStatus(object):
+    PENDING = 0
+    SENT = 1
+    SUCCESS = 2
+    ERROR = 3
+    CHOICES = (
+        (PENDING, "Pending"),
+        (SENT, "Sent"),
+        (SUCCESS, "Success"),
+        (ERROR, "Error"),
+    )
+
+
 # Class 10 intelligence (test3) report — stream recommendation input tiers (Admin → Psychometric Test Settings)
 CLASS10_APTITUDE_STREAM_DISPLAY_MODE_KEY = 'CLASS10_APTITUDE_STREAM_DISPLAY_MODE'
 CLASS10_APTITUDE_STREAM_MODE_COMBINED = 'combined'

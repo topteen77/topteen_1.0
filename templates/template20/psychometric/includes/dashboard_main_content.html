@@ -1,0 +1,788 @@
+      <div class="psych-dashboard-main{% if not parent_inline_mode|default(false) %} pt-9{% endif %}">
+      {% if messages %}
+      <div class="mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default('danger') }}" role="alert">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      
+      <!-- Psychometric Test Report (modern combined-report style using DB data) -->
+      <div class="mb-4 psych-report-section">
+        <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Psychometric Test Report</h2>
+        <div class="row g-3">
+          <div class="col-md-4 mb-md-0 mb-3">
+            <div class="report-card report-card-personality report-card-modern">
+              <div class="report-card-head">
+                <div>
+                  <p class="report-card-title">Personality</p>
+                  <p class="report-card-sub">RIASEC model - Part 1</p>
+                </div>
+                <div class="report-card-score personality d-none">{{ personality_pct|default(0) }}%</div>
+              </div>
+              <div class="modern-pill-row">
+                <span class="modern-pill personality">{% if top_category %}{{ top_category.fullname|default(top_category.category)|default('Profile trend') }}{% else %}Profile trend{% endif %}</span>
+              </div>
+              <div class="modern-bars">
+                {% if personality_breakdown %}
+                  {% for item in personality_breakdown %}
+                    {% if loop.index <= 6 %}
+                    {% set lu = item.label|trim|lower %}
+                    {% if lu == 'realistic' %}
+                      {% set riasec_bar = 'riasec-r' %}
+                    {% elif lu == 'investigative' %}
+                      {% set riasec_bar = 'riasec-i' %}
+                    {% elif lu == 'artistic' %}
+                      {% set riasec_bar = 'riasec-a' %}
+                    {% elif lu == 'social' %}
+                      {% set riasec_bar = 'riasec-s' %}
+                    {% elif lu == 'enterprising' %}
+                      {% set riasec_bar = 'riasec-e' %}
+                    {% elif lu == 'conventional' %}
+                      {% set riasec_bar = 'riasec-c' %}
+                    {% elif lu in ['r', 'i', 'a', 's', 'e', 'c'] %}
+                      {% set riasec_bar = 'riasec-' + lu %}
+                    {% else %}
+                      {% set riasec_bar = '' %}
+                    {% endif %}
+                    <div class="modern-bar-row">
+                      <span>{{ item.label }}</span>
+                      <div class="modern-bar-track"><div class="modern-bar-fill personality psych-dynamic-width {{ riasec_bar }}" data-score="{{ item.score_pct }}"></div></div>
+                      <strong class="modern-bar-mark">{{ item.score_pct }}%</strong>
+                    </div>
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+              </div>
+              <div class="modern-card-footer">
+                <div class="report-card-actions">
+                  <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test1_report_html', args=[report_user_id]) }}{% else %}{{ url('app:test1_report_html') }}{% endif %}" class="btn-view" title="View report" aria-label="View Personality report"><i class='bx bx-show'></i> View</a>
+                  <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test1_report_pdf', args=[report_user_id]) }}{% else %}{{ url('app:test1_report_pdf') }}{% endif %}" class="btn-download" title="Download PDF" aria-label="Download Personality PDF" target="_blank" rel="noopener"><i class='bx bx-download'></i> PDF</a>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4 mb-md-0 mb-3">
+            <div class="report-card report-card-interest report-card-modern">
+              <div class="report-card-head">
+                <div>
+                  <p class="report-card-title">Interest</p>
+                  <p class="report-card-sub">Career interest assessment - Part 2</p>
+                </div>
+                <div class="report-card-score interest d-none">{{ interest_highest_value|default(interest_pct|default(0))|int }} pts</div>
+              </div>
+              <div class="modern-pill-row d-none">
+                <span class="modern-pill interest">Top: {{ dominant_interest_display|default(dominant_interest_name|default(max_length|default('Dominant area'))) }}</span>
+                {% if lowest_interest_name %}
+                <span class="modern-pill warn">Lowest: {{ lowest_interest_name }}</span>
+                {% endif %}
+              </div>
+              <div class="modern-bars">
+                {% if interest_breakdown %}
+                  {% for item in interest_breakdown %}
+                    {% if loop.index <= 6 %}
+                    {% set li = item.label|trim|lower %}
+                    {% if li == 'realistic' %}
+                      {% set interest_riasec = 'riasec-r' %}
+                    {% elif li == 'investigative' %}
+                      {% set interest_riasec = 'riasec-i' %}
+                    {% elif li == 'artistic' %}
+                      {% set interest_riasec = 'riasec-a' %}
+                    {% elif li == 'social' %}
+                      {% set interest_riasec = 'riasec-s' %}
+                    {% elif li == 'enterprising' %}
+                      {% set interest_riasec = 'riasec-e' %}
+                    {% elif li == 'conventional' %}
+                      {% set interest_riasec = 'riasec-c' %}
+                    {% elif li in ['r', 'i', 'a', 's', 'e', 'c'] %}
+                      {% set interest_riasec = 'riasec-' + li %}
+                    {% else %}
+                      {% set interest_riasec = '' %}
+                    {% endif %}
+                    <div class="modern-bar-row">
+                      <span>{{ item.label }}</span>
+                      <div class="modern-bar-track"><div class="modern-bar-fill interest psych-dynamic-width {{ interest_riasec }}" data-score="{{ item.score_pct }}" data-scale-max="{{ item.score_max|default(36) }}" title="{{ item.score_value|default(0) }}/{{ item.score_max|default(36) }}"></div></div>
+                      <strong class="modern-bar-mark">{{ item.score_value|default(item.score_pct) }}/{{ item.score_max|default(36) }}</strong>
+                    </div>
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+              </div>
+              <div class="modern-card-footer">
+                {% if interest_avoid_careers %}
+                <div class="interest-avoid-wrap d-none">
+                  <p class="interest-avoid-title">Careers to avoid</p>
+                  <div class="interest-avoid-list">
+                    {% for role in interest_avoid_careers %}
+                    <span class="interest-avoid-chip">{{ role }}</span>
+                    {% endfor %}
+                  </div>
+                </div>
+                {% endif %}
+                <div class="report-card-actions">
+                  <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test2_report_html', args=[report_user_id]) }}{% else %}{{ url('app:test2_report_html') }}{% endif %}" class="btn-view" title="View report" aria-label="View Interest report"><i class='bx bx-show'></i> View</a>
+                  <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test2_report_pdf', args=[report_user_id]) }}{% else %}{{ url('app:test2_report_pdf') }}{% endif %}" class="btn-download" title="Download PDF" aria-label="Download Interest PDF" target="_blank" rel="noopener"><i class='bx bx-download'></i> PDF</a>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4 mb-md-0 mb-3">
+            <div class="report-card report-card-intelligence report-card-modern">
+              <div class="report-card-head">
+                <div>
+                  <p class="report-card-title">Aptitude</p>
+                  <p class="report-card-sub">Aptitude assessment - Part 3</p>
+                </div>
+                <div class="report-card-score intelligence"></div>
+              </div>
+              <div class="modern-pill-row d-none">
+                {% set pill_ns = namespace(count=0) %}
+                {% if intelligence_breakdown %}
+                  {% for item in intelligence_breakdown %}
+                    {% if pill_ns.count < 3 and (item.band == 'Above Avg' or item.band == 'Avg') %}
+                      <span class="modern-pill intelligence {% if item.band == 'Above Avg' %}i-high{% else %}i-avg{% endif %}">
+                        {% if loop.first %}Top: {% endif %}{{ item.label|upper }}
+                      </span>
+                      {% set pill_ns.count = pill_ns.count + 1 %}
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+                {% if pill_ns.count == 0 %}
+                  {% set top_band = top_intelligence_band|default('') %}
+                  <span class="modern-pill intelligence {% if top_band == 'Above Avg' %}i-high{% elif top_band == 'Avg' %}i-avg{% elif top_band == 'Below' %}i-below{% endif %}">
+                    {% if top_intelligence_label %}
+                      Top: {{ top_intelligence_label|upper }}
+                    {% elif above_avg_score %}
+                      Top: {{ above_avg_score }}
+                    {% else %}
+                      Reasoning profile
+                    {% endif %}
+                  </span>
+                {% endif %}
+              </div>
+              <div class="modern-bars">
+                {% if intelligence_breakdown %}
+                  {% for item in intelligence_breakdown %}
+                    <div class="modern-bar-row">
+                      <span>{{ item.label }}</span>
+                      <div class="modern-bar-track">
+                        <div class="modern-bar-fill intelligence psych-dynamic-width {% if item.band == 'Below' %}below{% elif item.band == 'Above Avg' %}high{% else %}avg{% endif %}" data-score="{{ item.score_pct }}"></div>
+                      </div>
+                      <strong class="modern-bar-mark {% if item.band == 'Below' %}below{% elif item.band == 'Above Avg' %}high{% else %}avg{% endif %}">{{ item.band|aptitude_tier_label }}</strong>
+                    </div>
+                  {% endfor %}
+                {% endif %}
+              </div>
+              <div class="modern-card-footer">
+                <div class="report-card-actions">
+                  <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test3_report_html', args=[report_user_id]) }}{% else %}{{ url('app:test3_report_html') }}{% endif %}" class="btn-view" title="View report" aria-label="View Intelligence report"><i class='bx bx-show'></i> View</a>
+                  <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test3_report_pdf', args=[report_user_id]) }}{% else %}{{ url('app:test3_report_pdf') }}{% endif %}" class="btn-download" title="Download PDF" aria-label="Download Intelligence PDF" target="_blank" rel="noopener"><i class='bx bx-download'></i> PDF</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="text-center psych-cta-row d-flex flex-wrap gap-2 gap-md-3 justify-content-center align-items-stretch">
+          <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:class10_combined_report', args=[report_user_id]) }}{% else %}{{ url('app:class10_combined_report_own') }}{% endif %}" class="btn view-report-btn"><i class='bx bx-file-blank fs-18'></i> View combined report</a>
+          <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:class10_report_download_pdf', args=[report_user_id]) }}{% else %}{{ url('app:class10_report_download_pdf_own') }}{% endif %}" class="btn download-report-btn" target="_blank" rel="noopener"><i class='bx bx-download fs-18'></i> Download PDF</a>
+        </div>
+      </div>
+
+            <!-- Suggested Streams based on aptitude best fit + alternative -->
+            {% set career_preview = 5 %}
+            {% set stream_combo_icons = {
+              'PCM': 'bx-flask',
+              'PCB': 'bx-test-tube',
+              'HUM': 'bx-book-open',
+              'HWL': 'bx-book-open',
+              'CWM': 'bx-calculator',
+              'CWOM': 'bx-calculator',
+              'CS': 'bx-chip',
+              'FINE ARTS': 'bx-palette',
+              'Fine Arts': 'bx-palette'
+            } %}
+            {% set stream_icon_images = {
+              'PCM': 'images/pcm-icon.png',
+              'PCB': 'images/pcb-icon.png',
+              'HUM': 'images/hum-icon.png',
+              'HWL': 'images/hum-icon.png',
+              'CWM': 'images/cwm-icon.png',
+              'CWOM': 'images/cwm-icon.png',
+              'CS': 'images/computer-sci-icon.png',
+              'FINE ARTS': 'images/fine-arts-icon.png',
+              'Fine Arts': 'images/fine-arts-icon.png'
+            } %}
+            {% if suitable_subject_combinations %}
+            <div class="my-md-6 my-4 psych-stream-intelligence-section">
+              <h3 class="psych-section-title mb-2"><span class="psych-section-dot" aria-hidden="true"></span>Suggested Streams from Aptitude </h3>
+       
+
+              <div class="psych-stream-columns psych-stream-columns--single">
+              {# Stream decision questionnaire result hidden from dashboard report view #}
+
+              <section class="psych-stream-part psych-stream-part--suggested" aria-labelledby="psychStreamSuggestedPartTitle">
+                <div class="psych-stream-part-head">
+                  <!-- <span class="psych-stream-part-kicker">
+                    <i class='bx bx-target-lock' aria-hidden="true"></i>
+                    {% if stream_questionnaire_completed and stream_questionnaire_answers %}Part 2{% else %}Suggested{% endif %}
+                  </span> -->
+
+                  {% if stream_recommendation and stream_recommendation.profile_label %}
+                  <p class="fs-13 text-gray mb-0 ">
+                    Based on your {{ stream_recommendation.profile_label }}
+                  </p>
+                  {% endif %}
+                </div>
+                <div class="psych-stream-part-body">
+                  <div class="psych-stream-suggested-list">
+                    {% for combo in suitable_subject_combinations %}
+                    {% set group = aptitude_suggested_career_groups[loop.index0] if aptitude_suggested_career_groups and loop.index0 < aptitude_suggested_career_groups|length else none %}
+                    {% if group %}
+                    {% set group_items = group.career_items|default([]) %}
+                    {% set career_total = group_items|length if group_items else group.careers|length %}
+                    {% endif %}
+                    <article class="psych-stream-combined-card">
+                      <div class="psych-stream-combined-head">
+                        <div class="stream-card-icon">
+                          {% if combo.icon %}
+                          <img src="{{ static('images/' ~ combo.icon) }}" alt="{{ combo.stream|default(combo.label) }}" style="width: 42px; height: 42px; object-fit: contain;">
+                          {% else %}
+                          <i class='bx bx-search-alt fs-28 text-primary'></i>
+                          {% endif %}
+                        </div>
+                        <div>
+                          {% if combo.stream_tier == 'best_fit' %}
+                          <p class="fs-11 text-primary fw-bold text-uppercase mb-1">Strong Fit</p>
+                          {% elif combo.stream_tier == 'alternative' %}
+                          <p class="fs-11 text-primary fw-bold text-uppercase mb-1">Good Fit</p>
+                          {% endif %}
+                          <p class="fw-bold mb-0 fs-16">{{ combo.stream|default(combo.label) }}</p>
+                          <p class="fs-13 text-gray mb-0 lh-sm">{{ combo.subjects|default('') }}</p>
+                        </div>
+                      </div>
+                      {% if group %}
+                      <div class="psych-stream-combined-careers">
+                        <p class="psych-stream-career-panel-label">Career Pathways</p>
+                        <div class="career-chip-grid career-group-chips{% if career_total > career_preview %} is-collapsed{% endif %}" data-career-group-chips>
+                          {% for item in group_items %}
+                          {% if item.url %}
+                          <a href="{{ item.url }}" class="career-chip" title="Explore {{ item.name }}">{{ item.name }}</a>
+                          {% else %}
+                          <span class="career-chip">{{ item.name }}</span>
+                          {% endif %}
+                          {% else %}
+                          {% for career in group.careers %}
+                          <span class="career-chip">{{ career }}</span>
+                          {% endfor %}
+                          {% endfor %}
+                          {% if career_total > career_preview %}
+                          <button type="button" class="career-chip career-chip-more career-chip-more-trigger" data-career-view-more aria-expanded="false">+{{ career_total - career_preview }} more</button>
+                          {% endif %}
+                        </div>
+                      </div>
+                      {% endif %}
+                    </article>
+                    {% endfor %}
+                  </div>
+                </div>
+              </section>
+              </div>
+            </div>
+            {% endif %}   
+      {% set career_preview = 5 %}
+      {% set riasec_taglines = {
+        'R': 'Build and fix things with hands-on, practical work.',
+        'I': 'Explore, analyze, and solve complex problems through research and innovation.',
+        'A': 'Create, express, and innovate through artistic and imaginative work.',
+        'S': 'Help, support, and educate people to make a positive impact.',
+        'E': 'Lead, persuade, and drive initiatives in competitive environments.',
+        'C': 'Organize, manage, and streamline systems for efficiency and accuracy.'
+      } %}
+      {% set riasec_icons = {
+        'R': 'bx-wrench',
+        'I': 'bx-search-alt',
+        'A': 'bx-palette',
+        'S': 'bx-group',
+        'E': 'bx-briefcase-alt',
+        'C': 'bx-briefcase'
+      } %}
+      {% set stream_combo_icons = {
+        'PCM': 'bx-flask',
+        'PCB': 'bx-test-tube',
+        'HUM': 'bx-book-open',
+        'HWL': 'bx-book-open',
+        'CWM': 'bx-calculator',
+        'CWOM': 'bx-calculator',
+        'CS': 'bx-chip',
+        'FINE ARTS': 'bx-palette',
+        'Fine Arts': 'bx-palette'
+      } %}
+      {% set stream_icon_images = {
+        'PCM': 'images/pcm-icon.png',
+        'PCB': 'images/pcb-icon.png',
+        'HUM': 'images/hum-icon.png',
+        'HWL': 'images/hum-icon.png',
+        'CWM': 'images/cwm-icon.png',
+        'CWOM': 'images/cwm-icon.png',
+        'CS': 'images/computer-sci-icon.png',
+        'FINE ARTS': 'images/fine-arts-icon.png',
+        'Fine Arts': 'images/fine-arts-icon.png'
+      } %}
+      {% if interest_suggested_career_groups or personality_suggested_career_groups %}
+      <div class="mb-4">
+        <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Suggested Careers</h2>
+        <div class="suggested-careers-panel">
+          <div class="sc-block sc-block--personality">
+            <div class="sc-block-header">
+              <h3>
+                Personality Test Findings 
+                {% if personality_display_name %}
+                <span class="career-type-pill">{{ personality_display_name }}</span>
+                {% elif top_category %}
+                <span class="career-type-pill">{{ top_category.fullname|default(top_category.category) }}</span>
+                {% endif %}
+              </h3>
+              <p>Career suggestions based on your dominant personality traits from the assessment report.</p>
+            </div>
+
+            {% if personality_suggested_career_groups %}
+            <div class="personality-career-grid">
+            {% for group in personality_suggested_career_groups %}
+            {% set group_items = group.career_items|default([]) %}
+            {% set stream_key = group.code|string|upper|trim %}
+            {% set stream_icon_img = stream_icon_images.get(stream_key) %}
+            <article class="personality-career-card">
+              <div class="personality-career-card-head">
+                <span class="personality-career-icon" aria-hidden="true">
+                  {% if stream_icon_img %}
+                  <img src="{{ static(stream_icon_img) }}" alt="" class="personality-career-icon-img">
+                  {% else %}
+                  <i class="bx {{ stream_combo_icons.get(stream_key, 'bx-book-open') }}"></i>
+                  {% endif %}
+                </span>
+                <div>
+                  <strong>{{ group.name }}</strong>
+                  <span>{% if group.combined %}Career pathways aligned with your personality combination{% elif group.code %}Suggested careers — {{ group.code }}{% else %}Roles matched to your personality profile{% endif %}</span>
+                </div>
+              </div>
+              <div class="personality-career-chips career-chip-grid">
+                {% for item in group_items %}
+                {% if item.url %}
+                <a href="{{ item.url }}" class="career-chip" title="Explore {{ item.name }}">{{ item.name }}</a>
+                {% else %}
+                <span class="career-chip">{{ item.name }}</span>
+                {% endif %}
+                {% else %}
+                {% for career in group.careers %}
+                <span class="career-chip">{{ career }}</span>
+                {% endfor %}
+                {% endfor %}
+              </div>
+            </article>
+            {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted small mb-0">No personality-based career suggestions found.</p>
+            {% endif %}
+          </div>
+          
+          
+          <div class="sc-block">
+            <div class="sc-block-header">
+              <h3>
+                Interest Test Findings
+                {% if dominant_interest_display %}
+                <span class="career-type-pill">{{ dominant_interest_display }}</span>
+                {% elif dominant_interest_name %}
+                <span class="career-type-pill">{{ dominant_interest_name }}</span>
+                {% endif %}
+              </h3>
+              <p>Career paths aligned with each dominant interest type from your Career Interest Assessment.</p>
+            </div>
+
+            {% if interest_suggested_career_groups %}
+            <div class="riasec-cards-grid {% if interest_suggested_career_groups|length > 3 %}is-card-collapsed{% endif %}" data-career-groups-card>
+              {% for group in interest_suggested_career_groups %}
+              {% set code_key = group.code|string|upper|trim %}
+              {% set group_items = group.career_items|default([]) %}
+              {% set career_total = group_items|length if group_items else group.careers|length %}
+              <article class="riasec-mini-card riasec-{{ code_key|lower }}">
+
+                <div class="riasec-mini-card-content-head">
+                <div class="riasec-mini-card-head">
+                  <div class="riasec-mini-card-head-left d-flex align-items-start gap-2">
+                    
+                  <span class="riasec-mini-icon" aria-hidden="true"><i class="bx {{ riasec_icons.get(code_key, 'bx-star') }}"></i></span>
+                  <div class="di-uim"> 
+                  <h4>{% if group.code %}<span class="riasec-mini-code d-none">{{ group.code }}</span>{% endif %} {{ group.name }}</h4>
+                  <p class="riasec-mini-desc">{{ riasec_taglines.get(code_key, 'Career paths that match your interest profile.') }}</p>
+                </div>
+                  </div>
+               
+                </div>
+               
+                </div>
+                <div class="career-chip-grid career-group-chips {% if career_total > career_preview %}is-collapsed{% endif %}" data-career-group-chips>
+                  {% for item in group.career_items|default([]) %}
+                  {% if item.url %}
+                  <a href="{{ item.url }}" class="career-chip" title="Explore {{ item.name }}">{{ item.name }}</a>
+                  {% else %}
+                  <span class="career-chip">{{ item.name }}</span>
+                  {% endif %}
+                  {% else %}
+                  {% for career in group.careers %}
+                  <span class="career-chip">{{ career }}</span>
+                  {% endfor %}
+                  {% endfor %}
+                  {% if career_total > career_preview %}
+                  <button type="button" class="career-chip career-chip-more career-chip-more-trigger" data-career-view-more aria-expanded="false">+{{ career_total - career_preview }} more</button>
+                  {% endif %}
+                </div>
+              </article>
+              {% endfor %}
+            </div>
+            {% if interest_suggested_career_groups|length > 3 %}
+            <div class="career-card-toggle-wrap">
+              <button type="button" class="career-card-view-more" data-career-card-view-more aria-expanded="false">
+                View all interest areas ({{ interest_suggested_career_groups|length - 3 }} more) <i class="bx bx-chevron-down" aria-hidden="true"></i>
+              </button>
+            </div>
+            {% endif %}
+            {% else %}
+            <p class="text-muted small mb-0">No interest-based career suggestions found.</p>
+            {% endif %}
+          </div>
+
+         
+        </div>
+      </div>
+      {% endif %}
+
+
+      {% if student_below_average|default(false) %}
+      <div class="mb-4">
+        <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Improvement Recommendations</h2>
+        {% if below|default([]) %}
+        <div class="improvement-alert mb-3">
+          {# changes required by management (01-Jun-2025): Below Average → Growth areas #}
+          <h4>{{ aptitude_development_alert_title }}</h4>
+          <p>{{ below|length|aptitude_development_alert_body }}</p>
+          <div class="improvement-chip-row">
+            {% for area in below %}
+            <span class="improvement-chip">{{ area|title }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        {% if aptitude_improvement_plan|default([]) %}
+        {% include 'template20/app/partials/aptitude_growth_plan_styles.html' %}
+        {% include 'template20/app/partials/aptitude_growth_plan_section.html' %}
+        {% endif %}
+        {# Class 10 dashboard: vocational guidance hidden; strategic growth plan is shown above. #}
+        <div class="class10-vocational-guidance-hidden" style="display: none !important;">
+        {% if vocational_guidance_cards|default([]) %}
+        <h3 class="psych-section-title mb-3">
+          <span class="psych-section-dot" aria-hidden="true"></span>
+          {{ aptitude_vocational_section_title }}
+        </h3>
+        {% set vocational_area_icons = {
+          'VERBAL': 'bx-chat',
+          'LOGICAL': 'bx-chip',
+          'SPATIAL': 'bx-cube',
+          'LANGUAGE': 'bx-globe',
+          'NUMERICAL': 'bx-calculator',
+          'MECHANICAL': 'bx-wrench',
+          'CRITICAL': 'bx-target-lock'
+        } %}
+        {% set vocational_preview_count = 4 %}
+        <div class="vocational-guidance-grid">
+          {% for group in vocational_guidance_groups %}
+          {% set area_code = group.reasoning_area|string|upper %}
+          <article class="vocational-area-card vocational-{{ area_code|lower }}">
+            <div class="vocational-area-card-head">
+              <span class="vocational-area-icon" aria-hidden="true"><i class="bx {{ vocational_area_icons.get(area_code, 'bx-briefcase') }}"></i></span>
+              <h4>{{ group.reasoning_area_label }}</h4>
+            </div>
+            <ul class="vocational-area-preview">
+              {% for career in group.careers %}
+              {% if loop.index <= vocational_preview_count %}
+              <li><a href="{{ career.url }}">{{ career.name }}</a></li>
+              {% endif %}
+              {% endfor %}
+            </ul>
+            {% if group.careers|length > vocational_preview_count %}
+            <button type="button" class="vocational-view-more-btn" data-bs-toggle="modal" data-bs-target="#vocationalModal{{ area_code }}" aria-controls="vocationalModal{{ area_code }}">
+              View more ({{ group.careers|length - vocational_preview_count }} more)
+            </button>
+            {% endif %}
+          </article>
+          {% endfor %}
+        </div>
+        {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="mb-4 d-none">
+        <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Performance insights graph</h2>
+        <div class="insights-grid">
+          <div class="insight-panel">
+            <div class="insight-panel-title">
+              <h4>Recent Psychometric Progress</h4>
+              <span>Last 6 checks</span>
+            </div>
+            <div class="psych-line-chart" aria-label="Progress graph">
+              <div class="psych-line-chart-grid"></div>
+              <div class="psych-line-track">
+                <div class="line-node">
+                  <div class="line-node-bar psych-dynamic-height" data-score="{{ personality_pct|default(0) }}"></div>
+                  <div class="line-node-point" aria-hidden="true"></div>
+                  <p class="line-node-label">P1</p>
+                </div>
+                <div class="line-node">
+                  <div class="line-node-bar psych-dynamic-height" data-score="{{ interest_pct|default(0) }}"></div>
+                  <div class="line-node-point" aria-hidden="true"></div>
+                  <p class="line-node-label">I1</p>
+                </div>
+                <div class="line-node">
+                  <div class="line-node-bar psych-dynamic-height" data-score="{{ intelligence_pct|default(0) }}"></div>
+                  <div class="line-node-point" aria-hidden="true"></div>
+                  <p class="line-node-label">Q1</p>
+                </div>
+                <div class="line-node">
+                  <div class="line-node-bar psych-dynamic-height" data-score="{{ ((personality_pct|default(0) + interest_pct|default(0)) / 2) }}"></div>
+                  <div class="line-node-point" aria-hidden="true"></div>
+                  <p class="line-node-label">Avg</p>
+                </div>
+                <div class="line-node">
+                  <div class="line-node-bar psych-dynamic-height" data-score="{{ ((interest_pct|default(0) + intelligence_pct|default(0)) / 2) }}"></div>
+                  <div class="line-node-point" aria-hidden="true"></div>
+                  <p class="line-node-label">Mix</p>
+                </div>
+                <div class="line-node">
+                  <div class="line-node-bar psych-dynamic-height" data-score="{{ ((personality_pct|default(0) + interest_pct|default(0) + intelligence_pct|default(0)) / 3) }}"></div>
+                  <div class="line-node-point" aria-hidden="true"></div>
+                  <p class="line-node-label">Now</p>
+                </div>
+              </div>
+            </div>
+            <div class="psych-insight-footer">
+              <span class="psych-legend-chip"><span class="psych-legend-dot personality"></span>Personality trend</span>
+              <span class="psych-legend-chip"><span class="psych-legend-dot interest"></span>Interest trend</span>
+              <span class="psych-legend-chip"><span class="psych-legend-dot intelligence"></span>Intelligence trend</span>
+            </div>
+          </div>
+          <div class="insight-panel">
+            <div class="insight-panel-title">
+              <h4>Category Comparison</h4>
+              <span>Score / 100</span>
+            </div>
+            <div class="psych-bars">
+              <div class="psych-bar-row">
+                <p class="bar-label">Personality</p>
+                <div class="psych-bar-track">
+                  <div class="psych-bar-fill psych-dynamic-width" data-score="{{ personality_pct|default(0) }}"></div>
+                </div>
+                <div class="psych-bar-score">{{ personality_pct|default(0) }}</div>
+              </div>
+              <div class="psych-bar-row">
+                <p class="bar-label">Interest</p>
+                <div class="psych-bar-track">
+                  <div class="psych-bar-fill interest psych-dynamic-width" data-score="{{ interest_pct|default(0) }}"></div>
+                </div>
+                <div class="psych-bar-score">{{ interest_pct|default(0) }}</div>
+              </div>
+              <div class="psych-bar-row">
+                <p class="bar-label">Intelligence</p>
+                <div class="psych-bar-track">
+                  <div class="psych-bar-fill intelligence psych-dynamic-width" data-score="{{ intelligence_pct|default(0) }}"></div>
+                </div>
+                <div class="psych-bar-score">{{ intelligence_pct|default(0) }}</div>
+              </div>
+            </div>
+            <div class="psych-insight-footer">
+              <span class="psych-legend-chip">Strongest: {% if personality_pct|default(0) >= interest_pct|default(0) and personality_pct|default(0) >= intelligence_pct|default(0) %}Personality{% elif interest_pct|default(0) >= intelligence_pct|default(0) %}Interest{% else %}Intelligence{% endif %}</span>
+              <span class="psych-legend-chip">Overall: {{ ((personality_pct|default(0) + interest_pct|default(0) + intelligence_pct|default(0)) / 3)|round|int }}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {% set base_overall = ((personality_pct|default(0) + interest_pct|default(0) + intelligence_pct|default(0)) / 3)|round|int %}
+      {% set radar_analytical = intelligence_pct|default(0)|int %}
+      {% set radar_creative = (((personality_pct|default(0)|int * 2) + interest_pct|default(0)|int) / 3)|round|int %}
+      {% set radar_leadership = (((personality_pct|default(0)|int * 2) + intelligence_pct|default(0)|int) / 3)|round|int %}
+      {% set radar_communication = (((personality_pct|default(0)|int + interest_pct|default(0)|int * 2) / 3))|round|int %}
+      {% set radar_problem_solving = (((interest_pct|default(0)|int + intelligence_pct|default(0)|int * 2) / 3))|round|int %}
+      {% set radar_execution = base_overall|int %}
+      <div class="mb-4 d-none">
+        <h2 class="psych-section-title"><span class="psych-section-dot" aria-hidden="true"></span>Psychometric analytics</h2>
+        <div class="career-analytics-grid mb-3">
+          <div class="career-analytics-card">
+            <div class="career-analytics-title">
+              <h4>Psychometric profile radar</h4>
+              <span>6 dimensions</span>
+            </div>
+            <div class="radar-wrap" data-radar-values="{{ radar_analytical }},{{ radar_creative }},{{ radar_leadership }},{{ radar_communication }},{{ radar_problem_solving }},{{ radar_execution }}">
+              <svg viewBox="0 0 260 250" role="img" aria-label="Psychometric profile radar graph">
+                <polygon class="radar-grid" points="130,38 201,84 201,166 130,212 59,166 59,84"></polygon>
+                <polygon class="radar-grid" points="130,56 186,92 186,158 130,194 74,158 74,92"></polygon>
+                <polygon class="radar-grid" points="130,74 171,101 171,149 130,176 89,149 89,101"></polygon>
+                <polygon class="radar-grid" points="130,92 156,109 156,141 130,158 104,141 104,109"></polygon>
+                <line class="radar-axis" x1="130" y1="125" x2="130" y2="38"></line>
+                <line class="radar-axis" x1="130" y1="125" x2="201" y2="84"></line>
+                <line class="radar-axis" x1="130" y1="125" x2="201" y2="166"></line>
+                <line class="radar-axis" x1="130" y1="125" x2="130" y2="212"></line>
+                <line class="radar-axis" x1="130" y1="125" x2="59" y2="166"></line>
+                <line class="radar-axis" x1="130" y1="125" x2="59" y2="84"></line>
+                <polygon class="radar-shape js-radar-shape" points=""></polygon>
+                <g class="js-radar-nodes"></g>
+                <text class="radar-label" x="130" y="24">Analytical</text>
+                <text class="radar-label" x="223" y="82">Creative</text>
+                <text class="radar-label" x="224" y="172">Leadership</text>
+                <text class="radar-label" x="130" y="234">Execution</text>
+                <text class="radar-label" x="38" y="172">Problem Solving</text>
+                <text class="radar-label" x="37" y="82">Communication</text>
+              </svg>
+            </div>
+          </div>
+          <div class="career-analytics-card">
+            <div class="career-analytics-title">
+              <h4>Skill readiness index</h4>
+              <span>TopTeen DB based</span>
+            </div>
+            <div class="trend-type-list">
+              {% if skill_readiness_index %}
+                {% for skill in skill_readiness_index %}
+                  {% if loop.index <= 6 %}
+                    <div class="trend-type-row">
+                      <p>{{ skill.label }}</p>
+                      <div class="trend-track"><div class="trend-fill psych-dynamic-width" data-score="{{ skill.score_pct }}"></div></div>
+                      <div class="trend-score">{{ skill.score_pct }}</div>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              {% else %}
+                <div class="trend-type-row">
+                  <p>Numerical</p>
+                  <div class="trend-track"><div class="trend-fill psych-dynamic-width" data-score="{{ radar_analytical }}"></div></div>
+                  <div class="trend-score">{{ radar_analytical }}</div>
+                </div>
+                <div class="trend-type-row">
+                  <p>Verbal</p>
+                  <div class="trend-track"><div class="trend-fill psych-dynamic-width" data-score="{{ radar_communication }}"></div></div>
+                  <div class="trend-score">{{ radar_communication }}</div>
+                </div>
+                <div class="trend-type-row">
+                  <p>Logical</p>
+                  <div class="trend-track"><div class="trend-fill psych-dynamic-width" data-score="{{ radar_problem_solving }}"></div></div>
+                  <div class="trend-score">{{ radar_problem_solving }}</div>
+                </div>
+              {% endif %}
+            </div>
+            <div class="trend-chip-row">
+              <span class="trend-chip">From Intelligence test (test3)</span>
+              <span class="trend-chip">Normalized as percentage</span>
+              <span class="trend-chip">Live student result data</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+      {% include 'template20/includes/student_dashboard_stat_info_init.html' %}
+      {% if defer_scripts %}
+      <script type="text/plain" data-parent-report-script>
+      {% else %}
+      <script>
+      {% endif %}
+        (function () {
+          var scriptEl = document.currentScript;
+          var root = (window.__ttParentReportRoot)
+            || (scriptEl && (
+              scriptEl.closest('.parent-inline-psychometric-dashboard')
+              || scriptEl.closest('.psychometric-dashboard-page')
+              || scriptEl.closest('.parent-assessment-report-pane')
+            ))
+            || document;
+          function clampScore(raw) {
+            var score = Number(raw);
+            if (!Number.isFinite(score)) return 0;
+            return Math.max(0, Math.min(100, score));
+          }
+          root.querySelectorAll('.psych-dynamic-height').forEach(function (node) {
+            node.style.height = clampScore(node.dataset.score) + '%';
+          });
+          root.querySelectorAll('.psych-dynamic-width').forEach(function (node) {
+            var raw = Number(node.dataset.score);
+            var scaleMax = Number(node.dataset.scaleMax);
+            var pct = raw;
+            if (Number.isFinite(scaleMax) && scaleMax > 0 && raw <= scaleMax) {
+              pct = (raw / scaleMax) * 100;
+            }
+            node.style.width = clampScore(pct) + '%';
+          });
+          root.querySelectorAll('.radar-wrap').forEach(function (wrap) {
+            var values = (wrap.dataset.radarValues || '').split(',').map(function (item) {
+              return clampScore(item);
+            });
+            if (!values.length) return;
+            var cx = 130;
+            var cy = 125;
+            var radius = 87;
+            var total = 6;
+            var points = values.map(function (val, idx) {
+              var angle = ((Math.PI * 2) / total) * idx - Math.PI / 2;
+              var ratio = val / 100;
+              var x = cx + (Math.cos(angle) * radius * ratio);
+              var y = cy + (Math.sin(angle) * radius * ratio);
+              return { x: x, y: y };
+            });
+            var shape = wrap.querySelector('.js-radar-shape');
+            if (shape) {
+              shape.setAttribute('points', points.map(function (p) {
+                return p.x.toFixed(2) + ',' + p.y.toFixed(2);
+              }).join(' '));
+            }
+            var nodes = wrap.querySelector('.js-radar-nodes');
+            if (nodes) {
+              nodes.innerHTML = points.map(function (p) {
+                return '<circle class="radar-node" cx="' + p.x.toFixed(2) + '" cy="' + p.y.toFixed(2) + '" r="4"></circle>';
+              }).join('');
+            }
+          });
+        })();
+
+        (function initCareerViewMore() {
+          root.querySelectorAll('[data-career-view-more]').forEach(function (btn) {
+            var grid = btn.closest('[data-career-group-chips]');
+            if (!grid && btn.previousElementSibling && btn.previousElementSibling.matches('[data-career-group-chips]')) {
+              grid = btn.previousElementSibling;
+            }
+            if (!grid) return;
+            btn.addEventListener('click', function () {
+              grid.classList.remove('is-collapsed');
+              btn.hidden = true;
+              btn.setAttribute('aria-expanded', 'true');
+            });
+          });
+          root.querySelectorAll('[data-career-card-view-more]').forEach(function (btn) {
+            if (!btn.getAttribute('data-collapsed-label')) {
+              btn.setAttribute('data-collapsed-label', btn.textContent.trim());
+            }
+            btn.addEventListener('click', function () {
+              var stack = root.querySelector('[data-career-groups-card]');
+              if (!stack) return;
+              if (stack.classList.contains('is-card-collapsed')) {
+                stack.classList.remove('is-card-collapsed');
+                btn.innerHTML = 'Show fewer interest areas <i class="bx bx-chevron-up" aria-hidden="true"></i>';
+                btn.setAttribute('aria-expanded', 'true');
+              } else {
+                stack.classList.add('is-card-collapsed');
+                btn.innerHTML = btn.getAttribute('data-collapsed-label') + ' <i class="bx bx-chevron-down" aria-hidden="true"></i>';
+                btn.setAttribute('aria-expanded', 'false');
+              }
+            });
+          });
+        })();
+      </script>

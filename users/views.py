@@ -45,7 +45,7 @@ from colleges.models import College,CollegeShortlist
 from courses.models import Course
 from core.models import Country,Subject,Hobbies,UserFigureOut,Stories
 from blog.models import Blog
-from .models import UserProfile,UserNote,UserFolder,UserCalender
+from .models import UserProfile,UserNote,UserFolder,UserCalender,EducationLoanApplication
 from psychometric_tests.models import CentralTestCandidate
 from .task import send_otp_mail,send_referral_mail
 from careers.models import CareerCluster,CareerShortlist,Videos
@@ -84,6 +84,26 @@ from .parent_dashboard_ai import (
     generate_ai_insights,
     build_study_abroad_options,
     calculate_loan_metrics,
+)
+from .education_loan_application import (
+    build_parent_loan_applications_summary,
+    get_parent_education_loan_applications,
+    get_parent_education_loan_draft,
+    get_parent_latest_enquiry,
+    save_education_loan_application,
+    serialize_education_loan_application,
+    serialize_education_loan_application_for_parent_list,
+)
+from .parent_student_insights import (
+    build_career_suggestions_with_urls,
+    build_parent_loan_form_students_payload,
+    build_student_dashboard_basic,
+    build_student_insights,
+    parent_assessment_report_empty_html,
+    parent_assessment_report_error_html,
+    render_parent_assessment_report_html,
+    resolve_parent_student_report_redirect,
+    resolve_student_grade,
 )
 from .resume_payload import (
     STUDIO_PROTO_V1_KEY,
@@ -737,238 +757,166 @@ class ParentsDashboardView(TemplateView):
         linked = ParentStudentLink.objects.filter(parent=request.user).select_related('student')
         students = [x.student for x in linked if x.student]
 
-        # Build result status for each linked student (psychometric report availability)
-        students_info = []
         psychometric_students = []
-        psychometric_summary = {
-            "total_students": len(students),
-            "tested_students": 0,
-            "pending_students": 0,
-            "completion_percent": 0,
-            "class10": {"label": "Class 10", "total": 0, "completed": 0, "pending": 0, "percent": 0},
-            "class12": {"label": "Class 12", "total": 0, "completed": 0, "pending": 0, "percent": 0},
-            "other": {"label": "Other Classes", "total": 0, "completed": 0, "pending": 0, "percent": 0},
-        }
+        students_dashboard_payload = []
 
-        def _resolve_grade_bucket(student_user):
-            grade_raw = ""
+        # The parent dashboard only renders each student's name, email, mobile,
+        # class and grade in the switcher — so build a lightweight payload and
+        # skip the expensive assessment / AI-insight computations that used to
+        # run per student on every page load.
+        for s in students:
             try:
-                if getattr(student_user, "user_profile", None) and getattr(student_user.user_profile, "grade", None):
-                    grade_raw = str(student_user.user_profile.grade).strip()
+                basic = build_student_dashboard_basic(s)
             except Exception:
-                grade_raw = ""
-
-            if not grade_raw:
-                try:
-                    sm = student_user.student_management.last()
-                    if sm and getattr(sm, "class_and_section", None):
-                        class_section = str(sm.class_and_section).strip()
-                        grade_raw = class_section.split()[0] if class_section else ""
-                except Exception:
-                    grade_raw = ""
-
-            if grade_raw.startswith("10"):
-                return "10", "Class 10"
-            if grade_raw.startswith("12"):
-                return "12", "Class 12"
-            return "other", (grade_raw or "Other")
-
-        try:
-            from psychometric_tests.models import CentralTestCandidate
-            for s in students:
-                results_enabled = False
-                has_candidate = False
-                latest_test = None
-                result_url = ""
-                try:
-                    ctc = CentralTestCandidate.objects.filter(user=s).first()
-                    if ctc:
-                        has_candidate = True
-                        test = ctc.candidate_test.last()
-                        latest_test = test
-                        if test and getattr(test, "is_success", None) == choices.YesNoChoices.YES and hasattr(test, "psychometric_test_results") and test.psychometric_test_results:
-                            results_enabled = True
-                            try:
-                                result_url = test.get_pyschometric_test_result_url() or ""
-                            except Exception:
-                                result_url = ""
-                except Exception:
-                    results_enabled = False
-                students_info.append({"student": s, "results_enabled": results_enabled})
-
-                bucket_key, bucket_label = _resolve_grade_bucket(s)
-                summary_key = "class10" if bucket_key == "10" else ("class12" if bucket_key == "12" else "other")
-                psychometric_summary[summary_key]["total"] += 1
-                if results_enabled:
-                    psychometric_summary[summary_key]["completed"] += 1
-                    psychometric_summary["tested_students"] += 1
-                else:
-                    psychometric_summary[summary_key]["pending"] += 1
-                    psychometric_summary["pending_students"] += 1
-
-                psychometric_students.append({
-                    "student": s,
+                bucket_key, bucket_label = resolve_student_grade(s)
+                basic = {
+                    "id": int(getattr(s, "id", 0) or 0),
+                    "name": getattr(s, "name", "") or "Student",
+                    "email": getattr(s, "email", "") or "",
+                    "mobile": getattr(s, "mobile", None) or "—",
+                    "class_display": "—",
                     "grade_label": bucket_label,
-                    "results_enabled": results_enabled,
-                    "has_candidate": has_candidate,
-                    "latest_test": latest_test,
-                    "result_url": result_url,
-                })
-        except Exception:
-            students_info = [{"student": s, "results_enabled": False} for s in students]
-            psychometric_students = []
+                    "grade_bucket": bucket_key,
+                }
 
-        if psychometric_summary["total_students"] > 0:
-            psychometric_summary["completion_percent"] = int(
-                round((psychometric_summary["tested_students"] / psychometric_summary["total_students"]) * 100)
-            )
-        for key in ("class10", "class12", "other"):
-            total = psychometric_summary[key]["total"]
-            completed = psychometric_summary[key]["completed"]
-            psychometric_summary[key]["percent"] = int(round((completed / total) * 100)) if total else 0
-
-        # Graph + AI insight payloads for parent home
-        line_labels = ["Term 1", "Term 2", "Term 3", "Term 4"]
-        class10_series, class12_series = [], []
-
-        def _base_from_student(stu, offset):
-            # deterministic pseudo score generator based on student id
-            sid = int(getattr(stu, "id", 0) or 0)
-            return 45 + ((sid * 13 + offset) % 41)
-
-        for item in psychometric_students:
-            stu = item.get("student")
-            g = str(item.get("grade_label") or "")
-            trend = [
-                _base_from_student(stu, 5),
-                _base_from_student(stu, 16),
-                _base_from_student(stu, 23),
-                _base_from_student(stu, 30),
-            ]
-            if item.get("results_enabled"):
-                trend = [min(100, x + 8) for x in trend]
-            item["academic_trend"] = trend
-            item["subject_scores"] = {
-                "math": _base_from_student(stu, 3),
-                "science": _base_from_student(stu, 9),
-                "english": _base_from_student(stu, 21),
-            }
-            item["career_readiness"] = int(round((sum(trend[-2:]) / 2 + item["subject_scores"]["science"]) / 2))
-
-            psychometric_payload = {
-                "personality": {
-                    "openness": _base_from_student(stu, 2),
-                    "conscientiousness": _base_from_student(stu, 4),
-                    "extraversion": _base_from_student(stu, 6),
-                    "agreeableness": _base_from_student(stu, 8),
-                    "emotional_stability": _base_from_student(stu, 10),
-                },
-                "aptitude": {
-                    "numerical": item["subject_scores"]["math"],
-                    "logical": _base_from_student(stu, 12),
-                    "verbal": item["subject_scores"]["english"],
-                },
-                "interest": {
-                    "realistic": _base_from_student(stu, 11),
-                    "investigative": _base_from_student(stu, 14),
-                    "artistic": _base_from_student(stu, 17),
-                    "social": _base_from_student(stu, 20),
-                    "enterprising": _base_from_student(stu, 22),
-                    "conventional": _base_from_student(stu, 24),
-                },
-            }
-            psychometric_result = process_psychometric_data(
-                psychometric_payload,
-                benchmarks={"numerical": 60, "logical": 60, "verbal": 60, "investigative": 62},
-            )
-            item["psychometric_result"] = psychometric_result
-            item["ai_insights"] = generate_ai_insights(
-                psychometric_result,
-                item["subject_scores"],
-            )
-            item["study_abroad"] = build_study_abroad_options(
-                item["ai_insights"].get("career_paths", []),
-                item["career_readiness"],
-            )
-
-            if g.startswith("Class 10"):
-                class10_series.append(trend)
-            elif g.startswith("Class 12"):
-                class12_series.append(trend)
-
-        def _avg_series(rows):
-            if not rows:
-                return [0, 0, 0, 0]
-            out = []
-            for idx in range(4):
-                out.append(int(round(sum(r[idx] for r in rows) / len(rows))))
-            return out
-
-        line_chart_data = {
-            "labels": line_labels,
-            "datasets": [
-                {"label": "Class 10", "data": _avg_series(class10_series), "borderColor": "#5c54d4", "backgroundColor": "rgba(92,84,212,0.2)", "tension": 0.35},
-                {"label": "Class 12", "data": _avg_series(class12_series), "borderColor": "#20b7e8", "backgroundColor": "rgba(32,183,232,0.2)", "tension": 0.35},
-            ],
-        }
+            students_dashboard_payload.append(basic)
+            psychometric_students.append({
+                "student": s,
+                "grade_label": basic.get("grade_label", "Other"),
+                "grade_bucket": basic.get("grade_bucket", "other"),
+            })
 
         selected_student = psychometric_students[0] if psychometric_students else None
-        radar_chart_data = {"labels": [], "values": []}
-        bar_chart_data = {"labels": ["Math", "Science", "English"], "values": [0, 0, 0]}
-        ai_alerts = []
-        study_abroad_options = []
-        if selected_student:
-            radar_chart_data = {
-                "labels": selected_student["psychometric_result"]["radar"]["labels"][:8],
-                "values": selected_student["psychometric_result"]["radar"]["values"][:8],
-            }
-            bar_chart_data = {
-                "labels": ["Math", "Science", "English"],
-                "values": [
-                    selected_student["subject_scores"]["math"],
-                    selected_student["subject_scores"]["science"],
-                    selected_student["subject_scores"]["english"],
-                ],
-            }
-            ai_alerts = selected_student["ai_insights"]["recommendations"]
-            study_abroad_options = selected_student["study_abroad"]
+        selected_student_id = (
+            getattr(selected_student.get("student"), "id", None) if selected_student else None
+        )
 
-        students_dashboard_payload = []
-        for item in psychometric_students:
-            students_dashboard_payload.append(
-                {
-                    "id": int(getattr(item["student"], "id", 0) or 0),
-                    "name": getattr(item["student"], "name", "") or "Student",
-                    "email": getattr(item["student"], "email", "") or "",
-                    "grade_label": item.get("grade_label", "Other"),
-                    "results_enabled": bool(item.get("results_enabled")),
-                    "career_readiness": int(item.get("career_readiness", 0) or 0),
-                    "academic_trend": item.get("academic_trend", [0, 0, 0, 0]),
-                    "radar": item.get("psychometric_result", {}).get("radar", {"labels": [], "values": []}),
-                    "subject_scores": item.get("subject_scores", {"math": 0, "science": 0, "english": 0}),
-                    "ai_insights": item.get("ai_insights", {"strengths": [], "weaknesses": [], "career_paths": [], "recommendations": []}),
-                    "study_abroad": item.get("study_abroad", []),
-                    "dashboard_url": reverse("parents_student_dashboard", args=[item["student"].id]),
-                    "profile_url": reverse("parents_student_view_profile", args=[item["student"].id]),
-                    "results_url": reverse("parents_student_results", args=[item["student"].id]),
-                }
-            )
+        # Assessment reports are expensive to build, so never render them
+        # inline on page load. Each pane is an empty placeholder that is
+        # fetched lazily over AJAX (with a spinner) when the student is first
+        # selected, then cached client-side (show/hide) for instant switching.
+        student_assessment_reports = [
+            {"student_id": s.id, "html": "", "loaded": False}
+            for s in students
+        ]
 
         ctx = {
             "linked_students": students,
-            "linked_students_info": students_info,
             "psychometric_students": psychometric_students,
-            "psychometric_summary": psychometric_summary,
             "selected_student": selected_student,
-            "line_chart_data_json": mark_safe(json.dumps(line_chart_data)),
-            "radar_chart_data_json": mark_safe(json.dumps(radar_chart_data)),
-            "bar_chart_data_json": mark_safe(json.dumps(bar_chart_data)),
-            "ai_alerts": ai_alerts,
-            "study_abroad_options": study_abroad_options,
             "students_dashboard_payload_json": mark_safe(json.dumps(students_dashboard_payload)),
-            "selected_student_id": getattr(selected_student.get("student"), "id", None) if selected_student else None,
+            "selected_student_id": selected_student_id,
+            "student_assessment_reports": student_assessment_reports,
         }
         return render(request, self.template_name, ctx)
+
+
+class ParentsEducationLoanCalculatorView(TemplateView):
+    template_name = "template20/parents/education_loan_calculator.html"
+
+    def get(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect("parents_login")
+        if request.user.user_type != choices.UserType.PARENT:
+            return redirect(get_dashboard_url_for_user(request, request.user))
+        loan_students_payload = build_parent_loan_form_students_payload(request.user)
+        draft = get_parent_education_loan_draft(request.user)
+        latest_enquiry = get_parent_latest_enquiry(request.user)
+
+        application_id = request.GET.get("application_id")
+        selected_application = None
+        if application_id:
+            selected_application = (
+                EducationLoanApplication.objects.filter(parent=request.user, id=application_id).first()
+            )
+            if selected_application and selected_application.status == choices.EducationLoanApplicationStatus.DRAFT:
+                draft = selected_application
+
+        ctx = {
+            "loan_students_payload_json": mark_safe(json.dumps(loan_students_payload)),
+            "loan_draft_json": mark_safe(
+                json.dumps(serialize_education_loan_application(draft) if draft else None)
+            ),
+            "loan_latest_enquiry_json": mark_safe(
+                json.dumps(
+                    serialize_education_loan_application(latest_enquiry)
+                    if latest_enquiry
+                    else None
+                )
+            ),
+            "loan_save_url": reverse("parents_education_loan_save"),
+            "loan_applications_url": reverse("parents_education_loan_applications"),
+        }
+        return render(request, self.template_name, ctx)
+
+
+class ParentsEducationLoanApplicationsView(TemplateView):
+    template_name = "template20/parents/education_loan_applications.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        request = self.request
+        applications = [
+            serialize_education_loan_application_for_parent_list(app)
+            for app in get_parent_education_loan_applications(request.user)
+        ]
+        ctx.update(
+            {
+                "loan_applications": applications,
+                "loan_applications_summary": build_parent_loan_applications_summary(applications),
+                "loan_calculator_url": reverse("parents_education_loan_calculator"),
+            }
+        )
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect("parents_login")
+        if request.user.user_type != choices.UserType.PARENT:
+            return redirect(get_dashboard_url_for_user(request, request.user))
+        return render(request, self.template_name, self.get_context_data())
+
+
+class ParentEducationLoanApplicationSaveView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        if request.user.user_type != choices.UserType.PARENT:
+            return Response(
+                {"success": False, "message": "Not allowed"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        action = (request.data.get("action") or request.POST.get("action") or "draft").lower()
+        as_draft = action != "submit"
+        payload = request.data if isinstance(request.data, dict) else {}
+
+        app, errors = save_education_loan_application(request.user, payload, as_draft=as_draft)
+        if errors:
+            return Response(
+                {
+                    "success": False,
+                    "message": errors[0],
+                    "errors": errors,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        message = (
+            "Draft saved successfully."
+            if as_draft
+            else "Application enquiry sent successfully. Our team will contact you soon."
+        )
+        return Response(
+            {
+                "success": True,
+                "message": message,
+                "application": serialize_education_loan_application(app),
+                "status": app.status,
+                "status_label": app.get_status_display(),
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class LoanCalculatorAPIView(APIView):
@@ -1092,24 +1040,84 @@ class ParentStudentPsychometricResultView(TemplateView):
 
     def get(self, request, student_id, *args, **kwargs):
         student = _get_parent_linked_student_or_404(request, student_id)
-        from psychometric_tests.models import CentralTestCandidate
-
-        ctc = CentralTestCandidate.objects.filter(user=student).first()
-        if not ctc:
-            return redirect('parents_dashboard')
-
-        test = ctc.candidate_test.last()
-        if not test or getattr(test, "is_success", None) != choices.YesNoChoices.YES:
-            return redirect('parents_dashboard')
-
-        try:
-            url = test.get_pyschometric_test_result_url()
-        except Exception:
-            url = "#"
-
+        url = resolve_parent_student_report_redirect(student)
         if not url or url == "#":
             return redirect('parents_dashboard')
         return redirect(url)
+
+
+# In-process cache for rendered parent report fragments. The build is expensive
+# (many DB queries), and the project deliberately uses DummyCache in dev so the
+# Django cache framework is a no-op there. This module-level TTL cache makes
+# repeat loads fast in every environment (per worker process); in production the
+# Django/Redis cache below still provides cross-process sharing.
+_PARENT_REPORT_HTML_CACHE: dict = {}
+_PARENT_REPORT_HTML_TTL_SECONDS = 900  # 15 minutes
+
+
+@method_decorator(login_required(login_url=reverse_lazy('parents_login')), name='dispatch')
+class ParentStudentAssessmentReportFragmentView(View):
+    """Returns inline assessment report HTML for the parent dashboard (no iframe).
+
+    The report build is expensive, so the rendered HTML fragment is cached per
+    student (both in-process and via the Django cache backend). Pass ?refresh=1
+    to force a rebuild (e.g. right after a student completes an assessment).
+    """
+
+    CACHE_TTL_SECONDS = 900  # 15 minutes
+    CACHE_VERSION = "v6"
+
+    def get(self, request, student_id, *args, **kwargs):
+        import logging
+        import time
+
+        from django.core.cache import cache
+        from django.http import HttpResponse
+
+        logger = logging.getLogger(__name__)
+
+        student = _get_parent_linked_student_or_404(request, student_id)
+        cache_key = f"parent_report_html:{self.CACHE_VERSION}:{student.id}"
+        force_refresh = (request.GET.get("refresh") or "").strip() == "1"
+
+        if force_refresh:
+            _PARENT_REPORT_HTML_CACHE.pop(cache_key, None)
+
+        html = None
+        now = time.monotonic()
+
+        # 1) In-process cache (works even under DummyCache / without Redis).
+        if not force_refresh:
+            entry = _PARENT_REPORT_HTML_CACHE.get(cache_key)
+            if entry and (now - entry[0]) < _PARENT_REPORT_HTML_TTL_SECONDS:
+                html = entry[1]
+
+        # 2) Shared Django cache (Redis in production).
+        if html is None and not force_refresh:
+            html = cache.get(cache_key)
+
+        # 3) Build it.
+        if html is None:
+            try:
+                html = render_parent_assessment_report_html(request, student)
+            except Exception:
+                logger.exception(
+                    "Failed to build parent assessment report for student %s", student.id
+                )
+                html = parent_assessment_report_error_html(student)
+                # Do not cache an error state; allow the next request to retry.
+                return HttpResponse(html)
+
+            if not html:
+                html = parent_assessment_report_empty_html(student)
+
+            _PARENT_REPORT_HTML_CACHE[cache_key] = (now, html)
+            try:
+                cache.set(cache_key, html, self.CACHE_TTL_SECONDS)
+            except Exception:
+                pass
+
+        return HttpResponse(html)
 
 
 def _parent_student_bookmark_user_ids(request, student):
@@ -1138,20 +1146,195 @@ def _parent_student_bookmark_user_ids(request, student):
     return out
 
 
+def _parent_all_bookmark_user_ids(request):
+    """Parent account plus all linked students for aggregated shortlist pages."""
+    ids = []
+    try:
+        if request.user and request.user.is_authenticated:
+            ids.append(request.user.id)
+    except Exception:
+        pass
+    try:
+        from users.models import ParentStudentLink
+        for sid in ParentStudentLink.objects.filter(parent=request.user).values_list("student_id", flat=True):
+            if sid:
+                ids.append(sid)
+    except Exception:
+        pass
+    out, seen = [], set()
+    for x in ids:
+        if x and x not in seen:
+            out.append(x)
+            seen.add(x)
+    return out
+
+
+@method_decorator(login_required(login_url=reverse_lazy('parents_login')), name='dispatch')
+class ParentContentListView(TemplateView):
+    """Parent careers/blogs/videos pages in the parent dashboard shell."""
+    template_name = "template20/parents/content_list.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect("parents_login")
+        if request.user.user_type != choices.UserType.PARENT:
+            return redirect(get_dashboard_url_for_user(request, request.user))
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, kind, *args, **kwargs):
+        kind = (kind or "").lower()
+        user_ids = _parent_all_bookmark_user_ids(request)
+        from django.contrib.contenttypes.models import ContentType
+        from users.models import ParentStudentBookmark
+
+        if kind == "careers":
+            from careers.models import Career, CareerShortlist
+            page_title = "Careers"
+            browse_url = reverse("careers:career")
+            careers = []
+            seen = set()
+            for cs in CareerShortlist.objects.filter(
+                user_id__in=user_ids, career__isnull=False
+            ).select_related("career").order_by("-id"):
+                if cs.career_id and cs.career_id not in seen and cs.career:
+                    careers.append(cs.career)
+                    seen.add(cs.career_id)
+            ct = ContentType.objects.get_for_model(Career)
+            for bm in ParentStudentBookmark.objects.filter(
+                parent=request.user, content_type=ct
+            ).order_by("-created"):
+                obj = Career.objects.filter(id=bm.object_id).first()
+                if obj and obj.id not in seen:
+                    careers.append(obj)
+                    seen.add(obj.id)
+            items = careers
+            from users.career_interests import build_parent_career_shortlist_cards
+
+            career_cards = build_parent_career_shortlist_cards(request.user, user_ids)
+        elif kind == "blogs":
+            from blog.models import BlogShortlist, Blog as BlogModel
+            page_title = "Blogs"
+            browse_url = reverse("blog:blogs")
+            blogs = []
+            seen = set()
+            for bs in BlogShortlist.objects.filter(
+                user_id__in=user_ids, blog__isnull=False
+            ).select_related("blog").order_by("-id"):
+                if bs.blog_id and bs.blog_id not in seen and bs.blog:
+                    blogs.append(bs.blog)
+                    seen.add(bs.blog_id)
+            ct = ContentType.objects.get_for_model(BlogModel)
+            for bm in ParentStudentBookmark.objects.filter(
+                parent=request.user, content_type=ct
+            ).order_by("-created"):
+                obj = BlogModel.get_published_objects().filter(id=bm.object_id).first()
+                if obj and obj.id not in seen:
+                    blogs.append(obj)
+                    seen.add(obj.id)
+            if seen:
+                published_ids = set(
+                    BlogModel.get_published_objects().filter(id__in=list(seen)).values_list("id", flat=True)
+                )
+                blogs = [b for b in blogs if b and b.id in published_ids]
+            items = blogs
+        elif kind == "videos":
+            page_title = "Videos"
+            browse_url = reverse("careers:careervideos")
+            videos = []
+            seen = set()
+            for vid in Videos.objects.filter(shortlist__in=user_ids).distinct().order_by("-id"):
+                if vid.id not in seen:
+                    videos.append(vid)
+                    seen.add(vid.id)
+            ct = ContentType.objects.get_for_model(Videos)
+            for bm in ParentStudentBookmark.objects.filter(
+                parent=request.user, content_type=ct
+            ).order_by("-created"):
+                obj = Videos.objects.filter(id=bm.object_id).first()
+                if obj and obj.id not in seen:
+                    videos.append(obj)
+                    seen.add(obj.id)
+            items = videos
+        else:
+            raise Http404("Invalid kind")
+
+        ctx = {
+            "kind": kind,
+            "page_title": page_title,
+            "browse_url": browse_url,
+            "browse_label": "Browse More",
+            "items": items,
+            "remove_saved_url": reverse("parents_remove_saved", args=[kind]),
+        }
+        if kind == "careers":
+            ctx["career_cards"] = career_cards
+        elif kind == "blogs":
+            from users.parent_saved_items import build_parent_blog_cards
+            ctx["blog_cards"] = build_parent_blog_cards(request.user, user_ids)
+        elif kind == "videos":
+            from users.parent_saved_items import build_parent_video_cards
+            ctx["video_cards"] = build_parent_video_cards(request.user, user_ids)
+        return render(request, self.template_name, ctx)
+
+
+class ParentRemoveSavedItemView(APIView):
+    """Remove a saved career/blog/video from the parent family list."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, kind, *args, **kwargs):
+        if request.user.user_type != choices.UserType.PARENT:
+            return Response({"success": False, "message": "Not allowed"}, status=status.HTTP_403_FORBIDDEN)
+
+        kind = (kind or "").lower()
+        from users.parent_saved_items import (
+            remove_parent_saved_blog,
+            remove_parent_saved_career,
+            remove_parent_saved_video,
+        )
+
+        if kind == "careers":
+            career_slug = (request.POST.get("careerslug") or request.POST.get("career_slug") or "").strip()
+            if not career_slug:
+                return Response({"success": False, "message": "Career slug is required"}, status=status.HTTP_400_BAD_REQUEST)
+            ok = remove_parent_saved_career(request.user, career_slug=career_slug)
+            msg = "Career removed" if ok else "Career not found"
+        elif kind == "blogs":
+            blog_id = request.POST.get("blog_id")
+            try:
+                blog_id_int = int(blog_id)
+            except (TypeError, ValueError):
+                return Response({"success": False, "message": "Blog id is required"}, status=status.HTTP_400_BAD_REQUEST)
+            ok = remove_parent_saved_blog(request.user, blog_id=blog_id_int)
+            msg = "Blog removed" if ok else "Blog not found"
+        elif kind == "videos":
+            video_id = request.POST.get("video_id")
+            try:
+                video_id_int = int(video_id)
+            except (TypeError, ValueError):
+                return Response({"success": False, "message": "Video id is required"}, status=status.HTTP_400_BAD_REQUEST)
+            ok = remove_parent_saved_video(request.user, video_id=video_id_int)
+            msg = "Video removed" if ok else "Video not found"
+        else:
+            return Response({"success": False, "message": "Invalid kind"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not ok:
+            return Response({"success": False, "message": msg}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"success": True, "message": msg}, status=status.HTTP_200_OK)
+
+
 @method_decorator(login_required(login_url=reverse_lazy('parents_login')), name='dispatch')
 class ParentStudentBookmarkCareersView(TemplateView):
     template_name = "template20/user/career_interests.html"
 
     def get(self, request, student_id, *args, **kwargs):
         student = _get_parent_linked_student_or_404(request, student_id)
-        from careers.models import CareerShortlist
         user_ids = _parent_student_bookmark_user_ids(request, student)
-        career_interests_qs = CareerShortlist.objects.filter(
-            user_id__in=user_ids,
-            career__isnull=False
-        ).select_related('career')
-        career_interests_list = list(career_interests_qs)
-        ids = [ci.career_id for ci in career_interests_list if ci and ci.career and ci.career_id]
+        from users.career_interests import build_parent_career_shortlist_cards
+
+        career_cards = build_parent_career_shortlist_cards(
+            request.user, user_ids, student=student
+        )
+        ids = [c.get("career_id") for c in career_cards if c.get("career_id")]
         if ids:
             clstrs = CareerCluster.objects.filter(career_clusters__in=ids).distinct()
         else:
@@ -1162,10 +1345,12 @@ class ParentStudentBookmarkCareersView(TemplateView):
                 {"text": "Parent Dashboard", "url": reverse_lazy("parents_dashboard")},
                 {"text": "Career Interests", "url": ""},
             ]),
-            "career_interests": career_interests_list,
+            "career_cards": career_cards,
+            "career_interests": career_cards,
             "career_ids": ids,
             "clstrs": clstrs,
             "is_parent_view": True,
+            "has_disliked_careers": any(c.get("is_disliked") for c in career_cards),
         }
         return render(request, self.template_name, ctx)
 
@@ -1177,14 +1362,17 @@ class ParentStudentBookmarkVideosView(TemplateView):
     def get(self, request, student_id, *args, **kwargs):
         student = _get_parent_linked_student_or_404(request, student_id)
         user_ids = _parent_student_bookmark_user_ids(request, student)
-        videos = Videos.objects.filter(shortlist__in=user_ids).distinct()
+        from users.parent_saved_items import build_parent_video_cards
+
+        video_cards = build_parent_video_cards(request.user, user_ids, student=student)
         ctx = {
             "html_head": build_html_head(title="My Videos", description="Bookmarked videos"),
             "breadcrumb": get_breadcrumb([
                 {"text": "Parent Dashboard", "url": reverse_lazy("parents_dashboard")},
                 {"text": "My Videos", "url": ""},
             ]),
-            "videos": videos,
+            "video_cards": video_cards,
+            "has_disliked_videos": any(c.get("is_disliked") for c in video_cards),
             "is_parent_view": True,
         }
         return render(request, self.template_name, ctx)
@@ -1277,19 +1465,32 @@ class ParentStudentToggleCareerBookmark(APIView):
         ).first()
         data = {}
         if obj:
-            obj.delete()
-            data["message"] = "Removed Shortlisted"
+            obj.delete(hard_delete=True)
+            data["message"] = "Removed from shortlist"
             data["value"] = "Shortlist Career"
             return Response(data, status=status.HTTP_200_OK)
 
-        ParentStudentBookmark.objects.create(
+        from users.parent_bookmark_utils import ensure_parent_student_bookmark
+
+        bm, is_new = ensure_parent_student_bookmark(
             parent=request.user,
             student=student,
             content_type=ct,
             object_id=career.id,
         )
-        data["message"] = "Career Shortlisted"
-        data["value"] = "Remove Shortlisted"
+        if is_new:
+            from users.parent_suggestions import notify_student_parent_suggestion
+
+            notify_student_parent_suggestion(
+                student=student,
+                parent=request.user,
+                kind="careers",
+                item_title=career.name,
+                item_url=career.url() if hasattr(career, "url") else "",
+                bookmark=bm,
+            )
+        data["message"] = "Career shortlisted"
+        data["value"] = "Remove from shortlist"
         return Response(data, status=status.HTTP_200_OK)
 
 
@@ -1318,12 +1519,35 @@ class ParentStudentToggleVideoBookmark(APIView):
             parent=request.user, student=student, content_type=ct, object_id=video.id
         ).first()
         if obj:
-            obj.delete()
-            return Response({"message": "Removed Shortlisted", "value": "Bookmark"}, status=status.HTTP_200_OK)
-        ParentStudentBookmark.objects.create(
-            parent=request.user, student=student, content_type=ct, object_id=video.id
+            obj.delete(hard_delete=True)
+            return Response(
+                {"success": True, "bookmarked": False, "message": "Removed from shortlist", "value": "Shortlist"},
+                status=status.HTTP_200_OK,
+            )
+        from users.parent_bookmark_utils import ensure_parent_student_bookmark
+
+        bm, is_new = ensure_parent_student_bookmark(
+            parent=request.user,
+            student=student,
+            content_type=ct,
+            object_id=video.id,
         )
-        return Response({"message": "Video Shortlisted", "value": "Remove Bookmark"}, status=status.HTTP_200_OK)
+        if is_new:
+            from users.parent_suggestions import notify_student_parent_suggestion
+            from django.urls import reverse
+
+            notify_student_parent_suggestion(
+                student=student,
+                parent=request.user,
+                kind="videos",
+                item_title=video.name,
+                item_url=reverse("careers:videodetail", args=[video.slug]),
+                bookmark=bm,
+            )
+        return Response(
+            {"success": True, "bookmarked": True, "message": "Video shortlisted", "value": "Remove from shortlist"},
+            status=status.HTTP_200_OK,
+        )
 
 
 class ParentStudentToggleCollegeBookmark(APIView):
@@ -1349,8 +1573,19 @@ class ParentStudentToggleCollegeBookmark(APIView):
         if obj:
             obj.delete()
             return Response({"message": "Removed Shortlisted", "value": "Shortlist College"}, status=status.HTTP_200_OK)
-        ParentStudentBookmark.objects.create(
+        bm = ParentStudentBookmark.objects.create(
             parent=request.user, student=student, content_type=ct, object_id=college.id
+        )
+        from users.parent_suggestions import notify_student_parent_suggestion
+        from django.urls import reverse
+
+        notify_student_parent_suggestion(
+            student=student,
+            parent=request.user,
+            kind="colleges",
+            item_title=college.name,
+            item_url=reverse("colleges:collegedetail", args=[college.slug]),
+            bookmark=bm,
         )
         return Response({"message": "College Shortlisted", "value": "Remove Shortlisted"}, status=status.HTTP_200_OK)
 
@@ -1379,12 +1614,29 @@ class ParentStudentToggleBlogBookmark(APIView):
             parent=request.user, student=student, content_type=ct, object_id=blog.id
         ).first()
         if obj:
-            obj.delete()
-            return Response({"success": True, "bookmarked": False, "message": "Removed Bookmark"}, status=status.HTTP_200_OK)
-        ParentStudentBookmark.objects.create(
-            parent=request.user, student=student, content_type=ct, object_id=blog.id
+            obj.delete(hard_delete=True)
+            return Response({"success": True, "bookmarked": False, "message": "Removed from shortlist"}, status=status.HTTP_200_OK)
+        from users.parent_bookmark_utils import ensure_parent_student_bookmark
+
+        bm, is_new = ensure_parent_student_bookmark(
+            parent=request.user,
+            student=student,
+            content_type=ct,
+            object_id=blog.id,
         )
-        return Response({"success": True, "bookmarked": True, "message": "Blog Bookmarked"}, status=status.HTTP_200_OK)
+        if is_new:
+            from users.parent_suggestions import notify_student_parent_suggestion
+            from django.urls import reverse
+
+            notify_student_parent_suggestion(
+                student=student,
+                parent=request.user,
+                kind="blogs",
+                item_title=getattr(blog, "title", str(blog)),
+                item_url=reverse("blog:blogdetail", args=[blog.slug]),
+                bookmark=bm,
+            )
+        return Response({"success": True, "bookmarked": True, "message": "Blog shortlisted"}, status=status.HTTP_200_OK)
 
 
 @method_decorator(login_required(login_url=reverse_lazy('parents_login')), name='dispatch')
@@ -1448,8 +1700,17 @@ class ParentStudentSuggestedListView(TemplateView):
             o = obj_map.get(b.object_id)
             if not o:
                 continue
+            reaction = (b.student_reaction or "").strip()
             if kind == "careers":
-                items.append({"id": o.id, "slug": o.slug, "title": o.name, "url": o.url()})
+                items.append({
+                    "id": o.id,
+                    "slug": o.slug,
+                    "title": o.name,
+                    "url": o.url(),
+                    "student_reaction": reaction,
+                    "is_disliked": reaction == "disliked",
+                    "is_liked": reaction == "liked",
+                })
             elif kind == "videos":
                 items.append({"id": o.id, "slug": o.slug, "title": o.name, "url": reverse("careers:videodetail", args=[o.slug]) + f"?student_id={student.id}"})
             elif kind == "colleges":
@@ -3319,6 +3580,17 @@ class UserDashboard(TemplateView):
             except Exception:
                 pass
 
+        from users.parent_student_insights import (
+            resolve_career_direction_report_url,
+            resolve_stream_sorter_report_url,
+            student_has_class10_assessment,
+            student_has_class12_assessment,
+        )
+        ctx['has_stream_sorter_reports'] = student_has_class10_assessment(profile_user)
+        ctx['has_career_direction_reports'] = student_has_class12_assessment(profile_user)
+        ctx['stream_sorter_report_url'] = resolve_stream_sorter_report_url(profile_user, for_self=True)
+        ctx['career_direction_report_url'] = resolve_career_direction_report_url(profile_user, for_self=True)
+
         # User's invoices (for dashboard download)
         try:
             from invoices.models import Invoice
@@ -3364,7 +3636,7 @@ class UserDashboard(TemplateView):
 
         # Parent suggestions (show parent bookmarks/shortlists as suggestions to STUDENTS)
         ctx["show_parent_suggestions"] = False
-        ctx["suggested_by_parents"] = []  # list of parent users
+        ctx["suggested_by_parents"] = []
         ctx["parent_suggested_careers"] = []
         ctx["parent_suggested_videos"] = []
         ctx["parent_suggested_colleges"] = []
@@ -3376,103 +3648,8 @@ class UserDashboard(TemplateView):
                 and not is_parent_view
                 and profile_user.id == request.user.id
             ):
-                from users.models import ParentStudentLink
-                parent_links = ParentStudentLink.objects.filter(student=request.user).select_related("parent")
-                parent_users = [l.parent for l in parent_links if l.parent]
-                parent_ids = [p.id for p in parent_users if p and p.id]
-                ctx["suggested_by_parents"] = parent_users
-
-                if parent_ids:
-                    # Careers (student-scoped suggestions from ParentStudentBookmark)
-                    from users.models import ParentStudentBookmark
-                    from django.contrib.contenttypes.models import ContentType
-                    from careers.models import Career as CareerModel
-                    ct = ContentType.objects.get_for_model(CareerModel)
-                    suggested_qs = ParentStudentBookmark.objects.filter(
-                        student=request.user,
-                        content_type=ct,
-                    ).order_by("-created")
-                    careers = []
-                    seen = set()
-                    for bm in suggested_qs:
-                        cid = bm.object_id
-                        if cid and cid not in seen:
-                            obj = CareerModel.objects.filter(id=cid).first()
-                            if obj:
-                                careers.append(obj)
-                                seen.add(cid)
-                        if len(careers) >= 6:
-                            break
-                    ctx["parent_suggested_careers"] = careers
-
-                    # Videos (student-scoped suggestions from ParentStudentBookmark)
-                    from users.models import ParentStudentBookmark
-                    from django.contrib.contenttypes.models import ContentType
-                    from careers.models import Videos as VideosModel
-                    ct_v = ContentType.objects.get_for_model(VideosModel)
-                    bqs_v = ParentStudentBookmark.objects.filter(
-                        student=request.user,
-                        content_type=ct_v,
-                    ).order_by("-created")
-                    vids = []
-                    seen_v = set()
-                    for bm in bqs_v:
-                        vid = bm.object_id
-                        if vid and vid not in seen_v:
-                            obj = VideosModel.objects.filter(id=vid).first()
-                            if obj:
-                                vids.append(obj)
-                                seen_v.add(vid)
-                        if len(vids) >= 6:
-                            break
-                    ctx["parent_suggested_videos"] = vids
-
-                    # Colleges (student-scoped suggestions from ParentStudentBookmark)
-                    from colleges.models import College as CollegeModel
-                    ct_c = ContentType.objects.get_for_model(CollegeModel)
-                    bqs_c = ParentStudentBookmark.objects.filter(
-                        student=request.user,
-                        content_type=ct_c,
-                    ).order_by("-created")
-                    colleges = []
-                    seen_c = set()
-                    for bm in bqs_c:
-                        cid = bm.object_id
-                        if cid and cid not in seen_c:
-                            obj = CollegeModel.objects.filter(id=cid).first()
-                            if obj:
-                                colleges.append(obj)
-                                seen_c.add(cid)
-                        if len(colleges) >= 6:
-                            break
-                    ctx["parent_suggested_colleges"] = colleges
-
-                    # Blogs (student-scoped suggestions from ParentStudentBookmark)
-                    from blog.models import Blog as BlogModel
-                    ct_b = ContentType.objects.get_for_model(BlogModel)
-                    bqs_b = ParentStudentBookmark.objects.filter(
-                        student=request.user,
-                        content_type=ct_b,
-                    ).order_by("-created")
-                    blogs = []
-                    seen_b = set()
-                    for bm in bqs_b:
-                        bid = bm.object_id
-                        if bid and bid not in seen_b:
-                            obj = BlogModel.get_published_objects().filter(id=bid).first()
-                            if obj:
-                                blogs.append(obj)
-                                seen_b.add(bid)
-                        if len(blogs) >= 6:
-                            break
-                    ctx["parent_suggested_blogs"] = blogs
-
-                ctx["show_parent_suggestions"] = bool(
-                    ctx["parent_suggested_careers"]
-                    or ctx["parent_suggested_videos"]
-                    or ctx["parent_suggested_colleges"]
-                    or ctx["parent_suggested_blogs"]
-                )
+                from users.parent_suggestions import load_all_parent_suggestions_for_student
+                ctx.update(load_all_parent_suggestions_for_student(request.user))
         except Exception:
             pass
 
@@ -3730,9 +3907,13 @@ class Scrapbook(TemplateView):
         return build_html_head(title=name, description=name)
 
     def get_context(self,request,*args,**kwargs):
+        from users.parent_suggestions import apply_scrapbook_parent_updates_context
+
         ctx={}
         ctx["html_head"] = self.html_head()
         ctx['breadcrumb']=self.__breadcrumb()
+        ctx.update(_hub_nav_counts(request.user))
+        apply_scrapbook_parent_updates_context(ctx, request.user)
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -3869,6 +4050,16 @@ class UserColleges(TemplateView):
                 seen.add(cs.college_id)
         ctx["colleges"] = colleges
         ctx['breadcrumb']=self.__breadcrumb()
+        from users.parent_suggestions import (
+            apply_scrapbook_parent_updates_context,
+            apply_student_parent_suggestions_context,
+            mark_parent_suggestions_read_for_kind,
+        )
+
+        ctx.update(_hub_nav_counts(request.user))
+        apply_student_parent_suggestions_context(ctx, request, "colleges")
+        mark_parent_suggestions_read_for_kind(request.user, "colleges")
+        apply_scrapbook_parent_updates_context(ctx, request.user)
         return ctx
 
     def get(self, request,*args, **kwargs):
@@ -3891,25 +4082,26 @@ class CareerInterests(TemplateView):
         ctx={}
         ctx["html_head"] = self.html_head()
         ctx['breadcrumb']=self.__breadcrumb()
-        # Use select_related to optimize query and ensure career data is loaded
-        # Filter out any career_shortlists where career is None
-        user_ids = _bookmark_owner_user_ids(request.user)
-        from careers.models import CareerShortlist
-        career_interests_qs = CareerShortlist.objects.filter(
-            user_id__in=user_ids,
-            career__isnull=False
-        ).select_related('career')
-        # Convert to list to ensure queryset is evaluated for Jinja2 template
-        career_interests_list = list(career_interests_qs)
-        ctx['career_interests'] = career_interests_list
-        # Get career IDs for cluster filtering - filter out None values
-        ids = [ci.career_id for ci in career_interests_list if ci and ci.career and ci.career_id]
+        from users.career_interests import build_student_career_interest_cards
+        from users.parent_suggestions import (
+            apply_scrapbook_parent_updates_context,
+            mark_parent_suggestions_read_for_kind,
+        )
+
+        career_cards = build_student_career_interest_cards(request.user)
+        ctx['career_cards'] = career_cards
+        ctx['career_interests'] = career_cards
+        ctx['has_disliked_careers'] = any(c.get("is_disliked") for c in career_cards)
+        ids = [c.get("career_id") for c in career_cards if c.get("career_id")]
         if ids:
             clstrs = CareerCluster.objects.filter(career_clusters__in=ids).distinct()
         else:
             clstrs = CareerCluster.objects.none()
         ctx['career_ids'] = ids
         ctx['clstrs'] = clstrs
+        ctx.update(_hub_nav_counts(request.user))
+        mark_parent_suggestions_read_for_kind(request.user, "careers")
+        apply_scrapbook_parent_updates_context(ctx, request.user)
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -3994,6 +4186,7 @@ def _hub_nav_counts(user):
         "hub_resume_count": 0,
         "hub_application_count": 0,
         "hub_notes_count": 0,
+        "hub_scrapbook_unread_count": 0,
     }
     try:
         ctx["hub_shortlist_count"] = CollegeShortlist.objects.filter(user=user).count()
@@ -4008,6 +4201,17 @@ def _hub_nav_counts(user):
         pass
     try:
         ctx["hub_notes_count"] = len(_meaningful_user_notes_qs(user))
+    except Exception:
+        pass
+    try:
+        from users.parent_suggestions import (
+            ensure_parent_suggestion_notifications,
+            get_scrapbook_unread_total,
+        )
+
+        if getattr(user, "user_type", None) == choices.UserType.STUDENT:
+            ensure_parent_suggestion_notifications(user)
+        ctx["hub_scrapbook_unread_count"] = get_scrapbook_unread_total(user)
     except Exception:
         pass
     return ctx
@@ -4979,11 +5183,20 @@ class BookmarkVideo(TemplateView):
 
     def get_context(self,request,*args,**kwargs):
         ctx={}
-        user_ids = _bookmark_owner_user_ids(request.user)
-        videos = Videos.objects.filter(shortlist__in=user_ids).distinct()
+        from users.parent_saved_items import build_student_video_cards
+        from users.parent_suggestions import (
+            apply_scrapbook_parent_updates_context,
+            mark_parent_suggestions_read_for_kind,
+        )
+
+        video_cards = build_student_video_cards(request.user)
         ctx["html_head"] = self.html_head()
-        ctx["videos"] = videos
+        ctx["video_cards"] = video_cards
+        ctx["has_disliked_videos"] = any(c.get("is_disliked") for c in video_cards)
         ctx['breadcrumb']=self.__breadcrumb()
+        ctx.update(_hub_nav_counts(request.user))
+        mark_parent_suggestions_read_for_kind(request.user, "videos")
+        apply_scrapbook_parent_updates_context(ctx, request.user)
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -5088,6 +5301,16 @@ class BookmarkBlog(TemplateView):
             ctx["blogs"] = [b for b in blogs if b and b.id in published_ids]
         except Exception:
             ctx["blogs"] = []
+        from users.parent_suggestions import (
+            apply_scrapbook_parent_updates_context,
+            apply_student_parent_suggestions_context,
+            mark_parent_suggestions_read_for_kind,
+        )
+
+        ctx.update(_hub_nav_counts(request.user))
+        apply_student_parent_suggestions_context(ctx, request, "blogs")
+        mark_parent_suggestions_read_for_kind(request.user, "blogs")
+        apply_scrapbook_parent_updates_context(ctx, request.user)
         return ctx
 
     def get(self, request, *args, **kwargs):

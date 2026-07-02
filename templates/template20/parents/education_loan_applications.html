@@ -1,0 +1,521 @@
+{% extends "template20/user/student_base.html" %}
+
+{% block title_content %}My Loan Applications | Top Teen{% endblock %}
+{% block description_content %}View saved education loan drafts and submitted enquiries.{% endblock %}
+{% block student_bodyclass %}user-dashboard user-dashboard-fullscreen{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<link rel="stylesheet" href="{{ static('css/parent-sidebar.css') }}">
+<style>
+  .std-shell-main { padding-top: 52px; }
+
+  .parent-dashboard {
+    background:
+      radial-gradient(circle at 6% 0%, rgba(102, 125, 255, 0.12) 0%, rgba(102, 125, 255, 0) 28%),
+      radial-gradient(circle at 92% 2%, rgba(39, 197, 139, 0.11) 0%, rgba(39, 197, 139, 0) 30%),
+      #f4f7ff;
+    min-height: 100%;
+  }
+
+  .parent-dashboard .parent-overview-card,
+  .parent-dashboard .parent-students-card {
+    background: #fff;
+    border: 1px solid rgba(110, 129, 228, 0.14);
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: 0 10px 24px rgba(76, 94, 177, 0.08);
+  }
+
+  .parent-dashboard .parent-page-title {
+    font-size: 28px;
+    line-height: 1.2;
+    background: linear-gradient(90deg, #403fa6 0%, #1f90cd 55%, #1ba883 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .parent-dashboard .parent-page-subtitle {
+    color: #60658c;
+    font-size: 13px;
+  }
+
+  .loan-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  @media (max-width: 991px) {
+    .loan-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 575px) {
+    .loan-summary-grid { grid-template-columns: 1fr; }
+  }
+
+  .loan-summary-tile {
+    border-radius: 14px;
+    padding: 14px 16px;
+    border: 1px solid #e0e7ff;
+    background: linear-gradient(145deg, #ffffff 0%, #f6f8ff 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .loan-summary-tile::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #5c54d4 0%, #20b7e8 60%, #3ecf8e 100%);
+  }
+
+  .loan-summary-tile.is-draft::before {
+    background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%);
+  }
+
+  .loan-summary-tile.is-enquiry::before {
+    background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+  }
+
+  .loan-summary-tile.is-amount::before {
+    background: linear-gradient(90deg, #6366f1 0%, #818cf8 100%);
+  }
+
+  .loan-summary-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #7b82b0;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .loan-summary-value {
+    font-size: 22px;
+    font-weight: 800;
+    color: #1f2a61;
+    line-height: 1.1;
+  }
+
+  .loan-app-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  @media (max-width: 991px) {
+    .loan-app-grid { grid-template-columns: 1fr; }
+  }
+
+  .loan-app-card {
+    border: 1px solid #dbe4ff;
+    border-radius: 18px;
+    background: #fff;
+    overflow: hidden;
+    box-shadow: 0 10px 28px rgba(76, 94, 177, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+  }
+
+  .loan-app-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 34px rgba(76, 94, 177, 0.14);
+  }
+
+  .loan-app-card.is-draft {
+    border-color: #fde68a;
+  }
+
+  .loan-app-card.is-enquiry {
+    border-color: #a7f3d0;
+  }
+
+  .loan-app-card-accent {
+    height: 5px;
+    background: linear-gradient(90deg, #5c54d4 0%, #20b7e8 55%, #3ecf8e 100%);
+  }
+
+  .loan-app-card.is-draft .loan-app-card-accent {
+    background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%);
+  }
+
+  .loan-app-card.is-enquiry .loan-app-card-accent {
+    background: linear-gradient(90deg, #059669 0%, #34d399 100%);
+  }
+
+  .loan-app-card-body {
+    padding: 18px;
+  }
+
+  .loan-app-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .loan-app-identity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .loan-app-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 800;
+    color: #fff;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #6366f1 0%, #2563eb 100%);
+    box-shadow: 0 8px 18px rgba(99, 102, 241, 0.28);
+  }
+
+  .loan-app-card.is-draft .loan-app-avatar {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    box-shadow: 0 8px 18px rgba(245, 158, 11, 0.28);
+  }
+
+  .loan-app-card.is-enquiry .loan-app-avatar {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    box-shadow: 0 8px 18px rgba(16, 185, 129, 0.28);
+  }
+
+  .loan-app-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: #1f2a61;
+    line-height: 1.2;
+    margin-bottom: 2px;
+  }
+
+  .loan-app-subtitle {
+    font-size: 12px;
+    color: #7b82b0;
+  }
+
+  .loan-app-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 11px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .loan-app-badge.is-draft {
+    background: #fffbeb;
+    color: #92400e;
+    border: 1px solid #fde68a;
+  }
+
+  .loan-app-badge.is-enquiry {
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+  }
+
+  .loan-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .loan-metric-tile {
+    border-radius: 12px;
+    padding: 12px;
+    background: linear-gradient(150deg, #ffffff 0%, #f4f8ff 100%);
+    border: 1px solid #e8edff;
+  }
+
+  .loan-metric-tile.is-highlight {
+    background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 100%);
+    border-color: #c7d2fe;
+  }
+
+  .loan-metric-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    margin-bottom: 8px;
+    background: rgba(99, 102, 241, 0.12);
+    color: #4f46e5;
+  }
+
+  .loan-metric-label {
+    font-size: 11px;
+    color: #7b82b0;
+    margin-bottom: 2px;
+    font-weight: 600;
+  }
+
+  .loan-metric-value {
+    font-size: 15px;
+    font-weight: 800;
+    color: #1f2a61;
+    line-height: 1.2;
+  }
+
+  .loan-detail-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .loan-detail-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: #f8faff;
+    border: 1px solid #e5ebff;
+    font-size: 12px;
+    color: #4b4f7a;
+    max-width: 100%;
+  }
+
+  .loan-detail-chip i {
+    color: #6366f1;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .loan-detail-chip span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .loan-app-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 14px;
+    border-top: 1px dashed #e0e7ff;
+  }
+
+  .loan-app-time {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #7b82b0;
+  }
+
+  .loan-app-actions .btn {
+    border-radius: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .loan-empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    border-radius: 18px;
+    background: linear-gradient(145deg, #ffffff 0%, #f7faff 100%);
+    border: 1px dashed #c7d2fe;
+  }
+
+  .loan-empty-icon {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 16px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+    color: #6366f1;
+    background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  }
+</style>
+{% endblock %}
+
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'My loan applications' %}
+{% endblock %}
+
+{% block student_section_class %}parent-dashboard std-shell-main{% endblock %}
+
+{% block student_shell_topbar %}
+{% include "template20/parents/includes/parent_shell_topbar.html" %}
+{% endblock %}
+
+{% block student_sidebar %}
+{% include "template20/parents/includes/parent_sidebar.html" %}
+{% endblock %}
+
+{% block student_shell_offcanvas %}
+{% include "template20/parents/includes/parent_offcanvas.html" %}
+{% endblock %}
+
+{% block student_main %}
+{% set loan_summary = loan_applications_summary if loan_applications_summary is defined else {'total': 0, 'draft_count': 0, 'enquiry_count': 0, 'total_amount_display': 'INR 0'} %}
+<section class="pt-4 px-3 px-lg-4 px-xl-5 mb-4">
+  <div class="container-fluid px-0">
+    <div class="parent-overview-card py-3 mb-4">
+      <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+        <div>
+          <h2 class="parent-page-title fw-700 mb-1">My Loan Applications</h2>
+          <p class="parent-page-subtitle mb-0">Track saved drafts and submitted education loan enquiries at a glance.</p>
+        </div>
+        <a href="{{ loan_calculator_url }}" class="btn btn-primary">
+          <i class='bx bx-calculator me-1'></i>New / Continue Calculator
+        </a>
+      </div>
+    </div>
+
+    {% if loan_applications and loan_applications|length %}
+    <div class="loan-summary-grid mb-4">
+      <div class="loan-summary-tile">
+        <div class="loan-summary-label">Total records</div>
+        <div class="loan-summary-value">{{ loan_summary.total }}</div>
+      </div>
+      <div class="loan-summary-tile is-draft">
+        <div class="loan-summary-label">Drafts</div>
+        <div class="loan-summary-value">{{ loan_summary.draft_count }}</div>
+      </div>
+      <div class="loan-summary-tile is-enquiry">
+        <div class="loan-summary-label">Enquiries sent</div>
+        <div class="loan-summary-value">{{ loan_summary.enquiry_count }}</div>
+      </div>
+      <div class="loan-summary-tile is-amount">
+        <div class="loan-summary-label">Combined loan value</div>
+        <div class="loan-summary-value fs-18">{{ loan_summary.total_amount_display }}</div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="parent-students-card">
+      {% if loan_applications and loan_applications|length %}
+      <div class="loan-app-grid">
+        {% for app in loan_applications %}
+        <article class="loan-app-card {% if app.status == 0 %}is-draft{% else %}is-enquiry{% endif %}">
+          <div class="loan-app-card-accent"></div>
+          <div class="loan-app-card-body">
+            <div class="loan-app-head">
+              <div class="loan-app-identity">
+                <div class="loan-app-avatar" aria-hidden="true">{{ app.student_initial }}</div>
+                <div class="min-w-0">
+                  <div class="loan-app-title text-truncate">{{ app.application.student_name or 'Student not set' }}</div>
+                  <div class="loan-app-subtitle">
+                    {% if app.status == 0 %}Draft in progress{% else %}Enquiry submitted to team{% endif %}
+                  </div>
+                </div>
+              </div>
+              {% if app.status == 0 %}
+              <span class="loan-app-badge is-draft"><i class='bx bx-edit'></i>Draft</span>
+              {% else %}
+              <span class="loan-app-badge is-enquiry"><i class='bx bx-check-circle'></i>Sent</span>
+              {% endif %}
+            </div>
+
+            {% if app.has_calculator %}
+            <div class="loan-metric-grid">
+              <div class="loan-metric-tile is-highlight">
+                <div class="loan-metric-icon"><i class='bx bx-wallet'></i></div>
+                <div class="loan-metric-label">Loan amount</div>
+                <div class="loan-metric-value">{{ app.display_loan_amount }}</div>
+              </div>
+              <div class="loan-metric-tile is-highlight">
+                <div class="loan-metric-icon"><i class='bx bx-credit-card'></i></div>
+                <div class="loan-metric-label">Estimated EMI</div>
+                <div class="loan-metric-value">{{ app.display_emi }}</div>
+              </div>
+              <div class="loan-metric-tile">
+                <div class="loan-metric-icon"><i class='bx bx-time-five'></i></div>
+                <div class="loan-metric-label">Tenure</div>
+                <div class="loan-metric-value">{{ app.tenure_label }}</div>
+              </div>
+              <div class="loan-metric-tile">
+                <div class="loan-metric-icon"><i class='bx bx-trending-up'></i></div>
+                <div class="loan-metric-label">Interest rate</div>
+                <div class="loan-metric-value">{{ app.interest_label }}</div>
+              </div>
+            </div>
+            {% else %}
+            <div class="loan-metric-grid">
+              <div class="loan-metric-tile" style="grid-column: 1 / -1;">
+                <div class="loan-metric-icon"><i class='bx bx-info-circle'></i></div>
+                <div class="loan-metric-label">Calculator</div>
+                <div class="loan-metric-value">Details not filled yet — continue to add loan amount & EMI</div>
+              </div>
+            </div>
+            {% endif %}
+
+            {% if app.application.institute_name or app.application.course_name or app.country_label != '—' %}
+            <div class="loan-detail-chips">
+              {% if app.country_label != '—' %}
+              <span class="loan-detail-chip"><i class='bx bx-globe'></i><span>{{ app.country_label }}</span></span>
+              {% endif %}
+              {% if app.application.institute_name %}
+              <span class="loan-detail-chip"><i class='bx bx-building'></i><span>{{ app.application.institute_name }}</span></span>
+              {% endif %}
+              {% if app.application.course_name %}
+              <span class="loan-detail-chip"><i class='bx bx-book-open'></i><span>{{ app.application.course_name }}</span></span>
+              {% endif %}
+            </div>
+            {% endif %}
+
+            <div class="loan-app-footer">
+              <div class="loan-app-time">
+                <i class='bx bx-calendar'></i>
+                {% if app.status == 0 %}
+                Last saved {{ app.display_modified }}
+                {% else %}
+                Submitted {{ app.display_submitted }}
+                {% endif %}
+              </div>
+              <div class="loan-app-actions">
+                {% if app.status == 0 %}
+                <a href="{{ loan_calculator_url }}?application_id={{ app.id }}" class="btn btn-outline-primary btn-sm">
+                  Continue Draft
+                </a>
+                {% else %}
+                <span class="btn btn-outline-secondary btn-sm disabled" aria-disabled="true">
+                  <i class='bx bx-check me-1'></i>Enquiry Sent
+                </span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="loan-empty-state">
+        <div class="loan-empty-icon"><i class='bx bx-file-blank'></i></div>
+        <h3 class="fs-18 fw-700 text-dark mb-2">No loan applications yet</h3>
+        <p class="text-muted mb-4">Start with the calculator, save a draft, or send an enquiry when you're ready.</p>
+        <a href="{{ loan_calculator_url }}" class="btn btn-primary">
+          <i class='bx bx-calculator me-1'></i>Open Education Loan Calculator
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

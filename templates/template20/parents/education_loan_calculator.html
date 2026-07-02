@@ -1,0 +1,1289 @@
+{% extends "template20/user/student_base.html" %}
+
+{% block title_content %}Education Loan Calculator | Top Teen{% endblock %}
+{% block description_content %}Estimate education loan EMI with moratorium interest loading.{% endblock %}
+{% block student_bodyclass %}user-dashboard user-dashboard-fullscreen{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<link rel="stylesheet" href="{{ static('css/parent-sidebar.css') }}">
+<style>
+  .std-shell-main { padding-top: 52px; }
+
+  .parent-dashboard {
+    background:
+      radial-gradient(circle at 6% 0%, rgba(102, 125, 255, 0.12) 0%, rgba(102, 125, 255, 0) 28%),
+      radial-gradient(circle at 92% 2%, rgba(39, 197, 139, 0.11) 0%, rgba(39, 197, 139, 0) 30%),
+      #f4f7ff;
+    min-height: 100%;
+  }
+
+  .parent-dashboard .parent-overview-card {
+    background: linear-gradient(130deg, #ffffff 0%, #f8faff 100%);
+    border: 1px solid rgba(110, 129, 228, 0.18);
+    border-radius: 16px;
+    padding: 16px 18px;
+    box-shadow: 0 14px 30px rgba(76, 94, 177, 0.12);
+  }
+
+  .parent-dashboard .parent-page-title {
+    font-size: 28px;
+    line-height: 1.2;
+    letter-spacing: -0.2px;
+    background: linear-gradient(90deg, #403fa6 0%, #1f90cd 55%, #1ba883 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .parent-dashboard .parent-page-subtitle {
+    color: #60658c;
+    font-size: 13px;
+  }
+
+  .parent-dashboard .parent-students-card,
+  .parent-dashboard .viz-card {
+    background: #fff;
+    border: 1px solid rgba(110, 129, 228, 0.14);
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: 0 10px 24px rgba(76, 94, 177, 0.08);
+  }
+
+  .parent-dashboard .tile {
+    border-radius: 12px;
+    border: 1px solid #dde5ff;
+    background: linear-gradient(150deg, #ffffff 0%, #f4f8ff 100%);
+    box-shadow: 0 8px 20px rgba(90, 106, 185, 0.08);
+    padding: 13px 14px;
+  }
+
+  .parent-dashboard .btn { border-radius: 10px; }
+
+  .parent-dashboard #loanCalcBtn {
+    border-radius: 12px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    box-shadow: 0 10px 22px rgba(73, 86, 175, 0.2);
+  }
+
+  .parent-dashboard .loan-apply-btn {
+    border: 0;
+    border-radius: 12px;
+    background: linear-gradient(120deg, #16a34a 0%, #0ea5a4 52%, #2563eb 100%);
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    box-shadow: 0 12px 26px rgba(36, 99, 235, 0.28);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  }
+
+  .parent-dashboard .loan-apply-btn:hover,
+  .parent-dashboard .loan-apply-btn:focus-visible {
+    color: #fff;
+    transform: translateY(-1px);
+    filter: saturate(1.05);
+    box-shadow: 0 16px 30px rgba(37, 99, 235, 0.34);
+  }
+
+  .parent-dashboard .loan-apply-btn:disabled,
+  .parent-dashboard .loan-apply-btn.disabled {
+    background: linear-gradient(120deg, #b9c2e9 0%, #cad2ee 100%);
+    color: #f5f7ff;
+    box-shadow: none;
+    cursor: not-allowed;
+    opacity: 1;
+  }
+
+  .parent-dashboard #loanResultRow .tile {
+    border-radius: 14px;
+    border: 1px solid #dce3fd;
+    background: linear-gradient(145deg, #ffffff 0%, #f5f8ff 100%);
+    box-shadow: 0 10px 24px rgba(89, 104, 181, 0.12);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .parent-dashboard #loanResultRow .tile::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #5c54d4 0%, #20b7e8 60%, #3ecf8e 100%);
+  }
+
+  .parent-dashboard #loanResultRow h5 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #1f2a61;
+    letter-spacing: -0.2px;
+  }
+
+  .parent-dashboard .loan-cta-note {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #5e6696;
+  }
+
+  .parent-dashboard .loan-cta-note i {
+    color: #5c54d4;
+  }
+
+  .parent-dashboard .form-select,
+  .parent-dashboard .form-control {
+    border-radius: 11px;
+    border-color: #d6ddf6;
+    box-shadow: none;
+  }
+
+  .parent-dashboard .form-select:focus,
+  .parent-dashboard .form-control:focus {
+    border-color: #6f7deb;
+    box-shadow: 0 0 0 3px rgba(93, 111, 224, 0.16);
+  }
+
+  .parent-dashboard .form-control.is-valid {
+    border-color: #22c55e;
+    background-image: none;
+  }
+
+  .parent-dashboard .form-control.is-invalid {
+    border-color: #ef4444;
+    background-image: none;
+  }
+
+  .parent-dashboard .invalid-feedback,
+  .parent-dashboard .valid-feedback {
+    display: none;
+    font-size: 12px;
+    margin-top: 4px;
+  }
+
+  .parent-dashboard .form-control.is-invalid ~ .invalid-feedback,
+  .parent-dashboard .form-select.is-invalid ~ .invalid-feedback,
+  .parent-dashboard .invalid-feedback.is-visible {
+    display: block;
+  }
+
+  .loan-suggest-wrap {
+    position: relative;
+  }
+
+  .loan-suggest-dropdown {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 4px);
+    z-index: 1080;
+    max-height: 220px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #d6ddf6;
+    border-radius: 11px;
+    box-shadow: 0 12px 28px rgba(76, 94, 177, 0.16);
+  }
+
+  .loan-suggest-option {
+    display: block;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    padding: 10px 12px;
+    font-size: 13px;
+    color: #2f3568;
+    cursor: pointer;
+  }
+
+  .loan-suggest-option:hover,
+  .loan-suggest-option.is-active {
+    background: #eef2ff;
+    color: #403fa6;
+  }
+
+  .loan-suggest-option + .loan-suggest-option {
+    border-top: 1px solid #eef2ff;
+  }
+
+  .loan-suggest-hint {
+    font-size: 11px;
+    color: #7b82b0;
+    margin-top: 4px;
+  }
+
+  .loan-suggest-empty {
+    padding: 10px 12px;
+    font-size: 12px;
+    color: #7b82b0;
+  }
+
+  #educationLoanApplyModal .modal-content {
+    border: 1px solid rgba(110, 129, 228, 0.18);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  #educationLoanApplyModal .modal-header {
+    border-bottom-color: #e8ecfb;
+  }
+
+  #educationLoanApplyModal .modal-footer {
+    border-top-color: #e8ecfb;
+  }
+
+  .loan-status-banner {
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 13px;
+    border: 1px solid transparent;
+  }
+
+  .loan-status-banner.is-draft {
+    background: #fffbeb;
+    border-color: #fde68a;
+    color: #92400e;
+  }
+
+  .loan-status-banner.is-enquiry {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #065f46;
+  }
+
+  .loan-status-banner.is-info {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1e40af;
+  }
+
+  .parent-dashboard .loan-save-draft-btn {
+    border-radius: 12px;
+    font-weight: 600;
+    border-color: #c7d2fe;
+    color: #4338ca;
+    background: #fff;
+  }
+
+  .parent-dashboard .loan-save-draft-btn:hover,
+  .parent-dashboard .loan-save-draft-btn:focus-visible {
+    background: #eef2ff;
+    color: #3730a3;
+    border-color: #a5b4fc;
+  }
+</style>
+{% endblock %}
+
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'Education loan calculator' %}
+{% endblock %}
+
+{% block student_section_class %}parent-dashboard std-shell-main{% endblock %}
+
+{% block student_shell_topbar %}
+{% include "template20/parents/includes/parent_shell_topbar.html" %}
+{% endblock %}
+
+{% block student_sidebar %}
+{% include "template20/parents/includes/parent_sidebar.html" %}
+{% endblock %}
+
+{% block student_shell_offcanvas %}
+{% include "template20/parents/includes/parent_offcanvas.html" %}
+{% endblock %}
+
+{% block student_main %}
+<section class="pt-4 px-3 px-lg-4 px-xl-5 mb-4">
+  <div class="container-fluid px-0">
+    <div class="parent-overview-card py-3 mb-4">
+      <h2 class="parent-page-title fw-700 mb-1">Education Loan Calculator</h2>
+      <p class="parent-page-subtitle mb-0">Estimate EMI with moratorium interest loading before repayment starts.</p>
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        <a href="{{ loan_applications_url }}" class="btn btn-sm btn-outline-primary">
+          <i class='bx bx-file me-1'></i>My Loan Applications
+        </a>
+      </div>
+      <div class="loan-status-banner is-info mt-3 d-none" id="loanStatusBanner" role="status"></div>
+    </div>
+
+    <div class="parent-students-card">
+      <div class="viz-card mb-0">
+        <h4 class="fs-16 fw-700 mb-3">Loan details</h4>
+        <p class="text-muted fs-12 mb-3">Moratorium interest is added to principal before EMI starts.</p>
+        <div class="row g-3 align-items-end">
+          <div class="col-12 col-md-3">
+            <label class="form-label fs-12 text-muted" for="loanAmount">Loan Amount (INR)</label>
+            <input type="number" class="form-control" id="loanAmount" placeholder="500000" min="10000" max="50000000" step="1000" required>
+            <div class="invalid-feedback" id="loanAmountError">Enter a loan amount between INR 10,000 and 5,00,00,000.</div>
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label fs-12 text-muted" for="interestRate">Interest Rate % (Annual)</label>
+            <input type="number" class="form-control" id="interestRate" placeholder="10.5" min="0.1" max="30" step="0.01" required>
+            <div class="invalid-feedback" id="interestRateError">Enter an annual interest rate between 0.1% and 30%.</div>
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label fs-12 text-muted" for="tenureYears">Loan Tenure (Years)</label>
+            <input type="number" class="form-control" id="tenureYears" placeholder="7" min="1" max="20" step="0.5" required>
+            <div class="invalid-feedback" id="tenureYearsError">Enter a loan tenure between 1 and 20 years.</div>
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label fs-12 text-muted" for="moratoriumMonths">Moratorium (Months)</label>
+            <input type="number" class="form-control" id="moratoriumMonths" placeholder="12" min="0" max="48" step="1" required>
+            <div class="invalid-feedback" id="moratoriumMonthsError">Enter moratorium between 0 and 48 months.</div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label fs-12 text-muted" for="loanCountryPreference">Country Preference</label>
+            <select class="form-select" id="loanCountryPreference" required>
+              <option value="">Select country</option>
+              <option value="USA">USA</option>
+              <option value="Canada">Canada</option>
+              <option value="UK">UK</option>
+              <option value="Australia">Australia</option>
+              <option value="Germany">Germany</option>
+              <option value="Singapore">Singapore</option>
+              <option value="New Zealand">New Zealand</option>
+              <option value="Other">Other</option>
+            </select>
+            <div class="invalid-feedback" id="loanCountryPreferenceError">Please select a country preference.</div>
+          </div>
+        </div>
+        <div class="row g-3 align-items-end mt-1">
+          <div class="col-12 col-md-3">
+            <button type="button" class="btn btn-outline-primary w-100 loan-save-draft-btn" id="loanCalcDraftBtn">
+              <i class='bx bx-save me-1'></i>Save Draft
+            </button>
+          </div>
+          <div class="col-12 col-md-3">
+            <button type="button" class="btn custom-button purple-button w-100" id="loanCalcBtn">Calculate EMI</button>
+          </div>
+          <div class="col-12 col-md-3">
+            <button type="button" class="btn w-100 loan-apply-btn" id="loanApplyBtn" data-bs-toggle="modal" data-bs-target="#educationLoanApplyModal" disabled>
+              <i class='bx bx-send me-1'></i>Apply Loan
+            </button>
+            <p class="loan-cta-note mb-0"><i class='bx bx-info-circle me-1'></i>Enabled after EMI calculation</p>
+          </div>
+        </div>
+        <div class="row g-3 mt-1" id="loanResultRow" style="display:none;">
+          <div class="col-12 col-md-4"><div class="tile"><p class="fs-12 text-muted mb-1">EMI</p><h5 class="mb-0" id="emiValue">-</h5></div></div>
+          <div class="col-12 col-md-4"><div class="tile"><p class="fs-12 text-muted mb-1">Total Interest</p><h5 class="mb-0" id="interestValue">-</h5></div></div>
+          <div class="col-12 col-md-4"><div class="tile"><p class="fs-12 text-muted mb-1">Total Payable</p><h5 class="mb-0" id="payableValue">-</h5></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="modal fade" id="educationLoanApplyModal" tabindex="-1" aria-labelledby="educationLoanApplyModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-700" id="educationLoanApplyModalLabel">Education Loan Application</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="educationLoanApplyForm" novalidate>
+          <input type="hidden" id="loanApplicationId" value="">
+          <input type="hidden" id="loanSelectedStudentId" value="">
+          <script type="application/json" id="loanStudentsPayloadJson">{{ loan_students_payload_json|default('[]')|safe }}</script>
+          <script type="application/json" id="loanDraftPayloadJson">{{ loan_draft_json|default('null')|safe }}</script>
+          <script type="application/json" id="loanLatestEnquiryJson">{{ loan_latest_enquiry_json|default('null')|safe }}</script>
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="loanStudentName">Student Name</label>
+              <div class="loan-suggest-wrap">
+                <input type="text" class="form-control loan-suggest-input" id="loanStudentName" placeholder="Enter student full name" autocomplete="off" aria-describedby="loanStudentNameHint loanStudentNameError">
+                <div class="loan-suggest-dropdown" id="loanStudentNameDropdown" role="listbox" hidden></div>
+              </div>
+              <div class="loan-suggest-hint" id="loanStudentNameHint">Choose from your linked students or type a name.</div>
+              <div class="invalid-feedback" id="loanStudentNameError">Please enter the student name.</div>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="loanParentName">Parent Name</label>
+              <input type="text" class="form-control" id="loanParentName" placeholder="Enter parent full name" value="{{ request.user.name|default('') }}">
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="loanMobile">Mobile Number</label>
+              <input type="tel" class="form-control" id="loanMobile" placeholder="10 digit mobile number" value="{{ request.user.mobile|default('') }}" inputmode="numeric" aria-describedby="loanMobileError">
+              <div class="invalid-feedback" id="loanMobileError">Enter a valid 10-digit mobile number.</div>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="loanEmail">Email</label>
+              <input type="email" class="form-control" id="loanEmail" placeholder="name@example.com" value="{{ request.user.email|default('') }}" aria-describedby="loanEmailError">
+              <div class="invalid-feedback" id="loanEmailError">Please enter a valid email address.</div>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="loanInstitute">Institute / College Name</label>
+              <div class="loan-suggest-wrap">
+                <input type="text" class="form-control loan-suggest-input" id="loanInstitute" placeholder="Enter institute name" autocomplete="off" aria-describedby="loanInstituteHint loanInstituteError">
+                <div class="loan-suggest-dropdown" id="loanInstituteDropdown" role="listbox" hidden></div>
+              </div>
+              <div class="loan-suggest-hint" id="loanInstituteHint">Student shortlists will appear here once a student is selected.</div>
+              <div class="invalid-feedback" id="loanInstituteError">Please enter the institute or college name.</div>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="loanCourse">Course Name</label>
+              <div class="loan-suggest-wrap">
+                <input type="text" class="form-control loan-suggest-input" id="loanCourse" placeholder="Enter course name" autocomplete="off" aria-describedby="loanCourseHint loanCourseError">
+                <div class="loan-suggest-dropdown" id="loanCourseDropdown" role="listbox" hidden></div>
+              </div>
+              <div class="loan-suggest-hint" id="loanCourseHint">Student shortlists will appear here once a student is selected.</div>
+              <div class="invalid-feedback" id="loanCourseError">Please enter the course name.</div>
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label">Requested Amount (INR)</label>
+              <input type="text" class="form-control" id="loanReqAmount" readonly>
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label">Estimated EMI (INR)</label>
+              <input type="text" class="form-control" id="loanReqEmi" readonly>
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label">Repayment Tenure (Years)</label>
+              <input type="text" class="form-control" id="loanReqTenure" readonly>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">Country Preference</label>
+              <input type="text" class="form-control" id="loanReqCountry" placeholder="Preferred country" readonly>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Additional Details</label>
+              <textarea class="form-control" id="loanAdditionalDetails" rows="3" placeholder="Share any relevant details (scholarship, co-applicant, collateral, etc.)"></textarea>
+            </div>
+          </div>
+        </form>
+        <div class="alert alert-success mt-3 mb-0 d-none" id="loanApplySuccessMsg"></div>
+        <div class="alert alert-danger mt-3 mb-0 d-none" id="loanApplyErrorMsg"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-outline-primary loan-save-draft-btn" id="loanModalDraftBtn">
+          <i class='bx bx-save me-1'></i>Save Draft
+        </button>
+        <button type="button" class="btn btn-primary" id="loanSubmitBtn">Send Application Enquiry</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+<script>
+  (function () {
+    function byId(id) { return document.getElementById(id); }
+
+    function formatInr(num) {
+      return 'INR ' + Number(num || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+    }
+
+    var loanFieldIds = ['loanAmount', 'interestRate', 'tenureYears', 'moratoriumMonths', 'loanCountryPreference'];
+    var loanCalculated = false;
+    var loanApplyBtn = byId('loanApplyBtn');
+    var loanSaveUrl = {{ loan_save_url|tojson }};
+    var loanApplicationRecord = null;
+    var loanLatestEnquiry = null;
+    var loanSelectedStudentId = '';
+    var loanStudentsPayload = [];
+
+    function getCookie(name) {
+      var match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)'));
+      return match ? decodeURIComponent(match[1]) : '';
+    }
+
+    function parseJsonScript(id, fallback) {
+      var el = byId(id);
+      if (!el) return fallback;
+      try {
+        return JSON.parse(el.textContent || 'null');
+      } catch (err) {
+        return fallback;
+      }
+    }
+
+    function formatLoanDate(isoValue) {
+      if (!isoValue) return '';
+      var date = new Date(isoValue);
+      if (isNaN(date.getTime())) return '';
+      return date.toLocaleString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    function updateLoanStatusBanner() {
+      var banner = byId('loanStatusBanner');
+      if (!banner) return;
+
+      if (loanApplicationRecord && loanApplicationRecord.status === 0) {
+        banner.className = 'loan-status-banner is-draft mt-3';
+        banner.textContent = 'Draft saved' + (loanApplicationRecord.modified ? (' on ' + formatLoanDate(loanApplicationRecord.modified)) : '') + '. Continue anytime.';
+        banner.classList.remove('d-none');
+        return;
+      }
+
+      if (loanLatestEnquiry && loanLatestEnquiry.status === 1) {
+        banner.className = 'loan-status-banner is-enquiry mt-3';
+        banner.textContent = 'Application enquiry sent' + (loanLatestEnquiry.submitted_at ? (' on ' + formatLoanDate(loanLatestEnquiry.submitted_at)) : '') + '. Our team will contact you soon.';
+        banner.classList.remove('d-none');
+        return;
+      }
+
+      banner.classList.add('d-none');
+      banner.textContent = '';
+    }
+
+    function setLoanActionMessage(type, message, thenHide) {
+      var successEl = byId('loanApplySuccessMsg');
+      var errorEl = byId('loanApplyErrorMsg');
+      if (successEl) successEl.classList.add('d-none');
+      if (errorEl) errorEl.classList.add('d-none');
+      var target = type === 'error' ? errorEl : successEl;
+      if (!target) return;
+      target.textContent = message || '';
+      target.classList.remove('d-none');
+      if (thenHide) {
+        window.setTimeout(function () {
+          target.classList.add('d-none');
+        }, thenHide);
+      }
+    }
+
+    function computeLoanMetricsRaw() {
+      var amount = parseFloat((byId('loanAmount') && byId('loanAmount').value) || '');
+      var annualRate = parseFloat((byId('interestRate') && byId('interestRate').value) || '');
+      var tenureYears = parseFloat((byId('tenureYears') && byId('tenureYears').value) || '');
+      var moratoriumRaw = (byId('moratoriumMonths') && byId('moratoriumMonths').value);
+      var moratorium = moratoriumRaw === '' ? 0 : parseInt(moratoriumRaw, 10);
+      if (!(amount > 0 && annualRate > 0 && tenureYears > 0) || isNaN(moratorium)) {
+        return null;
+      }
+      var monthlyRate = annualRate / 12 / 100;
+      var tenureMonths = Math.max(1, Math.round(tenureYears * 12));
+      var principalAfterMoratorium = amount * Math.pow(1 + monthlyRate, moratorium);
+      var emi = (principalAfterMoratorium * monthlyRate * Math.pow(1 + monthlyRate, tenureMonths)) /
+        (Math.pow(1 + monthlyRate, tenureMonths) - 1);
+      var totalPayable = emi * tenureMonths;
+      var totalInterest = totalPayable - amount;
+      return {
+        amount: amount,
+        tenureYears: tenureYears,
+        emi: emi,
+        totalInterest: totalInterest,
+        totalPayable: totalPayable,
+        moratorium: moratorium
+      };
+    }
+
+    function collectLoanPayload(includeApplicationFields) {
+      var metrics = computeLoanMetricsRaw();
+      var payload = {
+        application_id: (byId('loanApplicationId') && byId('loanApplicationId').value) || null,
+        student_id: loanSelectedStudentId || null,
+        calculator: {
+          loan_amount: parseFloat((byId('loanAmount') && byId('loanAmount').value) || '') || null,
+          interest_rate: parseFloat((byId('interestRate') && byId('interestRate').value) || '') || null,
+          tenure_years: parseFloat((byId('tenureYears') && byId('tenureYears').value) || '') || null,
+          moratorium_months: (byId('moratoriumMonths') && byId('moratoriumMonths').value) !== '' ? parseInt(byId('moratoriumMonths').value, 10) : null,
+          country_preference: (byId('loanCountryPreference') && byId('loanCountryPreference').value) || '',
+          estimated_emi: metrics ? Math.round(metrics.emi) : null,
+          total_interest: metrics ? Math.round(metrics.totalInterest) : null,
+          total_payable: metrics ? Math.round(metrics.totalPayable) : null
+        },
+        application: {
+          student_name: '',
+          parent_name: '',
+          mobile: '',
+          email: '',
+          institute_name: '',
+          course_name: '',
+          additional_details: ''
+        }
+      };
+
+      if (includeApplicationFields) {
+        payload.application = {
+          student_name: (byId('loanStudentName') && byId('loanStudentName').value) || '',
+          parent_name: (byId('loanParentName') && byId('loanParentName').value) || '',
+          mobile: (byId('loanMobile') && byId('loanMobile').value) || '',
+          email: (byId('loanEmail') && byId('loanEmail').value) || '',
+          institute_name: (byId('loanInstitute') && byId('loanInstitute').value) || '',
+          course_name: (byId('loanCourse') && byId('loanCourse').value) || '',
+          additional_details: (byId('loanAdditionalDetails') && byId('loanAdditionalDetails').value) || ''
+        };
+      } else if (loanApplicationRecord && loanApplicationRecord.application) {
+        payload.application = Object.assign({}, loanApplicationRecord.application);
+      }
+
+      return payload;
+    }
+
+    function applyLoanCalculatorData(calculator) {
+      if (!calculator) return;
+      if (byId('loanAmount') && calculator.loan_amount != null) byId('loanAmount').value = calculator.loan_amount;
+      if (byId('interestRate') && calculator.interest_rate != null) byId('interestRate').value = calculator.interest_rate;
+      if (byId('tenureYears') && calculator.tenure_years != null) byId('tenureYears').value = calculator.tenure_years;
+      if (byId('moratoriumMonths') && calculator.moratorium_months != null) byId('moratoriumMonths').value = calculator.moratorium_months;
+      if (byId('loanCountryPreference') && calculator.country_preference) byId('loanCountryPreference').value = calculator.country_preference;
+    }
+
+    function applyLoanApplicationData(application, studentId) {
+      if (!application) return;
+      if (byId('loanStudentName')) byId('loanStudentName').value = application.student_name || '';
+      if (byId('loanParentName') && application.parent_name) byId('loanParentName').value = application.parent_name;
+      if (byId('loanMobile') && application.mobile) byId('loanMobile').value = application.mobile;
+      if (byId('loanEmail') && application.email) byId('loanEmail').value = application.email;
+      if (byId('loanInstitute')) byId('loanInstitute').value = application.institute_name || '';
+      if (byId('loanCourse')) byId('loanCourse').value = application.course_name || '';
+      if (byId('loanAdditionalDetails')) byId('loanAdditionalDetails').value = application.additional_details || '';
+      if (studentId) {
+        loanSelectedStudentId = String(studentId);
+        if (byId('loanSelectedStudentId')) byId('loanSelectedStudentId').value = loanSelectedStudentId;
+        updateLoanStudentContext(findLoanStudentById(loanSelectedStudentId));
+      } else {
+        syncLoanStudentFromInput(application.student_name || '');
+      }
+    }
+
+    function restoreLoanDraftRecord(record) {
+      if (!record) return;
+      loanApplicationRecord = record;
+      if (byId('loanApplicationId')) byId('loanApplicationId').value = record.id || '';
+      applyLoanCalculatorData(record.calculator || {});
+      applyLoanApplicationData(record.application || {}, record.student_id || '');
+
+      var metrics = computeLoanMetricsRaw();
+      if (metrics) {
+        loanCalculated = true;
+        if (byId('loanResultRow')) byId('loanResultRow').style.display = '';
+        if (byId('emiValue')) byId('emiValue').textContent = formatInr(metrics.emi);
+        if (byId('interestValue')) byId('interestValue').textContent = formatInr(metrics.totalInterest);
+        if (byId('payableValue')) byId('payableValue').textContent = formatInr(metrics.totalPayable);
+        if (loanApplyBtn) {
+          loanApplyBtn.disabled = false;
+          loanApplyBtn.classList.add('is-ready');
+        }
+      }
+      updateLoanStatusBanner();
+    }
+
+    function populateLoanApplyModalFields() {
+      var summary = computeLoanMetricsRaw();
+      if (summary) {
+        if (byId('loanReqAmount')) byId('loanReqAmount').value = Math.round(summary.amount).toLocaleString('en-IN');
+        if (byId('loanReqEmi')) byId('loanReqEmi').value = Math.round(summary.emi).toLocaleString('en-IN');
+        if (byId('loanReqTenure')) byId('loanReqTenure').value = summary.tenureYears;
+      }
+      if (byId('loanReqCountry')) {
+        byId('loanReqCountry').value = (byId('loanCountryPreference') && byId('loanCountryPreference').value) || '';
+      }
+
+      if (loanApplicationRecord && loanApplicationRecord.application) {
+        applyLoanApplicationData(loanApplicationRecord.application || {}, loanApplicationRecord.student_id || '');
+      } else if (loanStudentsPayload.length === 1) {
+        if (byId('loanStudentName')) byId('loanStudentName').value = loanStudentsPayload[0].name;
+        updateLoanStudentContext(loanStudentsPayload[0]);
+      }
+    }
+
+    function saveLoanApplication(action, includeApplicationFields, triggerBtn) {
+      if (action === 'submit') {
+        if (!validateLoanInputs()) return Promise.resolve(false);
+        if (includeApplicationFields && !validateLoanApplyForm()) return Promise.resolve(false);
+      }
+
+      var payload = collectLoanPayload(includeApplicationFields);
+      var buttons = [byId('loanCalcDraftBtn'), byId('loanModalDraftBtn'), byId('loanSubmitBtn')];
+      buttons.forEach(function (btn) {
+        if (btn) btn.disabled = true;
+      });
+      if (triggerBtn) triggerBtn.dataset.originalText = triggerBtn.textContent;
+
+      return fetch(loanSaveUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken') || ''
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify(Object.assign({ action: action }, payload))
+      })
+        .then(function (response) {
+          return response.json().then(function (data) {
+            return { ok: response.ok, data: data };
+          });
+        })
+        .then(function (result) {
+          if (!result.ok || !result.data.success) {
+            var message = (result.data && (result.data.message || (result.data.errors && result.data.errors[0]))) || 'Could not save your loan details.';
+            setLoanActionMessage('error', message);
+            return false;
+          }
+
+          var saved = result.data.application || null;
+          if (action === 'submit') {
+            loanLatestEnquiry = saved;
+            loanApplicationRecord = null;
+            if (byId('loanApplicationId')) byId('loanApplicationId').value = '';
+            setLoanActionMessage('success', result.data.message || 'Application enquiry sent successfully.');
+            if (byId('loanSubmitBtn')) {
+              byId('loanSubmitBtn').disabled = true;
+              byId('loanSubmitBtn').textContent = 'Enquiry Sent';
+            }
+          } else {
+            loanApplicationRecord = saved;
+            if (saved && byId('loanApplicationId')) byId('loanApplicationId').value = saved.id || '';
+            setLoanActionMessage('success', result.data.message || 'Draft saved successfully.', 3500);
+          }
+          updateLoanStatusBanner();
+          return true;
+        })
+        .catch(function () {
+          setLoanActionMessage('error', 'Could not save your loan details. Please try again.');
+          return false;
+        })
+        .finally(function () {
+          buttons.forEach(function (btn) {
+            if (!btn) return;
+            if (btn === byId('loanSubmitBtn') && loanLatestEnquiry && loanLatestEnquiry.status === 1) {
+              btn.disabled = true;
+              return;
+            }
+            btn.disabled = false;
+            if (btn.dataset.originalText) btn.textContent = btn.dataset.originalText;
+          });
+        });
+    }
+
+    function setLoanFieldState(fieldId, isValid, message) {
+      var field = byId(fieldId);
+      var errorEl = byId(fieldId + 'Error');
+      if (!field) return;
+      field.classList.toggle('is-invalid', !isValid);
+      field.classList.toggle('is-valid', isValid);
+      if (errorEl && message) errorEl.textContent = message;
+    }
+
+    function clearLoanValidation() {
+      loanFieldIds.forEach(function (fieldId) {
+        var field = byId(fieldId);
+        if (field) field.classList.remove('is-invalid', 'is-valid');
+      });
+    }
+
+    function resetLoanResults() {
+      loanCalculated = false;
+      if (byId('loanResultRow')) byId('loanResultRow').style.display = 'none';
+      if (loanApplyBtn) {
+        loanApplyBtn.disabled = true;
+        loanApplyBtn.classList.remove('is-ready');
+      }
+    }
+
+    function validateLoanInputs() {
+      var amount = parseFloat((byId('loanAmount') && byId('loanAmount').value) || '');
+      var annualRate = parseFloat((byId('interestRate') && byId('interestRate').value) || '');
+      var tenureYears = parseFloat((byId('tenureYears') && byId('tenureYears').value) || '');
+      var moratoriumRaw = (byId('moratoriumMonths') && byId('moratoriumMonths').value);
+      var moratorium = moratoriumRaw === '' ? NaN : parseInt(moratoriumRaw, 10);
+      var country = (byId('loanCountryPreference') && byId('loanCountryPreference').value) || '';
+      var isValid = true;
+
+      clearLoanValidation();
+
+      if (!(amount >= 10000 && amount <= 50000000)) {
+        setLoanFieldState('loanAmount', false, 'Enter a loan amount between INR 10,000 and 5,00,00,000.');
+        isValid = false;
+      } else {
+        setLoanFieldState('loanAmount', true);
+      }
+
+      if (!(annualRate >= 0.1 && annualRate <= 30)) {
+        setLoanFieldState('interestRate', false, 'Enter an annual interest rate between 0.1% and 30%.');
+        isValid = false;
+      } else {
+        setLoanFieldState('interestRate', true);
+      }
+
+      if (!(tenureYears >= 1 && tenureYears <= 20)) {
+        setLoanFieldState('tenureYears', false, 'Enter a loan tenure between 1 and 20 years.');
+        isValid = false;
+      } else {
+        setLoanFieldState('tenureYears', true);
+      }
+
+      if (!(moratorium >= 0 && moratorium <= 48) || isNaN(moratorium)) {
+        setLoanFieldState('moratoriumMonths', false, 'Enter moratorium between 0 and 48 months.');
+        isValid = false;
+      } else {
+        setLoanFieldState('moratoriumMonths', true);
+      }
+
+      if (!country) {
+        setLoanFieldState('loanCountryPreference', false, 'Please select a country preference.');
+        isValid = false;
+      } else {
+        setLoanFieldState('loanCountryPreference', true);
+      }
+
+      return isValid;
+    }
+
+    function getLoanSummary() {
+      if (!validateLoanInputs()) return { valid: false };
+
+      var amount = parseFloat(byId('loanAmount').value);
+      var annualRate = parseFloat(byId('interestRate').value);
+      var tenureYears = parseFloat(byId('tenureYears').value);
+      var moratorium = parseInt(byId('moratoriumMonths').value, 10);
+      var monthlyRate = annualRate / 12 / 100;
+      var tenureMonths = Math.max(1, Math.round(tenureYears * 12));
+      var principalAfterMoratorium = amount * Math.pow(1 + monthlyRate, moratorium);
+      var emi = (principalAfterMoratorium * monthlyRate * Math.pow(1 + monthlyRate, tenureMonths)) /
+        (Math.pow(1 + monthlyRate, tenureMonths) - 1);
+      var totalPayable = emi * tenureMonths;
+      var totalInterest = totalPayable - amount;
+
+      return {
+        valid: true,
+        amount: amount,
+        tenureYears: tenureYears,
+        emi: emi,
+        totalInterest: totalInterest,
+        totalPayable: totalPayable
+      };
+    }
+
+    loanFieldIds.forEach(function (fieldId) {
+      var field = byId(fieldId);
+      if (!field) return;
+      field.addEventListener('input', resetLoanResults);
+      field.addEventListener('change', resetLoanResults);
+    });
+
+    var loanBtn = byId('loanCalcBtn');
+    if (loanBtn) {
+      loanBtn.addEventListener('click', function () {
+        var summary = getLoanSummary();
+        if (!summary.valid) {
+          var firstInvalid = document.querySelector('#loanAmount.is-invalid, #interestRate.is-invalid, #tenureYears.is-invalid, #moratoriumMonths.is-invalid, #loanCountryPreference.is-invalid');
+          if (firstInvalid && typeof firstInvalid.focus === 'function') firstInvalid.focus();
+          return;
+        }
+        loanCalculated = true;
+        if (byId('loanResultRow')) byId('loanResultRow').style.display = '';
+        if (byId('emiValue')) byId('emiValue').textContent = formatInr(summary.emi);
+        if (byId('interestValue')) byId('interestValue').textContent = formatInr(summary.totalInterest);
+        if (byId('payableValue')) byId('payableValue').textContent = formatInr(summary.totalPayable);
+        if (loanApplyBtn) {
+          loanApplyBtn.disabled = false;
+          loanApplyBtn.classList.add('is-ready');
+        }
+      });
+    }
+
+    if (loanApplyBtn) {
+      loanApplyBtn.addEventListener('click', function () {
+        if (!loanCalculated) return;
+        var summary = getLoanSummary();
+        if (summary.valid) {
+          if (byId('loanReqAmount')) byId('loanReqAmount').value = Math.round(summary.amount).toLocaleString('en-IN');
+          if (byId('loanReqEmi')) byId('loanReqEmi').value = Math.round(summary.emi).toLocaleString('en-IN');
+          if (byId('loanReqTenure')) byId('loanReqTenure').value = summary.tenureYears;
+          if (byId('loanReqCountry')) {
+            byId('loanReqCountry').value = (byId('loanCountryPreference') && byId('loanCountryPreference').value) || '';
+          }
+        }
+      });
+    }
+
+    var loanSubmitBtn = byId('loanSubmitBtn');
+    var loanInstituteSuggest = null;
+    var loanCourseSuggest = null;
+    var loanStudentSuggest = null;
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function loadLoanStudentsPayload() {
+      var payloadEl = byId('loanStudentsPayloadJson');
+      if (!payloadEl) return [];
+      try {
+        var parsed = JSON.parse(payloadEl.textContent || '[]');
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (err) {
+        return [];
+      }
+    }
+
+    function findLoanStudentByName(name) {
+      var normalized = (name || '').trim().toLowerCase();
+      if (!normalized) return null;
+      var exact = loanStudentsPayload.filter(function (student) {
+        return (student.name || '').trim().toLowerCase() === normalized;
+      });
+      if (exact.length === 1) return exact[0];
+      return null;
+    }
+
+    function findLoanStudentById(studentId) {
+      if (!studentId) return null;
+      var match = loanStudentsPayload.filter(function (student) {
+        return String(student.id) === String(studentId);
+      });
+      return match.length ? match[0] : null;
+    }
+
+    function setLoanFieldState(fieldId, isValid, message) {
+      var field = byId(fieldId);
+      var errorEl = byId(fieldId + 'Error');
+      if (!field) return;
+      field.classList.toggle('is-invalid', !isValid);
+      field.classList.toggle('is-valid', isValid);
+      if (errorEl) {
+        if (message) errorEl.textContent = message;
+        errorEl.classList.toggle('is-visible', !isValid);
+      }
+    }
+
+    function clearLoanApplyValidation() {
+      ['loanStudentName', 'loanEmail', 'loanMobile', 'loanInstitute', 'loanCourse'].forEach(function (fieldId) {
+        var field = byId(fieldId);
+        var errorEl = byId(fieldId + 'Error');
+        if (field) field.classList.remove('is-invalid', 'is-valid');
+        if (errorEl) errorEl.classList.remove('is-visible');
+      });
+    }
+
+    function isValidEmail(value) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((value || '').trim());
+    }
+
+    function isValidMobile(value) {
+      var digits = (value || '').replace(/\D/g, '');
+      return !digits || digits.length === 10;
+    }
+
+    function validateLoanApplyForm() {
+      var isValid = true;
+      var studentName = (byId('loanStudentName') && byId('loanStudentName').value) || '';
+      var email = (byId('loanEmail') && byId('loanEmail').value) || '';
+      var mobile = (byId('loanMobile') && byId('loanMobile').value) || '';
+      var institute = (byId('loanInstitute') && byId('loanInstitute').value) || '';
+      var course = (byId('loanCourse') && byId('loanCourse').value) || '';
+
+      clearLoanApplyValidation();
+
+      if (!studentName.trim()) {
+        setLoanFieldState('loanStudentName', false, 'Please enter the student name.');
+        isValid = false;
+      } else {
+        setLoanFieldState('loanStudentName', true);
+      }
+
+      if (!email.trim() || !isValidEmail(email)) {
+        setLoanFieldState('loanEmail', false, 'Please enter a valid email address.');
+        isValid = false;
+      } else {
+        setLoanFieldState('loanEmail', true);
+      }
+
+      if (!isValidMobile(mobile)) {
+        setLoanFieldState('loanMobile', false, 'Enter a valid 10-digit mobile number.');
+        isValid = false;
+      } else if (mobile.trim()) {
+        setLoanFieldState('loanMobile', true);
+      }
+
+      if (!institute.trim()) {
+        setLoanFieldState('loanInstitute', false, 'Please enter the institute or college name.');
+        isValid = false;
+      } else {
+        setLoanFieldState('loanInstitute', true);
+      }
+
+      if (!course.trim()) {
+        setLoanFieldState('loanCourse', false, 'Please enter the course name.');
+        isValid = false;
+      } else {
+        setLoanFieldState('loanCourse', true);
+      }
+
+      if (!isValid) {
+        var firstInvalid = document.querySelector('#educationLoanApplyForm .is-invalid');
+        if (firstInvalid && typeof firstInvalid.focus === 'function') firstInvalid.focus();
+      }
+
+      return isValid;
+    }
+
+    function initLoanSuggest(config) {
+      var input = byId(config.inputId);
+      var dropdown = byId(config.dropdownId);
+      if (!input || !dropdown || input.dataset.loanSuggestBound === '1') {
+        return {
+          setSuggestions: function () {},
+          hide: function () {}
+        };
+      }
+
+      var suggestions = [];
+      var activeIndex = -1;
+
+      function hideDropdown() {
+        dropdown.hidden = true;
+        dropdown.innerHTML = '';
+        activeIndex = -1;
+      }
+
+      function renderList(query) {
+        var q = (query || '').trim().toLowerCase();
+        var matches = (typeof config.getSuggestions === 'function' ? config.getSuggestions() : suggestions)
+          .filter(Boolean);
+        if (q) {
+          matches = matches.filter(function (name) {
+            return name.toLowerCase().indexOf(q) !== -1;
+          });
+        }
+        matches = matches.slice(0, 12);
+
+        if (!matches.length) {
+          if (config.showEmptyMessage && q) {
+            dropdown.innerHTML = '<div class="loan-suggest-empty">' + escapeHtml(config.emptyMessage || 'No matches found.') + '</div>';
+            dropdown.hidden = false;
+          } else {
+            hideDropdown();
+          }
+          return;
+        }
+
+        dropdown.innerHTML = matches.map(function (name, index) {
+          return (
+            '<button type="button" class="loan-suggest-option" role="option" data-index="' + index + '" data-value="' +
+            escapeHtml(name) + '">' + escapeHtml(name) + '</button>'
+          );
+        }).join('');
+        dropdown.hidden = false;
+        activeIndex = -1;
+      }
+
+      function selectValue(value) {
+        input.value = value;
+        hideDropdown();
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+        if (typeof config.onSelect === 'function') config.onSelect(value);
+      }
+
+      input.addEventListener('focus', function () {
+        renderList(input.value);
+      });
+
+      input.addEventListener('input', function () {
+        renderList(input.value);
+        if (typeof config.onInput === 'function') config.onInput(input.value);
+      });
+
+      input.addEventListener('keydown', function (event) {
+        if (dropdown.hidden) return;
+        var options = dropdown.querySelectorAll('.loan-suggest-option');
+        if (!options.length) return;
+
+        if (event.key === 'ArrowDown') {
+          event.preventDefault();
+          activeIndex = Math.min(activeIndex + 1, options.length - 1);
+        } else if (event.key === 'ArrowUp') {
+          event.preventDefault();
+          activeIndex = Math.max(activeIndex - 1, 0);
+        } else if (event.key === 'Enter' && activeIndex >= 0) {
+          event.preventDefault();
+          selectValue(options[activeIndex].getAttribute('data-value') || '');
+          return;
+        } else if (event.key === 'Escape') {
+          hideDropdown();
+          return;
+        } else {
+          return;
+        }
+
+        options.forEach(function (option, index) {
+          option.classList.toggle('is-active', index === activeIndex);
+        });
+        if (activeIndex >= 0 && options[activeIndex]) {
+          options[activeIndex].scrollIntoView({ block: 'nearest' });
+        }
+      });
+
+      dropdown.addEventListener('mousedown', function (event) {
+        var option = event.target.closest('.loan-suggest-option');
+        if (!option) return;
+        event.preventDefault();
+        selectValue(option.getAttribute('data-value') || '');
+      });
+
+      document.addEventListener('click', function (event) {
+        if (!input.closest('.loan-suggest-wrap').contains(event.target)) {
+          hideDropdown();
+        }
+      });
+
+      input.dataset.loanSuggestBound = '1';
+
+      return {
+        setSuggestions: function (nextSuggestions) {
+          suggestions = Array.isArray(nextSuggestions) ? nextSuggestions.slice() : [];
+        },
+        hide: hideDropdown
+      };
+    }
+
+    function updateLoanStudentContext(student) {
+      loanSelectedStudentId = student ? String(student.id) : '';
+      if (byId('loanSelectedStudentId')) {
+        byId('loanSelectedStudentId').value = loanSelectedStudentId;
+      }
+
+      var colleges = student && Array.isArray(student.colleges) ? student.colleges : [];
+      var courses = student && Array.isArray(student.courses) ? student.courses : [];
+
+      if (loanInstituteSuggest) loanInstituteSuggest.setSuggestions(colleges);
+      if (loanCourseSuggest) loanCourseSuggest.setSuggestions(courses);
+
+      var instituteHint = byId('loanInstituteHint');
+      var courseHint = byId('loanCourseHint');
+      if (!student) {
+        if (instituteHint) instituteHint.textContent = 'Student shortlists will appear here once a student is selected.';
+        if (courseHint) courseHint.textContent = 'Student shortlists will appear here once a student is selected.';
+        return;
+      }
+
+      if (instituteHint) {
+        instituteHint.textContent = colleges.length
+          ? colleges.length + ' shortlisted college' + (colleges.length === 1 ? '' : 's') + ' available — pick one or type your own.'
+          : 'No shortlisted colleges yet for this student — you can still type the institute name.';
+      }
+      if (courseHint) {
+        courseHint.textContent = courses.length
+          ? courses.length + ' shortlisted course' + (courses.length === 1 ? '' : 's') + ' available — pick one or type your own.'
+          : 'No shortlisted courses yet for this student — you can still type the course name.';
+      }
+    }
+
+    function syncLoanStudentFromInput(value) {
+      var student = findLoanStudentByName(value);
+      if (student) {
+        updateLoanStudentContext(student);
+        return;
+      }
+      updateLoanStudentContext(null);
+    }
+
+    function resetLoanApplyFormFields() {
+      clearLoanApplyValidation();
+      if (byId('loanApplySuccessMsg')) byId('loanApplySuccessMsg').classList.add('d-none');
+      if (byId('loanApplyErrorMsg')) byId('loanApplyErrorMsg').classList.add('d-none');
+      if (loanSubmitBtn) {
+        loanSubmitBtn.disabled = false;
+        loanSubmitBtn.textContent = 'Send Application Enquiry';
+      }
+    }
+
+    loanStudentsPayload = loadLoanStudentsPayload();
+    loanLatestEnquiry = parseJsonScript('loanLatestEnquiryJson', null);
+    restoreLoanDraftRecord(parseJsonScript('loanDraftPayloadJson', null));
+    if (!loanApplicationRecord && loanLatestEnquiry) {
+      updateLoanStatusBanner();
+    }
+
+    var loanCalcDraftBtn = byId('loanCalcDraftBtn');
+    if (loanCalcDraftBtn) {
+      loanCalcDraftBtn.addEventListener('click', function () {
+        saveLoanApplication('draft', false, loanCalcDraftBtn);
+      });
+    }
+
+    loanStudentSuggest = initLoanSuggest({
+      inputId: 'loanStudentName',
+      dropdownId: 'loanStudentNameDropdown',
+      getSuggestions: function () {
+        return loanStudentsPayload.map(function (student) { return student.name; });
+      },
+      onSelect: function (value) {
+        var student = findLoanStudentByName(value);
+        updateLoanStudentContext(student);
+        setLoanFieldState('loanStudentName', true);
+      },
+      onInput: function (value) {
+        syncLoanStudentFromInput(value);
+        if ((value || '').trim()) setLoanFieldState('loanStudentName', true);
+      }
+    });
+
+    loanInstituteSuggest = initLoanSuggest({
+      inputId: 'loanInstitute',
+      dropdownId: 'loanInstituteDropdown',
+      getSuggestions: function () {
+        var student = findLoanStudentById(loanSelectedStudentId);
+        return student && Array.isArray(student.colleges) ? student.colleges : [];
+      },
+      showEmptyMessage: true,
+      emptyMessage: 'No shortlisted colleges for this student yet.',
+      onInput: function (value) {
+        if ((value || '').trim()) setLoanFieldState('loanInstitute', true);
+      }
+    });
+
+    loanCourseSuggest = initLoanSuggest({
+      inputId: 'loanCourse',
+      dropdownId: 'loanCourseDropdown',
+      getSuggestions: function () {
+        var student = findLoanStudentById(loanSelectedStudentId);
+        return student && Array.isArray(student.courses) ? student.courses : [];
+      },
+      showEmptyMessage: true,
+      emptyMessage: 'No shortlisted courses for this student yet.',
+      onInput: function (value) {
+        if ((value || '').trim()) setLoanFieldState('loanCourse', true);
+      }
+    });
+
+    ['loanEmail', 'loanMobile'].forEach(function (fieldId) {
+      var field = byId(fieldId);
+      if (!field) return;
+      field.addEventListener('input', function () {
+        if ((field.value || '').trim()) setLoanFieldState(fieldId, true);
+      });
+    });
+
+    var loanApplyModal = byId('educationLoanApplyModal');
+    if (loanApplyModal) {
+      loanApplyModal.addEventListener('show.bs.modal', function () {
+        resetLoanApplyFormFields();
+        populateLoanApplyModalFields();
+      });
+    }
+
+    var loanModalDraftBtn = byId('loanModalDraftBtn');
+    if (loanModalDraftBtn) {
+      loanModalDraftBtn.addEventListener('click', function () {
+        saveLoanApplication('draft', true, loanModalDraftBtn);
+      });
+    }
+
+    if (loanSubmitBtn) {
+      loanSubmitBtn.addEventListener('click', function () {
+        saveLoanApplication('submit', true, loanSubmitBtn);
+      });
+    }
+  })();
+</script>
+{% endblock %}

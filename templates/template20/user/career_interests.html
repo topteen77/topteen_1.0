@@ -8,105 +8,179 @@
 {% block additionalhead %}
 {{ super() }}
 <style>
-
-  .career-card {
-    background: #fff;
-    border-radius: 14px;
-    padding: 20px;
-    min-height: 110px;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-    position: relative;
-    overflow: hidden;
-    text-decoration: none;
-    display: block;
-    color: inherit;
-    border: 1px solid #dfe3ef;
-  }
-  .career-card:hover {
-    transform: translateY(-4px);
-    border-color: #cbd4f7;
-    box-shadow: 0 10px 24px rgba(51, 64, 129, 0.13);
-    text-decoration: none;
-    color: inherit;
-  }
-  .career-card-title {
-    line-height: 1.35;
-  }
-  .career-card-icon {
-    width: 69px;
-    height: 69px;
-    border-radius: 12px;
-    overflow: hidden;
-    background: linear-gradient(160deg, #f6f8ff 0%, #eef1ff 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    border: 1px solid #e7ebff;
-  }
-  .career-card-icon img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-  .career-card-icon i {
-    font-size: 32px;
-    color: #999;
-  }
-  .career-card-mobile {
-    min-height: 104px;
-    padding: 16px;
-  }
-  .career-card-mobile .icon-mobile {   
-    width: 70px;
-    height: 70px;
-    border-radius: 8px;
-    overflow: hidden;
-    background: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .career-card-mobile .icon-mobile img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .career-card-mobile .icon-mobile i {
-    font-size: 24px;
-    color: #999;
-  }
-  .delete-career-btn {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: rgba(255, 255, 255, 0.9);
-    border: none;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    z-index: 10;
-    color: #bdbdbd;
-  }
-  .delete-career-btn:hover {
-    background: rgba(255, 255, 255, 1);
-    color: #dc3545;
-    transform: scale(1.05);
-  }
-
   .app-right-content {
     background: #eef1f8;
     min-height: 100vh;
   }
-  .student-dash-main-col {
-    padding: 0px;
+  .student-dash-main-col { padding: 0; }
+
+  .career-interest-card {
+    position: relative;
+    border: 1px solid #dbe4ff;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ffffff 0%, #f5f8ff 100%);
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 8px 20px rgba(76, 94, 177, 0.08);
+  }
+  .career-interest-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 24px rgba(76, 94, 177, 0.14);
+  }
+  .career-interest-card--disliked {
+    opacity: 0.88;
+    border-color: #f0d4d8;
+    background: linear-gradient(135deg, #fffafa 0%, #fff5f6 100%);
+  }
+  .career-interest-thumb {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    display: block;
+    background: #eef1ff;
+  }
+  .career-interest-thumb-fallback {
+    width: 100%;
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(160deg, #f6f8ff 0%, #eef1ff 100%);
+    color: #8b93c7;
+    font-size: 42px;
+  }
+  .career-interest-body { padding: 14px; flex: 1 1 auto; }
+  .career-interest-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #25306f;
+    margin: 8px 0 6px;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .career-interest-meta {
+    font-size: 12px;
+    color: #5f6898;
+    margin: 0;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .career-source-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    margin-right: 6px;
+    margin-bottom: 4px;
+  }
+  .career-source-badge--parent {
+    color: #403fa6;
+    background: rgba(92, 84, 212, 0.12);
+    border: 1px solid rgba(92, 84, 212, 0.25);
+  }
+  .career-source-badge--student {
+    color: #0f766e;
+    background: rgba(20, 184, 166, 0.12);
+    border: 1px solid rgba(20, 184, 166, 0.25);
+  }
+  .career-source-badge--both {
+    color: #7c3aed;
+    background: rgba(124, 58, 237, 0.1);
+    border: 1px solid rgba(124, 58, 237, 0.22);
+  }
+  .career-reaction-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .career-reaction-badge--disliked {
+    color: #b42318;
+    background: #fee4e2;
+    border: 1px solid #fecdca;
+  }
+  .career-reaction-badge--liked {
+    color: #027a48;
+    background: #d1fadf;
+    border: 1px solid #abefc6;
+  }
+  .career-interest-remove-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 3;
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.92);
+    color: #94a0b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    cursor: pointer;
+  }
+  .career-interest-remove-btn:hover { color: #dc3545; }
+  .career-interest-actions {
+    display: flex;
+    gap: 8px;
+    padding: 0 14px 14px;
+    margin-top: auto;
+  }
+  .career-reaction-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-radius: 10px;
+    border: 1px solid #dfe5fb;
+    background: #fff;
+    color: #5f6898;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .career-reaction-btn:hover {
+    border-color: #cbd4f7;
+    color: #403fa6;
+  }
+  .career-reaction-btn--like.is-active {
+    color: #027a48;
+    border-color: #abefc6;
+    background: #ecfdf3;
+  }
+  .career-reaction-btn--dislike.is-active {
+    color: #b42318;
+    border-color: #fecdca;
+    background: #fef3f2;
+  }
+  .career-section-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #5f6898;
+    margin: 8px 0 14px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
   }
   .career-empty-state {
     background: linear-gradient(180deg, #ffffff 0%, #f8f9ff 100%);
@@ -115,6 +189,7 @@
     padding: 56px 24px;
     max-width: 720px;
     margin: 24px auto 0;
+    text-align: center;
   }
   .career-empty-state-icon {
     width: 72px;
@@ -140,9 +215,6 @@
     max-width: 540px;
     margin: 0 auto 26px;
   }
-  .career-grid {
-    margin-top: 6px;
-  }
   .career-delete-modal .modal-content {
     border: 0;
     border-radius: 14px;
@@ -158,22 +230,7 @@
     font-weight: 700;
     color: #1d2438;
   }
-  .career-delete-modal .btn-close {
-    opacity: 0.65;
-    transition: opacity 0.2s ease;
-  }
-  .career-delete-modal .btn-close:hover {
-    opacity: 1;
-  }
-  .career-delete-modal .modal-body {
-    padding: 16px 20px 12px;
-  }
-  .career-delete-modal .modal-body p {
-    margin: 0;
-    color: #495169;
-    line-height: 1.5;
-    font-size: 0.98rem;
-  }
+  .career-delete-modal .modal-body { padding: 16px 20px 12px; }
   .career-delete-modal .modal-footer {
     border-top: 1px solid #eceff6;
     padding: 14px 20px 16px;
@@ -184,58 +241,16 @@
     height: 42px;
     border-radius: 10px;
     font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
     border: 0;
   }
-  .career-modal-btn-cancel {
-    background: #6b7388;
-    color: #fff;
-  }
-  .career-modal-btn-cancel:hover {
-    background: #5d6578;
-    color: #fff;
-  }
+  .career-modal-btn-cancel { background: #6b7388; color: #fff; }
   .career-modal-btn-remove {
     background: linear-gradient(135deg, #4f46e5, #4338ca);
     color: #fff;
-    box-shadow: 0 6px 14px rgba(79, 70, 229, 0.32);
-  }
-  .career-modal-btn-remove:hover {
-    background: linear-gradient(135deg, #4338ca, #3730a3);
-    color: #fff;
   }
   @media (max-width: 768px) {
-    .top-80 {
-      top: 80%;
-    }
-    .career-dashboard-wrap {
-      border-radius: 12px;
-      padding: 16px;
-    }
-    .career-card-mobile {
-      min-height: 88px;
-      padding: 12px;
-    }
-    .career-card-title {
-      font-size: 0.95rem !important;
-      max-width: 85%;
-    }
-    .career-empty-state {
-      padding: 34px 16px;
-      margin-top: 8px;
-    }
-    .career-empty-state-title {
-      font-size: 1.2rem;
-    }
-    .career-delete-modal .modal-title {
-      font-size: 1.15rem;
-    }
-    .career-modal-btn {
-      min-width: 96px;
-      height: 40px;
-    }
+    .career-empty-state { padding: 34px 16px; }
+    .career-empty-state-title { font-size: 1.2rem; }
   }
 </style>
 {% endblock %}
@@ -253,6 +268,7 @@
 
 <div class="app-right-content pt-3 px-3 pb-3">
   <div class="career-dashboard-wrap">
+        {% set cards = career_cards|default(career_interests|default([])) %}
         <!-- Breadcrumb -->
         {% if breadcrumb %}
         {% include 'template20/includes/breadcrumb.html' %}
@@ -261,7 +277,7 @@
         <!-- Career Interests Heading -->
         <div class="d-md-flex d-none justify-content-between align-items-center mb-4 pt-2">
           <h1 class="fs-24 fw-semibold mb-0">Career Interests</h1>
-          {% if career_interests %}
+          {% if cards and cards|length > 0 %}
           <div class="d-none d-lg-block">
             <a href="{{ url('careers:career') }}" class="btn custom-button purple-button">
               <i class='bx bx-search me-2'></i> Explore Careers
@@ -276,54 +292,32 @@
             <i class='bx bx-arrow-left fs-18 text-gray'></i>
           </button>
           <h2 class="fs-21 fw-normal text-center mb-0 fw-bold">Career Interests</h2>
-          {% if career_interests %}
+          {% if cards and cards|length > 0 %}
           <a href="{{ url('careers:career') }}" class="btn btn-link position-absolute end-0 top-0">
             <i class='bx bx-search fs-18 text-gray'></i>
           </a>
           {% endif %}
         </div>
 
-        <!-- Career Interests Grid -->
-        {% if career_interests and career_interests|length > 0 %}
-        <div class="row g-3 g-lg-4 career-grid">
-          {% for career_interest in career_interests %}
-            {% if career_interest and career_interest.career %}
-            <div class="col-12 col-md-6 col-lg-4">
-              <div class="career-card career-card-mobile  d-flex align-items-center position-relative">
-                <button type="button" 
-                        class="delete-career-btn deleteCareer" 
-                        data-id="{{ career_interest.career.slug }}"
-                        data-bs-toggle="modal" 
-                        data-bs-target="#deleteCareerModal"
-                        data-career-name="{{ career_interest.career.name }}">
-                  <i class='bx bx-x fs-18'></i>
-                </button>
-                
-                <div class="career-card-icon icon-mobile d-lg-block d-none">
-                  {% if career_interest.career.image and career_interest.career.image.name %}
-                  <img src="{{ career_interest.career.image.url }}" 
-                       alt="{{ career_interest.career.name }}"
-                       onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-                  <i class='bx bx-briefcase' style="display: none; font-size: 32px; color: #999;"></i>
-                  {% else %}
-                  <i class='bx bx-briefcase' style="font-size: 32px; color: #999;"></i>
-                  {% endif %}
-                </div>
-                
-                <div class="ms-3 pe-3">
-                  <a href="{{ career_interest.career.url() }}" class="text-decoration-none text-dark">
-                    <h3 class="fs-16 fw-semibold text-dark mb-0 career-card-title">{{ career_interest.career.name }}</h3>
-                  </a>
-                </div>
-                
-                <div class="d-lg-none position-absolute end-0 top-80 translate-middle-y me-3">
-                  <i class='bx bx-right-arrow-alt fs-20 text-gray'></i>
-                </div>
-              </div>
-            </div>
+        {% if cards and cards|length > 0 %}
+        <div class="row g-3 g-lg-4">
+          {% for card in cards %}
+            {% if not card.is_disliked or is_parent_view|default(false) %}
+              {% include 'template20/includes/career_interest_card.html' %}
             {% endif %}
           {% endfor %}
         </div>
+
+        {% if not is_parent_view|default(false) and has_disliked_careers|default(false) %}
+        <p class="career-section-label mt-4">Not interested</p>
+        <div class="row g-3 g-lg-4">
+          {% for card in cards %}
+            {% if card.is_disliked %}
+              {% include 'template20/includes/career_interest_card.html' %}
+            {% endif %}
+          {% endfor %}
+        </div>
+        {% endif %}
         {% else %}
         <!-- Empty State -->
         <div class="career-empty-state text-center">
@@ -452,6 +446,37 @@
           fireAlert("Internal Server Error", "error");
         }
       }
+    });
+  });
+
+  document.querySelectorAll('.career-reaction-btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const bookmarkId = this.getAttribute('data-bookmark-id');
+      const reaction = this.getAttribute('data-reaction');
+      const isActive = this.classList.contains('is-active');
+      const csrfToken = getCookie('csrftoken');
+      const nextReaction = isActive ? 'clear' : reaction;
+
+      this.disabled = true;
+      $.ajax({
+        url: "/api/v1/user/parent-career-reaction",
+        type: 'POST',
+        data: {
+          bookmark_id: bookmarkId,
+          reaction: nextReaction,
+          csrfmiddlewaretoken: csrfToken
+        },
+        success: function(data) {
+          fireAlert(data.message || "Feedback saved", "success");
+          setTimeout(function() { window.location.reload(); }, 700);
+        },
+        error: function(xhr) {
+          fireAlert(xhr.responseJSON?.message || "Could not save feedback", "error");
+          btn.disabled = false;
+        }
+      });
     });
   });
 </script>

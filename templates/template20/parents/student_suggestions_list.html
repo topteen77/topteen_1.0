@@ -22,15 +22,21 @@
         {% if items and items|length %}
           <ul class="list-group">
             {% for it in items %}
-              <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2{% if it.is_disliked %} list-group-item-danger{% endif %}">
                 <div class="d-flex flex-column">
                   <a class="fw-600 text-decoration-none" href="{{ it.url }}">{{ it.title }}</a>
                   <span class="text-muted fs-12">Suggested for {{ student.name }}</span>
+                  {% if it.is_disliked %}
+                  <span class="badge text-bg-danger mt-1 align-self-start"><i class='bx bx-dislike me-1'></i>Student disliked</span>
+                  {% elif it.is_liked %}
+                  <span class="badge text-bg-success mt-1 align-self-start"><i class='bx bx-like me-1'></i>Student liked</span>
+                  {% endif %}
                 </div>
                 <button type="button"
                         class="btn btn-sm btn-outline-danger remove-suggestion-btn"
                         data-id="{{ it.id }}"
-                        data-slug="{{ it.slug }}">
+                        data-slug="{{ it.slug }}"
+                        data-item-name="{{ it.title }}">
                   Remove
                 </button>
               </li>
@@ -49,6 +55,7 @@
 
 {% block additionaljs %}
 {{ super() }}
+{% include 'template20/parents/includes/parent_swal.html' %}
 <script>
   function getCookie(name) {
     let cookieValue = null;
@@ -70,35 +77,47 @@
     if (!buttons || !buttons.length) return;
     buttons.forEach(btn => {
       btn.addEventListener('click', function () {
+        const self = this;
         const id = this.getAttribute('data-id');
         const slug = this.getAttribute('data-slug');
+        const itemName = this.getAttribute('data-item-name') || 'this suggestion';
         const csrfToken = getCookie('csrftoken');
-        this.disabled = true;
 
-        const form = new URLSearchParams();
-        {% if id_field == "careerslug" %}
-          form.set('careerslug', slug);
-        {% elif id_field == "collegeslug" %}
-          form.set('collegeslug', slug);
-        {% elif id_field == "video_id" %}
-          form.set('video_id', id);
-        {% elif id_field == "blog_id" %}
-          form.set('blog_id', id);
-        {% endif %}
-        form.set('csrfmiddlewaretoken', csrfToken);
+        window.parentAlert.confirmRemove(
+          itemName,
+          'This will remove the suggestion for {{ student.name }}.'
+        ).then(function (result) {
+          if (!result.isConfirmed) return;
 
-        fetch('{{ remove_endpoint }}', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-CSRFToken': csrfToken,
-            'X-Requested-With': 'XMLHttpRequest'
-          },
-          body: form.toString()
-        }).then(() => {
-          window.location.reload();
-        }).catch(() => {
-          this.disabled = false;
+          self.disabled = true;
+          const form = new URLSearchParams();
+          {% if id_field == "careerslug" %}
+            form.set('careerslug', slug);
+          {% elif id_field == "collegeslug" %}
+            form.set('collegeslug', slug);
+          {% elif id_field == "video_id" %}
+            form.set('video_id', id);
+          {% elif id_field == "blog_id" %}
+            form.set('blog_id', id);
+          {% endif %}
+          form.set('csrfmiddlewaretoken', csrfToken);
+
+          fetch('{{ remove_endpoint }}', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'X-CSRFToken': csrfToken,
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: form.toString()
+          }).then(function () {
+            return window.parentAlert.toast('"' + itemName + '" removed', 'success');
+          }).then(function () {
+            window.location.reload();
+          }).catch(function () {
+            window.parentAlert.error('Could not remove suggestion.');
+            self.disabled = false;
+          });
         });
       });
     });

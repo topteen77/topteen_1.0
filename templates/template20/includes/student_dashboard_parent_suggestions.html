@@ -1,0 +1,135 @@
+{# Student dashboard: parent shortlists preview. Expects show_parent_suggestions, parent_suggested_* lists, suggested_by_parents #}
+{% if show_parent_suggestions and not is_parent_view|default(false) %}
+<style>
+  .student-dash-parent-suggest {
+    background: linear-gradient(135deg, #f8faff 0%, #f3f0ff 100%);
+    border: 1px solid #dfe5fb;
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 24px;
+  }
+  .student-dash-parent-suggest-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #2f365c;
+    margin-bottom: 4px;
+  }
+  .student-dash-parent-suggest-sub {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 14px;
+  }
+  .student-dash-parent-group {
+    margin-bottom: 12px;
+  }
+  .student-dash-parent-group:last-child {
+    margin-bottom: 0;
+  }
+  .student-dash-parent-group-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #7c83a8;
+    margin-bottom: 8px;
+  }
+  .student-dash-parent-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 13px;
+    margin: 0 8px 8px 0;
+    border-radius: 999px;
+    background: #fff;
+    border: 1px solid #d6ddf6;
+    color: #403fa6;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .student-dash-parent-chip:hover {
+    color: #403fa6;
+    box-shadow: 0 6px 16px rgba(64, 63, 166, 0.12);
+    transform: translateY(-1px);
+  }
+  .student-dash-parent-scrapbook-link {
+    font-size: 13px;
+    font-weight: 600;
+    color: #5c54d4;
+    text-decoration: none;
+  }
+  .student-dash-parent-scrapbook-link:hover {
+    color: #403fa6;
+    text-decoration: underline;
+  }
+</style>
+<section class="student-dash-parent-suggest" aria-label="Suggested by parent">
+  <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-1">
+    <div>
+      <h2 class="student-dash-parent-suggest-title mb-0">
+        <i class='bx bx-heart-circle text-purple me-1'></i>
+        {% if suggested_by_parents and suggested_by_parents|length == 1 %}
+        Suggested by {{ suggested_by_parents[0] }}
+        {% else %}
+        Suggested by your parent
+        {% endif %}
+      </h2>
+      <p class="student-dash-parent-suggest-sub mb-0">
+        {% if hub_scrapbook_unread_count|default(0) > 0 %}
+        {{ hub_scrapbook_unread_count }} new pick{{ 's' if hub_scrapbook_unread_count != 1 else '' }} waiting in your scrapbook.
+        {% else %}
+        Your parent picked these careers, videos, blogs, and colleges for you.
+        {% endif %}
+      </p>
+    </div>
+    <a href="{{ url('users:scrapbook') }}" class="student-dash-parent-scrapbook-link">
+      Open scrapbook <i class='bx bx-right-arrow-alt'></i>
+    </a>
+  </div>
+
+  {% if parent_suggested_careers and parent_suggested_careers|length %}
+  <div class="student-dash-parent-group">
+    <p class="student-dash-parent-group-label mb-0">Careers</p>
+  {% for item in parent_suggested_careers[:4] %}
+    <a href="{{ item.url }}" class="student-dash-parent-chip" title="{{ item.title }}">
+      <i class='bx bx-briefcase-alt-2'></i><span>{{ item.title|truncate(42) }}</span>
+    </a>
+  {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if parent_suggested_videos and parent_suggested_videos|length %}
+  <div class="student-dash-parent-group">
+    <p class="student-dash-parent-group-label mb-0">Videos</p>
+  {% for item in parent_suggested_videos[:3] %}
+    <a href="{{ item.url }}" class="student-dash-parent-chip" title="{{ item.title }}">
+      <i class='bx bx-play-circle'></i><span>{{ item.title|truncate(42) }}</span>
+    </a>
+  {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if parent_suggested_blogs and parent_suggested_blogs|length %}
+  <div class="student-dash-parent-group">
+    <p class="student-dash-parent-group-label mb-0">Blogs</p>
+  {% for item in parent_suggested_blogs[:3] %}
+    <a href="{{ item.url }}" class="student-dash-parent-chip" title="{{ item.title }}">
+      <i class='bx bx-news'></i><span>{{ item.title|truncate(42) }}</span>
+    </a>
+  {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if parent_suggested_colleges and parent_suggested_colleges|length %}
+  <div class="student-dash-parent-group">
+    <p class="student-dash-parent-group-label mb-0">Colleges</p>
+  {% for item in parent_suggested_colleges[:3] %}
+    <a href="{{ item.url }}" class="student-dash-parent-chip" title="{{ item.title }}">
+      <i class='bx bx-buildings'></i><span>{{ item.title|truncate(42) }}</span>
+    </a>
+  {% endfor %}
+  </div>
+  {% endif %}
+</section>
+{% endif %}

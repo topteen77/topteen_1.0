@@ -56,11 +56,29 @@ _OPS_BUCKET_ANALYTICS_ROUTES = {
     'payment_failed': 'user_analytics:failed_payments_detail',
 }
 
+FAMILY_STUDENT_BUCKET_KEYS = frozenset(('careers', 'blogs', 'videos', 'colleges'))
+FAMILY_PARENT_BUCKET_KEYS = frozenset(('student_liked', 'student_disliked'))
+
+FAMILY_STUDENT_BUCKET_LABELS = {
+    'careers': 'Career suggestions',
+    'blogs': 'Blog suggestions',
+    'videos': 'Video suggestions',
+    'colleges': 'College suggestions',
+}
+
+FAMILY_PARENT_BUCKET_LABELS = {
+    'student_liked': 'Student liked',
+    'student_disliked': 'Student disliked',
+}
+
+FAMILY_BUCKET_KEYS = FAMILY_STUDENT_BUCKET_KEYS | FAMILY_PARENT_BUCKET_KEYS
+
 
 def _notification_summary_profile(user):
     """
     ``institute`` — institute / group institute / counselor bell (grouped by event, link to notifications page).
     ``ops`` — marketing / staff analytics bell (grouped buckets, dismiss on navigate).
+    ``family_student`` / ``family_parent`` — student/parent scrapbook suggestion & reaction groups.
     """
     if not user.is_authenticated:
         return None
@@ -69,6 +87,10 @@ def _notification_summary_profile(user):
         return 'institute'
     if user.is_staff or user.is_superuser or ut == choices.UserType.MARKETINGGROUPADMIN:
         return 'ops'
+    if ut == choices.UserType.STUDENT:
+        return 'family_student'
+    if ut == choices.UserType.PARENT:
+        return 'family_parent'
     return None
 
 
@@ -173,12 +195,81 @@ def _notification_summary_buckets(request):
     return buckets
 
 
+def _family_student_bucket_queryset(user, bucket_key):
+    return Notification.objects.filter(
+        recipient=user,
+        is_read=False,
+        event_type='parent.suggestion_added',
+        payload__kind=bucket_key,
+    )
+
+
+def _family_parent_bucket_queryset(user, bucket_key):
+    if bucket_key == 'student_liked':
+        return Notification.objects.filter(
+            recipient=user,
+            is_read=False,
+            event_type='parent.suggestion_liked',
+        )
+    if bucket_key == 'student_disliked':
+        return Notification.objects.filter(
+            recipient=user,
+            is_read=False,
+            event_type='parent.suggestion_disliked',
+        )
+    return Notification.objects.none()
+
+
+def _family_student_notification_summary_buckets(request):
+    user = request.user
+    page_base = reverse('notifications:page')
+    buckets = []
+    for key, label in FAMILY_STUDENT_BUCKET_LABELS.items():
+        count = _family_student_bucket_queryset(user, key).count()
+        if count < 1:
+            continue
+        buckets.append(
+            {
+                'key': key,
+                'label': label,
+                'count': count,
+                'url': '{}?bucket={}'.format(page_base, quote(key, safe='')),
+                'clear_on_click': False,
+            }
+        )
+    return buckets
+
+
+def _family_parent_notification_summary_buckets(request):
+    user = request.user
+    page_base = reverse('notifications:page')
+    buckets = []
+    for key, label in FAMILY_PARENT_BUCKET_LABELS.items():
+        count = _family_parent_bucket_queryset(user, key).count()
+        if count < 1:
+            continue
+        buckets.append(
+            {
+                'key': key,
+                'label': label,
+                'count': count,
+                'url': '{}?bucket={}'.format(page_base, quote(key, safe='')),
+                'clear_on_click': False,
+            }
+        )
+    return buckets
+
+
 def _notification_summary_buckets_for_request(request):
     profile = _notification_summary_profile(request.user)
     if profile == 'institute':
         return _institute_notification_summary_buckets(request)
     if profile == 'ops':
         return _notification_summary_buckets(request)
+    if profile == 'family_student':
+        return _family_student_notification_summary_buckets(request)
+    if profile == 'family_parent':
+        return _family_parent_notification_summary_buckets(request)
     return []
 
 
@@ -192,7 +283,7 @@ def _request_notification_environment(request):
 
 
 def _api_payload_for_notification(row):
-    """Expose safe JSON for the bell / list UI (retry link, amount summary)."""
+    """Expose safe JSON for the bell / list UI (retry link, amount summary, navigation)."""
     p = row.payload or {}
     if not isinstance(p, dict):
         return {}
@@ -207,7 +298,78 @@ def _api_payload_for_notification(row):
         out['amount_display'] = p['amount_display']
     if p.get('currency_code'):
         out['currency_code'] = p['currency_code']
+    item_url = (p.get('item_url') or '').strip()
+    if item_url and item_url != '#':
+        out['item_url'] = item_url
     return out
+
+
+def _parent_suggestion_destination_url(row, payload):
+    """Resolve detail page for parent shortlist notifications."""
+    item_url = (payload.get('item_url') or '').strip()
+    if item_url and item_url != '#':
+        return item_url
+    kind = (payload.get('kind') or '').lower()
+    try:
+        bookmark = row.content_object
+        if bookmark is not None and hasattr(bookmark, 'object_id'):
+            from users.parent_suggestions import (
+                _bookmark_object,
+                _item_payload,
+                _kind_for_content_type_id,
+            )
+
+            if not kind and getattr(bookmark, 'content_type_id', None):
+                kind = _kind_for_content_type_id(bookmark.content_type_id)
+            target = _bookmark_object(bookmark, kind)
+            if target:
+                return (_item_payload(kind, target).get('url') or '').strip()
+    except Exception:
+        pass
+    return ''
+
+
+def _parent_reaction_destination_url(payload):
+    """Parent-facing like/dislike alerts open the career or student suggestions list."""
+    career_id = payload.get('career_id')
+    if career_id:
+        try:
+            from careers.models import Career
+
+            career = Career.objects.filter(id=career_id).only('id', 'slug').first()
+            if career:
+                return career.url()
+        except Exception:
+            pass
+    student_id = payload.get('student_id')
+    if student_id:
+        try:
+            return reverse('parents_student_suggestions', args=[int(student_id), 'careers'])
+        except Exception:
+            pass
+    return ''
+
+
+def _notification_destination_url(row):
+    """Best-effort link when the user opens a notification row."""
+    p = row.payload or {}
+    if not isinstance(p, dict):
+        p = {}
+
+    item_url = (p.get('item_url') or '').strip()
+    if item_url and item_url != '#':
+        return item_url
+
+    if p.get('retry_payment_path') and p.get('show_retry_payment'):
+        return (p.get('retry_payment_path') or '').strip()
+
+    event_type = (row.event_type or '').strip()
+    if event_type == 'parent.suggestion_added':
+        return _parent_suggestion_destination_url(row, p)
+    if event_type in ('parent.suggestion_liked', 'parent.suggestion_disliked'):
+        return _parent_reaction_destination_url(p)
+
+    return ''
 
 
 def _student_assignment_dedupe_key(payload):
@@ -244,10 +406,31 @@ def _dedupe_assignment_notifications(rows):
     return out
 
 
+def _invalidate_user_notification_cache(user):
+    if not user or not getattr(user, 'id', None):
+        return
+    try:
+        cache.delete(f'notif_latest:{user.id}')
+    except Exception:
+        pass
+
+
 def _unread_count_for_user(user):
     """
     Unread total; institute.student_assigned counts once per student (payload), not per duplicate row.
+    Student/parent bells use grouped bucket totals so the badge matches the dropdown.
     """
+    profile = _notification_summary_profile(user)
+    if profile == 'family_student':
+        return sum(
+            _family_student_bucket_queryset(user, key).count()
+            for key in FAMILY_STUDENT_BUCKET_LABELS
+        )
+    if profile == 'family_parent':
+        return sum(
+            _family_parent_bucket_queryset(user, key).count()
+            for key in FAMILY_PARENT_BUCKET_LABELS
+        )
     other = Notification.objects.filter(recipient=user, is_read=False).exclude(
         event_type='institute.student_assigned'
     ).count()
@@ -357,6 +540,7 @@ def notifications_latest_api(request):
                 'is_read': r.is_read,
                 'created': r.created.strftime('%Y-%m-%d %H:%M:%S'),
                 'payload': _api_payload_for_notification(r),
+                'destination_url': _notification_destination_url(r),
             }
             for r in rows
         ],
@@ -387,6 +571,10 @@ def notifications_list_api(request):
         qs = Notification.objects.filter(recipient=request.user).order_by('-created')
     if bucket_key in OPS_NOTIFICATION_BUCKET_KEYS:
         qs = _notification_bucket_queryset(request.user, bucket_key).order_by('-created')
+    elif bucket_key in FAMILY_STUDENT_BUCKET_KEYS and _notification_summary_profile(request.user) == 'family_student':
+        qs = _family_student_bucket_queryset(request.user, bucket_key).order_by('-created')
+    elif bucket_key in FAMILY_PARENT_BUCKET_KEYS and _notification_summary_profile(request.user) == 'family_parent':
+        qs = _family_parent_bucket_queryset(request.user, bucket_key).order_by('-created')
     elif event_type:
         qs = qs.filter(event_type=event_type)
     if q:
@@ -419,12 +607,13 @@ def notifications_list_api(request):
                     'is_read': r.is_read,
                     'created': r.created.strftime('%Y-%m-%d %H:%M:%S'),
                     'payload': _api_payload_for_notification(r),
+                    'destination_url': _notification_destination_url(r),
                 }
                 for r in pg.object_list
             ],
             'environment': requested_environment,
             'filtered_type': event_type or None,
-            'filtered_bucket': bucket_key if bucket_key in OPS_NOTIFICATION_BUCKET_KEYS else None,
+            'filtered_bucket': bucket_key if bucket_key in (OPS_NOTIFICATION_BUCKET_KEYS | FAMILY_BUCKET_KEYS) else None,
         }
     )
 
@@ -438,7 +627,15 @@ def notification_mark_read_api(request):
         row = Notification.objects.filter(id=nid, recipient=request.user).first()
         if row:
             row.mark_read()
-    return JsonResponse({'success': True})
+    _invalidate_user_notification_cache(request.user)
+    unread_count = _unread_count_for_user(request.user)
+    return JsonResponse(
+        {
+            'success': True,
+            'unread_count': unread_count,
+            'buckets': _notification_summary_buckets_for_request(request),
+        }
+    )
 
 
 @csrf_exempt
@@ -446,15 +643,26 @@ def notification_mark_read_api(request):
 @require_POST
 def notification_mark_bucket_read_api(request):
     """
-    Dismiss (delete) all notifications in an ops summary bucket, then the client navigates to analytics.
-    Institute portal buckets navigate without clearing (``clear_on_click`` is false in the API).
+    Dismiss notifications in a summary bucket, then the client navigates to the filtered list.
+    Ops, student, and parent family buckets clear on click; institute buckets do not.
     """
-    if _notification_summary_profile(request.user) != 'ops':
-        return JsonResponse({'success': False, 'error': 'not_allowed'}, status=403)
+    profile = _notification_summary_profile(request.user)
     bucket_key = (request.POST.get('bucket') or '').strip()
-    if bucket_key not in OPS_NOTIFICATION_BUCKET_KEYS:
-        return JsonResponse({'success': False, 'error': 'invalid_bucket'}, status=400)
-    deleted, _ = _notification_bucket_queryset(request.user, bucket_key).delete()
+    if profile == 'ops':
+        if bucket_key not in OPS_NOTIFICATION_BUCKET_KEYS:
+            return JsonResponse({'success': False, 'error': 'invalid_bucket'}, status=400)
+        deleted, _ = _notification_bucket_queryset(request.user, bucket_key).delete()
+    elif profile == 'family_student':
+        if bucket_key not in FAMILY_STUDENT_BUCKET_KEYS:
+            return JsonResponse({'success': False, 'error': 'invalid_bucket'}, status=400)
+        deleted, _ = _family_student_bucket_queryset(request.user, bucket_key).delete()
+    elif profile == 'family_parent':
+        if bucket_key not in FAMILY_PARENT_BUCKET_KEYS:
+            return JsonResponse({'success': False, 'error': 'invalid_bucket'}, status=400)
+        deleted, _ = _family_parent_bucket_queryset(request.user, bucket_key).delete()
+    else:
+        return JsonResponse({'success': False, 'error': 'not_allowed'}, status=403)
+    _invalidate_user_notification_cache(request.user)
     unread_count = _unread_count_for_user(request.user)
     return JsonResponse(
         {
@@ -471,7 +679,15 @@ def notification_mark_bucket_read_api(request):
 @require_POST
 def notification_mark_all_read_api(request):
     Notification.objects.filter(recipient=request.user).delete()
-    return JsonResponse({'success': True})
+    _invalidate_user_notification_cache(request.user)
+    unread_count = _unread_count_for_user(request.user)
+    return JsonResponse(
+        {
+            'success': True,
+            'unread_count': unread_count,
+            'buckets': _notification_summary_buckets_for_request(request),
+        }
+    )
 
 
 @csrf_exempt
@@ -488,7 +704,15 @@ def notification_delete_api(request):
     ).delete()
     if not deleted:
         return JsonResponse({'success': False, 'error': 'not_found'}, status=404)
-    return JsonResponse({'success': True, 'deleted': int(deleted)})
+    _invalidate_user_notification_cache(request.user)
+    return JsonResponse(
+        {
+            'success': True,
+            'deleted': int(deleted),
+            'unread_count': _unread_count_for_user(request.user),
+            'buckets': _notification_summary_buckets_for_request(request),
+        }
+    )
 
 
 @login_required

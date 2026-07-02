@@ -1,0 +1,794 @@
+  <div class="{% if parent_inline_mode %}mt-0{% else %}mt-8{% endif %} combined-report-wrap">
+
+
+  {% if not embed_mode %}
+  <div class="container-fluid user-dashboard-container px-0 px-lg-4 px-xl-5 mt-4">
+    {% include 'template20/includes/breadcrumb.html' %}
+  </div>
+  {% endif %}
+
+  {% if not parent_inline_mode %}
+  <script>window.TTV2_COMBINED_REPORT_USER_ID = "{{ report_student_id }}";</script>
+  {% endif %}
+  <main class="container-fluid user-dashboard-container px-0{% if not parent_inline_mode %} px-lg-4 px-xl-5{% endif %}{% if parent_inline_mode %} py-0{% else %} py-4{% endif %} report-shell" data-report-student-id="{{ report_student_id }}">
+    {% if not parent_inline_mode %}
+    <div class="row justify-content-center {% if embed_mode %}mt-0{% else %}mt-5{% endif %}">
+      <div class="col-12">
+        <div class="report-hero text-center text-white">
+          <div class="report-hero-content">
+            <h1 class="hero-title mb-2">Comprehensive Assessment Report</h1>
+            <p class="hero-subtitle mb-0 text-white">Your complete progress view across personality, career interests, motivation, and aptitude.</p>
+            {% if embed_mode %}
+            <div class="hero-meta-grid">
+              <div class="hero-meta-item">
+                <div class="hero-meta-label">Student Name</div>
+                <div class="hero-meta-value">{{ report_student_name or '-' }}</div>
+              </div>
+              <div class="hero-meta-item">
+                <div class="hero-meta-label">Email ID</div>
+                <div class="hero-meta-value">{{ report_student_email or '-' }}</div>
+              </div>
+              <div class="hero-meta-item">
+                <div class="hero-meta-label">Mobile</div>
+                <div class="hero-meta-value">{{ report_student_mobile or '-' }}</div>
+              </div>
+              <div class="hero-meta-item">
+                <div class="hero-meta-label">Class</div>
+                <div class="hero-meta-value">{{ report_student_class or '-' }}</div>
+              </div>
+            </div>
+            {% else %}
+            <div class="hero-chip-row">
+              <span class="hero-chip"><i class="fas fa-chart-line"></i> Performance overview</span>
+              <span class="hero-chip"><i class="fas fa-lightbulb"></i> Career insights</span>
+              <span class="hero-chip"><i class="fas fa-bullseye"></i> Improvement focus</span>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+
+
+    {% if no_results %}
+    <div class="report-card">
+      <div class="no-results">
+        <div class="no-results-icon">
+          <i class="fas fa-file-alt"></i>
+        </div>
+        <h3>No Results Found</h3>
+        <p>{{ error|default('You need to complete all tests to generate a combined report.') }}</p>
+        {% if not embed_mode %}
+        <a href="{{ url('post_matric:tests') }}" class="btn-primary mt-4">
+          <i class="fas fa-arrow-right"></i>
+          Take Tests
+        </a>
+        {% endif %}
+      </div>
+    </div>
+    {% else %}
+    <div class="report-card{% if not parent_inline_mode %} mt-5{% endif %}">
+      {% if student_name or grade or schoolname or gender %}
+
+
+      {% endif %}
+
+      <div id="report-stats" data-total-tests="4" data-completed-tests="{{ completed_tests|default([], true)|length }}"
+        data-career-personality="{{ careers_to_opt|default([], true)|length }}"
+        data-career-riasec="{{ riasec_careers_to_opt|default([], true)|length }}"
+        data-career-motivation="{{ motivation_careers_to_opt|default([], true)|length }}"
+        data-above="{{ above_list|default([], true)|length }}"
+        data-average="{{ average_list|default([], true)|length }}"
+        data-below="{{ below_list|default([], true)|length }}">
+      </div>
+<script id="test-results-json"
+        type="application/json">{% if test_results_json %}{{ test_results_json|safe }}{% else %}[]{% endif %}</script>
+<script id="aptitude-band-json"
+        type="application/json">{% if aptitude_band_json %}{{ aptitude_band_json|safe }}{% else %}{"above":[],"average":[],"below":[]} {% endif %}</script>
+      
+      <!-- hide section -->
+        <div class="kpi-grid mt-4 d-none">
+        <div class="kpi-card kpi-tests">
+          <div class="kpi-label">Completed Assessments</div>
+          <div class="kpi-value">{{ completed_tests|default([], true)|length }}/4</div>
+        </div>
+        <div class="kpi-card kpi-careers">
+          <div class="kpi-label">Recommended Career Options</div>
+          <div class="kpi-value" id="careerTotalCount">0</div>
+        </div>
+        <div class="kpi-card kpi-strengths">
+          <div class="kpi-label">Aptitude Strength Areas</div>
+          <div class="kpi-value">{{ above_list|default([], true)|length }}</div>
+        </div>
+        <div class="kpi-card kpi-improve">
+          <div class="kpi-label">Aptitude Improvement Areas</div>
+          <div class="kpi-value">{{ below_list|default([], true)|length }}</div>
+        </div>
+      </div>
+      <!-- hide section -->
+      <div class="mt-4 assessment-timeline-section">
+        <div class="timeline-head mb-3">
+          <h3 class="section-title mb-0 text-center assessment-timeline-title">Assessment Timeline</h3>
+        </div>
+        {% if completed_tests %}
+        <div class="test-list timeline-grid">
+          {% for test in completed_tests %}
+          <div class="test-card bg-white">
+            <div class="test-card-header">
+
+              <div class="d-flex align-items-center justify-content-between w-100">
+              <div class="test-title">{{ test.display_title|default(test.title) }}</div>
+              <div class="status-pill"> Completed</div>
+              </div>            
+        </div>
+            <div class="test-date">
+              <i class="fas fa-calendar me-1"></i>
+              {% if test.completed_at_display %}{{ test.completed_at_display }}{% elif test.completed_at %}{{ test.completed_at }}{% else %}Date unavailable{% endif %}
+            </div>    
+            <!-- <div class="muted-small mt-2">Test ID: {{ test.test_id }}</div> -->
+            <div class="timeline-card-actions">
+              <a href="{{ url('post_matric:results') }}?test_id={{ test.test_id }}&user_id={{ report_student_id }}{% if embed_mode %}&embed=1{% endif %}"
+                 class="mini-btn report-btn ttv2-report-open"
+                 data-report-title="{{ test.display_title|default(test.title) }}"
+                 data-student-id="{{ report_student_id }}">
+                <i class="fas fa-file-alt"></i>
+                View Report
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted mb-0">No tests completed yet.</p>
+        {% endif %}
+      </div>
+
+
+      <!-- hide section -->
+
+      <div class="chart-grid mt-4 d-none">
+        <div class="chart-card">
+          <div class="chart-title">Assessment Completion Overview</div>
+          <div class="chart-wrap completion-chart-wrap" id="completionChartWrap">
+            <canvas id="completionChart" aria-label="Assessment completion chart"></canvas>
+            <div class="completion-chart-center{% if completed_tests|default([], true)|length >= 4 %} is-visible{% endif %}"
+                 id="completionChartCenter"
+                 aria-hidden="{% if completed_tests|default([], true)|length >= 4 %}false{% else %}true{% endif %}">
+              <span class="status-pill completion-chart-badge">Completed</span>
+              <div class="completion-chart-fraction" id="completionChartFraction">{{ completed_tests|default([], true)|length }}/4</div>
+              <div class="completion-chart-sub">All assessments complete</div>
+            </div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Aptitude Performance Distribution</div>
+          <div class="chart-wrap"><canvas id="aptitudeDistributionChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Career Recommendation Sources</div>
+          <div class="chart-wrap"><canvas id="recommendationSourceChart"></canvas></div>
+        </div>
+      </div>
+
+            <!-- hide section -->
+
+      <div class="mt-4 assessment-deep-dive-section">
+        <h3 class="section-title text-center assessment-deep-dive-title">Assessment Deep Dive</h3>
+        
+      <!-- hide section -->
+        <div class="data-status mb-3 d-none">
+          <div class="data-status-item">
+            <span class="data-status-icon source"><i class='bx bx-data'></i></span>
+            <span class="data-status-meta">
+              <span class="data-status-label">Data Source</span>
+              <span class="data-status-value">Assessment Results</span>
+            </span>
+          </div>
+          <div class="data-status-item">
+            <span class="data-status-icon reports"><i class='bx bx-file'></i></span>
+            <span class="data-status-meta">
+              <span class="data-status-label">Reports Loaded</span>
+              <span class="data-status-value" id="jsonRecordCount">0</span>
+            </span>
+          </div>
+          <div class="data-status-item">
+            <span class="data-status-icon visuals"><i class='bx bx-pie-chart-alt-2'></i></span>
+            <span class="data-status-meta">
+              <span class="data-status-label">Visuals Rendered</span>
+              <span class="data-status-value" id="jsonChartsCount">0</span>
+            </span>
+          </div>
+        </div>        
+      <!-- hide section -->
+        <div class="deep-dive-grid">
+          <div class="chart-card report-link-card" role="link" tabindex="0" data-report-url="{{ url('post_matric:results') }}?test_id=1&user_id={{ report_student_id }}{% if embed_mode %}&embed=1{% endif %}" data-student-id="{{ report_student_id }}">
+            <div class="chart-title">Personality Traits Profile</div>
+            <div class="chart-wrap"><canvas id="personalityDeepChart"></canvas></div>
+            <div class="data-note" id="personalityDeepNote">Loading assessment details...</div>
+            <div class="personality-top-block" id="personalityTopBlock">Top Personality Dimensions: --</div>
+          </div>
+          <div class="chart-card report-link-card" role="link" tabindex="0" data-report-url="{{ url('post_matric:results') }}?test_id=2&user_id={{ report_student_id }}{% if embed_mode %}&embed=1{% endif %}" data-student-id="{{ report_student_id }}">
+            <div class="chart-title">Motivation Driver Mix</div>
+            <div class="chart-wrap"><canvas id="motivationDeepChart"></canvas></div>
+            <div class="motivation-primary-block" id="motivationPrimaryBlock">Your Primary Motivation: --</div>
+            <div class="data-note" id="motivationDeepNote">Loading assessment details...</div>
+          </div>
+          <div class="chart-card report-link-card" role="link" tabindex="0" data-report-url="{{ url('post_matric:results') }}?test_id=3&user_id={{ report_student_id }}{% if embed_mode %}&embed=1{% endif %}" data-student-id="{{ report_student_id }}">
+            <div class="chart-title">Career Interest Dimensions</div>
+            <div class="chart-wrap"><canvas id="careerDeepChart"></canvas></div>
+            <div class="data-note" id="careerDeepNote">Loading assessment details...</div>
+          </div>
+          <div class="chart-card report-link-card" role="link" tabindex="0" data-report-url="{{ url('post_matric:results') }}?test_id=4&user_id={{ report_student_id }}{% if embed_mode %}&embed=1{% endif %}" data-student-id="{{ report_student_id }}">
+            <div class="chart-title">Aptitude Section Scores</div>
+            <div class="chart-wrap aptitude-chart-wrap"><canvas id="aptitudeDeepChart"></canvas></div>
+            <div class="aptitude-band-legend">
+              <span class="aptitude-band-chip"><span class="aptitude-band-dot above"></span>Above Average</span>
+              <span class="aptitude-band-chip"><span class="aptitude-band-dot average"></span>Average</span>
+              {# changes required by management (01-Jun-2025): Below Average → Development Areas #}
+              <span class="aptitude-band-chip"><span class="aptitude-band-dot below"></span>{{ "Below Average"|aptitude_tier_label }}</span>
+            </div>
+            <div class="data-note" id="aptitudeDeepNote">Loading assessment details...</div>
+          </div>
+        </div>
+      </div>
+
+      {% set career_preview = 5 %}
+      {% set career_interest_preview = 3 %}
+      {% set personality_ns = namespace(groups=[]) %}
+      {% if careers_to_opt is mapping %}
+        {% for trait_name, career_list in careers_to_opt.items() %}
+          {% if career_list %}
+            {% set _ = personality_ns.groups.append({'label': trait_name, 'careers': career_list}) %}
+          {% endif %}
+        {% endfor %}
+      {% elif careers_to_opt %}
+        {% set _ = personality_ns.groups.append({'label': 'Suggested Careers', 'careers': careers_to_opt}) %}
+      {% endif %}
+
+      {% set riasec_ns = namespace(groups=[]) %}
+      {% if riasec_careers_to_opt is mapping %}
+        {% for category in ['Traditional', 'Trending', 'Futuristic'] %}
+          {% set category_careers = riasec_careers_to_opt.get(category, []) %}
+          {% if category_careers %}
+            {% set _ = riasec_ns.groups.append({'label': category, 'careers': category_careers}) %}
+          {% endif %}
+        {% endfor %}
+      {% elif riasec_careers_to_opt %}
+        {% set _ = riasec_ns.groups.append({'label': 'Suggested Careers', 'careers': riasec_careers_to_opt}) %}
+      {% endif %}
+
+      {% set motivation_ns = namespace(groups=[]) %}
+      {% if motivation_careers_to_opt is mapping %}
+        {% set motivation_roles = motivation_careers_to_opt.get('Career Category & Roles', []) %}
+        {% if motivation_roles %}
+          {% set _ = motivation_ns.groups.append({'label': 'Recommended Roles', 'careers': motivation_roles}) %}
+        {% endif %}
+      {% elif motivation_careers_to_opt %}
+        {% set _ = motivation_ns.groups.append({'label': 'Recommended Roles', 'careers': motivation_careers_to_opt}) %}
+      {% endif %}
+
+      <div class="mt-4">
+        <h3 class="section-title">Career Recommendations </h3>
+        <p class="career-spotlight-subtitle mt-1 mb-3">Career paths linked to your Personality Assessment, Motivation, and Career Interest results.</p>
+        <div class="career-dashboard-panel">
+          <div class="cr-dashboard-card cr-dashboard-card--personality">
+            <div class="cr-dashboard-head cr-dashboard-head--personality">
+              <div class="cr-dashboard-head-bar">
+                <span class="cr-dashboard-head-icon" aria-hidden="true"><i class="bx bx-brain"></i></span>
+                <h4>
+                  Personality Assessment
+                  {% if high_traits %}
+                  <span class="cr-dashboard-pill cr-dashboard-pill--personality">{{ high_traits|join(' & ') }}</span>
+                  {% elif high_categories %}
+                  <span class="cr-dashboard-pill cr-dashboard-pill--personality">{{ high_categories|join(' & ') }}</span>
+                  {% endif %}
+                </h4>
+              </div>
+              <p>Roles aligned with your dominant personality traits.</p>
+            </div>
+            {% if personality_ns.groups %}
+              {% for group in personality_ns.groups %}
+              {% set group_careers = group.careers %}
+              {% set group_total = group_careers|length %}
+              <div class="cr-dashboard-group">
+                {% if personality_ns.groups|length > 1 %}
+                <div class="cr-dashboard-group-label">{{ group.label }}</div>
+                {% endif %}
+                <div class="cr-dashboard-chip-grid {% if group_total > career_preview %}is-collapsed{% endif %}" data-career-group-chips>
+                  {% for career in group_careers %}
+                  <span class="cr-dashboard-chip{% if loop.index > career_preview and group_total > career_preview %} cr-dashboard-chip--hidden{% endif %}">{{ career }}</span>
+                  {% endfor %}
+                  {% if group_total > career_preview %}
+                  <button type="button" class="cr-dashboard-chip cr-dashboard-chip-more" data-career-view-more aria-expanded="false">+{{ group_total - career_preview }} more</button>
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+            <p class="cr-dashboard-empty">Complete the Personality Assessment to see career suggestions.</p>
+            {% endif %}
+          </div>
+
+          <div class="cr-dashboard-card cr-dashboard-card--motivation">
+            <div class="cr-dashboard-head cr-dashboard-head--motivation">
+              <div class="cr-dashboard-head-bar">
+                <span class="cr-dashboard-head-icon" aria-hidden="true"><i class="bx bx-bolt-circle"></i></span>
+                <h4>
+                  Motivation
+                  {% if motivation_high_category %}
+                  <span class="cr-dashboard-pill cr-dashboard-pill--motivation">{{ motivation_high_category }}</span>
+                  {% endif %}
+                </h4>
+              </div>
+              <p>Careers that match your primary motivation driver.</p>
+            </div>
+            {% if motivation_ns.groups %}
+              {% for group in motivation_ns.groups %}
+              {% set group_careers = group.careers %}
+              {% set group_total = group_careers|length %}
+              <div class="cr-dashboard-group">
+                {% if motivation_ns.groups|length > 1 %}
+                <div class="cr-dashboard-group-label">{{ group.label }}</div>
+                {% endif %}
+                <div class="cr-dashboard-chip-grid {% if group_total > career_preview %}is-collapsed{% endif %}" data-career-group-chips>
+                  {% for career in group_careers %}
+                  <span class="cr-dashboard-chip{% if loop.index > career_preview and group_total > career_preview %} cr-dashboard-chip--hidden{% endif %}">{{ career }}</span>
+                  {% endfor %}
+                  {% if group_total > career_preview %}
+                  <button type="button" class="cr-dashboard-chip cr-dashboard-chip-more" data-career-view-more aria-expanded="false">+{{ group_total - career_preview }} more</button>
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+            <p class="cr-dashboard-empty">Complete the Motivation Assessment to see career suggestions.</p>
+            {% endif %}
+          </div>
+
+          <div class="cr-dashboard-card cr-dashboard-card--interest">
+            <div class="cr-dashboard-head cr-dashboard-head--interest">
+              <div class="cr-dashboard-head-bar">
+                <span class="cr-dashboard-head-icon" aria-hidden="true"><i class="bx bx-compass"></i></span>
+                <h4>
+                  Career Interest
+                  {% if riasec_high_categories %}
+                  <span class="cr-dashboard-pill cr-dashboard-pill--interest">{{ riasec_high_categories }}</span>
+                  {% endif %}
+                </h4>
+              </div>
+              <p>Roles based on your RIASEC interest profile.</p>
+            </div>
+            {% if riasec_ns.groups %}
+              {% for group in riasec_ns.groups %}
+              {% set group_careers = group.careers %}
+              {% set group_total = group_careers|length %}
+              <div class="cr-dashboard-group">
+                <div class="cr-dashboard-group-label">{{ group.label }}</div>
+                <div class="cr-dashboard-chip-grid {% if group_total > career_interest_preview %}is-collapsed{% endif %}" data-career-group-chips data-preview="3">
+                  {% for career in group_careers %}
+                  <span class="cr-dashboard-chip{% if loop.index > career_interest_preview and group_total > career_interest_preview %} cr-dashboard-chip--hidden{% endif %}">{{ career }}</span>
+                  {% endfor %}
+                  {% if group_total > career_interest_preview %}
+                  <button type="button" class="cr-dashboard-chip cr-dashboard-chip-more" data-career-view-more aria-expanded="false">+{{ group_total - career_interest_preview }} more</button>
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+            <p class="cr-dashboard-empty">Complete the Career Interest Assessment to see career suggestions.</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      {% if riasec_careers_to_opt or careers_to_opt or motivation_careers_to_opt %}
+      <div class="mt-4 d-none">
+        <div class="career-spotlight">
+          <h3 class="section-title">Recommended Career Paths</h3>
+          {% if aptitude_roles_guidance %}
+          <p class="career-spotlight-subtitle mt-1">Career recommendations from your aptitude report. Each section shows your strength area and suitable roles.</p>
+          <div class="aptitude-career-grid">
+            {% for item in aptitude_roles_guidance %}
+            {% if item and item.Area %}
+            <div class="aptitude-career-card">
+              <div class="aptitude-career-title">{{ item.Area }}</div>
+              <ul class="aptitude-career-list">
+                {% if item.Recommendations %}
+                  {% for role_item in item.Recommendations %}
+                  {% set role_name = role_item.Role if role_item is mapping else role_item %}
+                  {% set clean_role_name = (role_name|string)|trim %}
+                  {% if clean_role_name %}
+                  <li>{{ clean_role_name }}</li>
+                  {% endif %}
+                  {% endfor %}
+                {% endif %}
+                {% if not item.Recommendations and item.Guidance %}
+                <li>{{ item.Guidance }}</li>
+                {% endif %}
+              </ul>
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="career-spotlight-subtitle mt-1">Personalized options based on your aptitude, interest profile, and motivation analysis.</p>
+          <ul class="career-grid recommendation-list">
+            {% set career_ns = namespace(items=[]) %}
+            {% for career in careers_to_opt %}
+            {% if career and career not in career_ns.items %}
+            {% set _ = career_ns.items.append(career) %}
+            <li class="career-item recommended"><span class="career-icon"><i class='bx bx-check'></i></span><span class="career-text">{{ career }}</span></li>
+            {% endif %}
+            {% endfor %}
+            {% for career in riasec_careers_to_opt %}
+            {% if career and career not in career_ns.items %}
+            {% set _ = career_ns.items.append(career) %}
+            <li class="career-item recommended"><span class="career-icon"><i class='bx bx-check'></i></span><span class="career-text">{{ career }}</span></li>
+            {% endif %}
+            {% endfor %}
+            {% for career in motivation_careers_to_opt %}
+            {% if career and career not in career_ns.items %}
+            {% set _ = career_ns.items.append(career) %}
+            <li class="career-item recommended"><span class="career-icon"><i class='bx bx-check'></i></span><span class="career-text">{{ career }}</span></li>
+            {% endif %}
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+      {% if aptitude_Recommended_College_Courses %}
+      <div class="mt-4 d-none">
+        <div class="career-spotlight">
+          <h3 class="section-title">Recommended College Courses</h3>
+          <p class="career-spotlight-subtitle mt-1">Curated course options aligned with your aptitude profile and career direction.</p>
+          {% if aptitude_course_recommendation_cards %}
+          <ul class="course-reco-grid recommendation-list">
+            {% for card in aptitude_course_recommendation_cards %}
+            <li class="course-reco-card js-course-card">
+              <div class="course-reco-head">
+                <span class="course-reco-icon"><i class='bx bx-book-reader'></i></span>
+                <div class="course-reco-title"><strong>{{ card.course_name }}</strong></div>
+              </div>
+              {% if card.mapped_areas %}
+              <div class="cs-report-wrap">
+              <div class="course-reco-meta"><strong>Mapped area(s):</strong></div>
+              <div class="course-reco-chip-wrap">
+                {% for area in card.mapped_areas %}
+                <span class="course-reco-chip">{{ area }}</span>
+                {% endfor %}
+              </div>
+            </div>
+              {% endif %}
+              {% if card.eligibility_hints %}
+              <div class="course-reco-meta"><strong>Eligibility / entrance:</strong> {{ card.eligibility_hints|join(' | ') }}</div>
+              {% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          {% set course_ns = namespace(items=[], has_courses=false) %}
+          <ul class="course-reco-grid recommendation-list">
+            {% for course in aptitude_Recommended_College_Courses %}
+              {% if course is mapping and course.Recommended_College %}
+                {% for course_name in course.Recommended_College %}
+                {% set clean_course_name = (course_name|string)|trim %}
+                {% if clean_course_name and clean_course_name not in course_ns.items %}
+                {% set _ = course_ns.items.append(clean_course_name) %}
+                {% set course_ns.has_courses = true %}
+                <li class="course-reco-card js-course-card">
+                  <div class="course-reco-head">
+                    <span class="course-reco-icon"><i class='bx bx-book-reader'></i></span>
+                    <div class="course-reco-title"><strong>{{ clean_course_name }}</strong></div>
+                  </div>
+                  {% if course.Area %}
+                  <div class="course-reco-meta"><strong>Mapped area(s):</strong></div>
+                  <div class="course-reco-chip-wrap">
+                    <span class="course-reco-chip">{{ course.Area }}</span>
+                  </div>
+                  {% endif %}
+                </li>
+                {% endif %}
+                {% endfor %}
+              {% else %}
+                {% set clean_course_name = (course|string)|trim %}
+                {% if clean_course_name and clean_course_name not in course_ns.items %}
+                {% set _ = course_ns.items.append(clean_course_name) %}
+                {% set course_ns.has_courses = true %}
+                <li class="course-reco-card js-course-card">
+                  <div class="course-reco-head">
+                    <span class="course-reco-icon"><i class='bx bx-book-reader'></i></span>
+                    <div class="course-reco-title"><strong>{{ clean_course_name }}</strong></div>
+                  </div>
+                </li>
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          </ul>
+          {% if not course_ns.has_courses %}
+          <div class="empty-state-card mt-2">
+            <span class="empty-icon"><i class='bx bx-book-reader'></i></span>
+            <div class="empty-title">Recommended courses are not available yet</div>
+            <p class="empty-subtitle">Course recommendations will appear here once complete aptitude mapping data is available.</p>
+          </div>
+          {% endif %}
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="mt-4 aptitude-analysis-section">
+        <h3 class="section-title text-center aptitude-analysis-title">Aptitude Analysis</h3>
+        {% if above_list or average_list or below_list %}
+        <div class="mapping-grid aptitude-analysis-grid">
+          <div class="mapping-card mapping-card--above">
+            <h4>Above Average</h4>
+            {% if above_list %}
+            <div class="list-grid">
+              {% set above_ns = namespace(items=[]) %}
+              {% for item in above_list %}
+              {% if item and item not in above_ns.items %}
+              {% set _ = above_ns.items.append(item) %}
+              <div class="list-item aptitude-item above-highlight"><span class="aptitude-item-icon"><i class='bx bx-up-arrow-alt' ></i></span><span>{{ item }}</span></div>
+              {% endif %}
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="card-empty-state"> 
+              <span class="icon"><i class='bx bx-sitemap' ></i></span>
+              <p class="label">No above-average areas yet.</p></div>
+          
+            {% endif %}
+          </div>
+          <div class="mapping-card mapping-card--average">
+            <h4>Average</h4>
+            {% if average_list %}
+            <div class="list-grid">
+              {% set average_ns = namespace(items=[]) %}
+              {% for item in average_list %}
+              {% if item and item not in average_ns.items %}
+              {% set _ = average_ns.items.append(item) %}
+              <div class="list-item aptitude-item"><span class="aptitude-item-icon"><i class='bx bx-crosshair'></i></span><span>{{ item }}</span></div>
+              {% endif %}
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="card-empty-state"> 
+              <span class="icon"><i class='bx bx-sitemap' ></i></span>
+              <p class="label">No average areas available.</p></div>
+            {% endif %}
+          </div>
+          <div class="mapping-card mapping-card--below">
+            {# changes required by management (01-Jun-2025): Below Average → Development Areas #}
+            <h4>{{ "Below Average"|aptitude_tier_label }}</h4>
+            {% if below_list %}
+            <div class="list-grid">
+              {% set below_ns = namespace(items=[]) %}
+              {% for item in below_list %}
+              {% if item and item not in below_ns.items %}
+              {% set _ = below_ns.items.append(item) %}
+              <div class="list-item warning aptitude-item"><span class="aptitude-item-icon"><i class='bx bx-down-arrow-alt' ></i></span><span>{{ item }}</span></div>
+              {% endif %}
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="card-empty-state"> 
+              <span class="icon"><i class='bx bx-sitemap' ></i></span>
+              {# changes required by management (01-Jun-2025): Below Average → development areas #}
+              <p class="label">{{ aptitude_no_development_areas }}</p></div>
+ 
+            {% endif %}
+          </div>
+        </div>
+        {% else %}
+        <div class="empty-state-card">
+          <span class="empty-icon"><i class="fas fa-chart-line"></i></span>
+          <div class="empty-title">Aptitude analysis is not available yet</div>
+          {# changes required by management (01-Jun-2025): Below Average → development areas #}
+          <p class="empty-subtitle">{{ aptitude_empty_state_skill_areas }}</p>
+        </div>
+        {% endif %}
+      </div>
+
+      {% if aptitude_mapping and (aptitude_mapping.clusters or aptitude_mapping.roles or aptitude_mapping.pathways) %}
+      <div class="mt-4 aptitude-mapped-section">
+        <h3 class="section-title text-center aptitude-mapped-title">Aptitude Mapped Opportunities</h3>
+        <p class="muted-small mb-3 d-none">Combination Code: {{ aptitude_mapping.aptitude_code }}{% if
+          aptitude_mapping.aptitude_areas %} | Areas: {{ aptitude_mapping.aptitude_areas }}{% endif %}</p>
+        <div class="mapping-grid aptitude-mapped-grid">
+          <div class="mapping-card">
+            <h4>Career Clusters</h4>
+            {% set cluster_ns = namespace(items=[], has_items=false) %}
+            <ul class="link-list">
+              {% for item in aptitude_mapping.clusters %}
+              {% if item.name and item.name not in cluster_ns.items %}
+              {% set _ = cluster_ns.items.append(item.name) %}
+              {% set cluster_ns.has_items = true %}
+              <li>{% if item.url %}<a href="{{ item.url }}">{{ item.name }}</a>{% else %}{{ item.name }}{% endif %}</li>
+              {% endif %}
+              {% endfor %}
+              {% if not cluster_ns.has_items and career_guidance_selected %}
+              {% for guidance in career_guidance_selected %}
+              {% if guidance.Career_Clusters_resolved %}
+              {% for c in guidance.Career_Clusters_resolved %}
+              {% if c.name and c.name not in cluster_ns.items %}
+              {% set _ = cluster_ns.items.append(c.name) %}
+              {% set cluster_ns.has_items = true %}
+              <li>{% if c.url %}<a href="{{ c.url }}">{{ c.name }}</a>{% else %}{{ c.name }}{% endif %}</li>
+              {% endif %}
+              {% endfor %}
+              {% elif guidance.Career_Clusters %}
+              {% for cluster_name in guidance.Career_Clusters %}
+              {% set clean_cluster_name = (cluster_name|string)|trim %}
+              {% set r = cluster_resolve_map.get(clean_cluster_name|lower) if cluster_resolve_map else none %}
+              {% set display_cluster_name = r['name'] if r else clean_cluster_name %}
+              {% if display_cluster_name and display_cluster_name not in cluster_ns.items %}
+              {% set _ = cluster_ns.items.append(display_cluster_name) %}
+              {% set cluster_ns.has_items = true %}
+              {% set cluster_url = (r['url'] if r else none) or (cluster_url_map.get(clean_cluster_name|lower) if cluster_url_map else none) %}
+              <li>{% if cluster_url %}<a href="{{ cluster_url }}">{{ display_cluster_name }}</a>{% else %}{{ display_cluster_name }}{% endif %}</li>
+              {% endif %}
+              {% endfor %}
+              {% endif %}
+              {% endfor %}
+              {% endif %}
+              {% if not cluster_ns.has_items and psychometric_career_clusters %}
+              {% for cluster_item in psychometric_career_clusters %}
+              {% if cluster_item.name and cluster_item.name not in cluster_ns.items %}
+              {% set _ = cluster_ns.items.append(cluster_item.name) %}
+              {% set cluster_ns.has_items = true %}
+              <li>{% if cluster_item.url %}<a href="{{ cluster_item.url }}">{{ cluster_item.name }}</a>{% else %}{{ cluster_item.name }}{% endif %}</li>
+              {% endif %}
+              {% endfor %}
+              {% endif %}
+            </ul>
+            {% if not cluster_ns.has_items %}
+            <div class="card-empty-state">
+              <span class="icon"><i class='bx bx-sitemap' ></i></span>
+              <div class="label">No career clusters available right now.</div>
+            </div>
+            {% endif %}
+          </div>
+          <div class="mapping-card">
+            <h4>Career Pathways</h4>
+            {% set role_ns = namespace(items=[], role_items=[], has_items=false) %}
+            <ul class="link-list">
+              {% for item in aptitude_mapping.roles %}
+              {% if item.name and item.name not in role_ns.items %}
+              {% set _ = role_ns.items.append(item.name) %}
+              {% set _ = role_ns.role_items.append(item) %}
+              {% set role_ns.has_items = true %}
+              {% endif %}
+              {% endfor %}
+              {% if role_ns.has_items %}
+              {% set ordered_roles = role_ns.role_items | reverse | list %}
+              {% for item in ordered_roles %}
+              {% if item.name %}
+              <li>{% if item.url %}<a href="{{ item.url }}">{{ item.name }}</a>{% else %}{{ item.name }}{% endif %}</li>
+              {% endif %}
+              {% endfor %}
+              {% endif %}
+            </ul>
+            {% if not role_ns.has_items %}
+            <div class="card-empty-state">
+              <span class="icon"><i class='bx bx-sitemap' ></i></span>
+              <div class="label">No career pathways available right now.</div>
+            </div>
+            {% endif %}
+          </div>
+          <div class="mapping-card">
+            <h4>Degree Pathways</h4>
+            {% set pathway_ns = namespace(items=[], has_items=false) %}
+            <ul class="link-list">
+              {% for item in aptitude_mapping.pathways %}
+              {% if item.name and item.name not in pathway_ns.items %}
+              {% set _ = pathway_ns.items.append(item.name) %}
+              {% set pathway_ns.has_items = true %}
+              <li>{{ item.name }}</li>
+              {% endif %}
+              {% endfor %}
+            </ul>
+            {% if not pathway_ns.has_items %}
+            <div class="card-empty-state">
+              <span class="icon"><i class='bx bx-sitemap' ></i></span>
+              <div class="label">No degree pathways available right now.</div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if aptitude_strength_narrative or aptitude_improvement_plan or career_code_discription %}
+      <div class="mt-4 d-none">
+        <h3 class="section-title">Additional Insights</h3>
+        <div class="mapping-grid">
+          {% if aptitude_strength_narrative %}
+          <div class="mapping-card">
+            <div class="subsection-title">Your Strengths</div>
+            <ul class="insight-list">
+              {% for item in aptitude_strength_narrative %}
+              <li>
+                {% if item.Area %}
+                <span class="insight-label">{{ item.Area }}</span>
+                {% endif %}
+                {% if item.Major_points %}
+                  {% if item.Major_points is string %}
+                  <div>{{ item.Major_points }}</div>
+                  {% else %}
+                    {% for point in item.Major_points %}
+                    <div>• {{ point }}</div>
+                    {% endfor %}
+                  {% endif %}
+                {% elif item %}
+                <div>{{ item }}</div>
+                {% endif %}
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+          {% if aptitude_improvement_plan %}
+          <div class="mapping-card">
+            {% include 'template20/app/partials/aptitude_growth_plan_styles.html' %}
+            {% include 'template20/app/partials/aptitude_growth_plan_section.html' %}
+          </div>
+          {% endif %}
+          {% if career_code_discription %}
+          <div class="mapping-card">
+            <div class="subsection-title">Career Interest Profile</div>
+            <ul class="insight-list">
+              {% for item in career_code_discription %}
+                {% if item.items %}
+                  {% for code, desc in item.items() %}
+                  <li>
+                    <span class="insight-label">{{ code }}</span>
+                    {% if desc.items %}
+                      {% if desc.Description %}
+                      <div>{{ desc.Description }}</div>
+                      {% endif %}
+                      {% for trait, trait_text in desc.items() %}
+                        {% if trait != 'Description' %}
+                        <span class="insight-note"><strong>{{ trait }}:</strong> {{ trait_text }}</span>
+                        {% endif %}
+                      {% endfor %}
+                    {% elif desc is string %}
+                    <div>{{ desc }}</div>
+                    {% else %}
+                    <div>{{ desc }}</div>
+                    {% endif %}
+                  </li>
+                  {% endfor %}
+                {% else %}
+                <li>{{ item }}</li>
+                {% endif %}
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+          <div class="course-reco-actions d-none">
+            <button type="button" class="mini-btn" id="toggleCourseRecoBtn" style="display:none;">
+              <i class="fas fa-chevron-down"></i>
+              Show More Courses
+            </button>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="actions-section d-flex justify-content-center mt-3 d-none">
+        <!-- <a href="{{ url('post_matric:results_list') }}" class="btn-secondary">
+          <i class="fas fa-arrow-left"></i>
+          Back to Results
+        </a> -->
+        <a href="{{ url('post_matric:tests') }}" class="btn-primary">
+          <i class="fas fa-list"></i>
+          View All Tests
+        </a>
+      </div>
+    </div>
+    {% endif %}
+  </main>
+</div>

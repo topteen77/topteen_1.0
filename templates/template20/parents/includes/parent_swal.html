@@ -1,0 +1,79 @@
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+  .parent-swal-popup {
+    border-radius: 16px !important;
+    padding: 1.25rem 1.25rem 1rem !important;
+    box-shadow: 0 18px 48px rgba(34, 41, 47, 0.18) !important;
+  }
+  .parent-swal-title {
+    font-size: 1.2rem !important;
+    font-weight: 700 !important;
+    color: #1f2937 !important;
+  }
+  .parent-swal-html {
+    font-size: 0.95rem !important;
+    color: #6b7280 !important;
+    line-height: 1.5 !important;
+  }
+  .parent-swal-confirm,
+  .parent-swal-cancel {
+    border-radius: 999px !important;
+    font-weight: 600 !important;
+    padding: 0.55rem 1.15rem !important;
+    font-size: 0.875rem !important;
+  }
+</style>
+<script>
+  (function () {
+    function escapeHtml(text) {
+      return String(text || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    window.parentAlert = {
+      toast: function (title, icon) {
+        if (typeof Swal === 'undefined') return Promise.resolve();
+        return Swal.fire({
+          title: title,
+          icon: icon || 'success',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 2200,
+          timerProgressBar: true
+        });
+      },
+      error: function (message) {
+        return this.toast(message || 'Something went wrong', 'error');
+      },
+      confirmRemove: function (itemName, subtitle) {
+        if (typeof Swal === 'undefined') {
+          return Promise.resolve({ isConfirmed: window.confirm('Remove "' + itemName + '" from shortlist?') });
+        }
+        var safeName = escapeHtml(itemName || 'this item');
+        return Swal.fire({
+          title: 'Remove from shortlist?',
+          html: (subtitle || 'This will remove it from your shortlist for you and linked students.') +
+            '<p class="parent-swal-html mt-2 mb-0"><strong style="color:#403fa6;">' + safeName + '</strong></p>',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Yes, remove',
+          cancelButtonText: 'Cancel',
+          confirmButtonColor: '#3F37C9',
+          cancelButtonColor: '#94a3b8',
+          reverseButtons: true,
+          focusCancel: true,
+          customClass: {
+            popup: 'parent-swal-popup',
+            title: 'parent-swal-title',
+            confirmButton: 'parent-swal-confirm',
+            cancelButton: 'parent-swal-cancel'
+          }
+        });
+      }
+    };
+  })();
+</script>

@@ -76,6 +76,84 @@
     min-height: 28px;
   }
 
+  .scrapbook-card--has-update {
+    position: relative;
+    border-color: rgba(22, 101, 52, 0.45);
+    background: linear-gradient(145deg, #f0fdf4 0%, #fffefb 100%);
+    box-shadow: 0 8px 22px rgba(22, 101, 52, 0.1);
+  }
+
+  .scrapbook-card--has-update::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    pointer-events: none;
+    box-shadow: inset 0 0 0 1px rgba(22, 101, 52, 0.18);
+  }
+
+  .scrapbook-update-pill {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    color: #14532d;
+    background: #bbf7d0;
+    border: 1.5px solid #166534;
+  }
+
+  .scrapbook-update-pill i {
+    font-size: 13px;
+    color: #166534;
+  }
+
+  .scrapbook-parent-banner {
+    background: linear-gradient(135deg, #f3f0ff 0%, #eef6ff 100%);
+    border: 1px solid #dfe5fb;
+    border-radius: 14px;
+    padding: 14px 18px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .scrapbook-parent-banner-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: #fff;
+    border: 1px solid #dfe5fb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #5c54d4;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .scrapbook-parent-banner-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #2f365c;
+    margin-bottom: 2px;
+  }
+
+  .scrapbook-parent-banner-sub {
+    font-size: 13px;
+    color: #6b7280;
+    margin: 0;
+  }
+
   @media (min-width: 768px) {
     .scrapbook-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -122,6 +200,20 @@
           <!-- <button type="button" class="btn custom-button purple-button addFolderPopBtn d-inline-flex d-md-none mb-3">
             <i class='bx bx-plus me-2'></i> New Folder
           </button> -->
+          {% set spu = scrapbook_parent_unread|default({}) %}
+          {% if scrapbook_has_parent_updates %}
+          <div class="scrapbook-parent-banner" role="status" aria-live="polite">
+            <div class="scrapbook-parent-banner-icon" aria-hidden="true">
+              <i class='bx bx-heart-circle'></i>
+            </div>
+            <div>
+              <p class="scrapbook-parent-banner-title mb-0">
+                {{ hub_scrapbook_unread_count|default(0) }} new suggestion{{ 's' if hub_scrapbook_unread_count|default(0) != 1 else '' }} from your parent
+              </p>
+              <p class="scrapbook-parent-banner-sub">Highlighted folders below have updates waiting for you.</p>
+            </div>
+          </div>
+          {% endif %}
           <div class="scrapbook-grid">
       <!-- My Notes -->
       <a href="{{ url('users:mynotepad') }}" class="text-decoration-none">
@@ -159,7 +251,13 @@
 
       <!-- Career Interests -->
       <a href="{{ url('users:careerinterest') }}" class="text-decoration-none">
-          <div class="scrapbook-card">
+          <div class="scrapbook-card{% if spu.careers|default(0) > 0 %} scrapbook-card--has-update{% endif %}">
+            {% if spu.careers|default(0) > 0 %}
+            <span class="scrapbook-update-pill">
+              <i class='bx bx-bell'></i>
+              {{ spu.careers }} new from parent
+            </span>
+            {% endif %}
             <div class="d-flex align-items-center gap-3">
               <span class="dashboard-quicklinks-icon" style="background:#f4cc74;">
                 <img src="{{ static('images_new/icons/career-interest.svg') }}" style="width: 26px; height: 26px;"
@@ -192,7 +290,13 @@
       </a>
       <!-- My Videos -->
       <a href="{{ url('users:bookmarkvideo') }}" class="text-decoration-none">
-          <div class="scrapbook-card">
+          <div class="scrapbook-card{% if spu.videos|default(0) > 0 %} scrapbook-card--has-update{% endif %}">
+            {% if spu.videos|default(0) > 0 %}
+            <span class="scrapbook-update-pill">
+              <i class='bx bx-bell'></i>
+              {{ spu.videos }} new from parent
+            </span>
+            {% endif %}
             <div class="d-flex align-items-center gap-3">
               <span class="dashboard-quicklinks-icon" style="background:#89e5a6;">
                 <img src="{{ static('images_new/icons/my-videos.svg') }}" style="width: 26px; height: 26px;"
@@ -209,7 +313,13 @@
 
       <!-- My Colleges -->
       <a href="{{ url('users:mycolleges') }}" class="text-decoration-none">
-          <div class="scrapbook-card">
+          <div class="scrapbook-card{% if spu.colleges|default(0) > 0 %} scrapbook-card--has-update{% endif %}">
+            {% if spu.colleges|default(0) > 0 %}
+            <span class="scrapbook-update-pill">
+              <i class='bx bx-bell'></i>
+              {{ spu.colleges }} new from parent
+            </span>
+            {% endif %}
             <div class="d-flex align-items-center gap-3">
               <span class="dashboard-quicklinks-icon" style="background:#8abff9;">
                 <img src="{{ static('images_new/icons/my-colleges.svg') }}" style="width: 26px; height: 26px;"
@@ -242,7 +352,13 @@
 
       <!-- My Blogs -->
       <a href="{{ url('users:bookmarkblog') }}" class="text-decoration-none">
-          <div class="scrapbook-card">
+          <div class="scrapbook-card{% if spu.blogs|default(0) > 0 %} scrapbook-card--has-update{% endif %}">
+            {% if spu.blogs|default(0) > 0 %}
+            <span class="scrapbook-update-pill">
+              <i class='bx bx-bell'></i>
+              {{ spu.blogs }} new from parent
+            </span>
+            {% endif %}
             <div class="d-flex align-items-center gap-3">
               <span class="dashboard-quicklinks-icon" style="background:#b8d4ff;">
                 <img src="{{ static('images_new/icons/e-books-icon.svg') }}" style="width: 26px; height: 26px;"

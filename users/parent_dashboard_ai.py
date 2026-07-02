@@ -128,6 +128,23 @@ def build_study_abroad_options(career_paths: List[str], readiness_score: float) 
     return selected
 
 
+def interest_scores_from_test_result(ptr) -> Dict[str, float] | None:
+    """Map PsychometricTestResult RIASEC fields to dashboard interest payload."""
+    if not ptr:
+        return None
+    mapping = {
+        "realistic": ptr.realistic,
+        "investigative": ptr.investigative,
+        "artistic": ptr.artistic,
+        "social": ptr.social,
+        "enterprising": ptr.entrepreneurial,
+        "conventional": ptr.conventional,
+    }
+    if not any(v is not None and float(v) > 0 for v in mapping.values()):
+        return None
+    return {k: float(v or 0) for k, v in mapping.items()}
+
+
 def calculate_loan_metrics(principal: float, annual_rate_percent: float, tenure_years: float) -> Dict[str, float]:
     principal = float(principal)
     annual_rate_percent = float(annual_rate_percent)

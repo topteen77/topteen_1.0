@@ -1113,6 +1113,8 @@
         </div>
         <!-- End of Statistics -->
 
+        <!-- {% include 'template20/includes/student_dashboard_parent_suggestions.html' %} -->
+
         {% if dashboard_enrolled_items %}
         <div class="mb-4" id="dashboard-enrolled-section">
           <h2 class="fs-24 fw-semibold mb-3">My courses &amp; tests</h2>
@@ -1179,6 +1181,39 @@
           <div class="dashboard-quicklinks-wrap">
             <div class="dashboard-quicklinks-grid">
               <!-- Psychometric Test Reports -->
+              {% if stream_sorter_report_url %}
+              <div class="quick-link-card" onclick="window.location='{{ stream_sorter_report_url }}'">
+                <div class="d-flex align-items-start gap-3">
+                  <div class="dashboard-quicklinks-icon" style="background: #9D98F4;">
+                    <img src="{{ static('images_new/icons/dashboard-screen.svg') }}" style="width: 26px; height: 26px;"
+                      alt="Stream Sorter" />
+                  </div>
+                  <div class="ms-2">
+                    <p class="fs-16 fw-semibold mb-1">Stream Sorter</p>
+                    <p class="text-success text-opacity-70 fs-10 mb-0">View your Class 10 test results and reports</p>
+                  </div>
+                </div>
+                <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+              </div>
+              {% endif %}
+
+              {% if career_direction_report_url %}
+              <div class="quick-link-card" onclick="window.location='{{ career_direction_report_url }}'">
+                <div class="d-flex align-items-start gap-3">
+                  <div class="dashboard-quicklinks-icon" style="background: #9D98F4;">
+                    <img src="{{ static('images_new/icons/dashboard-screen.svg') }}" style="width: 26px; height: 26px;"
+                      alt="Career Direction" />
+                  </div>
+                  <div class="ms-2">
+                    <p class="fs-16 fw-semibold mb-1">Career Direction</p>
+                    <p class="text-success text-opacity-70 fs-10 mb-0">View your Class 12 test results and reports</p>
+                  </div>
+                </div>
+                <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
+              </div>
+              {% endif %}
+
+              {% if not stream_sorter_report_url and not career_direction_report_url %}
               {% if has_test_payment and test_dashboard_url %}
 
               <div class="quick-link-card" onclick="window.location='{{ test_dashboard_url }}'">
@@ -1259,6 +1294,7 @@
                 </div>
                 <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
               </div>
+              {% endif %}
               {% endif %}
               <!-- End of Psychometric Test Reports -->
 

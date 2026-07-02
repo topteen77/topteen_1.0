@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.admin.decorators import action
+from core import choices
 from .models import (
     User,
     UserProfile,
@@ -10,6 +11,8 @@ from .models import (
     UserSearchHistory,
     ResumeStudioHtmlTemplate,
     ResumeV2AISettings,
+    EducationLoanApplication,
+    EducationLoanCRMSettings,
 )
 from django.urls import reverse, path
 from django.utils.html import format_html
@@ -768,3 +771,163 @@ class ResumeV2AISettingsAdmin(admin.ModelAdmin):
     def changelist_view(self, request, extra_context=None):
         ResumeV2AISettings.load()
         return super().changelist_view(request, extra_context=extra_context)
+
+
+@admin.register(EducationLoanCRMSettings)
+class EducationLoanCRMSettingsAdmin(admin.ModelAdmin):
+    """Singleton: external CRM API for education loan enquiry leads."""
+
+    list_display = ("is_enabled", "api_url", "updated_at")
+    fields = (
+        "is_enabled",
+        "api_url",
+        "auth_header_name",
+        "auth_header_value",
+        "timeout_seconds",
+        "updated_at",
+    )
+    readonly_fields = ("updated_at",)
+
+    def has_add_permission(self, request):
+        return not EducationLoanCRMSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def changelist_view(self, request, extra_context=None):
+        EducationLoanCRMSettings.load()
+        return super().changelist_view(request, extra_context=extra_context)
+
+
+@admin.register(EducationLoanApplication)
+class EducationLoanApplicationAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "parent",
+        "student_name",
+        "loan_amount",
+        "status_display",
+        "crm_sync_status_display",
+        "submitted_at",
+        "modified",
+    )
+    list_filter = ("status", "crm_sync_status", "country_preference", "created", "submitted_at")
+    search_fields = (
+        "id",
+        "student_name",
+        "parent_name",
+        "email",
+        "mobile",
+        "institute_name",
+        "course_name",
+        "parent__email",
+        "parent__name",
+    )
+    readonly_fields = (
+        "created",
+        "modified",
+        "submitted_at",
+        "crm_synced_at",
+        "crm_external_id",
+        "crm_sync_response",
+    )
+    raw_id_fields = ("parent", "student")
+    ordering = ("-modified", "-id")
+    actions = ("retry_crm_sync",)
+
+    fieldsets = (
+        (
+            "Lead",
+            {
+                "fields": (
+                    "parent",
+                    "student",
+                    "status",
+                    "student_name",
+                    "parent_name",
+                    "mobile",
+                    "email",
+                    "institute_name",
+                    "course_name",
+                    "country_preference",
+                    "additional_details",
+                )
+            },
+        ),
+        (
+            "Calculator",
+            {
+                "fields": (
+                    "loan_amount",
+                    "interest_rate",
+                    "tenure_years",
+                    "moratorium_months",
+                    "estimated_emi",
+                    "total_interest",
+                    "total_payable",
+                )
+            },
+        ),
+        (
+            "CRM sync",
+            {
+                "fields": (
+                    "crm_sync_status",
+                    "crm_synced_at",
+                    "crm_external_id",
+                    "crm_sync_response",
+                )
+            },
+        ),
+        ("Timestamps", {"fields": ("submitted_at", "created", "modified")}),
+    )
+
+    @admin.display(description="Status", ordering="status")
+    def status_display(self, obj):
+        colors = {
+            choices.EducationLoanApplicationStatus.DRAFT: "#92400e",
+            choices.EducationLoanApplicationStatus.ENQUIRY_SENT: "#065f46",
+        }
+        color = colors.get(obj.status, "#334155")
+        return format_html(
+            '<span style="font-weight:600;color:{};">{}</span>',
+            color,
+            obj.get_status_display(),
+        )
+
+    @admin.display(description="CRM sync", ordering="crm_sync_status")
+    def crm_sync_status_display(self, obj):
+        if obj.status != choices.EducationLoanApplicationStatus.ENQUIRY_SENT:
+            return "—"
+        colors = {
+            choices.EducationLoanCRMSyncStatus.PENDING: "#92400e",
+            choices.EducationLoanCRMSyncStatus.SENT: "#1d4ed8",
+            choices.EducationLoanCRMSyncStatus.SUCCESS: "#15803d",
+            choices.EducationLoanCRMSyncStatus.ERROR: "#b91c1c",
+        }
+        color = colors.get(obj.crm_sync_status, "#334155")
+        return format_html(
+            '<span style="font-weight:600;color:{};">{}</span>',
+            color,
+            obj.get_crm_sync_status_display(),
+        )
+
+    @action(description="Retry CRM sync for selected leads", permissions=["change"])
+    def retry_crm_sync(self, request, queryset):
+        from users.education_loan_crm import sync_education_loan_lead_to_crm
+
+        ok_n = 0
+        err_n = 0
+        for app in queryset:
+            if app.status != choices.EducationLoanApplicationStatus.ENQUIRY_SENT:
+                err_n += 1
+                continue
+            success, _message = sync_education_loan_lead_to_crm(app, force=True)
+            if success:
+                ok_n += 1
+            else:
+                err_n += 1
+        if ok_n:
+            self.message_user(request, f"CRM sync succeeded for {ok_n} lead(s).", messages.SUCCESS)
+        if err_n:
+            self.message_user(request, f"CRM sync failed or skipped for {err_n} lead(s).", messages.WARNING)

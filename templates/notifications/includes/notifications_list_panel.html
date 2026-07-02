@@ -118,7 +118,12 @@
     background: #ffffff;
     padding: 16px 18px;
     text-align: left;
+    cursor: pointer;
     transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .notification-item--static {
+    cursor: default;
   }
 
   .notification-item:last-child {
@@ -309,7 +314,13 @@
       'lead': 'New lead capture',
       'registration': 'New registration',
       'payment_done': 'New payment done',
-      'payment_failed': 'Payment failed'
+      'payment_failed': 'Payment failed',
+      'careers': 'Career suggestions',
+      'blogs': 'Blog suggestions',
+      'videos': 'Video suggestions',
+      'colleges': 'College suggestions',
+      'student_liked': 'Student liked',
+      'student_disliked': 'Student disliked'
     };
     function updateTypeFilterHint() {
       var hint = document.getElementById('nTypeFilterHint');
@@ -332,6 +343,25 @@
       var m = document.cookie.match(/csrftoken=([^;]+)/);
       return m ? m[1] : '';
     }
+    function syncBellFromApi(data) {
+      if (window.__ttNotificationBell && typeof window.__ttNotificationBell.loadLatest === 'function') {
+        window.__ttNotificationBell.loadLatest(true);
+        return;
+      }
+      if (!data || typeof data.unread_count !== 'number') return;
+      document.querySelectorAll('.tt-notification-badge').forEach(function (badgeEl) {
+        var n = data.unread_count;
+        if (n > 0) {
+          badgeEl.classList.add('tt-notification-badge--visible');
+          badgeEl.setAttribute('aria-hidden', 'false');
+          badgeEl.textContent = n > 99 ? '99+' : String(n);
+        } else {
+          badgeEl.classList.remove('tt-notification-badge--visible');
+          badgeEl.setAttribute('aria-hidden', 'true');
+          badgeEl.textContent = '';
+        }
+      });
+    }
     function esc(s) { return String(s || '').replace(/[&<>"]/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];}); }
     function load() {
       var p = new URLSearchParams();
@@ -342,18 +372,23 @@
       fetch(listUrl + '?' + p.toString(), {headers:{'X-Requested-With':'XMLHttpRequest'}}).then(function(r){return r.json();}).then(function(data){
         var list = document.getElementById('nList');
         if (!data.notifications || !data.notifications.length) {
-          list.innerHTML = '<div class="notification-empty"><i class="bx bx-bell-off d-block mb-2"></i><p class="mb-1 fw-700">No notifications yet</p><p class="mb-0">You are all caught up for now.</p></div>';
+          var emptyTitle = filterBucket && bucketLabels[filterBucket]
+            ? 'No unread ' + bucketLabels[filterBucket].toLowerCase()
+            : 'No notifications yet';
+          list.innerHTML = '<div class="notification-empty"><i class="bx bx-bell-off d-block mb-2"></i><p class="mb-1 fw-700">' + esc(emptyTitle) + '</p><p class="mb-0">You are all caught up for now.</p></div>';
         } else {
           list.innerHTML = data.notifications.map(function(n){
             var pay = n.payload || {};
+            var dest = (n.destination_url || pay.item_url || '').trim();
             var retry = '';
             if (pay.retry_payment_path && pay.show_retry_payment) {
               var rl = esc(pay.retry_payment_label || 'Retry payment');
               retry = '<div class="mt-2"><a class="btn btn-sm custom-button purple-button" href="' + esc(pay.retry_payment_path) + '">' + rl + '</a></div>';
             }
             var unreadClass = n.is_read ? '' : ' is-unread';
+            var staticClass = dest ? '' : ' notification-item--static';
             var unreadDot = n.is_read ? '' : '<span class="notification-unread-dot" aria-hidden="true"></span>';
-            return '<button class="list-group-item list-group-item-action notification-item' + unreadClass + '" data-id="'+n.id+'">' +
+            return '<button type="button" class="list-group-item list-group-item-action notification-item' + unreadClass + staticClass + '" data-id="'+n.id+'" data-url="'+esc(dest)+'">' +
               '<div class="d-flex align-items-start gap-3">' +
                 '<span class="notification-leading-icon"><i class="bx bx-bell"></i></span>' +
                 '<div class="flex-grow-1">' +
@@ -368,10 +403,27 @@
             '</button>';
           }).join('');
           list.querySelectorAll('[data-id]').forEach(function(el){
-            el.addEventListener('click', function(){
+            el.addEventListener('click', function(e){
+              if (e.target && e.target.closest && e.target.closest('a')) {
+                return;
+              }
+              var dest = (el.getAttribute('data-url') || '').trim();
               var fd = new FormData();
               fd.append('id', el.getAttribute('data-id'));
-              fetch(markReadUrl, {method:'POST', headers:{'X-CSRFToken': csrfToken(), 'X-Requested-With':'XMLHttpRequest'}, body:fd}).then(load);
+              fetch(markReadUrl, {method:'POST', headers:{'X-CSRFToken': csrfToken(), 'X-Requested-With':'XMLHttpRequest'}, body:fd})
+                .then(function(r){ return r.json(); })
+                .then(function(data){
+                  syncBellFromApi(data);
+                  if (dest) {
+                    window.location.href = dest;
+                    return;
+                  }
+                  load();
+                })
+                .catch(function(){
+                  if (dest) window.location.href = dest;
+                  else load();
+                });
             });
           });
         }
@@ -386,9 +438,15 @@
     }
     document.getElementById('nFilter').addEventListener('click', function(){ page = 1; load(); });
     document.getElementById('nMarkAll').addEventListener('click', function(){
-      fetch(markAllUrl, {method:'POST', headers:{'X-CSRFToken': csrfToken(), 'X-Requested-With':'XMLHttpRequest'}}).then(load);
+      fetch(markAllUrl, {method:'POST', headers:{'X-CSRFToken': csrfToken(), 'X-Requested-With':'XMLHttpRequest'}})
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          syncBellFromApi(data);
+          load();
+        });
     });
     updateTypeFilterHint();
+    syncBellFromApi(null);
     load();
   })();
 </script>

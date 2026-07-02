@@ -430,6 +430,15 @@ class ParentStudentBookmark(BaseModel):
     Example: parent bookmarks a Career *for* Student A; that should not automatically
     appear for Student B.
     """
+    REACTION_NONE = ""
+    REACTION_LIKED = "liked"
+    REACTION_DISLIKED = "disliked"
+    REACTION_CHOICES = (
+        (REACTION_NONE, "No reaction"),
+        (REACTION_LIKED, "Liked"),
+        (REACTION_DISLIKED, "Disliked"),
+    )
+
     parent = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -445,6 +454,20 @@ class ParentStudentBookmark(BaseModel):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey("content_type", "object_id")
+    student_reaction = models.CharField(
+        max_length=16,
+        choices=REACTION_CHOICES,
+        blank=True,
+        default=REACTION_NONE,
+        db_index=True,
+    )
+    reacted_at = models.DateTimeField(null=True, blank=True)
+    student_seen_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="When the student opened the matching scrapbook section (clears unread badges).",
+    )
 
     class Meta(BaseModel.Meta):
         unique_together = ("parent", "student", "content_type", "object_id")
@@ -679,3 +702,104 @@ class UserCalender(BaseModel):
     event_name=models.CharField(max_length=50)
     start_date=models.DateField()
     end_date=models.DateField()
+
+
+class EducationLoanApplication(BaseModel):
+    """Parent education loan calculator draft or submitted enquiry."""
+    parent = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="education_loan_applications",
+        limit_choices_to={"user_type": choices.UserType.PARENT},
+    )
+    student = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="linked_education_loan_applications",
+        limit_choices_to={"user_type": choices.UserType.STUDENT},
+    )
+    status = models.PositiveSmallIntegerField(
+        choices=choices.EducationLoanApplicationStatus.CHOICES,
+        default=choices.EducationLoanApplicationStatus.DRAFT,
+        db_index=True,
+    )
+    loan_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    interest_rate = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    tenure_years = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
+    moratorium_months = models.PositiveSmallIntegerField(null=True, blank=True)
+    country_preference = models.CharField(max_length=100, blank=True)
+    estimated_emi = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    total_interest = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    total_payable = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    student_name = models.CharField(max_length=200, blank=True)
+    parent_name = models.CharField(max_length=200, blank=True)
+    mobile = models.CharField(max_length=20, blank=True)
+    email = models.EmailField(blank=True)
+    institute_name = models.CharField(max_length=300, blank=True)
+    course_name = models.CharField(max_length=300, blank=True)
+    additional_details = models.TextField(blank=True)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    crm_sync_status = models.PositiveSmallIntegerField(
+        choices=choices.EducationLoanCRMSyncStatus.CHOICES,
+        default=choices.EducationLoanCRMSyncStatus.PENDING,
+        db_index=True,
+    )
+    crm_synced_at = models.DateTimeField(null=True, blank=True)
+    crm_external_id = models.CharField(max_length=120, blank=True)
+    crm_sync_response = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = "Education Loan Lead"
+        verbose_name_plural = "Education Loan Leads"
+        indexes = [
+            models.Index(fields=["parent", "status"]),
+            models.Index(fields=["status", "crm_sync_status"]),
+        ]
+
+    def __str__(self):
+        return f"Loan {self.get_status_display()} — parent {self.parent_id}"
+
+
+class EducationLoanCRMSettings(models.Model):
+    """Singleton admin-editable CRM API settings for education loan leads."""
+
+    is_enabled = models.BooleanField(
+        default=False,
+        help_text="When enabled, enquiry submissions are POSTed to the CRM API.",
+    )
+    api_url = models.URLField(
+        max_length=500,
+        blank=True,
+        help_text="CRM endpoint URL that accepts lead JSON payloads.",
+    )
+    auth_header_name = models.CharField(
+        max_length=120,
+        blank=True,
+        default="Authorization",
+        help_text="HTTP header name for API authentication (e.g. Authorization, X-API-Key).",
+    )
+    auth_header_value = models.CharField(
+        max_length=500,
+        blank=True,
+        help_text="API key or token value sent in the auth header.",
+    )
+    timeout_seconds = models.PositiveSmallIntegerField(default=20)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Education Loan CRM settings"
+        verbose_name_plural = "Education Loan CRM settings"
+
+    def __str__(self):
+        return "Education Loan CRM settings"
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj

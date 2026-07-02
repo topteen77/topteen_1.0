@@ -202,9 +202,12 @@ class CollegeList(TemplateView):
                     ctx['parent_student_id'] = int(student_id)
         except Exception:
             pass
+        from users.parent_suggestions import apply_student_parent_suggestions_context, maybe_mark_parent_suggestions_seen
+        apply_student_parent_suggestions_context(ctx, request, "colleges")
+        maybe_mark_parent_suggestions_seen(
+            request, "colleges", is_parent_student_context=ctx.get("is_parent_student_context", False)
+        )
         return ctx
-    
-    def get_fallback_context(self, request, state=None):
         """Fallback method using Django ORM when Elasticsearch is unavailable"""
         from django.core.paginator import Paginator
         from django.db.models import Q, Count
