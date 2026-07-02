@@ -138,6 +138,28 @@
   box-shadow: 0 0 0 3px rgba(82, 73, 223, 0.12);
 }
 
+.intl-filter-input {
+  width: 100%;
+  border: 1px solid #d4d0f8;
+  border-radius: 10px;
+  background: #fff;
+  color: #374151;
+  font-size: 0.875rem;
+  padding: 0.72rem 0.9rem;
+  line-height: 1.4;
+  height: 54px;
+}
+
+.intl-filter-input::placeholder {
+  color: #9ca3af;
+}
+
+.intl-filter-input:focus {
+  outline: none;
+  border-color: var(--intl-purple);
+  box-shadow: 0 0 0 3px rgba(82, 73, 223, 0.12);
+}
+
 .intl-filter-chevron {
   position: absolute;
   right: 0.85rem;

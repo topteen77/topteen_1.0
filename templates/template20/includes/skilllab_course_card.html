@@ -1,0 +1,20 @@
+<article class="sl-finder-card">
+  <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[skill.slug]) }}" class="sl-finder-card__media text-decoration-none">
+    {% if skill.image and skill.image.name %}
+    <img src="{{ skill.image.url }}" alt="" />
+    {% else %}
+    <img src="{{ static('images_new/thirdparty/course-img-1.png') }}" alt="" />
+    {% endif %}
+    <div class="sl-finder-card__badges">
+      <span class="sl-finder-card__badge sl-finder-card__badge--class">{{ skill.get_grade_label() }}</span>
+      <span class="sl-finder-card__badge sl-finder-card__badge--category">{{ skill.get_topic_category_display() }}</span>
+    </div>
+    <div class="sl-finder-card__body">
+      <h3 class="sl-finder-card__title" title="{{ skill.name }}">{{ skill.name }}</h3>
+      <div class="sl-finder-card__meta d-none">
+        <span><i class='bx bx-book-open' aria-hidden="true"></i> {{ skill.get_grade_label() }}</span>
+        <span><i class='bx bx-category' aria-hidden="true"></i> {{ skill.get_topic_category_display() }}</span>
+      </div>
+    </div>
+  </a>
+</article>

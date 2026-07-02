@@ -69,6 +69,93 @@ class SkillLabCourse(SlugModel,BaseModel,BaseMoneyModel):
             return True
         return self.skilllabcourseprogress.filter(user=user).exists()
 
+    def _name_lower(self):
+        return (self.name or "").lower()
+
+    def get_topic_category_key(self):
+        name = self._name_lower()
+        career_kw = (
+            "career", "job", "interview", "resume", "professional",
+            "networking", "entrepreneurship", "college", "internship",
+        )
+        life_kw = (
+            "life skill", "emotional", "time-management", "time management",
+            "productivity", "conflict", "self-advocacy", "communication",
+            "public speaking", "study technique", "personal finance",
+            "budget", "notepad", "wellness",
+        )
+        future_kw = (
+            "future", "sustainability", "green", "ai ", "artificial intelligence",
+            "stem", "digital detox", "adaptability", "resilience", "coding",
+            "app development", "cyber",
+        )
+        if any(k in name for k in career_kw):
+            return "career"
+        if any(k in name for k in life_kw):
+            return "life-skills"
+        if any(k in name for k in future_kw):
+            return "future-readiness"
+        return "skills"
+
+    def get_topic_category_display(self):
+        labels = {
+            "career": "Career",
+            "skills": "Skills",
+            "life-skills": "Life Skills",
+            "future-readiness": "Future readiness",
+        }
+        return labels.get(self.get_topic_category_key(), "Skills")
+
+    def get_grade_numbers(self):
+        import re
+
+        name = self._name_lower()
+        for grade in range(6, 13):
+            if re.search(rf"\b(class|grade)\s*{grade}\b", name):
+                return {grade}
+        if any(x in name for x in ("middle school", "6-8", "6–8", "classes 6")):
+            return {6, 7, 8}
+        if any(x in name for x in ("high school", "highschool", "teen", "highschoolers")):
+            return {9, 10, 11, 12}
+        if self.category == choices.SkillLabCourseTypeChoice.after_10_class:
+            return {9, 10}
+        if self.category == choices.SkillLabCourseTypeChoice.after_12_class:
+            return {11, 12}
+        if self.category == choices.SkillLabCourseTypeChoice.BOTH:
+            return {9, 10, 11, 12}
+        if self.category == choices.SkillLabCourseTypeChoice.after_college:
+            return {12}
+        return {9, 10, 11, 12}
+
+    def get_grade_label(self):
+        grades = sorted(self.get_grade_numbers())
+        if len(grades) == 1:
+            g = grades[0]
+            if g % 100 // 10 == 1:
+                suffix = "th"
+            else:
+                suffix = {1: "st", 2: "nd", 3: "rd"}.get(g % 10, "th")
+            return f"Class {g}{suffix}"
+        if grades == [9, 10]:
+            return "Class 9–10"
+        if grades == [11, 12]:
+            return "Class 11–12"
+        if grades == [9, 10, 11, 12]:
+            return "Class 9–12"
+        return f"Class {grades[0]}–{grades[-1]}"
+
+    def matches_skilllab_filters(self, grade=None, topic_key=None):
+        if grade not in (None, ""):
+            try:
+                grade_num = int(grade)
+            except (TypeError, ValueError):
+                grade_num = None
+            if grade_num is not None and grade_num not in self.get_grade_numbers():
+                return False
+        if topic_key and self.get_topic_category_key() != topic_key:
+            return False
+        return True
+
     def get_image_url(self):
         """Image URL with S3-proxy support and static fallback."""
         if self.image and self.image.name:

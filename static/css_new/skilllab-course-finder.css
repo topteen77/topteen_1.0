@@ -1,0 +1,845 @@
+/* Skill Lab course finder + career pathway panel */
+
+.sl-courses-panel {
+  --slf-purple: #5249df;
+  --slf-purple-dark: #4338ca;
+  --slf-border: #e8eaf0;
+  --slf-text: #6b7280;
+  --slf-heading: #111827;
+  --slf-surface: #fafbff;
+  margin-bottom: 2rem;
+  padding: 1.25rem 1.35rem 1.35rem;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(124, 58, 237, 0.08), transparent 42%),
+    radial-gradient(circle at 100% 100%, rgba(37, 99, 235, 0.07), transparent 40%),
+    #fafbff;
+  border: 1px solid rgba(82, 73, 223, 0.1);
+  box-shadow: 0 10px 40px rgba(16, 24, 40, 0.05);
+}
+
+.sl-section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #5249df;
+  margin: 0 0 0.5rem;
+}
+
+.sl-section-label::before {
+  content: "";
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #5249df, #7c3aed);
+}
+
+.sl-section-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--slf-heading);
+  margin: 0 0 0.25rem;
+  letter-spacing: -0.01em;
+}
+
+.sl-section-hint {
+  font-size: 0.875rem;
+  color: var(--slf-text);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.sl-finder {
+  margin-bottom: 0;
+}
+
+.sl-finder__head {
+  margin-bottom: 1rem;
+}
+
+.sl-finder__filter {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  background: #fff;
+  border: 1px solid #eceef5;
+  border-radius: 14px;
+  padding: 1.15rem 1.25rem;
+  box-shadow: 0 2px 8px rgba(16, 24, 40, 0.04);
+}
+
+.sl-finder__fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.sl-finder__group {
+  flex: 1 1 160px;
+  min-width: 140px;
+}
+
+.sl-finder__group--search {
+  flex: 1.4 1 220px;
+  min-width: 180px;
+}
+
+.sl-finder-search {
+  position: relative;
+}
+
+.sl-finder-search__input-wrap {
+  position: relative;
+}
+
+.sl-finder-search__input-wrap.is-hidden {
+  display: none;
+}
+
+.sl-finder-search__chip-wrap {
+  display: none;
+  min-height: 48px;
+  align-items: center;
+}
+
+.sl-finder-search__chip-wrap.is-visible {
+  display: flex;
+}
+
+.sl-finder-search__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: 100%;
+  padding: 0.35rem 0.45rem 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: #f0eaff;
+  border: 1px solid #d4d0f8;
+  color: #4338ca;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.sl-finder-search__chip-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.sl-finder-search__chip-close {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(67, 56, 202, 0.12);
+  color: #4338ca;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.sl-finder-search__chip-close:hover {
+  background: #4338ca;
+  color: #fff;
+}
+
+.sl-finder-search__chip-close i {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.sl-finder-search__suggest {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  margin: 0;
+  padding: 0.35rem 0;
+  list-style: none;
+  max-height: 240px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #e4e0ff;
+  border-radius: 10px;
+  box-shadow: 0 10px 28px rgba(82, 73, 223, 0.14);
+}
+
+.sl-finder-search__suggest-item,
+.sl-finder-search__suggest-empty {
+  padding: 0.55rem 0.9rem;
+  font-size: 0.875rem;
+  line-height: 1.35;
+  color: #374151;
+  cursor: pointer;
+}
+
+.sl-finder-search__suggest-item:hover,
+.sl-finder-search__suggest-item.is-active {
+  background: #f5f3ff;
+  color: #4338ca;
+}
+
+.sl-finder-search__suggest-empty {
+  color: #9ca3af;
+  cursor: default;
+}
+
+.sl-finder__group label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--slf-heading);
+  margin-bottom: 0.4rem;
+}
+
+.sl-finder__input,
+.sl-finder__select {
+  width: 100%;
+  height: 48px;
+  border: 1px solid #d4d0f8;
+  border-radius: 10px;
+  background: #fff;
+  color: #374151;
+  font-size: 0.875rem;
+  padding: 0 0.9rem;
+  line-height: 1.4;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sl-finder__input::placeholder {
+  color: #9ca3af;
+}
+
+.sl-finder__input:focus,
+.sl-finder__select:focus {
+  outline: none;
+  border-color: var(--slf-purple);
+  box-shadow: 0 0 0 3px rgba(82, 73, 223, 0.12);
+}
+
+.sl-finder__select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%239ca3af' viewBox='0 0 16 16'%3E%3Cpath d='M4.5 6l3.5 3.5L11.5 6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2rem;
+  cursor: pointer;
+}
+
+.sl-finder__btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 48px;
+  padding: 0 1.35rem;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--slf-purple) 0%, var(--slf-purple-dark) 100%);
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(82, 73, 223, 0.28);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sl-finder__btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(82, 73, 223, 0.34);
+}
+
+.sl-finder__btn i {
+  font-size: 1.1rem;
+}
+
+.sl-finder__results {
+  margin-top: 1.5rem;
+}
+
+.sl-finder__results-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.sl-finder__results-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--slf-heading);
+  margin: 0;
+}
+
+.sl-finder__results-count {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--slf-purple);
+  background: #f0eaff;
+  border-radius: 999px;
+  padding: 0.25rem 0.65rem;
+}
+
+.sl-finder__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.sl-finder-card {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #1f2937;
+  border: 1px solid var(--slf-border);
+  box-shadow: 0 4px 16px rgba(16, 24, 40, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.sl-finder-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 32px rgba(16, 24, 40, 0.1);
+}
+
+.sl-finder-card__media {
+  position: relative;
+  display: block;
+  height: 240px;
+  overflow: hidden;
+  background: #d1d5db;
+}
+
+.sl-finder-card__media img {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.sl-finder-card:hover .sl-finder-card__media img {
+  transform: scale(1.05);
+}
+
+.sl-finder-card__media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.15) 40%, rgba(6, 6, 6, 0.88) 100%);
+  pointer-events: none;
+}
+
+.sl-finder-card__badges {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.sl-finder-card__badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  padding: 0.28rem 0.55rem;
+  border-radius: 6px;
+  line-height: 1.2;
+}
+
+.sl-finder-card__badge--class {
+  background: linear-gradient(90deg, #7c3aed, #5249df);
+  color: #fff;
+}
+
+.sl-finder-card__badge--category {
+  background: rgba(255, 255, 255, 0.92);
+  color: #4338ca;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.sl-finder-card__body {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  padding: 1rem 1rem 1.1rem;
+}
+
+.sl-finder-card__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Keep finder cards isolated from skill-course grid styles */
+.skill-course .sl-finder-card__title {
+  color: #fff;
+  margin: 0;
+}
+
+.sl-finder-card__meta {
+  margin-top: 0.45rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.sl-finder-card__meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.sl-finder-card__meta i {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.sl-finder__results--courses {
+  margin-top: 0;
+}
+
+.sl-finder-card__media {
+  color: inherit;
+  text-decoration: none;
+}
+
+.sl-finder-card__media:hover {
+  color: inherit;
+  text-decoration: none;
+}
+
+.skill-course .sl-finder__grid--courses {
+  margin-bottom: 0.5rem;
+}
+
+/* Career pathway — inside Who Should Enrol card */
+.skilllab-enrol-box .skilllab-journey {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0;
+  margin: 1rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(82, 73, 223, 0.12);
+  width: 100%;
+}
+
+.skilllab-journey__head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: max-content;
+  padding-right: 1.25rem;
+  margin-right: 1.25rem;
+  border-right: 1px solid var(--slf-border, #e8eaf0);
+}
+
+.skilllab-journey__head-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #ede9fe;
+  color: #5249df;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.skilllab-journey__head-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #111827;
+  white-space: nowrap;
+}
+
+.skilllab-enrol-box .skilllab-journey__track {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: 0.35rem;
+}
+
+.skilllab-journey__track {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+  gap: 0.35rem;
+}
+
+.skilllab-journey__step {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  padding: 0.5rem 0.65rem;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fff 0%, #fafbff 100%);
+  border: 1px solid #e8eaf5;
+  box-shadow: 0 1px 4px rgba(16, 24, 40, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.skilllab-journey__step:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(82, 73, 223, 0.1);
+  border-color: #d4d0f8;
+}
+
+.skilllab-journey__icon {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  color: #fff;
+}
+
+.skilllab-journey__step--discovery .skilllab-journey__icon {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.28);
+}
+
+.skilllab-journey__step--decision .skilllab-journey__icon {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.28);
+}
+
+.skilllab-journey__step--execution .skilllab-journey__icon {
+  background: linear-gradient(135deg, #5249df 0%, #4338ca 100%);
+  box-shadow: 0 4px 12px rgba(67, 56, 202, 0.28);
+}
+
+.skilllab-journey__content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.skilllab-journey__phase {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.2;
+}
+
+.skilllab-journey__grades {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #6b7280;
+  line-height: 1.15;
+}
+
+.skilllab-journey__connector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 14px;
+  color: #c4b5fd;
+  font-size: 0.85rem;
+  padding: 0;
+}
+
+.sl-finder__preview-note {
+  margin-top: 1rem;
+  font-size: 0.8125rem;
+  color: #9ca3af;
+  text-align: center;
+}
+
+/* Empty state — no search results */
+.sl-empty-state {
+  padding: 1.5rem 0 0.5rem;
+}
+
+.sl-empty-state__card {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 2rem 1.75rem;
+  text-align: center;
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(124, 58, 237, 0.07), transparent 55%),
+    #fff;
+  border: 1px solid rgba(82, 73, 223, 0.12);
+  box-shadow: 0 10px 36px rgba(16, 24, 40, 0.06);
+}
+
+.sl-empty-state__icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1rem;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5f3ff 0%, #eef6ff 100%);
+  color: #5249df;
+  font-size: 1.75rem;
+  box-shadow: inset 0 0 0 1px rgba(82, 73, 223, 0.1);
+}
+
+.sl-empty-state__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.01em;
+}
+
+.sl-empty-state__text {
+  margin: 0 auto 1.15rem;
+  max-width: 380px;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: #6b7280;
+}
+
+.sl-empty-state__filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.45rem;
+  margin-bottom: 1.25rem;
+}
+
+.sl-empty-state__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.32rem 0.7rem;
+  border-radius: 999px;
+  background: #f0eaff;
+  border: 1px solid #ddd6fe;
+  color: #4338ca;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.sl-empty-state__tag i {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.sl-empty-state__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem;
+}
+
+.sl-empty-state__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  padding: 0 1.15rem;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.sl-empty-state__btn--primary {
+  background: linear-gradient(135deg, #5249df 0%, #4338ca 100%);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(82, 73, 223, 0.28);
+}
+
+.sl-empty-state__btn--primary:hover {
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(82, 73, 223, 0.34);
+}
+
+.sl-empty-state__btn--ghost {
+  background: #fff;
+  color: #4338ca;
+  border: 1px solid #d4d0f8;
+}
+
+.sl-empty-state__btn--ghost:hover {
+  color: #4338ca;
+  background: #faf8ff;
+  border-color: #c4b5fd;
+}
+
+@media (max-width: 575.98px) {
+  .sl-empty-state__card {
+    padding: 1.5rem 1.15rem;
+  }
+
+  .sl-empty-state__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sl-empty-state__btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .skilllab-enrol-box .skilllab-journey {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .skilllab-journey__head {
+    min-width: 0;
+    padding-right: 0;
+    margin-right: 0;
+    border-right: none;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid rgba(82, 73, 223, 0.1);
+  }
+
+  .skilllab-enrol-box .skilllab-journey__track {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.45rem;
+  }
+
+  .skilllab-journey__track {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.45rem;
+  }
+
+  .skilllab-journey__connector {
+    display: none;
+  }
+
+  .skilllab-journey__step {
+    position: relative;
+    padding: 0.55rem 0.75rem 0.55rem 0.9rem;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .skilllab-journey__phase {
+    white-space: normal;
+  }
+
+  .skilllab-journey__step::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 12px;
+    bottom: 12px;
+    width: 3px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #8b5cf6, #2563eb);
+    opacity: 0.35;
+  }
+
+  .skilllab-journey__step--discovery::before {
+    background: #8b5cf6;
+    opacity: 0.55;
+  }
+
+  .skilllab-journey__step--decision::before {
+    background: #3b82f6;
+    opacity: 0.55;
+  }
+
+  .skilllab-journey__step--execution::before {
+    background: #4338ca;
+    opacity: 0.55;
+  }
+}
+
+@media (max-width: 1199px) {
+  .sl-finder__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 767.98px) {
+  .sl-courses-panel {
+    padding: 1rem;
+  }
+
+  .sl-finder__filter {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sl-finder__btn {
+    width: 100%;
+  }
+
+  .sl-finder__fields {
+    flex-direction: column;
+  }
+
+  .sl-finder__group,
+  .sl-finder__group--search {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .sl-finder__grid {
+    grid-template-columns: 1fr;
+  }
+}

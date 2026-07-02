@@ -1,0 +1,77 @@
+<div class="sl-finder" id="skilllab-course-finder" aria-labelledby="sl-finder-title">
+  <div class="sl-finder__head">
+    <p class="sl-section-label">Search &amp; filter</p>
+    <h3 class="sl-section-title" id="sl-finder-title">Find courses by class &amp; category</h3>
+    <p class="sl-section-hint">Search and filter courses suited to your grade and learning goals.</p>
+  </div>
+
+  <form class="sl-finder__filter" method="get" action="{{ url('skilllabcourse:skilllabcourselist') }}#skilllab-courses" aria-label="Course search" id="sl-finder-form">
+    <div class="sl-finder__fields">
+      <div class="sl-finder__group sl-finder__group--search">
+        <label for="sl-finder-search">Search course name</label>
+        <div
+          class="sl-finder-search"
+          id="sl-finder-search-wrap"
+          data-autocomplete-url="{{ url('skilllabcourse:skilllab_course_autocomplete') }}"
+          data-initial-q="{{ filter_q|default('')|e }}"
+        >
+          <input type="hidden" name="q" id="sl-finder-q-value" value="{{ filter_q|default('') }}" />
+          <div class="sl-finder-search__chip-wrap{% if filter_q %} is-visible{% endif %}" id="sl-finder-chip-wrap">
+            <span class="sl-finder-search__chip" id="sl-finder-chip">
+              <span class="sl-finder-search__chip-text" id="sl-finder-chip-text">{{ filter_q|default('') }}</span>
+              <button type="button" class="sl-finder-search__chip-close" id="sl-finder-chip-close" aria-label="Remove selected course">
+                <i class='bx bx-x' aria-hidden="true"></i>
+              </button>
+            </span>
+          </div>
+          <div class="sl-finder-search__input-wrap{% if filter_q %} is-hidden{% endif %}" id="sl-finder-input-wrap">
+            <input
+              type="search"
+              id="sl-finder-search"
+              class="sl-finder__input"
+              placeholder="e.g. Time Management, STEM, Research"
+              value=""
+              autocomplete="off"
+              aria-autocomplete="list"
+              aria-controls="sl-finder-suggest"
+              aria-expanded="false"
+            />
+            <ul class="sl-finder-search__suggest" id="sl-finder-suggest" role="listbox" hidden></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="sl-finder__group">
+        <label for="sl-finder-class">Class</label>
+        <select id="sl-finder-class" name="class" class="sl-finder__select">
+          <option value="" {% if not filter_class %}selected{% endif %}>All classes</option>
+          <option value="6" {% if filter_class == '6' %}selected{% endif %}>Class 6th</option>
+          <option value="7" {% if filter_class == '7' %}selected{% endif %}>Class 7th</option>
+          <option value="8" {% if filter_class == '8' %}selected{% endif %}>Class 8th</option>
+          <option value="9" {% if filter_class == '9' %}selected{% endif %}>Class 9th</option>
+          <option value="10" {% if filter_class == '10' %}selected{% endif %}>Class 10th</option>
+          <option value="11" {% if filter_class == '11' %}selected{% endif %}>Class 11th</option>
+          <option value="12" {% if filter_class == '12' %}selected{% endif %}>Class 12th</option>
+        </select>
+      </div>
+
+      <div class="sl-finder__group">
+        <label for="sl-finder-category">Category</label>
+        <select id="sl-finder-category" name="category" class="sl-finder__select">
+          <option value="" {% if not filter_category %}selected{% endif %}>All categories</option>
+          <option value="career" {% if filter_category == 'career' %}selected{% endif %}>Career</option>
+          <option value="skills" {% if filter_category == 'skills' %}selected{% endif %}>Skills</option>
+          <option value="life-skills" {% if filter_category == 'life-skills' %}selected{% endif %}>Life Skills</option>
+          <option value="future-readiness" {% if filter_category == 'future-readiness' %}selected{% endif %}>Future readiness</option>
+        </select>
+      </div>
+    </div>
+
+    <button type="submit" class="sl-finder__btn">
+      <i class='bx bx-search' aria-hidden="true"></i>
+      Search
+    </button>
+  </form>
+</div>
+
+<script src="{{ static('js_new/skilllab-course-finder.js') }}"></script>
