@@ -1087,8 +1087,8 @@ Explore our comprehensive collection of career paths organized by industry and i
                         {# Only show "Career" if we didn't already show cluster name above #}
                         <span class="blog-category category-parent">Career</span>
                       {% endif %}
-                      <button class="career-bookmark-btn" 
-                              title="{% if request.user.is_authenticated %}Bookmark this career{% else %}Shortlist (login to save){% endif %}"
+                      <button class="career-bookmark-btn"
+                              title="{% if request.user.is_authenticated %}Shortlist this career{% else %}Shortlist (login to save){% endif %}"
                               data-careerslug="{{ career.slug }}"
                               {% if request.user.is_authenticated and career.id in shortlisted_career_ids %}data-bookmarked="true"{% endif %}>
                         <i class='bx {% if request.user.is_authenticated and career.id in shortlisted_career_ids %}bxs-bookmark{% else %}bx-bookmark{% endif %}'
@@ -2255,27 +2255,25 @@ body.ai-fullscreen-active {
             button.disabled = false;
             button.style.opacity = '1';
             
-            if (data.message === 'Career Shortlisted') {
-              // Bookmarked
+            if (data.message === 'Career Shortlisted' || data.message === 'Career shortlisted') {
               icon.classList.remove('bx-bookmark');
               icon.classList.add('bxs-bookmark');
               icon.style.color = '#28a745';
               button.setAttribute('data-bookmarked', 'true');
-              fireAlert("Career bookmarked", "success");
-            } else if (data.message === 'Removed Shortlisted') {
-              // Removed
+              fireAlert("Career shortlisted", "success");
+            } else if (data.message === 'Removed Shortlisted' || data.message === 'Removed from shortlist') {
               icon.classList.remove('bxs-bookmark');
               icon.classList.add('bx-bookmark');
               icon.style.color = 'inherit';
               button.removeAttribute('data-bookmarked');
-              fireAlert("Career removed from bookmarks", "success");
+              fireAlert("Career removed from shortlist", "success");
             }
           },
           error: function(data) {
             button.disabled = false;
             button.style.opacity = '1';
             try {
-              fireAlert(data.responseJSON?.message || "Error updating bookmark", "error");
+              fireAlert(data.responseJSON?.message || "Error updating shortlist", "error");
             } catch(e) {
               fireAlert("Internal Server Error", "error");
             }

@@ -627,7 +627,7 @@
         .then(data => {
           this.disabled = false;
           if (!data || data.success === false) {
-            showBlogShortlistToast(data && data.message ? data.message : 'Failed to update bookmark', 'error');
+            showBlogShortlistToast(data && data.message ? data.message : 'Failed to update shortlist', 'error');
             return;
           }
           const icon = this.querySelector('i');
@@ -643,7 +643,7 @@
               icon.style.color = this.classList.contains('blog-shortlist-inline') ? '' : '#28a745';
             }
             if (text) { text.textContent = 'Shortlisted'; }
-            showBlogShortlistToast(data.message || 'Blog bookmarked', 'success');
+            showBlogShortlistToast(data.message || 'Blog shortlisted', 'success');
           } else {
             this.classList.remove('is-shortlisted');
             this.setAttribute('aria-pressed', 'false');
@@ -654,12 +654,12 @@
               icon.style.color = 'inherit';
             }
             if (text) { text.textContent = 'Shortlist'; }
-            showBlogShortlistToast(data.message || 'Removed from bookmarks', 'success');
+            showBlogShortlistToast(data.message || 'Removed from shortlist', 'success');
           }
         })
         .catch(() => {
           this.disabled = false;
-          showBlogShortlistToast('Failed to update bookmark', 'error');
+          showBlogShortlistToast('Failed to update shortlist', 'error');
         });
         {% else %}
         if (typeof window.showLoginRequiredPopup === 'function') {

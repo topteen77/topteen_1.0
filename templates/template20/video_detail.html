@@ -153,7 +153,7 @@ color: #6b3df0 !important;
             <button type="button" class="btn  shortlist-video-btn" onclick="shortlistVideo('{{ video.id }}')" id="shortlist_{{ video.id }}" style="white-space: nowrap;">
               <i class='bx {% if is_video_bookmarked %}bxs-bookmark{% else %}bx-bookmark{% endif %}' style="font-size: 18px; color: {% if is_video_bookmarked %}#28a745{% else %}inherit{% endif %};"></i>
               <span class="buttontext ms-2">
-                {% if is_video_bookmarked %}Remove Bookmark{% else %}Bookmark{% endif %}
+                {% if is_video_bookmarked %}Remove from shortlist{% else %}Shortlist{% endif %}
               </span>
             </button>
           </div>
@@ -161,7 +161,7 @@ color: #6b3df0 !important;
           <div>
             <a href="#" class="btn btn-outline-primary custom-outline-button student-login-popup-trigger" style="white-space: nowrap;" role="button">
               <i class='bx bx-bookmark' style="font-size: 18px;"></i>
-              <span class="ms-2">Bookmark</span>
+              <span class="ms-2">Shortlist</span>
             </a>
           </div>
           {% endif %}
@@ -478,25 +478,28 @@ function shortlistVideo(videoId) {
     if (btn) {
       const icon = btn.querySelector('i');
       const span = btn.querySelector('.buttontext');
-      const isBookmarked = (data.message === 'Video Shortlisted') || (data.success === 'true' || data.success === true);
+      const isBookmarked = (
+        data.message === 'Video Shortlisted'
+        || data.message === 'Video shortlisted'
+        || data.success === 'true'
+        || data.success === true
+        || data.bookmarked === true
+      );
       if (isBookmarked) {
-        // Video was bookmarked
         if (icon) {
           icon.classList.remove('bx-bookmark');
           icon.classList.add('bxs-bookmark');
           icon.style.color = '#28a745';
         }
-        if (span) span.textContent = 'Remove Bookmark';
-        // Add bookmarked/active state to button for consistent styling & accessibility
+        if (span) span.textContent = 'Remove from shortlist';
         btn.classList.add('bookmarked', 'active');
-        btn.setAttribute('title', 'Remove bookmark');
+        btn.setAttribute('title', 'Remove from shortlist');
         btn.setAttribute('aria-pressed', 'true');
         btn.dataset.bookmarked = '1';
-        // Show success message
         if (typeof Swal !== 'undefined') {
           Swal.fire({
-            title: 'Bookmarked!',
-            text: 'Video added to bookmarks',
+            title: 'Shortlisted!',
+            text: 'Video added to your shortlist',
             icon: 'success',
             toast: true,
             position: 'top-end',
@@ -505,23 +508,20 @@ function shortlistVideo(videoId) {
           });
         }
       } else {
-        // Video was removed from bookmarks
         if (icon) {
           icon.classList.remove('bxs-bookmark');
           icon.classList.add('bx-bookmark');
           icon.style.color = 'inherit';
         }
-        if (span) span.textContent = 'Bookmark';
-        // Remove bookmarked/active state
+        if (span) span.textContent = 'Shortlist';
         btn.classList.remove('bookmarked', 'active');
-        btn.setAttribute('title', 'Add bookmark');
+        btn.setAttribute('title', 'Shortlist this video');
         btn.setAttribute('aria-pressed', 'false');
         btn.dataset.bookmarked = '0';
-        // Show success message
         if (typeof Swal !== 'undefined') {
           Swal.fire({
             title: 'Removed!',
-            text: 'Video removed from bookmarks',
+            text: 'Video removed from shortlist',
             icon: 'success',
             toast: true,
             position: 'top-end',
@@ -537,7 +537,7 @@ function shortlistVideo(videoId) {
     if (typeof Swal !== 'undefined') {
       Swal.fire({
         title: 'Error!',
-        text: 'Failed to update bookmark',
+        text: 'Failed to update shortlist',
         icon: 'error',
         toast: true,
         position: 'top-end',

@@ -100,7 +100,7 @@ class ParentCareerReactionAPI(APIView):
 
     def post(self, request):
         from core import choices
-        from users.career_interests import set_parent_career_reaction
+        from users.parent_saved_items import set_parent_bookmark_reaction
 
         if getattr(request.user, "user_type", None) != choices.UserType.STUDENT:
             return Response({"message": "Not allowed"}, status=status.HTTP_403_FORBIDDEN)
@@ -112,7 +112,35 @@ class ParentCareerReactionAPI(APIView):
         except (TypeError, ValueError):
             return Response({"message": "bookmark_id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        result = set_parent_career_reaction(
+        result = set_parent_bookmark_reaction(
+            student=request.user,
+            bookmark_id=bookmark_id,
+            reaction=reaction,
+        )
+        status_code = status.HTTP_200_OK if result.get("success") else status.HTTP_400_BAD_REQUEST
+        return Response(result, status=status_code)
+
+
+class ParentBookmarkReactionAPI(APIView):
+    """Student likes or dislikes any parent recommendation bookmark."""
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [authentication.SessionAuthentication, authentication.TokenAuthentication]
+
+    def post(self, request):
+        from core import choices
+        from users.parent_saved_items import set_parent_bookmark_reaction
+
+        if getattr(request.user, "user_type", None) != choices.UserType.STUDENT:
+            return Response({"message": "Not allowed"}, status=status.HTTP_403_FORBIDDEN)
+
+        bookmark_id = request.POST.get("bookmark_id") or request.data.get("bookmark_id")
+        reaction = request.POST.get("reaction") or request.data.get("reaction") or ""
+        try:
+            bookmark_id = int(bookmark_id)
+        except (TypeError, ValueError):
+            return Response({"message": "bookmark_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        result = set_parent_bookmark_reaction(
             student=request.user,
             bookmark_id=bookmark_id,
             reaction=reaction,

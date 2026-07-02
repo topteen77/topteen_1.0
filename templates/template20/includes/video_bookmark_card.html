@@ -1,0 +1,88 @@
+{# Expects: card (dict with video, badge_label, source, etc.), is_parent_view (optional) #}
+{% set video = card.video %}
+{% set is_parent = is_parent_view|default(false) %}
+<div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+  <div class="video-card{% if card.is_disliked %} video-card--disliked{% endif %}">
+    <div class="video-thumbnail position-relative">
+      {% set video_url = video.get_video_or_url() %}
+      {% set is_youtube = video_url and ('youtube.com' in video_url or 'youtu.be' in video_url) %}
+      {% set is_s3_video = video.upload_video or (video_url and not is_youtube and ('.mp4' in video_url.lower() or '.webm' in video_url.lower() or '.mov' in video_url.lower())) %}
+      {% set thumb = video.get_thumbnail_url() %}
+
+      {% if thumb %}
+        <img src="{{ thumb }}" alt="{{ video.name }}" class="w-100" style="height: 190px; object-fit: cover;">
+      {% elif is_s3_video %}
+        <video class="video-thumb-preview w-100"
+               preload="metadata"
+               muted
+               playsinline
+               style="height: 190px; object-fit: cover; background: #000; pointer-events: none; display: block;"
+               onerror="this.style.display='none'; var ph=this.parentNode.querySelector('.video-thumb-fallback'); if(ph){ph.style.display='flex';}">
+          <source src="{{ video_url }}#t=0.1" type="video/mp4">
+        </video>
+        <div class="video-thumb-fallback bg-light align-items-center justify-content-center w-100 h-100" style="height: 190px; display: none;">
+          <i class='bx bx-play-circle fs-48 text-gray'></i>
+        </div>
+      {% else %}
+        <div class="bg-light d-flex align-items-center justify-content-center w-100 h-100" style="height: 190px;">
+          <i class='bx bx-play-circle fs-48 text-gray'></i>
+        </div>
+      {% endif %}
+
+      <div class="video-play-overlay position-absolute top-50 start-50 translate-middle" style="z-index: 2;">
+        <a href="{{ url('careers:videodetail', args=[video.slug]) }}" class="btn btn-link text-white p-0" aria-label="Play {{ video.name }}">
+          <img src="{{ static('images_new/icons/video-play.svg') }}" alt="Play" style="width: 68px; height: 68px;">
+        </a>
+      </div>
+    </div>
+    <div class="p-3 border-top">
+      {% if card.badge_label %}
+      <span class="{{ card.badge_class }}">{{ card.badge_label }}</span>
+      {% endif %}
+      {% if is_parent and card.is_disliked %}
+      <span class="career-reaction-badge career-reaction-badge--disliked">
+        <i class='bx bx-dislike'></i> Student disliked
+      </span>
+      {% elif is_parent and card.student_reaction == 'liked' %}
+      <span class="career-reaction-badge career-reaction-badge--liked">
+        <i class='bx bx-like'></i> Student liked
+      </span>
+      {% endif %}
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <a href="{{ url('careers:videodetail', args=[video.slug]) }}" class="text-decoration-none flex-grow-1">
+          <h5 class="fs-17 fw-semibold text-dark mb-0 video-title">{{ video.name }}</h5>
+        </a>
+        {% if not is_parent and card.source in ['student', 'both'] %}
+        <div id="video_{{ video.id }}"
+             class="bookmark-btn ms-2 {% if video.shortlist.filter(id=request.user.id).exists() %}active{% endif %}"
+             onclick="shortlist('{{ video.id }}')">
+          <i class='bx bx-bookmark'></i>
+        </div>
+        {% endif %}
+      </div>
+      {% if video.description %}
+      <p class="fs-14 text-gray mb-0 video-description">{{ video.description|striptags|truncate(150) }}</p>
+      {% endif %}
+    </div>
+    {% if not is_parent and card.parent_bookmark_id %}
+    <div class="video-reaction-actions" role="group" aria-label="Your feedback">
+      <button type="button"
+              class="career-reaction-btn career-reaction-btn--like{% if card.student_reaction == 'liked' %} is-active{% endif %}"
+              data-bookmark-id="{{ card.parent_bookmark_id }}"
+              data-reaction="liked"
+              title="Like this suggestion">
+        <i class='bx {% if card.student_reaction == "liked" %}bxs-like{% else %}bx-like{% endif %}'></i>
+        <span>Like</span>
+      </button>
+      <button type="button"
+              class="career-reaction-btn career-reaction-btn--dislike{% if card.student_reaction == 'disliked' %} is-active{% endif %}"
+              data-bookmark-id="{{ card.parent_bookmark_id }}"
+              data-reaction="disliked"
+              title="Not interested">
+        <i class='bx {% if card.student_reaction == "disliked" %}bxs-dislike{% else %}bx-dislike{% endif %}'></i>
+        <span>Dislike</span>
+      </button>
+    </div>
+    {% endif %}
+  </div>
+</div>

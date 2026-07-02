@@ -143,16 +143,16 @@ def toggle_parent_career_bookmark(parent, career, *, student_id=None) -> Dict[st
             user=parent, career=career
         )
         if created:
-            return {"message": "Career Shortlisted", "value": "Remove Shortlisted"}
+            return {"message": "Career shortlisted", "value": "Remove from shortlist"}
         career_shortlisted.delete()
-        return {"message": "Removed Shortlisted", "value": "Shortlist Career"}
+        return {"message": "Removed from shortlist", "value": "Shortlist career"}
 
     ct = _career_ct()
     if remove_parent_student_bookmarks_for_students(
         parent=parent, content_type=ct, object_id=career.id, students=students
     ):
         CareerShortlist.objects.filter(user=parent, career=career).delete()
-        return {"message": "Removed Shortlisted", "value": "Shortlist Career"}
+        return {"message": "Removed from shortlist", "value": "Shortlist career"}
 
     from users.parent_suggestions import notify_student_parent_suggestion
 
@@ -173,7 +173,7 @@ def toggle_parent_career_bookmark(parent, career, *, student_id=None) -> Dict[st
                 bookmark=bm,
             )
     CareerShortlist.objects.filter(user=parent, career=career).delete()
-    return {"message": "Career Shortlisted", "value": "Remove Shortlisted"}
+    return {"message": "Career shortlisted", "value": "Remove from shortlist"}
 
 
 def build_student_career_interest_cards(student) -> List[Dict[str, Any]]:

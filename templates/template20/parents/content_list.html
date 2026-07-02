@@ -214,7 +214,7 @@
       <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
         <div>
           <h2 class="parent-page-title fw-700 mb-1">{{ page_title }}</h2>
-          <p class="parent-page-subtitle mb-0">Saved items for you and your linked students.</p>
+          <p class="parent-page-subtitle mb-0">Shortlisted items for you and your linked students.</p>
         </div>
         <a href="{{ browse_url }}" class="btn custom-button purple-button fw-600">
           <i class='bx bx-search-alt me-1'></i>{{ browse_label }}
@@ -308,8 +308,18 @@
             </button>
             <a href="{{ url('careers:videodetail', args=[card.video.slug]) }}" class="text-decoration-none d-block h-100">
               {% set thumb = card.video.get_thumbnail_url() %}
+              {% set video_url = card.video.get_video_or_url() %}
+              {% set is_youtube = video_url and ('youtube.com' in video_url or 'youtu.be' in video_url) %}
+              {% set is_s3_video = card.video.upload_video or (video_url and not is_youtube and ('.mp4' in video_url.lower() or '.webm' in video_url.lower() or '.mov' in video_url.lower())) %}
               {% if thumb %}
               <img class="parent-item-thumb" src="{{ thumb }}" alt="{{ card.video.name }}" />
+              {% elif is_s3_video %}
+              <video class="parent-item-thumb" preload="metadata" muted playsinline
+                     style="pointer-events: none; background: #000;"
+                     onerror="this.style.display='none'; var ph=this.parentNode.querySelector('.parent-item-thumb-fallback'); if(ph){ph.style.display='flex';}">
+                <source src="{{ video_url }}#t=0.1" type="video/mp4">
+              </video>
+              <div class="parent-item-thumb-fallback" style="display: none;"><i class='bx bx-play-circle'></i></div>
               {% else %}
               <div class="parent-item-thumb-fallback"><i class='bx bx-play-circle'></i></div>
               {% endif %}
@@ -317,9 +327,14 @@
                 {% if card.badge_label %}
                 <span class="{{ card.badge_class }}">{{ card.badge_label }}</span>
                 {% endif %}
+                {% if card.is_disliked %}
+                <span class="career-reaction-badge career-reaction-badge--disliked"><i class='bx bx-dislike'></i> Student disliked</span>
+                {% elif card.student_reaction == 'liked' %}
+                <span class="career-reaction-badge career-reaction-badge--liked"><i class='bx bx-like'></i> Student liked</span>
+                {% endif %}
                 <p class="parent-item-title">{{ card.video.name }}</p>
                 {% if card.video.description %}
-                <p class="parent-item-meta">{{ card.video.description|truncate(100) }}</p>
+                <p class="parent-item-meta">{{ card.video.description|striptags|truncate(100) }}</p>
                 {% endif %}
               </div>
             </a>
@@ -337,8 +352,8 @@
       {% else %}
       <i class='bx bx-play-circle d-block'></i>
       {% endif %}
-      <h4 class="fs-18 fw-700 text-dark mb-2">No saved items yet</h4>
-      <p class="text-muted fs-14 mb-3">Start exploring and save {{ page_title|lower }} for your family.</p>
+      <h4 class="fs-18 fw-700 text-dark mb-2">No shortlisted items yet</h4>
+      <p class="text-muted fs-14 mb-3">Start exploring and shortlist {{ page_title|lower }} for your family.</p>
       <a href="{{ browse_url }}" class="btn custom-button purple-button fw-600">{{ browse_label }}</a>
     </div>
     {% endif %}
@@ -414,6 +429,63 @@
         });
       });
     });
+
+    // Generate thumbnails from the first frame for uploaded/S3 videos.
+    function generateVideoThumbnails() {
+      var videoElements = document.querySelectorAll('.video-thumb-source');
+      if (videoElements.length === 0) return;
+
+      videoElements.forEach(function (video) {
+        if (!video) return;
+        var videoId = video.getAttribute('data-video-id');
+        if (!videoId) return;
+
+        var canvas = document.querySelector('.video-thumb-canvas[data-video-id="' + videoId + '"]');
+        var thumbnailImg = document.querySelector('.video-thumb-img[data-video-id="' + videoId + '"]');
+        var placeholder = document.querySelector('.video-thumb-placeholder[data-video-id="' + videoId + '"]');
+        if (!canvas || !thumbnailImg || !placeholder) return;
+
+        video.addEventListener('loadedmetadata', function () {
+          try {
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 360;
+            video.currentTime = 0.1;
+          } catch (e) {
+            placeholder.style.display = 'flex';
+            thumbnailImg.style.display = 'none';
+          }
+        }, { once: true });
+
+        video.addEventListener('seeked', function () {
+          try {
+            var ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+              thumbnailImg.src = canvas.toDataURL('image/jpeg', 0.85);
+              placeholder.style.display = 'none';
+              thumbnailImg.style.display = 'block';
+              video.pause();
+              video.removeAttribute('src');
+              video.load();
+            }
+          } catch (e) {
+            placeholder.style.display = 'flex';
+            thumbnailImg.style.display = 'none';
+          }
+        }, { once: true });
+
+        video.addEventListener('error', function () {
+          if (thumbnailImg.style.display !== 'block') {
+            placeholder.style.display = 'flex';
+            thumbnailImg.style.display = 'none';
+          }
+        }, { once: true });
+
+        try { video.load(); } catch (e) {}
+      });
+    }
+
+    generateVideoThumbnails();
   })();
 </script>
 {% endblock %}

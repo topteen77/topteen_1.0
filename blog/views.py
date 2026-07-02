@@ -308,9 +308,9 @@ class ToggleBlogBookmark(APIView):
         obj = BlogShortlist.objects.filter(user=request.user, blog=blog).first()
         if obj:
             obj.delete()
-            return JsonResponse({"success": True, "bookmarked": False, "message": "Removed Bookmark"})
+            return JsonResponse({"success": True, "bookmarked": False, "message": "Removed from shortlist"})
         BlogShortlist.objects.create(user=request.user, blog=blog)
-        return JsonResponse({"success": True, "bookmarked": True, "message": "Blog Bookmarked"})
+        return JsonResponse({"success": True, "bookmarked": True, "message": "Blog shortlisted"})
     
     def _breadcrumb(self, blog):
         from django.urls import reverse

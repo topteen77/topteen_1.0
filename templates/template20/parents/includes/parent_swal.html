@@ -51,12 +51,12 @@
       },
       confirmRemove: function (itemName, subtitle) {
         if (typeof Swal === 'undefined') {
-          return Promise.resolve({ isConfirmed: window.confirm('Remove "' + itemName + '" from saved items?') });
+          return Promise.resolve({ isConfirmed: window.confirm('Remove "' + itemName + '" from shortlist?') });
         }
         var safeName = escapeHtml(itemName || 'this item');
         return Swal.fire({
-          title: 'Remove saved item?',
-          html: (subtitle || 'This will remove it from your saved list for you and linked students.') +
+          title: 'Remove from shortlist?',
+          html: (subtitle || 'This will remove it from your shortlist for you and linked students.') +
             '<p class="parent-swal-html mt-2 mb-0"><strong style="color:#403fa6;">' + safeName + '</strong></p>',
           icon: 'warning',
           showCancelButton: true,

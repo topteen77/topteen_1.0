@@ -1362,14 +1362,17 @@ class ParentStudentBookmarkVideosView(TemplateView):
     def get(self, request, student_id, *args, **kwargs):
         student = _get_parent_linked_student_or_404(request, student_id)
         user_ids = _parent_student_bookmark_user_ids(request, student)
-        videos = Videos.objects.filter(shortlist__in=user_ids).distinct()
+        from users.parent_saved_items import build_parent_video_cards
+
+        video_cards = build_parent_video_cards(request.user, user_ids, student=student)
         ctx = {
             "html_head": build_html_head(title="My Videos", description="Bookmarked videos"),
             "breadcrumb": get_breadcrumb([
                 {"text": "Parent Dashboard", "url": reverse_lazy("parents_dashboard")},
                 {"text": "My Videos", "url": ""},
             ]),
-            "videos": videos,
+            "video_cards": video_cards,
+            "has_disliked_videos": any(c.get("is_disliked") for c in video_cards),
             "is_parent_view": True,
         }
         return render(request, self.template_name, ctx)
@@ -1463,7 +1466,7 @@ class ParentStudentToggleCareerBookmark(APIView):
         data = {}
         if obj:
             obj.delete(hard_delete=True)
-            data["message"] = "Removed Shortlisted"
+            data["message"] = "Removed from shortlist"
             data["value"] = "Shortlist Career"
             return Response(data, status=status.HTTP_200_OK)
 
@@ -1486,8 +1489,8 @@ class ParentStudentToggleCareerBookmark(APIView):
                 item_url=career.url() if hasattr(career, "url") else "",
                 bookmark=bm,
             )
-        data["message"] = "Career Shortlisted"
-        data["value"] = "Remove Shortlisted"
+        data["message"] = "Career shortlisted"
+        data["value"] = "Remove from shortlist"
         return Response(data, status=status.HTTP_200_OK)
 
 
@@ -1518,7 +1521,7 @@ class ParentStudentToggleVideoBookmark(APIView):
         if obj:
             obj.delete(hard_delete=True)
             return Response(
-                {"success": True, "bookmarked": False, "message": "Removed Shortlisted", "value": "Bookmark"},
+                {"success": True, "bookmarked": False, "message": "Removed from shortlist", "value": "Shortlist"},
                 status=status.HTTP_200_OK,
             )
         from users.parent_bookmark_utils import ensure_parent_student_bookmark
@@ -1542,7 +1545,7 @@ class ParentStudentToggleVideoBookmark(APIView):
                 bookmark=bm,
             )
         return Response(
-            {"success": True, "bookmarked": True, "message": "Video Shortlisted", "value": "Remove Bookmark"},
+            {"success": True, "bookmarked": True, "message": "Video shortlisted", "value": "Remove from shortlist"},
             status=status.HTTP_200_OK,
         )
 
@@ -1612,7 +1615,7 @@ class ParentStudentToggleBlogBookmark(APIView):
         ).first()
         if obj:
             obj.delete(hard_delete=True)
-            return Response({"success": True, "bookmarked": False, "message": "Removed Bookmark"}, status=status.HTTP_200_OK)
+            return Response({"success": True, "bookmarked": False, "message": "Removed from shortlist"}, status=status.HTTP_200_OK)
         from users.parent_bookmark_utils import ensure_parent_student_bookmark
 
         bm, is_new = ensure_parent_student_bookmark(
@@ -1633,7 +1636,7 @@ class ParentStudentToggleBlogBookmark(APIView):
                 item_url=reverse("blog:blogdetail", args=[blog.slug]),
                 bookmark=bm,
             )
-        return Response({"success": True, "bookmarked": True, "message": "Blog Bookmarked"}, status=status.HTTP_200_OK)
+        return Response({"success": True, "bookmarked": True, "message": "Blog shortlisted"}, status=status.HTTP_200_OK)
 
 
 @method_decorator(login_required(login_url=reverse_lazy('parents_login')), name='dispatch')
@@ -5177,19 +5180,18 @@ class BookmarkVideo(TemplateView):
 
     def get_context(self,request,*args,**kwargs):
         ctx={}
-        user_ids = _bookmark_owner_user_ids(request.user)
-        videos = Videos.objects.filter(shortlist__in=user_ids).distinct()
-        ctx["html_head"] = self.html_head()
-        ctx["videos"] = videos
-        ctx['breadcrumb']=self.__breadcrumb()
+        from users.parent_saved_items import build_student_video_cards
         from users.parent_suggestions import (
             apply_scrapbook_parent_updates_context,
-            apply_student_parent_suggestions_context,
             mark_parent_suggestions_read_for_kind,
         )
 
+        video_cards = build_student_video_cards(request.user)
+        ctx["html_head"] = self.html_head()
+        ctx["video_cards"] = video_cards
+        ctx["has_disliked_videos"] = any(c.get("is_disliked") for c in video_cards)
+        ctx['breadcrumb']=self.__breadcrumb()
         ctx.update(_hub_nav_counts(request.user))
-        apply_student_parent_suggestions_context(ctx, request, "videos")
         mark_parent_suggestions_read_for_kind(request.user, "videos")
         apply_scrapbook_parent_updates_context(ctx, request.user)
         return ctx
