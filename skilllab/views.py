@@ -37,48 +37,114 @@ logger = logging.getLogger(__name__)
 
 class SkillLabCourseList(TemplateView):
     template_name = "template20/skilllab_course_list.html"
+    per_page = 9
+
     def html_head(self):
         name='Skill Lab Courses'
         return build_html_head(title=name, description=name)
 
+    def _skilllab_filter_values(self, request):
+        return {
+            "filter_q": request.GET.get("q", "").strip(),
+            "filter_class": request.GET.get("class", "").strip(),
+            "filter_category": request.GET.get("category", "").strip(),
+        }
+
+    def _skilllab_filters_active(self, request):
+        return any(self._skilllab_filter_values(request).values())
+
+    def get_skilllab_list_context_orm(self, request):
+        from django.core.paginator import Paginator
+
+        filters = self._skilllab_filter_values(request)
+        courses = SkillLabCourse.objects.all().order_by("-modified")
+        if filters["filter_q"]:
+            courses = courses.filter(name__icontains=filters["filter_q"])
+        course_list = list(courses)
+        if filters["filter_class"] or filters["filter_category"]:
+            course_list = [
+                c
+                for c in course_list
+                if c.matches_skilllab_filters(
+                    grade=filters["filter_class"] or None,
+                    topic_key=filters["filter_category"] or None,
+                )
+            ]
+        paginator = Paginator(course_list, self.per_page)
+        page_obj = paginator.get_page(request.GET.get("page"))
+        query_params = request.GET.copy()
+        if "page" in query_params:
+            query_params.pop("page")
+        return {
+            "skilllab": page_obj,
+            "course_count": len(course_list),
+            "skilllab_filter_query": query_params.urlencode(),
+            **filters,
+        }
+
     def get_context(self,request,*args, **kwargs):
         from django.urls import reverse
-        from django.core.paginator import Paginator
-        
-        try:
-            skl=SkillLabCourseDocumentFilter()
-            ctx=skl.get_skilllab_list_context(request)
-        except (KeyError, Exception) as e:
-            # Fallback to Django ORM when Elasticsearch is not available
-            logger.warning("Elasticsearch not available, using Django ORM fallback: %s", e)
-            ctx = self.get_fallback_context(request)
-        
+
+        if self._skilllab_filters_active(request):
+            ctx = self.get_skilllab_list_context_orm(request)
+        else:
+            try:
+                skl=SkillLabCourseDocumentFilter()
+                ctx=skl.get_skilllab_list_context(request)
+                ctx.update(self._skilllab_filter_values(request))
+                ctx["skilllab_filter_query"] = ""
+            except (KeyError, Exception) as e:
+                logger.warning("Elasticsearch not available, using Django ORM fallback: %s", e)
+                ctx = self.get_skilllab_list_context_orm(request)
+
         ctx["html_head"] = self.html_head()
         ctx['breadcrumb'] = get_breadcrumb([{'text': 'Skill Lab Course', 'url': ''}])
-        ctx['course_count'] = SkillLabCourse.objects.count()
+        if "course_count" not in ctx:
+            ctx['course_count'] = SkillLabCourse.objects.count()
         ctx['intl_courses'] = InternationalOnlineCourse.objects.all()[:4]
         return ctx
-    
-    def get_fallback_context(self, request):
-        """Fallback method using Django ORM when Elasticsearch is unavailable"""
-        from django.core.paginator import Paginator
-        
-        ctx = {}
-        
-        # Get all skilllab courses ordered by modified date (newest first)
-        courses = SkillLabCourse.objects.all().order_by('-modified')
-        
-        # Pagination
-        paginator = Paginator(courses, 9)
-        page_number = request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-        ctx['skilllab'] = page_obj
-        ctx['course_count'] = courses.count()
 
-        return ctx
-    
-    def get(self, request,*args, **kwargs):      
+    def get_fallback_context(self, request):
+        return self.get_skilllab_list_context_orm(request)
+
+    def get(self, request,*args, **kwargs):
         return render(request, self.template_name, self.get_context(request,args, kwargs))
+
+
+def skilllab_course_autocomplete(request):
+    """Return Skill Lab course name suggestions for the course finder search."""
+    query = request.GET.get("q", "").strip()
+    try:
+        limit = min(int(request.GET.get("limit", 10)), 20)
+    except (TypeError, ValueError):
+        limit = 10
+
+    courses = SkillLabCourse.objects.all().order_by("name")
+    if query:
+        courses = courses.filter(name__icontains=query)
+
+    seen = set()
+    results = []
+    for course in courses[: limit * 2]:
+        name = (course.name or "").strip()
+        if not name:
+            continue
+        key = name.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        results.append(
+            {
+                "id": course.id,
+                "text": name,
+                "value": name,
+                "slug": course.slug,
+            }
+        )
+        if len(results) >= limit:
+            break
+
+    return JsonResponse({"results": results})
 
 
 class InternationalOnlineCourseList(TemplateView):
@@ -92,15 +158,39 @@ class InternationalOnlineCourseList(TemplateView):
     def get_context(self, request, *args, **kwargs):
         from django.urls import reverse
         from django.core.paginator import Paginator
+        import json
+        from collections import defaultdict
 
         selected_subject = request.GET.get('subject', '').strip()
         selected_institute = request.GET.get('institute', '').strip()
+        selected_course_name = request.GET.get('course_name', '').strip()
 
-        courses = InternationalOnlineCourse.objects.all()
+        all_courses = InternationalOnlineCourse.objects.all()
+        courses = all_courses
         if selected_subject:
             courses = courses.filter(subject=selected_subject)
         if selected_institute:
             courses = courses.filter(institute=selected_institute)
+        if selected_course_name:
+            courses = courses.filter(title__icontains=selected_course_name)
+
+        institute_qs = all_courses
+        if selected_subject:
+            institute_qs = institute_qs.filter(subject=selected_subject)
+        institutes = (
+            institute_qs.values_list('institute', flat=True).distinct().order_by('institute')
+        )
+
+        subject_institutes_map = defaultdict(list)
+        for subject, institute in all_courses.values_list('subject', 'institute').distinct():
+            if institute not in subject_institutes_map[subject]:
+                subject_institutes_map[subject].append(institute)
+        for subject in subject_institutes_map:
+            subject_institutes_map[subject].sort()
+
+        all_institutes = list(
+            all_courses.values_list('institute', flat=True).distinct().order_by('institute')
+        )
 
         paginator = Paginator(courses, self.per_page)
         page_obj = paginator.get_page(request.GET.get('page'))
@@ -117,9 +207,13 @@ class InternationalOnlineCourseList(TemplateView):
             ]),
             'courses': page_obj,
             'subjects': InternationalOnlineCourse.objects.values_list('subject', flat=True).distinct().order_by('subject'),
-            'institutes': InternationalOnlineCourse.objects.values_list('institute', flat=True).distinct().order_by('institute'),
+            'institutes': institutes,
+            'all_institutes': all_institutes,
             'selected_subject': selected_subject,
             'selected_institute': selected_institute,
+            'selected_course_name': selected_course_name,
+            'subject_institutes_json': json.dumps(dict(subject_institutes_map)),
+            'all_institutes_json': json.dumps(all_institutes),
             'filter_query': query_params.urlencode(),
         }
 

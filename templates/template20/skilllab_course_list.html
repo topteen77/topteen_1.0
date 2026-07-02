@@ -514,17 +514,24 @@ learning today to stay ahead!
 
   .skilllab-enrol-box {
     display: flex;
-  flex-wrap: wrap;
-  align-items: stretch;
-  background: #fff;
-  border: 1px solid var(--sl-border);
-  border-radius: 20px;
-  padding: 1.5rem 1.25rem;
-  box-shadow: 0 4px 24px rgba(16, 24, 40, 0.04);
-  position: relative;
-  top: -41px;
-  z-index: 666;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    background: #fff;
+    border: 1px solid var(--sl-border);
+    border-radius: 20px;
+    padding: 1.5rem 1.25rem;
+    box-shadow: 0 4px 24px rgba(16, 24, 40, 0.04);
+    position: relative;
+    top: -41px;
+    z-index: 666;
+  }
 
+  .skilllab-enrol-main {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    width: 100%;
   }
 
   .skilllab-enrol-heading {
@@ -649,167 +656,6 @@ learning today to stay ahead!
 
   }
 
-  .skilllab-page .skill-area-box {
-
-    display: grid;
-
-    grid-template-columns: repeat(3, 1fr);
-
-    grid-gap: 1.25rem;
-
-  }
-
-  .skilllab-courses-heading {
-
-    font-size: 1.75rem;
-
-    font-weight: 700;
-
-    color: var(--sl-heading);
-
-    margin-bottom: 0.35rem;
-
-  }
-
-  .skilllab-courses-sub {
-    color: var(--sl-text);
-    margin-bottom: 1.75rem;
-  }
-
-  .skill-course .grid-box {
-
-    position: relative;
-
-    overflow: hidden;
-
-    border-radius: 16px;
-
-    border: 1px solid #f0f0f5;
-
-    transition: all 0.35s ease;
-
-    background: #fff;
-
-  }
-
-  .skill-course .grid-box:hover {
-
-    box-shadow: 0 12px 32px rgba(16, 24, 40, 0.12);
-
-    transform: translateY(-4px);
-
-  }
-
-  .skill-course .grid-box img {
-
-    width: 100%;
-
-    height: 220px;
-
-    object-fit: cover;
-
-    transition: transform 0.4s ease;
-
-  }
-
-  .skill-course .grid-box:hover img {
-    transform: scale(1.05);
-  }
-
-  .skill-course .grid-box .text-in {
-
-    position: absolute;
-
-    bottom: 0;
-
-    left: 0;
-
-    right: 0;
-
-    padding: 21px 14px;
-
-    display: flex;
-
-    flex-direction: column;
-
-    justify-content: flex-end;
-
-    z-index: 10;
-
-  }
-
-  .skill-course .grid-box .text-in::after {
-
-    position: absolute;
-
-    content: "";
-
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 25%, #060606 100%);
-
-    height: 100%;
-
-    width: 100%;
-
-    bottom: 0;
-
-    left: 0;
-
-    z-index: -1;
-
-  }
-
-  .skill-course .text-in span {
-
-    background: linear-gradient(90deg, #7c3aed, #4038c9);
-
-    color: #fff;
-
-    font-size: 12px;
-
-    font-weight: 600;
-
-    padding: 0.3rem 0.65rem;
-
-    border-radius: 6px;
-
-    display: inline-block;
-
-    width: fit-content;
-
-    margin-bottom: 0.5rem;
-
-  }
-
-  .skill-course .text-explore a {
-
-    color: #fff;
-
-    font-size: 18px;
-
-    font-weight: 600;
-
-    text-decoration: none;
-
-    line-height: 1.3;
-
-    display: block;
-
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-
-    white-space: nowrap;
-
-  }
-
-  .skill-course .text-explore a:hover {
-
-    color: #fff;
-
-    text-decoration: underline;
-
-  }
-
   @media (max-width: 1199px) {
 
     .skilllab-enrol-grid {
@@ -857,11 +703,6 @@ learning today to stay ahead!
       gap: 1.5rem;
     }
 
-    .skilllab-page .skill-area-box {
-      grid-template-columns: repeat(2, 1fr);
-    }
-
-
     .skilllab-hero-visual {
       min-height: 280px;
       margin-top: 1.5rem;
@@ -891,9 +732,7 @@ learning today to stay ahead!
 
     .skilllab-stats,
 
-    .skilllab-enrol-grid,
-
-    .skilllab-page .skill-area-box {
+    .skilllab-enrol-grid {
       grid-template-columns: 1fr;
     }
 
@@ -901,14 +740,11 @@ learning today to stay ahead!
       border-right: none;
     }
 
-    .skill-course .text-explore a {
-      font-size: 16px;
-    }
-
   }
 </style>
 
 <link rel="stylesheet" href="{{ static('css_new/international-online-courses.css') }}">
+<link rel="stylesheet" href="{{ static('css_new/skilllab-course-finder.css') }}">
 
 <main class="skilllab-page">
 
@@ -1069,6 +905,8 @@ learning today to stay ahead!
 
       <div class="skilllab-enrol-box">
 
+        <div class="skilllab-enrol-main">
+
         <div class="skilllab-enrol-heading">
 
           <span class="enrol-icon"><i class='bx bx-group'></i></span>
@@ -1131,6 +969,40 @@ learning today to stay ahead!
 
         </div>
 
+        </div>
+
+        <div class="skilllab-journey" aria-label="Career learning journey by grade">
+          <div class="skilllab-journey__head">
+            <span class="skilllab-journey__head-icon" aria-hidden="true"><i class='bx bx-trip'></i></span>
+            <h4 class="skilllab-journey__head-title">Your career pathway</h4>
+          </div>
+          <div class="skilllab-journey__track">
+            <article class="skilllab-journey__step skilllab-journey__step--discovery">
+              <span class="skilllab-journey__icon" aria-hidden="true"><i class='bx bx-compass'></i></span>
+              <span class="skilllab-journey__content">
+                <span class="skilllab-journey__phase">Career Discovery</span>
+                <span class="skilllab-journey__grades">Grades 6–8</span>
+              </span>
+            </article>
+            <span class="skilllab-journey__connector" aria-hidden="true"><i class='bx bx-chevron-right'></i></span>
+            <article class="skilllab-journey__step skilllab-journey__step--decision">
+              <span class="skilllab-journey__icon" aria-hidden="true"><i class='bx bx-git-branch'></i></span>
+              <span class="skilllab-journey__content">
+                <span class="skilllab-journey__phase">Career Decision</span>
+                <span class="skilllab-journey__grades">Grades 9–10</span>
+              </span>
+            </article>
+            <span class="skilllab-journey__connector" aria-hidden="true"><i class='bx bx-chevron-right'></i></span>
+            <article class="skilllab-journey__step skilllab-journey__step--execution">
+              <span class="skilllab-journey__icon" aria-hidden="true"><i class='bx bx-rocket'></i></span>
+              <span class="skilllab-journey__content">
+                <span class="skilllab-journey__phase">Career Execution</span>
+                <span class="skilllab-journey__grades">Grades 11–12</span>
+              </span>
+            </article>
+          </div>
+        </div>
+
       </div>
 
     </div>
@@ -1145,54 +1017,31 @@ learning today to stay ahead!
 
         <div class="col-12">
 
-          <h2 class="skilllab-courses-heading">Explore Our Courses</h2>
-
-          <p class="skilllab-courses-sub">Pick a course and start building skills that matter for your future.</p>
+          <div class="sl-courses-panel">
+            {% include 'template20/includes/skilllab_course_finder_preview.html' %}
+          </div>
 
         </div>
 
       </div>
 
+      <div class="row">
+
       <div class="col-md-12">
 
-        {% if skilllab %}
+        {% if skilllab.paginator.count %}
 
-        <div class="py-3 skill-area-box">
-
-          {% for skill in skilllab %}
-
-          <div class="grid-box">
-
-            <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[skill.slug]) }}" class="d-block">
-
-              {% if skill.image and skill.image.name %}
-
-              <img src="{{ skill.image.url }}" alt="{{ skill.name }}" />
-
-              {% else %}
-
-              <img src="{{ static('images_new/short-courses/course-placeholder.png') }}" alt="{{ skill.name }}" />
-
-              {% endif %}
-
-            </a>
-
-            <div class="text-in d-flex justify-content-between">
-
-              <span>{{ skill.get_category_display() if skill.get_category_display else 'Course' }}</span>
-
-              <div class="text-explore">
-
-                <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[skill.slug]) }}" title="{{ skill.name }}">{{ skill.name }}</a>
-
-              </div>
-
-            </div>
-
+        <div class="sl-finder__results sl-finder__results--courses">
+          <div class="sl-finder__results-head">
+            <p class="sl-finder__results-title">{% if filter_q or filter_class or filter_category %}Search results{% else %}All courses{% endif %}</p>
+            <span class="sl-finder__results-count">{{ skilllab.paginator.count }} course{% if skilllab.paginator.count != 1 %}s{% endif %}</span>
           </div>
 
-          {% endfor %}
-
+          <div class="sl-finder__grid sl-finder__grid--courses">
+            {% for skill in skilllab %}
+            {% include 'template20/includes/skilllab_course_card.html' %}
+            {% endfor %}
+          </div>
         </div>
 
         {% if skilllab.paginator.num_pages > 1 %}
@@ -1209,7 +1058,7 @@ learning today to stay ahead!
 
                 <li class="page-item">
 
-                  <a class="page-link" href="?page={{ skilllab.number - 1 }}" aria-label="Previous">
+                  <a class="page-link" href="?{% if skilllab_filter_query %}{{ skilllab_filter_query }}&{% endif %}page={{ skilllab.number - 1 }}" aria-label="Previous">
 
                     <i class='bx bx-chevron-left'></i>
 
@@ -1241,7 +1090,7 @@ learning today to stay ahead!
 
                 <li class="page-item">
 
-                  <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
+                  <a class="page-link" href="?{% if skilllab_filter_query %}{{ skilllab_filter_query }}&{% endif %}page={{ page_num }}">{{ page_num }}</a>
 
                 </li>
 
@@ -1253,7 +1102,7 @@ learning today to stay ahead!
 
                 <li class="page-item">
 
-                  <a class="page-link" href="?page={{ skilllab.number + 1 }}" aria-label="Next">
+                  <a class="page-link" href="?{% if skilllab_filter_query %}{{ skilllab_filter_query }}&{% endif %}page={{ skilllab.number + 1 }}" aria-label="Next">
 
                     <i class='bx bx-chevron-right'></i>
 
@@ -1287,15 +1136,58 @@ learning today to stay ahead!
 
         {% else %}
 
-        <div class="no-results text-center py-5">
+        <div class="sl-empty-state" role="status" aria-live="polite">
+          <div class="sl-empty-state__card">
+            <div class="sl-empty-state__icon" aria-hidden="true">
+              <i class='bx bx-search-alt'></i>
+            </div>
 
-          <img src="{{ static('images_new/icons/no-results.svg') }}" alt="No results" class="mb-3"
-            style="max-width: 200px;">
+            <h3 class="sl-empty-state__title">No courses found</h3>
 
-          <h4 class="mb-2">No courses found</h4>
+            {% if filter_q or filter_class or filter_category %}
+            <p class="sl-empty-state__text">We couldn't find any courses matching your current search. Try different keywords or clear your filters.</p>
 
-          <p class="text-gray">Check back later for new courses.</p>
+            <div class="sl-empty-state__filters" aria-label="Active filters">
+              {% if filter_q %}
+              <span class="sl-empty-state__tag">
+                <i class='bx bx-book-open' aria-hidden="true"></i>
+                {{ filter_q }}
+              </span>
+              {% endif %}
+              {% if filter_class %}
+              <span class="sl-empty-state__tag">
+                <i class='bx bx-user' aria-hidden="true"></i>
+                {% if filter_class == '6' %}Class 6th{% elif filter_class == '7' %}Class 7th{% elif filter_class == '8' %}Class 8th{% elif filter_class == '9' %}Class 9th{% elif filter_class == '10' %}Class 10th{% elif filter_class == '11' %}Class 11th{% elif filter_class == '12' %}Class 12th{% else %}Class {{ filter_class }}{% endif %}
+              </span>
+              {% endif %}
+              {% if filter_category %}
+              <span class="sl-empty-state__tag">
+                <i class='bx bx-category' aria-hidden="true"></i>
+                {% if filter_category == 'career' %}Career{% elif filter_category == 'skills' %}Skills{% elif filter_category == 'life-skills' %}Life Skills{% elif filter_category == 'future-readiness' %}Future readiness{% else %}{{ filter_category }}{% endif %}
+              </span>
+              {% endif %}
+            </div>
 
+            <div class="sl-empty-state__actions">
+              <a href="{{ url('skilllabcourse:skilllabcourselist') }}#skilllab-courses" class="sl-empty-state__btn sl-empty-state__btn--primary">
+                <i class='bx bx-grid-alt' aria-hidden="true"></i>
+                View all courses
+              </a>
+              <a href="#skilllab-course-finder" class="sl-empty-state__btn sl-empty-state__btn--ghost">
+                <i class='bx bx-slider-alt' aria-hidden="true"></i>
+                Change filters
+              </a>
+            </div>
+            {% else %}
+            <p class="sl-empty-state__text">New courses are added regularly. Please check back soon or explore our international programs below.</p>
+            <div class="sl-empty-state__actions">
+              <a href="#skilllab-course-finder" class="sl-empty-state__btn sl-empty-state__btn--primary">
+                <i class='bx bx-search' aria-hidden="true"></i>
+                Search courses
+              </a>
+            </div>
+            {% endif %}
+          </div>
         </div>
 
         {% endif %}
