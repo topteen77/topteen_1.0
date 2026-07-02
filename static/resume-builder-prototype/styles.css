@@ -1122,11 +1122,16 @@ article#resume.resume .resume__mount > .tpl {
 .tpl-mz-contact,
 .tpl-mz-contact-row,
 .tpl-tl-contact,
+.tpl-tl-contact-row,
 .tpl-st-contact,
+.tpl-st-contact-row,
 .tpl-nv-contact,
+.tpl-nv-contact-row,
 .tpl-hz-contact,
 .tpl-fo-contact,
+.tpl-fo-contact-row,
 .tpl-vx-contact,
+.tpl-vx-contact-row,
 .tpl-ap-contact,
 .tpl-zc-contact,
 .tpl-gg-contact,
@@ -2466,6 +2471,67 @@ article#resume.resume .resume__mount > .tpl {
   color: var(--muted);
 }
 
+.tpl-nv-contact-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0 0.15rem;
+  margin: 0.4rem 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+  max-width: 100%;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.tpl-nv-contact-sep {
+  display: inline;
+  flex-shrink: 0;
+  opacity: 0.75;
+  padding: 0 0.15rem;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.tpl-nova .tpl-nv-contact-row .tpl-contact-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.tpl-nova .tpl-nv-contact-row .tpl-contact-icon,
+.tpl-nova .tpl-nv-contact-row .tpl-contact-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 0.95rem;
+  min-width: 0.95rem;
+  height: 0.95rem;
+  color: var(--resume-accent);
+  line-height: 1;
+}
+
+.tpl-nova .tpl-nv-contact-row .tpl-contact-text {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.tpl-nova .tpl-nv-contact-row .tpl-contact-icon svg {
+  fill: currentColor;
+}
+
+.tpl-nv-intro {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}
+
 .tpl-nv-body {
   padding: 0 1.5rem 2rem;
   display: flex;
@@ -2666,15 +2732,22 @@ article#resume.resume .resume__mount > .tpl {
 .tpl-folio {
   min-height: 1020px;
   padding: 1.75rem 1.75rem 2rem;
+  background: #fff;
 }
 
 .tpl-fo-head {
   display: flex;
   gap: 1.25rem;
   align-items: center;
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--line);
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 2px solid var(--resume-accent);
+}
+
+.tpl-fo-head-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .tpl-fo-photo {
@@ -2683,6 +2756,8 @@ article#resume.resume .resume__mount > .tpl {
   border-radius: 4px;
   object-fit: cover;
   flex-shrink: 0;
+  border: 2px solid rgba(var(--accent-rgb), 0.25);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
 }
 
 .tpl-fo-name {
@@ -2691,12 +2766,15 @@ article#resume.resume .resume__mount > .tpl {
   font-weight: 300;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  line-height: 1.15;
+  color: #111;
 }
 
 .tpl-fo-line {
   margin: 0.35rem 0 0;
   font-size: 0.95rem;
   color: var(--muted);
+  line-height: 1.45;
 }
 
 .tpl-fo-contact {
@@ -2705,11 +2783,71 @@ article#resume.resume .resume__mount > .tpl {
   color: var(--muted);
 }
 
+.tpl-fo-contact-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0 0.15rem;
+  margin: 0.5rem 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+  max-width: 100%;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.tpl-fo-contact-sep {
+  display: inline;
+  flex-shrink: 0;
+  opacity: 0.75;
+  padding: 0 0.15rem;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.tpl-folio .tpl-fo-contact-row .tpl-contact-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.tpl-folio .tpl-fo-contact-row .tpl-contact-icon,
+.tpl-folio .tpl-fo-contact-row .tpl-contact-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 0.95rem;
+  min-width: 0.95rem;
+  height: 0.95rem;
+  color: var(--resume-accent);
+  line-height: 1;
+}
+
+.tpl-folio .tpl-fo-contact-row .tpl-contact-text {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.tpl-folio .tpl-fo-contact-row .tpl-contact-icon svg {
+  fill: currentColor;
+}
+
 .tpl-fo-sec {
   display: grid;
   grid-template-columns: 52px 1fr;
   gap: 1.25rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.35rem;
+  align-items: start;
+}
+
+.tpl-fo-content {
+  min-width: 0;
 }
 
 .tpl-fo-num {
@@ -2717,6 +2855,7 @@ article#resume.resume .resume__mount > .tpl {
   font-weight: 200;
   color: var(--resume-accent);
   line-height: 1;
+  padding-top: 0.05rem;
 }
 
 .tpl-fo-h2 {
@@ -2735,18 +2874,40 @@ article#resume.resume .resume__mount > .tpl {
   color: var(--text);
 }
 
+.tpl-folio .tpl-job--fo {
+  margin-bottom: 0.75rem;
+}
+
+.tpl-folio .tpl-job--fo:last-child {
+  margin-bottom: 0;
+}
+
 .tpl-job--fo .tpl-job-head {
   flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+}
+
+.tpl-folio .tpl-edu-block .tpl-job-head {
+  gap: 0.75rem;
+}
+
+.tpl-folio .tpl-edu-block .tpl-job-dates {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.tpl-folio .tpl-bullets {
+  margin-top: 0.15rem;
 }
 
 .tpl-vertex {
-  min-height: 1020px;
+  min-height: auto;
   background: #fff;
 }
 
 .tpl-vx-banner {
   background: var(--resume-accent);
-  color: var(--resume-accent-text);
+  color: var(--resume-accent-text, #ffffff);
   padding: 2rem 1.75rem 2.25rem;
   clip-path: polygon(0 0, 100% 0, 100% 88%, 0 100%);
   margin-bottom: -0.5rem;
@@ -2756,17 +2917,73 @@ article#resume.resume .resume__mount > .tpl {
   max-width: 100%;
 }
 
+.tpl-vx-banner-row {
+  display: block;
+  width: 100%;
+}
+
+.tpl-vx-contact-piece {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+}
+
+.tpl-vx-banner-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+}
+
+.tpl-vx-banner-text {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tpl-vx-banner-photo {
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.tpl-vx-photo {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.tpl-vertex .tpl-vx-photo.tpl-photo--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--resume-accent-text, #ffffff);
+}
+
+.tpl-vx-photo .tpl-photo-initial {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
 .tpl-vx-name {
   margin: 0;
   font-size: 1.85rem;
   font-weight: 800;
   letter-spacing: -0.02em;
+  color: inherit;
 }
 
 .tpl-vx-title {
   margin: 0.35rem 0 0;
   opacity: 0.95;
   font-size: 1.05rem;
+  line-height: 1.45;
+  color: inherit;
 }
 
 .tpl-vx-contact {
@@ -2775,8 +2992,76 @@ article#resume.resume .resume__mount > .tpl {
   opacity: 0.92;
 }
 
+.tpl-vx-contact-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0 0.15rem;
+  margin: 0.65rem 0 0;
+  font-size: 0.85rem;
+  opacity: 0.95;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.tpl-vx-contact-sep {
+  display: inline;
+  flex-shrink: 0;
+  opacity: 0.85;
+  padding: 0 0.15rem;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.tpl-vertex .tpl-vx-contact-row .tpl-contact-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.tpl-vertex .tpl-vx-contact-row .tpl-contact-icon,
+.tpl-vertex .tpl-vx-contact-row .tpl-contact-fallback,
+.tpl-vertex .tpl-vx-contact-row .tpl-contact-text {
+  color: var(--resume-accent-text, #ffffff);
+}
+
+.tpl-vertex .tpl-vx-contact-row .tpl-contact-icon,
+.tpl-vertex .tpl-vx-contact-row .tpl-contact-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 0.95rem;
+  min-width: 0.95rem;
+  height: 0.95rem;
+  line-height: 1;
+}
+
+.tpl-vertex .tpl-vx-contact-row .tpl-contact-text {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.tpl-vertex .tpl-vx-contact-row .tpl-contact-icon svg {
+  fill: currentColor;
+}
+
 .tpl-vx-body {
   padding: 1.5rem 1.75rem 2rem;
+}
+
+.tpl-vertex .tpl-vx-body .tpl-sec {
+  margin-bottom: 1.15rem;
+}
+
+.tpl-vertex .tpl-vx-body .tpl-sec:last-child {
+  margin-bottom: 0;
 }
 
 .tpl-vx-h2 {
@@ -2786,12 +3071,41 @@ article#resume.resume .resume__mount > .tpl {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--resume-accent);
+  border-bottom: 1px solid rgba(var(--accent-rgb), 0.22);
+  padding-bottom: 0.35rem;
 }
 
 .tpl-vx-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.25rem;
+  margin-bottom: 1.15rem;
+}
+
+.tpl-vertex .tpl-vx-grid .tpl-sec {
+  margin-bottom: 0;
+}
+
+.tpl-vertex .tpl-vx-skills .tpl-bullets {
+  columns: 2;
+  column-gap: 1.25rem;
+}
+
+.tpl-vertex .tpl-vx-skills .tpl-bullets li {
+  break-inside: avoid;
+}
+
+.tpl-vertex .tpl-vx-body .tpl-job {
+  margin-bottom: 0.65rem;
+}
+
+.tpl-vertex .tpl-edu-block .tpl-job-head {
+  gap: 0.75rem;
+}
+
+.tpl-vertex .tpl-edu-block .tpl-job-dates {
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .template-card__mock-nova {
@@ -2911,10 +3225,92 @@ article#resume.resume .resume__mount > .tpl {
   overflow: visible !important;
 }
 
-.resume.pdf-exporting .tpl-classic-sidebar,
-.resume.pdf-exporting .tpl-executive,
+.resume.pdf-exporting .tpl-executive {
+  min-height: auto !important;
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+}
+
+.resume.pdf-exporting .tpl-ex-side,
+.resume.pdf-exporting .tpl-ex-main {
+  display: table-cell !important;
+  vertical-align: top !important;
+  min-height: auto !important;
+  height: auto !important;
+}
+
+.resume.pdf-exporting .tpl-ex-side {
+  width: 28% !important;
+}
+
+.resume.pdf-exporting .tpl-ex-main {
+  width: 72% !important;
+}
+
+.resume.pdf-exporting .tpl-executive .tpl-ex-main .tpl-sec,
+.resume.pdf-exporting .tpl-executive .tpl-ex-main .tpl-job {
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}
+
+.resume.pdf-exporting .tpl-ex-side {
+  background: #1e293b !important;
+  border-right: 4px solid var(--resume-accent) !important;
+}
+
+.resume.pdf-exporting .tpl-ex-photo {
+  border-color: var(--resume-accent) !important;
+}
+
+.resume.pdf-exporting .tpl-ex-h2 {
+  color: #fde68a !important;
+}
+
+.resume.pdf-exporting .tpl-ex-contact .tpl-contact-item {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 0.35rem !important;
+}
+
+.resume.pdf-exporting .tpl-executive .tpl-ex-contact .tpl-contact-icon,
+.resume.pdf-exporting .tpl-executive .tpl-ex-contact .tpl-contact-fallback,
+.resume.pdf-exporting .tpl-executive .tpl-ex-contact .tpl-contact-text {
+  color: #f8fafc !important;
+}
+
 .resume.pdf-exporting .tpl-high-contrast {
-  min-height: 1020px !important;
+  min-height: auto !important;
+  display: block !important;
+}
+
+.resume.pdf-exporting .tpl-classic-sidebar {
+  min-height: auto !important;
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+}
+
+.resume.pdf-exporting .tpl-classic-sidebar .tpl-cs-side,
+.resume.pdf-exporting .tpl-classic-sidebar .tpl-cs-main {
+  display: table-cell !important;
+  vertical-align: top !important;
+  min-height: auto !important;
+  height: auto !important;
+}
+
+.resume.pdf-exporting .tpl-classic-sidebar .tpl-cs-side {
+  width: 30% !important;
+}
+
+.resume.pdf-exporting .tpl-classic-sidebar .tpl-cs-main {
+  width: 70% !important;
+}
+
+.resume.pdf-exporting .tpl-classic-sidebar .tpl-cs-main .tpl-sec,
+.resume.pdf-exporting .tpl-classic-sidebar .tpl-cs-main .tpl-job {
+  break-inside: auto !important;
+  page-break-inside: auto !important;
 }
 
 .resume.pdf-exporting .tpl-magazine {
@@ -2926,17 +3322,11 @@ article#resume.resume .resume__mount > .tpl {
   display: table !important;
   table-layout: fixed !important;
   min-height: auto !important;
-  align-items: stretch !important;
   width: 100% !important;
   max-width: none !important;
   grid-template-columns: none !important;
-}
-
-.resume.pdf-exporting article#resume.resume {
-  max-width: none !important;
-  width: 100% !important;
-  overflow-wrap: normal !important;
-  word-break: normal !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
 }
 
 .resume.pdf-exporting .tpl-tech-focus .tpl-tf-side,
@@ -2946,17 +3336,26 @@ article#resume.resume .resume__mount > .tpl {
   vertical-align: top !important;
   margin: 0 !important;
   box-sizing: border-box !important;
+  min-height: auto !important;
+  height: auto !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
 }
 
 .resume.pdf-exporting .tpl-tech-focus .tpl-tf-side {
   width: 28% !important;
-  min-height: auto !important;
-  align-self: stretch !important;
+  align-self: auto !important;
 }
 
 .resume.pdf-exporting .tpl-tech-focus .tpl-tf-main {
   width: 72% !important;
   padding: 0 0.75rem 1.5rem 1rem !important;
+}
+
+.resume.pdf-exporting .tpl-tech-focus .tpl-tf-main .tpl-sec,
+.resume.pdf-exporting .tpl-tech-focus .tpl-tf-main .tpl-job {
+  break-inside: auto !important;
+  page-break-inside: auto !important;
 }
 
 .resume.pdf-exporting .tpl-tech-focus .tpl-tf-main .tpl-sec,
@@ -2966,6 +3365,13 @@ article#resume.resume .resume__mount > .tpl {
 .resume.pdf-exporting .tpl-tech-focus .tpl-tf-name {
   width: 100% !important;
   max-width: 100% !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+
+.resume.pdf-exporting article#resume.resume {
+  max-width: none !important;
+  width: 100% !important;
   overflow-wrap: normal !important;
   word-break: normal !important;
 }
@@ -3079,12 +3485,36 @@ article#resume.resume .resume__mount > .tpl {
 
 .resume.pdf-exporting .tpl-professional-border {
   min-height: auto !important;
-  align-items: stretch !important;
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+  overflow: visible !important;
+}
+
+.resume.pdf-exporting .tpl-professional-border .tpl-pb-main,
+.resume.pdf-exporting .tpl-professional-border .tpl-pb-side {
+  display: table-cell !important;
+  vertical-align: top !important;
+  float: none !important;
+  min-height: auto !important;
+  height: auto !important;
+}
+
+.resume.pdf-exporting .tpl-professional-border .tpl-pb-main {
+  width: 72% !important;
+  overflow: visible !important;
 }
 
 .resume.pdf-exporting .tpl-professional-border .tpl-pb-side {
+  width: 28% !important;
   min-height: auto !important;
-  align-self: stretch !important;
+  align-self: auto !important;
+}
+
+.resume.pdf-exporting .tpl-professional-border .tpl-pb-main .tpl-sec,
+.resume.pdf-exporting .tpl-professional-border .tpl-pb-main .tpl-job {
+  break-inside: auto !important;
+  page-break-inside: auto !important;
 }
 
 .resume.pdf-exporting .tpl-professional-border .tpl-pb-contact-row {
@@ -3100,7 +3530,28 @@ article#resume.resume .resume__mount > .tpl {
   align-items: center !important;
 }
 
-.resume.pdf-exporting .tpl-professional-border .tpl-h2,
+.resume.pdf-exporting .tpl-professional-border .tpl-pb-contact-row .tpl-contact-icon,
+.resume.pdf-exporting .tpl-professional-border .tpl-pb-contact-row .tpl-contact-fallback {
+  color: var(--resume-accent) !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+}
+
+.resume.pdf-exporting .tpl-professional-border .tpl-h2 {
+  color: var(--resume-accent) !important;
+  border-bottom: 2px solid var(--resume-accent) !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+}
+
+.resume.pdf-exporting .tpl-professional-border .tpl-pb-h3 {
+  color: var(--resume-accent) !important;
+}
+
+.resume.pdf-exporting .tpl-professional-border {
+  border-top: 8px solid var(--resume-accent) !important;
+}
+
 .resume.pdf-exporting .tpl-professional-border .tpl-p,
 .resume.pdf-exporting .tpl-professional-border .tpl-job,
 .resume.pdf-exporting .tpl-professional-border .tpl-edu-block,
@@ -3208,6 +3659,7 @@ article#resume.resume .resume__mount > .tpl {
 /* Modern split: html2pdf parity */
 .resume.pdf-exporting .tpl-modern-split {
   min-height: auto !important;
+  overflow: visible !important;
 }
 
 .resume.pdf-exporting .tpl-ms-top {
@@ -3215,6 +3667,8 @@ article#resume.resume .resume__mount > .tpl {
   width: 100% !important;
   background: var(--resume-accent) !important;
   color: var(--resume-accent-text, #ffffff) !important;
+  break-after: avoid !important;
+  page-break-after: avoid !important;
 }
 
 .resume.pdf-exporting .tpl-ms-brand {
@@ -3226,50 +3680,65 @@ article#resume.resume .resume__mount > .tpl {
 .resume.pdf-exporting .tpl-ms-grid {
   display: block !important;
   width: 100% !important;
+  min-height: auto !important;
+  overflow: visible !important;
 }
 
 .resume.pdf-exporting .tpl-ms-row {
-  display: block !important;
+  display: table !important;
+  table-layout: fixed !important;
   width: 100% !important;
-  overflow: hidden !important;
-  margin-bottom: 1rem !important;
+  overflow: visible !important;
+  margin-bottom: 0.65rem !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
 }
 
 .resume.pdf-exporting .tpl-ms-row::after {
-  content: "" !important;
-  display: table !important;
-  clear: both !important;
+  content: none !important;
+  display: none !important;
 }
 
 .resume.pdf-exporting .tpl-ms-row > .tpl-sec {
-  display: block !important;
-  float: left !important;
-  width: 49% !important;
-  max-width: 49% !important;
+  display: table-cell !important;
+  float: none !important;
+  width: 50% !important;
+  max-width: none !important;
+  vertical-align: top !important;
   box-sizing: border-box !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
 }
 
 .resume.pdf-exporting .tpl-ms-row > .tpl-sec:last-child {
-  float: right !important;
+  float: none !important;
   padding-left: 0.65rem !important;
 }
 
 .resume.pdf-exporting .tpl-ms-row > .tpl-sec:only-child {
-  float: none !important;
+  display: block !important;
   width: 100% !important;
   max-width: 100% !important;
 }
 
 .resume.pdf-exporting .tpl-ms-grid > .tpl-sec.tpl-ms-span2,
 .resume.pdf-exporting .tpl-ms-span2 {
-  clear: both !important;
+  clear: none !important;
   float: none !important;
   width: 100% !important;
   max-width: 100% !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
 }
 
 .resume.pdf-exporting .tpl-ms-grid .tpl-ms-span2 {
   grid-column: auto !important;
+}
+
+.resume.pdf-exporting .tpl-modern-split .tpl-sec,
+.resume.pdf-exporting .tpl-modern-split .tpl-job {
+  break-inside: auto !important;
+  page-break-inside: auto !important;
 }
 
 .resume.pdf-exporting .tpl-ms-contact-row {
@@ -3374,6 +3843,19 @@ article#resume.resume .resume__mount > .tpl {
   page-break-inside: avoid;
 }
 
+.resume.pdf-exporting article#resume.resume .tpl-h2:not(.tpl-h2--hc) {
+  color: var(--resume-accent) !important;
+  border-bottom-color: var(--resume-accent) !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+}
+
+.resume.pdf-exporting .tpl-contact-icon,
+.resume.pdf-exporting .tpl-contact-fallback {
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+}
+
 /* html2canvas/pdfkit stability: avoid unsupported/heavy CSS during export */
 .resume.pdf-exporting .tpl-au-hero,
 .resume.pdf-exporting .tpl-mz-accent,
@@ -3405,11 +3887,407 @@ article#resume.resume .resume__mount > .tpl {
   white-space: nowrap !important;
 }
 
+.resume.pdf-exporting .tpl-aurora {
+  min-height: auto !important;
+  display: block !important;
+}
+
+.resume.pdf-exporting .tpl-aurora .tpl-au-hero {
+  break-after: avoid !important;
+  page-break-after: avoid !important;
+}
+
+.resume.pdf-exporting .tpl-aurora .tpl-au-body {
+  min-height: auto !important;
+  display: block !important;
+}
+
+.resume.pdf-exporting .tpl-aurora .tpl-au-card,
+.resume.pdf-exporting .tpl-aurora .tpl-au-card .tpl-job {
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}
+
 .resume.pdf-exporting .tpl-aurora .tpl-au-contact-row {
   display: flex !important;
   flex-direction: row !important;
   flex-wrap: wrap !important;
   align-items: center !important;
+}
+
+.resume.pdf-exporting .tpl-timeline {
+  min-height: auto !important;
+  display: block !important;
+}
+
+.resume.pdf-exporting .tpl-tl-head {
+  break-after: avoid !important;
+  page-break-after: avoid !important;
+}
+
+.resume.pdf-exporting .tpl-timeline .tpl-sec,
+.resume.pdf-exporting .tpl-timeline .tpl-tl-item {
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}
+
+.resume.pdf-exporting .tpl-timeline .tpl-tl-contact-row {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+.resume.pdf-exporting .tpl-timeline .tpl-tl-contact-row .tpl-contact-icon,
+.resume.pdf-exporting .tpl-timeline .tpl-tl-contact-row .tpl-contact-fallback {
+  color: var(--resume-accent) !important;
+}
+
+.resume.pdf-exporting .tpl-tl-two {
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+  min-height: auto !important;
+}
+
+.resume.pdf-exporting .tpl-tl-two > .tpl-sec {
+  display: table-cell !important;
+  width: 50% !important;
+  vertical-align: top !important;
+}
+
+.resume.pdf-exporting .tpl-timeline .tpl-tl-track,
+.resume.pdf-exporting .tpl-timeline .tpl-tl-dot,
+.resume.pdf-exporting .tpl-timeline .tpl-p,
+.resume.pdf-exporting .tpl-timeline .tpl-bullets,
+.resume.pdf-exporting .tpl-timeline .tpl-edu-block,
+.resume.pdf-exporting .tpl-timeline .tpl-cert {
+  visibility: visible !important;
+}
+
+.resume.pdf-exporting .tpl-studio {
+  min-height: auto !important;
+  display: block !important;
+}
+
+.resume.pdf-exporting .tpl-st-hero {
+  break-after: avoid !important;
+  page-break-after: avoid !important;
+}
+
+.resume.pdf-exporting .tpl-studio .tpl-st-card,
+.resume.pdf-exporting .tpl-studio .tpl-st-card .tpl-job {
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}
+
+.resume.pdf-exporting .tpl-studio .tpl-st-contact-row {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+
+.resume.pdf-exporting .tpl-studio .tpl-st-contact-row .tpl-contact-item,
+.resume.pdf-exporting .tpl-studio .tpl-st-contact-row .tpl-contact-text {
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+  flex-shrink: 0 !important;
+}
+
+.resume.pdf-exporting .tpl-studio .tpl-st-contact-row .tpl-contact-icon,
+.resume.pdf-exporting .tpl-studio .tpl-st-contact-row .tpl-contact-fallback {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  width: 0.95rem !important;
+  min-width: 0.95rem !important;
+  height: 0.95rem !important;
+  color: var(--resume-accent) !important;
+  visibility: visible !important;
+}
+
+.resume.pdf-exporting .tpl-st-split {
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+  min-height: auto !important;
+}
+
+.resume.pdf-exporting .tpl-st-split > .tpl-st-card {
+  display: table-cell !important;
+  width: 50% !important;
+  vertical-align: top !important;
+}
+
+.resume.pdf-exporting .tpl-st-photo,
+.resume.pdf-exporting .tpl-studio .tpl-st-skills .tpl-pill,
+.resume.pdf-exporting .tpl-studio .tpl-p,
+.resume.pdf-exporting .tpl-studio .tpl-bullets,
+.resume.pdf-exporting .tpl-studio .tpl-edu-block,
+.resume.pdf-exporting .tpl-studio .tpl-cert {
+  visibility: visible !important;
+}
+
+.resume.pdf-exporting .tpl-nova {
+  min-height: auto !important;
+  display: block !important;
+}
+
+.resume.pdf-exporting .tpl-nv-hero {
+  min-height: auto !important;
+  height: auto !important;
+  break-after: avoid !important;
+  page-break-after: avoid !important;
+}
+
+.resume.pdf-exporting .tpl-nv-body {
+  min-height: auto !important;
+}
+
+.resume.pdf-exporting .tpl-nova .tpl-nv-panel,
+.resume.pdf-exporting .tpl-nova .tpl-nv-panel .tpl-job {
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}
+
+.resume.pdf-exporting .tpl-nova .tpl-nv-contact-row {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+
+.resume.pdf-exporting .tpl-nova .tpl-nv-contact-row .tpl-contact-item,
+.resume.pdf-exporting .tpl-nova .tpl-nv-contact-row .tpl-contact-text {
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+  flex-shrink: 0 !important;
+}
+
+.resume.pdf-exporting .tpl-nova .tpl-nv-contact-row .tpl-contact-icon,
+.resume.pdf-exporting .tpl-nova .tpl-nv-contact-row .tpl-contact-fallback {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  width: 0.95rem !important;
+  min-width: 0.95rem !important;
+  height: 0.95rem !important;
+  color: var(--resume-accent) !important;
+  visibility: visible !important;
+}
+
+.resume.pdf-exporting .tpl-nv-split {
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+  min-height: auto !important;
+}
+
+.resume.pdf-exporting .tpl-nv-split > .tpl-nv-panel {
+  display: table-cell !important;
+  width: 50% !important;
+  vertical-align: top !important;
+}
+
+.resume.pdf-exporting .tpl-nv-photo,
+.resume.pdf-exporting .tpl-nova .tpl-nv-pills .tpl-pill,
+.resume.pdf-exporting .tpl-nova .tpl-p,
+.resume.pdf-exporting .tpl-nova .tpl-bullets,
+.resume.pdf-exporting .tpl-nova .tpl-edu-block,
+.resume.pdf-exporting .tpl-nova .tpl-cert {
+  visibility: visible !important;
+}
+
+.resume.pdf-exporting .tpl-folio {
+  min-height: auto !important;
+  display: block !important;
+}
+
+.resume.pdf-exporting .tpl-fo-head {
+  break-after: avoid !important;
+  page-break-after: avoid !important;
+}
+
+.resume.pdf-exporting .tpl-folio .tpl-fo-contact-row {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+
+.resume.pdf-exporting .tpl-folio .tpl-fo-contact-row .tpl-contact-item,
+.resume.pdf-exporting .tpl-folio .tpl-fo-contact-row .tpl-contact-text {
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+  flex-shrink: 0 !important;
+}
+
+.resume.pdf-exporting .tpl-folio .tpl-fo-contact-row .tpl-contact-icon,
+.resume.pdf-exporting .tpl-folio .tpl-fo-contact-row .tpl-contact-fallback {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  width: 0.95rem !important;
+  min-width: 0.95rem !important;
+  height: 0.95rem !important;
+  color: var(--resume-accent) !important;
+  visibility: visible !important;
+}
+
+.resume.pdf-exporting .tpl-fo-sec {
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}
+
+.resume.pdf-exporting .tpl-fo-num,
+.resume.pdf-exporting .tpl-fo-content {
+  display: table-cell !important;
+  vertical-align: top !important;
+}
+
+.resume.pdf-exporting .tpl-fo-num {
+  width: 52px !important;
+  color: var(--resume-accent) !important;
+}
+
+.resume.pdf-exporting .tpl-folio .tpl-job--fo,
+.resume.pdf-exporting .tpl-folio .tpl-p,
+.resume.pdf-exporting .tpl-folio .tpl-bullets,
+.resume.pdf-exporting .tpl-folio .tpl-edu-block,
+.resume.pdf-exporting .tpl-folio .tpl-cert,
+.resume.pdf-exporting .tpl-fo-photo {
+  visibility: visible !important;
+}
+
+.resume.pdf-exporting .tpl-vertex {
+  min-height: auto !important;
+  display: block !important;
+}
+
+.resume.pdf-exporting .tpl-vx-banner {
+  break-after: avoid !important;
+  page-break-after: avoid !important;
+}
+
+.resume.pdf-exporting .tpl-vx-banner-row {
+  display: block !important;
+  width: 100% !important;
+}
+
+.resume.pdf-exporting .tpl-vx-banner-main {
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin-bottom: 0 !important;
+}
+
+.resume.pdf-exporting .tpl-vx-banner-text,
+.resume.pdf-exporting .tpl-vx-banner-photo {
+  display: table-cell !important;
+  vertical-align: middle !important;
+}
+
+.resume.pdf-exporting .tpl-vx-banner-text {
+  width: auto !important;
+  max-width: calc(100% - 100px) !important;
+  padding-right: 1rem !important;
+  overflow: visible !important;
+}
+
+.resume.pdf-exporting .tpl-vx-banner-photo {
+  width: 94px !important;
+  text-align: right !important;
+  white-space: nowrap !important;
+}
+
+.resume.pdf-exporting .tpl-vx-photo {
+  width: 88px !important;
+  height: 88px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+  visibility: visible !important;
+  border: 3px solid rgba(255, 255, 255, 0.85) !important;
+  float: none !important;
+  position: static !important;
+  margin: 0 !important;
+}
+
+.resume.pdf-exporting .tpl-vx-photo.tpl-photo--placeholder {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.resume.pdf-exporting .tpl-vertex .tpl-vx-skills .tpl-bullets {
+  column-count: 2 !important;
+  column-gap: 1.25rem !important;
+}
+
+.resume.pdf-exporting .tpl-vertex .tpl-vx-contact-row {
+  display: block !important;
+  width: 100% !important;
+  margin: 0.5rem 0 0 !important;
+  padding: 0 !important;
+  line-height: 1.45 !important;
+  white-space: normal !important;
+  overflow: visible !important;
+}
+
+.resume.pdf-exporting .tpl-vertex .tpl-vx-contact-row .tpl-vx-contact-piece,
+.resume.pdf-exporting .tpl-vertex .tpl-vx-contact-row .tpl-vx-contact-sep,
+.resume.pdf-exporting .tpl-vertex .tpl-vx-contact-row .tpl-contact-fallback,
+.resume.pdf-exporting .tpl-vertex .tpl-vx-contact-row .tpl-contact-text {
+  display: inline !important;
+  white-space: nowrap !important;
+}
+
+.resume.pdf-exporting .tpl-vertex .tpl-vx-body .tpl-sec,
+.resume.pdf-exporting .tpl-vertex .tpl-vx-body .tpl-job {
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}
+
+.resume.pdf-exporting .tpl-vx-grid {
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+  min-height: auto !important;
+}
+
+.resume.pdf-exporting .tpl-vx-grid > .tpl-sec {
+  display: table-cell !important;
+  width: 50% !important;
+  vertical-align: top !important;
+}
+
+.resume.pdf-exporting .tpl-vertex .tpl-p,
+.resume.pdf-exporting .tpl-vertex .tpl-bullets,
+.resume.pdf-exporting .tpl-vertex .tpl-edu-block,
+.resume.pdf-exporting .tpl-vertex .tpl-cert {
+  visibility: visible !important;
 }
 
 .resume.pdf-exporting .tpl-aurora .tpl-au-contact-row .tpl-contact-item {
@@ -3506,12 +4384,15 @@ article#resume.resume .resume__mount > .tpl {
   display: table !important;
   table-layout: fixed !important;
   width: 100% !important;
+  min-height: auto !important;
 }
 
 .resume.pdf-exporting .tpl-hc-side,
 .resume.pdf-exporting .tpl-hc-main {
   display: table-cell !important;
   vertical-align: top !important;
+  min-height: auto !important;
+  height: auto !important;
 }
 
 .resume.pdf-exporting .tpl-hc-side {
@@ -3522,6 +4403,12 @@ article#resume.resume .resume__mount > .tpl {
 
 .resume.pdf-exporting .tpl-hc-main {
   width: 74% !important;
+}
+
+.resume.pdf-exporting .tpl-high-contrast .tpl-hc-main .tpl-sec,
+.resume.pdf-exporting .tpl-high-contrast .tpl-hc-main .tpl-job {
+  break-inside: auto !important;
+  page-break-inside: auto !important;
 }
 
 .resume.pdf-exporting .tpl-high-contrast .tpl-hc-main .tpl-p,
@@ -3983,6 +4870,40 @@ article#resume.resume .resume__mount > .tpl {
   color: var(--muted);
 }
 
+.tpl-tl-contact-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0 0.1rem;
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.tpl-tl-contact-sep {
+  display: inline;
+  opacity: 0.75;
+  padding: 0 0.2rem;
+  user-select: none;
+}
+
+.tpl-timeline .tpl-tl-contact-row .tpl-contact-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.tpl-timeline .tpl-tl-contact-row .tpl-contact-icon,
+.tpl-timeline .tpl-tl-contact-row .tpl-contact-fallback {
+  color: var(--resume-accent);
+}
+
+.tpl-timeline .tpl-tl-contact-row .tpl-contact-icon svg {
+  fill: currentColor;
+}
+
 .tpl-tl-section-title {
   margin: 0 0 0.65rem;
   font-size: 0.78rem;
@@ -4076,6 +4997,27 @@ article#resume.resume .resume__mount > .tpl {
   margin-top: 0.35rem;
 }
 
+.tpl-ex-contact .tpl-contact-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.tpl-ex-contact .tpl-contact-icon,
+.tpl-ex-contact .tpl-contact-fallback {
+  color: color-mix(in srgb, var(--resume-accent) 80%, #fde68a);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.tpl-ex-contact .tpl-contact-icon svg {
+  fill: currentColor;
+}
+
+.tpl-ex-contact .tpl-contact-text {
+  color: #f8fafc;
+}
+
 .tpl-ex-main {
   padding: 0 1.75rem 2rem;
   background: #fff;
@@ -4152,6 +5094,67 @@ article#resume.resume .resume__mount > .tpl {
   margin: 0.5rem 0 0;
   font-size: 0.85rem;
   color: var(--muted);
+}
+
+.tpl-st-contact-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0 0.15rem;
+  margin: 0.5rem 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+  max-width: 100%;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.tpl-st-contact-sep {
+  display: inline;
+  flex-shrink: 0;
+  opacity: 0.75;
+  padding: 0 0.15rem;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.tpl-studio .tpl-st-contact-row .tpl-contact-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.tpl-studio .tpl-st-contact-row .tpl-contact-icon,
+.tpl-studio .tpl-st-contact-row .tpl-contact-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 0.95rem;
+  min-width: 0.95rem;
+  height: 0.95rem;
+  color: var(--resume-accent);
+  line-height: 1;
+}
+
+.tpl-studio .tpl-st-contact-row .tpl-contact-text {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.tpl-studio .tpl-st-contact-row .tpl-contact-icon svg {
+  fill: currentColor;
+}
+
+.tpl-st-hero-inner > div {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .tpl-st-skills {

@@ -13,6 +13,17 @@
     return document.getElementById('studentSidebarToggleDesktop');
   }
 
+  function getProfileSidebar() {
+    var col = document.querySelector('.student-dash-sidebar-col');
+    return col ? col.querySelector('.profile-sidebar') : null;
+  }
+
+  function resetProfileSidebarScroll() {
+    if (!document.body.classList.contains('rb2-studio-page')) return;
+    var sidebar = getProfileSidebar();
+    if (sidebar) sidebar.scrollTop = 0;
+  }
+
   function updateToggleUi() {
     var shell = getShell();
     var desktopToggle = getDesktopToggle();
@@ -34,10 +45,15 @@
 
     shell.classList.toggle('sidebar-open', !!isOpen);
     updateToggleUi();
+    if (isOpen) {
+      window.requestAnimationFrame(resetProfileSidebarScroll);
+      window.setTimeout(resetProfileSidebarScroll, 320);
+    }
   }
 
   function ensureSidebarDefaultState() {
-    setSidebarOpen(mq.matches);
+    var defaultOpen = mq.matches && !document.body.classList.contains('rb2-studio-page');
+    setSidebarOpen(defaultOpen);
   }
 
   function toggleSidebar() {
@@ -47,6 +63,10 @@
 
     shell.classList.toggle('sidebar-open');
     updateToggleUi();
+    if (shell.classList.contains('sidebar-open')) {
+      window.requestAnimationFrame(resetProfileSidebarScroll);
+      window.setTimeout(resetProfileSidebarScroll, 320);
+    }
   }
 
   document.addEventListener('click', function (e) {

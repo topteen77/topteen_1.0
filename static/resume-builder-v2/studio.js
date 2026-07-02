@@ -2072,20 +2072,53 @@
     });
   }
 
-  function updateProgress(pct) {
+  function currentProgressPct() {
     var bar = document.getElementById("rb2ProgressBar");
-    var label = document.getElementById("rb2ProgressLabel");
-    if (bar) bar.style.width = pct + "%";
-    if (label) {
-      var level = "Good";
-      var m = label.textContent.match(/·\s*(.+)$/);
-      if (m) level = m[1].trim();
-      if (pct >= 100) {
-        label.textContent = "Resume complete!";
-      } else {
-        label.textContent = pct + "% done · " + level;
-      }
+    if (bar && bar.style.width) {
+      var fromBar = parseInt(bar.style.width, 10);
+      if (!isNaN(fromBar)) return fromBar;
     }
+    var pctEl = document.getElementById("rb2ProgressPct");
+    if (pctEl) {
+      var m = pctEl.textContent.match(/(\d+)/);
+      if (m) return parseInt(m[1], 10);
+    }
+    return 0;
+  }
+
+  function progressLevelKey(level) {
+    return (level || "good").trim().toLowerCase();
+  }
+
+  function setProgressLabel(pct, level) {
+    var label = document.getElementById("rb2ProgressLabel");
+    var pctEl = document.getElementById("rb2ProgressPct");
+    var levelEl = document.getElementById("rb2ProgressLevel");
+    var barWrap = document.getElementById("rb2ProgressBarWrap");
+    var key = progressLevelKey(level);
+    if (label) label.dataset.level = key;
+    if (barWrap) {
+      barWrap.dataset.level = key;
+      barWrap.setAttribute("aria-valuenow", String(pct));
+    }
+    if (pct >= 100) {
+      if (label) {
+        label.innerHTML = '<span class="rb2-progress-pct rb2-progress-pct--complete">Resume complete!</span>';
+      }
+      return;
+    }
+    if (pctEl) pctEl.textContent = pct + "% done";
+    if (levelEl) levelEl.textContent = level || levelEl.textContent || "Good";
+  }
+
+  function updateProgress(pct, level) {
+    var bar = document.getElementById("rb2ProgressBar");
+    if (bar) bar.style.width = pct + "%";
+    if (level == null) {
+      var levelEl = document.getElementById("rb2ProgressLevel");
+      level = levelEl ? levelEl.textContent.trim() : "Good";
+    }
+    setProgressLabel(pct, level);
     updateCompleteUI(pct);
   }
 
@@ -2098,6 +2131,11 @@
     if (complete) complete.textContent = (strength.completion != null ? strength.completion : 0) + "%";
     if (details) {
       details.textContent = (strength.ats_completeness != null ? strength.ats_completeness : 0) + "%";
+    }
+    if (strength.level != null && strength.completion != null) {
+      updateProgress(strength.completion, strength.level);
+    } else if (strength.level != null) {
+      setProgressLabel(strength.completion != null ? strength.completion : currentProgressPct(), strength.level);
     }
   }
 
@@ -3129,6 +3167,121 @@
         setSavingState(false);
       });
   }
+
+  function initStudioSplitter() {
+    var body = document.querySelector(".rb2-studio-body");
+    var splitter = document.getElementById("rb2StudioSplitter");
+    if (!body || !splitter) return;
+
+    var mq = window.matchMedia("(min-width: 1101px)");
+    var STORAGE_KEY = "rb2StudioPreviewRatio";
+    var STEPS = 220;
+    var SPLITTER = 10;
+    var MIN_EDITOR = 280;
+    var MIN_PREVIEW = 280;
+    var dragging = false;
+
+    function getAvailableWidth() {
+      return body.getBoundingClientRect().width - STEPS - SPLITTER;
+    }
+
+    function clampPreview(width) {
+      var available = getAvailableWidth();
+      return Math.max(MIN_PREVIEW, Math.min(available - MIN_EDITOR, Math.round(width)));
+    }
+
+    function applyPreviewWidth(width) {
+      if (!mq.matches) return;
+      body.style.setProperty("--rb2-preview-col", clampPreview(width) + "px");
+    }
+
+    function applyRatio(ratio) {
+      if (!mq.matches || !(ratio > 0 && ratio < 1)) return;
+      applyPreviewWidth(getAvailableWidth() * ratio);
+    }
+
+    function loadSavedWidth() {
+      if (!mq.matches) return;
+      var saved = parseFloat(localStorage.getItem(STORAGE_KEY));
+      if (!isNaN(saved) && saved > 0 && saved < 1) {
+        applyRatio(saved);
+        return;
+      }
+      body.style.removeProperty("--rb2-preview-col");
+    }
+
+    function saveCurrentWidth() {
+      var previewPane = body.querySelector(".rb2-studio-preview-pane");
+      var available = getAvailableWidth();
+      if (!previewPane || available <= 0) return;
+      var preview = previewPane.getBoundingClientRect().width;
+      localStorage.setItem(STORAGE_KEY, String(preview / available));
+    }
+
+    function stopDrag(e) {
+      if (!dragging) return;
+      dragging = false;
+      body.classList.remove("is-resizing");
+      splitter.classList.remove("is-active");
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      if (e && splitter.hasPointerCapture(e.pointerId)) {
+        try {
+          splitter.releasePointerCapture(e.pointerId);
+        } catch (_) {}
+      }
+      saveCurrentWidth();
+    }
+
+    splitter.addEventListener("pointerdown", function (e) {
+      if (!mq.matches || e.button !== 0) return;
+      dragging = true;
+      body.classList.add("is-resizing");
+      splitter.classList.add("is-active");
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+      splitter.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+
+    splitter.addEventListener("pointermove", function (e) {
+      if (!dragging) return;
+      var rect = body.getBoundingClientRect();
+      applyPreviewWidth(rect.right - e.clientX);
+    });
+
+    splitter.addEventListener("pointerup", stopDrag);
+    splitter.addEventListener("pointercancel", stopDrag);
+
+    splitter.addEventListener("keydown", function (e) {
+      if (!mq.matches) return;
+      var step = e.shiftKey ? 48 : 20;
+      var previewPane = body.querySelector(".rb2-studio-preview-pane");
+      if (!previewPane) return;
+      var current = previewPane.getBoundingClientRect().width;
+      var next = current;
+      if (e.key === "ArrowLeft") next = current + step;
+      else if (e.key === "ArrowRight") next = current - step;
+      else return;
+      e.preventDefault();
+      applyPreviewWidth(next);
+      saveCurrentWidth();
+    });
+
+    splitter.addEventListener("dblclick", function () {
+      localStorage.removeItem(STORAGE_KEY);
+      body.style.removeProperty("--rb2-preview-col");
+    });
+
+    loadSavedWidth();
+    window.addEventListener("resize", function () {
+      var saved = parseFloat(localStorage.getItem(STORAGE_KEY));
+      if (!isNaN(saved) && saved > 0 && saved < 1) applyRatio(saved);
+    });
+    mq.addEventListener("change", loadSavedWidth);
+  }
+
+  initStudioSplitter();
 
   var pdfBtn = $("#rb2DownloadPdf");
   if (pdfBtn) {

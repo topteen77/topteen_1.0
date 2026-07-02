@@ -5,8 +5,8 @@
 
 {% block additionalhead %}
 {{ super() }}
-<link rel="stylesheet" href="{{ static('resume-builder-prototype/styles.css') }}?v=39">
-<link rel="stylesheet" href="{{ static('resume-builder-v2/styles.css') }}?v=31">
+<link rel="stylesheet" href="{{ static('resume-builder-prototype/styles.css') }}?v=56">
+<link rel="stylesheet" href="{{ static('resume-builder-v2/styles.css') }}?v=38">
 <link rel="stylesheet" href="{{ static('resume-builder-v2/messages.css') }}?v=4">
 <link rel="stylesheet" href="{{ static('resume-builder-v2/ai-review.css') }}?v=2">
 <style>
@@ -14,8 +14,9 @@
     background: #f0f2f8;
     font-family: inherit;
   }
-  body.rb2-studio-page .student-dash-sidebar-col { display: none !important; }
-  body.rb2-studio-page .student-dash-main-col { flex: 0 0 100% !important; max-width: 100% !important; }
+  body.rb2-studio-page .student-dash-main-col {
+    min-width: 0;
+  }
   /* Keep top offset for fixed site header — do not zero padding-top */
   body.rb2-studio-page .std-shell-main {
     padding-left: 0 !important;
@@ -25,6 +26,13 @@
   }
   body.rb2-studio-page .user-dashboard-container { max-width: 100%; padding: 0; }
   body.rb2-studio-page .student-dash-shell.row { margin: 0; min-height: 0; }
+  /* Keep sidebar toggle visible and icon rendered on studio */
+  body.rb2-studio-page .std-shell-sidebar-toggle {
+    display: inline-flex !important;
+  }
+  body.rb2-studio-page .std-shell-sidebar-toggle i.bx::before {
+    font-family: "boxicons" !important;
+  }
 </style>
 {% endblock %}
 
@@ -36,7 +44,7 @@
 
 {% block student_section_class %}rb2-page{% endblock %}
 {% block student_container_class %}container-fluid px-0{% endblock %}
-{% block student_row_class %}row g-0{% endblock %}
+{% block student_row_class %}row g-0 student-dash-shell{% endblock %}
 
 {% block student_main %}
 <div class="rb2-studio-app">
@@ -51,14 +59,21 @@
         <h1 class="rb2-studio-topbar__title">
           <span class="rb2-studio-topbar__title-badge">{{ resume.title|default('My Resume') }}</span>
         </h1>
-        <p class="rb2-studio-topbar__sub" id="rb2ProgressLabel">
-          {{ overall_completion }}% done · {{ strength.level }}
-          {% if goal_label %} · Goal: {{ goal_label }}{% endif %}
-        </p>
       </div>
     </div>
-    <div class="rb2-studio-topbar__progress" aria-hidden="true">
-      <div class="rb2-strength-bar"><div class="rb2-strength-bar__fill" id="rb2ProgressBar" style="width:{{ overall_completion }}%"></div></div>
+    <div class="rb2-studio-topbar__progress">
+      <div class="rb2-strength-bar rb2-strength-bar--topbar" id="rb2ProgressBarWrap" data-level="{{ strength.level|lower }}" role="progressbar" aria-valuenow="{{ overall_completion }}" aria-valuemin="0" aria-valuemax="100" aria-label="Resume completion">
+        <div class="rb2-strength-bar__fill" id="rb2ProgressBar" style="width:{{ overall_completion }}%"></div>
+      </div>
+      <p class="rb2-studio-topbar__progress-label" id="rb2ProgressLabel" data-level="{{ strength.level|lower }}">
+        <span class="rb2-progress-pct" id="rb2ProgressPct">{{ overall_completion }}% done</span>
+        <span class="rb2-progress-sep" aria-hidden="true">·</span>
+        <span class="rb2-progress-level" id="rb2ProgressLevel">{{ strength.level }}</span>
+        {% if goal_label %}
+        <span class="rb2-progress-sep" aria-hidden="true">·</span>
+        <span class="rb2-progress-goal">Goal: {{ goal_label }}</span>
+        {% endif %}
+      </p>
     </div>
     <div class="rb2-studio-topbar__actions">
       <button type="button" class="rb2-btn rb2-btn--soft rb2-btn--sm" id="rb2GenerateResumeAI" title="Enhance entire resume with AI for your goal">
@@ -457,6 +472,14 @@
         </div>
       </div>
     </main>
+    <div
+      class="rb2-studio-splitter"
+      id="rb2StudioSplitter"
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="Resize editor and preview panels"
+      tabindex="0"
+    ></div>
     <aside class="rb2-studio-preview-pane">
       <div class="rb2-preview-header">
         <span class="rb2-preview-header__title"><i class='bx bx-show'></i> Live preview</span>
@@ -609,5 +632,5 @@ window.__RB2_STUDIO = {
 </script>
 <script src="{{ static('resume-builder-v2/messages.js') }}?v=3"></script>
 <script src="{{ static('resume-builder-v2/ai-review-modal.js') }}?v=3"></script>
-<script src="{{ static('resume-builder-v2/studio.js') }}?v=61"></script>
+<script src="{{ static('resume-builder-v2/studio.js') }}?v=64"></script>
 {% endblock %}

@@ -94,6 +94,7 @@ def _photo_html(d: dict, class_name: str) -> str:
         "tpl-st-photo": (72, 72),
         "tpl-nv-photo": (80, 80),
         "tpl-fo-photo": (88, 88),
+        "tpl-vx-photo": (88, 88),
         "tpl-gg-photo": (88, 88),
     }
     w, h = dims.get(class_name, (88, 88))
@@ -265,6 +266,126 @@ def _contact_mz_row_html(d: dict) -> str:
         return ""
     inner = '<span class="tpl-mz-contact-sep" aria-hidden="true"> · </span>'.join(items)
     return f'<div class="tpl-mz-contact-row">{inner}</div>'
+
+
+def _contact_tl_row_html(d: dict) -> str:
+    items: list[str] = []
+    for kind, key in (
+        ("phone", "phone"),
+        ("email", "email"),
+        ("location", "address"),
+        ("linkedin", "linkedin"),
+        ("website", "website"),
+    ):
+        val = (d.get(key) or "").strip()
+        if not val:
+            continue
+        items.append(_contact_item_html(kind, val))
+    if not items:
+        return ""
+    inner = '<span class="tpl-tl-contact-sep" aria-hidden="true"> · </span>'.join(items)
+    return f'<div class="tpl-tl-contact-row">{inner}</div>'
+
+
+def _contact_st_row_html(d: dict) -> str:
+    items: list[str] = []
+    for kind, key in (
+        ("phone", "phone"),
+        ("email", "email"),
+        ("location", "address"),
+        ("linkedin", "linkedin"),
+        ("website", "website"),
+    ):
+        val = (d.get(key) or "").strip()
+        if not val:
+            continue
+        items.append(_contact_item_html(kind, val))
+    if not items:
+        return ""
+    inner = '<span class="tpl-st-contact-sep" aria-hidden="true"> · </span>'.join(items)
+    return f'<div class="tpl-st-contact-row">{inner}</div>'
+
+
+def _contact_nv_row_html(d: dict) -> str:
+    items: list[str] = []
+    for kind, key in (
+        ("phone", "phone"),
+        ("email", "email"),
+        ("location", "address"),
+        ("linkedin", "linkedin"),
+        ("website", "website"),
+    ):
+        val = (d.get(key) or "").strip()
+        if not val:
+            continue
+        items.append(_contact_item_html(kind, val))
+    if not items:
+        return ""
+    inner = '<span class="tpl-nv-contact-sep" aria-hidden="true"> · </span>'.join(items)
+    return f'<div class="tpl-nv-contact-row">{inner}</div>'
+
+
+def _contact_fo_row_html(d: dict) -> str:
+    items: list[str] = []
+    for kind, key in (
+        ("phone", "phone"),
+        ("email", "email"),
+        ("location", "address"),
+        ("linkedin", "linkedin"),
+        ("website", "website"),
+    ):
+        val = (d.get(key) or "").strip()
+        if not val:
+            continue
+        items.append(_contact_item_html(kind, val))
+    if not items:
+        return ""
+    inner = '<span class="tpl-fo-contact-sep" aria-hidden="true"> · </span>'.join(items)
+    return f'<div class="tpl-fo-contact-row">{inner}</div>'
+
+
+def _contact_vx_row_html(d: dict) -> str:
+    items: list[str] = []
+    for kind, key in (
+        ("phone", "phone"),
+        ("email", "email"),
+        ("location", "address"),
+        ("linkedin", "linkedin"),
+        ("website", "website"),
+    ):
+        val = (d.get(key) or "").strip()
+        if not val:
+            continue
+        items.append(_contact_item_html(kind, val))
+    if not items:
+        return ""
+    inner = '<span class="tpl-vx-contact-sep" aria-hidden="true"> · </span>'.join(items)
+    return f'<div class="tpl-vx-contact-row">{inner}</div>'
+
+
+def _contact_vx_pdf_row_html(d: dict) -> str:
+    """WeasyPrint-safe Vertex contact — inline spans only (no flex/SVG)."""
+    pieces: list[str] = []
+    for kind, key in (
+        ("phone", "phone"),
+        ("email", "email"),
+        ("location", "address"),
+        ("linkedin", "linkedin"),
+        ("website", "website"),
+    ):
+        val = (d.get(key) or "").strip()
+        if not val:
+            continue
+        fb = _esc(_CONTACT_ICON_FALLBACK.get(kind, "•"))
+        pieces.append(
+            f'<span class="tpl-vx-contact-piece">'
+            f'<span class="tpl-contact-fallback">{fb}</span> '
+            f'<span class="tpl-contact-text">{_esc(val)}</span></span>'
+        )
+    if not pieces:
+        return ""
+    inner = '<span class="tpl-vx-contact-sep" aria-hidden="true"> · </span>'.join(pieces)
+    return f'<p class="tpl-vx-contact-row">{inner}</p>'
 
 
 def _contact_inline_html(d: dict, wrap_class: str = "tpl-geo-contact") -> str:
@@ -492,15 +613,27 @@ def _projects_from_data(d: dict) -> list[dict]:
     ]
 
 
+_PROFILE_INTEREST_MARKER = "extracurricular interest from profile"
+
+
+def _is_profile_interest_block(exp: dict) -> bool:
+    bullets = exp.get("bullets") or []
+    if len(bullets) != 1:
+        return False
+    text = str(bullets[0]).strip().rstrip(".").lower()
+    return text == _PROFILE_INTEREST_MARKER
+
+
 def _achievements_from_data(d: dict) -> list[dict]:
-    items = d.get("achievements")
-    if isinstance(items, list):
-        return [x for x in items if isinstance(x, dict)]
-    return [
-        x
-        for x in (d.get("experience") or [])
-        if isinstance(x, dict) and not _is_project_block(x) and not _is_work_experience_block(x)
-    ]
+    if isinstance(d.get("achievements"), list):
+        items = [x for x in d["achievements"] if isinstance(x, dict)]
+    else:
+        items = [
+            x
+            for x in (d.get("experience") or [])
+            if isinstance(x, dict) and not _is_project_block(x) and not _is_work_experience_block(x)
+        ]
+    return [x for x in items if not _is_profile_interest_block(x)]
 
 
 def _work_experience_from_data(d: dict) -> list[dict]:
@@ -1228,7 +1361,7 @@ def _timeline_track_section(title: str, items: list[dict]) -> str:
 
 
 def _tpl_timeline(d: dict) -> str:
-    cj = " · ".join(_contact_parts(d))
+    contact_html = _contact_tl_row_html(d)
     timeline_secs = _join_visible(
         [
             _timeline_track_section("Projects", _projects_from_data(d)),
@@ -1252,23 +1385,24 @@ def _tpl_timeline(d: dict) -> str:
     return (
         f'<div class="tpl tpl-timeline"><header class="tpl-tl-head">'
         f'<h1 class="tpl-tl-name">{_esc(d.get("fullName"))}</h1>'
-        f'<p class="tpl-tl-sub">{_esc(d.get("headline"))}</p>'
-        f'<p class="tpl-tl-contact">{cj}</p></header>'
+        f'{_tpl_headline("tpl-tl-sub", d)}'
+        f"{contact_html}</header>"
         f'{_sec_summary(d, h2_class="tpl-tl-section-title")}'
         f"{timeline_secs}{two_col}"
         f'{_sec_certifications(d, h2_class="tpl-tl-section-title")}'
         f'{_sec_languages(d, h2_class="tpl-tl-section-title")}'
         f'{_sec_hobbies(d, h2_class="tpl-tl-section-title")}'
-        f'{_sec_interests(d, h2_class="tpl-tl-section-title")}'
         f"</div>"
     )
 
 
 def _tpl_executive(d: dict) -> str:
-    citems = "".join(f"<li>{x}</li>" for x in _contact_parts(d))
+    citems = _contact_list_items_html(d)
     side_parts: list[str] = [_photo_html(d, "tpl-ex-photo")]
     if citems:
-        side_parts.append(f'<h2 class="tpl-ex-h2">Contact</h2><ul class="tpl-ex-list">{citems}</ul>')
+        side_parts.append(
+            f'<h2 class="tpl-ex-h2">Contact</h2><ul class="tpl-ex-list tpl-ex-contact">{citems}</ul>'
+        )
     skills = _skills_list_html(d)
     if skills.strip():
         side_parts.append(
@@ -1285,19 +1419,18 @@ def _tpl_executive(d: dict) -> str:
         f'<div class="tpl tpl-executive"><aside class="tpl-ex-side">{"".join(side_parts)}</aside>'
         f'<div class="tpl-ex-main"><header class="tpl-ex-top">'
         f'<h1 class="tpl-ex-name">{_esc(d.get("fullName"))}</h1>'
-        f'<p class="tpl-ex-title">{_esc(d.get("headline"))}</p></header>'
+        f'{_tpl_headline("tpl-ex-title", d)}</header>'
         f'{_sec_summary(d, h2_class="tpl-ex-h2-main")}'
-        f'{_sec_experience(d, h2_class="tpl-ex-h2-main")}'
+        f'{_resume_job_sections(d, h2_class="tpl-ex-h2-main")}'
         f'{_sec_education(d, h2_class="tpl-ex-h2-main")}'
         f'{_sec_certifications(d, h2_class="tpl-ex-h2-main")}'
-        f'{_sec_interests(d, h2_class="tpl-ex-h2-main")}'
         f'{_sec_hobbies(d, h2_class="tpl-ex-h2-main")}'
         f"</div></div>"
     )
 
 
 def _tpl_studio(d: dict) -> str:
-    cj = " · ".join(_contact_parts(d))
+    contact_html = _contact_st_row_html(d)
     pills = _skills_pills_html(d)
     pills_html = f'<div class="tpl-st-skills">{pills}</div>' if pills.strip() else ""
     langs = _languages_html(d)
@@ -1316,21 +1449,20 @@ def _tpl_studio(d: dict) -> str:
     return (
         f'<div class="tpl tpl-studio"><header class="tpl-st-hero"><div class="tpl-st-hero-inner">'
         f'{_photo_html(d, "tpl-st-photo")}<div><h1 class="tpl-st-name">{_esc(d.get("fullName"))}</h1>'
-        f'<p class="tpl-st-tagline">{_esc(d.get("headline"))}</p>'
-        f'<p class="tpl-st-contact">{cj}</p></div></div>'
+        f'{_tpl_headline("tpl-st-tagline", d)}'
+        f"{contact_html}</div></div>"
         f'{pills_html}</header><div class="tpl-st-body">'
         f'{_sec_summary(d, wrap_class="tpl-st-card", h2_class="tpl-st-h2")}'
-        f'{_sec_experience(d, wrap_class="tpl-st-card", h2_class="tpl-st-h2", class_job="tpl-job tpl-job--st")}'
+        f'{_resume_job_sections(d, wrap_class="tpl-st-card", h2_class="tpl-st-h2", class_job="tpl-job tpl-job--st")}'
         f'{split_html}'
         f'{_sec_certifications(d, wrap_class="tpl-st-card", h2_class="tpl-st-h2")}'
-        f'{_sec_interests(d, wrap_class="tpl-st-card", h2_class="tpl-st-h2")}'
         f'{_sec_hobbies(d, wrap_class="tpl-st-card", h2_class="tpl-st-h2")}'
         f"</div></div>"
     )
 
 
 def _tpl_nova(d: dict) -> str:
-    cj = " · ".join(_contact_parts(d))
+    contact_html = _contact_nv_row_html(d)
     edu_html = _education_html(d)
     pills = _skills_pills_html(d)
     split_parts: list[str] = []
@@ -1348,13 +1480,14 @@ def _tpl_nova(d: dict) -> str:
         f'<div class="tpl tpl-nova"><div class="tpl-nv-hero"><div class="tpl-nv-blob" aria-hidden="true"></div>'
         f'<div class="tpl-nv-card">{_photo_html(d, "tpl-nv-photo")}<div class="tpl-nv-intro">'
         f'<h1 class="tpl-nv-name">{_esc(d.get("fullName"))}</h1>'
-        f'<p class="tpl-nv-tagline">{_esc(d.get("headline"))}</p>'
-        f'<p class="tpl-nv-contact">{cj}</p></div></div></div><div class="tpl-nv-body">'
+        f'{_tpl_headline("tpl-nv-tagline", d)}'
+        f'{contact_html}</div></div></div><div class="tpl-nv-body">'
         f'{_sec_summary(d, wrap_class="tpl-nv-panel", h2_class="tpl-nv-h2")}'
-        f'{_sec_experience(d, wrap_class="tpl-nv-panel", h2_class="tpl-nv-h2")}'
-        f'{split_html}{_sec_certifications(d, wrap_class="tpl-nv-panel", h2_class="tpl-nv-h2")}{_sec_languages(d, wrap_class="tpl-nv-panel", h2_class="tpl-nv-h2")}'
+        f'{_resume_job_sections(d, wrap_class="tpl-nv-panel", h2_class="tpl-nv-h2")}'
+        f'{split_html}'
+        f'{_sec_certifications(d, wrap_class="tpl-nv-panel", h2_class="tpl-nv-h2")}'
+        f'{_sec_languages(d, wrap_class="tpl-nv-panel", h2_class="tpl-nv-h2")}'
         f'{_sec_hobbies(d, wrap_class="tpl-nv-panel", h2_class="tpl-nv-h2")}'
-        f'{_sec_interests(d, wrap_class="tpl-nv-panel", h2_class="tpl-nv-h2")}'
         f"</div></div>"
     )
 
@@ -1446,7 +1579,7 @@ def _tpl_horizon(d: dict) -> str:
 
 
 def _tpl_folio(d: dict) -> str:
-    cj = " · ".join(_contact_parts(d))
+    contact_html = _contact_fo_row_html(d)
     counter = 0
 
     def _fo_num() -> str:
@@ -1469,6 +1602,8 @@ def _tpl_folio(d: dict) -> str:
     )
     skills_text = _skills_join_text(d)
     skills_inner = f'<p class="tpl-fo-skills">{skills_text}</p>' if skills_text.strip() else ""
+    langs = _languages_html(d)
+    hobbies_val = _hobbies_text(d)
     sections = _join_visible(
         [
             _fo_sec(CAREER_OBJECTIVE_TITLE, summary_inner),
@@ -1484,33 +1619,25 @@ def _tpl_folio(d: dict) -> str:
             _fo_sec("Education", _education_html(d)),
             _fo_sec("Skills", skills_inner),
             _fo_sec("Certifications", _certifications_html(d)),
-            _fo_sec("Languages", f'<ul class="tpl-bullets">{_languages_html(d)}</ul>'),
+            _fo_sec("Languages", f'<ul class="tpl-bullets">{langs}</ul>' if langs.strip() else ""),
             _fo_sec(
                 "Hobbies",
-                f'<p class="tpl-p">{_esc(d.get("hobbies"))}</p>'
-                if _has_display_text(d.get("hobbies"))
-                else "",
-            ),
-            _fo_sec(
-                "Interests",
-                f'<p class="tpl-p">{_esc(d.get("interests"))}</p>'
-                if _has_display_text(d.get("interests"))
-                else "",
+                f'<p class="tpl-p">{_esc(hobbies_val)}</p>' if _has_display_text(hobbies_val) else "",
             ),
         ]
     )
     return (
-        f'<div class="tpl tpl-folio"><header class="tpl-fo-head">{_photo_html(d, "tpl-fo-photo")}<div>'
-        f'<h1 class="tpl-fo-name">{_esc(d.get("fullName"))}</h1>'
-        f'<p class="tpl-fo-line">{_esc(d.get("headline"))}</p>'
-        f'<p class="tpl-fo-contact">{cj}</p></div></header>'
+        f'<div class="tpl tpl-folio"><header class="tpl-fo-head">{_photo_html(d, "tpl-fo-photo")}'
+        f'<div class="tpl-fo-head-text"><h1 class="tpl-fo-name">{_esc(d.get("fullName"))}</h1>'
+        f'{_tpl_headline("tpl-fo-line", d)}'
+        f"{contact_html}</div></header>"
         f"{sections}"
         f"</div>"
     )
 
 
 def _tpl_vertex(d: dict) -> str:
-    cj = " · ".join(_contact_parts(d))
+    contact_html = _contact_vx_pdf_row_html(d)
     edu_html = _education_html(d)
     skills_html = _skills_list_html(d)
     grid_parts: list[str] = []
@@ -1520,22 +1647,28 @@ def _tpl_vertex(d: dict) -> str:
         )
     if skills_html.strip():
         grid_parts.append(
-            f'<section class="tpl-sec"><h2 class="tpl-vx-h2">Skills</h2>'
+            f'<section class="tpl-sec tpl-vx-skills"><h2 class="tpl-vx-h2">Skills</h2>'
             f'<ul class="tpl-bullets">{skills_html}</ul></section>'
         )
     grid_html = f'<div class="tpl-vx-grid">{"".join(grid_parts)}</div>' if grid_parts else ""
     return (
         f'<div class="tpl tpl-vertex"><header class="tpl-vx-banner"><div class="tpl-vx-banner-inner">'
+        f'<div class="tpl-vx-banner-row">'
+        f'<div class="tpl-vx-banner-main">'
+        f'<div class="tpl-vx-banner-text">'
         f'<h1 class="tpl-vx-name">{_esc(d.get("fullName"))}</h1>'
-        f'<p class="tpl-vx-title">{_esc(d.get("headline"))}</p>'
-        f'<p class="tpl-vx-contact">{cj}</p></div></header><div class="tpl-vx-body">'
+        f'{_tpl_headline("tpl-vx-title", d)}'
+        f'{contact_html}'
+        f'</div>'
+        f'<div class="tpl-vx-banner-photo">{_photo_html(d, "tpl-vx-photo")}</div>'
+        f'</div>'
+        f'</div></div></header><div class="tpl-vx-body">'
         f'{_sec_summary(d, h2_class="tpl-vx-h2")}'
-        f'{_sec_experience(d, h2_class="tpl-vx-h2")}'
+        f'{_resume_job_sections(d, h2_class="tpl-vx-h2")}'
         f'{grid_html}'
         f'{_sec_certifications(d, h2_class="tpl-vx-h2")}'
         f'{_sec_languages(d, h2_class="tpl-vx-h2")}'
         f'{_sec_hobbies(d, h2_class="tpl-vx-h2")}'
-        f'{_sec_interests(d, h2_class="tpl-vx-h2")}'
         f"</div></div>"
     )
 
@@ -1891,10 +2024,88 @@ body.tt-pdf-export .resume.pdf-exporting .tpl,
 body.tt-pdf-export article#resume.resume .tpl {{
   min-height: auto !important;
 }}
-/* Sidebar / two-column templates — stretch accent column to full page */
-body.tt-pdf-export .tpl-classic-sidebar,
+/* Sidebar / two-column templates */
 body.tt-pdf-export .tpl-executive {{
-  min-height: var(--pdf-page-min-height) !important;
+  min-height: auto !important;
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-ex-side,
+body.tt-pdf-export .tpl-ex-main {{
+  display: table-cell !important;
+  float: none !important;
+  vertical-align: top !important;
+  min-height: auto !important;
+  height: auto !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-ex-side {{
+  width: 28% !important;
+  background: #1e293b !important;
+  color: #f8fafc !important;
+  padding: 1.75rem 1.25rem 2rem !important;
+  border-right: 4px solid var(--resume-accent) !important;
+}}
+body.tt-pdf-export .tpl-ex-main {{
+  width: 72% !important;
+  padding: 0 1.75rem 2rem !important;
+  background: #ffffff !important;
+}}
+body.tt-pdf-export .tpl-ex-top {{
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+  break-after: avoid !important;
+  page-break-after: avoid !important;
+}}
+body.tt-pdf-export .tpl-ex-photo {{
+  width: 120px !important;
+  height: 120px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  margin: 0 auto 1.25rem !important;
+  display: block !important;
+  border: 3px solid var(--resume-accent) !important;
+}}
+body.tt-pdf-export .tpl-ex-h2 {{
+  color: #fde68a !important;
+}}
+body.tt-pdf-export .tpl-ex-h2-main {{
+  color: #0f172a !important;
+  border-bottom-color: var(--resume-accent) !important;
+}}
+body.tt-pdf-export .tpl-ex-contact .tpl-contact-item {{
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 0.35rem !important;
+  max-width: 100% !important;
+}}
+body.tt-pdf-export .tpl-executive .tpl-ex-contact .tpl-contact-icon,
+body.tt-pdf-export .tpl-executive .tpl-ex-contact .tpl-contact-fallback,
+body.tt-pdf-export .tpl-executive .tpl-ex-contact .tpl-contact-text {{
+  color: #f8fafc !important;
+}}
+body.tt-pdf-export .tpl-executive .tpl-ex-main .tpl-sec {{
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+  margin-bottom: 0.65rem !important;
+}}
+body.tt-pdf-export .tpl-executive .tpl-ex-main .tpl-job {{
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+  margin-bottom: 0.45rem !important;
+}}
+body.tt-pdf-export .tpl-executive .tpl-ex-main .tpl-p,
+body.tt-pdf-export .tpl-executive .tpl-ex-main .tpl-bullets,
+body.tt-pdf-export .tpl-executive .tpl-ex-main .tpl-edu-block,
+body.tt-pdf-export .tpl-executive .tpl-ex-main .tpl-cert {{
+  display: block !important;
+  visibility: visible !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
 }}
 body.tt-pdf-export .tpl-tech-focus {{
   min-height: auto !important;
@@ -1917,31 +2128,30 @@ body.tt-pdf-export article#resume.resume .resume__mount {{
 body.tt-pdf-export .resume.pdf-exporting .resume__mount {{
   zoom: 1 !important;
 }}
-/* Sidebar accent columns — full printable page height */
-body.tt-pdf-export .tpl-cs-side,
-body.tt-pdf-export .tpl-ex-side {{
-  min-height: var(--pdf-page-min-height) !important;
-}}
 body.tt-pdf-export .tpl-tf-side {{
   min-height: auto !important;
-  align-self: stretch !important;
+  height: auto !important;
+  align-self: auto !important;
 }}
 body.tt-pdf-export .tpl-pb-side {{
   min-height: auto !important;
-  align-self: stretch !important;
+  height: auto !important;
+  align-self: auto !important;
 }}
 body.tt-pdf-export .tpl-high-contrast {{
-  min-height: var(--pdf-page-min-height) !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 4px !important;
+  min-height: auto !important;
+  display: block !important;
   width: 100% !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
 }}
 body.tt-pdf-export .tpl-hc-top {{
   background: #111111 !important;
   color: #ffffff !important;
   padding: 1.35rem 1.75rem !important;
   text-align: center !important;
+  break-after: avoid !important;
+  page-break-after: avoid !important;
 }}
 body.tt-pdf-export .tpl-hc-name,
 body.tt-pdf-export .tpl-hc-title {{
@@ -1972,13 +2182,15 @@ body.tt-pdf-export .tpl-high-contrast .tpl-hc-contact-row .tpl-contact-text {{
   white-space: nowrap !important;
 }}
 body.tt-pdf-export .tpl-hc-body {{
-  flex: 1 1 auto !important;
-  min-height: calc(var(--pdf-page-min-height) - 5rem - 4px) !important;
+  flex: none !important;
+  min-height: auto !important;
   display: table !important;
   table-layout: fixed !important;
   width: 100% !important;
   border-collapse: collapse !important;
   border-spacing: 0 !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
 }}
 body.tt-pdf-export .tpl-hc-side,
 body.tt-pdf-export .tpl-hc-main {{
@@ -1988,10 +2200,13 @@ body.tt-pdf-export .tpl-hc-main {{
   margin: 0 !important;
   box-sizing: border-box !important;
   overflow: visible !important;
+  min-height: auto !important;
+  height: auto !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
 }}
 body.tt-pdf-export .tpl-hc-side {{
   width: 26% !important;
-  min-height: 100% !important;
   background: #111111 !important;
   color: #ffffff !important;
   padding: 1.25rem 1rem 2rem !important;
@@ -2021,6 +2236,16 @@ body.tt-pdf-export .tpl-high-contrast .tpl-hc-main .tpl-bullets {{
   overflow-wrap: normal !important;
   word-break: normal !important;
 }}
+body.tt-pdf-export .tpl-high-contrast .tpl-hc-main .tpl-sec {{
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+  margin-bottom: 0.65rem !important;
+}}
+body.tt-pdf-export .tpl-high-contrast .tpl-hc-main .tpl-job {{
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+  margin-bottom: 0.45rem !important;
+}}
 body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-hc-body {{
   display: table !important;
   table-layout: fixed !important;
@@ -2032,12 +2257,17 @@ body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-hc-main {{
   float: none !important;
   margin: 0 !important;
   vertical-align: top !important;
+  min-height: auto !important;
+  height: auto !important;
 }}
 body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-hc-side {{
   width: 26% !important;
 }}
 body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-hc-main {{
   width: 74% !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-hc-body {{
+  min-height: auto !important;
 }}
 body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-hc-body {{
   display: table !important;
@@ -2050,6 +2280,11 @@ body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-hc-main {{
   float: none !important;
   margin: 0 !important;
   vertical-align: top !important;
+  min-height: auto !important;
+  height: auto !important;
+}}
+body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-hc-body {{
+  min-height: auto !important;
 }}
 body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-hc-side {{
   width: 26% !important;
@@ -2208,10 +2443,11 @@ body.tt-pdf-export .tpl-mz-photo {{
   border-width: 2px !important;
 }}
 body.tt-pdf-export .tpl-aurora {{
-  min-height: var(--pdf-page-min-height) !important;
-  display: flex !important;
-  flex-direction: column !important;
+  min-height: auto !important;
+  display: block !important;
   width: 100% !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
 }}
 body.tt-pdf-export .tpl-au-hero {{
   display: flex !important;
@@ -2221,6 +2457,10 @@ body.tt-pdf-export .tpl-au-hero {{
   padding: 2rem 1.75rem !important;
   background: var(--resume-accent) !important;
   color: #ffffff !important;
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+  break-after: avoid !important;
+  page-break-after: avoid !important;
 }}
 body.tt-pdf-export .tpl-au-name,
 body.tt-pdf-export .tpl-au-tagline {{
@@ -2260,13 +2500,21 @@ body.tt-pdf-export .tpl-au-photo {{
 body.tt-pdf-export .tpl-au-body {{
   padding: 1.5rem 1.5rem 2rem !important;
   display: block !important;
+  min-height: auto !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
 }}
 body.tt-pdf-export .tpl-au-card {{
   display: block !important;
   visibility: visible !important;
-  break-inside: avoid !important;
-  page-break-inside: avoid !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
   margin-bottom: 1rem !important;
+}}
+body.tt-pdf-export .tpl-aurora .tpl-au-card .tpl-job {{
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+  margin-bottom: 0.45rem !important;
 }}
 body.tt-pdf-export .tpl-aurora .tpl-au-h2 {{
   color: var(--resume-accent) !important;
@@ -2288,11 +2536,757 @@ body.tt-pdf-export .tpl-au-row {{
   border-collapse: separate !important;
   border-spacing: 1rem 0 !important;
   margin-bottom: 1rem !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
 }}
 body.tt-pdf-export .tpl-au-row .tpl-au-card--half {{
   display: table-cell !important;
   width: 50% !important;
   vertical-align: top !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-timeline {{
+  min-height: auto !important;
+  display: block !important;
+  width: 100% !important;
+  padding: 1.75rem 1.75rem 2rem !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-tl-head {{
+  text-align: center !important;
+  padding-bottom: 1.25rem !important;
+  margin-bottom: 1.25rem !important;
+  border-bottom: 2px solid var(--resume-accent) !important;
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+  break-after: avoid !important;
+  page-break-after: avoid !important;
+}}
+body.tt-pdf-export .tpl-timeline .tpl-tl-contact-row {{
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 0 0.1rem !important;
+  margin: 0.5rem 0 0 !important;
+  font-size: 0.85rem !important;
+  color: #6b7280 !important;
+  width: 100% !important;
+}}
+body.tt-pdf-export .tpl-timeline .tpl-tl-contact-row .tpl-contact-item {{
+  display: inline-flex !important;
+  align-items: center !important;
+  flex: 0 0 auto !important;
+  gap: 0.3rem !important;
+}}
+body.tt-pdf-export .tpl-timeline .tpl-tl-contact-row .tpl-contact-icon,
+body.tt-pdf-export .tpl-timeline .tpl-tl-contact-row .tpl-contact-fallback {{
+  color: var(--resume-accent) !important;
+}}
+body.tt-pdf-export .tpl-timeline .tpl-tl-section-title {{
+  color: var(--resume-accent) !important;
+}}
+body.tt-pdf-export .tpl-timeline .tpl-sec {{
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+  margin-bottom: 0.65rem !important;
+}}
+body.tt-pdf-export .tpl-timeline .tpl-tl-track {{
+  display: block !important;
+  visibility: visible !important;
+  position: relative !important;
+  padding-left: 1.25rem !important;
+  border-left: 3px solid var(--resume-accent) !important;
+  margin-left: 0.5rem !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-timeline .tpl-tl-item {{
+  display: block !important;
+  visibility: visible !important;
+  position: relative !important;
+  padding-bottom: 1rem !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-timeline .tpl-tl-dot {{
+  display: block !important;
+  visibility: visible !important;
+  position: absolute !important;
+  left: -1.37rem !important;
+  top: 0.35rem !important;
+  width: 12px !important;
+  height: 12px !important;
+  border-radius: 50% !important;
+  background: var(--resume-accent) !important;
+  border: 2px solid #ffffff !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+}}
+body.tt-pdf-export .tpl-timeline .tpl-tl-two {{
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin-bottom: 0.65rem !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-timeline .tpl-tl-two > .tpl-sec {{
+  display: table-cell !important;
+  width: 50% !important;
+  vertical-align: top !important;
+  padding-right: 0.65rem !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-timeline .tpl-tl-two > .tpl-sec:last-child {{
+  padding-right: 0 !important;
+  padding-left: 0.65rem !important;
+}}
+body.tt-pdf-export .tpl-timeline .tpl-p,
+body.tt-pdf-export .tpl-timeline .tpl-job,
+body.tt-pdf-export .tpl-timeline .tpl-edu-block,
+body.tt-pdf-export .tpl-timeline .tpl-cert,
+body.tt-pdf-export .tpl-timeline .tpl-bullets {{
+  display: block !important;
+  visibility: visible !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}}
+body.tt-pdf-export .tpl-studio {{
+  min-height: auto !important;
+  display: block !important;
+  width: 100% !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-st-hero {{
+  padding: 1.75rem 1.75rem 1.25rem !important;
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+  break-after: avoid !important;
+  page-break-after: avoid !important;
+}}
+body.tt-pdf-export .tpl-st-hero-inner {{
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 1.5rem !important;
+  margin-bottom: 1rem !important;
+}}
+body.tt-pdf-export .tpl-st-photo {{
+  width: 96px !important;
+  height: 96px !important;
+  flex-shrink: 0 !important;
+  border-radius: 24px !important;
+  object-fit: cover !important;
+  display: block !important;
+  visibility: visible !important;
+  border: 4px solid #ffffff !important;
+}}
+body.tt-pdf-export .tpl-studio .tpl-st-contact-row {{
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 0 0.15rem !important;
+  margin: 0.5rem 0 0 !important;
+  font-size: 0.82rem !important;
+  color: #6b7280 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: visible !important;
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}}
+body.tt-pdf-export .tpl-studio .tpl-st-contact-row .tpl-st-contact-sep {{
+  display: inline !important;
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+  padding: 0 0.15rem !important;
+  opacity: 0.75 !important;
+}}
+body.tt-pdf-export .tpl-studio .tpl-st-contact-row .tpl-contact-item {{
+  display: inline-flex !important;
+  align-items: center !important;
+  flex: 0 0 auto !important;
+  flex-shrink: 0 !important;
+  gap: 0.3rem !important;
+  white-space: nowrap !important;
+  max-width: none !important;
+}}
+body.tt-pdf-export .tpl-studio .tpl-st-contact-row .tpl-contact-icon,
+body.tt-pdf-export .tpl-studio .tpl-st-contact-row .tpl-contact-fallback {{
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  width: 0.95rem !important;
+  min-width: 0.95rem !important;
+  height: 0.95rem !important;
+  color: var(--resume-accent) !important;
+  visibility: visible !important;
+  line-height: 1 !important;
+}}
+body.tt-pdf-export .tpl-studio .tpl-st-contact-row .tpl-contact-text {{
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+  flex-shrink: 0 !important;
+}}
+body.tt-pdf-export .tpl-st-hero-inner > div {{
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}}
+body.tt-pdf-export .tpl-st-skills {{
+  display: block !important;
+  visibility: visible !important;
+  margin-top: 0.25rem !important;
+}}
+body.tt-pdf-export .tpl-st-skills .tpl-pill {{
+  display: inline-block !important;
+  vertical-align: top !important;
+  margin: 0 0.35rem 0.35rem 0 !important;
+}}
+body.tt-pdf-export .tpl-st-body {{
+  padding: 0 1.5rem 2rem !important;
+  display: block !important;
+  min-height: auto !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-st-card {{
+  display: block !important;
+  visibility: visible !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+  margin-bottom: 1rem !important;
+}}
+body.tt-pdf-export .tpl-studio .tpl-st-card .tpl-job {{
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+  margin-bottom: 0.45rem !important;
+}}
+body.tt-pdf-export .tpl-studio .tpl-st-h2 {{
+  color: var(--resume-accent) !important;
+}}
+body.tt-pdf-export .tpl-st-split {{
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin-bottom: 1rem !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-st-split > .tpl-st-card {{
+  display: table-cell !important;
+  width: 50% !important;
+  vertical-align: top !important;
+  padding-right: 0.65rem !important;
+  margin-bottom: 0 !important;
+}}
+body.tt-pdf-export .tpl-st-split > .tpl-st-card:last-child {{
+  padding-right: 0 !important;
+  padding-left: 0.65rem !important;
+}}
+body.tt-pdf-export .tpl-studio .tpl-p,
+body.tt-pdf-export .tpl-studio .tpl-job,
+body.tt-pdf-export .tpl-studio .tpl-edu-block,
+body.tt-pdf-export .tpl-studio .tpl-cert,
+body.tt-pdf-export .tpl-studio .tpl-bullets {{
+  display: block !important;
+  visibility: visible !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}}
+body.tt-pdf-export .tpl-nova {{
+  min-height: auto !important;
+  display: block !important;
+  width: 100% !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-nv-hero {{
+  position: relative !important;
+  padding: 1.5rem 1.5rem 1rem !important;
+  min-height: auto !important;
+  height: auto !important;
+  overflow: visible !important;
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+  break-after: avoid !important;
+  page-break-after: avoid !important;
+}}
+body.tt-pdf-export .tpl-nv-blob {{
+  position: absolute !important;
+  width: 120% !important;
+  height: 140px !important;
+  top: -30% !important;
+  left: -10% !important;
+  pointer-events: none !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+}}
+body.tt-pdf-export .tpl-nv-card {{
+  position: relative !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 1.25rem !important;
+  padding: 1.15rem 1.25rem !important;
+  background: #ffffff !important;
+  border-radius: 18px !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}}
+body.tt-pdf-export .tpl-nv-photo {{
+  width: 88px !important;
+  height: 88px !important;
+  flex-shrink: 0 !important;
+  border-radius: 16px !important;
+  object-fit: cover !important;
+  display: block !important;
+  visibility: visible !important;
+  border: 3px solid var(--resume-accent) !important;
+}}
+body.tt-pdf-export .tpl-nv-intro {{
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}}
+body.tt-pdf-export .tpl-nova .tpl-nv-contact-row {{
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 0 0.15rem !important;
+  margin: 0.4rem 0 0 !important;
+  font-size: 0.82rem !important;
+  color: #6b7280 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}}
+body.tt-pdf-export .tpl-nova .tpl-nv-contact-row .tpl-nv-contact-sep {{
+  display: inline !important;
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+  padding: 0 0.15rem !important;
+  opacity: 0.75 !important;
+}}
+body.tt-pdf-export .tpl-nova .tpl-nv-contact-row .tpl-contact-item {{
+  display: inline-flex !important;
+  align-items: center !important;
+  flex: 0 0 auto !important;
+  flex-shrink: 0 !important;
+  gap: 0.3rem !important;
+  white-space: nowrap !important;
+}}
+body.tt-pdf-export .tpl-nova .tpl-nv-contact-row .tpl-contact-icon,
+body.tt-pdf-export .tpl-nova .tpl-nv-contact-row .tpl-contact-fallback {{
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  width: 0.95rem !important;
+  min-width: 0.95rem !important;
+  height: 0.95rem !important;
+  color: var(--resume-accent) !important;
+  visibility: visible !important;
+  line-height: 1 !important;
+}}
+body.tt-pdf-export .tpl-nova .tpl-nv-contact-row .tpl-contact-text {{
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}}
+body.tt-pdf-export .tpl-nv-body {{
+  padding: 0 1.5rem 2rem !important;
+  display: block !important;
+  min-height: auto !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-nv-panel {{
+  display: block !important;
+  visibility: visible !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+  margin-bottom: 1rem !important;
+}}
+body.tt-pdf-export .tpl-nova .tpl-nv-panel .tpl-job {{
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+  margin-bottom: 0.45rem !important;
+}}
+body.tt-pdf-export .tpl-nova .tpl-nv-h2 {{
+  color: var(--resume-accent) !important;
+}}
+body.tt-pdf-export .tpl-nv-split {{
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin-bottom: 1rem !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-nv-split > .tpl-nv-panel {{
+  display: table-cell !important;
+  width: 50% !important;
+  vertical-align: top !important;
+  padding-right: 0.65rem !important;
+  margin-bottom: 0 !important;
+}}
+body.tt-pdf-export .tpl-nv-split > .tpl-nv-panel:last-child {{
+  padding-right: 0 !important;
+  padding-left: 0.65rem !important;
+}}
+body.tt-pdf-export .tpl-nv-pills .tpl-pill {{
+  display: inline-block !important;
+  vertical-align: top !important;
+  margin: 0 0.35rem 0.35rem 0 !important;
+}}
+body.tt-pdf-export .tpl-nova .tpl-p,
+body.tt-pdf-export .tpl-nova .tpl-job,
+body.tt-pdf-export .tpl-nova .tpl-edu-block,
+body.tt-pdf-export .tpl-nova .tpl-cert,
+body.tt-pdf-export .tpl-nova .tpl-bullets {{
+  display: block !important;
+  visibility: visible !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}}
+body.tt-pdf-export .tpl-folio {{
+  min-height: auto !important;
+  display: block !important;
+  width: 100% !important;
+  padding: 1.75rem 1.75rem 2rem !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-fo-head {{
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 1.25rem !important;
+  margin-bottom: 1.5rem !important;
+  padding-bottom: 1.25rem !important;
+  border-bottom: 2px solid var(--resume-accent) !important;
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+  break-after: avoid !important;
+  page-break-after: avoid !important;
+}}
+body.tt-pdf-export .tpl-fo-head-text {{
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}}
+body.tt-pdf-export .tpl-fo-photo {{
+  width: 100px !important;
+  height: 100px !important;
+  flex-shrink: 0 !important;
+  border-radius: 4px !important;
+  object-fit: cover !important;
+  display: block !important;
+  visibility: visible !important;
+  border: 2px solid rgba(var(--accent-rgb), 0.25) !important;
+}}
+body.tt-pdf-export .tpl-fo-name {{
+  margin: 0 !important;
+  font-size: 1.85rem !important;
+  font-weight: 300 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  line-height: 1.15 !important;
+}}
+body.tt-pdf-export .tpl-folio .tpl-fo-contact-row {{
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 0 0.15rem !important;
+  margin: 0.5rem 0 0 !important;
+  font-size: 0.82rem !important;
+  color: #6b7280 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}}
+body.tt-pdf-export .tpl-folio .tpl-fo-contact-row .tpl-fo-contact-sep {{
+  display: inline !important;
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+  padding: 0 0.15rem !important;
+  opacity: 0.75 !important;
+}}
+body.tt-pdf-export .tpl-folio .tpl-fo-contact-row .tpl-contact-item {{
+  display: inline-flex !important;
+  align-items: center !important;
+  flex: 0 0 auto !important;
+  flex-shrink: 0 !important;
+  gap: 0.3rem !important;
+  white-space: nowrap !important;
+}}
+body.tt-pdf-export .tpl-folio .tpl-fo-contact-row .tpl-contact-icon,
+body.tt-pdf-export .tpl-folio .tpl-fo-contact-row .tpl-contact-fallback {{
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  width: 0.95rem !important;
+  min-width: 0.95rem !important;
+  height: 0.95rem !important;
+  color: var(--resume-accent) !important;
+  visibility: visible !important;
+  line-height: 1 !important;
+}}
+body.tt-pdf-export .tpl-folio .tpl-fo-contact-row .tpl-contact-text {{
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}}
+body.tt-pdf-export .tpl-fo-sec {{
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+  margin-bottom: 1.15rem !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-fo-num,
+body.tt-pdf-export .tpl-fo-content {{
+  display: table-cell !important;
+  vertical-align: top !important;
+}}
+body.tt-pdf-export .tpl-fo-num {{
+  width: 52px !important;
+  padding-right: 1rem !important;
+  font-size: 1.65rem !important;
+  font-weight: 200 !important;
+  color: var(--resume-accent) !important;
+  line-height: 1 !important;
+}}
+body.tt-pdf-export .tpl-fo-content {{
+  width: auto !important;
+  min-width: 0 !important;
+}}
+body.tt-pdf-export .tpl-fo-h2 {{
+  color: #111111 !important;
+  margin-bottom: 0.45rem !important;
+}}
+body.tt-pdf-export .tpl-folio .tpl-job--fo {{
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+  margin-bottom: 0.65rem !important;
+}}
+body.tt-pdf-export .tpl-folio .tpl-p,
+body.tt-pdf-export .tpl-folio .tpl-job,
+body.tt-pdf-export .tpl-folio .tpl-edu-block,
+body.tt-pdf-export .tpl-folio .tpl-cert,
+body.tt-pdf-export .tpl-folio .tpl-bullets,
+body.tt-pdf-export .tpl-folio .tpl-fo-skills {{
+  display: block !important;
+  visibility: visible !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}}
+body.tt-pdf-export .tpl-folio .tpl-edu-block .tpl-job-head {{
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: baseline !important;
+  gap: 0.75rem !important;
+}}
+body.tt-pdf-export .tpl-folio .tpl-edu-block .tpl-job-dates {{
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}}
+body.tt-pdf-export .tpl-vertex {{
+  min-height: auto !important;
+  display: block !important;
+  width: 100% !important;
+  background: #ffffff !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-vx-banner {{
+  background: var(--resume-accent) !important;
+  color: var(--resume-accent-text, #ffffff) !important;
+  padding: 1.75rem 1.75rem 2.25rem !important;
+  clip-path: none !important;
+  margin-bottom: 0 !important;
+  overflow: visible !important;
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+  break-after: avoid !important;
+  page-break-after: avoid !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+}}
+body.tt-pdf-export .tpl-vx-banner-main {{
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin-bottom: 0 !important;
+}}
+body.tt-pdf-export .tpl-vx-banner-text {{
+  display: table-cell !important;
+  vertical-align: middle !important;
+  width: auto !important;
+  max-width: calc(100% - 100px) !important;
+  padding-right: 1rem !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+}}
+body.tt-pdf-export .tpl-vx-banner-photo {{
+  display: table-cell !important;
+  vertical-align: middle !important;
+  width: 94px !important;
+  text-align: right !important;
+  white-space: nowrap !important;
+}}
+body.tt-pdf-export .tpl-vx-photo {{
+  width: 88px !important;
+  height: 88px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+  visibility: visible !important;
+  border: 3px solid rgba(255, 255, 255, 0.85) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+  float: none !important;
+  position: static !important;
+  margin: 0 !important;
+}}
+body.tt-pdf-export .tpl-vx-photo.tpl-photo--placeholder {{
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: var(--resume-accent-text, #ffffff) !important;
+}}
+body.tt-pdf-export .tpl-vx-name,
+body.tt-pdf-export .tpl-vx-title {{
+  color: var(--resume-accent-text, #ffffff) !important;
+}}
+body.tt-pdf-export .tpl-vertex .tpl-vx-contact-row {{
+  display: block !important;
+  width: 100% !important;
+  margin: 0.5rem 0 0 !important;
+  padding: 0 !important;
+  font-size: 0.85rem !important;
+  line-height: 1.45 !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}}
+body.tt-pdf-export .tpl-vertex .tpl-vx-contact-row .tpl-vx-contact-piece,
+body.tt-pdf-export .tpl-vertex .tpl-vx-contact-row .tpl-vx-contact-sep {{
+  display: inline !important;
+  white-space: nowrap !important;
+  vertical-align: baseline !important;
+}}
+body.tt-pdf-export .tpl-vertex .tpl-vx-contact-row .tpl-vx-contact-sep {{
+  padding: 0 0.15rem !important;
+  opacity: 0.85 !important;
+  color: var(--resume-accent-text, #ffffff) !important;
+}}
+body.tt-pdf-export .tpl-vertex .tpl-vx-contact-row .tpl-contact-fallback,
+body.tt-pdf-export .tpl-vertex .tpl-vx-contact-row .tpl-contact-text {{
+  display: inline !important;
+  white-space: nowrap !important;
+  color: var(--resume-accent-text, #ffffff) !important;
+  visibility: visible !important;
+  line-height: inherit !important;
+}}
+body.tt-pdf-export .tpl-vertex .tpl-vx-contact-row .tpl-contact-fallback {{
+  width: auto !important;
+  min-width: 0 !important;
+  height: auto !important;
+  font-weight: 600 !important;
+}}
+body.tt-pdf-export .tpl-vx-body {{
+  padding: 1.5rem 1.75rem 2rem !important;
+  min-height: auto !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-vertex .tpl-vx-body .tpl-sec {{
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+  margin-bottom: 1.1rem !important;
+}}
+body.tt-pdf-export .tpl-vertex .tpl-vx-h2 {{
+  color: var(--resume-accent) !important;
+  border-bottom: 1px solid rgba(var(--accent-rgb), 0.25) !important;
+  padding-bottom: 0.35rem !important;
+  margin-bottom: 0.55rem !important;
+}}
+body.tt-pdf-export .tpl-vx-grid {{
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin-bottom: 1.1rem !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-vx-grid > .tpl-sec {{
+  display: table-cell !important;
+  width: 50% !important;
+  vertical-align: top !important;
+  padding-right: 0.75rem !important;
+  margin-bottom: 0 !important;
+}}
+body.tt-pdf-export .tpl-vx-grid > .tpl-sec:last-child {{
+  padding-right: 0 !important;
+  padding-left: 0.75rem !important;
+}}
+body.tt-pdf-export .tpl-vertex .tpl-vx-skills .tpl-bullets {{
+  column-count: 2 !important;
+  column-gap: 1.25rem !important;
+}}
+body.tt-pdf-export .tpl-vertex .tpl-vx-body .tpl-job {{
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+  margin-bottom: 0.55rem !important;
+}}
+body.tt-pdf-export .tpl-vertex .tpl-p,
+body.tt-pdf-export .tpl-vertex .tpl-job,
+body.tt-pdf-export .tpl-vertex .tpl-edu-block,
+body.tt-pdf-export .tpl-vertex .tpl-cert,
+body.tt-pdf-export .tpl-vertex .tpl-bullets {{
+  display: block !important;
+  visibility: visible !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}}
+body.tt-pdf-export .tpl-vertex .tpl-edu-block .tpl-job-head {{
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: baseline !important;
+  gap: 0.75rem !important;
+}}
+body.tt-pdf-export .tpl-vertex .tpl-edu-block .tpl-job-dates {{
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
 }}
 /* Undo responsive breakpoints — PDF page is narrower than 1100px */
 body.tt-pdf-export article#resume.resume .tpl-colored-header {{
@@ -2477,37 +3471,43 @@ body.tt-pdf-export .tpl-ch-subsec:last-child {{
 body.tt-pdf-export .tpl-ms-grid {{
   display: block !important;
   width: 100% !important;
-  padding: 1.25rem 1.1rem 1.5rem !important;
+  padding: 0.85rem 1rem 1rem !important;
   box-sizing: border-box !important;
-}}
-body.tt-pdf-export .tpl-ms-row {{
-  display: block !important;
-  width: 100% !important;
-  overflow: hidden !important;
-  margin-bottom: 1rem !important;
-}}
-body.tt-pdf-export .tpl-ms-row::after {{
-  content: "" !important;
-  display: table !important;
-  clear: both !important;
-}}
-body.tt-pdf-export .tpl-ms-row > .tpl-sec {{
-  display: block !important;
-  float: left !important;
-  width: 49% !important;
-  max-width: 49% !important;
-  min-width: auto !important;
-  box-sizing: border-box !important;
-  padding-right: 0.65rem !important;
+  min-height: auto !important;
   overflow: visible !important;
 }}
+body.tt-pdf-export .tpl-ms-row {{
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+  margin-bottom: 0.65rem !important;
+  overflow: visible !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-ms-row::after {{
+  content: none !important;
+  display: none !important;
+}}
+body.tt-pdf-export .tpl-ms-row > .tpl-sec {{
+  display: table-cell !important;
+  float: none !important;
+  width: 50% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  padding: 0 0.65rem 0 0 !important;
+  vertical-align: top !important;
+  overflow: visible !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
 body.tt-pdf-export .tpl-ms-row > .tpl-sec:last-child {{
-  float: right !important;
-  padding-right: 0 !important;
-  padding-left: 0.65rem !important;
+  float: none !important;
+  padding: 0 0 0 0.65rem !important;
 }}
 body.tt-pdf-export .tpl-ms-row > .tpl-sec:only-child {{
-  float: none !important;
+  display: block !important;
   width: 100% !important;
   max-width: 100% !important;
   padding: 0 !important;
@@ -2515,27 +3515,34 @@ body.tt-pdf-export .tpl-ms-row > .tpl-sec:only-child {{
 body.tt-pdf-export .tpl-ms-grid > .tpl-sec.tpl-ms-span2,
 body.tt-pdf-export .tpl-ms-span2 {{
   display: block !important;
-  clear: both !important;
+  clear: none !important;
   float: none !important;
   width: 100% !important;
   max-width: 100% !important;
   min-width: auto !important;
-  margin-bottom: 1rem !important;
+  margin-bottom: 0.65rem !important;
   box-sizing: border-box !important;
   overflow: visible !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
 }}
 body.tt-pdf-export .tpl-modern-split {{
   display: block !important;
   min-height: auto !important;
   width: 100% !important;
+  overflow: visible !important;
 }}
 body.tt-pdf-export .tpl-ms-top {{
   display: block !important;
   width: 100% !important;
   background: var(--resume-accent) !important;
   color: var(--resume-accent-text, #ffffff) !important;
-  padding: 1.15rem 1.25rem !important;
+  padding: 0.85rem 1rem !important;
   box-sizing: border-box !important;
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+  break-after: avoid !important;
+  page-break-after: avoid !important;
 }}
 body.tt-pdf-export .tpl-ms-brand {{
   display: flex !important;
@@ -2588,6 +3595,16 @@ body.tt-pdf-export .tpl-modern-split .tpl-cert {{
   word-break: normal !important;
   overflow-wrap: normal !important;
 }}
+body.tt-pdf-export .tpl-modern-split .tpl-job {{
+  color: #111111 !important;
+  display: block !important;
+  visibility: visible !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  margin-bottom: 0.45rem !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
 body.tt-pdf-export .tpl-modern-split .tpl-ms-grid > .tpl-sec.tpl-ms-span2:last-child .tpl-p {{
   margin-top: 0.35rem !important;
 }}
@@ -2603,6 +3620,11 @@ body.tt-pdf-export .tpl-modern-split .tpl-ms-grid .tpl-sec {{
   visibility: visible !important;
   overflow: visible !important;
   box-sizing: border-box !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-modern-split .tpl-ms-row > .tpl-sec {{
+  display: table-cell !important;
 }}
 body.tt-pdf-export .tpl-ap-grid {{
   display: grid !important;
@@ -2660,6 +3682,31 @@ body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-main {{
   width: 70% !important;
   padding: 1.15rem 1.1rem 1.35rem 1.25rem !important;
 }}
+body.tt-pdf-export .tpl-classic-sidebar {{
+  min-height: auto !important;
+}}
+body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-side,
+body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-main {{
+  min-height: auto !important;
+  height: auto !important;
+  vertical-align: top !important;
+}}
+body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-main .tpl-sec {{
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+  margin-bottom: 0.65rem !important;
+}}
+body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-main .tpl-job {{
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+  margin-bottom: 0.45rem !important;
+}}
+body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-main .tpl-h2 {{
+  margin-bottom: 0.35rem !important;
+}}
+body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-main .tpl-p {{
+  margin-bottom: 0.35rem !important;
+}}
 body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-main .tpl-sec,
 body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-main .tpl-h2,
 body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-main .tpl-p,
@@ -2669,6 +3716,54 @@ body.tt-pdf-export .tpl-classic-sidebar .tpl-cs-main .tpl-cert {{
   width: 100% !important;
   max-width: 100% !important;
   box-sizing: border-box !important;
+}}
+/* Professional border: table layout — avoids float/grid blank space beside sidebar */
+body.tt-pdf-export .tpl-professional-border {{
+  display: table !important;
+  table-layout: fixed !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: auto !important;
+  border-collapse: collapse !important;
+  border-spacing: 0 !important;
+  overflow: visible !important;
+}}
+body.tt-pdf-export .tpl-professional-border .tpl-pb-main,
+body.tt-pdf-export .tpl-professional-border .tpl-pb-side {{
+  display: table-cell !important;
+  float: none !important;
+  vertical-align: top !important;
+  margin: 0 !important;
+  min-height: auto !important;
+  height: auto !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}}
+body.tt-pdf-export .tpl-professional-border .tpl-pb-main {{
+  width: 72% !important;
+  max-width: none !important;
+  padding: 0.85rem 1rem 1rem !important;
+}}
+body.tt-pdf-export .tpl-professional-border .tpl-pb-side {{
+  width: 28% !important;
+  padding: 0.85rem 0.75rem 1rem !important;
+}}
+body.tt-pdf-export .tpl-professional-border .tpl-pb-header {{
+  margin-bottom: 0.65rem !important;
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+  break-after: avoid !important;
+  page-break-after: avoid !important;
+}}
+body.tt-pdf-export .tpl-professional-border .tpl-pb-main .tpl-sec {{
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+  margin-bottom: 0.65rem !important;
+}}
+body.tt-pdf-export .tpl-professional-border .tpl-pb-main .tpl-job {{
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+  margin-bottom: 0.45rem !important;
 }}
 /* Tech focus: table layout fills page width reliably in WeasyPrint/wkhtmltopdf */
 body.tt-pdf-export .tpl-tech-focus {{
@@ -2699,6 +3794,39 @@ body.tt-pdf-export .tpl-tech-focus .tpl-tf-main {{
   width: 72% !important;
   padding: 0 0.75rem 1.5rem 1rem !important;
 }}
+body.tt-pdf-export .tpl-tech-focus {{
+  min-height: auto !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-side,
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-main {{
+  min-height: auto !important;
+  height: auto !important;
+  vertical-align: top !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+}}
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-head {{
+  break-inside: avoid !important;
+  page-break-inside: avoid !important;
+  break-after: avoid !important;
+  page-break-after: avoid !important;
+  margin-bottom: 0.35rem !important;
+}}
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-main .tpl-sec {{
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+  margin-bottom: 0.65rem !important;
+}}
+body.tt-pdf-export .tpl-tech-focus .tpl-tf-main .tpl-job {{
+  break-inside: auto !important;
+  page-break-inside: auto !important;
+  margin-bottom: 0.45rem !important;
+}}
+body.tt-pdf-export .tpl-tech-focus .tpl-skill-row {{
+  margin-bottom: 0.35rem !important;
+}}
 body.tt-pdf-export .tpl-tech-focus .tpl-tf-main .tpl-sec,
 body.tt-pdf-export .tpl-tech-focus .tpl-tf-main .tpl-h2,
 body.tt-pdf-export .tpl-tech-focus .tpl-tf-main .tpl-p,
@@ -2716,6 +3844,7 @@ body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-classic-sidebar {{
   display: table !important;
   table-layout: fixed !important;
   width: 100% !important;
+  min-height: auto !important;
 }}
 body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-classic-sidebar .tpl-cs-side,
 body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-classic-sidebar .tpl-cs-main {{
@@ -2723,6 +3852,9 @@ body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-classic-sidebar .tpl-cs-ma
   float: none !important;
   width: auto !important;
   margin: 0 !important;
+  min-height: auto !important;
+  height: auto !important;
+  vertical-align: top !important;
 }}
 body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-classic-sidebar .tpl-cs-side {{
   width: 30% !important;
@@ -2734,6 +3866,9 @@ body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-tech-focus {{
   display: table !important;
   table-layout: fixed !important;
   width: 100% !important;
+  min-height: auto !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
 }}
 body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-tech-focus .tpl-tf-side,
 body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-tech-focus .tpl-tf-main {{
@@ -2743,6 +3878,10 @@ body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-tech-focus .tpl-tf-main {{
   vertical-align: top !important;
   box-sizing: border-box !important;
   max-width: none !important;
+  min-height: auto !important;
+  height: auto !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
 }}
 body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-tech-focus .tpl-tf-side {{
   width: 28% !important;
@@ -2753,28 +3892,47 @@ body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-tech-focus .tpl-tf-main {{
   padding: 0 0.75rem 1.5rem 1rem !important;
 }}
 body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-professional-border {{
-  display: grid !important;
-  grid-template-columns: 1fr 28% !important;
+  display: table !important;
+  table-layout: fixed !important;
   width: 100% !important;
-  align-items: stretch !important;
   min-height: auto !important;
 }}
 body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-professional-border > .tpl-pb-main,
 body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-professional-border > .tpl-pb-side {{
+  display: table-cell !important;
   float: none !important;
-  width: auto !important;
+  vertical-align: top !important;
   margin: 0 !important;
+  min-height: auto !important;
+  height: auto !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-professional-border > .tpl-pb-main {{
+  width: 72% !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-professional-border > .tpl-pb-side {{
+  width: 28% !important;
 }}
 body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-executive {{
-  display: grid !important;
-  grid-template-columns: 28% 1fr !important;
+  display: table !important;
+  table-layout: fixed !important;
   width: 100% !important;
+  min-height: auto !important;
 }}
 body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-executive .tpl-ex-side,
 body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-executive .tpl-ex-main {{
+  display: table-cell !important;
   float: none !important;
   width: auto !important;
   margin: 0 !important;
+  vertical-align: top !important;
+  min-height: auto !important;
+  height: auto !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-executive .tpl-ex-side {{
+  width: 28% !important;
+}}
+body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-executive .tpl-ex-main {{
+  width: 72% !important;
 }}
 body.tt-pdf-export[data-pdf-engine="weasyprint"] .tpl-mz-grid {{
   display: table !important;
@@ -2804,6 +3962,7 @@ body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-classic-sidebar {{
   display: table !important;
   table-layout: fixed !important;
   width: 100% !important;
+  min-height: auto !important;
 }}
 body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-classic-sidebar::after {{
   content: none !important;
@@ -2816,10 +3975,14 @@ body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-classic-sidebar .tpl-cs-s
   vertical-align: top !important;
   box-sizing: border-box !important;
   padding: 1.15rem 0.85rem !important;
+  min-height: auto !important;
+  height: auto !important;
 }}
 body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-classic-sidebar .tpl-cs-main {{
   display: table-cell !important;
   float: none !important;
+  min-height: auto !important;
+  height: auto !important;
   width: 70% !important;
   margin-left: 0 !important;
   vertical-align: top !important;
@@ -2831,6 +3994,9 @@ body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-tech-focus {{
   display: table !important;
   table-layout: fixed !important;
   width: 100% !important;
+  min-height: auto !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
 }}
 body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-tech-focus::after {{
   content: none !important;
@@ -2843,6 +4009,10 @@ body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-tech-focus .tpl-tf-side {
   vertical-align: top !important;
   box-sizing: border-box !important;
   padding: 1rem 0.75rem 1.5rem !important;
+  min-height: auto !important;
+  height: auto !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
 }}
 body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-tech-focus .tpl-tf-main {{
   display: table-cell !important;
@@ -2853,50 +4023,71 @@ body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-tech-focus .tpl-tf-main {
   box-sizing: border-box !important;
   max-width: none !important;
   padding: 0 0.75rem 1.5rem 1rem !important;
+  min-height: auto !important;
+  height: auto !important;
+  break-inside: auto !important;
+  page-break-inside: auto !important;
 }}
 body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-professional-border {{
-  display: block !important;
+  display: table !important;
+  table-layout: fixed !important;
   width: 100% !important;
-  overflow: hidden !important;
+  min-height: auto !important;
+  overflow: visible !important;
 }}
 body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-professional-border::after {{
-  content: "";
-  display: table;
-  clear: both;
+  content: none !important;
+  display: none !important;
 }}
 body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-professional-border > .tpl-pb-main {{
-  margin-right: 28% !important;
-  display: block !important;
+  display: table-cell !important;
+  float: none !important;
+  width: 72% !important;
+  margin-right: 0 !important;
+  vertical-align: top !important;
+  min-height: auto !important;
+  height: auto !important;
   box-sizing: border-box !important;
 }}
 body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-professional-border > .tpl-pb-side {{
-  float: right !important;
+  display: table-cell !important;
+  float: none !important;
   width: 28% !important;
-  display: block !important;
+  vertical-align: top !important;
+  min-height: auto !important;
+  height: auto !important;
   box-sizing: border-box !important;
 }}
 body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-executive {{
-  display: block !important;
+  display: table !important;
+  table-layout: fixed !important;
   width: 100% !important;
-  overflow: hidden !important;
+  min-height: auto !important;
 }}
 body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-executive::after {{
-  content: "";
-  display: table;
-  clear: both;
+  content: none !important;
+  display: none !important;
 }}
 body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-executive .tpl-ex-side {{
-  float: left !important;
+  display: table-cell !important;
+  float: none !important;
   width: 28% !important;
-  display: block !important;
+  vertical-align: top !important;
   box-sizing: border-box !important;
   padding: 1.15rem 0.9rem 1.5rem !important;
+  min-height: auto !important;
+  height: auto !important;
 }}
 body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-executive .tpl-ex-main {{
-  margin-left: 28% !important;
-  display: block !important;
+  display: table-cell !important;
+  float: none !important;
+  width: 72% !important;
+  margin-left: 0 !important;
   box-sizing: border-box !important;
   padding: 0 1rem 1.5rem !important;
+  min-height: auto !important;
+  height: auto !important;
+  vertical-align: top !important;
 }}
 body.tt-pdf-export[data-pdf-engine="wkhtmltopdf"] .tpl-mz-grid {{
   display: block !important;
@@ -3186,7 +4377,6 @@ body.tt-pdf-export .tpl-professional-border .tpl-pb-side {{
 }}
 body.tt-pdf-export .tpl-professional-border .tpl-pb-main .tpl-sec:last-child {{
   margin-bottom: 0 !important;
-  page-break-inside: avoid !important;
 }}
 body.tt-pdf-export .tpl-pb-contact-row {{
   display: flex !important;
@@ -3201,7 +4391,8 @@ body.tt-pdf-export .tpl-professional-border .tpl-pb-contact-row .tpl-contact-ite
   flex: 0 0 auto !important;
   align-items: center !important;
 }}
-body.tt-pdf-export .tpl-professional-border .tpl-pb-contact-row .tpl-contact-icon {{
+body.tt-pdf-export .tpl-professional-border .tpl-pb-contact-row .tpl-contact-icon,
+body.tt-pdf-export .tpl-professional-border .tpl-pb-contact-row .tpl-contact-fallback {{
   color: var(--resume-accent) !important;
 }}
 body.tt-pdf-export .tpl-professional-border .tpl-pb-contact-row .tpl-contact-text {{
@@ -3209,13 +4400,28 @@ body.tt-pdf-export .tpl-professional-border .tpl-pb-contact-row .tpl-contact-tex
   overflow-wrap: normal !important;
   word-break: normal !important;
 }}
-body.tt-pdf-export .tpl-professional-border .tpl-h2,
+body.tt-pdf-export .tpl-professional-border .tpl-h2 {{
+  color: var(--resume-accent) !important;
+  border-bottom: 2px solid var(--resume-accent) !important;
+  padding-bottom: 0.3rem !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+}}
+body.tt-pdf-export .tpl-professional-border .tpl-pb-h3 {{
+  color: var(--resume-accent) !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+}}
+body.tt-pdf-export .tpl-professional-border {{
+  border-top: 8px solid var(--resume-accent) !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+}}
 body.tt-pdf-export .tpl-professional-border .tpl-p,
 body.tt-pdf-export .tpl-professional-border .tpl-job,
 body.tt-pdf-export .tpl-professional-border .tpl-edu-block,
 body.tt-pdf-export .tpl-professional-border .tpl-cert,
-body.tt-pdf-export .tpl-professional-border .tpl-bullets,
-body.tt-pdf-export .tpl-professional-border .tpl-pb-h3 {{
+body.tt-pdf-export .tpl-professional-border .tpl-bullets {{
   color: #111111 !important;
   display: block !important;
   visibility: visible !important;
@@ -3260,6 +4466,17 @@ body.tt-pdf-export .tpl-bullets,
 body.tt-pdf-export .tpl-job {{
   overflow-wrap: anywhere !important;
   word-break: break-word !important;
+}}
+body.tt-pdf-export article#resume.resume .tpl-h2:not(.tpl-h2--hc) {{
+  color: var(--resume-accent) !important;
+  border-bottom-color: var(--resume-accent) !important;
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+}}
+body.tt-pdf-export .tpl-contact-icon,
+body.tt-pdf-export .tpl-contact-fallback {{
+  print-color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
 }}
 body.tt-pdf-export .tpl-min-contact-row {{
   display: flex !important;
@@ -3466,6 +4683,7 @@ body.tt-pdf-export .tpl-ex-photo,
 body.tt-pdf-export .tpl-st-photo,
 body.tt-pdf-export .tpl-nv-photo,
 body.tt-pdf-export .tpl-fo-photo,
+body.tt-pdf-export .tpl-vx-photo,
 body.tt-pdf-export .tpl-gg-photo {{
   display: block !important;
   visibility: visible !important;
@@ -3552,7 +4770,8 @@ def studio_pack_root_css_block(pack: dict) -> str:
     body_size, font_scale = studio_pack_font_size_vars(pack)
     pdf_body_size = studio_pack_effective_body_size(pack)
     return (
-        f":root{{--accent:{accent};--accent-contrast:#ffffff;--accent-rgb:{r}, {g}, {b};"
+        f":root{{--accent:{accent};--resume-accent:{accent};--accent-contrast:#ffffff;"
+        f"--resume-accent-text:#ffffff;--accent-rgb:{r}, {g}, {b};"
         f"--font-stack:{font};--resume-text-align:{align};"
         f"--body-size:{body_size};--pdf-body-size:{pdf_body_size};--font-scale:{font_scale};}}"
     )

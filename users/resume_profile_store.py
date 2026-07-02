@@ -156,16 +156,6 @@ def apply_user_resume_profile_to_resume(user, resume, doc: dict | None = None) -
                 UserResumeActivity.objects.create(resume=resume, title=title, description=desc)
                 imported.append("activities")
 
-        for interest in doc.get("interests") or []:
-            name = str(interest).strip()[:250]
-            if name:
-                UserResumeActivity.objects.create(
-                    resume=resume,
-                    title=name,
-                    description="Extracurricular interest from profile.",
-                )
-                imported.append("activities")
-
     if not UserResumeCertificate.objects.filter(resume=resume).exists():
         for cert in doc.get("certificates") or []:
             if isinstance(cert, dict):

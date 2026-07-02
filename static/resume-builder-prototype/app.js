@@ -375,14 +375,28 @@
     return true;
   }
 
+  const PROFILE_INTEREST_MARKER = "extracurricular interest from profile";
+
+  function isProfileInterestAchievement(exp) {
+    if (!exp || typeof exp !== "object") return false;
+    const bullets = (exp.bullets || []).map((b) =>
+      String(b).trim().replace(/\.$/, "").toLowerCase()
+    );
+    return bullets.length === 1 && bullets[0] === PROFILE_INTEREST_MARKER;
+  }
+
   function projectsFromData(d) {
     if (Array.isArray(d.projects)) return d.projects;
     return (d.experience || []).filter(isProjectBlock);
   }
 
   function achievementsFromData(d) {
-    if (Array.isArray(d.achievements)) return d.achievements;
-    return (d.experience || []).filter((exp) => !isProjectBlock(exp) && !isWorkExperienceBlock(exp));
+    let items;
+    if (Array.isArray(d.achievements)) items = d.achievements;
+    else {
+      items = (d.experience || []).filter((exp) => !isProjectBlock(exp) && !isWorkExperienceBlock(exp));
+    }
+    return (items || []).filter((exp) => !isProfileInterestAchievement(exp));
   }
 
   function workExperienceFromData(d) {
@@ -1217,53 +1231,103 @@
     },
 
     timeline(d) {
+      const contactItems = contactParts(d);
+      const contactHtml = contactItems.length
+        ? `<div class="tpl-tl-contact-row">${contactItems.join('<span class="tpl-tl-contact-sep" aria-hidden="true"> · </span>')}</div>`
+        : "";
+      const edu = educationHtml(d);
+      const skills = skillsListHtml(d);
+      const twoColParts = [];
+      if (String(edu || "").trim()) {
+        twoColParts.push(
+          `<section class="tpl-sec"><h2 class="tpl-tl-section-title">Education</h2>${edu}</section>`
+        );
+      }
+      if (String(skills || "").trim()) {
+        twoColParts.push(
+          `<section class="tpl-sec"><h2 class="tpl-tl-section-title">Skills</h2><ul class="tpl-bullets tpl-tl-skills-list">${skills}</ul></section>`
+        );
+      }
+      const twoCol = twoColParts.length ? `<div class="tpl-tl-two">${twoColParts.join("")}</div>` : "";
+      const certs = certificationsHtml(d);
+      const langs = languagesHtml(d);
       return `<div class="tpl tpl-timeline">
         <header class="tpl-tl-head">
           <h1 class="tpl-tl-name">${esc(d.fullName)}</h1>
           ${tplHeadline("tpl-tl-sub", d)}
-          <p class="tpl-tl-contact">${contactParts(d).join(" · ")}</p>
+          ${contactHtml}
         </header>
-        <section class="tpl-sec"><h2 class="tpl-tl-section-title">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+        ${hasDisplayText(d.summary) ? `<section class="tpl-sec"><h2 class="tpl-tl-section-title">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>` : ""}
         ${projectsFromData(d).length ? `<section class="tpl-sec"><h2 class="tpl-tl-section-title">${PROJECTS_TITLE}</h2><div class="tpl-tl-track">${experienceTimelineHtml(d, projectsFromData(d))}</div></section>` : ""}
         ${achievementsFromData(d).length ? `<section class="tpl-sec"><h2 class="tpl-tl-section-title">${ACHIEVEMENTS_ACTIVITIES_TITLE}</h2><div class="tpl-tl-track">${experienceTimelineHtml(d, achievementsFromData(d))}</div></section>` : ""}
         ${workExperienceFromData(d).length ? `<section class="tpl-sec"><h2 class="tpl-tl-section-title">${WORK_EXPERIENCE_TITLE}</h2><div class="tpl-tl-track">${experienceTimelineHtml(d, workExperienceFromData(d))}</div></section>` : ""}
-        <div class="tpl-tl-two">
-          <section class="tpl-sec"><h2 class="tpl-tl-section-title">Education</h2>${educationHtml(d)}</section>
-          <section class="tpl-sec"><h2 class="tpl-tl-section-title">Skills</h2><ul class="tpl-bullets tpl-tl-skills-list">${skillsListHtml(d)}</ul></section>
-        </div>
-        <section class="tpl-sec"><h2 class="tpl-tl-section-title">Certifications</h2>${certificationsHtml(d)}</section>
-        <section class="tpl-sec"><h2 class="tpl-tl-section-title">Languages</h2><ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
+        ${twoCol}
+        ${String(certs || "").trim() ? `<section class="tpl-sec"><h2 class="tpl-tl-section-title">Certifications</h2>${certs}</section>` : ""}
+        ${String(langs || "").trim() ? `<section class="tpl-sec"><h2 class="tpl-tl-section-title">Languages</h2><ul class="tpl-bullets">${langs}</ul></section>` : ""}
         ${hobbiesSection(d, { h2: "tpl-tl-section-title" })}
-        ${interestsSection(d, { h2: "tpl-tl-section-title" })}
       </div>`;
     },
 
     executive(d) {
+      const contactItems = contactParts(d);
+      const contactBlock = contactItems.length
+        ? `<h2 class="tpl-ex-h2">Contact</h2><ul class="tpl-ex-list tpl-ex-contact">${contactItems.map((x) => `<li>${x}</li>`).join("")}</ul>`
+        : "";
+      const skills = skillsListHtml(d);
+      const skillsBlock = String(skills || "").trim()
+        ? `<h2 class="tpl-ex-h2">Core skills</h2><ul class="tpl-bullets tpl-bullets--tight">${skills}</ul>`
+        : "";
+      const langs = languagesHtml(d);
+      const langsBlock = String(langs || "").trim()
+        ? `<h2 class="tpl-ex-h2">Languages</h2><ul class="tpl-bullets tpl-bullets--tight">${langs}</ul>`
+        : "";
+      const edu = educationHtml(d);
+      const certs = certificationsHtml(d);
       return `<div class="tpl tpl-executive">
         <aside class="tpl-ex-side">
           ${photoHtml(d, "tpl-ex-photo")}
-          <h2 class="tpl-ex-h2">Contact</h2>
-          <ul class="tpl-ex-list">${contactParts(d).map((x) => `<li>${x}</li>`).join("")}</ul>
-          <h2 class="tpl-ex-h2">Core skills</h2>
-          <ul class="tpl-bullets tpl-bullets--tight">${skillsListHtml(d)}</ul>
-          <h2 class="tpl-ex-h2">Languages</h2>
-          <ul class="tpl-bullets tpl-bullets--tight">${languagesHtml(d)}</ul>
+          ${contactBlock}
+          ${skillsBlock}
+          ${langsBlock}
         </aside>
         <div class="tpl-ex-main">
           <header class="tpl-ex-top">
             <h1 class="tpl-ex-name">${esc(d.fullName)}</h1>
             ${tplHeadline("tpl-ex-title", d)}
           </header>
-          <section class="tpl-sec"><h2 class="tpl-ex-h2-main">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+          ${hasDisplayText(d.summary) ? `<section class="tpl-sec"><h2 class="tpl-ex-h2-main">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>` : ""}
           ${resumeJobSections(d, { h2: "tpl-ex-h2-main" })}
-          <section class="tpl-sec"><h2 class="tpl-ex-h2-main">Education</h2>${educationHtml(d)}</section>
-          <section class="tpl-sec"><h2 class="tpl-ex-h2-main">Certifications</h2>${certificationsHtml(d)}</section>
-          <section class="tpl-sec"><h2 class="tpl-ex-h2-main">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
+          ${String(edu || "").trim() ? `<section class="tpl-sec"><h2 class="tpl-ex-h2-main">Education</h2>${edu}</section>` : ""}
+          ${String(certs || "").trim() ? `<section class="tpl-sec"><h2 class="tpl-ex-h2-main">Certifications</h2>${certs}</section>` : ""}
+          ${hobbiesSection(d, { h2: "tpl-ex-h2-main" })}
         </div>
       </div>`;
     },
 
     studio(d) {
+      const contactItems = contactParts(d);
+      const contactHtml = contactItems.length
+        ? `<div class="tpl-st-contact-row">${contactItems.join('<span class="tpl-st-contact-sep" aria-hidden="true"> · </span>')}</div>`
+        : "";
+      const pills = skillsPillsHtml(d);
+      const pillsHtml = String(pills || "").trim()
+        ? `<div class="tpl-st-skills">${pills}</div>`
+        : "";
+      const edu = educationHtml(d);
+      const langs = languagesHtml(d);
+      const splitParts = [];
+      if (String(edu || "").trim()) {
+        splitParts.push(
+          `<section class="tpl-st-card"><h2 class="tpl-st-h2">Education</h2>${edu}</section>`
+        );
+      }
+      if (String(langs || "").trim()) {
+        splitParts.push(
+          `<section class="tpl-st-card"><h2 class="tpl-st-h2">Languages</h2><ul class="tpl-bullets">${langs}</ul></section>`
+        );
+      }
+      const splitHtml = splitParts.length ? `<div class="tpl-st-split">${splitParts.join("")}</div>` : "";
+      const certs = certificationsHtml(d);
       return `<div class="tpl tpl-studio">
         <header class="tpl-st-hero">
           <div class="tpl-st-hero-inner">
@@ -1271,25 +1335,42 @@
             <div>
               <h1 class="tpl-st-name">${esc(d.fullName)}</h1>
               ${tplHeadline("tpl-st-tagline", d)}
-              <p class="tpl-st-contact">${contactParts(d).join(" · ")}</p>
+              ${contactHtml}
             </div>
           </div>
-          <div class="tpl-st-skills">${skillsPillsHtml(d)}</div>
+          ${pillsHtml}
         </header>
         <div class="tpl-st-body">
-          <section class="tpl-st-card"><h2 class="tpl-st-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+          ${hasDisplayText(d.summary) ? `<section class="tpl-st-card"><h2 class="tpl-st-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>` : ""}
           ${resumeJobSections(d, { h2: "tpl-st-h2", wrap: "tpl-st-card", jobClass: "tpl-job tpl-job--st" })}
-          <div class="tpl-st-split">
-            <section class="tpl-st-card"><h2 class="tpl-st-h2">Education</h2>${educationHtml(d)}</section>
-            <section class="tpl-st-card"><h2 class="tpl-st-h2">Languages</h2><ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
-          </div>
-          <section class="tpl-st-card"><h2 class="tpl-st-h2">Certifications</h2>${certificationsHtml(d)}</section>
-          <section class="tpl-st-card"><h2 class="tpl-st-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
+          ${splitHtml}
+          ${String(certs || "").trim() ? `<section class="tpl-st-card"><h2 class="tpl-st-h2">Certifications</h2>${certs}</section>` : ""}
+          ${hobbiesSection(d, { h2: "tpl-st-h2", wrap: "tpl-st-card" })}
         </div>
       </div>`;
     },
 
     nova(d) {
+      const contactItems = contactParts(d);
+      const contactHtml = contactItems.length
+        ? `<div class="tpl-nv-contact-row">${contactItems.join('<span class="tpl-nv-contact-sep" aria-hidden="true"> · </span>')}</div>`
+        : "";
+      const edu = educationHtml(d);
+      const pills = skillsPillsHtml(d);
+      const splitParts = [];
+      if (String(edu || "").trim()) {
+        splitParts.push(
+          `<section class="tpl-nv-panel"><h2 class="tpl-nv-h2">Education</h2>${edu}</section>`
+        );
+      }
+      if (String(pills || "").trim()) {
+        splitParts.push(
+          `<section class="tpl-nv-panel"><h2 class="tpl-nv-h2">Skills</h2><div class="tpl-nv-pills">${pills}</div></section>`
+        );
+      }
+      const splitHtml = splitParts.length ? `<div class="tpl-nv-split">${splitParts.join("")}</div>` : "";
+      const certs = certificationsHtml(d);
+      const langs = languagesHtml(d);
       return `<div class="tpl tpl-nova">
         <div class="tpl-nv-hero">
           <div class="tpl-nv-blob" aria-hidden="true"></div>
@@ -1298,19 +1379,17 @@
             <div class="tpl-nv-intro">
               <h1 class="tpl-nv-name">${esc(d.fullName)}</h1>
               ${tplHeadline("tpl-nv-tagline", d)}
-              <p class="tpl-nv-contact">${contactParts(d).join(" · ")}</p>
+              ${contactHtml}
             </div>
           </div>
         </div>
         <div class="tpl-nv-body">
-          <section class="tpl-nv-panel"><h2 class="tpl-nv-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+          ${hasDisplayText(d.summary) ? `<section class="tpl-nv-panel"><h2 class="tpl-nv-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>` : ""}
           ${resumeJobSections(d, { h2: "tpl-nv-h2", wrap: "tpl-nv-panel" })}
-          <div class="tpl-nv-split">
-            <section class="tpl-nv-panel"><h2 class="tpl-nv-h2">Education</h2>${educationHtml(d)}</section>
-            <section class="tpl-nv-panel"><h2 class="tpl-nv-h2">Skills</h2><div class="tpl-nv-pills">${skillsPillsHtml(d)}</div></section>
-          </div>
-          <section class="tpl-nv-panel"><h2 class="tpl-nv-h2">Certifications &amp; languages</h2>${certificationsHtml(d)}<ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
-          <section class="tpl-nv-panel"><h2 class="tpl-nv-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
+          ${splitHtml}
+          ${String(certs || "").trim() ? `<section class="tpl-nv-panel"><h2 class="tpl-nv-h2">Certifications</h2>${certs}</section>` : ""}
+          ${String(langs || "").trim() ? `<section class="tpl-nv-panel"><h2 class="tpl-nv-h2">Languages</h2><ul class="tpl-bullets">${langs}</ul></section>` : ""}
+          ${hobbiesSection(d, { h2: "tpl-nv-h2", wrap: "tpl-nv-panel" })}
         </div>
       </div>`;
     },
@@ -1379,48 +1458,77 @@
         if (!String(inner || "").trim()) return "";
         return `<section class="tpl-fo-sec"><span class="tpl-fo-num">${nextFoNum()}</span><div class="tpl-fo-content"><h2 class="tpl-fo-h2">${title}</h2>${inner}</div></section>`;
       }
+      const contactItems = contactParts(d);
+      const contactHtml = contactItems.length
+        ? `<div class="tpl-fo-contact-row">${contactItems.join('<span class="tpl-fo-contact-sep" aria-hidden="true"> · </span>')}</div>`
+        : "";
       const skillNames = (d.skills || []).map((s) => esc(s.name)).filter(Boolean).join(" · ");
+      const langs = languagesHtml(d);
+      const hobbiesText = hobbiesDisplayText(d);
       return `<div class="tpl tpl-folio">
         <header class="tpl-fo-head">
           ${photoHtml(d, "tpl-fo-photo")}
-          <div>
+          <div class="tpl-fo-head-text">
             <h1 class="tpl-fo-name">${esc(d.fullName)}</h1>
             ${tplHeadline("tpl-fo-line", d)}
-            <p class="tpl-fo-contact">${contactParts(d).join(" · ")}</p>
+            ${contactHtml}
           </div>
         </header>
-        ${foSec("Career Objective", `<p class="tpl-p">${esc(d.summary)}</p>`)}
+        ${foSec("Career Objective", hasDisplayText(d.summary) ? `<p class="tpl-p">${esc(d.summary)}</p>` : "")}
         ${foSec(PROJECTS_TITLE, projectsHtml(d, "tpl-job tpl-job--fo"))}
         ${foSec(ACHIEVEMENTS_ACTIVITIES_TITLE, achievementsHtml(d, "tpl-job tpl-job--fo"))}
         ${foSec(WORK_EXPERIENCE_TITLE, workExperienceHtml(d, "tpl-job tpl-job--fo"))}
         ${foSec("Education", educationHtml(d))}
         ${foSec("Skills", skillNames ? `<p class="tpl-fo-skills">${skillNames}</p>` : "")}
         ${foSec("Certifications", certificationsHtml(d))}
-        ${foSec("Languages", languagesHtml(d) ? `<ul class="tpl-bullets">${languagesHtml(d)}</ul>` : "")}
-        ${foSec("Hobbies", hasDisplayText(d.hobbies) ? `<p class="tpl-p">${esc(d.hobbies)}</p>` : "")}
-        ${foSec("Interests", hasDisplayText(interestsText(d)) ? `<p class="tpl-p">${esc(interestsText(d))}</p>` : "")}
+        ${foSec("Languages", langs ? `<ul class="tpl-bullets">${langs}</ul>` : "")}
+        ${foSec("Hobbies", hobbiesText ? `<p class="tpl-p">${esc(hobbiesText)}</p>` : "")}
       </div>`;
     },
 
     vertex(d) {
+      const contactItems = contactParts(d);
+      const contactHtml = contactItems.length
+        ? `<div class="tpl-vx-contact-row">${contactItems.join('<span class="tpl-vx-contact-sep" aria-hidden="true"> · </span>')}</div>`
+        : "";
+      const edu = educationHtml(d);
+      const skills = skillsListHtml(d);
+      const gridParts = [];
+      if (String(edu || "").trim()) {
+        gridParts.push(
+          `<section class="tpl-sec"><h2 class="tpl-vx-h2">Education</h2>${edu}</section>`
+        );
+      }
+      if (String(skills || "").trim()) {
+        gridParts.push(
+          `<section class="tpl-sec tpl-vx-skills"><h2 class="tpl-vx-h2">Skills</h2><ul class="tpl-bullets">${skills}</ul></section>`
+        );
+      }
+      const gridHtml = gridParts.length ? `<div class="tpl-vx-grid">${gridParts.join("")}</div>` : "";
+      const certs = certificationsHtml(d);
+      const langs = languagesHtml(d);
       return `<div class="tpl tpl-vertex">
         <header class="tpl-vx-banner">
           <div class="tpl-vx-banner-inner">
-            <h1 class="tpl-vx-name">${esc(d.fullName)}</h1>
-            ${tplHeadline("tpl-vx-title", d)}
-            <p class="tpl-vx-contact">${contactParts(d).join(" · ")}</p>
+            <div class="tpl-vx-banner-row">
+              <div class="tpl-vx-banner-main">
+                <div class="tpl-vx-banner-text">
+                  <h1 class="tpl-vx-name">${esc(d.fullName)}</h1>
+                  ${tplHeadline("tpl-vx-title", d)}
+                  ${contactHtml}
+                </div>
+                <div class="tpl-vx-banner-photo">${photoHtml(d, "tpl-vx-photo")}</div>
+              </div>
+            </div>
           </div>
         </header>
         <div class="tpl-vx-body">
-          <section class="tpl-sec"><h2 class="tpl-vx-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>
+          ${hasDisplayText(d.summary) ? `<section class="tpl-sec"><h2 class="tpl-vx-h2">Career Objective</h2><p class="tpl-p">${esc(d.summary)}</p></section>` : ""}
           ${resumeJobSections(d, { h2: "tpl-vx-h2" })}
-          <div class="tpl-vx-grid">
-            <section class="tpl-sec"><h2 class="tpl-vx-h2">Education</h2>${educationHtml(d)}</section>
-            <section class="tpl-sec"><h2 class="tpl-vx-h2">Skills</h2><ul class="tpl-bullets">${skillsListHtml(d)}</ul></section>
-          </div>
-          <section class="tpl-sec"><h2 class="tpl-vx-h2">Certifications</h2>${certificationsHtml(d)}</section>
-          <section class="tpl-sec"><h2 class="tpl-vx-h2">Languages</h2><ul class="tpl-bullets">${languagesHtml(d)}</ul></section>
-          <section class="tpl-sec"><h2 class="tpl-vx-h2">Interests</h2><p class="tpl-p">${esc(interestsText(d))}</p></section>
+          ${gridHtml}
+          ${String(certs || "").trim() ? `<section class="tpl-sec"><h2 class="tpl-vx-h2">Certifications</h2>${certs}</section>` : ""}
+          ${String(langs || "").trim() ? `<section class="tpl-sec"><h2 class="tpl-vx-h2">Languages</h2><ul class="tpl-bullets">${langs}</ul></section>` : ""}
+          ${hobbiesSection(d, { h2: "tpl-vx-h2" })}
         </div>
       </div>`;
     },

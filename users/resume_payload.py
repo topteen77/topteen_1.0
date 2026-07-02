@@ -1065,6 +1065,12 @@ def _parse_langs_text(txt):
 
 
 _RESUME_SKIP_ACTIVITY_TITLES = frozenset({"Interests", "Hobbies"})
+_PROFILE_INTEREST_ACTIVITY_DESC = "extracurricular interest from profile"
+
+
+def _is_profile_interest_activity(activity) -> bool:
+    desc = (getattr(activity, "description", None) or "").strip().rstrip(".").lower()
+    return desc == _PROFILE_INTEREST_ACTIVITY_DESC
 
 
 def _languages_from_resume_db(resume, wiz: dict | None) -> list[dict]:
@@ -1314,9 +1320,13 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
             }
         )
 
+    profile_interest_hobbies: list[str] = []
     for a in UserResumeActivity.objects.filter(resume=resume).order_by("id"):
         title = (a.title or "").strip()
         if not title or _is_resume_meta_activity_title(title):
+            continue
+        if _is_profile_interest_activity(a):
+            profile_interest_hobbies.append(title)
             continue
         if _is_project_activity_description(a.description or ""):
             projects_out.append(_activity_to_job_block(a, as_project=True))
@@ -1397,6 +1407,9 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
     summary = (resume.about or "").strip()
     languages_out = _languages_from_resume_db(resume, wiz)
     hobbies = _hobbies_from_resume_db(resume, wiz, profile, hobby_names)
+    if profile_interest_hobbies:
+        extra_hobbies = ", ".join(profile_interest_hobbies)
+        hobbies = ", ".join(x for x in [hobbies, extra_hobbies] if x)
     interests = _interests_from_resume_db(resume, wiz)
 
     wiz_guided = None
