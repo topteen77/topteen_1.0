@@ -9,6 +9,8 @@ from core import choices
 from .models import (
     SkilllabCoursePayment,
     SkillLabCourse,
+    SkillLabCourseGrade,
+    SkillLabCourseTopicCategory,
     SkillLabCourseChapter,
     SkillLabChapterSection,
     SkillLabCourseActivity,
@@ -70,10 +72,27 @@ class SkillLabAdminMixin:
 
 # --- ModelAdmin classes (each model on its own page, no inlines) ---
 
+@admin.register(SkillLabCourseGrade)
+class SkillLabCourseGradeAdmin(SkillLabAdminMixin, admin.ModelAdmin):
+    list_display = ['name', 'grade_number', 'sort_order', 'object_status', 'modified']
+    list_editable = ['sort_order', 'object_status']
+    search_fields = ['name']
+    ordering = ['sort_order', 'grade_number']
+
+
+@admin.register(SkillLabCourseTopicCategory)
+class SkillLabCourseTopicCategoryAdmin(SkillLabAdminMixin, admin.ModelAdmin):
+    list_display = ['name', 'slug', 'sort_order', 'object_status', 'modified']
+    list_editable = ['sort_order', 'object_status']
+    search_fields = ['name', 'slug']
+    prepopulated_fields = {'slug': ('name',)}
+    ordering = ['sort_order', 'name']
+
+
 @admin.register(SkillLabCourse)
 class SkillLabCourseAdmin(SkillLabAdminMixin, admin.ModelAdmin):
     change_list_template = "admin/skilllab/skilllabcourse/change_list.html"
-    list_display = ["name", "category", "amount", "chapters_link", "sections_link", "activities_link", "mcqs_link", "object_status", "modified"]
+    list_display = ["name", "topic_category", "grades_display", "category", "amount", "chapters_link", "sections_link", "activities_link", "mcqs_link", "object_status", "modified"]
 
     def delete_model(self, request, obj):
         """Hard delete: remove course + all chapters, activities, MCQs, images, PDFs, S3 files."""
@@ -83,16 +102,26 @@ class SkillLabCourseAdmin(SkillLabAdminMixin, admin.ModelAdmin):
         """Hard delete selected courses: remove each with all related data and files."""
         for obj in queryset:
             obj.delete(hard_delete=True)
-    list_filter = ["category", "object_status"]
+    list_filter = ["topic_category", "grades", "category", "object_status"]
     search_fields = ["name"]
     list_editable = ["object_status"]
+    filter_horizontal = ["grades"]
     readonly_fields = ["related_content_links"]
     fieldsets = (
         (None, {"fields": ("name", "slug", "category", "amount", "image", "video_url", "object_status")}),
+        ("Catalog filters (class & topic)", {"fields": ("grades", "topic_category")}),
         ("Course Introduction (tab content)", {"fields": ("course_intro_html",)}),
         ("Course Index (tab content)", {"fields": ("course_index_html",)}),
         ("Related content", {"fields": ("related_content_links",)}),
     )
+
+    def grades_display(self, obj):
+        if not obj.pk:
+            return "-"
+        labels = list(obj.grades.order_by('sort_order', 'grade_number').values_list('name', flat=True))
+        return ", ".join(labels) if labels else "-"
+
+    grades_display.short_description = "Classes"
 
     def chapters_link(self, obj):
         if not obj.pk:

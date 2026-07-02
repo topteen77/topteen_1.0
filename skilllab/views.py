@@ -35,6 +35,43 @@ import logging
 logger = logging.getLogger(__name__)
 # Create your views here.
 
+
+def upsert_active(model, defaults=None, **lookup):
+    """Soft-delete-safe replacement for ``Model.objects.update_or_create``.
+
+    ``BaseModel`` uses soft delete (``object_status=DELETED``), so a "deleted"
+    row physically remains in the table and still occupies its ``unique_together``
+    key at the DB level. A plain ``update_or_create``/``get_or_create`` uses the
+    default manager (which hides deleted rows), so it can't find that row, tries
+    to ``INSERT`` and raises ``IntegrityError`` (duplicate entry). This looks up
+    the row across *all* statuses (including deleted), then updates and
+    reactivates it instead of inserting a duplicate.
+
+    Returns ``(obj, created)``.
+    """
+    defaults = defaults or {}
+
+    def _apply(obj):
+        for field, value in defaults.items():
+            setattr(obj, field, value)
+        if getattr(obj, 'object_status', None) != choices.ObjectStatus.ACTIVE:
+            obj.object_status = choices.ObjectStatus.ACTIVE
+        obj.save()
+        return obj
+
+    existing = model.objects.complete().filter(**lookup).first()
+    if existing is not None:
+        return _apply(existing), False
+    try:
+        obj = model.objects.create(object_status=choices.ObjectStatus.ACTIVE, **lookup, **defaults)
+        return obj, True
+    except IntegrityError:
+        # Race: another request created (or a soft-deleted row exists). Reuse it.
+        existing = model.objects.complete().filter(**lookup).first()
+        if existing is None:
+            raise
+        return _apply(existing), False
+
 class SkillLabCourseList(TemplateView):
     template_name = "template20/skilllab_course_list.html"
     per_page = 9
@@ -50,6 +87,31 @@ class SkillLabCourseList(TemplateView):
             "filter_category": request.GET.get("category", "").strip(),
         }
 
+    def _skilllab_filter_options(self):
+        from core import choices as core_choices
+        from skilllab.models import SkillLabCourseGrade, SkillLabCourseTopicCategory
+
+        return {
+            "skilllab_grade_options": SkillLabCourseGrade.objects.filter(
+                object_status=core_choices.ObjectStatus.ACTIVE
+            ).order_by("sort_order", "grade_number"),
+            "skilllab_topic_categories": SkillLabCourseTopicCategory.objects.filter(
+                object_status=core_choices.ObjectStatus.ACTIVE
+            ).order_by("sort_order", "name"),
+        }
+
+    def _apply_skilllab_catalog_filters(self, courses, filters):
+        if filters["filter_class"]:
+            try:
+                grade_num = int(filters["filter_class"])
+            except (TypeError, ValueError):
+                grade_num = None
+            if grade_num is not None:
+                courses = courses.filter(grades__grade_number=grade_num).distinct()
+        if filters["filter_category"]:
+            courses = courses.filter(topic_category__slug=filters["filter_category"])
+        return courses
+
     def _skilllab_filters_active(self, request):
         return any(self._skilllab_filter_values(request).values())
 
@@ -57,19 +119,16 @@ class SkillLabCourseList(TemplateView):
         from django.core.paginator import Paginator
 
         filters = self._skilllab_filter_values(request)
-        courses = SkillLabCourse.objects.all().order_by("-modified")
+        courses = (
+            SkillLabCourse.objects.all()
+            .select_related("topic_category")
+            .prefetch_related("grades")
+            .order_by("-modified")
+        )
         if filters["filter_q"]:
             courses = courses.filter(name__icontains=filters["filter_q"])
+        courses = self._apply_skilllab_catalog_filters(courses, filters)
         course_list = list(courses)
-        if filters["filter_class"] or filters["filter_category"]:
-            course_list = [
-                c
-                for c in course_list
-                if c.matches_skilllab_filters(
-                    grade=filters["filter_class"] or None,
-                    topic_key=filters["filter_category"] or None,
-                )
-            ]
         paginator = Paginator(course_list, self.per_page)
         page_obj = paginator.get_page(request.GET.get("page"))
         query_params = request.GET.copy()
@@ -80,6 +139,7 @@ class SkillLabCourseList(TemplateView):
             "course_count": len(course_list),
             "skilllab_filter_query": query_params.urlencode(),
             **filters,
+            **self._skilllab_filter_options(),
         }
 
     def get_context(self,request,*args, **kwargs):
@@ -101,6 +161,9 @@ class SkillLabCourseList(TemplateView):
         ctx['breadcrumb'] = get_breadcrumb([{'text': 'Skill Lab Course', 'url': ''}])
         if "course_count" not in ctx:
             ctx['course_count'] = SkillLabCourse.objects.count()
+        filter_opts = self._skilllab_filter_options()
+        ctx.setdefault("skilllab_grade_options", filter_opts["skilllab_grade_options"])
+        ctx.setdefault("skilllab_topic_categories", filter_opts["skilllab_topic_categories"])
         ctx['intl_courses'] = InternationalOnlineCourse.objects.all()[:4]
         return ctx
 
@@ -461,7 +524,8 @@ class SkillLabCourseLearningView(TemplateView):
             ).first()
         if progress_summary is None:
             # Last resort: create record so view never fails (e.g. if update_skilllab_course_progress_summary errored before save)
-            progress_summary, _ = SkillLabCourseProgressSummary.objects.get_or_create(
+            progress_summary, _ = upsert_active(
+                SkillLabCourseProgressSummary,
                 user=request.user,
                 skilllab_course=skilllab_course,
                 defaults={
@@ -520,6 +584,7 @@ class SkillLabCourseLearningView(TemplateView):
             'mcq_attempts_ids': mcq_attempts_ids,
             'initial_section_idx': initial_section_idx,
             'reached_sections': reached_sections,
+            'server_has_resume': resume is not None,
         }
         ctx["html_head"] = build_html_head(
             title=skilllab_course.name,
@@ -556,7 +621,8 @@ class SkillLabSaveResumeView(APIView):
             idx = max(0, idx)
         except (TypeError, ValueError):
             idx = 0
-        SkillLabCourseResume.objects.update_or_create(
+        upsert_active(
+            SkillLabCourseResume,
             user=request.user,
             skilllab_course=skilllab_course,
             defaults={'last_section_index': idx}
@@ -584,7 +650,8 @@ class SkillLabMarkChapterCompleteView(APIView):
         skilllab_course = chapter.skilllab
         if not skilllab_course.is_user_vissible(request):
             return Response({'success': False, 'error': 'Access denied'}, status=status.HTTP_403_FORBIDDEN)
-        progress, _ = SkillLabCourseProgress.objects.update_or_create(
+        progress, _ = upsert_active(
+            SkillLabCourseProgress,
             user=request.user,
             skilllab_course=skilllab_course,
             chapter=chapter,
@@ -833,7 +900,8 @@ class SkillLabBookmarkSaveView(APIView):
         except (TypeError, ValueError):
             section_step = None
         section_key = '{}_{}_{}'.format(section_type, section_id, section_step if section_step is not None else '')
-        obj, created = SkillLabUserBookmark.objects.update_or_create(
+        obj, created = upsert_active(
+            SkillLabUserBookmark,
             user=request.user,
             skilllab_course=skilllab_course,
             section_key=section_key,
@@ -1017,26 +1085,16 @@ def update_skilllab_course_progress_summary(user, skilllab_course):
             if sec['id'] in mcq_attempts_ids:
                 completed += 1
     pct = int((completed / total) * 100) if total > 0 else 0
-    try:
-        SkillLabCourseProgressSummary.objects.update_or_create(
-            user=user,
-            skilllab_course=skilllab_course,
-            defaults={
-                'progress_percentage': pct,
-                'completed_sections_count': completed,
-                'total_sections_count': total,
-            }
-        )
-    except IntegrityError:
-        # Race: another request created it. Fetch and update if visible (may not be committed yet).
-        obj = SkillLabCourseProgressSummary.objects.filter(
-            user=user, skilllab_course=skilllab_course
-        ).first()
-        if obj:
-            obj.progress_percentage = pct
-            obj.completed_sections_count = completed
-            obj.total_sections_count = total
-            obj.save()
+    upsert_active(
+        SkillLabCourseProgressSummary,
+        user=user,
+        skilllab_course=skilllab_course,
+        defaults={
+            'progress_percentage': pct,
+            'completed_sections_count': completed,
+            'total_sections_count': total,
+        }
+    )
 
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
@@ -1178,7 +1236,8 @@ class SkillLabMarkWorksheetDownloadedView(View):
         activity = get_object_or_404(SkillLabCourseActivity, id=activity_id)
         if not activity.skilllab_chapter.skilllab.is_user_vissible(request):
             return JsonResponse({'success': False, 'error': 'Access denied'}, status=403)
-        prog, _ = SkillLabWorksheetProgress.objects.update_or_create(
+        prog, _ = upsert_active(
+            SkillLabWorksheetProgress,
             user=request.user, activity=activity,
             defaults={'downloaded_at': timezone.now()}
         )

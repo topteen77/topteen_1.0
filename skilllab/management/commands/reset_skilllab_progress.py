@@ -1,20 +1,40 @@
 #!/usr/bin/env python3
 """
 Management command to reset Skill Lab course progress for testing.
-Deletes: SkillLabCourseProgressSummary, SkillLabWorksheetProgress, SkillLabMCQAttempt, SkillLabCourseResume.
+
+Deletes (HARD delete): SkillLabCourseProgressSummary, SkillLabCourseProgress,
+SkillLabWorksheetProgress, SkillLabMCQAttempt, SkillLabCourseResume,
+SkillLabUserHighlight, SkillLabUserNote, SkillLabUserBookmark.
+
+IMPORTANT: These models inherit BaseModel which uses *soft delete*
+(object_status=DELETED). A soft delete leaves the row in the table, so its
+unique_together key (e.g. user+course) is still occupied and re-attempting the
+course raises "Duplicate entry ... IntegrityError". This command therefore uses
+hard_delete() to physically remove rows so the course can be started fresh.
 """
 
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from skilllab.models import (
     SkillLabCourse,
+    SkillLabCourseProgress,
     SkillLabCourseProgressSummary,
     SkillLabWorksheetProgress,
     SkillLabMCQAttempt,
     SkillLabCourseResume,
+    SkillLabUserHighlight,
+    SkillLabUserNote,
+    SkillLabUserBookmark,
 )
 
 User = get_user_model()
+
+
+def _hard_delete(qs):
+    """Physically remove rows. Falls back to model-level delete for non soft-delete qs."""
+    if hasattr(qs, 'hard_delete'):
+        return qs.hard_delete()
+    return qs.delete()
 
 
 class Command(BaseCommand):
@@ -64,39 +84,59 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.ERROR(f'Course not found: {course_filter}'))
                 return
 
-        qs_summary = SkillLabCourseProgressSummary.objects.all()
-        qs_worksheet = SkillLabWorksheetProgress.objects.all()
-        qs_mcq = SkillLabMCQAttempt.objects.all()
-        qs_resume = SkillLabCourseResume.objects.all()
+        # Use .complete() so soft-deleted rows are included too. A previous
+        # admin/reset "delete" only soft-deleted rows, and those zombie rows
+        # are exactly what keeps the unique key occupied and triggers the
+        # IntegrityError, so they must be removed as well.
+        qs_summary = SkillLabCourseProgressSummary.objects.complete()
+        qs_progress = SkillLabCourseProgress.objects.complete()
+        qs_worksheet = SkillLabWorksheetProgress.objects.complete()
+        qs_mcq = SkillLabMCQAttempt.objects.complete()
+        qs_resume = SkillLabCourseResume.objects.complete()
+        qs_highlight = SkillLabUserHighlight.objects.complete()
+        qs_note = SkillLabUserNote.objects.complete()
+        qs_bookmark = SkillLabUserBookmark.objects.complete()
 
         if user:
             qs_summary = qs_summary.filter(user=user)
+            qs_progress = qs_progress.filter(user=user)
             qs_worksheet = qs_worksheet.filter(user=user)
             qs_mcq = qs_mcq.filter(user=user)
             qs_resume = qs_resume.filter(user=user)
+            qs_highlight = qs_highlight.filter(user=user)
+            qs_note = qs_note.filter(user=user)
+            qs_bookmark = qs_bookmark.filter(user=user)
         if course:
             qs_summary = qs_summary.filter(skilllab_course=course)
+            qs_progress = qs_progress.filter(skilllab_course=course)
             qs_worksheet = qs_worksheet.filter(activity__skilllab_chapter__skilllab=course)
             qs_mcq = qs_mcq.filter(mcq__skilllab_chapter__skilllab=course)
             qs_resume = qs_resume.filter(skilllab_course=course)
+            qs_highlight = qs_highlight.filter(skilllab_course=course)
+            qs_note = qs_note.filter(skilllab_course=course)
+            qs_bookmark = qs_bookmark.filter(skilllab_course=course)
 
-        c_summary = qs_summary.count()
-        c_worksheet = qs_worksheet.count()
-        c_mcq = qs_mcq.count()
-        c_resume = qs_resume.count()
+        counts = {
+            'SkillLabCourseProgressSummary': qs_summary.count(),
+            'SkillLabCourseProgress': qs_progress.count(),
+            'SkillLabWorksheetProgress': qs_worksheet.count(),
+            'SkillLabMCQAttempt': qs_mcq.count(),
+            'SkillLabCourseResume': qs_resume.count(),
+            'SkillLabUserHighlight': qs_highlight.count(),
+            'SkillLabUserNote': qs_note.count(),
+            'SkillLabUserBookmark': qs_bookmark.count(),
+        }
 
-        self.stdout.write('Records to delete:')
-        self.stdout.write(f'  SkillLabCourseProgressSummary: {c_summary}')
-        self.stdout.write(f'  SkillLabWorksheetProgress: {c_worksheet}')
-        self.stdout.write(f'  SkillLabMCQAttempt: {c_mcq}')
-        self.stdout.write(f'  SkillLabCourseResume: {c_resume}')
+        self.stdout.write('Records to delete (including soft-deleted):')
+        for name, count in counts.items():
+            self.stdout.write(f'  {name}: {count}')
         self.stdout.write('-' * 60)
 
         if dry_run:
             self.stdout.write(self.style.WARNING('\nDRY RUN - No changes made.'))
             return
 
-        if c_summary + c_worksheet + c_mcq + c_resume == 0:
+        if sum(counts.values()) == 0:
             self.stdout.write(self.style.WARNING('No records to delete.'))
             return
 
@@ -106,9 +146,13 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.ERROR('Cancelled.'))
                 return
 
-        qs_summary.delete()
-        qs_worksheet.delete()
-        qs_mcq.delete()
-        qs_resume.delete()
+        _hard_delete(qs_summary)
+        _hard_delete(qs_progress)
+        _hard_delete(qs_worksheet)
+        _hard_delete(qs_mcq)
+        _hard_delete(qs_resume)
+        _hard_delete(qs_highlight)
+        _hard_delete(qs_note)
+        _hard_delete(qs_bookmark)
 
         self.stdout.write(self.style.SUCCESS('Progress reset complete.'))

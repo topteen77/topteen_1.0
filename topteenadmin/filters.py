@@ -9,7 +9,13 @@ from careers.models import Career, CareerFAQ, CareerMedia, CareerPath, Professio
 from .base_filters import NamedBaseFilter,BaseFilter       
 from courses.models import Stream,Course,CourseFacts,CourseIntake,CourseMoneyValue,CourseText,CourseEnglighRequirements
 from entrance_exams.models import EntranceExam,ExamTags
-from skilllab.models import SkillLabCourse, SkillLabCourseActivity,SkillLabCourseChapter
+from skilllab.models import (
+    SkillLabCourse,
+    SkillLabCourseActivity,
+    SkillLabCourseChapter,
+    SkillLabCourseGrade,
+    SkillLabCourseTopicCategory,
+)
 from crm.models import Lead
 from psychometric_tests.models import PsychometricFAQ
 from users.models import User
@@ -114,8 +120,17 @@ class SkillFilter(NamedBaseFilter):
 class SkillLabCourseFilter(NamedBaseFilter):
     category = django_filters.ChoiceFilter(
         choices=choices.SkillLabCourseTypeChoice.CHOICE,
-        label='Category',
+        label='Audience tier',
         empty_label='-- Any --',
+    )
+    topic_category = django_filters.ModelChoiceFilter(
+        queryset=SkillLabCourseTopicCategory.objects.complete().order_by('sort_order', 'name'),
+        label='Topic category',
+        empty_label='-- Any --',
+    )
+    grades = django_filters.ModelMultipleChoiceFilter(
+        queryset=SkillLabCourseGrade.objects.complete().order_by('sort_order', 'grade_number'),
+        label='Class',
     )
     object_status = django_filters.ChoiceFilter(
         choices=choices.ObjectStatus.CHOICES,
@@ -125,7 +140,7 @@ class SkillLabCourseFilter(NamedBaseFilter):
 
     class Meta:
         model = SkillLabCourse
-        fields = ['name', 'category', 'object_status']
+        fields = ['name', 'category', 'topic_category', 'grades', 'object_status']
 
 
 class SkillLabCourseChapterFilter(BaseFilter):

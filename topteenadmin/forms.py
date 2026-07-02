@@ -326,7 +326,7 @@ class SkillLabCourseModelForm(TranslationModelForm):
     class Meta:
         model = SkillLabCourse
         fields = [
-            'name', 'image', 'category', 'video_url', 'description',
+            'name', 'image', 'category', 'grades', 'topic_category', 'video_url', 'description',
             'course_intro_html', 'course_index_html',
             'amount', 'currency', 'object_status',
         ]

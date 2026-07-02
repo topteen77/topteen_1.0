@@ -1157,13 +1157,21 @@ learning today to stay ahead!
               {% if filter_class %}
               <span class="sl-empty-state__tag">
                 <i class='bx bx-user' aria-hidden="true"></i>
-                {% if filter_class == '6' %}Class 6th{% elif filter_class == '7' %}Class 7th{% elif filter_class == '8' %}Class 8th{% elif filter_class == '9' %}Class 9th{% elif filter_class == '10' %}Class 10th{% elif filter_class == '11' %}Class 11th{% elif filter_class == '12' %}Class 12th{% else %}Class {{ filter_class }}{% endif %}
+                {% set class_ns = namespace(label=None) %}
+                {% for grade in skilllab_grade_options %}
+                  {% if filter_class == grade.grade_number|string %}{% set class_ns.label = grade.name %}{% endif %}
+                {% endfor %}
+                {{ class_ns.label or ('Class ' ~ filter_class) }}
               </span>
               {% endif %}
               {% if filter_category %}
               <span class="sl-empty-state__tag">
                 <i class='bx bx-category' aria-hidden="true"></i>
-                {% if filter_category == 'career' %}Career{% elif filter_category == 'skills' %}Skills{% elif filter_category == 'life-skills' %}Life Skills{% elif filter_category == 'future-readiness' %}Future readiness{% else %}{{ filter_category }}{% endif %}
+                {% set cat_ns = namespace(label=None) %}
+                {% for cat in skilllab_topic_categories %}
+                  {% if filter_category == cat.slug %}{% set cat_ns.label = cat.name %}{% endif %}
+                {% endfor %}
+                {{ cat_ns.label or filter_category }}
               </span>
               {% endif %}
             </div>

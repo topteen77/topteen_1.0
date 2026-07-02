@@ -25,12 +25,61 @@ def international_course_logo_directory(instance, filename):
 DEFAULT_INTL_COURSE_IMAGE = "images_new/thirdparty/course-img-1.png"
 DEFAULT_INTL_COURSE_LOGO = "images_new/thirdparty/logo.png"
 
+
+class SkillLabCourseGrade(BaseModel):
+    """Admin-managed class levels (6–12) for Skill Lab course catalog filters."""
+    name = models.CharField(max_length=32, help_text='Display label, e.g. "Class 6"')
+    grade_number = models.PositiveSmallIntegerField(unique=True, db_index=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['sort_order', 'grade_number']
+        verbose_name = 'Skill Lab class'
+        verbose_name_plural = 'Skill Lab classes'
+
+    def __str__(self):
+        return self.name
+
+
+class SkillLabCourseTopicCategory(BaseModel):
+    """Admin-managed topic categories for Skill Lab course catalog filters."""
+    name = models.CharField(max_length=64)
+    slug = models.SlugField(max_length=64, unique=True, db_index=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['sort_order', 'name']
+        verbose_name = 'Skill Lab topic category'
+        verbose_name_plural = 'Skill Lab topic categories'
+
+    def __str__(self):
+        return self.name
+
 # Create your models here.
 
 class SkillLabCourse(SlugModel,BaseModel,BaseMoneyModel):
     name=models.CharField(max_length=160)
     image=models.ImageField(upload_to=skill_lab_image_directory,null=True,max_length=250)
-    category=models.PositiveSmallIntegerField(choices=choices.SkillLabCourseTypeChoice.CHOICE,default=choices.SkillLabCourseTypeChoice.after_12_class, db_index=True)
+    category=models.PositiveSmallIntegerField(
+        choices=choices.SkillLabCourseTypeChoice.CHOICE,
+        default=choices.SkillLabCourseTypeChoice.after_12_class,
+        db_index=True,
+        help_text='Audience tier (parent dashboard / access). Use Classes and Topic category below for catalog filters.',
+    )
+    grades = models.ManyToManyField(
+        SkillLabCourseGrade,
+        blank=True,
+        related_name='courses',
+        help_text='Class levels this course is for (6–12). Shown on course cards and used in search filters.',
+    )
+    topic_category = models.ForeignKey(
+        SkillLabCourseTopicCategory,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='courses',
+        help_text='Topic category for catalog filters (Career, Skills, Life Skills, Future readiness).',
+    )
     description = RichTextField(null=True, blank=True)  # Kept for SEO/fallback; use course_intro_html for tab
     course_intro_html = RichTextField(null=True, blank=True, help_text="HTML for Course Introduction tab")
     course_index_html = RichTextField(null=True, blank=True, help_text="HTML for Course Index tab")
@@ -73,6 +122,8 @@ class SkillLabCourse(SlugModel,BaseModel,BaseMoneyModel):
         return (self.name or "").lower()
 
     def get_topic_category_key(self):
+        if self.topic_category_id and self.topic_category:
+            return self.topic_category.slug
         name = self._name_lower()
         career_kw = (
             "career", "job", "interview", "resume", "professional",
@@ -98,6 +149,8 @@ class SkillLabCourse(SlugModel,BaseModel,BaseMoneyModel):
         return "skills"
 
     def get_topic_category_display(self):
+        if self.topic_category_id and self.topic_category:
+            return self.topic_category.name
         labels = {
             "career": "Career",
             "skills": "Skills",
@@ -107,6 +160,10 @@ class SkillLabCourse(SlugModel,BaseModel,BaseMoneyModel):
         return labels.get(self.get_topic_category_key(), "Skills")
 
     def get_grade_numbers(self):
+        if self.pk:
+            nums = list(self.grades.values_list('grade_number', flat=True))
+            if nums:
+                return set(nums)
         import re
 
         name = self._name_lower()

@@ -50,34 +50,118 @@ PSYCHOMETRIC_TEST_KEYS = [
 ]
 
 
+def _skilllab_course_display_name(course):
+    """Label skill lab courses in the admin reset UI."""
+    name_lower = (course.name or '').lower()
+    if any(kw in name_lower for kw in ('career', 'class 6', 'class 7', 'class 8', 'readiness', 'awareness')):
+        return 'Career Readiness: ' + course.name
+    return 'Skill Lab: ' + course.name
+
+
+def _get_user_skilllab_course_ids(user_ids):
+    """Return course IDs where any selected user has skill lab learning progress."""
+    from skilllab.models import (
+        SkillLabCourseProgressSummary,
+        SkillLabCourseResume,
+        SkillLabCourseProgress,
+        SkillLabWorksheetProgress,
+        SkillLabMCQAttempt,
+    )
+    if not user_ids:
+        return set()
+    course_ids = set()
+    course_ids.update(
+        SkillLabCourseProgressSummary.objects.filter(user_id__in=user_ids)
+        .values_list('skilllab_course_id', flat=True)
+    )
+    course_ids.update(
+        SkillLabCourseResume.objects.filter(user_id__in=user_ids)
+        .values_list('skilllab_course_id', flat=True)
+    )
+    course_ids.update(
+        SkillLabCourseProgress.objects.filter(user_id__in=user_ids)
+        .values_list('skilllab_course_id', flat=True)
+    )
+    course_ids.update(
+        SkillLabWorksheetProgress.objects.filter(user_id__in=user_ids)
+        .values_list('activity__skilllab_chapter__skilllab_id', flat=True)
+    )
+    course_ids.update(
+        SkillLabMCQAttempt.objects.filter(user_id__in=user_ids)
+        .values_list('mcq__skilllab_chapter__skilllab_id', flat=True)
+    )
+    return {cid for cid in course_ids if cid}
+
+
+def _reset_skilllab_course(user, course_id):
+    """Clear all learning progress for one user on one skill lab course."""
+    from skilllab.models import (
+        SkillLabCourse,
+        SkillLabCourseProgressSummary,
+        SkillLabWorksheetProgress,
+        SkillLabMCQAttempt,
+        SkillLabCourseResume,
+        SkillLabCourseProgress,
+        SkillLabUserHighlight,
+        SkillLabUserNote,
+        SkillLabUserBookmark,
+    )
+    course = SkillLabCourse.objects.filter(pk=course_id).first()
+    if not course:
+        return
+    SkillLabCourseProgressSummary.objects.filter(user=user, skilllab_course=course).delete()
+    SkillLabCourseResume.objects.filter(user=user, skilllab_course=course).delete()
+    SkillLabCourseProgress.objects.filter(user=user, skilllab_course=course).delete()
+    SkillLabWorksheetProgress.objects.filter(
+        user=user, activity__skilllab_chapter__skilllab=course
+    ).delete()
+    SkillLabMCQAttempt.objects.filter(
+        user=user, mcq__skilllab_chapter__skilllab=course
+    ).delete()
+    SkillLabUserHighlight.objects.filter(user=user, skilllab_course=course).delete()
+    SkillLabUserNote.objects.filter(user=user, skilllab_course=course).delete()
+    SkillLabUserBookmark.objects.filter(user=user, skilllab_course=course).delete()
+
+
+def _reset_all_skilllab_courses(user):
+    for course_id in _get_user_skilllab_course_ids([user.id]):
+        _reset_skilllab_course(user, course_id)
+
+
 def _get_students_with_recent_tests_queryset(email_filter=None):
-    """Return User queryset of students only who have given tests, ordered by most recent activity."""
+    """Return User queryset of students with test or skill lab activity."""
     from core.choices import UserType
     qs = User.objects.filter(user_type=UserType.STUDENT).filter(
-        Q(test_sessions__isnull=False) | Q(results__isnull=False)
+        Q(test_sessions__isnull=False)
+        | Q(results__isnull=False)
+        | Q(skilllabcourseprogresssummary__isnull=False)
+        | Q(skilllabcourseresume__isnull=False)
+        | Q(skilllabcourseprogress__isnull=False)
     ).annotate(
         latest_session=Max('test_sessions__created_at'),
         latest_result=Max('results__modified'),
+        latest_skilllab=Max('skilllabcourseprogresssummary__updated_at'),
     ).distinct()
     if email_filter:
         qs = qs.filter(email__icontains=email_filter.strip())
-    return qs.order_by('-latest_session', '-latest_result')
+    return qs.order_by('-latest_session', '-latest_result', '-latest_skilllab')
 
 
 def _get_user_test_count(user):
-    """Return total test count for a user (psychometric results + post-matric sessions)."""
+    """Return total test count for a user (psychometric, post-matric, skill lab courses)."""
     from app.models import Results
-    from app_post_matric.models import TestSession
     psychometric_count = Results.objects.filter(user=user).count()
     post_matric_count = user.test_sessions.count()
-    return psychometric_count + post_matric_count
+    skilllab_count = len(_get_user_skilllab_course_ids([user.id]))
+    return psychometric_count + post_matric_count + skilllab_count
 
 
 def _get_tests_for_users(user_ids):
     """Return list of tests that the given users have. Each item: { id, name, type }."""
     from app.models import Results
     from app.stream_decision import is_questionnaire_completed
-    from app_post_matric.models import TestSession, Test
+    from app_post_matric.models import TestSession
+    from skilllab.models import SkillLabCourse
     if not user_ids:
         return []
     users = list(User.objects.filter(pk__in=user_ids))
@@ -110,6 +194,16 @@ def _get_tests_for_users(user_ids):
         if s.test_id and ('post_matric_' + str(s.test_id)) not in test_ids_seen:
             test_ids_seen.add('post_matric_' + str(s.test_id))
             out.append({'id': 'post_matric_' + str(s.test_id), 'name': 'Post-matric: ' + (s.test.title if s.test else str(s.test_id)), 'type': 'post_matric'})
+    # Skill Lab / Career Readiness courses with progress
+    for course in SkillLabCourse.objects.filter(pk__in=_get_user_skilllab_course_ids(user_ids)).order_by('name'):
+        key = 'skilllab_' + str(course.id)
+        if key not in test_ids_seen:
+            test_ids_seen.add(key)
+            out.append({
+                'id': key,
+                'name': _skilllab_course_display_name(course),
+                'type': 'skilllab',
+            })
     return out
 
 
@@ -133,6 +227,8 @@ def _reset_student_tests(user, test_ids=None):
         )
         Results.objects.filter(user=user).delete()
         TestSession.objects.filter(user=user).delete()
+        _reset_stream_decision_questionnaire(user)
+        _reset_all_skilllab_courses(user)
         return
     # Partial reset
     tc_update = {}
@@ -152,6 +248,12 @@ def _reset_student_tests(user, test_ids=None):
             try:
                 pk = int(tid.replace('post_matric_', ''))
                 TestSession.objects.filter(user=user, test_id=pk).delete()
+            except ValueError:
+                pass
+        elif tid.startswith('skilllab_'):
+            try:
+                course_id = int(tid.replace('skilllab_', ''))
+                _reset_skilllab_course(user, course_id)
             except ValueError:
                 pass
 

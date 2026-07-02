@@ -45,13 +45,9 @@
         <label for="sl-finder-class">Class</label>
         <select id="sl-finder-class" name="class" class="sl-finder__select">
           <option value="" {% if not filter_class %}selected{% endif %}>All classes</option>
-          <option value="6" {% if filter_class == '6' %}selected{% endif %}>Class 6th</option>
-          <option value="7" {% if filter_class == '7' %}selected{% endif %}>Class 7th</option>
-          <option value="8" {% if filter_class == '8' %}selected{% endif %}>Class 8th</option>
-          <option value="9" {% if filter_class == '9' %}selected{% endif %}>Class 9th</option>
-          <option value="10" {% if filter_class == '10' %}selected{% endif %}>Class 10th</option>
-          <option value="11" {% if filter_class == '11' %}selected{% endif %}>Class 11th</option>
-          <option value="12" {% if filter_class == '12' %}selected{% endif %}>Class 12th</option>
+          {% for grade in skilllab_grade_options %}
+          <option value="{{ grade.grade_number }}" {% if filter_class == grade.grade_number|string %}selected{% endif %}>{{ grade.name }}</option>
+          {% endfor %}
         </select>
       </div>
 
@@ -59,10 +55,9 @@
         <label for="sl-finder-category">Category</label>
         <select id="sl-finder-category" name="category" class="sl-finder__select">
           <option value="" {% if not filter_category %}selected{% endif %}>All categories</option>
-          <option value="career" {% if filter_category == 'career' %}selected{% endif %}>Career</option>
-          <option value="skills" {% if filter_category == 'skills' %}selected{% endif %}>Skills</option>
-          <option value="life-skills" {% if filter_category == 'life-skills' %}selected{% endif %}>Life Skills</option>
-          <option value="future-readiness" {% if filter_category == 'future-readiness' %}selected{% endif %}>Future readiness</option>
+          {% for cat in skilllab_topic_categories %}
+          <option value="{{ cat.slug }}" {% if filter_category == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+          {% endfor %}
         </select>
       </div>
     </div>

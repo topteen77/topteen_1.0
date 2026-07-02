@@ -1077,6 +1077,7 @@
   var bookmarkDeleteUrl = "{{ url('skilllabcourse:bookmark_delete')|escapejs }}";
   var savedCountUrl = "{{ url('skilllabcourse:saved_count')|escapejs }}";
   var initialSectionIdx = {{ initial_section_idx|tojson }};
+  var serverHasResume = {{ server_has_resume|tojson }};
   var currentSectionIdx = 0;
   var RESUME_STORAGE_KEY = 'skilllab_resume_';
   var currentSectionInfo = { type: '', id: '', step: null };
@@ -1106,6 +1107,13 @@
   function loadSavedState() {
     try {
       var key = RESUME_STORAGE_KEY + courseSlug;
+      // Server is the source of truth. If the server has no resume record
+      // (e.g. an admin reset the course), drop any stale local progress so
+      // we don't re-POST an old section index and revive the ticks.
+      if (!serverHasResume) {
+        localStorage.removeItem(key);
+        return null;
+      }
       var raw = localStorage.getItem(key);
       if (!raw) return null;
       var data = JSON.parse(raw);
