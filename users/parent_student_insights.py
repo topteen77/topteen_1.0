@@ -326,6 +326,39 @@ def get_engagement_stats(student) -> Dict[str, Any]:
         }
 
 
+def build_student_dashboard_basic(student) -> Dict[str, Any]:
+    """Lightweight payload for the parent dashboard student switcher.
+
+    Only computes the fields the dashboard frontend actually renders
+    (name / email / mobile / class / grade). Avoids the heavy assessment,
+    pathway, engagement and AI-insight computations in build_student_insights.
+    """
+    sid = int(getattr(student, "id", 0) or 0)
+    bucket, grade_label = resolve_student_grade(student)
+    grade_number = _extract_grade_number(student)
+    class_display = (
+        str(grade_number)
+        if grade_number is not None
+        else (grade_label.replace("Class ", "").strip() or "—")
+    )
+    student_mobile = getattr(student, "mobile", None) or ""
+    if not student_mobile:
+        try:
+            if getattr(student, "user_profile", None):
+                student_mobile = getattr(student.user_profile, "mobile", None) or ""
+        except Exception:
+            student_mobile = ""
+    return {
+        "id": sid,
+        "name": getattr(student, "name", "") or "Student",
+        "email": getattr(student, "email", "") or "",
+        "mobile": student_mobile or "—",
+        "class_display": class_display,
+        "grade_label": grade_label,
+        "grade_bucket": bucket,
+    }
+
+
 def build_student_insights(student, request=None) -> Dict[str, Any]:
     """Single-student payload for parent dashboard JS."""
     assessment_track = resolve_assessment_track(student)
@@ -683,3 +716,73 @@ def render_parent_assessment_report_html(request, student) -> str:
         )
 
     return ""
+
+
+def parent_assessment_report_empty_html(student) -> str:
+    track = resolve_assessment_track(student)
+    track_label = (
+        "Career Direction (Class 12)"
+        if track == "12"
+        else "Stream Sorter (Class 10)"
+    )
+    return (
+        '<p class="parent-empty-note mb-0">No '
+        + track_label
+        + " assessment report is available yet for this student. "
+        "Reports appear here once they complete the assessment for their current class.</p>"
+    )
+
+
+def build_parent_loan_form_students_payload(parent) -> List[Dict[str, Any]]:
+    """Linked students plus shortlisted colleges/courses for the loan application form."""
+    from users.models import ParentStudentLink
+    from colleges.models import CollegeShortlist
+    from courses.models import CourseShortlist
+
+    linked = ParentStudentLink.objects.filter(parent=parent).select_related("student")
+    students = [x.student for x in linked if x.student]
+    payload: List[Dict[str, Any]] = []
+
+    for student in students:
+        colleges: List[str] = []
+        seen_colleges: set = set()
+        for row in (
+            CollegeShortlist.objects.filter(user=student)
+            .select_related("college")
+            .order_by("-id")
+        ):
+            college = row.college
+            if not college or not college.id or college.id in seen_colleges:
+                continue
+            name = (college.name or "").strip()
+            if name:
+                colleges.append(name)
+                seen_colleges.add(college.id)
+
+        courses: List[str] = []
+        seen_courses: set = set()
+        for row in (
+            CourseShortlist.objects.filter(user=student)
+            .select_related("course")
+            .order_by("-id")
+        ):
+            course = row.course
+            if not course or not course.id or course.id in seen_courses:
+                continue
+            name = (course.name or "").strip()
+            if name:
+                courses.append(name)
+                seen_courses.add(course.id)
+
+        payload.append(
+            {
+                "id": int(student.id),
+                "name": (getattr(student, "name", None) or "").strip() or "Student",
+                "email": getattr(student, "email", None) or "",
+                "mobile": getattr(student, "mobile", None) or "",
+                "colleges": colleges,
+                "courses": courses,
+            }
+        )
+
+    return payload

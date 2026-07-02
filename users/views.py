@@ -45,7 +45,7 @@ from colleges.models import College,CollegeShortlist
 from courses.models import Course
 from core.models import Country,Subject,Hobbies,UserFigureOut,Stories
 from blog.models import Blog
-from .models import UserProfile,UserNote,UserFolder,UserCalender
+from .models import UserProfile,UserNote,UserFolder,UserCalender,EducationLoanApplication
 from psychometric_tests.models import CentralTestCandidate
 from .task import send_otp_mail,send_referral_mail
 from careers.models import CareerCluster,CareerShortlist,Videos
@@ -85,9 +85,21 @@ from .parent_dashboard_ai import (
     build_study_abroad_options,
     calculate_loan_metrics,
 )
+from .education_loan_application import (
+    build_parent_loan_applications_summary,
+    get_parent_education_loan_applications,
+    get_parent_education_loan_draft,
+    get_parent_latest_enquiry,
+    save_education_loan_application,
+    serialize_education_loan_application,
+    serialize_education_loan_application_for_parent_list,
+)
 from .parent_student_insights import (
     build_career_suggestions_with_urls,
+    build_parent_loan_form_students_payload,
+    build_student_dashboard_basic,
     build_student_insights,
+    parent_assessment_report_empty_html,
     render_parent_assessment_report_html,
     resolve_parent_student_report_redirect,
     resolve_student_grade,
@@ -744,16 +756,19 @@ class ParentsDashboardView(TemplateView):
         linked = ParentStudentLink.objects.filter(parent=request.user).select_related('student')
         students = [x.student for x in linked if x.student]
 
-        students_info = []
         psychometric_students = []
         students_dashboard_payload = []
 
+        # The parent dashboard only renders each student's name, email, mobile,
+        # class and grade in the switcher — so build a lightweight payload and
+        # skip the expensive assessment / AI-insight computations that used to
+        # run per student on every page load.
         for s in students:
             try:
-                insight = build_student_insights(s, request=request)
+                basic = build_student_dashboard_basic(s)
             except Exception:
                 bucket_key, bucket_label = resolve_student_grade(s)
-                insight = {
+                basic = {
                     "id": int(getattr(s, "id", 0) or 0),
                     "name": getattr(s, "name", "") or "Student",
                     "email": getattr(s, "email", "") or "",
@@ -761,95 +776,36 @@ class ParentsDashboardView(TemplateView):
                     "class_display": "—",
                     "grade_label": bucket_label,
                     "grade_bucket": bucket_key,
-                    "results_enabled": False,
-                    "results_url": "",
-                    "psychometric_completion_percent": 0,
-                    "psychometric_status_label": "Pending",
-                    "career_readiness": 0,
-                    "test_steps": [],
-                    "psychometric_bars": [],
-                    "pathway": {"profile": 0, "resume": 0, "college": 0, "notes": 0, "readiness": 0},
-                    "engagement": {"trophies": 0, "points": 0, "streak_days": 0, "level": "Rookie", "level_progress": 0},
-                    "dashboard_url": reverse("parents_student_dashboard", args=[s.id]),
-                    "profile_url": reverse("parents_student_view_profile", args=[s.id]),
-                    "careers_explore_url": reverse("careers:career") + f"?student_id={s.id}",
-                    "careers_shortlist_url": reverse("parents_careers"),
-                    "test_reports": [],
-                    "test_reports_primary_url": "",
-                    "has_test_reports": False,
-                    "test_report_count": 0,
-                    "test_name": "Psychometric Assessment",
                 }
 
-            # AI insights from real pathway + psychometric bars
-            bar_map = {b.get("label", "").lower(): b.get("percent", 0) for b in insight.get("psychometric_bars", [])}
-            subject_scores = {
-                "math": bar_map.get("intelligence", bar_map.get("numerical", 50)),
-                "science": bar_map.get("career interest", bar_map.get("investigative", 50)),
-                "english": bar_map.get("personality", bar_map.get("verbal", 50)),
-            }
-            interest_payload = {}
-            for bar in insight.get("psychometric_bars", []):
-                key = str(bar.get("label", "")).lower().replace(" ", "_")
-                if key:
-                    interest_payload[key] = float(bar.get("percent", 0))
-            psychometric_result = process_psychometric_data(
-                {
-                    "personality": {k: subject_scores["english"] for k in ("openness", "conscientiousness", "extraversion", "agreeableness", "emotional_stability")},
-                    "aptitude": {"numerical": subject_scores["math"], "logical": subject_scores["math"], "verbal": subject_scores["english"]},
-                    "interest": interest_payload or {"realistic": 50, "investigative": 50, "artistic": 50, "social": 50, "enterprising": 50, "conventional": 50},
-                },
-                benchmarks={"numerical": 60, "logical": 60, "verbal": 60, "investigative": 62},
-            )
-            ai_insights = generate_ai_insights(psychometric_result, subject_scores)
-            if insight.get("pathway", {}).get("profile", 0) < 70:
-                ai_insights["recommendations"] = list(ai_insights.get("recommendations", [])) + ["Help student complete their profile for better recommendations"]
-            if not insight.get("results_enabled") and insight.get("psychometric_completion_percent", 0) > 0:
-                ai_insights["recommendations"] = list(ai_insights.get("recommendations", [])) + [
-                    f"Encourage finishing {insight.get('test_name', 'assessment')} — {insight['psychometric_completion_percent']}% complete"
-                ]
-            study_abroad = build_study_abroad_options(
-                ai_insights.get("career_paths", []),
-                insight.get("career_readiness", 0),
-            )
-
-            insight["ai_insights"] = ai_insights
-            insight["career_suggestions"] = build_career_suggestions_with_urls(
-                career_paths=ai_insights.get("career_paths", []),
-                psychometric_bars=insight.get("psychometric_bars", []),
-                explore_url=insight.get("careers_explore_url", ""),
-            )
-            insight["study_abroad"] = study_abroad
-            students_dashboard_payload.append(insight)
-
-            students_info.append({"student": s, "results_enabled": insight.get("results_enabled", False)})
+            students_dashboard_payload.append(basic)
             psychometric_students.append({
                 "student": s,
-                "grade_label": insight.get("grade_label", "Other"),
-                "grade_bucket": insight.get("grade_bucket", "other"),
-                "results_enabled": insight.get("results_enabled", False),
-                "career_readiness": insight.get("career_readiness", 0),
+                "grade_label": basic.get("grade_label", "Other"),
+                "grade_bucket": basic.get("grade_bucket", "other"),
             })
 
         selected_student = psychometric_students[0] if psychometric_students else None
+        selected_student_id = (
+            getattr(selected_student.get("student"), "id", None) if selected_student else None
+        )
 
-        initial_assessment_report_html = ""
-        if selected_student and selected_student.get("student"):
-            try:
-                initial_assessment_report_html = render_parent_assessment_report_html(
-                    request, selected_student["student"]
-                )
-            except Exception:
-                initial_assessment_report_html = ""
+        # Assessment reports are expensive to build, so never render them
+        # inline on page load. Each pane is an empty placeholder that is
+        # fetched lazily over AJAX (with a spinner) when the student is first
+        # selected, then cached client-side (show/hide) for instant switching.
+        student_assessment_reports = [
+            {"student_id": s.id, "html": "", "loaded": False}
+            for s in students
+        ]
 
         ctx = {
             "linked_students": students,
-            "linked_students_info": students_info,
             "psychometric_students": psychometric_students,
             "selected_student": selected_student,
             "students_dashboard_payload_json": mark_safe(json.dumps(students_dashboard_payload)),
-            "selected_student_id": getattr(selected_student.get("student"), "id", None) if selected_student else None,
-            "initial_assessment_report_html": mark_safe(initial_assessment_report_html) if initial_assessment_report_html else "",
+            "selected_student_id": selected_student_id,
+            "student_assessment_reports": student_assessment_reports,
         }
         return render(request, self.template_name, ctx)
 
@@ -862,7 +818,104 @@ class ParentsEducationLoanCalculatorView(TemplateView):
             return redirect("parents_login")
         if request.user.user_type != choices.UserType.PARENT:
             return redirect(get_dashboard_url_for_user(request, request.user))
-        return render(request, self.template_name, {})
+        loan_students_payload = build_parent_loan_form_students_payload(request.user)
+        draft = get_parent_education_loan_draft(request.user)
+        latest_enquiry = get_parent_latest_enquiry(request.user)
+
+        application_id = request.GET.get("application_id")
+        selected_application = None
+        if application_id:
+            selected_application = (
+                EducationLoanApplication.objects.filter(parent=request.user, id=application_id).first()
+            )
+            if selected_application and selected_application.status == choices.EducationLoanApplicationStatus.DRAFT:
+                draft = selected_application
+
+        ctx = {
+            "loan_students_payload_json": mark_safe(json.dumps(loan_students_payload)),
+            "loan_draft_json": mark_safe(
+                json.dumps(serialize_education_loan_application(draft) if draft else None)
+            ),
+            "loan_latest_enquiry_json": mark_safe(
+                json.dumps(
+                    serialize_education_loan_application(latest_enquiry)
+                    if latest_enquiry
+                    else None
+                )
+            ),
+            "loan_save_url": reverse("parents_education_loan_save"),
+            "loan_applications_url": reverse("parents_education_loan_applications"),
+        }
+        return render(request, self.template_name, ctx)
+
+
+class ParentsEducationLoanApplicationsView(TemplateView):
+    template_name = "template20/parents/education_loan_applications.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        request = self.request
+        applications = [
+            serialize_education_loan_application_for_parent_list(app)
+            for app in get_parent_education_loan_applications(request.user)
+        ]
+        ctx.update(
+            {
+                "loan_applications": applications,
+                "loan_applications_summary": build_parent_loan_applications_summary(applications),
+                "loan_calculator_url": reverse("parents_education_loan_calculator"),
+            }
+        )
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect("parents_login")
+        if request.user.user_type != choices.UserType.PARENT:
+            return redirect(get_dashboard_url_for_user(request, request.user))
+        return render(request, self.template_name, self.get_context_data())
+
+
+class ParentEducationLoanApplicationSaveView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        if request.user.user_type != choices.UserType.PARENT:
+            return Response(
+                {"success": False, "message": "Not allowed"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        action = (request.data.get("action") or request.POST.get("action") or "draft").lower()
+        as_draft = action != "submit"
+        payload = request.data if isinstance(request.data, dict) else {}
+
+        app, errors = save_education_loan_application(request.user, payload, as_draft=as_draft)
+        if errors:
+            return Response(
+                {
+                    "success": False,
+                    "message": errors[0],
+                    "errors": errors,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        message = (
+            "Draft saved successfully."
+            if as_draft
+            else "Application enquiry sent successfully. Our team will contact you soon."
+        )
+        return Response(
+            {
+                "success": True,
+                "message": message,
+                "application": serialize_education_loan_application(app),
+                "status": app.status,
+                "status_label": app.get_status_display(),
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class LoanCalculatorAPIView(APIView):
@@ -994,27 +1047,31 @@ class ParentStudentPsychometricResultView(TemplateView):
 
 @method_decorator(login_required(login_url=reverse_lazy('parents_login')), name='dispatch')
 class ParentStudentAssessmentReportFragmentView(View):
-    """Returns inline assessment report HTML for the parent dashboard (no iframe)."""
+    """Returns inline assessment report HTML for the parent dashboard (no iframe).
+
+    The report build is expensive (~10s), so the rendered HTML fragment is
+    cached per student. Pass ?refresh=1 to force a rebuild (e.g. right after a
+    student completes an assessment). In dev the cache backend is DummyCache,
+    so this is a no-op locally and only takes effect in production (Redis).
+    """
+
+    CACHE_TTL_SECONDS = 900  # 15 minutes
+    CACHE_VERSION = "v1"
 
     def get(self, request, student_id, *args, **kwargs):
-        student = _get_parent_linked_student_or_404(request, student_id)
-        html = render_parent_assessment_report_html(request, student)
-        if not html:
-            from users.parent_student_insights import resolve_assessment_track
-
-            track = resolve_assessment_track(student)
-            track_label = (
-                "Career Direction (Class 12)"
-                if track == "12"
-                else "Stream Sorter (Class 10)"
-            )
-            html = (
-                '<p class="parent-empty-note mb-0">No '
-                + track_label
-                + ' assessment report is available yet for this student. '
-                "Reports appear here once they complete the assessment for their current class.</p>"
-            )
+        from django.core.cache import cache
         from django.http import HttpResponse
+
+        student = _get_parent_linked_student_or_404(request, student_id)
+        cache_key = f"parent_report_html:{self.CACHE_VERSION}:{student.id}"
+        force_refresh = (request.GET.get("refresh") or "").strip() == "1"
+
+        html = None if force_refresh else cache.get(cache_key)
+        if html is None:
+            html = render_parent_assessment_report_html(request, student)
+            if not html:
+                html = parent_assessment_report_empty_html(student)
+            cache.set(cache_key, html, self.CACHE_TTL_SECONDS)
 
         return HttpResponse(html)
 

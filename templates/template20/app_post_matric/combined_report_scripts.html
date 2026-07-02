@@ -5,7 +5,17 @@
 <script type="text/plain" data-parent-report-script>
 {% endif %}
   (function () {
-    const statsEl = document.getElementById('report-stats');
+    const scriptEl = document.currentScript;
+    const root = (scriptEl && (
+      scriptEl.closest('.parent-inline-assessment-report')
+      || scriptEl.closest('.combined-report-page')
+      || scriptEl.closest('.parent-assessment-report-pane')
+      || scriptEl.closest('[data-report-student-id]')
+    )) || document;
+    const byId = (id) => root.querySelector('#' + id);
+    const qsa = (selector) => root.querySelectorAll(selector);
+
+    const statsEl = byId('report-stats');
     const chartInstances = [];
     const chartAvailable = typeof Chart !== 'undefined';
 
@@ -34,12 +44,12 @@
     const sourcePersonality = Number(statsEl.dataset.careerPersonality || 0);
     const sourceRiasec = Number(statsEl.dataset.careerRiasec || 0);
     const sourceMotivation = Number(statsEl.dataset.careerMotivation || 0);
-    const renderedCareerItems = Array.from(document.querySelectorAll('.career-grid .career-item.recommended'))
+    const renderedCareerItems = Array.from(qsa('.career-grid .career-item.recommended'))
       .map((el) => (el.textContent || '').trim())
       .filter(Boolean);
     const totalCareers = new Set(renderedCareerItems).size || (sourcePersonality + sourceRiasec + sourceMotivation);
 
-    const totalCareersEl = document.getElementById('careerTotalCount');
+    const totalCareersEl = byId('careerTotalCount');
     if (totalCareersEl) totalCareersEl.textContent = String(totalCareers);
 
     const commonOptions = {
@@ -50,9 +60,9 @@
       }
     };
 
-    const completionCtx = document.getElementById('completionChart');
-    const completionCenter = document.getElementById('completionChartCenter');
-    const completionFraction = document.getElementById('completionChartFraction');
+    const completionCtx = byId('completionChart');
+    const completionCenter = byId('completionChartCenter');
+    const completionFraction = byId('completionChartFraction');
     const allAssessmentsComplete = totalTests > 0 && completedTests >= totalTests;
 
     if (completionFraction) {
@@ -115,7 +125,7 @@
       });
     }
 
-    const aptitudeCtx = document.getElementById('aptitudeDistributionChart');
+    const aptitudeCtx = byId('aptitudeDistributionChart');
     if (aptitudeCtx) {
       createChart(aptitudeCtx, {
         type: 'bar',
@@ -135,7 +145,7 @@
       });
     }
 
-    const sourceCtx = document.getElementById('recommendationSourceChart');
+    const sourceCtx = byId('recommendationSourceChart');
     if (sourceCtx) {
       createChart(sourceCtx, {
         type: 'pie',
@@ -152,7 +162,7 @@
     }
 
     function parseResultsJson() {
-      const el = document.getElementById('test-results-json');
+      const el = byId('test-results-json');
       if (!el) return [];
       try {
         const parsed = JSON.parse(el.textContent || '[]');
@@ -245,15 +255,15 @@
     }
 
     function updateDataNote(id, text) {
-      const noteEl = document.getElementById(id);
+      const noteEl = byId(id);
       if (noteEl) noteEl.textContent = text;
     }
 
     const personalityColors = ['#c6e1ff', '#99dbfb', '#b9fbee', '#bdfdd4', '#fde185', '#fbc6c6'];
 
     function updatePersonalityScoreNote(labels, values, colors) {
-      const noteEl = document.getElementById('personalityDeepNote');
-      const topEl = document.getElementById('personalityTopBlock');
+      const noteEl = byId('personalityDeepNote');
+      const topEl = byId('personalityTopBlock');
       if (!noteEl) return;
       if (!labels.length || !values.length) {
         noteEl.textContent = 'Personality scores are not available yet.';
@@ -381,7 +391,7 @@
     }
 
     function updateRiasecNote(keys, labels, values, colors, riasecCode) {
-      const noteEl = document.getElementById('careerDeepNote');
+      const noteEl = byId('careerDeepNote');
       if (!noteEl) return;
       if (!labels.length || !values.length) {
         noteEl.textContent = 'Career interest scores are not available yet.';
@@ -400,7 +410,7 @@
     }
 
     function updateMotivationPrimary(labels, values) {
-      const blockEl = document.getElementById('motivationPrimaryBlock');
+      const blockEl = byId('motivationPrimaryBlock');
       if (!blockEl) return;
       if (!labels.length || !values.length) {
         blockEl.textContent = 'Your Primary Motivation: --';
@@ -447,7 +457,7 @@
         .toLowerCase();
     }
 
-    const aptitudeBandEl = document.getElementById('aptitude-band-json');
+    const aptitudeBandEl = byId('aptitude-band-json');
     let aptitudeBands = { above: [], average: [], below: [] };
     if (aptitudeBandEl) {
       try {
@@ -474,7 +484,7 @@
     }
 
     const resultRecords = parseResultsJson();
-    const recordCountEl = document.getElementById('jsonRecordCount');
+    const recordCountEl = byId('jsonRecordCount');
     if (recordCountEl) recordCountEl.textContent = String(resultRecords.length);
 
     const personalityData = resultRecords.find((row) => (row.test_title || '').toLowerCase().includes('personality'));
@@ -487,7 +497,7 @@
 
     const personalitySeries = extractPersonalitySeries(personalityData ? personalityData.result_data : null);
     if (personalitySeries.labels.length) {
-      const ctx = document.getElementById('personalityDeepChart');
+      const ctx = byId('personalityDeepChart');
       if (ctx) {
         createChart(ctx, {
           type: 'polarArea',
@@ -522,7 +532,7 @@
 
     const careerSeries = extractRiasecSeries(careerData ? careerData.result_data : null);
     if (careerSeries.labels.length) {
-      const ctx = document.getElementById('careerDeepChart');
+      const ctx = byId('careerDeepChart');
       if (ctx) {
         const riasecBarColors = ['#c6e1ff', '#99dbfb', '#b9fbee', '#bdfdd4', '#fde185', '#fbc6c6'];
         const riasecCode = getRiasecCodeFromReport(careerData ? careerData.result_data : null, careerSeries.keys, careerSeries.values);
@@ -596,7 +606,7 @@
     ) : null;
     const motivationSeries = extractSeries(motivationSource);
     if (motivationSeries.labels.length) {
-      const ctx = document.getElementById('motivationDeepChart');
+      const ctx = byId('motivationDeepChart');
       if (ctx) {
         createChart(ctx, {
           type: 'doughnut',
@@ -619,7 +629,7 @@
 
     const aptitudeSeries = extractSeries(aptitudeData ? aptitudeData.result_data : null);
     if (aptitudeSeries.labels.length) {
-      const ctx = document.getElementById('aptitudeDeepChart');
+      const ctx = byId('aptitudeDeepChart');
       if (ctx) {
         const aptitudeLabels = aptitudeSeries.labels.map((label) => {
           const cleaned = String(label || '').replace(/\breasoning\b/ig, '').replace(/\s{2,}/g, ' ').trim();
@@ -687,7 +697,7 @@
       updateDataNote('aptitudeDeepNote', 'Aptitude scores are not available yet.');
     }
 
-    const chartCountEl = document.getElementById('jsonChartsCount');
+    const chartCountEl = byId('jsonChartsCount');
     if (chartCountEl) chartCountEl.textContent = String(chartInstances.length);
 
     function resolveReportStudentId(el) {
@@ -698,7 +708,10 @@
       if (el && el.getAttribute('data-student-id')) {
         return el.getAttribute('data-student-id');
       }
-      var shell = document.querySelector('[data-report-student-id]');
+      if (root.getAttribute('data-report-student-id')) {
+        return root.getAttribute('data-report-student-id');
+      }
+      var shell = root.querySelector('[data-report-student-id]');
       if (shell && shell.getAttribute('data-report-student-id')) {
         return shell.getAttribute('data-report-student-id');
       }
@@ -714,7 +727,7 @@
       try {
         var u = new URL(href, window.location.origin);
         var pathId = (window.location.pathname.match(/combined_report\/(\d+)/) || [])[1];
-        var shell = document.querySelector('[data-report-student-id]');
+        var shell = root.querySelector('[data-report-student-id]');
         var shellId = shell ? shell.getAttribute('data-report-student-id') : null;
         var effectiveId = pathId || shellId || studentId;
         if (effectiveId) {
@@ -738,7 +751,7 @@
 
     var useEmbedReports = {{ 'true' if embed_mode else 'false' }};
 
-    document.querySelectorAll('a.ttv2-report-open').forEach((link) => {
+    qsa('a.ttv2-report-open').forEach((link) => {
       link.addEventListener('click', (event) => {
         event.preventDefault();
         openStaffReport(
@@ -750,7 +763,7 @@
       });
     });
 
-    const reportLinkCards = document.querySelectorAll('.report-link-card[data-report-url]');
+    const reportLinkCards = qsa('.report-link-card[data-report-url]');
     reportLinkCards.forEach((card) => {
       const url = card.getAttribute('data-report-url');
       if (!url) return;
@@ -769,8 +782,8 @@
       });
     });
 
-    const courseCards = Array.from(document.querySelectorAll('.js-course-card'));
-    const toggleCourseRecoBtn = document.getElementById('toggleCourseRecoBtn');
+    const courseCards = Array.from(qsa('.js-course-card'));
+    const toggleCourseRecoBtn = byId('toggleCourseRecoBtn');
     const initialCourseVisible = 8;
     if (toggleCourseRecoBtn && courseCards.length > initialCourseVisible) {
       let expanded = false;
@@ -789,7 +802,7 @@
       });
     }
 
-    document.querySelectorAll('[data-career-view-more]').forEach((btn) => {
+    qsa('[data-career-view-more]').forEach((btn) => {
       const grid = btn.closest('[data-career-group-chips]') || btn.previousElementSibling;
       if (!grid || !grid.matches('[data-career-group-chips]')) return;
       btn.addEventListener('click', () => {

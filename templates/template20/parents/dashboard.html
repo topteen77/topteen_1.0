@@ -313,6 +313,10 @@
     margin-top: 8px;
   }
 
+  .parent-dashboard .parent-assessment-report-pane[hidden] {
+    display: none !important;
+  }
+
   .parent-dashboard .parent-assessment-report-host .combined-report-page {
     min-height: auto;
     background: transparent;
@@ -539,8 +543,12 @@
               </div> -->
             </div>
             <div id="parentAssessmentReportHost" class="parent-assessment-report-host" data-initial-student-id="{{ selected_student_id or '' }}">
-              {% if initial_assessment_report_html %}
-              {{ initial_assessment_report_html|safe }}
+              {% if student_assessment_reports %}
+              {% for report in student_assessment_reports %}
+              <div class="parent-assessment-report-pane" data-student-id="{{ report.student_id }}" data-loaded="{% if report.loaded %}1{% else %}0{% endif %}"{% if selected_student_id != report.student_id %} hidden{% endif %}>
+                {% if report.loaded %}{{ report.html|safe }}{% endif %}
+              </div>
+              {% endfor %}
               {% else %}
               <p class="parent-empty-note mb-0">Select a student to load their assessment report.</p>
               {% endif %}
@@ -571,7 +579,7 @@
       ? parseInt(reportHost.getAttribute('data-initial-student-id') || '0', 10) || null
       : null;
     var activeReportStudentId = null;
-    var reportFetchToken = 0;
+    var activatedReportIds = {};
 
     function byId(id) { return document.getElementById(id); }
 
@@ -649,7 +657,82 @@
     }
 
     function hostHasReportMarkup(host) {
-      return !!(host && host.querySelector('.parent-inline-psychometric-dashboard, .parent-inline-assessment-report'));
+      return !!(host && host.querySelector('.parent-assessment-report-pane, .parent-inline-psychometric-dashboard, .parent-inline-assessment-report'));
+    }
+
+    function getReportPane(studentId) {
+      if (!reportHost || !studentId) return null;
+      return reportHost.querySelector('.parent-assessment-report-pane[data-student-id="' + studentId + '"]');
+    }
+
+    function resizeChartsInPane(pane) {
+      if (!pane || typeof Chart === 'undefined') return;
+      pane.querySelectorAll('canvas').forEach(function (canvas) {
+        var chart = Chart.getChart(canvas);
+        if (chart) chart.resize();
+      });
+    }
+
+    function activateAndResize(target, studentId) {
+      if (activatedReportIds[studentId]) {
+        resizeChartsInPane(target);
+        return Promise.resolve();
+      }
+      return activateInjectedHtml(target).then(function () {
+        activatedReportIds[studentId] = true;
+        requestAnimationFrame(function () {
+          resizeChartsInPane(target);
+        });
+      });
+    }
+
+    function fetchAssessmentReport(target, studentId) {
+      target.setAttribute('data-loading', '1');
+      target.innerHTML = '<p class="parent-empty-note mb-0">Loading assessment report...</p>';
+      return fetch('/parents/student/' + studentId + '/assessment-report/', {
+        credentials: 'same-origin',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      })
+        .then(function (response) {
+          if (!response.ok) throw new Error('load failed');
+          return response.text();
+        })
+        .then(function (html) {
+          target.innerHTML = html;
+          target.setAttribute('data-loaded', '1');
+          target.removeAttribute('data-loading');
+          activatedReportIds[studentId] = false;
+          return activateAndResize(target, studentId);
+        })
+        .catch(function () {
+          target.removeAttribute('data-loading');
+          target.innerHTML = '<p class="parent-empty-note mb-0">Could not load the assessment report. Please refresh and try again.</p>';
+        });
+    }
+
+    function showAssessmentReport(studentId) {
+      if (!reportHost || !studentId) return Promise.resolve();
+      var panes = reportHost.querySelectorAll('.parent-assessment-report-pane');
+      var target = getReportPane(studentId);
+      if (!target && !panes.length) {
+        activeReportStudentId = null;
+        return Promise.resolve();
+      }
+      panes.forEach(function (pane) {
+        pane.hidden = parseInt(pane.getAttribute('data-student-id'), 10) !== studentId;
+      });
+      if (!target) {
+        activeReportStudentId = null;
+        return Promise.resolve();
+      }
+      activeReportStudentId = studentId;
+      if (target.getAttribute('data-loading') === '1') {
+        return Promise.resolve();
+      }
+      if (target.getAttribute('data-loaded') !== '1') {
+        return fetchAssessmentReport(target, studentId);
+      }
+      return activateAndResize(target, studentId);
     }
 
     function setFocusHeader(student) {
@@ -661,38 +744,6 @@
       if (byId('ctaStudentEmail')) byId('ctaStudentEmail').textContent = student.email || '—';
       if (byId('ctaStudentMobile')) byId('ctaStudentMobile').textContent = student.mobile || '—';
       if (byId('ctaStudentClassText')) byId('ctaStudentClassText').textContent = classText;
-    }
-
-    function loadAssessmentReport(student) {
-      var host = byId('parentAssessmentReportHost');
-      if (!host || !student) return Promise.resolve();
-      var sid = parseInt(student.id, 10);
-      if (!sid) {
-        host.innerHTML = '<p class="parent-empty-note mb-0">No student selected.</p>';
-        activeReportStudentId = null;
-        return Promise.resolve();
-      }
-      var token = ++reportFetchToken;
-      host.innerHTML = '<p class="parent-empty-note mb-0">Loading assessment report...</p>';
-      return fetch('/parents/student/' + sid + '/assessment-report/', {
-        credentials: 'same-origin',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-      })
-        .then(function (response) {
-          if (!response.ok) throw new Error('load failed');
-          return response.text();
-        })
-        .then(function (html) {
-          if (token !== reportFetchToken) return;
-          host.innerHTML = html;
-          activeReportStudentId = sid;
-          return activateInjectedHtml(host);
-        })
-        .catch(function () {
-          if (token !== reportFetchToken) return;
-          activeReportStudentId = null;
-          host.innerHTML = '<p class="parent-empty-note mb-0">Could not load the assessment report. Please refresh and try again.</p>';
-        });
     }
 
     function getCurrentStudent() {
@@ -708,30 +759,18 @@
       var student = getCurrentStudent();
       if (!student) return;
       setFocusHeader(student);
-      var sid = parseInt(student.id, 10);
-      var host = byId('parentAssessmentReportHost');
-      if (activeReportStudentId === sid && hostHasReportMarkup(host)) {
-        return;
-      }
-      loadAssessmentReport(student);
+      showAssessmentReport(parseInt(student.id, 10));
     }
 
     function bootParentDashboard() {
-      if (reportHost && hostHasReportMarkup(reportHost)) {
-        if (initialStudentId) activeReportStudentId = initialStudentId;
-        var pendingScripts = reportHost.querySelector('script:not([data-parent-activated])');
-        var finishBoot = function () {
-          var student = getCurrentStudent();
-          if (student) setFocusHeader(student);
-        };
-        if (pendingScripts) {
-          activateInjectedHtml(reportHost).then(finishBoot);
-        } else {
-          finishBoot();
-        }
+      var student = getCurrentStudent();
+      if (student) setFocusHeader(student);
+      var sid = initialStudentId || (student ? parseInt(student.id, 10) : null);
+      if (sid && getReportPane(sid)) {
+        showAssessmentReport(sid);
         return;
       }
-      renderSelectedStudent();
+      if (student) renderSelectedStudent();
     }
 
     if (studentSelect) {

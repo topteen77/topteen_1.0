@@ -4,6 +4,12 @@
 <script>
 {% endif %}
   (function () {
+    var scriptEl = document.currentScript;
+    var root = (scriptEl && (
+      scriptEl.closest('.parent-inline-psychometric-dashboard')
+      || scriptEl.closest('.psychometric-dashboard-page')
+      || scriptEl.closest('.parent-assessment-report-pane')
+    )) || document;
     var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     function countUpDayStreak(el, end, duration) {
       if (!el || reduceMotion) {
@@ -40,15 +46,14 @@
     }
     function initDashboardStatTooltips() {
       if (typeof bootstrap === 'undefined' || !bootstrap.Tooltip) return;
-      var triggers = document.querySelectorAll('#dashboard-stats-section [data-bs-toggle="tooltip"]');
-      triggers.forEach(function (el) {
+      root.querySelectorAll('#dashboard-stats-section [data-bs-toggle="tooltip"]').forEach(function (el) {
         var existing = bootstrap.Tooltip.getInstance(el);
         if (existing) existing.dispose();
         new bootstrap.Tooltip(el, { container: 'body' });
       });
     }
     function initDashboardStatDetailTriggers() {
-      document.querySelectorAll('#dashboard-stats-section .stat-value-trigger').forEach(function (el) {
+      root.querySelectorAll('#dashboard-stats-section .stat-value-trigger').forEach(function (el) {
         el.addEventListener('keydown', function (e) {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
@@ -60,10 +65,10 @@
     function initDashboardStats() {
       initDashboardStatTooltips();
       initDashboardStatDetailTriggers();
-      var trophiesEl = document.getElementById('stat-trophies');
-      var pointsEl = document.getElementById('stat-points');
-      var streakEl = document.getElementById('stat-streak');
-      var streakLabel = document.getElementById('stat-streak-label');
+      var trophiesEl = root.querySelector('#stat-trophies');
+      var pointsEl = root.querySelector('#stat-points');
+      var streakEl = root.querySelector('#stat-streak');
+      var streakLabel = root.querySelector('#stat-streak-label');
       var duration = 800;
       if (trophiesEl && trophiesEl.hasAttribute('data-value')) {
         var tv = parseInt(trophiesEl.getAttribute('data-value'), 10) || 0;

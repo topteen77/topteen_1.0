@@ -697,15 +697,21 @@
       <script>
       {% endif %}
         (function () {
+          var scriptEl = document.currentScript;
+          var root = (scriptEl && (
+            scriptEl.closest('.parent-inline-psychometric-dashboard')
+            || scriptEl.closest('.psychometric-dashboard-page')
+            || scriptEl.closest('.parent-assessment-report-pane')
+          )) || document;
           function clampScore(raw) {
             var score = Number(raw);
             if (!Number.isFinite(score)) return 0;
             return Math.max(0, Math.min(100, score));
           }
-          document.querySelectorAll('.psych-dynamic-height').forEach(function (node) {
+          root.querySelectorAll('.psych-dynamic-height').forEach(function (node) {
             node.style.height = clampScore(node.dataset.score) + '%';
           });
-          document.querySelectorAll('.psych-dynamic-width').forEach(function (node) {
+          root.querySelectorAll('.psych-dynamic-width').forEach(function (node) {
             var raw = Number(node.dataset.score);
             var scaleMax = Number(node.dataset.scaleMax);
             var pct = raw;
@@ -714,7 +720,7 @@
             }
             node.style.width = clampScore(pct) + '%';
           });
-          document.querySelectorAll('.radar-wrap').forEach(function (wrap) {
+          root.querySelectorAll('.radar-wrap').forEach(function (wrap) {
             var values = (wrap.dataset.radarValues || '').split(',').map(function (item) {
               return clampScore(item);
             });
@@ -746,7 +752,7 @@
         })();
 
         (function initCareerViewMore() {
-          document.querySelectorAll('[data-career-view-more]').forEach(function (btn) {
+          root.querySelectorAll('[data-career-view-more]').forEach(function (btn) {
             var grid = btn.closest('[data-career-group-chips]');
             if (!grid && btn.previousElementSibling && btn.previousElementSibling.matches('[data-career-group-chips]')) {
               grid = btn.previousElementSibling;
@@ -758,12 +764,12 @@
               btn.setAttribute('aria-expanded', 'true');
             });
           });
-          document.querySelectorAll('[data-career-card-view-more]').forEach(function (btn) {
+          root.querySelectorAll('[data-career-card-view-more]').forEach(function (btn) {
             if (!btn.getAttribute('data-collapsed-label')) {
               btn.setAttribute('data-collapsed-label', btn.textContent.trim());
             }
             btn.addEventListener('click', function () {
-              var stack = document.querySelector('[data-career-groups-card]');
+              var stack = root.querySelector('[data-career-groups-card]');
               if (!stack) return;
               if (stack.classList.contains('is-card-collapsed')) {
                 stack.classList.remove('is-card-collapsed');
