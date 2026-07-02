@@ -144,8 +144,13 @@ class SkillLabCourseDetail(TemplateView):
         ctx['breadcrumb'] = self._breadcrumb(skillab)
         ctx["html_head"] = self.html_head(skillab)
         ctx['user_authenticated'] = request.user.is_authenticated
+        ctx['skilllab_course_started'] = (
+            skillab.user_has_started(request.user)
+            if request.user.is_authenticated
+            else False
+        )
         return ctx
-    
+
     def _breadcrumb(self, skilllab):
         from django.urls import reverse
         return get_breadcrumb([

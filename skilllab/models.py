@@ -58,6 +58,17 @@ class SkillLabCourse(SlugModel,BaseModel,BaseMoneyModel):
         else:
             return True
 
+    def user_has_started(self, user):
+        """True when the learner has opened or progressed in this course."""
+        if not user or not getattr(user, "is_authenticated", False) or not user.is_authenticated:
+            return False
+        if self.skilllabcourseresume.filter(user=user).exists():
+            return True
+        summary = self.skilllabcourseprogresssummary.filter(user=user).first()
+        if summary and summary.progress_percentage > 0:
+            return True
+        return self.skilllabcourseprogress.filter(user=user).exists()
+
     def get_image_url(self):
         """Get image URL with default fallback"""
         if self.image and self.image.name:

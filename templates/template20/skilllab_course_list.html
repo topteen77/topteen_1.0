@@ -794,6 +794,12 @@ learning today to stay ahead!
 
     display: block;
 
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+
   }
 
   .skill-course .text-explore a:hover {
@@ -1095,7 +1101,7 @@ learning today to stay ahead!
 
             </span>
 
-            <p>Young learners (Classes 7-8) preparing for future challenges</p>
+            <p>Young learners (Classes 6-8) preparing for future challenges</p>
 
           </div>
 
@@ -1177,7 +1183,7 @@ learning today to stay ahead!
 
               <div class="text-explore">
 
-                <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[skill.slug]) }}">{{ skill.name }}</a>
+                <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[skill.slug]) }}" title="{{ skill.name }}">{{ skill.name }}</a>
 
               </div>
 

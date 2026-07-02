@@ -648,11 +648,24 @@
     background: var(--dash-surface) !important;
     border-color: var(--dash-border-soft) !important;
     box-shadow: var(--dash-shadow) !important;
+    gap: 12px;
   }
 
   .user-dashboard .dashboard-enrolled-card:hover {
     box-shadow: var(--dash-shadow-hover) !important;
     border-color: rgba(92, 84, 212, 0.2) !important;
+  }
+
+  .user-dashboard .dashboard-enrolled-body {
+    min-width: 0;
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .user-dashboard .dashboard-enrolled-action {
+    flex-shrink: 0;
+    align-self: flex-start;
+    white-space: nowrap;
   }
 
   .user-dashboard .dashboard-enrolled-badge-free {
@@ -663,9 +676,9 @@
   }
 
   .user-dashboard .dashboard-enrolled-title-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 2px;
   }
@@ -681,6 +694,36 @@
     width: 28px;
     height: 28px;
     object-fit: contain;
+  }
+
+  @media (max-width: 1199.98px) {
+    .user-dashboard .dashboard-enrolled-card {
+      flex-direction: column !important;
+      align-items: stretch !important;
+    }
+
+    .user-dashboard .dashboard-enrolled-action {
+      align-self: stretch;
+      width: 100%;
+      text-align: center;
+    }
+
+    .user-dashboard .dashboard-enrolled-title-row {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .user-dashboard .dashboard-enrolled-card {
+      flex-direction: row !important;
+      align-items: center !important;
+    }
+
+    .user-dashboard .dashboard-enrolled-action {
+      align-self: center;
+      width: auto;
+      margin-left: 0.5rem;
+    }
   }
 
   .quick-link-card .d-flex.align-items-start.gap-3>div:first-child,
@@ -1075,10 +1118,10 @@
           <h2 class="fs-24 fw-semibold mb-3">My courses &amp; tests</h2>
           <div class="row g-3">
             {% for item in dashboard_enrolled_items %}
-            <div class="col-12 col-sm-6">
-              <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3 border rounded-4 p-3 h-100 dashboard-enrolled-card"
+            <div class="col-12 col-xl-6">
+              <div class="d-flex border rounded-4 p-3 h-100 dashboard-enrolled-card"
                 style="transition:all .2s ease;overflow:hidden;">
-                <div class="d-flex align-items-center gap-3 min-w-0 flex-grow-1" style="min-width:0;">
+                <div class="d-flex align-items-center gap-3 dashboard-enrolled-body">
                   <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0 dashboard-enrolled-icon-wrap"
                     style="width:48px;height:48px;background:{{ item.icon_bg|default('#eef6ff' if item.kind == 'psychometric' else '#f0fff4') }};">
                     {% if item.icon_src %}
@@ -1118,7 +1161,7 @@
                   </div>
                 </div>
                 <a href="{{ item.start_url }}"
-                  class="btn btn-sm custom-button {% if item.action_variant == 'report' %}blue-button{% else %}purple-button{% endif %} flex-shrink-0 px-3 ms-lg-2">
+                  class="btn btn-sm custom-button dashboard-enrolled-action {% if item.action_variant == 'report' %}blue-button{% else %}purple-button{% endif %} px-3">
                   {{ item.action_label|default('Start') }}
                 </a>
               </div>

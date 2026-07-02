@@ -3490,6 +3490,7 @@ class UserDashboard(TemplateView):
                 if not c or not getattr(c, "slug", None) or c.slug in seen_slugs:
                     continue
                 seen_slugs.add(c.slug)
+                sl_started = c.user_has_started(profile_user)
                 ctx["dashboard_enrolled_items"].append(
                     {
                         "kind": "skilllab",
@@ -3498,8 +3499,10 @@ class UserDashboard(TemplateView):
                         "start_url": reverse(
                             "skilllabcourse:course_learning", args=[c.slug]
                         ),
-                        "action_label": "Start",
+                        "action_label": "Resume" if sl_started else "Start",
                         "action_variant": "start",
+                        "icon_src": "images_new/icons/skill-labs-cion.png",
+                        "icon_bg": "#eef6ff",
                     }
                 )
         except Exception:

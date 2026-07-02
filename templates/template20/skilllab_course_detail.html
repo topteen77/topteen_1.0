@@ -248,11 +248,11 @@
             {% endif %}
           </div>
           {% if skilllab.is_user_vissible(request) %}
-          <a href="{{ url('skilllabcourse:course_learning', args=[skilllab.slug]) }}" class="payment-btn" data-require-login="true">Start</a>
+          <a href="{{ url('skilllabcourse:course_learning', args=[skilllab.slug]) }}" class="payment-btn" data-require-login="true">{{ 'Resume' if skilllab_course_started else 'Start' }}</a>
           {% elif skilllab.amount and skilllab.amount > 0 %}
           <a href="{{ url('skilllabcourse:createskilllabcoursepayment', args=[skilllab.slug]) }}" class="payment-btn" data-require-login="true">Enroll Now</a>
           {% else %}
-          <a href="{{ url('skilllabcourse:course_learning', args=[skilllab.slug]) }}" class="payment-btn" data-require-login="true">Start</a>
+          <a href="{{ url('skilllabcourse:course_learning', args=[skilllab.slug]) }}" class="payment-btn" data-require-login="true">{{ 'Resume' if skilllab_course_started else 'Start' }}</a>
           {% endif %}
           {% if skilllab.amount and skilllab.amount > 0 %}
           <!-- <div class="money-back"><i class='bx bx-shield'></i><span>30-Day Money-Back Guarantee</span></div> -->
