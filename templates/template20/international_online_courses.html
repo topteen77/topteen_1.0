@@ -74,6 +74,19 @@ Discover trending programs, professional certificates, and expert-led courses fr
               <i class='bx bx-chevron-down intl-filter-chevron'></i>
             </div>
           </div>
+
+          <div class="intl-filter-group">
+            <label for="intl-course-name">Search course name</label>
+            <input
+              type="search"
+              id="intl-course-name"
+              name="course_name"
+              class="intl-filter-input"
+              placeholder="Enter course name"
+              value="{{ selected_course_name }}"
+              autocomplete="off"
+            />
+          </div>
         </div>
 
         <button type="submit" class="intl-filter-btn">Explore Courses</button>
@@ -132,7 +145,7 @@ Discover trending programs, professional certificates, and expert-led courses fr
       <div class="intl-courses-empty">
         <img src="{{ static('images_new/icons/no-results.svg') }}" alt="" class="intl-courses-empty-img">
         <h3>No courses found</h3>
-        <p>Try changing your subject or institute filters.</p>
+        <p>Try changing your subject, institute, or course name filters.</p>
         <a href="{{ url('skilllabcourse:internationalonlinecourses') }}" class="intl-filter-btn intl-filter-btn-inline">View All Courses</a>
       </div>
       {% endif %}
@@ -146,6 +159,37 @@ Discover trending programs, professional certificates, and expert-led courses fr
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 (function () {
+  var subjectInstitutesMap = {{ subject_institutes_json|safe }};
+  var allInstitutes = {{ all_institutes_json|safe }};
+
+  function rebuildInstituteSelect(institutes, keepValue) {
+    if (typeof jQuery === 'undefined') return;
+    var $institute = jQuery('#intl-institute');
+    if (!$institute.length) return;
+
+    var selected = keepValue ? ($institute.val() || '') : '';
+    if (selected && institutes.indexOf(selected) === -1) {
+      selected = '';
+    }
+
+    $institute.empty();
+    $institute.append(new Option('', '', false, false));
+    institutes.forEach(function (name) {
+      $institute.append(new Option(name, name, false, name === selected));
+    });
+
+    if ($institute.hasClass('select2-hidden-accessible')) {
+      $institute.val(selected || null).trigger('change');
+    } else {
+      $institute.val(selected);
+    }
+  }
+
+  function institutesForSubject(subject) {
+    if (!subject) return allInstitutes.slice();
+    return (subjectInstitutesMap[subject] || []).slice();
+  }
+
   function initIntlFilterSelect2() {
     if (typeof jQuery === 'undefined' || typeof jQuery.fn.select2 === 'undefined') {
       setTimeout(initIntlFilterSelect2, 100);
@@ -166,6 +210,10 @@ Discover trending programs, professional certificates, and expert-led courses fr
         minimumResultsForSearch: 0,
         dropdownParent: $el.closest('.intl-filter-select-wrap')
       });
+    });
+
+    jQuery('#intl-subject').on('change', function () {
+      rebuildInstituteSelect(institutesForSubject(jQuery(this).val() || ''), true);
     });
   }
 

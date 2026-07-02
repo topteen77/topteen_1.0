@@ -4,6 +4,7 @@ from . import views
 app_name = "skilllabcourse"
 urlpatterns = [
     path("",views.SkillLabCourseList.as_view(),name="skilllabcourselist"),
+    path("api/autocomplete/courses/", views.skilllab_course_autocomplete, name="skilllab_course_autocomplete"),
     path("international-online-courses/", views.InternationalOnlineCourseList.as_view(), name="internationalonlinecourses"),
     path("skilllabcoursedetail/<slug:skilllab_slug>/",views.SkillLabCourseDetail.as_view(),name="skilllabcoursedetail"),
     path("course_learning/<slug:course_slug>/",views.SkillLabCourseLearningView.as_view(),name="course_learning"),
