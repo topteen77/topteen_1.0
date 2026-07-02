@@ -1,0 +1,1717 @@
+<style>
+  .psychometric-dashboard-page {
+    padding-top: 0px;
+    --psych-accent: #3F37C9;
+    --psych-surface: #f8fafc;
+    --psych-border: #e5e7eb;
+  }
+  .psych-dashboard-main {
+    background: #eef1f8;
+  
+    padding: 1.25rem 1rem 1.5rem;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  }
+  @media (min-width: 768px) {
+    .psych-dashboard-main { padding: 1.75rem 1.75rem 2rem; }
+  }
+  .psych-dashboard-hero {
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+  }
+  .psych-dashboard-hero h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #0f172a;
+    margin-bottom: 0.35rem;
+  }
+  @media (min-width: 576px) {
+    .psych-dashboard-hero h1 { font-size: 1.65rem; }
+  }
+  .psych-dashboard-hero p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #64748b;
+    max-width: 42rem;
+    line-height: 1.5;
+  }
+  .psych-section-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    letter-spacing: -0.01em;
+  }
+  .psych-section-title .psych-section-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6f42c1, #3F37C9);
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(63, 55, 201, 0.15);
+  }
+  .title-test-info {
+    font-weight: 700;
+    margin-bottom: 1rem;
+    font-size: 1.125rem;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+  }
+  .stat-card {
+    background: #fff;
+    border: 1px solid var(--psych-border);
+    border-radius: 14px;
+    padding: 14px 14px 14px 12px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    height: 100%;
+    min-height: 88px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  }
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+    border-color: #cbd5e1;
+  }
+  .stat-card-icon-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .stat-card-icon-wrap.trophy { background: linear-gradient(145deg, #fef3c7, #fde68a); }
+  .stat-card-icon-wrap.points { background: linear-gradient(145deg, #dbeafe, #bfdbfe); }
+  .stat-card-icon-wrap.streak { background: linear-gradient(145deg, #ffedd5, #fdba74); }
+  .stat-card-icon-wrap.level { background: linear-gradient(145deg, #d1fae5, #a7f3d0); }
+  /* Level card: match main user dashboard badge image + frame */
+  .stat-card.stat-card-level > div:first-child.level-badge-icon {
+    flex-shrink: 0;
+  }
+  .stat-card.stat-card-level .level-badge-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.95) 0%, rgba(244, 253, 255, 0.82) 45%, rgba(219, 246, 255, 0.72) 100%);
+    border: 1px solid rgba(76, 196, 255, 0.35);
+    
+    padding: 4px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .stat-card.stat-card-level .level-badge-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    filter: drop-shadow(0 3px 8px rgba(36, 46, 96, 0.28));
+  }
+  .stat-card.stat-card-level:hover .level-badge-icon {
+    transform: translateY(-1px) scale(1.04);
+    box-shadow: 0 9px 22px rgba(34, 230, 116, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.46) inset;
+  }
+  .stat-card .stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+  }
+  .stat-card .stat-label {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748b;
+    margin-top: 2px;
+  }
+  .report-card {
+    border-radius: 16px;
+    padding: 22px 18px 18px;
+    text-align: center;
+    border: 1px solid #dde5ff;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+    overflow: hidden;
+  }
+  .report-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    opacity: 0.95;
+  }
+
+
+  .report-badge {
+    display: inline-block;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    margin-top: 10px;
+    max-width: 100%;
+    text-align: center;
+    line-height: 1.35;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  }
+  .report-badge-personality { background: #5a3d7a; }
+  .report-badge-interest { background: #c97b3d; }
+  .report-badge-intelligence { background: #b83d6d; }
+  /* Circular progress filled by percentage (conic-gradient) */
+  .circle-progress {
+    width: 78px;
+    height: 78px;
+    border-radius: 50%;
+    background: conic-gradient(var(--circle-color, #ddd) 0deg calc(var(--pct, 0) * 360deg), rgba(15, 23, 42, 0.08) calc(var(--pct, 0) * 360deg) 360deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #0f172a;
+    position: relative;
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  }
+  .circle-progress::before {
+    content: '';
+    position: absolute;
+    inset: 7px;
+    border-radius: 50%;
+    background: #fff;
+    z-index: 0;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  }
+  .circle-progress .circle-progress-text { position: relative; z-index: 1; }
+  .report-card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    /* opacity: 0; */
+    transition: opacity 0.2s ease;
+  }
+  .report-card:hover .report-card-actions { opacity: 1; }
+  @media (max-width: 768px) {
+    .report-card-actions { opacity: 1; }
+  }
+  .report-card-actions a {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    text-decoration: none;
+    transition: transform 0.2s ease;
+  }
+  .report-card-actions a:hover { transform: scale(1.1); }
+  .report-card-actions a:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.95);
+    outline-offset: 2px;
+  }
+  .report-card-actions .btn-view { background: #3F37C9; }
+  .report-card-actions .btn-view:hover { background: #2e2899; color: #fff; }
+  .report-card-actions .btn-download { background: #0d6efd; }
+  .report-card-actions .btn-download:hover { background: #0b5ed7; color: #fff; }
+  .report-card-main-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+  }
+  .report-card-modern {
+    text-align: left;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 16px 16px 14px;
+    min-height: 336px;
+    backdrop-filter: blur(2px);
+  }
+  .report-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .report-card-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    line-height: 1.15;
+  }
+  .report-card-sub {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: #64748b;
+  }
+  .report-card-score {
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+  .report-card-score.personality { color: #5a3d7a; }
+  .report-card-score.interest { color: #b45309; }
+  .report-card-score.intelligence { color: #be185d; }
+  .modern-pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .modern-pill {
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 3px 8px;
+    border: 1px solid transparent;
+  }
+  .modern-pill.personality { color: #5b21b6; background: #ede9fe; border-color: #ddd6fe; }
+  .modern-pill.interest { color: #9a3412; background: #ffedd5; border-color: #fed7aa; }
+  .modern-pill.intelligence { color: #be185d; background: #fce7f3; border-color: #fbcfe8; }
+  .modern-pill.i-high {
+    color: #166534;
+    background: #dcfce7;
+    border-color: #86efac;
+  }
+  .modern-pill.i-avg {
+    color: #c2410c;
+    background: #ffedd5;
+    border-color: #fdba74;
+  }
+  .modern-pill.i-below {
+    color: #b91c1c;
+    background: #fee2e2;
+    border-color: #fca5a5;
+  }
+  .modern-pill.warn {
+    color: #b91c1c;
+    background: #fee2e2;
+    border-color: #fecaca;
+  }
+  .interest-avoid-wrap {
+    margin-top: 12px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 12px;
+  }
+  .interest-avoid-title {
+    margin: 0 0 7px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #475569;
+  }
+  .interest-avoid-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .interest-avoid-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #c2410c;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+  }
+  .modern-bars {
+    display: grid;
+    gap: 9px;
+    margin-top: 10px;
+  }
+  .modern-bar-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 4px 10px;
+  }
+  .modern-bar-row span {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 12px;
+    color: #525252;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .modern-bar-track {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    height: 7px;
+    background: #e5e7eb;
+    border-radius: 999px;
+    overflow: hidden;
+    border: 0;
+  }
+  .modern-bar-fill {
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+  }
+  /* Shared RIASEC palette to match report UI */
+  .modern-bar-fill.personality { background: linear-gradient(90deg, #6b7280, #9ca3af); }
+  .modern-bar-fill.personality.riasec-s,
+  .modern-bar-fill.interest.riasec-s { background: linear-gradient(90deg, #1f9d77, #2ab08c); } /* Social */
+  .modern-bar-fill.personality.riasec-c,
+  .modern-bar-fill.interest.riasec-c { background: linear-gradient(90deg, #6f63ce, #8a7de1); } /* Conventional */
+  .modern-bar-fill.personality.riasec-i,
+  .modern-bar-fill.interest.riasec-i { background: linear-gradient(90deg, #3e7ec8, #5a96dc); } /* Investigative */
+  .modern-bar-fill.personality.riasec-a,
+  .modern-bar-fill.interest.riasec-a { background: linear-gradient(90deg, #c65687, #db729f); } /* Artistic */
+  .modern-bar-fill.personality.riasec-r,
+  .modern-bar-fill.interest.riasec-r { background: linear-gradient(90deg, #df8b17, #eda432); } /* Realistic */
+  .modern-bar-fill.personality.riasec-e,
+  .modern-bar-fill.interest.riasec-e { background: linear-gradient(90deg, #bf562f, #d56e45); } /* Enterprising */
+  .modern-bar-fill.interest { background: linear-gradient(90deg, #d97706, #f59e0b); }
+  .modern-bar-fill.intelligence { background: linear-gradient(90deg, #f97316, #fb923c); }
+  .modern-bar-fill.intelligence.high { background: linear-gradient(90deg, #16a34a, #22c55e); }
+  .modern-bar-fill.intelligence.avg { background: linear-gradient(90deg, #ea580c, #f59e0b); }
+  .modern-bar-fill.intelligence.below { background: linear-gradient(90deg, #dc2626, #ef4444); }
+  .modern-bar-mark {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: none;
+    text-align: right;
+    line-height: 1.2;
+    color: #262626;
+  }
+  .modern-bar-mark.avg { color: #c2410c; }
+  .modern-bar-mark.below { color: #b91c1c; }
+  .modern-bar-mark.high { color: #166534; }
+  .modern-card-footer {
+    margin-top: auto;
+    padding-top: 12px;
+  }
+  .report-card-modern .report-card-actions {
+    margin-top: 8px;
+    gap: 6px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .report-card-modern .report-card-actions a {
+    border-radius: 8px;
+    width: auto;
+    flex: 0 0 auto;
+    min-width: 0;
+    min-height: 30px;
+    height: 30px;
+    padding: 0 10px;
+    font-size: 11px;
+    gap: 4px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.14);
+  }
+  .report-card-modern .report-card-actions a i {
+    font-size: 14px;
+    line-height: 1;
+  }
+  .report-card-modern .report-card-actions .btn-view {
+    background: linear-gradient(135deg, #4f46e5, #3F37C9);
+  }
+  .report-card-modern .report-card-actions .btn-download {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+  }
+  .stream-card {
+    background: #fff;
+    border: 1px solid var(--psych-border);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    height: 100%;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+  }
+  .stream-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(76, 201, 240, 0.15);
+    border-color: rgba(76, 201, 240, 0.45);
+  }
+  .stream-card-icon {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: linear-gradient(145deg, rgba(76, 201, 240, 0.25), rgba(76, 201, 240, 0.1));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .psych-cta-row {
+    margin-top: 1.5rem;
+    padding-top: 0.25rem;
+  }
+  .view-report-btn {
+    background: linear-gradient(180deg, #4f46e5 0%, #3F37C9 100%);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    box-shadow: 0 4px 14px rgba(63, 55, 201, 0.35), 0 1px 0 rgba(255, 255, 255, 0.15) inset;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  }
+  .view-report-btn:hover { color: #fff; background: #3730a3; box-shadow: 0 6px 18px rgba(63, 55, 201, 0.4); }
+  .view-report-btn:focus-visible { outline: 2px solid #818cf8; outline-offset: 2px; }
+  .download-report-btn {
+    background: #fff;
+    color: #3F37C9;
+    border: 2px solid #c7d2fe;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .download-report-btn:hover { color: #3F37C9; background: #eef2ff; border-color: #a5b4fc; }
+  .download-report-btn:focus-visible { outline: 2px solid #818cf8; outline-offset: 2px; }
+  .psych-report-section {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 255, 0.95) 100%);
+    border: 1px solid #dbe2ff;
+    border-radius: 18px;
+    padding: 16px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 8px 24px rgba(63, 55, 201, 0.08);
+  }
+  @media (min-width: 768px) {
+    .psych-report-section {
+      padding: 16px;
+    }
+  }
+  /* Align level progress track/fill with main user dashboard */
+  .level-progress-wrap { height: 4px; border-radius: 2px; background: rgba(91, 201, 234, 0.22); overflow: hidden; }
+  .level-progress-bar { height: 100%; border-radius: 2px; background: #5bc9ea; transition: width 0.5s ease; }
+  .vocational-card {
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid var(--psych-border);
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .vocational-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(15, 23, 42, 0.1);
+  }
+  .vocational-card a { display: block; }
+  .vocational-img-wrap {
+    width: 100%;
+    height: 150px;
+    background: linear-gradient(160deg, #f1f5f9 0%, #e2e8f0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .vocational-img-wrap img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    object-position: center;
+  }
+  .vocational-card .vocational-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin: 0;
+    padding: 0.75rem 1rem 1.125rem;
+    color: #0f172a;
+    border-top: 1px solid #f1f5f9;
+    background: #fafafa;
+  }
+  .vocational-reasoning-badge {
+    display: inline-flex;
+    align-items: center;
+    margin: 0.75rem 1rem 0;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #A22717;
+    background: #FFE5E5;
+    border: 1px solid #A22717;
+    line-height: 1.3;
+  }
+  a.vocational-reasoning-badge,
+  a.improvement-chip {
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  }
+  a.vocational-reasoning-badge:hover,
+  a.improvement-chip:hover {
+    background: #A22717;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(162, 39, 23, 0.25);
+  }
+  .vocational-guidance-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+  @media (max-width: 1199px) {
+    .vocational-guidance-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 575px) {
+    .vocational-guidance-grid { grid-template-columns: 1fr; }
+  }
+  .vocational-area-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    border: 1px solid var(--psych-border);
+    border-radius: 14px;
+    background: #fff;
+    padding: 14px;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+  }
+  .vocational-area-card-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .vocational-area-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.15rem;
+    color: #fff;
+  }
+  .vocational-area-card-head h4 {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.25;
+  }
+  .vocational-area-card.vocational-verbal .vocational-area-icon { background: linear-gradient(145deg, #2563eb, #3b82f6); }
+  .vocational-area-card.vocational-logical .vocational-area-icon { background: linear-gradient(145deg, #7c3aed, #8b5cf6); }
+  .vocational-area-card.vocational-spatial .vocational-area-icon { background: linear-gradient(145deg, #db2777, #ec4899); }
+  .vocational-area-card.vocational-language .vocational-area-icon { background: linear-gradient(145deg, #0d9488, #14b8a6); }
+  .vocational-area-card.vocational-numerical .vocational-area-icon { background: linear-gradient(145deg, #ea580c, #f97316); }
+  .vocational-area-card.vocational-mechanical .vocational-area-icon { background: linear-gradient(145deg, #ca8a04, #eab308); }
+  .vocational-area-card.vocational-critical .vocational-area-icon { background: linear-gradient(145deg, #dc2626, #ef4444); }
+  .vocational-area-preview {
+    list-style: disc;
+    list-style-position: outside;
+    margin: 0;
+    padding: 0 0 0 1.15rem;
+    flex: 1;
+  }
+  .vocational-area-preview li {
+    margin: 0 0 8px;
+    padding-left: 0.15rem;
+    line-height: 1.35;
+    font-size: 0.78rem;
+  }
+  .vocational-area-preview li:last-child {
+    margin-bottom: 0;
+  }
+  .vocational-area-preview a {
+    color: #334155;
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .vocational-area-preview a:hover {
+    color: #2563eb;
+    text-decoration: underline;
+  }
+  .vocational-view-more-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 12px;
+    padding: 8px 12px;
+    border: 1px solid #c7d2fe;
+    border-radius: 10px;
+    background: #f8fafc;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #4338ca;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  .vocational-view-more-btn:hover {
+    background: #eef2ff;
+    border-color: #a5b4fc;
+    color: #3730a3;
+  }
+  .vocational-careers-modal .modal-header {
+    border-bottom: 1px solid #eef2f7;
+    padding: 1rem 1.25rem;
+  }
+  .vocational-careers-modal .modal-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .vocational-careers-modal .modal-body {
+    padding: 0.5rem 1.25rem 1.25rem;
+    max-height: min(70vh, 520px);
+    overflow-y: auto;
+  }
+  .vocational-modal-careers {
+    list-style: disc;
+    list-style-position: outside;
+    margin: 0;
+    padding: 0 0 0 1.15rem;
+    display: grid;
+    gap: 0.35rem 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+  .vocational-modal-careers li {
+    margin: 0;
+    padding-left: 0.15rem;
+    line-height: 1.4;
+  }
+  .vocational-modal-careers a {
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: #1e40af;
+    text-decoration: none;
+  }
+  .vocational-modal-careers a:hover {
+    text-decoration: underline;
+    color: #1d4ed8;
+  }
+  .vocational-modal-footer-link {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #4338ca;
+    text-decoration: none;
+  }
+  .vocational-modal-footer-link:hover {
+    text-decoration: underline;
+    color: #3730a3;
+  }
+  .vocational-card {
+    position: relative;
+  }
+  .improvement-alert {
+    border: 1px solid #A22717;
+    background: linear-gradient(180deg, #fff8f8 0%, #FFE5E5 100%);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 2px 10px rgba(162, 39, 23, 0.08);
+  }
+  .improvement-alert h4 {
+    margin: 0 0 6px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #A22717;
+  }
+  .improvement-alert p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: #7a1f12;
+    line-height: 1.55;
+  }
+  .improvement-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .improvement-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #A22717;
+    background: #FFE5E5;
+    border: 1px solid #A22717;
+  }
+  .suggested-careers-panel {
+    background: #fff;
+    border: 1px solid var(--psych-border);
+    border-radius: 16px;
+    padding: 1.25rem 1.25rem 1.35rem;
+    box-shadow: 0 2px 12px rgba(15, 23, 42, 0.05);
+  }
+  @media (min-width: 768px) {
+    .suggested-careers-panel { padding: 1.5rem 1.65rem 1.65rem; }
+  }
+  .sc-block + .sc-block {
+    margin-top: 1.35rem;
+    padding-top: 1.35rem;
+    border-top: 1px solid #eef2f7;
+  }
+  .sc-block-header {
+    margin-bottom: 1rem;
+  }
+  .sc-block-header h3 {
+    margin: 0 0 0.35rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    line-height: 1.35;
+  }
+  .sc-block-header p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #64748b;
+    line-height: 1.45;
+    max-width: 52rem;
+  }
+  .career-type-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #166534;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    margin: 0;
+    vertical-align: middle;
+  }
+  .riasec-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+  @media (max-width: 991px) {
+    .riasec-cards-grid { grid-template-columns: 1fr; }
+  }
+  .riasec-cards-grid.is-card-collapsed .riasec-mini-card:nth-child(n+4) {
+    display: none;
+  }
+  .riasec-mini-card {
+    border: 1px solid #e8edf3;
+    border-radius: 12px;
+    padding: 12px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+  }
+  .riasec-mini-card-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .riasec-mini-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+    color: #fff;
+  }
+  .riasec-mini-card-head h4 {
+    margin: 0;
+    flex: 1;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.25;
+  }
+  .riasec-mini-code {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    padding: 0 6px;
+    border-radius: 8px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .riasec-mini-desc {
+    margin: 0 0 10px;
+    font-size: 0.72rem;
+    color: #64748b;
+    line-height: 1.45;
+    flex: 1;
+  }
+  .riasec-mini-card .riasec-mini-icon {
+    background: linear-gradient(145deg, #22c55e, #4ade80);
+  }
+  .riasec-mini-card .riasec-mini-code {
+    color: #166534;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+  }
+  .riasec-mini-card .career-chip {
+    color: #166534;
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+  }
+  .riasec-mini-card .career-chip.career-chip-more {
+    color: #15803d;
+    background: #f0fdf4;
+    border-color: #86efac;
+  }
+  .career-chip-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    align-items: center;
+  }
+  .career-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #334155;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+  }
+  .career-chip.career-chip-more {
+    cursor: pointer;
+    font-weight: 700;
+    border-style: dashed;
+    min-width: 70px;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .career-group-chips.is-collapsed .career-chip:not(.career-chip-more):nth-child(n+6) {
+    display: none;
+  }
+  .career-chip-more-trigger {
+    display: inline-flex;
+  }
+  .career-chip-grid > .career-chip-more-trigger {
+    margin-top: 0;
+  }
+  .career-chip-more-trigger[hidden] {
+    display: none !important;
+  }
+  a.career-chip {
+    text-decoration: none;
+    cursor: pointer;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+  a.career-chip:hover { opacity: 0.88; }
+  .sc-block--personality .sc-block-header {
+    margin-bottom: 0.75rem;
+  }
+  .sc-block--personality .career-type-pill {
+    color: #6d28d9;
+    background: #f5f3ff;
+    border-color: #ddd6fe;
+  }
+  .personality-career-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+  @media (max-width: 767px) {
+    .personality-career-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .personality-career-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid #ddd6fe;
+    background: linear-gradient(135deg, #faf5ff 0%, #f5f3ff 50%, #ede9fe 100%);
+    box-shadow: 0 1px 3px rgba(109, 40, 217, 0.06);
+  }
+  .personality-career-card-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .personality-career-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: #fff;
+    border: 1px solid #ddd6fe;
+    color: #7c3aed;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(124, 58, 237, 0.12);
+    overflow: hidden;
+  }
+  .personality-career-icon-img {
+    width: 27px;
+    height: 27px;
+    object-fit: contain;
+    display: block;
+  }
+  .personality-career-card-head strong {
+    display: block;
+    font-size: 0.92rem;
+    color: #0f172a;
+    margin-bottom: 2px;
+  }
+  .personality-career-card-head span {
+    display: flex;
+    font-size: 0.72rem;
+    color: #64748b;
+    line-height: 1.4;
+  }
+  .personality-career-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex: 1 1 auto;
+    align-content: flex-start;
+  }
+  .personality-career-chips .career-chip {
+    width: auto;
+    max-width: 100%;
+    line-height: 1.25;
+    color: #6d28d9;
+    background: #f5f3ff;
+    border-color: #ddd6fe;
+  }
+  .personality-career-chips a.career-chip:hover {
+    border-color: #c4b5fd;
+    background: #ede9fe;
+    opacity: 1;
+  }
+  .aptitude-career-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 16px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f9fafb 0%, #f1f5f9 45%, #e8edf3 100%);
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  }
+  .aptitude-career-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(145deg, #22c55e, #4ade80);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(34, 197, 94, 0.25);
+  }
+  .aptitude-career-main {
+    flex: 1;
+    min-width: 180px;
+  }
+  .aptitude-career-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #475569;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 4px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  }
+  .aptitude-career-main strong {
+    display: block;
+    font-size: 0.9rem;
+    color: #0f172a;
+    margin-bottom: 2px;
+  }
+  .aptitude-career-main span {
+    font-size: 0.72rem;
+    color: #64748b;
+  }
+  .aptitude-career-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-left: auto;
+    justify-content: flex-end;
+  }
+  .aptitude-career-chips .career-chip {
+    color: #166534;
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  }
+  a.aptitude-career-chips .career-chip:hover {
+    border-color: #86efac;
+    background: #f0fdf4;
+    opacity: 1;
+  }
+  @media (max-width: 767px) {
+    .aptitude-career-chips { margin-left: 0; justify-content: flex-start; width: 100%; }
+  }
+  .sc-subjects-section {
+    margin-top: 1.35rem;
+    padding-top: 1.15rem;
+    border-top: 1px solid #eef2f7;
+  }
+  .sc-subjects-label {
+    margin: 0 0 0.75rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #94a3b8;
+  }
+  .subject-combo-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .subject-combo-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border: 1px solid transparent;
+  }
+  .subject-combo-pill i {
+    font-size: 1.1rem;
+  }
+  .career-card-toggle-wrap {
+    text-align: center;
+    margin-top: 12px;
+  }
+  .career-card-view-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #2563eb;
+    cursor: pointer;
+  }
+  .career-card-view-more:hover { color: #1d4ed8; }
+  .career-view-more-btn {
+    display: none;
+  }
+  .stream-chip-pcm { background: #fff7ed; border-color: #fdba74; color: #c2410c; }
+  .stream-chip-pcb { background: #fee2e2; border-color: #fca5a5; color: #b91c1c; }
+  .stream-chip-hum { background: #ecfccb; border-color: #bef264; color: #3f6212; }
+  .stream-chip-hwl { background: #cffafe; border-color: #67e8f9; color: #155e75; }
+  .stream-chip-cwm { background: #fef9c3; border-color: #fde047; color: #854d0e; }
+  .stream-chip-cwom { background: #ede9fe; border-color: #c4b5fd; color: #5b21b6; }
+  .stream-chip-cs { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
+  .stream-chip-finearts { background: #fce7f3; border-color: #f9a8d4; color: #9d174d; }
+  .subject-combo-pill.stream-chip-pcm { background: #fff7ed; border-color: #fdba74; color: #c2410c; }
+  .subject-combo-pill.stream-chip-pcb { background: #fee2e2; border-color: #fca5a5; color: #b91c1c; }
+  .subject-combo-pill.stream-chip-hum { background: #ecfccb; border-color: #bef264; color: #3f6212; }
+  .subject-combo-pill.stream-chip-hwl { background: #cffafe; border-color: #67e8f9; color: #155e75; }
+  .subject-combo-pill.stream-chip-cwm { background: #fef9c3; border-color: #fde047; color: #854d0e; }
+  .subject-combo-pill.stream-chip-cwom { background: #ede9fe; border-color: #c4b5fd; color: #5b21b6; }
+  .subject-combo-pill.stream-chip-cs { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; }
+  .subject-combo-pill.stream-chip-finearts { background: #fce7f3; border-color: #f9a8d4; color: #9d174d; }
+  .psych-section-link a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .psych-section-link a:hover {
+    color: #3F37C9;
+    border-bottom-color: rgba(63, 55, 201, 0.35);
+  }
+  .insights-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  @media (min-width: 992px) {
+    .insights-grid {
+      grid-template-columns: 1.15fr 0.85fr;
+    }
+  }
+  .insight-panel {
+    background: #fff;
+    border: 1px solid var(--psych-border);
+    border-radius: 16px;
+    padding: 16px 16px 14px;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+  }
+  .insight-panel-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 0.85rem;
+  }
+  .insight-panel-title h4 {
+    font-size: 0.98rem;
+    font-weight: 700;
+    margin: 0;
+    color: #0f172a;
+  }
+  .insight-panel-title span {
+    font-size: 0.73rem;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    padding: 3px 10px;
+  }
+  .psych-line-chart {
+    position: relative;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #f8fbff 0%, #fdfdff 100%);
+    border: 1px solid #edf2ff;
+    padding: 14px 10px 8px;
+    overflow: hidden;
+  }
+  .psych-line-chart-grid {
+    position: absolute;
+    inset: 10px 10px 22px;
+    background-image:
+      linear-gradient(to top, rgba(148, 163, 184, 0.2) 1px, transparent 1px),
+      linear-gradient(to right, rgba(148, 163, 184, 0.14) 1px, transparent 1px);
+    background-size: 100% 25%, calc(100% / 6) 100%;
+    pointer-events: none;
+  }
+  .psych-line-track {
+    height: 148px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 7px;
+    position: relative;
+    z-index: 1;
+    padding: 4px 2px 0;
+  }
+  .line-node {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .line-node-point {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #4f46e5;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.22);
+  }
+  .line-node-bar {
+    width: 100%;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(79, 70, 229, 0.84), rgba(59, 130, 246, 0.86));
+    min-height: 14px;
+  }
+  .line-node-label {
+    font-size: 0.68rem;
+    color: #64748b;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    margin-bottom: 0;
+  }
+  .psych-bars {
+    display: grid;
+    gap: 11px;
+    margin-top: 4px;
+  }
+  .psych-bar-row {
+    display: grid;
+    grid-template-columns: 78px 1fr 42px;
+    align-items: center;
+    gap: 10px;
+  }
+  .psych-bar-row .bar-label {
+    font-size: 0.78rem;
+    color: #334155;
+    font-weight: 600;
+    margin: 0;
+  }
+  .psych-bar-track {
+    height: 10px;
+    border-radius: 999px;
+    background: #eef2ff;
+    overflow: hidden;
+    position: relative;
+  }
+  .psych-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #4f46e5, #9333ea);
+  }
+  .psych-bar-fill.interest {
+    background: linear-gradient(90deg, #f59e0b, #f97316);
+  }
+  .psych-bar-fill.intelligence {
+    background: linear-gradient(90deg, #ec4899, #be185d);
+  }
+  .psych-bar-score {
+    text-align: right;
+    font-size: 0.75rem;
+    color: #475569;
+    font-weight: 700;
+  }
+  .psych-insight-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .psych-legend-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    color: #334155;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    padding: 4px 9px;
+  }
+  .psych-legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .psych-legend-dot.personality { background: #6366f1; }
+  .psych-legend-dot.interest { background: #f59e0b; }
+  .psych-legend-dot.intelligence { background: #ec4899; }
+  .career-analytics-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  @media (min-width: 992px) {
+    .career-analytics-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .career-analytics-card {
+    background: #fff;
+    border: 1px solid var(--psych-border);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+    height: 100%;
+  }
+  .career-analytics-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .career-analytics-title h4 {
+    margin: 0;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .career-analytics-title span {
+    font-size: 0.72rem;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    padding: 3px 10px;
+  }
+  .radar-wrap {
+    position: relative;
+    height: 250px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #f8fbff 0%, #fdfdff 100%);
+    border: 1px solid #edf2ff;
+  }
+  .radar-wrap svg {
+    width: 100%;
+    height: 100%;
+  }
+  .radar-grid {
+    fill: none;
+    stroke: rgba(100, 116, 139, 0.3);
+    stroke-width: 1;
+  }
+  .radar-axis {
+    stroke: rgba(100, 116, 139, 0.35);
+    stroke-width: 1;
+  }
+  .radar-shape {
+    fill: rgba(79, 70, 229, 0.18);
+    stroke: #4f46e5;
+    stroke-width: 2;
+  }
+  .radar-node {
+    fill: #4f46e5;
+    stroke: #fff;
+    stroke-width: 2;
+  }
+  .radar-label {
+    font-size: 9px;
+    font-weight: 600;
+    fill: #475569;
+    text-anchor: middle;
+  }
+  .career-rankings-list {
+    display: grid;
+    gap: 11px;
+  }
+  .career-rank-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 40px;
+    align-items: center;
+    gap: 10px;
+  }
+  .career-rank-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #334155;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .career-rank-track {
+    height: 10px;
+    border-radius: 999px;
+    background: #eef2ff;
+    overflow: hidden;
+  }
+  .career-rank-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #4f46e5, #7c3aed);
+  }
+  .career-rank-score {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #475569;
+    text-align: right;
+  }
+  .trend-type-list {
+    display: grid;
+    gap: 10px;
+  }
+  .trend-type-row {
+    display: grid;
+    grid-template-columns: 110px 1fr 34px;
+    align-items: center;
+    gap: 10px;
+  }
+  .trend-type-row p {
+    margin: 0;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #334155;
+  }
+  .trend-track {
+    height: 8px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    overflow: hidden;
+  }
+  .trend-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #0ea5e9, #14b8a6);
+  }
+  .trend-score {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #64748b;
+    text-align: right;
+  }
+  .trend-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .trend-chip {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #0f172a;
+    background: #eef2ff;
+    border: 1px solid #dbeafe;
+    border-radius: 999px;
+    padding: 4px 10px;
+  }
+
+  .psych-stream-intelligence-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .psych-stream-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .psych-stream-columns--single {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .psych-stream-part {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border-radius: 16px;
+    padding: 18px 18px 16px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+  }
+
+  .psych-stream-part-head {
+    margin-bottom: 14px;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .psych-stream-part-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #3f37c9;
+    background: #eef1ff;
+    border: 1px solid #d8defa;
+    border-radius: 999px;
+    padding: 4px 10px;
+    margin-bottom: 8px;
+  }
+
+  .psych-stream-part--suggested .psych-stream-part-kicker {
+    color: #0369a1;
+    background: #e0f2fe;
+    border-color: #bae6fd;
+  }
+
+  .psych-stream-part-title {
+    margin: 0;
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: #0f172a;
+    letter-spacing: -0.01em;
+  }
+
+  .psych-stream-part-desc {
+    margin: 6px 0 0;
+    font-size: 0.8125rem;
+    color: #64748b;
+    line-height: 1.5;
+  }
+
+  .psych-stream-part-body {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .psych-stream-suggested-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    flex: 1 1 auto;
+    align-items: stretch;
+  }
+
+  .psych-stream-combined-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 88px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+
+  .psych-stream-combined-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(76, 201, 240, 0.12);
+    border-color: rgba(76, 201, 240, 0.35);
+  }
+
+  .psych-stream-combined-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .psych-stream-combined-careers {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #e7ecfb;
+    flex: 1 1 auto;
+  }
+
+  .psych-stream-career-panel-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #64748b;
+    margin: 0 0 10px;
+  }
+
+  .psych-stream-combined-card .career-chip {
+    color: #166534;
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+  }
+
+  .psych-stream-combined-card .career-chip.career-chip-more {
+    color: #15803d;
+    background: #f0fdf4;
+    border-color: #86efac;
+  }
+
+  a.psych-stream-combined-card .career-chip:hover {
+    background: #f0fdf4;
+    border-color: #86efac;
+  }
+
+  @media (max-width: 575px) {
+    .psych-stream-suggested-list {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .psych-stream-part--decision .stream-decision-result-section {
+    margin-bottom: 0;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .psych-stream-part--decision .stream-decision-result-shell {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .psych-stream-part--decision .stream-decision-result-shell::after,
+  .psych-stream-part--decision .stream-decision-result-border {
+    display: none;
+  }
+
+  .psych-stream-part--decision .stream-decision-result-inner {
+    flex: 1 1 auto;
+    margin: 0;
+    padding: 16px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: none;
+  }
+
+  .psych-stream-part--decision .stream-decision-result-top {
+    grid-template-columns: minmax(0, 1fr) minmax(150px, 220px);
+    gap: 14px;
+    align-items: stretch;
+  }
+
+  .psych-stream-part--decision .stream-decision-result-highlight {
+    background: #ffffff;
+    border: none;
+    border-left: 1px solid #e7ecfb;
+    border-radius: 0;
+    padding: 4px 0 4px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .psych-stream-part--decision .stream-decision-result-meta {
+    margin-top: auto;
+    padding-top: 14px;
+  }
+
+  @media (max-width: 991px) {
+    .psych-stream-columns {
+      grid-template-columns: 1fr;
+    }
+
+    .psych-stream-part--decision .stream-decision-result-top {
+      grid-template-columns: 1fr;
+    }
+
+    .psych-stream-part--decision .stream-decision-result-highlight {
+      border-left: none;
+      border-top: 1px solid #e7ecfb;
+      padding: 14px 0 0;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .psych-stream-part {
+      padding: 14px;
+    }
+  }
+
+  .student-dash-main-col {padding:0px;}
+</style>

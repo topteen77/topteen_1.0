@@ -1,0 +1,419 @@
+{% extends "template20/user/student_base.html" %}
+
+{% block title_content %}{{ page_title }} | Top Teen{% endblock %}
+{% block description_content %}{{ page_title }}{% endblock %}
+{% block student_bodyclass %}user-dashboard user-dashboard-fullscreen{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<link rel="stylesheet" href="{{ static('css/parent-sidebar.css') }}">
+<style>
+  .std-shell-main { padding-top: 52px; }
+
+  .parent-dashboard {
+    background:
+      radial-gradient(circle at 6% 0%, rgba(102, 125, 255, 0.12) 0%, rgba(102, 125, 255, 0) 28%),
+      radial-gradient(circle at 92% 2%, rgba(39, 197, 139, 0.11) 0%, rgba(39, 197, 139, 0) 30%),
+      #f4f7ff;
+    min-height: 100%;
+  }
+
+  .parent-dashboard .parent-overview-card {
+    background: linear-gradient(130deg, #ffffff 0%, #f8faff 100%);
+    border: 1px solid rgba(110, 129, 228, 0.18);
+    border-radius: 16px;
+    padding: 16px 18px;
+    box-shadow: 0 14px 30px rgba(76, 94, 177, 0.12);
+  }
+
+  .parent-dashboard .parent-page-title {
+    font-size: 28px;
+    line-height: 1.2;
+    letter-spacing: -0.2px;
+    background: linear-gradient(90deg, #403fa6 0%, #1f90cd 55%, #1ba883 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .parent-dashboard .parent-page-subtitle {
+    color: #60658c;
+    font-size: 13px;
+  }
+
+  .parent-dashboard .btn { border-radius: 10px; }
+
+  .parent-item-card {
+    border: 1px solid #dbe4ff;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ffffff 0%, #f5f8ff 100%);
+    overflow: hidden;
+    height: 100%;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+  }
+
+  .parent-item-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 24px rgba(76, 94, 177, 0.14);
+  }
+
+  .parent-item-remove-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 3;
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.95);
+    color: #8b93c7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    transition: color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+  }
+
+  .parent-item-remove-btn:hover {
+    color: #dc3545;
+    background: #fff;
+    transform: scale(1.05);
+  }
+
+  .parent-item-thumb {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    background: #eef1ff;
+    display: block;
+  }
+
+  .parent-item-thumb-fallback {
+    width: 100%;
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(160deg, #f6f8ff 0%, #eef1ff 100%);
+    color: #8b93c7;
+    font-size: 42px;
+  }
+
+  .parent-item-body { padding: 14px; }
+
+  .parent-item-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #25306f;
+    margin: 0 0 6px;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .parent-item-meta {
+    font-size: 12px;
+    color: #5f6898;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .career-source-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    margin-right: 6px;
+  }
+  .career-source-badge--parent {
+    color: #403fa6;
+    background: rgba(92, 84, 212, 0.12);
+    border: 1px solid rgba(92, 84, 212, 0.25);
+  }
+  .career-source-badge--student {
+    color: #0f766e;
+    background: rgba(20, 184, 166, 0.12);
+    border: 1px solid rgba(20, 184, 166, 0.25);
+  }
+  .career-source-badge--both {
+    color: #7c3aed;
+    background: rgba(124, 58, 237, 0.1);
+    border: 1px solid rgba(124, 58, 237, 0.22);
+  }
+  .career-reaction-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .career-reaction-badge--disliked {
+    color: #b42318;
+    background: #fee4e2;
+    border: 1px solid #fecdca;
+  }
+  .career-reaction-badge--liked {
+    color: #027a48;
+    background: #d1fadf;
+    border: 1px solid #abefc6;
+  }
+
+  .parent-empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    border: 1px dashed #cfd7f4;
+    border-radius: 14px;
+    background: #fff;
+  }
+
+  .parent-empty-state i {
+    font-size: 48px;
+    color: #8b93c7;
+    margin-bottom: 12px;
+  }
+</style>
+{% endblock %}
+
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = page_title %}
+{% endblock %}
+
+{% block student_section_class %}parent-dashboard std-shell-main{% endblock %}
+
+{% block student_shell_topbar %}
+{% include "template20/parents/includes/parent_shell_topbar.html" %}
+{% endblock %}
+
+{% block student_sidebar %}
+{% include "template20/parents/includes/parent_sidebar.html" %}
+{% endblock %}
+
+{% block student_shell_offcanvas %}
+{% include "template20/parents/includes/parent_offcanvas.html" %}
+{% endblock %}
+
+{% block student_main %}
+<section class="pt-4 px-3 px-lg-4 px-xl-5 mb-4">
+  <div class="container-fluid px-0">
+    <div class="parent-overview-card py-3 mb-4">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+          <h2 class="parent-page-title fw-700 mb-1">{{ page_title }}</h2>
+          <p class="parent-page-subtitle mb-0">Saved items for you and your linked students.</p>
+        </div>
+        <a href="{{ browse_url }}" class="btn custom-button purple-button fw-600">
+          <i class='bx bx-search-alt me-1'></i>{{ browse_label }}
+        </a>
+      </div>
+    </div>
+
+    {% if (kind == 'careers' and career_cards and career_cards|length) or (kind == 'blogs' and blog_cards and blog_cards|length) or (kind == 'videos' and video_cards and video_cards|length) %}
+    <div class="row g-3">
+      {% if kind == 'careers' %}
+        {% for card in career_cards %}
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+          <div class="parent-item-card{% if card.is_disliked %} border border-danger-subtle{% endif %}">
+            <button type="button"
+                    class="parent-item-remove-btn parent-remove-saved-btn"
+                    data-kind="careers"
+                    data-careerslug="{{ card.career_slug }}"
+                    data-item-name="{{ card.career.name }}"
+                    title="Remove"
+                    aria-label="Remove {{ card.career.name }}">
+              <i class='bx bx-x'></i>
+            </button>
+            <a href="{{ card.career.url() }}" class="text-decoration-none d-block h-100">
+              {% if card.career.image and card.career.image.name %}
+              <img class="parent-item-thumb" src="{{ card.career.image.url }}" alt="{{ card.career.name }}" />
+              {% else %}
+              <div class="parent-item-thumb-fallback"><i class='bx bx-briefcase'></i></div>
+              {% endif %}
+              <div class="parent-item-body">
+                {% if card.badge_label %}
+                <span class="{{ card.badge_class }}">{{ card.badge_label }}</span>
+                {% endif %}
+                {% if card.is_disliked %}
+                <span class="career-reaction-badge career-reaction-badge--disliked"><i class='bx bx-dislike'></i> Student disliked</span>
+                {% elif card.student_reaction == 'liked' %}
+                <span class="career-reaction-badge career-reaction-badge--liked"><i class='bx bx-like'></i> Student liked</span>
+                {% endif %}
+                <p class="parent-item-title">{{ card.career.name }}</p>
+                {% if card.career.summary %}
+                <p class="parent-item-meta">{{ card.career.summary|truncate(100) }}</p>
+                {% endif %}
+              </div>
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      {% elif kind == 'blogs' %}
+        {% for card in blog_cards %}
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+          <div class="parent-item-card">
+            <button type="button"
+                    class="parent-item-remove-btn parent-remove-saved-btn"
+                    data-kind="blogs"
+                    data-blog-id="{{ card.blog_id }}"
+                    data-item-name="{{ card.blog.title }}"
+                    title="Remove"
+                    aria-label="Remove {{ card.blog.title }}">
+              <i class='bx bx-x'></i>
+            </button>
+            <a href="{{ url('blog:blogdetail', args=[card.blog.slug]) }}" class="text-decoration-none d-block h-100">
+              {% if card.blog.image and card.blog.image.name %}
+              <img class="parent-item-thumb" src="{{ card.blog.image.url }}" alt="{{ card.blog.title }}" />
+              {% else %}
+              <div class="parent-item-thumb-fallback"><i class='bx bx-news'></i></div>
+              {% endif %}
+              <div class="parent-item-body">
+                {% if card.badge_label %}
+                <span class="{{ card.badge_class }}">{{ card.badge_label }}</span>
+                {% endif %}
+                <p class="parent-item-title">{{ card.blog.title }}</p>
+                {% if card.blog.summary %}
+                <p class="parent-item-meta">{{ card.blog.summary|truncate(100) }}</p>
+                {% endif %}
+              </div>
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      {% elif kind == 'videos' %}
+        {% for card in video_cards %}
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+          <div class="parent-item-card">
+            <button type="button"
+                    class="parent-item-remove-btn parent-remove-saved-btn"
+                    data-kind="videos"
+                    data-video-id="{{ card.video_id }}"
+                    data-item-name="{{ card.video.name }}"
+                    title="Remove"
+                    aria-label="Remove {{ card.video.name }}">
+              <i class='bx bx-x'></i>
+            </button>
+            <a href="{{ url('careers:videodetail', args=[card.video.slug]) }}" class="text-decoration-none d-block h-100">
+              {% set thumb = card.video.get_thumbnail_url() %}
+              {% if thumb %}
+              <img class="parent-item-thumb" src="{{ thumb }}" alt="{{ card.video.name }}" />
+              {% else %}
+              <div class="parent-item-thumb-fallback"><i class='bx bx-play-circle'></i></div>
+              {% endif %}
+              <div class="parent-item-body">
+                {% if card.badge_label %}
+                <span class="{{ card.badge_class }}">{{ card.badge_label }}</span>
+                {% endif %}
+                <p class="parent-item-title">{{ card.video.name }}</p>
+                {% if card.video.description %}
+                <p class="parent-item-meta">{{ card.video.description|truncate(100) }}</p>
+                {% endif %}
+              </div>
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="parent-empty-state">
+      {% if kind == 'careers' %}
+      <i class='bx bx-briefcase d-block'></i>
+      {% elif kind == 'blogs' %}
+      <i class='bx bx-news d-block'></i>
+      {% else %}
+      <i class='bx bx-play-circle d-block'></i>
+      {% endif %}
+      <h4 class="fs-18 fw-700 text-dark mb-2">No saved items yet</h4>
+      <p class="text-muted fs-14 mb-3">Start exploring and save {{ page_title|lower }} for your family.</p>
+      <a href="{{ browse_url }}" class="btn custom-button purple-button fw-600">{{ browse_label }}</a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+{% include 'template20/parents/includes/parent_swal.html' %}
+<script>
+  (function () {
+    function getCookie(name) {
+      var cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+          var cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    function removeSavedItem(btn, kind, itemName) {
+      var form = new URLSearchParams();
+      form.set('csrfmiddlewaretoken', getCookie('csrftoken') || '');
+      if (kind === 'careers') {
+        form.set('careerslug', btn.getAttribute('data-careerslug') || '');
+      } else if (kind === 'blogs') {
+        form.set('blog_id', btn.getAttribute('data-blog-id') || '');
+      } else if (kind === 'videos') {
+        form.set('video_id', btn.getAttribute('data-video-id') || '');
+      }
+      btn.disabled = true;
+      fetch({{ remove_saved_url|tojson }}, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': getCookie('csrftoken') || '',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: form.toString()
+      }).then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+        .then(function (result) {
+          if (result.ok && result.data && result.data.success) {
+            window.parentAlert.toast('"' + itemName + '" removed', 'success').then(function () {
+              window.location.reload();
+            });
+          } else {
+            window.parentAlert.error((result.data && result.data.message) || 'Could not remove item.');
+            btn.disabled = false;
+          }
+        }).catch(function () {
+          window.parentAlert.error('Could not remove item.');
+          btn.disabled = false;
+        });
+    }
+
+    document.querySelectorAll('.parent-remove-saved-btn').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var kind = this.getAttribute('data-kind');
+        var itemName = this.getAttribute('data-item-name') || 'this item';
+        var self = this;
+        window.parentAlert.confirmRemove(itemName).then(function (result) {
+          if (!result.isConfirmed) return;
+          removeSavedItem(self, kind, itemName);
+        });
+      });
+    });
+  })();
+</script>
+{% endblock %}

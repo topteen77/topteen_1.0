@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     path("shortlistcareer",views.ShortlistCourseAPI.as_view(),name="shortlistcareer"),
+    path("parent-career-reaction",views.ParentCareerReactionAPI.as_view(),name="parent_career_reaction"),
     path("shortlistcollege",views.ShortlistCollegeAPI.as_view(),name="shortlistcollege"),
     path("shortlistexam",views.ShortlistExamAPI.as_view(),name="shortlistexam"),
     path("user-note-save",views.UserNoteSave.as_view(),name="usernotesave"),

@@ -2414,6 +2414,13 @@ def _can_view_assessment_report(viewer, target_user):
                 return True
     except Exception:
         return False
+    try:
+        from users.parent_student_insights import parent_can_view_student_reports
+
+        if parent_can_view_student_reports(viewer, target_user):
+            return True
+    except Exception:
+        pass
     return False
 
 

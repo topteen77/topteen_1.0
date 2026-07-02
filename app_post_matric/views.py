@@ -87,6 +87,17 @@ def _staff_can_view_student_report(request, student_uid) -> bool:
     except Exception:
         ut = 0
 
+    if ut == choices.UserType.PARENT:
+        try:
+            from users.parent_student_insights import parent_can_view_student_reports
+            from users.models import User
+
+            student = User.objects.filter(id=sid).first()
+            if student and parent_can_view_student_reports(user, student):
+                return True
+        except Exception:
+            pass
+
     sm = (
         StudentManagement.objects.filter(student_id=sid)
         .select_related(
@@ -1801,6 +1812,972 @@ def Results(request):
         })
 
 
+def build_combined_report_context(request, target_user):
+    """Build template context for Class 12 combined assessment report."""
+    from django.contrib.auth import get_user_model
+    from users.models import UserProfile
+    import json
+    import os
+    from django.conf import settings
+    from django.urls import reverse
+    from django.utils.text import slugify
+    User = get_user_model()
+    report_student_id = int(target_user.id)
+    
+    # Get completed test sessions for the TARGET USER (not the logged-in user)
+    completed_sessions = TestSession.objects.filter(
+        user=target_user,
+        is_completed=True
+    ).order_by('-end_time')
+    
+    if not completed_sessions:
+        return {
+            'error': 'No completed test found',
+            'no_results': True,
+            'user': target_user,
+            'profile_user': target_user,
+            'report_student_id': report_student_id,
+            'viewing_student_report': bool(
+                int(getattr(request.user, 'id', 0) or 0) != report_student_id
+            ),
+        }
+
+    user = target_user
+    report_student_name = getattr(user, 'name', None) or user.email or str(user)
+    report_student_email = getattr(user, 'email', None) or None
+    report_student_mobile = getattr(user, 'mobile', None) or None
+    report_student_class = None
+
+    try:
+        # Retrieve the UserProfile for the logged-in user (create if not exists)
+        user_profile, created = UserProfile.objects.get_or_create(user=user)
+    except UserProfile.DoesNotExist:
+        user_profile = None
+
+    try:
+        from institute.models import StudentManagement
+        sm = (
+            StudentManagement.objects.filter(student=user)
+            .select_related("class_and_section")
+            .order_by("-modified")
+            .first()
+        )
+        if sm and getattr(sm, "class_and_section", None):
+            report_student_class = getattr(sm.class_and_section, "class_and_section", None) or None
+            _stream = getattr(sm.class_and_section, "stream", None) or ""
+            if report_student_class and _stream:
+                report_student_class = f"{report_student_class} - {_stream}"
+    except Exception:
+        pass
+
+    try:
+        # Retrieve the UserProfile for the target user
+        user_profile = user.user_profile
+        # Access attributes from the User object
+        first_session = completed_sessions[0]
+        created_date = first_session.created_at if hasattr(first_session,'created_at') else first_session.end_time
+        gender_value = user_profile.gender
+        if gender_value == 10:  # GenderChoices.UNKNOWN
+            gender_display = "Unknown"
+        elif gender_value == 20:  # GenderChoices.MALE
+            gender_display = "Male"
+        elif gender_value == 30:  # GenderChoices.FEMALE
+            gender_display = "Female"
+        else:
+            gender_display = "Unknown"  # Default fallback
+        schoolname = user_profile.schoolname
+        student_name = getattr(user, 'name', None) or user.email or str(user)
+        grade = user_profile.grade
+        if not report_student_class:
+            report_student_class = grade
+        if not report_student_mobile:
+            report_student_mobile = getattr(user_profile, 'mobile', None) or report_student_mobile
+
+    except UserProfile.DoesNotExist:
+        print("UserProfile does not exist.")
+
+    # Initialize context and containers
+    viewing_student_report = bool(
+        int(getattr(request.user, 'id', 0) or 0) != report_student_id
+    )
+    context = {
+        'user': target_user,  # Use the target user, not request.user
+        'profile_user': target_user,
+        'report_student_id': report_student_id,
+        'completed_tests': [],
+        'no_results': False,
+        'viewing_as_admin': viewing_student_report,
+        'viewing_student_report': viewing_student_report,
+        'embed_mode': False,
+        # Add user profile information
+        'created_date': created_date if 'created_date' in locals() else None,
+        'gender': gender_display if 'gender_display' in locals() else None,
+        'schoolname': schoolname if 'schoolname' in locals() else None,
+        'student_name': student_name if 'student_name' in locals() else None,
+        'grade': grade if 'grade' in locals() else None,
+        'report_student_name': report_student_name,
+        'report_student_email': report_student_email,
+        'report_student_mobile': report_student_mobile,
+        'report_student_class': report_student_class,
+    }
+    
+    latest_sessions = {}
+    
+    # Process each completed session
+    for session in completed_sessions:
+        test_title = session.test.title
+        
+        # Only keep the latest session for each test type
+        if test_title not in latest_sessions:
+            latest_sessions[test_title] = session
+            context['completed_tests'].append({
+                'title': test_title,
+                'display_title': test_display_title(test_title),
+                'completed_at': session.end_time,
+                'completed_at_display': _format_ui_datetime(session.end_time),
+                'test_id': session.test.id
+            })
+
+    context['completed_tests'].sort(
+        key=lambda t: {1: 0, 2: 1, 3: 2, 4: 3}.get(t.get('test_id'), 99)
+    )
+
+    # -------------------- Build data for client charts (for target_user) --------------------
+    # This allows institute users to view a student's charts without hitting /api/results/
+    test_results_data = []
+    for title, session in latest_sessions.items():
+        # Duration in minutes
+        duration_minutes = 0
+        if session.start_time and session.end_time:
+            duration = session.end_time - session.start_time
+            duration_minutes = int(duration.total_seconds() / 60)
+
+        test_data = {
+            'test_id': session.test.id,
+            'test_title': title,
+            'duration_minutes': duration_minutes,
+            'result_data': {}
+        }
+
+        # Try to use stored TestResult first (most accurate)
+        try:
+            test_result = TestResult.objects.filter(session=session).first()
+            if test_result and test_result.result_data:
+                # Use stored result_data if available
+                stored_data = test_result.result_data
+                if isinstance(stored_data, dict):
+                    test_data['result_data'] = normalize_test_result_data_for_charts(
+                        stored_data,
+                        is_aptitude='Aptitude' in title,
+                    )
+                if test_result.category_counts:
+                    test_data['category_counts'] = test_result.category_counts.copy()
+            else:
+                # Fallback: Aggregate results from stored responses JSON
+                responses = []
+                try:
+                    responses_obj = getattr(session, 'responses', None)
+                    if responses_obj is not None:
+                        responses = responses_obj.all()
+                except Exception:
+                    responses = []
+
+                if 'Personality' in title:
+                    # Sum scores per HEXACO dimension
+                    test_data['result_data'] = {
+                        'H': {'score': 0}, 'E': {'score': 0}, 'X': {'score': 0},
+                        'A': {'score': 0}, 'C': {'score': 0}, 'O': {'score': 0}
+                    }
+                    for resp in responses:
+                        if hasattr(resp, 'selected_answer') and resp.selected_answer:
+                            ans = resp.selected_answer
+                            if isinstance(ans, dict) and 'dimension' in ans:
+                                dim = ans['dimension']
+                                if dim in test_data['result_data']:
+                                    try:
+                                        test_data['result_data'][dim]['score'] += int(ans.get('score', 0))
+                                    except Exception:
+                                        pass
+
+                elif 'Career' in title or 'Interest' in title:
+                    # RIASEC scores
+                    test_data['result_data'] = {
+                        'R': {'score': 0}, 'I': {'score': 0}, 'A': {'score': 0},
+                        'S': {'score': 0}, 'E': {'score': 0}, 'C': {'score': 0}
+                    }
+                    for resp in responses:
+                        if hasattr(resp, 'selected_answer') and resp.selected_answer:
+                            ans = resp.selected_answer
+                            if isinstance(ans, dict) and 'dimension' in ans:
+                                dim = ans['dimension']
+                                if dim in test_data['result_data']:
+                                    try:
+                                        test_data['result_data'][dim]['score'] += int(ans.get('score', 0))
+                                    except Exception:
+                                        pass
+
+                elif 'Motivation' in title:
+                    # Category counts
+                    test_data['category_counts'] = {'Achievement': 0, 'Power': 0, 'Affiliation': 0}
+                    for resp in responses:
+                        if hasattr(resp, 'selected_answer') and resp.selected_answer:
+                            ans = resp.selected_answer
+                            if isinstance(ans, dict) and 'category' in ans:
+                                cat = ans['category']
+                                if cat in test_data['category_counts']:
+                                    test_data['category_counts'][cat] += 1
+
+                elif 'Aptitude' in title:
+                    # Per-section correct counts
+                    test_data['result_data'] = {}
+                    for resp in responses:
+                        if hasattr(resp, 'selected_answer') and resp.selected_answer:
+                            ans = resp.selected_answer
+                            if isinstance(ans, dict) and 'sections' in ans:
+                                sections = ans['sections']
+                                for section_name, section_data in sections.items():
+                                    if section_name not in test_data['result_data']:
+                                        test_data['result_data'][section_name] = 0
+                                    if 'submitted_answers' in section_data:
+                                        for _qid, qdata in section_data['submitted_answers'].items():
+                                            if qdata.get('correct_answer') == qdata.get('selected_answer'):
+                                                test_data['result_data'][section_name] += 1
+        except Exception as e:
+            logger.exception("Error getting test result data (combined report)")
+
+        test_results_data.append(test_data)
+
+    # Attach JSON for client scripts (pdf-results.js will prefer this over API fetch)
+    import json as _json
+    context['test_results_json'] = _json.dumps(test_results_data)
+    
+    # Check if all 4 tests are completed FOR THE TARGET USER
+    test1_completed = TestSession.objects.filter(
+        user=target_user, 
+        test__id=1,
+        is_completed=True
+    ).exists()
+    
+    test2_completed = TestSession.objects.filter(
+        user=target_user, 
+        test__id=2,
+        is_completed=True
+    ).exists()
+    
+    test3_completed = TestSession.objects.filter(
+        user=target_user, 
+        test__id=3,
+        is_completed=True
+    ).exists()
+    
+    test4_completed = TestSession.objects.filter(
+        user=target_user, 
+        test__id=4,
+        is_completed=True
+    ).exists()
+    
+    all_tests_completed = test1_completed and test2_completed and test3_completed and test4_completed
+    context['all_tests_completed'] = all_tests_completed
+    
+    # Process each test type if available
+    personality_session = latest_sessions.get('Personality Assessment')
+    career_session = latest_sessions.get('Career Interest Inventory')
+    motivation_session = latest_sessions.get('Motivation Assessment')
+    aptitude_session = latest_sessions.get('Aptitude Assessment')
+    
+    # Process personality test data
+    if personality_session:
+        try:
+            # Get categories record for personality test
+            categories_record = TestTopCategories.objects.filter(
+                user=target_user,  # Use target_user instead of request.user
+                test_paper=personality_session.test
+            ).first()
+            
+            if categories_record:
+                import ast
+                try:
+                    high_categories = [cat.strip() for cat in ast.literal_eval(categories_record.high_category)]
+                    low_category = categories_record.low_category
+                    
+                    hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, personality_session)
+                    context.update({
+                        'high_categories': high_categories,
+                        'low_category': low_category,
+                        'careers_to_opt': hexaco_recommendations['careers_to_opt'],
+                        'careers_to_avoid': hexaco_recommendations['careers_to_avoid'],
+                        'high_trait_descriptions': hexaco_recommendations['high_trait_descriptions'],
+                        'low_trait_descriptions': hexaco_recommendations['low_trait_descriptions'],
+                        'high_traits': [map_hexaco_code_to_trait(cat) for cat in high_categories],
+                        'low_trait': map_hexaco_code_to_trait(low_category) if low_category else None
+                    })
+                except (ValueError, SyntaxError) as e:
+                    logger.exception("Error parsing personality categories")
+        except Exception as e:
+            logger.exception("Error processing personality test data")
+
+    # Process career interest data
+    if career_session:
+        try:
+            # Get categories record for career interest test
+            categories_record = TestTopCategories.objects.filter(
+                user=target_user,  # Use target_user instead of request.user
+                test_paper=career_session.test
+            ).first()
+            
+            if categories_record:
+                try:
+                    high_categories = resolve_riasec_high_categories(
+                        career_session,
+                        categories_record.high_category,
+                    )
+                    low_category = categories_record.low_category
+                    
+                    hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, career_session)
+                    context.update({
+                        'riasec_high_categories': high_categories,
+                        'riasec_careers_to_opt': hexaco_recommendations['riasec_careers_to_opt'],
+                        'career_code_discription': hexaco_recommendations['career_code_discription'],
+                    })
+                except Exception as e:
+                    logger.exception("Error processing career interest data")
+        except Exception as e:
+            logger.exception("Error processing career session data")
+        
+    # Process motivation data
+    if motivation_session:
+        try:
+            # Get categories record for motivation test
+            categories_record = TestTopCategories.objects.filter(
+                user=target_user,  # Use target_user instead of request.user
+                test_paper=motivation_session.test
+            ).first()
+            
+            if categories_record:
+                try:
+                    high_categories = categories_record.high_category
+                    low_category = categories_record.low_category
+                    
+                    hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, motivation_session)
+                    context.update({
+                        'motivation_high_category': high_categories,
+                        'motivation_careers_to_opt': hexaco_recommendations['motivation_careers_to_opt'],
+                        'motivation_key_description': hexaco_recommendations.get('motivation_key_description', None),
+                        'motivation_key_drivers': hexaco_recommendations.get('motivation_key_drivers', []),
+                        'motivation_summary': hexaco_recommendations.get('motivation_summary', None),
+                    })
+                except Exception as e:
+                    logger.exception("Error processing motivation data")
+        except Exception as e:
+            logger.exception("Error processing motivation session data")
+        
+    # Process aptitude data
+    if aptitude_session:
+        try:
+            # Get categories record for aptitude test
+            categories_record = TestTopCategories.objects.filter(
+                user=target_user,  # Use target_user instead of request.user
+                test_paper=aptitude_session.test
+            ).first()
+            
+            if categories_record:
+                try:
+                    import json
+                    high_categories = json.loads(categories_record.high_category)
+                    if isinstance(high_categories, dict):
+                        high_categories = normalize_aptitude_categories(high_categories)
+                    
+                    # Prepare aptitude lists and 2-digit codes
+                    above_list = high_categories.get("Above Average", [])
+                    average_list = high_categories.get("Average", [])
+                    below_list = high_categories.get("Below Average", [])
+                    
+                    # Map full aptitude names to their 2-letter codes
+                    def map_aptitude_name_to_code(name):
+                        name = name.strip().lower()
+                        mapping = {
+                            'abstract reasoning': 'AR',
+                            'numerical reasoning': 'NR',
+                            'logical reasoning': 'LR',
+                            'language & verbal reasoning': 'LVR',
+                            'language and verbal reasoning': 'LVR',
+                            'mechanical reasoning': 'MR',
+                            'spatial reasoning': 'SR',
+                            'clerical speed & accuracy': 'CR',
+                            'clerical speed and accuracy': 'CR',
+                            'clerical': 'CR',
+                        }
+                        return mapping.get(name, None)
+                    
+                    # Helper to get 2-letters, if code is 3 letters, use first letter and last (e.g. LVR -> LR)
+                    def normalize_code(code):
+                        if code is None:
+                            return None
+                        # if len(code) == 2:
+                        #     return code
+                        # elif len(code) == 3:
+                        #     # specific mapping - LVR (Language & Verbal Reasoning) -> LR (Verbal/Logical Reasoning)
+                        #     if code == "LVR":
+                        #         return "LR"
+                        #     return code[:2]
+                        return code
+                    
+                    # Combine all aptitudes to get an unique code for the combination (sorted for consistency)
+                    all_selected_names = []
+                    all_selected_names.extend(above_list)
+                    all_selected_names.extend(average_list)
+                    # (We skip below, as we often want only strengths/averages for combination mapping)
+                    aptitude_codes = [normalize_code(map_aptitude_name_to_code(name)) for name in all_selected_names if map_aptitude_name_to_code(name) is not None]
+                    logger.debug("aptitude_codes: %s", aptitude_codes)
+                    # Only keep unique and non-None
+                    aptitude_codes = sorted(list(set(aptitude_codes)))
+                    logger.debug("aptitude_codes (sorted): %s", aptitude_codes)
+                    # Generate final two-letter combo code (alpha order), e.g., ["AR", "NR"] => "AR_NR"
+                    two_digit_combo_code = "+".join(aptitude_codes)
+                    logger.debug("two_digit_combo_code: %s", two_digit_combo_code)
+
+                    # Add to context: test name and generated combo code
+                    context.update({
+                        'above_list': above_list,
+                        'average_list': average_list,
+                        'below_list': below_list,
+                        'aptitude_test_name': aptitude_session.test.title if hasattr(aptitude_session, 'test') else "Aptitude Assessment",
+                        'aptitude_combination_code': two_digit_combo_code,
+                    })
+                    # This combo code (two_digit_combo_code) is to be used for matching in db [AptitudeCombinationMapping]
+                    logger.debug("high_categories: %s", high_categories)
+                    hexaco_recommendations = get_hexaco_career_recommendations(high_categories, None, aptitude_session)
+                    context.update({
+                        'aptitude_improvement_plan': hexaco_recommendations['aptitude_improvement_plan'],
+                        'aptitude_strength_narrative': hexaco_recommendations['aptitude_strength_narrative'],
+                        'aptitude_Recommended_College_Courses': hexaco_recommendations['aptitude_Recommended_College_Courses'],
+                        'aptitude_course_recommendation_cards': hexaco_recommendations.get('aptitude_course_recommendation_cards', []),
+                        'aptitude_roles_guidance': hexaco_recommendations['aptitude_roles_guidance'],
+                        'career_guidance_selected': hexaco_recommendations['career_guidance_selected'],
+                    })
+                    
+                    # print("hexaco_recommendations['aptitude_improvement_plan']: ", hexaco_recommendations['aptitude_improvement_plan'])
+                    # print("hexaco_recommendations['aptitude_strength_narrative']: ", hexaco_recommendations['aptitude_strength_narrative'])
+                    # print("hexaco_recommendations['aptitude_Recommended_College_Courses']: ", hexaco_recommendations['aptitude_Recommended_College_Courses'])
+                    # print("hexaco_recommendations['aptitude_roles_guidance']: ", hexaco_recommendations['aptitude_roles_guidance'])
+                    # print("hexaco_recommendations['career_guidance_selected']: ", hexaco_recommendations['career_guidance_selected'])
+                    # print("len(hexaco_recommendations['career_guidance_selected']): ", len(hexaco_recommendations['career_guidance_selected']))
+                    # Fetch AptitudeCombinationMapping data based on aptitude codes
+                    # (do not import `reverse` here — it shadows the module import and breaks
+                    # earlier/later uses of reverse() in this function via UnboundLocalError)
+                    from django.utils.html import format_html
+                    from careers.models import CareerCluster
+                    from courses.models import Course
+                    
+                    # Map full aptitude names to codes
+                    def map_aptitude_name_to_code(name):
+                        """Convert full aptitude name to code"""
+                        name_lower = name.lower().strip()
+                        mapping = {
+                            'abstract reasoning': 'AR',
+                            'numerical reasoning': 'NR',
+                            'logical reasoning': 'LR',
+                            'language & verbal reasoning': 'LVR',
+                            'language and verbal reasoning': 'LVR',
+                            'mechanical reasoning': 'MR',
+                            'spatial reasoning': 'SR',
+                            'clerical speed & accuracy': 'CR',
+                            'clerical speed and accuracy': 'CR',
+                            'clerical': 'CR',
+                        }
+                        return mapping.get(name_lower, None)
+                    
+                    # Collect aptitude names and convert to codes
+                    # ONLY use Above Average + Average - exclude Below Average for clusters/roles/pathways
+                    all_aptitude_names = []
+                    all_aptitude_names.extend(high_categories.get("Above Average", []))
+                    all_aptitude_names.extend(high_categories.get("Average", []))
+                    # Below Average is excluded - not used for combination mapping
+                    
+                    # Convert names to codes (keep original order, do not sort)
+                    aptitude_codes = []
+                    for name in all_aptitude_names:
+                        code = map_aptitude_name_to_code(name)
+                        if code and code not in aptitude_codes:
+                            aptitude_codes.append(code)
+                            
+                    
+                    logger.debug(f"Aptitude codes extracted: {aptitude_codes} ({len(aptitude_codes)} codes) - ORIGINAL ORDER (not sorted)")
+                    
+                    # Generate all possible combinations from user's codes
+                    # Check BOTH original order AND sorted order to match database entries
+                    codes_to_check = []
+                    
+                    # First: Generate combinations in ORIGINAL ORDER (as extracted)
+                    logger.debug(f"Generating combinations from ORIGINAL order: {aptitude_codes}")
+                    from itertools import combinations
+                    for r in range(len(aptitude_codes), 0, -1):  # Start from longest
+                        for combo in combinations(aptitude_codes, r):
+                            combo_str = '+'.join(combo)  # Format: "CR+LVR+NR" (original order)
+                            if combo_str not in codes_to_check:
+                                codes_to_check.append(combo_str)
+                    
+                    # Second: Also generate combinations in SORTED ORDER (for database matching)
+                    sorted_codes = sorted(aptitude_codes)
+                    if sorted_codes != aptitude_codes:
+                        logger.debug(f"Also generating combinations from SORTED order: {sorted_codes}")
+                        for r in range(len(sorted_codes), 0, -1):  # Start from longest
+                            for combo in combinations(sorted_codes, r):
+                                combo_str = '+'.join(combo)  # Format: "CR+LVR+NR" (sorted order)
+                                if combo_str not in codes_to_check:
+                                    codes_to_check.append(combo_str)
+                    
+                    logger.debug(f"codes_to_check: {codes_to_check} (total: {len(codes_to_check)} combinations to check)")
+
+                    best_mapping = None
+                    best_code = None
+
+                    try:
+                        from app.class12_aptitude_report_utils import (
+                            build_class12_consolidated_aptitude_mapping,
+                        )
+
+                        best_mapping = build_class12_consolidated_aptitude_mapping(
+                            high_categories,
+                            resolve_role_urls=True,
+                        )
+                        if best_mapping:
+                            best_code = best_mapping.get('aptitude_code')
+                            logger.debug(
+                                "Class 12 consolidated aptitude mapping: %s (mode=%s, tier=%s)",
+                                best_code,
+                                best_mapping.get('display_mode'),
+                                best_mapping.get('tier_used'),
+                            )
+                    except Exception as ex:
+                        logger.warning(
+                            "Class 12 consolidated aptitude mapping failed: %s", ex
+                        )
+
+                    if not best_mapping:
+                        # Legacy AptitudeCombinationMapping fallback (all above+average codes)
+                        checked_count = 0
+                        found_matches = []
+
+                        # Check what combinations exist in database for these codes (handle missing table gracefully)
+                        all_db_codes = []
+                        matching_db_codes = []
+                        codes_set = set(aptitude_codes)
+
+                        try:
+                            # Check if table exists
+                            from django.db import connection
+                            with connection.cursor() as cursor:
+                                cursor.execute("SHOW TABLES LIKE 'app_post_matric_aptitudecombinationmapping'")
+                                table_exists = cursor.fetchone() is not None
+
+                            if table_exists:
+                                all_db_codes = list(AptitudeCombinationMapping.objects.values_list('aptitude_code', flat=True))
+                                for db_code in all_db_codes:
+                                    db_codes_list = db_code.split('+')
+                                    if set(db_codes_list) == codes_set:  # Same codes, different order
+                                        matching_db_codes.append(db_code)
+                            else:
+                                logger.debug("[DEBUG] AptitudeCombinationMapping table does not exist - skipping mapping")
+                        except Exception as e:
+                            logger.debug(f"[DEBUG] Error accessing AptitudeCombinationMapping table (non-critical): {str(e)}")
+                            all_db_codes = []
+
+                        logger.debug(f"\n🔍 Comparing aptitude_codes ({aptitude_codes}) with AptitudeCombinationMapping in database...")
+                        if matching_db_codes:
+                            logger.debug(f"   Found matching codes in DB (same codes, different order): {matching_db_codes}")
+                        logger.debug(f"   Checking combinations in order (longest to shortest)...")
+
+                        # Check combinations in order (longest first)
+                        for code in codes_to_check:
+                            checked_count += 1
+                            try:
+                                mapping = AptitudeCombinationMapping.objects.filter(aptitude_code=code).first()
+                                if mapping:
+                                    found_matches.append({
+                                        'code': code,
+                                        'areas': mapping.aptitude_areas,
+                                        'clusters_count': mapping.clusters.count(),
+                                        'roles_count': mapping.roles.count(),
+                                        'pathways_count': mapping.pathways.count()
+                                    })
+                            except Exception as e:
+                                logger.debug(f"      ❌ Error checking {code}: {e}")
+
+                        # If no exact match found, try matching_db_codes (same codes, different order)
+                        if not found_matches and matching_db_codes:
+                            logger.debug(f"\n   No exact order match found. Trying matching codes from DB (different order)...")
+                            for db_code in matching_db_codes:
+                                checked_count += 1
+                                try:
+                                    mapping = AptitudeCombinationMapping.objects.filter(aptitude_code=db_code).first()
+                                    if mapping:
+                                        found_matches.append({
+                                            'code': db_code,
+                                            'areas': mapping.aptitude_areas,
+                                            'clusters_count': mapping.clusters.count(),
+                                            'roles_count': mapping.roles.count(),
+                                            'pathways_count': mapping.pathways.count()
+                                        })
+                                        if db_code not in codes_to_check:
+                                            codes_to_check.append(db_code)
+                                except Exception as e:
+                                    logger.debug(f"      ❌ Error checking {db_code}: {e}")
+
+                        match_code_to_use = None
+                        total_codes_count = len(aptitude_codes)
+
+                        if matching_db_codes:
+                            for db_code in matching_db_codes:
+                                db_code_count = len(db_code.split('+'))
+                                if db_code_count == total_codes_count:
+                                    match_code_to_use = db_code
+                                    logger.debug(f"\n   ✅ Using complete DB match (all {total_codes_count} codes): {match_code_to_use}")
+                                    break
+
+                        if not match_code_to_use and found_matches:
+                            match_code_to_use = found_matches[0]['code']
+                            logger.debug(f"\n   ✅ Using match from codes_to_check: {match_code_to_use}")
+                        elif not match_code_to_use and matching_db_codes:
+                            match_code_to_use = matching_db_codes[0]
+                            logger.debug(f"\n   ✅ Using DB match (different order): {match_code_to_use}")
+
+                        if match_code_to_use:
+                            try:
+                                mapping = AptitudeCombinationMapping.objects.filter(aptitude_code=match_code_to_use).first()
+                                if mapping:
+                                    clusters_data = []
+                                    for cluster in mapping.clusters.all():
+                                        try:
+                                            safe_slug = (cluster.slug or slugify(cluster.name or '') or 'cluster')
+                                            url = reverse('careers:careerlibrary', kwargs={'cluster_slug': safe_slug, 'cluster_id': cluster.id})
+                                            clusters_data.append({'name': cluster.name, 'url': url})
+                                        except Exception as e:
+                                            logger.debug(f"Error creating cluster URL for {cluster.name}: {e}")
+                                            clusters_data.append({'name': cluster.name, 'url': None})
+
+                                    roles_data = []
+                                    for role in mapping.roles.all():
+                                        try:
+                                            url = reverse('careers:careerdetail', kwargs={'slug': role.slug, 'career_id': role.id})
+                                            roles_data.append({'name': role.name, 'url': url})
+                                        except Exception as e:
+                                            logger.debug(f"Error creating role URL for {role.name}: {e}")
+                                            roles_data.append({'name': role.name, 'url': None})
+
+                                    pathways_data = []
+                                    for pathway in mapping.pathways.all():
+                                        try:
+                                            url = reverse('courses:coursedetail', kwargs={'course_id': pathway.id})
+                                            pathways_data.append({'name': pathway.name, 'url': url})
+                                        except Exception as e:
+                                            logger.debug(f"Error creating pathway URL for {pathway.name}: {e}")
+                                            pathways_data.append({'name': pathway.name, 'url': None})
+
+                                    if clusters_data or roles_data or pathways_data:
+                                        best_mapping = {
+                                            'aptitude_code': match_code_to_use,
+                                            'aptitude_areas': mapping.aptitude_areas,
+                                            'clusters': clusters_data,
+                                            'roles': roles_data,
+                                            'pathways': pathways_data
+                                        }
+                                        best_code = match_code_to_use
+                                        logger.debug(f"   ✅ SELECTED: {best_code} (matching combination with data)")
+                                    else:
+                                        logger.debug(f"   ⚠ Found but no data (clusters/roles/pathways empty)")
+                            except Exception as e:
+                                logger.debug(f"   ❌ Error processing {match_code_to_use}: {e}")
+                                import traceback
+                                traceback.print_exc()
+
+                    # Store the best mapping in context (clusters, roles, pathways from DB)
+                    context['aptitude_mapping'] = best_mapping
+                    if best_mapping:
+                        context['class12_aptitude_combination_key'] = best_mapping.get('aptitude_code', '')
+                        context['class12_aptitude_display_mode'] = best_mapping.get('display_mode')
+                        context['class12_consolidated_tier_used'] = best_mapping.get('tier_used')
+                        source = best_mapping.get('source', 'legacy')
+                        logger.debug(f"\n✅ FINAL RESULT - Displaying aptitude mapping ({source}):")
+                        logger.debug(f"   Aptitude Code: {best_code}")
+                        logger.debug(f"   Aptitude Areas: {best_mapping['aptitude_areas']}")
+                        logger.debug(f"   Clusters: {len(best_mapping['clusters'])}")
+                        logger.debug("   Clusters:")
+                        for cluster in best_mapping['clusters']:
+                            logger.debug(f"      - {cluster['name']}")
+                        logger.debug(f"   Roles: {len(best_mapping['roles'])}")
+                        logger.debug("   Roles:")
+                        for role in best_mapping['roles']:
+                            logger.debug(f"      - {role['name']}")
+                        logger.debug(f"   Pathways: {len(best_mapping['pathways'])}")
+                        logger.debug("   Pathways:")
+                        for pathway in best_mapping['pathways']:
+                            logger.debug(f"      - {pathway['name']}")
+                    else:
+                        logger.debug(f"\n⚠️  NO MATCH FOUND!")
+                        logger.debug(f"   Extracted codes: {aptitude_codes}")
+                        logger.debug(f"   Checked {len(codes_to_check)} combinations but none matched in AptitudeCombinationMapping")
+                        logger.debug(f"   Make sure the combination exists in the database")
+                except json.JSONDecodeError as e:
+                    logger.debug(f"Error decoding aptitude categories JSON: {e}")
+                    import traceback
+                    logger.debug(traceback.format_exc())
+                except Exception as e:
+                    logger.debug(f"Error processing aptitude data: {e}")
+                    import traceback
+                    logger.debug(traceback.format_exc())
+        except Exception as e:
+            logger.exception("Error processing aptitude session data")
+
+    # Build psychometric career clusters fallback (used when aptitude clusters are missing)
+    try:
+        import re
+        psychometric_careers = []
+
+        # Personality careers_to_opt can be dict(trait -> [careers]) or list
+        personality_careers = context.get('careers_to_opt', [])
+        if isinstance(personality_careers, dict):
+            for items in personality_careers.values():
+                if isinstance(items, list):
+                    psychometric_careers.extend(items)
+        elif isinstance(personality_careers, list):
+            psychometric_careers.extend(personality_careers)
+
+        # RIASEC careers_to_opt is generally dict(category -> [careers])
+        riasec_careers = context.get('riasec_careers_to_opt', [])
+        if isinstance(riasec_careers, dict):
+            for items in riasec_careers.values():
+                if isinstance(items, list):
+                    psychometric_careers.extend(items)
+        elif isinstance(riasec_careers, list):
+            psychometric_careers.extend(riasec_careers)
+
+        # Add aptitude recommended roles as additional psychometric signals
+        aptitude_roles_guidance = context.get('aptitude_roles_guidance', []) or []
+        for area_group in aptitude_roles_guidance:
+            if not isinstance(area_group, dict):
+                continue
+            for role_item in area_group.get('Recommendations', []) or []:
+                if isinstance(role_item, dict):
+                    role_name = role_item.get('Role')
+                else:
+                    role_name = role_item
+                if role_name:
+                    psychometric_careers.append(role_name)
+
+        cleaned_career_names = []
+        seen_names = set()
+        for name in psychometric_careers:
+            clean_name = str(name or '').strip()
+            if not clean_name:
+                continue
+            lowered = clean_name.lower()
+            if lowered in seen_names:
+                continue
+            seen_names.add(lowered)
+            cleaned_career_names.append(clean_name)
+
+        psychometric_clusters = []
+        if cleaned_career_names:
+            # Normalize name to improve matching between recommendation labels and Career.name
+            def _normalize_name(text):
+                return re.sub(r'[^a-z0-9]+', '', str(text or '').lower()).strip()
+
+            normalized_targets = set(_normalize_name(name) for name in cleaned_career_names if name)
+
+            # First pass: published careers
+            from core import choices
+            career_qs = Career.objects.filter(
+                publish_status=choices.PublishStatus.PUBLISHED
+            ).prefetch_related('career_cluster')
+            if not career_qs.exists():
+                # Fallback if publish flag is not maintained in this environment
+                career_qs = Career.objects.all().prefetch_related('career_cluster')
+
+            cluster_seen = set()
+            matched_any = False
+            for career_obj in career_qs:
+                normalized_db_name = _normalize_name(getattr(career_obj, 'name', ''))
+                if normalized_db_name not in normalized_targets:
+                    continue
+                matched_any = True
+                for cluster in career_obj.career_cluster.all():
+                    cluster_name = str(getattr(cluster, 'name', '') or '').strip()
+                    if not cluster_name:
+                        continue
+                    key = cluster_name.lower()
+                    if key in cluster_seen:
+                        continue
+                    cluster_seen.add(key)
+                    cluster_url = None
+                    try:
+                        safe_slug = (cluster.slug or slugify(cluster_name) or 'cluster')
+                        cluster_url = reverse(
+                            'careers:careerlibrary',
+                            kwargs={'cluster_slug': safe_slug, 'cluster_id': cluster.id}
+                        )
+                    except Exception:
+                        cluster_url = None
+                    psychometric_clusters.append({
+                        'name': cluster_name,
+                        'url': cluster_url
+                    })
+
+            # Second pass fallback: loose contains matching when exact normalized names do not match
+            if not matched_any:
+                for rec_name in cleaned_career_names:
+                    token = str(rec_name or '').strip()
+                    if not token:
+                        continue
+                    loose_qs = Career.objects.filter(name__icontains=token[:40]).prefetch_related('career_cluster')[:10]
+                    for career_obj in loose_qs:
+                        for cluster in career_obj.career_cluster.all():
+                            cluster_name = str(getattr(cluster, 'name', '') or '').strip()
+                            if not cluster_name:
+                                continue
+                            key = cluster_name.lower()
+                            if key in cluster_seen:
+                                continue
+                            cluster_seen.add(key)
+                            cluster_url = None
+                            try:
+                                safe_slug = (cluster.slug or slugify(cluster_name) or 'cluster')
+                                cluster_url = reverse(
+                                    'careers:careerlibrary',
+                                    kwargs={'cluster_slug': safe_slug, 'cluster_id': cluster.id}
+                                )
+                            except Exception:
+                                cluster_url = None
+                            psychometric_clusters.append({
+                                'name': cluster_name,
+                                'url': cluster_url
+                            })
+
+        context['psychometric_career_clusters'] = sorted(
+            psychometric_clusters,
+            key=lambda item: str(item.get('name', '')).lower()
+        )
+    except Exception as e:
+        logger.warning(f"Error building psychometric_career_clusters: {e}")
+        context['psychometric_career_clusters'] = []
+
+    # Build cluster name -> URL map for template linking of text-only cluster sources
+    # Includes common aliases so DB clusters still link when recommendation text varies
+    # (e.g. "&" vs "and", punctuation differences, repeated spaces).
+    try:
+        cluster_url_map = {}
+        for cluster in CareerCluster.objects.all().only('id', 'slug', 'name'):
+            cluster_name = str(getattr(cluster, 'name', '') or '').strip()
+            if not cluster_name:
+                continue
+            try:
+                safe_slug = (cluster.slug or slugify(cluster_name) or 'cluster')
+                cluster_url = reverse(
+                    'careers:careerlibrary',
+                    kwargs={'cluster_slug': safe_slug, 'cluster_id': cluster.id}
+                )
+            except Exception:
+                cluster_url = None
+
+            for key in career_cluster_label_lookup_keys(cluster_name):
+                if key in cluster_url_map:
+                    continue
+                cluster_url_map[key] = cluster_url
+
+        # Report JSON uses short labels; map them to live CareerCluster title + career library URL.
+        cluster_resolve_map = {}
+
+        def _resolve_entry_for_cluster_obj(cluster):
+            if not cluster:
+                return None
+            try:
+                safe_slug = (cluster.slug or slugify(cluster.name or '') or 'cluster')
+                url = reverse(
+                    'careers:careerlibrary',
+                    kwargs={'cluster_slug': safe_slug, 'cluster_id': cluster.id},
+                )
+            except Exception:
+                url = None
+            display = str(getattr(cluster, 'name', '') or '').strip()
+            if not display:
+                return None
+            return {'name': display, 'url': url}
+
+        def _merge_cluster_resolve_keys(raw_label, cluster, overwrite=False):
+            entry = _resolve_entry_for_cluster_obj(cluster)
+            if not entry:
+                return
+            for key in career_cluster_label_lookup_keys(raw_label):
+                if not key:
+                    continue
+                if overwrite or key not in cluster_resolve_map:
+                    cluster_resolve_map[key] = entry
+
+        mapping_path = os.path.join(
+            settings.BASE_DIR, 'static', 'data', 'combined_report_data', 'excel_to_db_mapping.json',
+        )
+        if os.path.isfile(mapping_path):
+            try:
+                with open(mapping_path, 'r', encoding='utf-8') as f:
+                    mapping_json = json.load(f)
+                for raw_label, targets in (mapping_json.get('cluster_mappings') or {}).items():
+                    if not targets or not isinstance(targets, list):
+                        continue
+                    cid = targets[0].get('id')
+                    if not cid:
+                        continue
+                    cluster = CareerCluster.objects.filter(pk=cid).first()
+                    _merge_cluster_resolve_keys(raw_label, cluster, overwrite=False)
+            except Exception as ex:
+                logger.warning("Error loading excel_to_db_mapping cluster_mappings: %s", ex)
+
+        label_ids_path = os.path.join(
+            settings.BASE_DIR, 'static', 'data', 'report_cluster_label_ids.json',
+        )
+        if os.path.isfile(label_ids_path):
+            try:
+                with open(label_ids_path, 'r', encoding='utf-8') as f:
+                    label_id_map = json.load(f)
+                for raw_label, cid in (label_id_map or {}).items():
+                    cluster = CareerCluster.objects.filter(pk=cid).first()
+                    _merge_cluster_resolve_keys(str(raw_label), cluster, overwrite=False)
+            except Exception as ex:
+                logger.warning("Error loading report_cluster_label_ids.json: %s", ex)
+
+        try:
+            for cm in ClusterMapping.objects.select_related('db_cluster').filter(
+                db_cluster__isnull=False,
+            ):
+                _merge_cluster_resolve_keys(cm.excel_name, cm.db_cluster, overwrite=True)
+        except Exception as ex:
+            logger.warning("Error merging ClusterMapping into cluster_resolve_map: %s", ex)
+
+        enrich_combined_report_cluster_links(context, cluster_resolve_map, cluster_url_map)
+
+        context['cluster_resolve_map'] = cluster_resolve_map
+        context['cluster_url_map'] = cluster_url_map
+    except Exception as e:
+        logger.warning("Error building cluster_url_map: %s", e)
+        context['cluster_url_map'] = {}
+        context['cluster_resolve_map'] = {}
+    
+    context['breadcrumb'] = get_breadcrumb([
+        {'text': 'Tests', 'url': reverse('post_matric:tests')},
+        {'text': 'Results', 'url': reverse('post_matric:results_list')},
+        {'text': 'Combined Report', 'url': ''},
+    ])
+
+    # Provide aptitude banding from backend (Above/Average/Below) for charts
+    import json as _json
+    context['aptitude_band_json'] = _json.dumps({
+        'above': context.get('above_list', []) or [],
+        'average': context.get('average_list', []) or [],
+        'below': context.get('below_list', []) or [],
+    })
+    return context
+
+
+
 @login_required
 def CombinedReport(request, user_id=None):
     try:
@@ -1825,972 +2802,19 @@ def CombinedReport(request, user_id=None):
                 },
             )
 
-        # Get the target user (student) whose report we want to view
         if route_student_id:
             target_user = get_object_or_404(User, id=route_student_id)
         else:
             target_user = request.user
             route_student_id = int(request.user.id)
-        report_student_id = int(target_user.id)
-        
-        # Get completed test sessions for the TARGET USER (not the logged-in user)
-        completed_sessions = TestSession.objects.filter(
-            user=target_user,
-            is_completed=True
-        ).order_by('-end_time')
-        
-        if not completed_sessions:
-            return render(request, "template20/app_post_matric/combined_report.html", {
-                'error': 'No completed test found',
-                'no_results': True,
-                'user': target_user,
-                'profile_user': target_user,
-                'report_student_id': report_student_id,
-                'embed_mode': embed_mode,
-                'viewing_student_report': bool(
-                    route_student_id and route_student_id != int(request.user.id)
-                ),
-                'breadcrumb': get_breadcrumb([
-                    {'text': 'Tests', 'url': reverse('post_matric:tests')},
-                    {'text': 'Results', 'url': reverse('post_matric:results_list')},
-                    {'text': 'Combined Report', 'url': ''},
-                ]),
-            })
 
-        user = target_user
-        report_student_name = getattr(user, 'name', None) or user.email or str(user)
-        report_student_email = getattr(user, 'email', None) or None
-        report_student_mobile = getattr(user, 'mobile', None) or None
-        report_student_class = None
-
-        try:
-            # Retrieve the UserProfile for the logged-in user (create if not exists)
-            user_profile, created = UserProfile.objects.get_or_create(user=user)
-        except UserProfile.DoesNotExist:
-            user_profile = None
-
-        try:
-            from institute.models import StudentManagement
-            sm = (
-                StudentManagement.objects.filter(student=user)
-                .select_related("class_and_section")
-                .order_by("-modified")
-                .first()
-            )
-            if sm and getattr(sm, "class_and_section", None):
-                report_student_class = getattr(sm.class_and_section, "class_and_section", None) or None
-                _stream = getattr(sm.class_and_section, "stream", None) or ""
-                if report_student_class and _stream:
-                    report_student_class = f"{report_student_class} - {_stream}"
-        except Exception:
-            pass
-
-        try:
-            # Retrieve the UserProfile for the target user
-            user_profile = user.user_profile
-            # Access attributes from the User object
-            first_session = completed_sessions[0]
-            created_date = first_session.created_at if hasattr(first_session,'created_at') else first_session.end_time
-            gender_value = user_profile.gender
-            if gender_value == 10:  # GenderChoices.UNKNOWN
-                gender_display = "Unknown"
-            elif gender_value == 20:  # GenderChoices.MALE
-                gender_display = "Male"
-            elif gender_value == 30:  # GenderChoices.FEMALE
-                gender_display = "Female"
-            else:
-                gender_display = "Unknown"  # Default fallback
-            schoolname = user_profile.schoolname
-            student_name = getattr(user, 'name', None) or user.email or str(user)
-            grade = user_profile.grade
-            if not report_student_class:
-                report_student_class = grade
-            if not report_student_mobile:
-                report_student_mobile = getattr(user_profile, 'mobile', None) or report_student_mobile
-
-        except UserProfile.DoesNotExist:
-            print("UserProfile does not exist.")
-
-        # Initialize context and containers
-        viewing_student_report = bool(
+        context = build_combined_report_context(request, target_user)
+        context['embed_mode'] = embed_mode
+        context['viewing_student_report'] = bool(
             route_student_id is not None and route_student_id != int(request.user.id)
         )
-        context = {
-            'user': target_user,  # Use the target user, not request.user
-            'profile_user': target_user,
-            'report_student_id': report_student_id,
-            'completed_tests': [],
-            'no_results': False,
-            'viewing_as_admin': viewing_student_report,
-            'viewing_student_report': viewing_student_report,
-            'embed_mode': embed_mode,
-            # Add user profile information
-            'created_date': created_date if 'created_date' in locals() else None,
-            'gender': gender_display if 'gender_display' in locals() else None,
-            'schoolname': schoolname if 'schoolname' in locals() else None,
-            'student_name': student_name if 'student_name' in locals() else None,
-            'grade': grade if 'grade' in locals() else None,
-            'report_student_name': report_student_name,
-            'report_student_email': report_student_email,
-            'report_student_mobile': report_student_mobile,
-            'report_student_class': report_student_class,
-        }
-        
-        latest_sessions = {}
-        
-        # Process each completed session
-        for session in completed_sessions:
-            test_title = session.test.title
-            
-            # Only keep the latest session for each test type
-            if test_title not in latest_sessions:
-                latest_sessions[test_title] = session
-                context['completed_tests'].append({
-                    'title': test_title,
-                    'display_title': test_display_title(test_title),
-                    'completed_at': session.end_time,
-                    'completed_at_display': _format_ui_datetime(session.end_time),
-                    'test_id': session.test.id
-                })
-
-        context['completed_tests'].sort(
-            key=lambda t: {1: 0, 2: 1, 3: 2, 4: 3}.get(t.get('test_id'), 99)
-        )
-
-        # -------------------- Build data for client charts (for target_user) --------------------
-        # This allows institute users to view a student's charts without hitting /api/results/
-        test_results_data = []
-        for title, session in latest_sessions.items():
-            # Duration in minutes
-            duration_minutes = 0
-            if session.start_time and session.end_time:
-                duration = session.end_time - session.start_time
-                duration_minutes = int(duration.total_seconds() / 60)
-
-            test_data = {
-                'test_id': session.test.id,
-                'test_title': title,
-                'duration_minutes': duration_minutes,
-                'result_data': {}
-            }
-
-            # Try to use stored TestResult first (most accurate)
-            try:
-                test_result = TestResult.objects.filter(session=session).first()
-                if test_result and test_result.result_data:
-                    # Use stored result_data if available
-                    stored_data = test_result.result_data
-                    if isinstance(stored_data, dict):
-                        test_data['result_data'] = normalize_test_result_data_for_charts(
-                            stored_data,
-                            is_aptitude='Aptitude' in title,
-                        )
-                    if test_result.category_counts:
-                        test_data['category_counts'] = test_result.category_counts.copy()
-                else:
-                    # Fallback: Aggregate results from stored responses JSON
-                    responses = []
-                    try:
-                        responses_obj = getattr(session, 'responses', None)
-                        if responses_obj is not None:
-                            responses = responses_obj.all()
-                    except Exception:
-                        responses = []
-
-                    if 'Personality' in title:
-                        # Sum scores per HEXACO dimension
-                        test_data['result_data'] = {
-                            'H': {'score': 0}, 'E': {'score': 0}, 'X': {'score': 0},
-                            'A': {'score': 0}, 'C': {'score': 0}, 'O': {'score': 0}
-                        }
-                        for resp in responses:
-                            if hasattr(resp, 'selected_answer') and resp.selected_answer:
-                                ans = resp.selected_answer
-                                if isinstance(ans, dict) and 'dimension' in ans:
-                                    dim = ans['dimension']
-                                    if dim in test_data['result_data']:
-                                        try:
-                                            test_data['result_data'][dim]['score'] += int(ans.get('score', 0))
-                                        except Exception:
-                                            pass
-
-                    elif 'Career' in title or 'Interest' in title:
-                        # RIASEC scores
-                        test_data['result_data'] = {
-                            'R': {'score': 0}, 'I': {'score': 0}, 'A': {'score': 0},
-                            'S': {'score': 0}, 'E': {'score': 0}, 'C': {'score': 0}
-                        }
-                        for resp in responses:
-                            if hasattr(resp, 'selected_answer') and resp.selected_answer:
-                                ans = resp.selected_answer
-                                if isinstance(ans, dict) and 'dimension' in ans:
-                                    dim = ans['dimension']
-                                    if dim in test_data['result_data']:
-                                        try:
-                                            test_data['result_data'][dim]['score'] += int(ans.get('score', 0))
-                                        except Exception:
-                                            pass
-
-                    elif 'Motivation' in title:
-                        # Category counts
-                        test_data['category_counts'] = {'Achievement': 0, 'Power': 0, 'Affiliation': 0}
-                        for resp in responses:
-                            if hasattr(resp, 'selected_answer') and resp.selected_answer:
-                                ans = resp.selected_answer
-                                if isinstance(ans, dict) and 'category' in ans:
-                                    cat = ans['category']
-                                    if cat in test_data['category_counts']:
-                                        test_data['category_counts'][cat] += 1
-
-                    elif 'Aptitude' in title:
-                        # Per-section correct counts
-                        test_data['result_data'] = {}
-                        for resp in responses:
-                            if hasattr(resp, 'selected_answer') and resp.selected_answer:
-                                ans = resp.selected_answer
-                                if isinstance(ans, dict) and 'sections' in ans:
-                                    sections = ans['sections']
-                                    for section_name, section_data in sections.items():
-                                        if section_name not in test_data['result_data']:
-                                            test_data['result_data'][section_name] = 0
-                                        if 'submitted_answers' in section_data:
-                                            for _qid, qdata in section_data['submitted_answers'].items():
-                                                if qdata.get('correct_answer') == qdata.get('selected_answer'):
-                                                    test_data['result_data'][section_name] += 1
-            except Exception as e:
-                logger.exception("Error getting test result data (combined report)")
-
-            test_results_data.append(test_data)
-
-        # Attach JSON for client scripts (pdf-results.js will prefer this over API fetch)
-        import json as _json
-        context['test_results_json'] = _json.dumps(test_results_data)
-        
-        # Check if all 4 tests are completed FOR THE TARGET USER
-        test1_completed = TestSession.objects.filter(
-            user=target_user, 
-            test__id=1,
-            is_completed=True
-        ).exists()
-        
-        test2_completed = TestSession.objects.filter(
-            user=target_user, 
-            test__id=2,
-            is_completed=True
-        ).exists()
-        
-        test3_completed = TestSession.objects.filter(
-            user=target_user, 
-            test__id=3,
-            is_completed=True
-        ).exists()
-        
-        test4_completed = TestSession.objects.filter(
-            user=target_user, 
-            test__id=4,
-            is_completed=True
-        ).exists()
-        
-        all_tests_completed = test1_completed and test2_completed and test3_completed and test4_completed
-        context['all_tests_completed'] = all_tests_completed
-        
-        # Process each test type if available
-        personality_session = latest_sessions.get('Personality Assessment')
-        career_session = latest_sessions.get('Career Interest Inventory')
-        motivation_session = latest_sessions.get('Motivation Assessment')
-        aptitude_session = latest_sessions.get('Aptitude Assessment')
-        
-        # Process personality test data
-        if personality_session:
-            try:
-                # Get categories record for personality test
-                categories_record = TestTopCategories.objects.filter(
-                    user=target_user,  # Use target_user instead of request.user
-                    test_paper=personality_session.test
-                ).first()
-                
-                if categories_record:
-                    import ast
-                    try:
-                        high_categories = [cat.strip() for cat in ast.literal_eval(categories_record.high_category)]
-                        low_category = categories_record.low_category
-                        
-                        hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, personality_session)
-                        context.update({
-                            'high_categories': high_categories,
-                            'low_category': low_category,
-                            'careers_to_opt': hexaco_recommendations['careers_to_opt'],
-                            'careers_to_avoid': hexaco_recommendations['careers_to_avoid'],
-                            'high_trait_descriptions': hexaco_recommendations['high_trait_descriptions'],
-                            'low_trait_descriptions': hexaco_recommendations['low_trait_descriptions'],
-                            'high_traits': [map_hexaco_code_to_trait(cat) for cat in high_categories],
-                            'low_trait': map_hexaco_code_to_trait(low_category) if low_category else None
-                        })
-                    except (ValueError, SyntaxError) as e:
-                        logger.exception("Error parsing personality categories")
-            except Exception as e:
-                logger.exception("Error processing personality test data")
-
-        # Process career interest data
-        if career_session:
-            try:
-                # Get categories record for career interest test
-                categories_record = TestTopCategories.objects.filter(
-                    user=target_user,  # Use target_user instead of request.user
-                    test_paper=career_session.test
-                ).first()
-                
-                if categories_record:
-                    try:
-                        high_categories = resolve_riasec_high_categories(
-                            career_session,
-                            categories_record.high_category,
-                        )
-                        low_category = categories_record.low_category
-                        
-                        hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, career_session)
-                        context.update({
-                            'riasec_high_categories': high_categories,
-                            'riasec_careers_to_opt': hexaco_recommendations['riasec_careers_to_opt'],
-                            'career_code_discription': hexaco_recommendations['career_code_discription'],
-                        })
-                    except Exception as e:
-                        logger.exception("Error processing career interest data")
-            except Exception as e:
-                logger.exception("Error processing career session data")
-            
-        # Process motivation data
-        if motivation_session:
-            try:
-                # Get categories record for motivation test
-                categories_record = TestTopCategories.objects.filter(
-                    user=target_user,  # Use target_user instead of request.user
-                    test_paper=motivation_session.test
-                ).first()
-                
-                if categories_record:
-                    try:
-                        high_categories = categories_record.high_category
-                        low_category = categories_record.low_category
-                        
-                        hexaco_recommendations = get_hexaco_career_recommendations(high_categories, low_category, motivation_session)
-                        context.update({
-                            'motivation_high_category': high_categories,
-                            'motivation_careers_to_opt': hexaco_recommendations['motivation_careers_to_opt'],
-                            'motivation_key_description': hexaco_recommendations.get('motivation_key_description', None),
-                            'motivation_key_drivers': hexaco_recommendations.get('motivation_key_drivers', []),
-                            'motivation_summary': hexaco_recommendations.get('motivation_summary', None),
-                        })
-                    except Exception as e:
-                        logger.exception("Error processing motivation data")
-            except Exception as e:
-                logger.exception("Error processing motivation session data")
-            
-        # Process aptitude data
-        if aptitude_session:
-            try:
-                # Get categories record for aptitude test
-                categories_record = TestTopCategories.objects.filter(
-                    user=target_user,  # Use target_user instead of request.user
-                    test_paper=aptitude_session.test
-                ).first()
-                
-                if categories_record:
-                    try:
-                        import json
-                        high_categories = json.loads(categories_record.high_category)
-                        if isinstance(high_categories, dict):
-                            high_categories = normalize_aptitude_categories(high_categories)
-                        
-                        # Prepare aptitude lists and 2-digit codes
-                        above_list = high_categories.get("Above Average", [])
-                        average_list = high_categories.get("Average", [])
-                        below_list = high_categories.get("Below Average", [])
-                        
-                        # Map full aptitude names to their 2-letter codes
-                        def map_aptitude_name_to_code(name):
-                            name = name.strip().lower()
-                            mapping = {
-                                'abstract reasoning': 'AR',
-                                'numerical reasoning': 'NR',
-                                'logical reasoning': 'LR',
-                                'language & verbal reasoning': 'LVR',
-                                'language and verbal reasoning': 'LVR',
-                                'mechanical reasoning': 'MR',
-                                'spatial reasoning': 'SR',
-                                'clerical speed & accuracy': 'CR',
-                                'clerical speed and accuracy': 'CR',
-                                'clerical': 'CR',
-                            }
-                            return mapping.get(name, None)
-                        
-                        # Helper to get 2-letters, if code is 3 letters, use first letter and last (e.g. LVR -> LR)
-                        def normalize_code(code):
-                            if code is None:
-                                return None
-                            # if len(code) == 2:
-                            #     return code
-                            # elif len(code) == 3:
-                            #     # specific mapping - LVR (Language & Verbal Reasoning) -> LR (Verbal/Logical Reasoning)
-                            #     if code == "LVR":
-                            #         return "LR"
-                            #     return code[:2]
-                            return code
-                        
-                        # Combine all aptitudes to get an unique code for the combination (sorted for consistency)
-                        all_selected_names = []
-                        all_selected_names.extend(above_list)
-                        all_selected_names.extend(average_list)
-                        # (We skip below, as we often want only strengths/averages for combination mapping)
-                        aptitude_codes = [normalize_code(map_aptitude_name_to_code(name)) for name in all_selected_names if map_aptitude_name_to_code(name) is not None]
-                        logger.debug("aptitude_codes: %s", aptitude_codes)
-                        # Only keep unique and non-None
-                        aptitude_codes = sorted(list(set(aptitude_codes)))
-                        logger.debug("aptitude_codes (sorted): %s", aptitude_codes)
-                        # Generate final two-letter combo code (alpha order), e.g., ["AR", "NR"] => "AR_NR"
-                        two_digit_combo_code = "+".join(aptitude_codes)
-                        logger.debug("two_digit_combo_code: %s", two_digit_combo_code)
-
-                        # Add to context: test name and generated combo code
-                        context.update({
-                            'above_list': above_list,
-                            'average_list': average_list,
-                            'below_list': below_list,
-                            'aptitude_test_name': aptitude_session.test.title if hasattr(aptitude_session, 'test') else "Aptitude Assessment",
-                            'aptitude_combination_code': two_digit_combo_code,
-                        })
-                        # This combo code (two_digit_combo_code) is to be used for matching in db [AptitudeCombinationMapping]
-                        logger.debug("high_categories: %s", high_categories)
-                        hexaco_recommendations = get_hexaco_career_recommendations(high_categories, None, aptitude_session)
-                        context.update({
-                            'aptitude_improvement_plan': hexaco_recommendations['aptitude_improvement_plan'],
-                            'aptitude_strength_narrative': hexaco_recommendations['aptitude_strength_narrative'],
-                            'aptitude_Recommended_College_Courses': hexaco_recommendations['aptitude_Recommended_College_Courses'],
-                            'aptitude_course_recommendation_cards': hexaco_recommendations.get('aptitude_course_recommendation_cards', []),
-                            'aptitude_roles_guidance': hexaco_recommendations['aptitude_roles_guidance'],
-                            'career_guidance_selected': hexaco_recommendations['career_guidance_selected'],
-                        })
-                        
-                        # print("hexaco_recommendations['aptitude_improvement_plan']: ", hexaco_recommendations['aptitude_improvement_plan'])
-                        # print("hexaco_recommendations['aptitude_strength_narrative']: ", hexaco_recommendations['aptitude_strength_narrative'])
-                        # print("hexaco_recommendations['aptitude_Recommended_College_Courses']: ", hexaco_recommendations['aptitude_Recommended_College_Courses'])
-                        # print("hexaco_recommendations['aptitude_roles_guidance']: ", hexaco_recommendations['aptitude_roles_guidance'])
-                        # print("hexaco_recommendations['career_guidance_selected']: ", hexaco_recommendations['career_guidance_selected'])
-                        # print("len(hexaco_recommendations['career_guidance_selected']): ", len(hexaco_recommendations['career_guidance_selected']))
-                        # Fetch AptitudeCombinationMapping data based on aptitude codes
-                        # (do not import `reverse` here — it shadows the module import and breaks
-                        # earlier/later uses of reverse() in this function via UnboundLocalError)
-                        from django.utils.html import format_html
-                        from careers.models import CareerCluster
-                        from courses.models import Course
-                        
-                        # Map full aptitude names to codes
-                        def map_aptitude_name_to_code(name):
-                            """Convert full aptitude name to code"""
-                            name_lower = name.lower().strip()
-                            mapping = {
-                                'abstract reasoning': 'AR',
-                                'numerical reasoning': 'NR',
-                                'logical reasoning': 'LR',
-                                'language & verbal reasoning': 'LVR',
-                                'language and verbal reasoning': 'LVR',
-                                'mechanical reasoning': 'MR',
-                                'spatial reasoning': 'SR',
-                                'clerical speed & accuracy': 'CR',
-                                'clerical speed and accuracy': 'CR',
-                                'clerical': 'CR',
-                            }
-                            return mapping.get(name_lower, None)
-                        
-                        # Collect aptitude names and convert to codes
-                        # ONLY use Above Average + Average - exclude Below Average for clusters/roles/pathways
-                        all_aptitude_names = []
-                        all_aptitude_names.extend(high_categories.get("Above Average", []))
-                        all_aptitude_names.extend(high_categories.get("Average", []))
-                        # Below Average is excluded - not used for combination mapping
-                        
-                        # Convert names to codes (keep original order, do not sort)
-                        aptitude_codes = []
-                        for name in all_aptitude_names:
-                            code = map_aptitude_name_to_code(name)
-                            if code and code not in aptitude_codes:
-                                aptitude_codes.append(code)
-                                
-                        
-                        logger.debug(f"Aptitude codes extracted: {aptitude_codes} ({len(aptitude_codes)} codes) - ORIGINAL ORDER (not sorted)")
-                        
-                        # Generate all possible combinations from user's codes
-                        # Check BOTH original order AND sorted order to match database entries
-                        codes_to_check = []
-                        
-                        # First: Generate combinations in ORIGINAL ORDER (as extracted)
-                        logger.debug(f"Generating combinations from ORIGINAL order: {aptitude_codes}")
-                        from itertools import combinations
-                        for r in range(len(aptitude_codes), 0, -1):  # Start from longest
-                            for combo in combinations(aptitude_codes, r):
-                                combo_str = '+'.join(combo)  # Format: "CR+LVR+NR" (original order)
-                                if combo_str not in codes_to_check:
-                                    codes_to_check.append(combo_str)
-                        
-                        # Second: Also generate combinations in SORTED ORDER (for database matching)
-                        sorted_codes = sorted(aptitude_codes)
-                        if sorted_codes != aptitude_codes:
-                            logger.debug(f"Also generating combinations from SORTED order: {sorted_codes}")
-                            for r in range(len(sorted_codes), 0, -1):  # Start from longest
-                                for combo in combinations(sorted_codes, r):
-                                    combo_str = '+'.join(combo)  # Format: "CR+LVR+NR" (sorted order)
-                                    if combo_str not in codes_to_check:
-                                        codes_to_check.append(combo_str)
-                        
-                        logger.debug(f"codes_to_check: {codes_to_check} (total: {len(codes_to_check)} combinations to check)")
-
-                        best_mapping = None
-                        best_code = None
-
-                        try:
-                            from app.class12_aptitude_report_utils import (
-                                build_class12_consolidated_aptitude_mapping,
-                            )
-
-                            best_mapping = build_class12_consolidated_aptitude_mapping(
-                                high_categories,
-                                resolve_role_urls=True,
-                            )
-                            if best_mapping:
-                                best_code = best_mapping.get('aptitude_code')
-                                logger.debug(
-                                    "Class 12 consolidated aptitude mapping: %s (mode=%s, tier=%s)",
-                                    best_code,
-                                    best_mapping.get('display_mode'),
-                                    best_mapping.get('tier_used'),
-                                )
-                        except Exception as ex:
-                            logger.warning(
-                                "Class 12 consolidated aptitude mapping failed: %s", ex
-                            )
-
-                        if not best_mapping:
-                            # Legacy AptitudeCombinationMapping fallback (all above+average codes)
-                            checked_count = 0
-                            found_matches = []
-
-                            # Check what combinations exist in database for these codes (handle missing table gracefully)
-                            all_db_codes = []
-                            matching_db_codes = []
-                            codes_set = set(aptitude_codes)
-
-                            try:
-                                # Check if table exists
-                                from django.db import connection
-                                with connection.cursor() as cursor:
-                                    cursor.execute("SHOW TABLES LIKE 'app_post_matric_aptitudecombinationmapping'")
-                                    table_exists = cursor.fetchone() is not None
-
-                                if table_exists:
-                                    all_db_codes = list(AptitudeCombinationMapping.objects.values_list('aptitude_code', flat=True))
-                                    for db_code in all_db_codes:
-                                        db_codes_list = db_code.split('+')
-                                        if set(db_codes_list) == codes_set:  # Same codes, different order
-                                            matching_db_codes.append(db_code)
-                                else:
-                                    logger.debug("[DEBUG] AptitudeCombinationMapping table does not exist - skipping mapping")
-                            except Exception as e:
-                                logger.debug(f"[DEBUG] Error accessing AptitudeCombinationMapping table (non-critical): {str(e)}")
-                                all_db_codes = []
-
-                            logger.debug(f"\n🔍 Comparing aptitude_codes ({aptitude_codes}) with AptitudeCombinationMapping in database...")
-                            if matching_db_codes:
-                                logger.debug(f"   Found matching codes in DB (same codes, different order): {matching_db_codes}")
-                            logger.debug(f"   Checking combinations in order (longest to shortest)...")
-
-                            # Check combinations in order (longest first)
-                            for code in codes_to_check:
-                                checked_count += 1
-                                try:
-                                    mapping = AptitudeCombinationMapping.objects.filter(aptitude_code=code).first()
-                                    if mapping:
-                                        found_matches.append({
-                                            'code': code,
-                                            'areas': mapping.aptitude_areas,
-                                            'clusters_count': mapping.clusters.count(),
-                                            'roles_count': mapping.roles.count(),
-                                            'pathways_count': mapping.pathways.count()
-                                        })
-                                except Exception as e:
-                                    logger.debug(f"      ❌ Error checking {code}: {e}")
-
-                            # If no exact match found, try matching_db_codes (same codes, different order)
-                            if not found_matches and matching_db_codes:
-                                logger.debug(f"\n   No exact order match found. Trying matching codes from DB (different order)...")
-                                for db_code in matching_db_codes:
-                                    checked_count += 1
-                                    try:
-                                        mapping = AptitudeCombinationMapping.objects.filter(aptitude_code=db_code).first()
-                                        if mapping:
-                                            found_matches.append({
-                                                'code': db_code,
-                                                'areas': mapping.aptitude_areas,
-                                                'clusters_count': mapping.clusters.count(),
-                                                'roles_count': mapping.roles.count(),
-                                                'pathways_count': mapping.pathways.count()
-                                            })
-                                            if db_code not in codes_to_check:
-                                                codes_to_check.append(db_code)
-                                    except Exception as e:
-                                        logger.debug(f"      ❌ Error checking {db_code}: {e}")
-
-                            match_code_to_use = None
-                            total_codes_count = len(aptitude_codes)
-
-                            if matching_db_codes:
-                                for db_code in matching_db_codes:
-                                    db_code_count = len(db_code.split('+'))
-                                    if db_code_count == total_codes_count:
-                                        match_code_to_use = db_code
-                                        logger.debug(f"\n   ✅ Using complete DB match (all {total_codes_count} codes): {match_code_to_use}")
-                                        break
-
-                            if not match_code_to_use and found_matches:
-                                match_code_to_use = found_matches[0]['code']
-                                logger.debug(f"\n   ✅ Using match from codes_to_check: {match_code_to_use}")
-                            elif not match_code_to_use and matching_db_codes:
-                                match_code_to_use = matching_db_codes[0]
-                                logger.debug(f"\n   ✅ Using DB match (different order): {match_code_to_use}")
-
-                            if match_code_to_use:
-                                try:
-                                    mapping = AptitudeCombinationMapping.objects.filter(aptitude_code=match_code_to_use).first()
-                                    if mapping:
-                                        clusters_data = []
-                                        for cluster in mapping.clusters.all():
-                                            try:
-                                                safe_slug = (cluster.slug or slugify(cluster.name or '') or 'cluster')
-                                                url = reverse('careers:careerlibrary', kwargs={'cluster_slug': safe_slug, 'cluster_id': cluster.id})
-                                                clusters_data.append({'name': cluster.name, 'url': url})
-                                            except Exception as e:
-                                                logger.debug(f"Error creating cluster URL for {cluster.name}: {e}")
-                                                clusters_data.append({'name': cluster.name, 'url': None})
-
-                                        roles_data = []
-                                        for role in mapping.roles.all():
-                                            try:
-                                                url = reverse('careers:careerdetail', kwargs={'slug': role.slug, 'career_id': role.id})
-                                                roles_data.append({'name': role.name, 'url': url})
-                                            except Exception as e:
-                                                logger.debug(f"Error creating role URL for {role.name}: {e}")
-                                                roles_data.append({'name': role.name, 'url': None})
-
-                                        pathways_data = []
-                                        for pathway in mapping.pathways.all():
-                                            try:
-                                                url = reverse('courses:coursedetail', kwargs={'course_id': pathway.id})
-                                                pathways_data.append({'name': pathway.name, 'url': url})
-                                            except Exception as e:
-                                                logger.debug(f"Error creating pathway URL for {pathway.name}: {e}")
-                                                pathways_data.append({'name': pathway.name, 'url': None})
-
-                                        if clusters_data or roles_data or pathways_data:
-                                            best_mapping = {
-                                                'aptitude_code': match_code_to_use,
-                                                'aptitude_areas': mapping.aptitude_areas,
-                                                'clusters': clusters_data,
-                                                'roles': roles_data,
-                                                'pathways': pathways_data
-                                            }
-                                            best_code = match_code_to_use
-                                            logger.debug(f"   ✅ SELECTED: {best_code} (matching combination with data)")
-                                        else:
-                                            logger.debug(f"   ⚠ Found but no data (clusters/roles/pathways empty)")
-                                except Exception as e:
-                                    logger.debug(f"   ❌ Error processing {match_code_to_use}: {e}")
-                                    import traceback
-                                    traceback.print_exc()
-
-                        # Store the best mapping in context (clusters, roles, pathways from DB)
-                        context['aptitude_mapping'] = best_mapping
-                        if best_mapping:
-                            context['class12_aptitude_combination_key'] = best_mapping.get('aptitude_code', '')
-                            context['class12_aptitude_display_mode'] = best_mapping.get('display_mode')
-                            context['class12_consolidated_tier_used'] = best_mapping.get('tier_used')
-                            source = best_mapping.get('source', 'legacy')
-                            logger.debug(f"\n✅ FINAL RESULT - Displaying aptitude mapping ({source}):")
-                            logger.debug(f"   Aptitude Code: {best_code}")
-                            logger.debug(f"   Aptitude Areas: {best_mapping['aptitude_areas']}")
-                            logger.debug(f"   Clusters: {len(best_mapping['clusters'])}")
-                            logger.debug("   Clusters:")
-                            for cluster in best_mapping['clusters']:
-                                logger.debug(f"      - {cluster['name']}")
-                            logger.debug(f"   Roles: {len(best_mapping['roles'])}")
-                            logger.debug("   Roles:")
-                            for role in best_mapping['roles']:
-                                logger.debug(f"      - {role['name']}")
-                            logger.debug(f"   Pathways: {len(best_mapping['pathways'])}")
-                            logger.debug("   Pathways:")
-                            for pathway in best_mapping['pathways']:
-                                logger.debug(f"      - {pathway['name']}")
-                        else:
-                            logger.debug(f"\n⚠️  NO MATCH FOUND!")
-                            logger.debug(f"   Extracted codes: {aptitude_codes}")
-                            logger.debug(f"   Checked {len(codes_to_check)} combinations but none matched in AptitudeCombinationMapping")
-                            logger.debug(f"   Make sure the combination exists in the database")
-                    except json.JSONDecodeError as e:
-                        logger.debug(f"Error decoding aptitude categories JSON: {e}")
-                        import traceback
-                        logger.debug(traceback.format_exc())
-                    except Exception as e:
-                        logger.debug(f"Error processing aptitude data: {e}")
-                        import traceback
-                        logger.debug(traceback.format_exc())
-            except Exception as e:
-                logger.exception("Error processing aptitude session data")
-
-        # Build psychometric career clusters fallback (used when aptitude clusters are missing)
-        try:
-            import re
-            psychometric_careers = []
-
-            # Personality careers_to_opt can be dict(trait -> [careers]) or list
-            personality_careers = context.get('careers_to_opt', [])
-            if isinstance(personality_careers, dict):
-                for items in personality_careers.values():
-                    if isinstance(items, list):
-                        psychometric_careers.extend(items)
-            elif isinstance(personality_careers, list):
-                psychometric_careers.extend(personality_careers)
-
-            # RIASEC careers_to_opt is generally dict(category -> [careers])
-            riasec_careers = context.get('riasec_careers_to_opt', [])
-            if isinstance(riasec_careers, dict):
-                for items in riasec_careers.values():
-                    if isinstance(items, list):
-                        psychometric_careers.extend(items)
-            elif isinstance(riasec_careers, list):
-                psychometric_careers.extend(riasec_careers)
-
-            # Add aptitude recommended roles as additional psychometric signals
-            aptitude_roles_guidance = context.get('aptitude_roles_guidance', []) or []
-            for area_group in aptitude_roles_guidance:
-                if not isinstance(area_group, dict):
-                    continue
-                for role_item in area_group.get('Recommendations', []) or []:
-                    if isinstance(role_item, dict):
-                        role_name = role_item.get('Role')
-                    else:
-                        role_name = role_item
-                    if role_name:
-                        psychometric_careers.append(role_name)
-
-            cleaned_career_names = []
-            seen_names = set()
-            for name in psychometric_careers:
-                clean_name = str(name or '').strip()
-                if not clean_name:
-                    continue
-                lowered = clean_name.lower()
-                if lowered in seen_names:
-                    continue
-                seen_names.add(lowered)
-                cleaned_career_names.append(clean_name)
-
-            psychometric_clusters = []
-            if cleaned_career_names:
-                # Normalize name to improve matching between recommendation labels and Career.name
-                def _normalize_name(text):
-                    return re.sub(r'[^a-z0-9]+', '', str(text or '').lower()).strip()
-
-                normalized_targets = set(_normalize_name(name) for name in cleaned_career_names if name)
-
-                # First pass: published careers
-                from core import choices
-                career_qs = Career.objects.filter(
-                    publish_status=choices.PublishStatus.PUBLISHED
-                ).prefetch_related('career_cluster')
-                if not career_qs.exists():
-                    # Fallback if publish flag is not maintained in this environment
-                    career_qs = Career.objects.all().prefetch_related('career_cluster')
-
-                cluster_seen = set()
-                matched_any = False
-                for career_obj in career_qs:
-                    normalized_db_name = _normalize_name(getattr(career_obj, 'name', ''))
-                    if normalized_db_name not in normalized_targets:
-                        continue
-                    matched_any = True
-                    for cluster in career_obj.career_cluster.all():
-                        cluster_name = str(getattr(cluster, 'name', '') or '').strip()
-                        if not cluster_name:
-                            continue
-                        key = cluster_name.lower()
-                        if key in cluster_seen:
-                            continue
-                        cluster_seen.add(key)
-                        cluster_url = None
-                        try:
-                            safe_slug = (cluster.slug or slugify(cluster_name) or 'cluster')
-                            cluster_url = reverse(
-                                'careers:careerlibrary',
-                                kwargs={'cluster_slug': safe_slug, 'cluster_id': cluster.id}
-                            )
-                        except Exception:
-                            cluster_url = None
-                        psychometric_clusters.append({
-                            'name': cluster_name,
-                            'url': cluster_url
-                        })
-
-                # Second pass fallback: loose contains matching when exact normalized names do not match
-                if not matched_any:
-                    for rec_name in cleaned_career_names:
-                        token = str(rec_name or '').strip()
-                        if not token:
-                            continue
-                        loose_qs = Career.objects.filter(name__icontains=token[:40]).prefetch_related('career_cluster')[:10]
-                        for career_obj in loose_qs:
-                            for cluster in career_obj.career_cluster.all():
-                                cluster_name = str(getattr(cluster, 'name', '') or '').strip()
-                                if not cluster_name:
-                                    continue
-                                key = cluster_name.lower()
-                                if key in cluster_seen:
-                                    continue
-                                cluster_seen.add(key)
-                                cluster_url = None
-                                try:
-                                    safe_slug = (cluster.slug or slugify(cluster_name) or 'cluster')
-                                    cluster_url = reverse(
-                                        'careers:careerlibrary',
-                                        kwargs={'cluster_slug': safe_slug, 'cluster_id': cluster.id}
-                                    )
-                                except Exception:
-                                    cluster_url = None
-                                psychometric_clusters.append({
-                                    'name': cluster_name,
-                                    'url': cluster_url
-                                })
-
-            context['psychometric_career_clusters'] = sorted(
-                psychometric_clusters,
-                key=lambda item: str(item.get('name', '')).lower()
-            )
-        except Exception as e:
-            logger.warning(f"Error building psychometric_career_clusters: {e}")
-            context['psychometric_career_clusters'] = []
-
-        # Build cluster name -> URL map for template linking of text-only cluster sources
-        # Includes common aliases so DB clusters still link when recommendation text varies
-        # (e.g. "&" vs "and", punctuation differences, repeated spaces).
-        try:
-            cluster_url_map = {}
-            for cluster in CareerCluster.objects.all().only('id', 'slug', 'name'):
-                cluster_name = str(getattr(cluster, 'name', '') or '').strip()
-                if not cluster_name:
-                    continue
-                try:
-                    safe_slug = (cluster.slug or slugify(cluster_name) or 'cluster')
-                    cluster_url = reverse(
-                        'careers:careerlibrary',
-                        kwargs={'cluster_slug': safe_slug, 'cluster_id': cluster.id}
-                    )
-                except Exception:
-                    cluster_url = None
-
-                for key in career_cluster_label_lookup_keys(cluster_name):
-                    if key in cluster_url_map:
-                        continue
-                    cluster_url_map[key] = cluster_url
-
-            # Report JSON uses short labels; map them to live CareerCluster title + career library URL.
-            cluster_resolve_map = {}
-
-            def _resolve_entry_for_cluster_obj(cluster):
-                if not cluster:
-                    return None
-                try:
-                    safe_slug = (cluster.slug or slugify(cluster.name or '') or 'cluster')
-                    url = reverse(
-                        'careers:careerlibrary',
-                        kwargs={'cluster_slug': safe_slug, 'cluster_id': cluster.id},
-                    )
-                except Exception:
-                    url = None
-                display = str(getattr(cluster, 'name', '') or '').strip()
-                if not display:
-                    return None
-                return {'name': display, 'url': url}
-
-            def _merge_cluster_resolve_keys(raw_label, cluster, overwrite=False):
-                entry = _resolve_entry_for_cluster_obj(cluster)
-                if not entry:
-                    return
-                for key in career_cluster_label_lookup_keys(raw_label):
-                    if not key:
-                        continue
-                    if overwrite or key not in cluster_resolve_map:
-                        cluster_resolve_map[key] = entry
-
-            mapping_path = os.path.join(
-                settings.BASE_DIR, 'static', 'data', 'combined_report_data', 'excel_to_db_mapping.json',
-            )
-            if os.path.isfile(mapping_path):
-                try:
-                    with open(mapping_path, 'r', encoding='utf-8') as f:
-                        mapping_json = json.load(f)
-                    for raw_label, targets in (mapping_json.get('cluster_mappings') or {}).items():
-                        if not targets or not isinstance(targets, list):
-                            continue
-                        cid = targets[0].get('id')
-                        if not cid:
-                            continue
-                        cluster = CareerCluster.objects.filter(pk=cid).first()
-                        _merge_cluster_resolve_keys(raw_label, cluster, overwrite=False)
-                except Exception as ex:
-                    logger.warning("Error loading excel_to_db_mapping cluster_mappings: %s", ex)
-
-            label_ids_path = os.path.join(
-                settings.BASE_DIR, 'static', 'data', 'report_cluster_label_ids.json',
-            )
-            if os.path.isfile(label_ids_path):
-                try:
-                    with open(label_ids_path, 'r', encoding='utf-8') as f:
-                        label_id_map = json.load(f)
-                    for raw_label, cid in (label_id_map or {}).items():
-                        cluster = CareerCluster.objects.filter(pk=cid).first()
-                        _merge_cluster_resolve_keys(str(raw_label), cluster, overwrite=False)
-                except Exception as ex:
-                    logger.warning("Error loading report_cluster_label_ids.json: %s", ex)
-
-            try:
-                for cm in ClusterMapping.objects.select_related('db_cluster').filter(
-                    db_cluster__isnull=False,
-                ):
-                    _merge_cluster_resolve_keys(cm.excel_name, cm.db_cluster, overwrite=True)
-            except Exception as ex:
-                logger.warning("Error merging ClusterMapping into cluster_resolve_map: %s", ex)
-
-            enrich_combined_report_cluster_links(context, cluster_resolve_map, cluster_url_map)
-
-            context['cluster_resolve_map'] = cluster_resolve_map
-            context['cluster_url_map'] = cluster_url_map
-        except Exception as e:
-            logger.warning("Error building cluster_url_map: %s", e)
-            context['cluster_url_map'] = {}
-            context['cluster_resolve_map'] = {}
-        
-        context['breadcrumb'] = get_breadcrumb([
-            {'text': 'Tests', 'url': reverse('post_matric:tests')},
-            {'text': 'Results', 'url': reverse('post_matric:results_list')},
-            {'text': 'Combined Report', 'url': ''},
-        ])
-
-        # Provide aptitude banding from backend (Above/Average/Below) for charts
-        import json as _json
-        context['aptitude_band_json'] = _json.dumps({
-            'above': context.get('above_list', []) or [],
-            'average': context.get('average_list', []) or [],
-            'below': context.get('below_list', []) or [],
-        })
         return render(request, "template20/app_post_matric/combined_report.html", context)
-        
+
     except Exception as e:
         import traceback
         trace = traceback.format_exc()

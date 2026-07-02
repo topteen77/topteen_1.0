@@ -1,0 +1,9 @@
+{# Blog shortlist toggle — expects blog with .id, bookmarked_blog_ids (optional list) #}
+<button type="button"
+        class="blog-shortlist-btn blog-bookmark-btn{% if request.user.is_authenticated and blog.id in (bookmarked_blog_ids or []) %} is-shortlisted{% endif %}"
+        data-blog-id="{{ blog.id }}"
+        title="{% if request.user.is_authenticated %}{% if blog.id in (bookmarked_blog_ids or []) %}Remove from shortlist{% else %}Shortlist this blog{% endif %}{% else %}Shortlist (login to save){% endif %}"
+        aria-pressed="{% if request.user.is_authenticated and blog.id in (bookmarked_blog_ids or []) %}true{% else %}false{% endif %}">
+  <i class="bx {% if request.user.is_authenticated and blog.id in (bookmarked_blog_ids or []) %}bxs-bookmark{% else %}bx-bookmark{% endif %}"
+     {% if request.user.is_authenticated and blog.id in (bookmarked_blog_ids or []) %}style="color: #28a745;"{% endif %}></i>
+</button>

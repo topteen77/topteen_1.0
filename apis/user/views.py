@@ -70,20 +70,56 @@ class ShortlistCourseAPI(APIView):
 
     def post(self, request):
         career_slug = request.POST.get('careerslug', False)
-        data = {}
-        
-        career= get_object_or_404(Career,slug=career_slug)
-        user= request.user
-        career_shortlisted,_ = CareerShortlist.objects.get_or_create(user=user,career=career) 
-        if _ :
-            data['message'] = "Career Shortlisted"
-            data['value'] = "Remove Shortlisted"
+        career = get_object_or_404(Career, slug=career_slug)
+        user = request.user
+
+        if getattr(user, "user_type", None) == choices.UserType.PARENT:
+            from users.career_interests import toggle_parent_career_bookmark
+
+            student_id = request.POST.get("student_id")
+            try:
+                sid = int(student_id) if student_id not in (None, "", b"") else None
+            except (TypeError, ValueError):
+                sid = None
+            data = toggle_parent_career_bookmark(user, career, student_id=sid)
             return Response(data, status=status.HTTP_200_OK)
-        else:
-            data['message'] = "Removed Shortlisted"
-            data['value'] = "Shortlist Career"
-            career_shortlisted.delete()
-            return Response(data, status=status.HTTP_200_OK) 
+
+        career_shortlisted, created = CareerShortlist.objects.get_or_create(user=user, career=career)
+        if created:
+            data = {"message": "Career Shortlisted", "value": "Remove Shortlisted"}
+            return Response(data, status=status.HTTP_200_OK)
+        career_shortlisted.delete()
+        data = {"message": "Removed Shortlisted", "value": "Shortlist Career"}
+        return Response(data, status=status.HTTP_200_OK)
+
+
+class ParentCareerReactionAPI(APIView):
+    """Student likes or dislikes a parent-recommended career."""
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [authentication.SessionAuthentication, authentication.TokenAuthentication]
+
+    def post(self, request):
+        from core import choices
+        from users.career_interests import set_parent_career_reaction
+
+        if getattr(request.user, "user_type", None) != choices.UserType.STUDENT:
+            return Response({"message": "Not allowed"}, status=status.HTTP_403_FORBIDDEN)
+
+        bookmark_id = request.POST.get("bookmark_id") or request.data.get("bookmark_id")
+        reaction = request.POST.get("reaction") or request.data.get("reaction") or ""
+        try:
+            bookmark_id = int(bookmark_id)
+        except (TypeError, ValueError):
+            return Response({"message": "bookmark_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        result = set_parent_career_reaction(
+            student=request.user,
+            bookmark_id=bookmark_id,
+            reaction=reaction,
+        )
+        status_code = status.HTTP_200_OK if result.get("success") else status.HTTP_400_BAD_REQUEST
+        return Response(result, status=status_code)
+
 
 class ShortlistCollegeAPI(APIView):
     permission_classes = [permissions.IsAuthenticated]

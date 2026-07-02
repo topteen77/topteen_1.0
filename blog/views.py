@@ -69,6 +69,56 @@ def _blog_category_short(name):
     return name
 
 
+def _bookmarked_blog_ids_for_request(request, student_id=None):
+    """Resolve shortlisted blog ids for list/detail bookmark buttons."""
+    if not request.user.is_authenticated:
+        return []
+    try:
+        from .models import BlogShortlist
+        from django.contrib.contenttypes.models import ContentType
+
+        if getattr(request.user, "user_type", None) == choices.UserType.PARENT:
+            if student_id:
+                from users.models import ParentStudentLink, ParentStudentBookmark
+                if ParentStudentLink.objects.filter(parent=request.user, student_id=int(student_id)).exists():
+                    ct = ContentType.objects.get_for_model(Blog)
+                    return list(
+                        ParentStudentBookmark.objects.filter(
+                            parent=request.user,
+                            student_id=int(student_id),
+                            content_type=ct,
+                        ).values_list("object_id", flat=True)
+                    )
+                return []
+            ids = set(
+                BlogShortlist.objects.filter(user=request.user, blog__isnull=False).values_list("blog_id", flat=True)
+            )
+            ct = ContentType.objects.get_for_model(Blog)
+            ids.update(
+                ParentStudentBookmark.objects.filter(
+                    parent=request.user, content_type=ct
+                ).values_list("object_id", flat=True)
+            )
+            return list(ids)
+        return list(
+            BlogShortlist.objects.filter(user=request.user, blog__isnull=False).values_list("blog_id", flat=True)
+        )
+    except Exception:
+        try:
+            from .models import BlogShortlist
+            return list(
+                BlogShortlist.objects.filter(user=request.user, blog__isnull=False).values_list("blog_id", flat=True)
+            )
+        except Exception:
+            return []
+
+
+def _is_blog_bookmarked_for_request(request, blog, student_id=None):
+    if not request.user.is_authenticated:
+        return False
+    return blog.id in _bookmarked_blog_ids_for_request(request, student_id=student_id)
+
+
 # Create your views here.
 class Blogs(TemplateView):
     template_name = "template20/blogs.html"
@@ -116,47 +166,23 @@ class Blogs(TemplateView):
             user_page_obj = paginated_blogs.get_page(paginated_blogs.num_pages)
         
         ctx['page_obj']=user_page_obj
-        # Blog bookmark state
+        student_id = request.GET.get("student_id")
+        ctx['bookmarked_blog_ids'] = _bookmarked_blog_ids_for_request(request, student_id=student_id)
         ctx['is_parent_student_context'] = False
         ctx['parent_student_id'] = None
         try:
-            student_id = request.GET.get("student_id")
             if request.user.is_authenticated and getattr(request.user, "user_type", None) == choices.UserType.PARENT and student_id:
-                from users.models import ParentStudentLink, ParentStudentBookmark
-                from django.contrib.contenttypes.models import ContentType
+                from users.models import ParentStudentLink
                 if ParentStudentLink.objects.filter(parent=request.user, student_id=int(student_id)).exists():
-                    ct = ContentType.objects.get_for_model(Blog)
-                    ctx['bookmarked_blog_ids'] = list(
-                        ParentStudentBookmark.objects.filter(
-                            parent=request.user,
-                            student_id=int(student_id),
-                            content_type=ct,
-                        ).values_list("object_id", flat=True)
-                    )
                     ctx['is_parent_student_context'] = True
                     ctx['parent_student_id'] = int(student_id)
-                else:
-                    ctx['bookmarked_blog_ids'] = []
-            else:
-                # regular bookmarks
-                if request.user.is_authenticated:
-                    from .models import BlogShortlist
-                    ctx['bookmarked_blog_ids'] = list(
-                        BlogShortlist.objects.filter(user=request.user, blog__isnull=False).values_list('blog_id', flat=True)
-                    )
-                else:
-                    ctx['bookmarked_blog_ids'] = []
         except Exception:
-            try:
-                if request.user.is_authenticated:
-                    from .models import BlogShortlist
-                    ctx['bookmarked_blog_ids'] = list(
-                        BlogShortlist.objects.filter(user=request.user, blog__isnull=False).values_list('blog_id', flat=True)
-                    )
-                else:
-                    ctx['bookmarked_blog_ids'] = []
-            except Exception:
-                ctx['bookmarked_blog_ids'] = []
+            pass
+        from users.parent_suggestions import apply_student_parent_suggestions_context, maybe_mark_parent_suggestions_seen
+        apply_student_parent_suggestions_context(ctx, request, "blogs")
+        maybe_mark_parent_suggestions_seen(
+            request, "blogs", is_parent_student_context=ctx.get("is_parent_student_context", False)
+        )
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -232,38 +258,19 @@ class BlogDetail(TemplateView):
             'author': getattr(blog.author, 'get_full_name', lambda: None)() or getattr(blog.author, 'username', 'Top Teen'),
         }
         ctx['latest_blogs']= latest_blogs[:5]
-        # Bookmark state
+        student_id = request.GET.get("student_id")
+        ctx['is_blog_bookmarked'] = _is_blog_bookmarked_for_request(request, blog, student_id=student_id)
+        ctx['bookmarked_blog_ids'] = _bookmarked_blog_ids_for_request(request, student_id=student_id)
         ctx['is_parent_student_context'] = False
         ctx['parent_student_id'] = None
         try:
-            student_id = request.GET.get("student_id")
             if request.user.is_authenticated and getattr(request.user, "user_type", None) == choices.UserType.PARENT and student_id:
-                from users.models import ParentStudentLink, ParentStudentBookmark
-                from django.contrib.contenttypes.models import ContentType
+                from users.models import ParentStudentLink
                 if ParentStudentLink.objects.filter(parent=request.user, student_id=int(student_id)).exists():
-                    ct = ContentType.objects.get_for_model(Blog)
-                    ctx['is_blog_bookmarked'] = ParentStudentBookmark.objects.filter(
-                        parent=request.user, student_id=int(student_id), content_type=ct, object_id=blog.id
-                    ).exists()
                     ctx['is_parent_student_context'] = True
                     ctx['parent_student_id'] = int(student_id)
-                else:
-                    ctx['is_blog_bookmarked'] = False
-            else:
-                if request.user.is_authenticated:
-                    from .models import BlogShortlist
-                    ctx['is_blog_bookmarked'] = BlogShortlist.objects.filter(user=request.user, blog=blog).exists()
-                else:
-                    ctx['is_blog_bookmarked'] = False
         except Exception:
-            try:
-                if request.user.is_authenticated:
-                    from .models import BlogShortlist
-                    ctx['is_blog_bookmarked'] = BlogShortlist.objects.filter(user=request.user, blog=blog).exists()
-                else:
-                    ctx['is_blog_bookmarked'] = False
-            except Exception:
-                ctx['is_blog_bookmarked'] = False
+            pass
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -286,6 +293,17 @@ class ToggleBlogBookmark(APIView):
             blog = get_object_or_404(blogs, id=blog_id)
         else:
             blog = get_object_or_404(blogs, slug=blog_slug)
+
+        if getattr(request.user, "user_type", None) == choices.UserType.PARENT:
+            from users.parent_saved_items import toggle_parent_blog_bookmark
+
+            student_id = request.POST.get("student_id")
+            try:
+                sid = int(student_id) if student_id not in (None, "", b"") else None
+            except (TypeError, ValueError):
+                sid = None
+            return JsonResponse(toggle_parent_blog_bookmark(request.user, blog, student_id=sid))
+
         from .models import BlogShortlist
         obj = BlogShortlist.objects.filter(user=request.user, blog=blog).first()
         if obj:
@@ -318,7 +336,16 @@ def category_filter(request,category_slug, *args, **kwargs):
     cat_display = _blog_category_display(category.name)
     cat_short = _blog_category_short(category.name)
     blog_search_list = [{'title': b.title, 'slug': b.slug, 'url': reverse('blog:blogdetail', args=[b.slug])} for b in Blog.get_published_objects().only('title', 'slug')]
-    ctx={'blogs':blog,'categories':categories,'page_obj':page_objs,'latest_blogs':latest_blogs,'site_url':"https://topteen.in","category": category,'remaining_count':remaining_count,"html_head":build_html_head(title=f"Blogs - {cat_display}",description=f"Explore blogs {cat_short} category."),'breadcrumb': get_breadcrumb([{'text': cat_display, 'url': reverse('blog:category', args=[category.slug])}]),'heading': cat_display,'blog_search_list': blog_search_list}
+    student_id = request.GET.get("student_id")
+    ctx={'blogs':blog,'categories':categories,'page_obj':page_objs,'latest_blogs':latest_blogs,'site_url':"https://topteen.in","category": category,'remaining_count':remaining_count,"html_head":build_html_head(title=f"Blogs - {cat_display}",description=f"Explore blogs {cat_short} category."),'breadcrumb': get_breadcrumb([{'text': cat_display, 'url': reverse('blog:category', args=[category.slug])}]),'heading': cat_display,'blog_search_list': blog_search_list, 'bookmarked_blog_ids': _bookmarked_blog_ids_for_request(request, student_id=student_id), 'is_parent_student_context': False, 'parent_student_id': None}
+    try:
+        if request.user.is_authenticated and getattr(request.user, "user_type", None) == choices.UserType.PARENT and student_id:
+            from users.models import ParentStudentLink
+            if ParentStudentLink.objects.filter(parent=request.user, student_id=int(student_id)).exists():
+                ctx['is_parent_student_context'] = True
+                ctx['parent_student_id'] = int(student_id)
+    except Exception:
+        pass
 
     if request.GET.get("pagination_ajax",None) and request.GET.get("pagination_ajax") == "Yes":
             data={}
@@ -342,7 +369,16 @@ def blogtag_filter(request,tagslug, *args, **kwargs):
     remaining_count = remaining_count if remaining_count > 0 else None
     from django.urls import reverse
     blog_search_list = [{'title': b.title, 'slug': b.slug, 'url': reverse('blog:blogdetail', args=[b.slug])} for b in Blog.get_published_objects().only('title', 'slug')]
-    ctx={'blogs':blogs, 'page_obj':page_objs,'latest_blogs':latest_blogs,'categories':categories,'site_url':"https://topteen.in",'blogtag':blogtag ,'remaining_count':remaining_count,'html_head':build_html_head(title=f"Blogs - {blogtag.name}",description=f"Explore blogs tagged with {blogtag.name}"),'breadcrumb': get_breadcrumb([{'text': blogtag.name, 'url': reverse('blog:blogtag', args=[blogtag.slug])}]),'heading': f"Blogs tagged with {blogtag.name}",'blog_search_list': blog_search_list}
+    student_id = request.GET.get("student_id")
+    ctx={'blogs':blogs, 'page_obj':page_objs,'latest_blogs':latest_blogs,'categories':categories,'site_url':"https://topteen.in",'blogtag':blogtag ,'remaining_count':remaining_count,'html_head':build_html_head(title=f"Blogs - {blogtag.name}",description=f"Explore blogs tagged with {blogtag.name}"),'breadcrumb': get_breadcrumb([{'text': blogtag.name, 'url': reverse('blog:blogtag', args=[blogtag.slug])}]),'heading': f"Blogs tagged with {blogtag.name}",'blog_search_list': blog_search_list, 'bookmarked_blog_ids': _bookmarked_blog_ids_for_request(request, student_id=student_id), 'is_parent_student_context': False, 'parent_student_id': None}
+    try:
+        if request.user.is_authenticated and getattr(request.user, "user_type", None) == choices.UserType.PARENT and student_id:
+            from users.models import ParentStudentLink
+            if ParentStudentLink.objects.filter(parent=request.user, student_id=int(student_id)).exists():
+                ctx['is_parent_student_context'] = True
+                ctx['parent_student_id'] = int(student_id)
+    except Exception:
+        pass
 
     if request.GET.get("pagination_ajax",None) and request.GET.get("pagination_ajax") == "Yes":
             data={}

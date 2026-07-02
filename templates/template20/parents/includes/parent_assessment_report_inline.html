@@ -1,0 +1,6 @@
+<div class="parent-inline-assessment-report combined-report-page" data-report-student-id="{{ report_student_id }}">
+  {% include 'template20/app_post_matric/combined_report_content.html' %}
+</div>
+{% with defer_scripts=true %}
+{% include 'template20/app_post_matric/combined_report_scripts.html' %}
+{% endwith %}

@@ -272,8 +272,33 @@ def _build_stream_questionnaire_options(intelligence_scores_by_code, primary_apt
 
 
 @login_required(login_url=reverse_lazy('users:login'))
-def dashboard(request, student_id=None):
-    
+def dashboard(request, student_id=None, user_id=None):
+    embed_mode = (request.GET.get("embed") or "").strip() == "1"
+    route_user_id = user_id or student_id
+    if not route_user_id:
+        try:
+            route_user_id = int(request.GET.get("user_id") or 0) or None
+        except (TypeError, ValueError):
+            route_user_id = None
+
+    original_user = request.user
+    target_user = original_user
+    if route_user_id and int(route_user_id) != int(getattr(original_user, "id", 0) or 0):
+        target_user = get_object_or_404(User, id=int(route_user_id))
+        from app_post_matric.views import _staff_can_view_student_report
+        from core import choices
+
+        if not _staff_can_view_student_report(request, target_user.id):
+            messages.error(request, "You do not have permission to view this report.")
+            if getattr(original_user, "user_type", None) == choices.UserType.PARENT:
+                return redirect("parents_dashboard")
+            return redirect("users:userdashboard")
+
+    user_swapped = False
+    if int(target_user.id) != int(getattr(original_user, "id", 0) or 0):
+        request.user = target_user
+        user_swapped = True
+
     try:
         top_category, streamsubject, courseName, max_length, min_length, below, avg, above_avg, top_categories = db_results(request)
         
@@ -797,7 +822,8 @@ def dashboard(request, student_id=None):
             'stream_recommendation': stream_recommendation,
             'stream_sorter_guidance': stream_sorter_guidance,
             'skill_readiness_index': skill_readiness_index,
-            'report_user_id': request.user.id,
+            'report_user_id': target_user.id,
+            'embed_mode': embed_mode,
             'all_tests_complete': all_tests_complete,
             'show_stream_questionnaire': show_stream_questionnaire,
             'stream_questionnaire_completed': stream_questionnaire_completed,
@@ -808,16 +834,33 @@ def dashboard(request, student_id=None):
             'stream_decision_options': STREAM_DECISION_STREAM_OPTIONS,
         }
 
-        return render(request, 'template20/psychometric/dashboard.html', context)
+        resp = render(request, 'template20/psychometric/dashboard.html', context)
+        if embed_mode:
+            return _add_no_cache_headers(resp)
+        return resp
 
     except Exception as e:
         # Log the error for debugging purposes (optional)
         import logging
         logger = logging.getLogger(__name__)
         logger.error(f"Error in dashboard: {str(e)}")
+        if embed_mode:
+            resp = render(
+                request,
+                'template20/psychometric/dashboard.html',
+                {
+                    'embed_mode': True,
+                    'report_user_id': target_user.id,
+                    'error_message': 'Assessment results are not available yet. Please complete all tests first.',
+                },
+            )
+            return _add_no_cache_headers(resp)
         messages.error(request, "Please start your test. Then you can access the dashboard.")
         # Redirect to home without displaying any error on the frontend
         return redirect('/psychometric/home')
+    finally:
+        if user_swapped:
+            request.user = original_user
 
 def final_assessment_pdf(request):
 

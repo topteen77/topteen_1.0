@@ -1,0 +1,466 @@
+{% extends "template20/user/student_base.html" %}
+
+{% block title_content %}Education Loan Calculator | Top Teen{% endblock %}
+{% block description_content %}Estimate education loan EMI with moratorium interest loading.{% endblock %}
+{% block student_bodyclass %}user-dashboard user-dashboard-fullscreen{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<link rel="stylesheet" href="{{ static('css/parent-sidebar.css') }}">
+<style>
+  .std-shell-main { padding-top: 52px; }
+
+  .parent-dashboard {
+    background:
+      radial-gradient(circle at 6% 0%, rgba(102, 125, 255, 0.12) 0%, rgba(102, 125, 255, 0) 28%),
+      radial-gradient(circle at 92% 2%, rgba(39, 197, 139, 0.11) 0%, rgba(39, 197, 139, 0) 30%),
+      #f4f7ff;
+    min-height: 100%;
+  }
+
+  .parent-dashboard .parent-overview-card {
+    background: linear-gradient(130deg, #ffffff 0%, #f8faff 100%);
+    border: 1px solid rgba(110, 129, 228, 0.18);
+    border-radius: 16px;
+    padding: 16px 18px;
+    box-shadow: 0 14px 30px rgba(76, 94, 177, 0.12);
+  }
+
+  .parent-dashboard .parent-page-title {
+    font-size: 28px;
+    line-height: 1.2;
+    letter-spacing: -0.2px;
+    background: linear-gradient(90deg, #403fa6 0%, #1f90cd 55%, #1ba883 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .parent-dashboard .parent-page-subtitle {
+    color: #60658c;
+    font-size: 13px;
+  }
+
+  .parent-dashboard .parent-students-card,
+  .parent-dashboard .viz-card {
+    background: #fff;
+    border: 1px solid rgba(110, 129, 228, 0.14);
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: 0 10px 24px rgba(76, 94, 177, 0.08);
+  }
+
+  .parent-dashboard .tile {
+    border-radius: 12px;
+    border: 1px solid #dde5ff;
+    background: linear-gradient(150deg, #ffffff 0%, #f4f8ff 100%);
+    box-shadow: 0 8px 20px rgba(90, 106, 185, 0.08);
+    padding: 13px 14px;
+  }
+
+  .parent-dashboard .btn { border-radius: 10px; }
+
+  .parent-dashboard #loanCalcBtn {
+    border-radius: 12px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    box-shadow: 0 10px 22px rgba(73, 86, 175, 0.2);
+  }
+
+  .parent-dashboard .loan-apply-btn {
+    border: 0;
+    border-radius: 12px;
+    background: linear-gradient(120deg, #16a34a 0%, #0ea5a4 52%, #2563eb 100%);
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    box-shadow: 0 12px 26px rgba(36, 99, 235, 0.28);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  }
+
+  .parent-dashboard .loan-apply-btn:hover,
+  .parent-dashboard .loan-apply-btn:focus-visible {
+    color: #fff;
+    transform: translateY(-1px);
+    filter: saturate(1.05);
+    box-shadow: 0 16px 30px rgba(37, 99, 235, 0.34);
+  }
+
+  .parent-dashboard .loan-apply-btn:disabled,
+  .parent-dashboard .loan-apply-btn.disabled {
+    background: linear-gradient(120deg, #b9c2e9 0%, #cad2ee 100%);
+    color: #f5f7ff;
+    box-shadow: none;
+    cursor: not-allowed;
+    opacity: 1;
+  }
+
+  .parent-dashboard #loanResultRow .tile {
+    border-radius: 14px;
+    border: 1px solid #dce3fd;
+    background: linear-gradient(145deg, #ffffff 0%, #f5f8ff 100%);
+    box-shadow: 0 10px 24px rgba(89, 104, 181, 0.12);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .parent-dashboard #loanResultRow .tile::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #5c54d4 0%, #20b7e8 60%, #3ecf8e 100%);
+  }
+
+  .parent-dashboard #loanResultRow h5 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #1f2a61;
+    letter-spacing: -0.2px;
+  }
+
+  .parent-dashboard .loan-cta-note {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #5e6696;
+  }
+
+  .parent-dashboard .loan-cta-note i {
+    color: #5c54d4;
+  }
+</style>
+{% endblock %}
+
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = 'Education loan calculator' %}
+{% endblock %}
+
+{% block student_section_class %}parent-dashboard std-shell-main{% endblock %}
+
+{% block student_shell_topbar %}
+{% include "template20/parents/includes/parent_shell_topbar.html" %}
+{% endblock %}
+
+{% block student_sidebar %}
+{% include "template20/parents/includes/parent_sidebar.html" %}
+{% endblock %}
+
+{% block student_shell_offcanvas %}
+{% include "template20/parents/includes/parent_offcanvas.html" %}
+{% endblock %}
+
+{% block student_main %}
+<section class="pt-4 px-3 px-lg-4 px-xl-5 mb-4">
+  <div class="container-fluid px-0">
+    <div class="parent-overview-card py-3 mb-4">
+      <h2 class="parent-page-title fw-700 mb-1">Education Loan Calculator</h2>
+      <p class="parent-page-subtitle mb-0">Estimate EMI with moratorium interest loading before repayment starts.</p>
+    </div>
+
+    <div class="parent-students-card">
+      <div class="viz-card mb-0">
+        <h4 class="fs-16 fw-700 mb-3">Loan details</h4>
+        <p class="text-muted fs-12 mb-3">Moratorium interest is added to principal before EMI starts.</p>
+        <div class="row g-3 align-items-end">
+          <div class="col-12 col-md-3">
+            <label class="form-label fs-12 text-muted" for="loanAmount">Loan Amount (INR)</label>
+            <input type="number" class="form-control" id="loanAmount" placeholder="500000" min="10000" max="50000000" step="1000" required>
+            <div class="invalid-feedback" id="loanAmountError">Enter a loan amount between INR 10,000 and 5,00,00,000.</div>
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label fs-12 text-muted" for="interestRate">Interest Rate % (Annual)</label>
+            <input type="number" class="form-control" id="interestRate" placeholder="10.5" min="0.1" max="30" step="0.01" required>
+            <div class="invalid-feedback" id="interestRateError">Enter an annual interest rate between 0.1% and 30%.</div>
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label fs-12 text-muted" for="tenureYears">Loan Tenure (Years)</label>
+            <input type="number" class="form-control" id="tenureYears" placeholder="7" min="1" max="20" step="0.5" required>
+            <div class="invalid-feedback" id="tenureYearsError">Enter a loan tenure between 1 and 20 years.</div>
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label fs-12 text-muted" for="moratoriumMonths">Moratorium (Months)</label>
+            <input type="number" class="form-control" id="moratoriumMonths" placeholder="12" min="0" max="48" step="1" required>
+            <div class="invalid-feedback" id="moratoriumMonthsError">Enter moratorium between 0 and 48 months.</div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label fs-12 text-muted" for="loanCountryPreference">Country Preference</label>
+            <select class="form-select" id="loanCountryPreference" required>
+              <option value="">Select country</option>
+              <option value="USA">USA</option>
+              <option value="Canada">Canada</option>
+              <option value="UK">UK</option>
+              <option value="Australia">Australia</option>
+              <option value="Germany">Germany</option>
+              <option value="Singapore">Singapore</option>
+              <option value="New Zealand">New Zealand</option>
+              <option value="Other">Other</option>
+            </select>
+            <div class="invalid-feedback" id="loanCountryPreferenceError">Please select a country preference.</div>
+          </div>
+        </div>
+        <div class="row g-3 align-items-end mt-1">
+          <div class="col-12 col-md-6"></div>
+          <div class="col-12 col-md-3">
+            <button type="button" class="btn custom-button purple-button w-100" id="loanCalcBtn">Calculate EMI</button>
+          </div>
+          <div class="col-12 col-md-3">
+            <button type="button" class="btn w-100 loan-apply-btn" id="loanApplyBtn" data-bs-toggle="modal" data-bs-target="#educationLoanApplyModal" disabled>
+              <i class='bx bx-send me-1'></i>Apply Loan
+            </button>
+            <p class="loan-cta-note mb-0"><i class='bx bx-info-circle me-1'></i>Enabled after EMI calculation</p>
+          </div>
+        </div>
+        <div class="row g-3 mt-1" id="loanResultRow" style="display:none;">
+          <div class="col-12 col-md-4"><div class="tile"><p class="fs-12 text-muted mb-1">EMI</p><h5 class="mb-0" id="emiValue">-</h5></div></div>
+          <div class="col-12 col-md-4"><div class="tile"><p class="fs-12 text-muted mb-1">Total Interest</p><h5 class="mb-0" id="interestValue">-</h5></div></div>
+          <div class="col-12 col-md-4"><div class="tile"><p class="fs-12 text-muted mb-1">Total Payable</p><h5 class="mb-0" id="payableValue">-</h5></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="modal fade" id="educationLoanApplyModal" tabindex="-1" aria-labelledby="educationLoanApplyModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-700" id="educationLoanApplyModalLabel">Education Loan Application</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="educationLoanApplyForm">
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <label class="form-label">Student Name</label>
+              <input type="text" class="form-control" id="loanStudentName" placeholder="Enter student full name" required>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">Parent Name</label>
+              <input type="text" class="form-control" id="loanParentName" placeholder="Enter parent full name" value="{{ request.user.name|default('') }}">
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">Mobile Number</label>
+              <input type="tel" class="form-control" id="loanMobile" placeholder="10 digit mobile number" value="{{ request.user.mobile|default('') }}">
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control" id="loanEmail" placeholder="name@example.com" value="{{ request.user.email|default('') }}" required>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">Institute / College Name</label>
+              <input type="text" class="form-control" id="loanInstitute" placeholder="Enter institute name" required>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">Course Name</label>
+              <input type="text" class="form-control" id="loanCourse" placeholder="Enter course name" required>
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label">Requested Amount (INR)</label>
+              <input type="text" class="form-control" id="loanReqAmount" readonly>
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label">Estimated EMI (INR)</label>
+              <input type="text" class="form-control" id="loanReqEmi" readonly>
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label">Repayment Tenure (Years)</label>
+              <input type="text" class="form-control" id="loanReqTenure" readonly>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">Country Preference</label>
+              <input type="text" class="form-control" id="loanReqCountry" placeholder="Preferred country" readonly>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Additional Details</label>
+              <textarea class="form-control" id="loanAdditionalDetails" rows="3" placeholder="Share any relevant details (scholarship, co-applicant, collateral, etc.)"></textarea>
+            </div>
+          </div>
+        </form>
+        <div class="alert alert-success mt-3 mb-0 d-none" id="loanApplySuccessMsg">
+          Loan application details captured successfully. Our team will contact you soon.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="loanSubmitBtn">Submit Application</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+<script>
+  (function () {
+    function byId(id) { return document.getElementById(id); }
+
+    function formatInr(num) {
+      return 'INR ' + Number(num || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+    }
+
+    var loanFieldIds = ['loanAmount', 'interestRate', 'tenureYears', 'moratoriumMonths', 'loanCountryPreference'];
+    var loanCalculated = false;
+    var loanApplyBtn = byId('loanApplyBtn');
+
+    function setLoanFieldState(fieldId, isValid, message) {
+      var field = byId(fieldId);
+      var errorEl = byId(fieldId + 'Error');
+      if (!field) return;
+      field.classList.toggle('is-invalid', !isValid);
+      field.classList.toggle('is-valid', isValid);
+      if (errorEl && message) errorEl.textContent = message;
+    }
+
+    function clearLoanValidation() {
+      loanFieldIds.forEach(function (fieldId) {
+        var field = byId(fieldId);
+        if (field) field.classList.remove('is-invalid', 'is-valid');
+      });
+    }
+
+    function resetLoanResults() {
+      loanCalculated = false;
+      if (byId('loanResultRow')) byId('loanResultRow').style.display = 'none';
+      if (loanApplyBtn) {
+        loanApplyBtn.disabled = true;
+        loanApplyBtn.classList.remove('is-ready');
+      }
+    }
+
+    function validateLoanInputs() {
+      var amount = parseFloat((byId('loanAmount') && byId('loanAmount').value) || '');
+      var annualRate = parseFloat((byId('interestRate') && byId('interestRate').value) || '');
+      var tenureYears = parseFloat((byId('tenureYears') && byId('tenureYears').value) || '');
+      var moratoriumRaw = (byId('moratoriumMonths') && byId('moratoriumMonths').value);
+      var moratorium = moratoriumRaw === '' ? NaN : parseInt(moratoriumRaw, 10);
+      var country = (byId('loanCountryPreference') && byId('loanCountryPreference').value) || '';
+      var isValid = true;
+
+      clearLoanValidation();
+
+      if (!(amount >= 10000 && amount <= 50000000)) {
+        setLoanFieldState('loanAmount', false, 'Enter a loan amount between INR 10,000 and 5,00,00,000.');
+        isValid = false;
+      } else {
+        setLoanFieldState('loanAmount', true);
+      }
+
+      if (!(annualRate >= 0.1 && annualRate <= 30)) {
+        setLoanFieldState('interestRate', false, 'Enter an annual interest rate between 0.1% and 30%.');
+        isValid = false;
+      } else {
+        setLoanFieldState('interestRate', true);
+      }
+
+      if (!(tenureYears >= 1 && tenureYears <= 20)) {
+        setLoanFieldState('tenureYears', false, 'Enter a loan tenure between 1 and 20 years.');
+        isValid = false;
+      } else {
+        setLoanFieldState('tenureYears', true);
+      }
+
+      if (!(moratorium >= 0 && moratorium <= 48) || isNaN(moratorium)) {
+        setLoanFieldState('moratoriumMonths', false, 'Enter moratorium between 0 and 48 months.');
+        isValid = false;
+      } else {
+        setLoanFieldState('moratoriumMonths', true);
+      }
+
+      if (!country) {
+        setLoanFieldState('loanCountryPreference', false, 'Please select a country preference.');
+        isValid = false;
+      } else {
+        setLoanFieldState('loanCountryPreference', true);
+      }
+
+      return isValid;
+    }
+
+    function getLoanSummary() {
+      if (!validateLoanInputs()) return { valid: false };
+
+      var amount = parseFloat(byId('loanAmount').value);
+      var annualRate = parseFloat(byId('interestRate').value);
+      var tenureYears = parseFloat(byId('tenureYears').value);
+      var moratorium = parseInt(byId('moratoriumMonths').value, 10);
+      var monthlyRate = annualRate / 12 / 100;
+      var tenureMonths = Math.max(1, Math.round(tenureYears * 12));
+      var principalAfterMoratorium = amount * Math.pow(1 + monthlyRate, moratorium);
+      var emi = (principalAfterMoratorium * monthlyRate * Math.pow(1 + monthlyRate, tenureMonths)) /
+        (Math.pow(1 + monthlyRate, tenureMonths) - 1);
+      var totalPayable = emi * tenureMonths;
+      var totalInterest = totalPayable - amount;
+
+      return {
+        valid: true,
+        amount: amount,
+        tenureYears: tenureYears,
+        emi: emi,
+        totalInterest: totalInterest,
+        totalPayable: totalPayable
+      };
+    }
+
+    loanFieldIds.forEach(function (fieldId) {
+      var field = byId(fieldId);
+      if (!field) return;
+      field.addEventListener('input', resetLoanResults);
+      field.addEventListener('change', resetLoanResults);
+    });
+
+    var loanBtn = byId('loanCalcBtn');
+    if (loanBtn) {
+      loanBtn.addEventListener('click', function () {
+        var summary = getLoanSummary();
+        if (!summary.valid) {
+          var firstInvalid = document.querySelector('#loanAmount.is-invalid, #interestRate.is-invalid, #tenureYears.is-invalid, #moratoriumMonths.is-invalid, #loanCountryPreference.is-invalid');
+          if (firstInvalid && typeof firstInvalid.focus === 'function') firstInvalid.focus();
+          return;
+        }
+        loanCalculated = true;
+        if (byId('loanResultRow')) byId('loanResultRow').style.display = '';
+        if (byId('emiValue')) byId('emiValue').textContent = formatInr(summary.emi);
+        if (byId('interestValue')) byId('interestValue').textContent = formatInr(summary.totalInterest);
+        if (byId('payableValue')) byId('payableValue').textContent = formatInr(summary.totalPayable);
+        if (loanApplyBtn) {
+          loanApplyBtn.disabled = false;
+          loanApplyBtn.classList.add('is-ready');
+        }
+      });
+    }
+
+    if (loanApplyBtn) {
+      loanApplyBtn.addEventListener('click', function () {
+        if (!loanCalculated) return;
+        var summary = getLoanSummary();
+        if (summary.valid) {
+          if (byId('loanReqAmount')) byId('loanReqAmount').value = Math.round(summary.amount).toLocaleString('en-IN');
+          if (byId('loanReqEmi')) byId('loanReqEmi').value = Math.round(summary.emi).toLocaleString('en-IN');
+          if (byId('loanReqTenure')) byId('loanReqTenure').value = summary.tenureYears;
+          if (byId('loanReqCountry')) {
+            byId('loanReqCountry').value = (byId('loanCountryPreference') && byId('loanCountryPreference').value) || '';
+          }
+        }
+      });
+    }
+
+    var loanSubmitBtn = byId('loanSubmitBtn');
+    if (loanSubmitBtn) {
+      loanSubmitBtn.addEventListener('click', function () {
+        var form = byId('educationLoanApplyForm');
+        if (!form) return;
+        if (!form.checkValidity()) {
+          form.reportValidity();
+          return;
+        }
+        if (byId('loanApplySuccessMsg')) byId('loanApplySuccessMsg').classList.remove('d-none');
+        form.reset();
+      });
+    }
+  })();
+</script>
+{% endblock %}

@@ -134,6 +134,11 @@ class Careers(TemplateView):
         ctx['search_param'] = request_data.get('search', '')
         ctx['cluster_param'] = request_data.get('cluster', '')
         
+        from users.parent_suggestions import apply_student_parent_suggestions_context, maybe_mark_parent_suggestions_seen
+        apply_student_parent_suggestions_context(ctx, request, "careers")
+        maybe_mark_parent_suggestions_seen(
+            request, "careers", is_parent_student_context=ctx.get("is_parent_student_context", False)
+        )
         return ctx
         
     def get(self, request, *args, **kwargs):
@@ -1923,6 +1928,11 @@ class CareerVideosView(TemplateView):
         
         ctx['video_thumbnails'] = video_thumbnails
         
+        from users.parent_suggestions import apply_student_parent_suggestions_context, maybe_mark_parent_suggestions_seen
+        apply_student_parent_suggestions_context(ctx, request, "videos")
+        maybe_mark_parent_suggestions_seen(
+            request, "videos", is_parent_student_context=ctx.get("is_parent_student_context", False)
+        )
         return ctx
 
     def get(self,request,*args, **kwargs):
@@ -1994,6 +2004,11 @@ class CategoryCareerVideosView(TemplateView):
         
         ctx['video_thumbnails'] = video_thumbnails
         
+        from users.parent_suggestions import apply_student_parent_suggestions_context, maybe_mark_parent_suggestions_seen
+        apply_student_parent_suggestions_context(ctx, request, "videos")
+        maybe_mark_parent_suggestions_seen(
+            request, "videos", is_parent_student_context=ctx.get("is_parent_student_context", False)
+        )
         return ctx
 
     def get(self,request,category_slug,*args, **kwargs):
@@ -2214,6 +2229,17 @@ def shortlist_video_view(request):
         return JsonResponse({"message": "Authentication required"}, status=401)
     id=request.GET.get("id")
     video=get_object_or_404(Videos,id=id)
+
+    if getattr(request.user, "user_type", None) == choices.UserType.PARENT:
+        from users.parent_saved_items import toggle_parent_video_bookmark
+
+        student_id = request.GET.get("student_id")
+        try:
+            sid = int(student_id) if student_id not in (None, "", b"") else None
+        except (TypeError, ValueError):
+            sid = None
+        return JsonResponse(toggle_parent_video_bookmark(request.user, video, student_id=sid))
+
     data=Videos.objects.filter(id=id,shortlist=request.user).exists()
     if data:
         video.shortlist.remove(request.user)

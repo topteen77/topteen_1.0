@@ -63,6 +63,24 @@ DEFAULT_TYPE_CONFIGS = {
         requires_celery=False,
         requires_email=False,
     ),
+    'parent.suggestion_added': dict(
+        category=NotificationCategory.SYSTEM,
+        description='Parent shortlisted career/video/blog/college for linked student',
+        requires_celery=False,
+        requires_email=False,
+    ),
+    'parent.suggestion_disliked': dict(
+        category=NotificationCategory.SYSTEM,
+        description='Student disliked a parent career recommendation',
+        requires_celery=False,
+        requires_email=False,
+    ),
+    'parent.suggestion_liked': dict(
+        category=NotificationCategory.SYSTEM,
+        description='Student liked a parent career recommendation',
+        requires_celery=False,
+        requires_email=False,
+    ),
 }
 
 
@@ -112,6 +130,18 @@ DEFAULT_NOTIFICATION_MESSAGE_TEMPLATES = {
     'institute.student_assigned': {
         'title': 'New student assigned',
         'body': 'A new student {student_name} ({student_email}) was assigned to you by {institute_name}.',
+    },
+    'parent.suggestion_added': {
+        'title': 'New {item_kind} suggestion from {parent_name}',
+        'body': '{parent_name} shortlisted "{item_title}" for you. Open it from your dashboard or the relevant page.',
+    },
+    'parent.suggestion_disliked': {
+        'title': '{student_name} disliked your career suggestion',
+        'body': '{student_name} is not interested in "{career_name}" that you recommended.',
+    },
+    'parent.suggestion_liked': {
+        'title': '{student_name} liked your career suggestion',
+        'body': '{student_name} is interested in "{career_name}" that you recommended.',
     },
 }
 
@@ -704,6 +734,7 @@ def emit_notification(
     def _create():
         nonlocal created_rows
         row_environment = environment or detect_notification_environment()
+        recipient_ids = []
         for user in recipients:
             row = Notification(
                 recipient=user,
@@ -721,9 +752,18 @@ def emit_notification(
             try:
                 row.save()
                 created_rows.append(row)
+                recipient_ids.append(user.id)
             except Exception:
                 # Unique dedupe collision is expected for retries.
                 continue
+        if recipient_ids:
+            try:
+                from django.core.cache import cache
+
+                for uid in recipient_ids:
+                    cache.delete(f'notif_latest:{uid}')
+            except Exception:
+                pass
 
     transaction.on_commit(_create)
     return created_rows

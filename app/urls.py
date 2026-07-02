@@ -15,6 +15,7 @@ urlpatterns = [
 
     path('logout/', views.custom_logout, name='logout'),
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('dashboard/<int:user_id>/', views.dashboard, name='dashboard_for_user'),
     path('career-tree/', views.career_tree, name='career-tree'),
     path('career-tree1/', views.career_tree1, name='career-tree1'),
     path('quick-link/', views.quick_link, name='quick-link'),

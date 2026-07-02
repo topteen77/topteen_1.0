@@ -1,4 +1,8 @@
+{% if defer_scripts %}
+<script type="text/plain" data-parent-report-script>
+{% else %}
 <script>
+{% endif %}
   (function () {
     var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     function countUpDayStreak(el, end, duration) {

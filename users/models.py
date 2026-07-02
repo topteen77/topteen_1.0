@@ -430,6 +430,15 @@ class ParentStudentBookmark(BaseModel):
     Example: parent bookmarks a Career *for* Student A; that should not automatically
     appear for Student B.
     """
+    REACTION_NONE = ""
+    REACTION_LIKED = "liked"
+    REACTION_DISLIKED = "disliked"
+    REACTION_CHOICES = (
+        (REACTION_NONE, "No reaction"),
+        (REACTION_LIKED, "Liked"),
+        (REACTION_DISLIKED, "Disliked"),
+    )
+
     parent = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -445,6 +454,20 @@ class ParentStudentBookmark(BaseModel):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey("content_type", "object_id")
+    student_reaction = models.CharField(
+        max_length=16,
+        choices=REACTION_CHOICES,
+        blank=True,
+        default=REACTION_NONE,
+        db_index=True,
+    )
+    reacted_at = models.DateTimeField(null=True, blank=True)
+    student_seen_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="When the student opened the matching scrapbook section (clears unread badges).",
+    )
 
     class Meta(BaseModel.Meta):
         unique_together = ("parent", "student", "content_type", "object_id")
