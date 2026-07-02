@@ -1,0 +1,58 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block object-tools-items %}
+<li>
+    <a href="#" class="addlink" id="skilllab-guide-open" style="background:#7239ea;color:#fff;padding:6px 12px;border-radius:4px;text-decoration:none;">
+        ℹ How to add a course
+    </a>
+</li>
+{{ block.super }}
+{% endblock %}
+
+{% block footer %}
+{{ block.super }}
+<div id="skilllab-guide-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;overflow:auto;padding:24px;">
+    <div style="max-width:820px;margin:40px auto;background:#fff;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.2);">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #eee;">
+            <h2 style="margin:0;font-size:20px;">How to Add a Skill Lab Course</h2>
+            <button type="button" id="skilllab-guide-close" style="border:none;background:#f5f5f5;border-radius:4px;padding:6px 12px;cursor:pointer;">Close</button>
+        </div>
+        <div style="padding:20px 24px;font-size:14px;line-height:1.6;max-height:70vh;overflow:auto;">
+            <p style="color:#666;">For full courses with sections, worksheets, and MCQs, the <strong>script import</strong> path is recommended.</p>
+
+            <h3 style="color:#3699ff;margin-top:24px;">A. Import from Word Documents (Script)</h3>
+            <ol>
+                <li>Place DOCX files under <code>SKILLLAB_SOURCE_DIR/&lt;Course Name&gt;/</code> (intro, index, chapter folders with worksheet.docx).</li>
+                <li><code>python scripts/skilllabcourses_script/process_skilllab_courses.py --course "Your Course Name"</code></li>
+                <li>(Optional) <code>python scripts/skilllabcourses_script/generate_course_json.py --course "Your Course Name"</code></li>
+                <li><code>python scripts/skilllabcourses_script/upload_skilllab_courses.py --course "Your Course Name" --dry-run</code></li>
+                <li><code>python scripts/skilllabcourses_script/upload_skilllab_courses.py --course "Your Course Name"</code></li>
+                <li><code>python manage.py generate_skilllab_course_images --course-name "Your Course Name"</code></li>
+                <li>Verify at <code>/skilllabcourse/course_learning/&lt;slug&gt;/</code></li>
+            </ol>
+
+            <h3 style="color:#3699ff;margin-top:24px;">B. Add Manually (This Django Admin)</h3>
+            <ol>
+                <li><strong>Add Skill lab course</strong> — fill name, category, image, price, status, intro/index HTML.</li>
+                <li><strong>Skill lab course chapters</strong> — link chapters to the course.</li>
+                <li><strong>Skill lab chapter sections</strong> — add Introduction, Section 1, 2… in order (required for learning UI).</li>
+                <li><strong>Skill lab course activities</strong> — worksheets (type Worksheet) with PDF upload.</li>
+                <li><strong>Skill lab MCQs</strong> — add MCQ, questions, and answers per chapter.</li>
+                <li>Set <strong>object status</strong> to Active and preview on the frontend.</li>
+            </ol>
+        </div>
+    </div>
+</div>
+<script>
+(function () {
+    var overlay = document.getElementById('skilllab-guide-overlay');
+    var openBtn = document.getElementById('skilllab-guide-open');
+    var closeBtn = document.getElementById('skilllab-guide-close');
+    if (!overlay || !openBtn) return;
+    openBtn.addEventListener('click', function (e) { e.preventDefault(); overlay.style.display = 'block'; });
+    closeBtn.addEventListener('click', function () { overlay.style.display = 'none'; });
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) overlay.style.display = 'none'; });
+})();
+</script>
+{% endblock %}

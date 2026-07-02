@@ -2072,6 +2072,9 @@ class SkillLabCourseListView(BaseListView):
     model = SkillLabCourse
     filterset_class = SkillLabCourseFilter
 
+    def get_queryset(self):
+        return SkillLabCourse.objects.complete().order_by('-modified')
+
 class CreateSkillLabCourse(BaseCreateView):
     template_name = "topteenadmin/skilllabcourse_form.html"
     model=SkillLabCourse
@@ -2103,6 +2106,20 @@ class SkillLabCourseDetailView(BaseDetailView):
     form_class=SkillLabCourseModelForm
     success_url=reverse_lazy('topteenadminmanaged:skilllabcourselist')
     active_tab="skilllabcourse"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        course = self.object
+        ctx['skilllab_frontend_preview_url'] = None
+        ctx['skilllab_learning_preview_url'] = None
+        if course and course.slug:
+            ctx['skilllab_frontend_preview_url'] = reverse(
+                'skilllabcourse:skilllabcoursedetail', args=[course.slug]
+            )
+            ctx['skilllab_learning_preview_url'] = reverse(
+                'skilllabcourse:course_learning', args=[course.slug]
+            )
+        return ctx
 
 
 
@@ -2159,18 +2176,18 @@ class CreateSkillLabCourseActivity(BaseCreateView):
     model=SkillLabCourseActivity
     form_class=SkillLabCourseActivityModelForm
     success_url=reverse_lazy('topteenadminmanaged:skilllabcourseactivitylist')
-    title="SkillLabCourse"
-    active_tab="skilllcourseabactivity"
-    success_message="SkillLabCourse created successfully."
+    title="SkillLabCourse Activity"
+    active_tab="skilllabcourseactivity"
+    success_message="SkillLabCourse Activity created successfully."
     
 class SkillLabCourseActivityUpdateView(BaseUpdateView):
     template_name = "topteenadmin/skilllabcourseactivity_form.html"
     model=SkillLabCourseActivity
-    title="SkillLabCourse"
+    title="SkillLabCourse Activity"
     form_class=SkillLabCourseActivityModelForm
     success_url=reverse_lazy('topteenadminmanaged:skilllabcourseactivitylist')
     active_tab="skilllabcourseactivity"
-    success_message="SkillLabCourse updated successfully."
+    success_message="SkillLabCourse Activity updated successfully."
 
 class SkillLabCourseActivityDeleteView(BaseDeleteView):
     model = SkillLabCourseActivity

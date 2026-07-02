@@ -325,19 +325,23 @@ class SkillModelForm(TranslationModelForm):
 class SkillLabCourseModelForm(TranslationModelForm):
     class Meta:
         model = SkillLabCourse
-        fields = ['name','image','category','video_url','description','amount','currency']
+        fields = [
+            'name', 'image', 'category', 'video_url', 'description',
+            'course_intro_html', 'course_index_html',
+            'amount', 'currency', 'object_status',
+        ]
 
 
 class SkillLabCourseChapterModelForm(TranslationModelForm):
     class Meta:
         model = SkillLabCourseChapter
-        fields = ['skilllab','chapter_name','content']
+        fields = ['skilllab', 'chapter_name', 'content', 'object_status']
 
 
 class SkillLabCourseActivityModelForm(TranslationModelForm):
     class Meta:
         model = SkillLabCourseActivity
-        fields = ['skilllab_chapter','name','type','content','downloadable_file']
+        fields = ['skilllab_chapter', 'name', 'type', 'content', 'downloadable_file', 'object_status']
 
 class CareerTagsForm(TranslationModelForm):
     class Meta:

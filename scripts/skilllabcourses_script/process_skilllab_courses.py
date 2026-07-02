@@ -48,8 +48,24 @@ except ImportError:
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 SCRIPT_DIR = Path(__file__).resolve().parent
 OUTPUT_DIR = PROJECT_ROOT / "skilllabcourses_html"
-# SOURCE_DIR: override with env SKILLLAB_SOURCE_DIR if different on server
-SOURCE_DIR = Path(os.environ.get("SKILLLAB_SOURCE_DIR", "/home/itpc6/Public/share/content- Topteen/skill lab courses"))
+
+# SOURCE_DIR: override with env SKILLLAB_SOURCE_DIR if different on server.
+# Read from the project .env (via python-decouple) so it matches Django settings;
+# fall back to a raw environment variable, then to the historical default path.
+_DEFAULT_SOURCE_DIR = "/home/itpc6/Public/share/content- Topteen/skill lab courses"
+try:
+    from decouple import Config, RepositoryEnv
+
+    _env_path = PROJECT_ROOT / ".env"
+    if _env_path.exists():
+        _config = Config(RepositoryEnv(str(_env_path)))
+        _source_dir = _config("SKILLLAB_SOURCE_DIR", default=os.environ.get("SKILLLAB_SOURCE_DIR", _DEFAULT_SOURCE_DIR))
+    else:
+        _source_dir = os.environ.get("SKILLLAB_SOURCE_DIR", _DEFAULT_SOURCE_DIR)
+except Exception:
+    _source_dir = os.environ.get("SKILLLAB_SOURCE_DIR", _DEFAULT_SOURCE_DIR)
+
+SOURCE_DIR = Path(_source_dir)
 
 
 def extract_chapter_name_from_docx(chapter_docx_path: Path) -> Optional[str]:

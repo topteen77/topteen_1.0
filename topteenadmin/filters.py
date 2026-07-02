@@ -112,14 +112,33 @@ class SkillFilter(NamedBaseFilter):
         fields = ['name','priority']
 
 class SkillLabCourseFilter(NamedBaseFilter):
+    category = django_filters.ChoiceFilter(
+        choices=choices.SkillLabCourseTypeChoice.CHOICE,
+        label='Category',
+        empty_label='-- Any --',
+    )
+    object_status = django_filters.ChoiceFilter(
+        choices=choices.ObjectStatus.CHOICES,
+        label='Status',
+        empty_label='-- Any --',
+    )
+
     class Meta:
         model = SkillLabCourse
-        fields = ['name']
+        fields = ['name', 'category', 'object_status']
 
-class SkillLabCourseChapterFilter(NamedBaseFilter):
+
+class SkillLabCourseChapterFilter(BaseFilter):
+    chapter_name = django_filters.CharFilter(lookup_expr='icontains', label='Chapter Name')
+    skilllab = django_filters.ModelChoiceFilter(
+        queryset=SkillLabCourse.objects.complete().order_by('name'),
+        label='Course',
+        empty_label='-- Any --',
+    )
+
     class Meta:
         model = SkillLabCourseChapter
-        fields = ['name']
+        fields = ['chapter_name', 'skilllab']
 
 
 class VideoCategoryFilter(NamedBaseFilter):

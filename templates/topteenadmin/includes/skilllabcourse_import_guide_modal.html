@@ -1,0 +1,85 @@
+{# Skill Lab course import / manual setup guide — include on list and form pages #}
+<div class="modal fade" id="skilllabCourseGuideModal" tabindex="-1" aria-labelledby="skilllabCourseGuideModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title fw-bold" id="skilllabCourseGuideModalLabel">How to Add a Skill Lab Course</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-6">
+                    Choose the method that fits your workflow. For full courses with chapters, worksheets, MCQs, and section-based learning UI,
+                    the <strong>script import</strong> path is strongly recommended.
+                </p>
+
+                <h3 class="fs-4 fw-bold text-primary mb-4">A. Import from Word Documents (Script)</h3>
+                <p class="mb-3">Use this when you have course content as DOCX files in a folder.</p>
+
+                <h4 class="fs-6 fw-bold mb-2">Step 1 — Prepare source folder</h4>
+                <p class="mb-2">Place files under the source directory (override with <code>SKILLLAB_SOURCE_DIR</code> env var if needed):</p>
+                <pre class="bg-light p-3 rounded fs-7 mb-4"><code>&lt;SKILLLAB_SOURCE_DIR&gt;/&lt;Course Name&gt;/
+├── intro- course.docx   (or intro-course.docx)
+├── index.docx
+├── chapter_1/
+│   ├── chapter1.docx
+│   └── worksheet.docx
+├── chapter_2/
+│   └── ...
+└── ...</code></pre>
+
+                <h4 class="fs-6 fw-bold mb-2">Step 2 — Process DOCX → HTML / PDF / JSON</h4>
+                <p class="mb-2">From the project root:</p>
+                <pre class="bg-light p-3 rounded fs-7 mb-4"><code>python scripts/skilllabcourses_script/process_skilllab_courses.py --course "Your Course Name"</code></pre>
+                <p class="text-muted fs-7 mb-4">Output is written to <code>skilllabcourses_html/&lt;Course Name&gt;/</code></p>
+
+                <h4 class="fs-6 fw-bold mb-2">Step 3 (optional) — Generate JSON for review</h4>
+                <pre class="bg-light p-3 rounded fs-7 mb-4"><code>python scripts/skilllabcourses_script/generate_course_json.py --course "Your Course Name"</code></pre>
+
+                <h4 class="fs-6 fw-bold mb-2">Step 4 — Upload to database</h4>
+                <p class="mb-2">Dry run first, then upload (creates sections, worksheets, MCQs, and S3 PDFs):</p>
+                <pre class="bg-light p-3 rounded fs-7 mb-2"><code>python scripts/skilllabcourses_script/upload_skilllab_courses.py --course "Your Course Name" --dry-run
+python scripts/skilllabcourses_script/upload_skilllab_courses.py --course "Your Course Name"</code></pre>
+                <p class="text-muted fs-7 mb-4">Use <code>upload_skilllab_courses.py</code> (not <code>upload_from_json.py</code>) so chapter sections are created for the learning UI.</p>
+
+                <h4 class="fs-6 fw-bold mb-2">Step 5 — Post-import</h4>
+                <pre class="bg-light p-3 rounded fs-7 mb-4"><code>python manage.py generate_skilllab_course_images --course-name "Your Course Name"</code></pre>
+
+                <h4 class="fs-6 fw-bold mb-2">Step 6 — Verify on frontend</h4>
+                <ul class="mb-0">
+                    <li>Course list: <code>/skilllabcourse/</code></li>
+                    <li>Course detail: <code>/skilllabcourse/skilllabcoursedetail/&lt;slug&gt;/</code></li>
+                    <li>Learning UI: <code>/skilllabcourse/course_learning/&lt;slug&gt;/</code></li>
+                </ul>
+
+                <hr class="my-8">
+
+                <h3 class="fs-4 fw-bold text-primary mb-4">B. Add Manually (Admin Forms)</h3>
+                <p class="mb-3">Use this for small edits or when you are building a course piece by piece without DOCX files.</p>
+
+                <h4 class="fs-6 fw-bold mb-2">Step 1 — Create the course</h4>
+                <p class="mb-4">Click <strong>Add Skill Lab Course</strong> and fill in name, category, image, price, status, description, <em>Course Introduction</em>, and <em>Course Index</em> HTML fields. Set <strong>Status</strong> to <em>Active</em>.</p>
+
+                <h4 class="fs-6 fw-bold mb-2">Step 2 — Add chapters</h4>
+                <p class="mb-4">Go to <strong>SkillLabCourse Chapter</strong> → Add. Link each chapter to the course. Add legacy <em>content</em> HTML if you are not using sections.</p>
+
+                <h4 class="fs-6 fw-bold mb-2">Step 3 — Add activities (worksheets)</h4>
+                <p class="mb-4">Go to <strong>SkillLabCourse Activity</strong> → Add. Set type to <em>Worksheet</em>, link to the chapter, and upload the PDF file.</p>
+
+                <h4 class="fs-6 fw-bold mb-2">Step 4 — MCQs and sections (Django Admin)</h4>
+                <p class="mb-4">
+                    Interactive MCQ quizzes and per-section learning navigation require
+                    <strong>SkillLabChapterSection</strong> and <strong>SkillLabMCQ</strong> records.
+                    Manage those at
+                    <a href="/admin/skilllab/" target="_blank" rel="noopener noreferrer">Django Admin → Skilllab</a>
+                    (sections, MCQ questions, and answers are not available in this simplified form yet).
+                </p>
+
+                <h4 class="fs-6 fw-bold mb-2">Step 5 — Preview and publish</h4>
+                <p class="mb-0">Use the <strong>Preview</strong> action on the course list to open the frontend. Confirm the learning page works at <code>/skilllabcourse/course_learning/&lt;slug&gt;/</code>.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

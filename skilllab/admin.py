@@ -72,6 +72,7 @@ class SkillLabAdminMixin:
 
 @admin.register(SkillLabCourse)
 class SkillLabCourseAdmin(SkillLabAdminMixin, admin.ModelAdmin):
+    change_list_template = "admin/skilllab/skilllabcourse/change_list.html"
     list_display = ["name", "category", "amount", "chapters_link", "sections_link", "activities_link", "mcqs_link", "object_status", "modified"]
 
     def delete_model(self, request, obj):

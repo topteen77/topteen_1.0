@@ -307,6 +307,8 @@ scripts/__pycache__/
 scripts/*.pyc
 #hide to keep extracurricular data on server as it is 
 scripts/extracurricular_json_output/*
+scripts/skilllabcourses_script/*
+skilllabcourses_html/*
 
 
 # Hide database data directories
