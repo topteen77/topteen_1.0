@@ -61,18 +61,118 @@ def file_field_to_data_uri(file_field) -> str:
     return f"data:{mime};base64,{encoded}"
 
 
-def embed_resume_photo_data_uri(payload: dict, resume, user) -> dict:
+def file_field_to_data_uri(file_field) -> str:
+    """Read a Django FileField/ImageField into a data: URI for offline PDF rendering."""
+    if not file_field or not getattr(file_field, "name", None):
+        return ""
+    try:
+        with file_field.open("rb") as handle:
+            raw = handle.read()
+    except OSError as exc:
+        logger.warning("Could not read image for PDF %s: %s", getattr(file_field, "name", ""), exc)
+        return ""
+    if not raw:
+        return ""
+    mime = _guess_image_mime(file_field.name)
+    encoded = base64.b64encode(raw).decode("ascii")
+    return f"data:{mime};base64,{encoded}"
+
+
+def _local_media_file_to_data_uri(path: str) -> str:
+    """Read a media-relative or absolute filesystem path into a data: URI."""
+    import os
+    from urllib.parse import unquote, urlparse
+
+    from django.conf import settings
+
+    if not path:
+        return ""
+    norm = unquote(str(path).replace("\\", "/").strip())
+    if norm.startswith(("http://", "https://")):
+        norm = urlparse(norm).path or ""
+    norm = norm.lstrip("/")
+    if not norm:
+        return ""
+    candidates: list[str] = []
+    media_root = str(settings.MEDIA_ROOT)
+    if norm.startswith("media/"):
+        candidates.append(os.path.join(media_root, norm[6:]))
+    candidates.append(os.path.join(media_root, norm))
+    for local in candidates:
+        if os.path.isfile(local):
+            try:
+                with open(local, "rb") as handle:
+                    raw = handle.read()
+            except OSError as exc:
+                logger.warning("Could not read local media for PDF %s: %s", local, exc)
+                continue
+            if not raw:
+                continue
+            mime = _guess_image_mime(local)
+            encoded = base64.b64encode(raw).decode("ascii")
+            return f"data:{mime};base64,{encoded}"
+    return ""
+
+
+def _ensure_photo_initial(payload: dict, user) -> dict:
+    if (payload.get("photo") or "").strip() or (payload.get("photoInitial") or "").strip():
+        return payload
+    label = (getattr(user, "name", None) or getattr(user, "email", None) or "").strip()
+    if not label:
+        return payload
+    out = dict(payload)
+    out["photoInitial"] = label[0].upper()
+    return out
+
+
+def embed_resume_photo_data_uri(payload: dict, resume, user, request=None) -> dict:
     """Replace remote photo URLs with embedded data URIs so PDF engines need no network."""
     out = dict(payload)
     photo = (out.get("photo") or "").strip()
     if photo.startswith("data:"):
-        return out
+        return _ensure_photo_initial(out, user)
     for field in (getattr(resume, "image", None), getattr(user, "image", None)):
         data_uri = file_field_to_data_uri(field)
         if data_uri:
             out["photo"] = data_uri
-            return out
-    return out
+            return _ensure_photo_initial(out, user)
+    if photo:
+        local_uri = _local_media_file_to_data_uri(photo)
+        if local_uri:
+            out["photo"] = local_uri
+            return _ensure_photo_initial(out, user)
+    if photo.startswith(("http://", "https://")):
+        data_uri = _photo_url_to_data_uri(photo)
+        if data_uri:
+            out["photo"] = data_uri
+            return _ensure_photo_initial(out, user)
+    if request is not None and photo.startswith("/"):
+        data_uri = _photo_url_to_data_uri(request.build_absolute_uri(photo))
+        if data_uri:
+            out["photo"] = data_uri
+    return _ensure_photo_initial(out, user)
+
+
+def _photo_url_to_data_uri(url: str) -> str:
+    """Fetch a resume photo URL and return a data: URI for offline PDF rendering."""
+    import urllib.error
+    import urllib.request
+
+    try:
+        req = urllib.request.Request(
+            url,
+            headers={"User-Agent": "TopTeenResumePDF/1.0"},
+        )
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            raw = resp.read()
+            if not raw:
+                return ""
+            mime = resp.headers.get_content_type() or _guess_image_mime(url)
+    except (OSError, urllib.error.URLError, ValueError) as exc:
+        logger.warning("Could not fetch resume photo URL for PDF %s: %s", url, exc)
+        return ""
+    encoded = base64.b64encode(raw).decode("ascii")
+    return f"data:{mime};base64,{encoded}"
 
 
 def _ai_shell_ctx_from_row(row):
@@ -188,7 +288,9 @@ def build_resume_pdf_html(
         )
         pack_for_pdf = dict(studio_pack)
         resume_data = dict(pack_for_pdf.get("resume") or {})
-        resume_data = embed_resume_photo_data_uri(resume_data, user_resume, request.user)
+        resume_data = embed_resume_photo_data_uri(
+            resume_data, user_resume, request.user, request=request
+        )
         pack_for_pdf["resume"] = resume_data
         from users.resume_studio_pdf_html import studio_proto_pack_to_mount_html
 
