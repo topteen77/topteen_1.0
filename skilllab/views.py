@@ -1255,7 +1255,7 @@ class SkilllabCoursePaymentSuccess(TemplateView):
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 class SkilllabCoursePaymentFail(TemplateView):
-    template_name ="topteenfrontend/skilllabcoursepaymentfail.html"
+    template_name ="template20/skilllab/payment_fail.html"
 
     def html_head(self):
         name='Skilllab Course Payment Fail'
@@ -1276,18 +1276,21 @@ class SkilllabCoursePaymentFail(TemplateView):
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 class CreateSkilllabCoursePaymentWithEazyPay(View):
     def get_payment_url(self,request,slug,*args, **kwargs):
+        from users.parent_checkout import resolve_payment_users
+
         skillab_course=get_object_or_404(SkillLabCourse,slug=slug)
-        user=request.user
+        student_id = request.GET.get("for_student")
+        payer, user = resolve_payment_users(request, student_id=student_id)
         # Create a shorter receipt format (Razorpay requires max 40 characters)
         # Format: SL{user_id}_{course_id} (e.g., "SL123_456")
-        gateway_receipt="SL{}_{}".format(request.user.id, skillab_course.id)
+        gateway_receipt="SL{}_{}".format(user.id, skillab_course.id)
         amount=skillab_course.amount
         sp,_=SkilllabCoursePayment.objects.get_or_create(user=user,skilllab_course=skillab_course,gateway_receipt=gateway_receipt,is_success=choices.YesNoChoices.NO,amount=amount,currency=choices.Currency.IND)
         
         # Get preferred gateway with fallback
         preferred_gateway = get_preferred_payment_gateway()
         payment,_=Payment.objects.get_or_create(
-            user=user,
+            user=payer,
             gateway_receipt=sp.gateway_receipt,
             gateway=preferred_gateway,
             is_success=choices.YesNoChoices.NO,
@@ -1372,6 +1375,8 @@ class CreateSkilllabCoursePaymentWithEazyPay(View):
 
     def get(self, request,slug,*args, **kwargs):
         from django.http import JsonResponse
+        from users.parent_checkout import resolve_payment_users
+
         skillab_course=get_object_or_404(SkillLabCourse,slug=slug)
         # Free courses: redirect to course learning instead of payment
         if not skillab_course.amount or skillab_course.amount <= 0:
@@ -1379,8 +1384,8 @@ class CreateSkilllabCoursePaymentWithEazyPay(View):
         result = self.get_payment_url(request,slug,*args, **kwargs)
         
         # Get success/fail URLs
-        user=request.user
-        gateway_receipt="SL{}_{}".format(request.user.id, skillab_course.id)
+        payer, user = resolve_payment_users(request, student_id=request.GET.get("for_student"))
+        gateway_receipt="SL{}_{}".format(user.id, skillab_course.id)
         sp,_=SkilllabCoursePayment.objects.get_or_create(user=user,skilllab_course=skillab_course,gateway_receipt=gateway_receipt,is_success=choices.YesNoChoices.NO,amount=skillab_course.amount,currency=choices.Currency.IND)
         url_info = sp.get_payment_success_fail_url()
         

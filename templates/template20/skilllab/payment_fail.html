@@ -1,0 +1,235 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Payment Failed | {{ skilllab_payment.skilllab_course.name }}{% endblock %}
+{% block description_content %}Your payment could not be processed. Please try again to continue your course purchase.{% endblock %}
+
+{% block bodyclass %}{{ super() }} skilllab-payment-fail-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .skilllab-payment-fail-page {
+    padding-top: 88px;
+    min-height: calc(100vh - 88px);
+    background: radial-gradient(1200px 600px at 10% -10%, #e9f2ff 0%, #f7faff 55%, #ffffff 100%);
+  }
+  .payment-fail-shell {
+    border: 0;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 18px 50px rgba(20, 46, 84, 0.12);
+    background: #fff;
+  }
+  .payment-fail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 20px 28px;
+    border-bottom: 1px solid #e7ebff;
+    background: #fff;
+  }
+  .payment-fail-secure {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #6b7280;
+  }
+  .payment-fail-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px;
+    background: #fff4f4;
+    border: 1px solid #ffdede;
+    border-radius: 999px;
+    color: #cf2e2e;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .payment-fail-body {
+    padding: 28px;
+  }
+  .payment-fail-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 10px;
+  }
+  .payment-fail-desc {
+    color: #5f6474;
+    margin-bottom: 24px;
+  }
+  .payment-fail-soft {
+    background: linear-gradient(180deg, #f8f9ff 0%, #f4f6ff 100%);
+    border: 1px solid #e7ebff;
+    border-radius: 16px;
+  }
+  .payment-fail-course-img {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: #eef2ff;
+  }
+  .payment-fail-benefit {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    color: #5f6474;
+    font-weight: 600;
+  }
+  .payment-fail-benefit:last-child {
+    margin-bottom: 0;
+  }
+  .payment-fail-benefit i {
+    color: #22c55e;
+    font-size: 1.1rem;
+  }
+  .payment-fail-summary {
+    margin-top: 20px;
+    padding: 20px 24px;
+  }
+  .payment-fail-ref {
+    color: #5f6474;
+    font-size: 0.875rem;
+  }
+  .payment-fail-cta {
+    background: linear-gradient(135deg, #1c4ed8 0%, #2460e0 100%);
+    border: 0;
+    box-shadow: 0 10px 24px rgba(36, 96, 224, 0.28);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 12px 28px;
+  }
+  .payment-fail-cta:hover {
+    background: linear-gradient(135deg, #173ea8 0%, #1c4ed8 100%);
+    box-shadow: 0 14px 30px rgba(36, 96, 224, 0.35);
+  }
+  .payment-fail-note {
+    color: #6f819b;
+    font-size: 12px;
+    margin-top: 12px;
+    margin-bottom: 0;
+    text-align: center;
+  }
+  @media (max-width: 576px) {
+    .payment-fail-header,
+    .payment-fail-body {
+      padding: 20px;
+    }
+    .payment-fail-title {
+      font-size: 1.4rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="skilllab-payment-fail-page pb-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-9">
+        <h2 class="fs-20 fw-semibold text-dark mb-3">Payment details</h2>
+        <div class="payment-fail-shell">
+          <div class="payment-fail-header">
+            <span class="payment-fail-secure">Secure Payment</span>
+            <span class="payment-fail-chip">Transaction Failed</span>
+          </div>
+          <div class="payment-fail-body">
+            <div class="row g-4 align-items-start">
+              <div class="col-md-4 text-center text-md-start">
+                <img
+                  src="{{ static('topteenfrontend/assets/images/failed.png') }}"
+                  alt="Payment failed"
+                  class="img-fluid"
+                  style="max-width: 149px;"
+                />
+              </div>
+              <div class="col-md-8">
+                <h1 class="payment-fail-title">
+                  Your Payment <span class="text-danger">failed</span>
+                </h1>
+                <p class="payment-fail-desc">
+                  Your transaction did not complete this time. Please try again to continue the course purchase.
+                </p>
+
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <div class="payment-fail-soft p-4 h-100 d-flex align-items-center gap-3">
+                      {% if skilllab_payment.skilllab_course.image %}
+                      <img
+                        src="{{ skilllab_payment.skilllab_course.image.url }}"
+                        alt="{{ skilllab_payment.skilllab_course.name }}"
+                        class="payment-fail-course-img"
+                      />
+                      {% else %}
+                      <img
+                        src="{{ static('topteenfrontend/assets/images/cubes.png') }}"
+                        alt=""
+                        class="payment-fail-course-img"
+                      />
+                      {% endif %}
+                      <div class="flex-grow-1 text-md-end">
+                        <p class="fw-semibold text-dark mb-1">{{ skilllab_payment.skilllab_course.name }}</p>
+                        <p class="fs-20 fw-semibold text-dark mb-0">₹ {{ skilllab_payment.amount }}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="payment-fail-soft p-4 h-100">
+                      <div class="payment-fail-benefit">
+                        <i class='bx bx-check-circle'></i>
+                        <span>Interactive course lessons</span>
+                      </div>
+                      <div class="payment-fail-benefit">
+                        <i class='bx bx-check-circle'></i>
+                        <span>Worksheets &amp; MCQs</span>
+                      </div>
+                      <div class="payment-fail-benefit">
+                        <i class='bx bx-check-circle'></i>
+                        <span>Progress tracking</span>
+                      </div>
+                      <div class="payment-fail-benefit">
+                        <i class='bx bx-check-circle'></i>
+                        <span>Course certificate</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="payment-fail-soft payment-fail-summary">
+                  <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4 pb-3 border-bottom border-light">
+                    <div>
+                      <p class="fw-semibold text-dark mb-1">{{ skilllab_payment.modified.strftime("%d %b, %Y") }}</p>
+                      <p class="payment-fail-ref mb-0">{{ skilllab_payment.modified.strftime("%H:%M %p") }}</p>
+                    </div>
+                    <div class="text-md-end">
+                      <p class="fw-semibold text-dark mb-1">Reference ID:</p>
+                      <p class="payment-fail-ref mb-0">#{{ skilllab_payment.id }}</p>
+                    </div>
+                  </div>
+
+                  <div class="text-center">
+                    <a
+                      href="{{ url('skilllabcourse:skilllabcoursedetail', args=[skilllab_payment.skilllab_course.slug]) }}"
+                      class="btn btn-primary payment-fail-cta text-uppercase"
+                    >
+                      Try Again
+                    </a>
+                    <p class="payment-fail-note">Secure checkout powered by your selected payment gateway.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

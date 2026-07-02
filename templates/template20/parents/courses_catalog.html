@@ -1,0 +1,397 @@
+{% extends "template20/user/student_base.html" %}
+
+{% block title_content %}Courses & Tests | Top Teen{% endblock %}
+{% block description_content %}Courses and tests for your linked students{% endblock %}
+{% block student_bodyclass %}user-dashboard user-dashboard-fullscreen{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<link rel="stylesheet" href="{{ static('css/parent-sidebar.css') }}">
+<style>
+  .std-shell-main { padding-top: 52px; }
+  .parent-dashboard {
+    background:
+      radial-gradient(circle at 6% 0%, rgba(102, 125, 255, 0.12) 0%, rgba(102, 125, 255, 0) 28%),
+      radial-gradient(circle at 92% 2%, rgba(39, 197, 139, 0.11) 0%, rgba(39, 197, 139, 0) 30%),
+      #f4f7ff;
+    min-height: 100%;
+  }
+  .parent-overview-card {
+    background: linear-gradient(130deg, #ffffff 0%, #f8faff 100%);
+    border: 1px solid rgba(110, 129, 228, 0.18);
+    border-radius: 16px;
+    padding: 16px 18px;
+    box-shadow: 0 14px 30px rgba(76, 94, 177, 0.12);
+  }
+  .parent-page-title {
+    font-size: 28px;
+    font-weight: 700;
+    background: linear-gradient(90deg, #403fa6 0%, #1f90cd 55%, #1ba883 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .parent-page-subtitle { color: #60658c; font-size: 13px; }
+
+  .parent-student-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .parent-student-tab {
+    border: 1px solid #d6ddf6;
+    background: #fff;
+    color: #4b4f7a;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .parent-student-tab.is-active,
+  .parent-student-tab:hover {
+    border-color: #6f7deb;
+    color: #403fa6;
+    background: #f3f0ff;
+  }
+  .parent-student-tab .grade-pill { font-size: 11px; color: #6b7280; margin-left: 4px; }
+
+  .catalog-section-title { font-size: 18px; font-weight: 700; color: #25306f; margin-bottom: 4px; }
+  .catalog-section-sub { font-size: 13px; color: #6b7280; margin-bottom: 16px; }
+  .catalog-section-empty {
+    text-align: center; padding: 24px; border: 1px dashed #cfd7f4;
+    border-radius: 14px; background: #fff; color: #6b7280; font-size: 14px;
+  }
+
+  .catalog-card {
+    position: relative;
+    border: 1px solid #dbe4ff;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
+    padding: 16px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 8px 20px rgba(76, 94, 177, 0.08);
+  }
+  .catalog-card:not(.is-owned):hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 28px rgba(76, 94, 177, 0.14);
+  }
+  .catalog-card.is-owned { background: #f8fafc; border-color: #d1fae5; }
+  .catalog-owned-badge {
+    position: absolute; top: 12px; right: 12px;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #10b981; color: #fff;
+    display: none; align-items: center; justify-content: center;
+    font-size: 18px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35); z-index: 2;
+  }
+  .catalog-card.is-owned .catalog-owned-badge { display: flex; }
+
+  .catalog-card-top { display: flex; gap: 12px; align-items: flex-start; flex: 1; }
+  .catalog-icon-wrap {
+    width: 52px; height: 52px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; overflow: hidden;
+  }
+  .catalog-icon-wrap img { width: 32px; height: 32px; object-fit: contain; }
+  .catalog-icon-wrap i { font-size: 26px; color: #403fa6; }
+  .catalog-thumb { width: 100%; height: 100%; object-fit: cover; }
+  .catalog-title {
+    font-size: 15px; font-weight: 700; color: #25306f;
+    line-height: 1.35; margin: 0 0 4px; padding-right: 28px;
+  }
+  .catalog-subtitle { font-size: 12px; color: #6b7280; margin: 0 0 8px; line-height: 1.4; }
+  .catalog-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .catalog-class-badge, .catalog-price-badge {
+    display: inline-flex; align-items: center;
+    padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700;
+  }
+  .catalog-class-badge {
+    color: #403fa6; background: rgba(92, 84, 212, 0.1); border: 1px solid rgba(92, 84, 212, 0.2);
+  }
+  .catalog-price-badge {
+    color: #0f766e; background: rgba(20, 184, 166, 0.1); border: 1px solid rgba(20, 184, 166, 0.2);
+  }
+  .catalog-price-badge.is-free {
+    color: #7c3aed; background: rgba(124, 58, 237, 0.1); border: 1px solid rgba(124, 58, 237, 0.2);
+  }
+
+  .catalog-card-actions {
+    margin-top: 14px; padding-top: 12px; border-top: 1px solid #e8ecf8;
+  }
+  .catalog-journey { display: flex; align-items: flex-start; width: 100%; }
+  .catalog-journey-step {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    position: relative; min-width: 0; background: none; border: 0; padding: 0;
+  }
+  button.catalog-journey-step { cursor: default; }
+  button.catalog-journey-step.is-action { cursor: pointer; }
+  .catalog-journey-step:not(:last-child)::after {
+    content: ''; position: absolute; top: 11px;
+    left: calc(50% + 14px); right: calc(-50% + 14px);
+    height: 2px; background: #e5e7eb; z-index: 0;
+  }
+  .catalog-journey-step.is-done:not(:last-child)::after { background: #10b981; }
+  .catalog-journey-step.is-active:not(:last-child)::after {
+    background: linear-gradient(90deg, #10b981 0%, #e5e7eb 100%);
+  }
+  .catalog-journey-dot {
+    width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; position: relative; z-index: 1; flex-shrink: 0;
+    border: 2px solid #e5e7eb; background: #f3f4f6; color: #9ca3af;
+    transition: transform 0.15s ease;
+  }
+  .catalog-journey-step.is-done .catalog-journey-dot { background: #10b981; border-color: #10b981; color: #fff; }
+  .catalog-journey-step.is-active .catalog-journey-dot {
+    background: #403fa6; border-color: #403fa6; color: #fff; box-shadow: 0 0 0 4px rgba(64, 63, 166, 0.15);
+  }
+  .catalog-journey-step.is-action .catalog-journey-dot {
+    background: #5249df; border-color: #5249df; color: #fff; box-shadow: 0 0 0 4px rgba(82, 73, 223, 0.18);
+  }
+  button.catalog-journey-step.is-action:hover .catalog-journey-dot { transform: scale(1.08); }
+  .catalog-journey-label {
+    margin-top: 6px; font-size: 10px; font-weight: 700; color: #9ca3af;
+    text-align: center; line-height: 1.2; max-width: 82px;
+  }
+  .catalog-journey-step.is-done .catalog-journey-label { color: #047857; }
+  .catalog-journey-step.is-active .catalog-journey-label { color: #403fa6; }
+  .catalog-journey-step.is-action .catalog-journey-label { color: #5249df; }
+
+  .catalog-card-footer {
+    margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  }
+  .catalog-card-footer .btn { flex: 1 1 auto; min-width: 120px; }
+
+  .catalog-empty {
+    text-align: center; padding: 48px 24px;
+    border: 1px dashed #cfd7f4; border-radius: 14px; background: #fff;
+  }
+</style>
+{% endblock %}
+
+{% block student_shell_vars %}
+{{ super() }}
+{% set student_shell_subtitle = page_title %}
+{% endblock %}
+
+{% block student_section_class %}parent-dashboard std-shell-main{% endblock %}
+
+{% block student_shell_topbar %}
+{% include "template20/parents/includes/parent_shell_topbar.html" %}
+{% endblock %}
+
+{% block student_sidebar %}
+{% include "template20/parents/includes/parent_sidebar.html" %}
+{% endblock %}
+
+{% block student_shell_offcanvas %}
+{% include "template20/parents/includes/parent_offcanvas.html" %}
+{% endblock %}
+
+{% block student_main %}
+<section class="pt-4 px-3 px-lg-4 px-xl-5 mb-4">
+  <div class="container-fluid px-0">
+    <div class="parent-overview-card py-3 mb-4">
+      <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">
+        <div class="flex-grow-1">
+          <h2 class="parent-page-title fw-700 mb-1">{{ page_title }}</h2>
+          <p class="parent-page-subtitle mb-0">Pick a student, then view and enroll them in courses and tests. Progress shows the selected student's journey.</p>
+          {% if linked_students and linked_students|length %}
+          <div class="parent-student-tabs" role="tablist" aria-label="Select student" id="catalogStudentTabs">
+            {% for s in linked_students %}
+            <button type="button"
+                    class="parent-student-tab{% if loop.first %} is-active{% endif %}"
+                    data-student-id="{{ s.id }}">
+              {{ s.name }}<span class="grade-pill">· {{ s.grade_label }}</span>
+            </button>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        <a href="{{ url('parents_dashboard') }}" class="btn btn-outline-secondary btn-sm">Back to dashboard</a>
+      </div>
+    </div>
+
+    {% if not has_linked_students %}
+    <div class="catalog-empty">
+      <i class='bx bx-link-alt d-block fs-48 text-gray mb-3'></i>
+      <h4 class="fs-18 fw-700 mb-2">No linked students yet</h4>
+      <p class="text-muted fs-14 mb-0">Link a student account from their profile to view and purchase courses and tests.</p>
+    </div>
+    {% else %}
+      {% for section in sections %}
+      <div class="mb-4 catalog-section" data-section-key="{{ section.key }}">
+        <h3 class="catalog-section-title">{{ section.title }}</h3>
+        <p class="catalog-section-sub">{{ section.subtitle }}</p>
+        <div class="row g-3 catalog-section-grid">
+          {% for item in section.catalog_items %}
+          <div class="col-12 col-md-6 col-xl-4 catalog-col">
+            <div class="catalog-card"
+                 data-kind="{{ item.kind }}"
+                 data-title="{{ item.title }}"
+                 data-is-free="{{ '1' if item.is_free else '0' }}"
+                 data-track="{{ item.enroll_track }}"
+                 data-slug="{{ item.enroll_slug }}"
+                 data-detail-url="{{ item.detail_url }}"
+                 data-students='{{ item.student_data|tojson }}'>
+              <span class="catalog-owned-badge" title="Already enrolled"><i class='bx bx-check'></i></span>
+              <div class="catalog-card-top">
+                <div class="catalog-icon-wrap" style="background: {{ item.icon_bg|default('#eef2ff') }};">
+                  {% if item.image_url %}
+                  <img class="catalog-thumb"
+                       src="{{ item.image_url }}"
+                       alt="{{ item.title }}"
+                       loading="lazy"
+                       onerror="this.onerror=null; this.src='{{ item.image_fallback_url|default(static('images/skilllab-default.png')) }}';" />
+                  {% elif item.icon_src %}
+                  <img src="{{ static(item.icon_src) }}"
+                       alt="{{ item.title }}"
+                       onerror="this.onerror=null; this.style.display='none'; var ic=this.nextElementSibling; if(ic){ic.style.display='flex';}" />
+                  <i class='bx bx-book-open' style="display:none;"></i>
+                  {% elif item.icon_bx %}
+                  <i class='bx {{ item.icon_bx }}'></i>
+                  {% else %}
+                  <i class='bx bx-book-open'></i>
+                  {% endif %}
+                </div>
+                <div class="min-w-0 flex-grow-1">
+                  <p class="catalog-title">{{ item.title }}</p>
+                  <p class="catalog-subtitle">{{ item.subtitle }}</p>
+                  <div class="catalog-meta">
+                    {% if item.class_label %}
+                    <span class="catalog-class-badge">{{ item.class_label }}</span>
+                    {% endif %}
+                    <span class="catalog-price-badge{% if item.is_free %} is-free{% endif %}">{{ item.price_label }}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="catalog-card-actions">
+                <div class="catalog-journey" aria-label="Course progress"></div>
+              </div>
+              <div class="catalog-card-footer"></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="catalog-section-empty" hidden>No items in this section for the selected student.</div>
+      </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+</section>
+
+{% include 'template20/parents/includes/parent_swal.html' %}
+<script>
+(function () {
+  var buyPsychometricTpl = {{ url('parents_student_buy_psychometric', args=[99999, 'TRACK'])|tojson }};
+  var buySkilllabTpl = {{ url('parents_student_buy_skilllab', args=[99999, 'SLUG'])|tojson }};
+  var studentDashboardTpl = {{ url('parents_student_dashboard', args=[99999])|tojson }};
+
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.parent-student-tab'));
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.catalog-card'));
+  var firstTab = tabs.length ? tabs[0] : null;
+  var selectedStudentId = firstTab ? firstTab.getAttribute('data-student-id') : null;
+
+  function buildEnrollUrl(kind, studentId, track, slug, isFree) {
+    if (kind === 'psychometric') {
+      return buyPsychometricTpl.replace('99999', String(studentId)).replace('TRACK', track || '10');
+    }
+    if (kind === 'skilllab' && !isFree) {
+      return buySkilllabTpl.replace('99999', String(studentId)).replace('SLUG', slug || '');
+    }
+    return studentDashboardTpl.replace('99999', String(studentId));
+  }
+
+  function stepDotHtml(state, index) {
+    if (state === 'done') return "<i class='bx bx-check'></i>";
+    if (state === 'action') return "<i class='bx bx-plus'></i>";
+    return String(index + 1);
+  }
+
+  function renderJourney(steps) {
+    return steps.map(function (step, i) {
+      var isAction = step.state === 'action';
+      var tag = isAction ? 'button' : 'div';
+      var typeAttr = isAction ? ' type="button"' : '';
+      var actionCls = isAction ? ' catalog-enrol-action' : '';
+      return '<' + tag + typeAttr + ' class="catalog-journey-step is-' + step.state + actionCls + '">' +
+        '<span class="catalog-journey-dot">' + stepDotHtml(step.state, i) + '</span>' +
+        '<span class="catalog-journey-label">' + step.label + '</span>' +
+        '</' + tag + '>';
+    }).join('');
+  }
+
+  function renderCard(card) {
+    var col = card.closest('.catalog-col');
+    var data;
+    try { data = JSON.parse(card.getAttribute('data-students') || '{}'); }
+    catch (e) { data = {}; }
+
+    var sd = selectedStudentId ? data[selectedStudentId] : null;
+    if (!sd || !sd.eligible) {
+      if (col) col.style.display = 'none';
+      return;
+    }
+    if (col) col.style.display = '';
+
+    card.classList.toggle('is-owned', !!sd.enrolled);
+
+    var journeyHost = card.querySelector('.catalog-journey');
+    journeyHost.innerHTML = renderJourney(sd.steps || []);
+
+    var footer = card.querySelector('.catalog-card-footer');
+    var detailUrl = card.getAttribute('data-detail-url') || '#';
+    if (sd.enrolled) {
+      footer.innerHTML = '';
+      footer.style.display = 'none';
+    } else {
+      footer.style.display = 'flex';
+      footer.innerHTML =
+        '<a href="' + detailUrl + '" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener noreferrer">View detail</a>';
+    }
+  }
+
+  function refreshSections() {
+    var sections = Array.prototype.slice.call(document.querySelectorAll('.catalog-section'));
+    sections.forEach(function (section) {
+      var visible = Array.prototype.slice
+        .call(section.querySelectorAll('.catalog-col'))
+        .some(function (col) { return col.style.display !== 'none'; });
+      var grid = section.querySelector('.catalog-section-grid');
+      var empty = section.querySelector('.catalog-section-empty');
+      if (grid) grid.style.display = visible ? '' : 'none';
+      if (empty) empty.hidden = visible;
+    });
+  }
+
+  function render() {
+    cards.forEach(renderCard);
+    refreshSections();
+  }
+
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      tabs.forEach(function (t) { t.classList.remove('is-active'); });
+      tab.classList.add('is-active');
+      selectedStudentId = tab.getAttribute('data-student-id');
+      render();
+    });
+  });
+
+  document.addEventListener('click', function (event) {
+    var stepBtn = event.target.closest('.catalog-enrol-action');
+    if (!stepBtn) return;
+    var card = stepBtn.closest('.catalog-card');
+    if (!card || !selectedStudentId) return;
+
+    var kind = card.getAttribute('data-kind') || '';
+    var track = card.getAttribute('data-track') || '';
+    var slug = card.getAttribute('data-slug') || '';
+    var isFree = card.getAttribute('data-is-free') === '1';
+    window.location.href = buildEnrollUrl(kind, selectedStudentId, track, slug, isFree);
+  });
+
+  render();
+})();
+</script>
+{% endblock %}

@@ -811,6 +811,57 @@ class ParentsDashboardView(TemplateView):
         return render(request, self.template_name, ctx)
 
 
+@method_decorator(login_required(login_url=reverse_lazy('parents_login')), name='dispatch')
+class ParentCoursesCatalogView(TemplateView):
+    """Parent catalog of courses, tests, and assessments for linked students."""
+    template_name = "template20/parents/courses_catalog.html"
+
+    def get(self, request, *args, **kwargs):
+        if request.user.user_type != choices.UserType.PARENT:
+            return redirect(get_dashboard_url_for_user(request, request.user))
+
+        from users.parent_courses_catalog import build_parent_courses_catalog
+
+        payload = build_parent_courses_catalog(request.user)
+        ctx = {
+            "page_title": "Courses & Tests",
+            "sections": payload.get("sections") or [],
+            "linked_students": payload.get("linked_students") or [],
+            "has_linked_students": bool(payload.get("linked_students")),
+        }
+        return render(request, self.template_name, ctx)
+
+
+@method_decorator(login_required(login_url=reverse_lazy('parents_login')), name='dispatch')
+class ParentStudentBuyPsychometricView(View):
+    """Parent checkout: pay for a linked student's psychometric test."""
+
+    def get(self, request, student_id, track, *args, **kwargs):
+        student = _get_parent_linked_student_or_404(request, student_id)
+        from users.parent_checkout import set_parent_checkout_student
+
+        set_parent_checkout_student(request, student.id)
+        track = str(track or "10")
+        if track in ("12", "advanced", str(choices.PsychometricTestType.ADVANCED)):
+            url = reverse("psychometrictests:PsychometricTest12")
+        else:
+            url = reverse("psychometrictests:psychometrictest")
+        return redirect(f"{url}?for_student={student.id}&auto_buy=1")
+
+
+@method_decorator(login_required(login_url=reverse_lazy('parents_login')), name='dispatch')
+class ParentStudentBuySkilllabView(View):
+    """Parent checkout: pay for a linked student's Skill Lab course."""
+
+    def get(self, request, student_id, slug, *args, **kwargs):
+        student = _get_parent_linked_student_or_404(request, student_id)
+        from users.parent_checkout import set_parent_checkout_student
+
+        set_parent_checkout_student(request, student.id)
+        pay_url = reverse("skilllabcourse:createskilllabcoursepayment", args=[slug])
+        return redirect(f"{pay_url}?for_student={student.id}")
+
+
 class ParentsEducationLoanCalculatorView(TemplateView):
     template_name = "template20/parents/education_loan_calculator.html"
 

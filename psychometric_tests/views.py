@@ -81,10 +81,22 @@ class PsychometricTest(TemplateView):
         return ctx
 
     def get(self, request,*args, **kwargs):
+        # Parent paying for a linked student
+        for_student = request.GET.get("for_student")
+        if for_student and request.user.is_authenticated:
+            try:
+                from users.parent_checkout import set_parent_checkout_student
+                from core import choices as core_choices
+                if getattr(request.user, "user_type", None) == core_choices.UserType.PARENT:
+                    set_parent_checkout_student(request, int(for_student))
+            except (TypeError, ValueError):
+                pass
         # Redirect users who have already paid for Stream Sorter (BASIC) to their dashboard
         if request.user.is_authenticated:
+            from users.parent_checkout import get_parent_checkout_student
+            beneficiary = get_parent_checkout_student(request) or request.user
             has_paid = PsychometricTestPayment.objects.filter(
-                user=request.user,
+                user=beneficiary,
                 test_type=choices.PsychometricTestType.BASIC,
                 is_success=choices.YesNoChoices.YES
             ).exists()
@@ -141,10 +153,21 @@ class PsychometricTest12(TemplateView):
         return ctx
 
     def get(self, request,*args, **kwargs):
+        for_student = request.GET.get("for_student")
+        if for_student and request.user.is_authenticated:
+            try:
+                from users.parent_checkout import set_parent_checkout_student
+                from core import choices as core_choices
+                if getattr(request.user, "user_type", None) == core_choices.UserType.PARENT:
+                    set_parent_checkout_student(request, int(for_student))
+            except (TypeError, ValueError):
+                pass
         # Redirect users who have already paid for Career Direction (ADVANCED) to their dashboard
         if request.user.is_authenticated:
+            from users.parent_checkout import get_parent_checkout_student
+            beneficiary = get_parent_checkout_student(request) or request.user
             has_paid = PsychometricTestPayment.objects.filter(
-                user=request.user,
+                user=beneficiary,
                 test_type=choices.PsychometricTestType.ADVANCED,
                 is_success=choices.YesNoChoices.YES
             ).exists()
@@ -161,12 +184,17 @@ class CreatePsychometricTestPayment(APIView):
 
     def post(self, request):
         try:
-            user = request.user
-            psychometric_test_type = request.data.get('test_type',False)
-            
+            from users.parent_checkout import resolve_payment_users
+
+            payer, user = resolve_payment_users(
+                request,
+                student_id=request.data.get("student_id") or request.POST.get("student_id"),
+            )
+            psychometric_test_type = request.data.get('test_type', False)
+
             if not user:
                 return Response({"error": "User not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
-            
+
             if not psychometric_test_type:
                 return Response({"error": "Test type is required"}, status=status.HTTP_400_BAD_REQUEST)
             
@@ -264,7 +292,7 @@ class CreatePsychometricTestPayment(APIView):
             print(f"[Payment Gateway] PAYMENT_GATEWAY_PREFERENCE setting: {settings.PAYMENT_GATEWAY_PREFERENCE}")
             
             payment,_=Payment.objects.get_or_create(
-                user=user,
+                user=payer,
                 gateway_receipt=test.gateway_receipt,
                 gateway=preferred_gateway,
                 is_success=choices.YesNoChoices.NO,

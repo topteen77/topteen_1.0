@@ -70,10 +70,17 @@ class SkillLabCourse(SlugModel,BaseModel,BaseMoneyModel):
         return self.skilllabcourseprogress.filter(user=user).exists()
 
     def get_image_url(self):
-        """Get image URL with default fallback"""
+        """Image URL with S3-proxy support and static fallback."""
         if self.image and self.image.name:
+            from django.conf import settings
+
+            backend = (settings.STORAGES.get("default") or {}).get("BACKEND", "")
+            if "S3MediaStorage" in backend or getattr(settings, "S3_MEDIA_ACCESS_MODE", "") == "proxy":
+                from core.storage_backends import S3MediaStorage
+
+                return S3MediaStorage().url(self.image.name)
             return self.image.url
-        return '/static/images/skilllab-default.png'  # Default skilllab image
+        return static("images/skilllab-default.png")
 
     def url(self):
         return reverse('skilllabcourse:skilllabcoursedetail',args=[self.slug])
