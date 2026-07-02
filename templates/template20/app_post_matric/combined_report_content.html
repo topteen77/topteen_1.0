@@ -519,11 +519,11 @@
       </div>
       {% endif %}
 
-      <div class="mt-4">
-        <h3 class="section-title">Aptitude Analysis</h3>
+      <div class="mt-4 aptitude-analysis-section">
+        <h3 class="section-title text-center aptitude-analysis-title">Aptitude Analysis</h3>
         {% if above_list or average_list or below_list %}
-        <div class="mapping-grid">
-          <div class="mapping-card">
+        <div class="mapping-grid aptitude-analysis-grid">
+          <div class="mapping-card mapping-card--above">
             <h4>Above Average</h4>
             {% if above_list %}
             <div class="list-grid">
@@ -542,7 +542,7 @@
           
             {% endif %}
           </div>
-          <div class="mapping-card">
+          <div class="mapping-card mapping-card--average">
             <h4>Average</h4>
             {% if average_list %}
             <div class="list-grid">
@@ -560,7 +560,7 @@
               <p class="label">No average areas available.</p></div>
             {% endif %}
           </div>
-          <div class="mapping-card">
+          <div class="mapping-card mapping-card--below">
             {# changes required by management (01-Jun-2025): Below Average → Development Areas #}
             <h4>{{ "Below Average"|aptitude_tier_label }}</h4>
             {% if below_list %}

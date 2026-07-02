@@ -331,6 +331,25 @@
     padding-left: 0;
     padding-right: 0;
     padding-top: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .parent-dashboard .parent-assessment-report-host .mapping-grid,
+  .parent-dashboard .parent-assessment-report-host .aptitude-analysis-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .parent-dashboard .parent-assessment-report-host .aptitude-analysis-grid .list-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+
+  @media (max-width: 767.98px) {
+    .parent-dashboard .parent-assessment-report-host .mapping-grid,
+    .parent-dashboard .parent-assessment-report-host .aptitude-analysis-grid {
+      grid-template-columns: 1fr;
+    }
   }
 
   .parent-dashboard .parent-assessment-report-host .parent-inline-psychometric-dashboard .psych-dashboard-main {
@@ -602,55 +621,77 @@
       if (!container) return Promise.resolve();
       return new Promise(function (resolve) {
         function runNext() {
-          var pending = container.querySelector('script:not([data-parent-activated])');
+          var pending;
+          try {
+            pending = container.querySelector('script:not([data-parent-activated])');
+          } catch (e) {
+            resolve();
+            return;
+          }
           if (!pending) {
             resolve();
             return;
           }
-          var scriptType = (pending.getAttribute('type') || '').trim().toLowerCase();
-          var isDeferredReportScript = pending.hasAttribute('data-parent-report-script');
-          if (
-            scriptType
-            && scriptType !== 'text/javascript'
-            && scriptType !== 'module'
-            && !(scriptType === 'text/plain' && isDeferredReportScript)
-          ) {
-            pending.setAttribute('data-parent-activated', '1');
-            runNext();
-            return;
-          }
-          var src = pending.getAttribute('src') || '';
-          if (src && /chart\.js/i.test(src)) {
-            pending.setAttribute('data-parent-activated', '1');
-            pending.remove();
-            whenChartReady(runNext);
-            return;
-          }
-          var newScript = document.createElement('script');
-          Array.prototype.forEach.call(pending.attributes, function (attr) {
-            if (attr.name === 'src' || attr.name === 'type') return;
-            newScript.setAttribute(attr.name, attr.value);
-          });
-          if (isDeferredReportScript) {
-            newScript.type = 'text/javascript';
-          }
+          // Mark first so a failure on this script can never cause an infinite
+          // loop; we always move on to the next pending script.
           pending.setAttribute('data-parent-activated', '1');
-          if (src) {
-            newScript.onload = function () {
-              pending.remove();
+          try {
+            var scriptType = (pending.getAttribute('type') || '').trim().toLowerCase();
+            var isDeferredReportScript = pending.hasAttribute('data-parent-report-script');
+            if (
+              scriptType
+              && scriptType !== 'text/javascript'
+              && scriptType !== 'module'
+              && !(scriptType === 'text/plain' && isDeferredReportScript)
+            ) {
               runNext();
-            };
-            newScript.onerror = function () {
-              pending.remove();
+              return;
+            }
+            var src = pending.getAttribute('src') || '';
+            if (src && /chart\.js/i.test(src)) {
+              if (pending.parentNode) pending.remove();
+              whenChartReady(runNext);
+              return;
+            }
+            var newScript = document.createElement('script');
+            Array.prototype.forEach.call(pending.attributes, function (attr) {
+              if (attr.name === 'src' || attr.name === 'type') return;
+              try { newScript.setAttribute(attr.name, attr.value); } catch (e) {}
+            });
+            if (isDeferredReportScript) {
+              newScript.type = 'text/javascript';
+            }
+            if (!pending.parentNode) {
               runNext();
-            };
-            newScript.src = src;
+              return;
+            }
+            if (src) {
+              newScript.onload = function () {
+                if (newScript.parentNode) newScript.remove();
+                runNext();
+              };
+              newScript.onerror = function () {
+                if (newScript.parentNode) newScript.remove();
+                runNext();
+              };
+              newScript.src = src;
+              pending.parentNode.replaceChild(newScript, pending);
+              return;
+            }
+            newScript.textContent = pending.textContent;
+            // Expose the pane root so injected scripts can scope correctly even
+            // though document.currentScript is null for injected <script> nodes.
+            window.__ttParentReportRoot = container;
             pending.parentNode.replaceChild(newScript, pending);
-            return;
+            window.__ttParentReportRoot = null;
+            runNext();
+          } catch (err) {
+            if (window.console && console.error) {
+              console.error('Parent report script activation error', err);
+            }
+            // Never abort the whole report because one script failed.
+            runNext();
           }
-          newScript.textContent = pending.textContent;
-          pending.parentNode.replaceChild(newScript, pending);
-          runNext();
         }
         whenChartReady(runNext);
       });
@@ -702,9 +743,16 @@
           target.setAttribute('data-loaded', '1');
           target.removeAttribute('data-loading');
           activatedReportIds[studentId] = false;
-          return activateAndResize(target, studentId);
+          // Activation/chart errors must NOT wipe the already-rendered report,
+          // so swallow them here (the report HTML stays visible either way).
+          return activateAndResize(target, studentId).catch(function (err) {
+            if (window.console && console.error) {
+              console.error('Report activation failed', err);
+            }
+          });
         })
         .catch(function () {
+          // Only reached when the fetch itself fails (network / non-2xx).
           target.removeAttribute('data-loading');
           target.innerHTML = '<p class="parent-empty-note mb-0">Could not load the assessment report. Please refresh and try again.</p>';
         });

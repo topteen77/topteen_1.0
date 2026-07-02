@@ -6,12 +6,14 @@
 {% endif %}
   (function () {
     const scriptEl = document.currentScript;
-    const root = (scriptEl && (
-      scriptEl.closest('.parent-inline-assessment-report')
-      || scriptEl.closest('.combined-report-page')
-      || scriptEl.closest('.parent-assessment-report-pane')
-      || scriptEl.closest('[data-report-student-id]')
-    )) || document;
+    const root = (window.__ttParentReportRoot)
+      || (scriptEl && (
+        scriptEl.closest('.parent-inline-assessment-report')
+        || scriptEl.closest('.combined-report-page')
+        || scriptEl.closest('.parent-assessment-report-pane')
+        || scriptEl.closest('[data-report-student-id]')
+      ))
+      || document;
     const byId = (id) => root.querySelector('#' + id);
     const qsa = (selector) => root.querySelectorAll(selector);
 

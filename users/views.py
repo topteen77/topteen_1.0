@@ -100,6 +100,7 @@ from .parent_student_insights import (
     build_student_dashboard_basic,
     build_student_insights,
     parent_assessment_report_empty_html,
+    parent_assessment_report_error_html,
     render_parent_assessment_report_html,
     resolve_parent_student_report_redirect,
     resolve_student_grade,
@@ -1045,33 +1046,76 @@ class ParentStudentPsychometricResultView(TemplateView):
         return redirect(url)
 
 
+# In-process cache for rendered parent report fragments. The build is expensive
+# (many DB queries), and the project deliberately uses DummyCache in dev so the
+# Django cache framework is a no-op there. This module-level TTL cache makes
+# repeat loads fast in every environment (per worker process); in production the
+# Django/Redis cache below still provides cross-process sharing.
+_PARENT_REPORT_HTML_CACHE: dict = {}
+_PARENT_REPORT_HTML_TTL_SECONDS = 900  # 15 minutes
+
+
 @method_decorator(login_required(login_url=reverse_lazy('parents_login')), name='dispatch')
 class ParentStudentAssessmentReportFragmentView(View):
     """Returns inline assessment report HTML for the parent dashboard (no iframe).
 
-    The report build is expensive (~10s), so the rendered HTML fragment is
-    cached per student. Pass ?refresh=1 to force a rebuild (e.g. right after a
-    student completes an assessment). In dev the cache backend is DummyCache,
-    so this is a no-op locally and only takes effect in production (Redis).
+    The report build is expensive, so the rendered HTML fragment is cached per
+    student (both in-process and via the Django cache backend). Pass ?refresh=1
+    to force a rebuild (e.g. right after a student completes an assessment).
     """
 
     CACHE_TTL_SECONDS = 900  # 15 minutes
-    CACHE_VERSION = "v1"
+    CACHE_VERSION = "v3"
 
     def get(self, request, student_id, *args, **kwargs):
+        import logging
+        import time
+
         from django.core.cache import cache
         from django.http import HttpResponse
+
+        logger = logging.getLogger(__name__)
 
         student = _get_parent_linked_student_or_404(request, student_id)
         cache_key = f"parent_report_html:{self.CACHE_VERSION}:{student.id}"
         force_refresh = (request.GET.get("refresh") or "").strip() == "1"
 
-        html = None if force_refresh else cache.get(cache_key)
+        if force_refresh:
+            _PARENT_REPORT_HTML_CACHE.pop(cache_key, None)
+
+        html = None
+        now = time.monotonic()
+
+        # 1) In-process cache (works even under DummyCache / without Redis).
+        if not force_refresh:
+            entry = _PARENT_REPORT_HTML_CACHE.get(cache_key)
+            if entry and (now - entry[0]) < _PARENT_REPORT_HTML_TTL_SECONDS:
+                html = entry[1]
+
+        # 2) Shared Django cache (Redis in production).
+        if html is None and not force_refresh:
+            html = cache.get(cache_key)
+
+        # 3) Build it.
         if html is None:
-            html = render_parent_assessment_report_html(request, student)
+            try:
+                html = render_parent_assessment_report_html(request, student)
+            except Exception:
+                logger.exception(
+                    "Failed to build parent assessment report for student %s", student.id
+                )
+                html = parent_assessment_report_error_html(student)
+                # Do not cache an error state; allow the next request to retry.
+                return HttpResponse(html)
+
             if not html:
                 html = parent_assessment_report_empty_html(student)
-            cache.set(cache_key, html, self.CACHE_TTL_SECONDS)
+
+            _PARENT_REPORT_HTML_CACHE[cache_key] = (now, html)
+            try:
+                cache.set(cache_key, html, self.CACHE_TTL_SECONDS)
+            except Exception:
+                pass
 
         return HttpResponse(html)
 

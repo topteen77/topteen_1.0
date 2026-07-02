@@ -733,6 +733,14 @@ def parent_assessment_report_empty_html(student) -> str:
     )
 
 
+def parent_assessment_report_error_html(student) -> str:
+    """Friendly message shown when the report build raises (logged server-side)."""
+    return (
+        '<p class="parent-empty-note mb-0">We could not build this assessment '
+        "report right now. Please try again in a moment.</p>"
+    )
+
+
 def build_parent_loan_form_students_payload(parent) -> List[Dict[str, Any]]:
     """Linked students plus shortlisted colleges/courses for the loan application form."""
     from users.models import ParentStudentLink

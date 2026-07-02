@@ -1173,7 +1173,7 @@
 
   .mapping-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 14px;
   }
 
@@ -1182,6 +1182,65 @@
     border-radius: 12px;
     padding: 14px;
     background: #fff;
+    min-width: 0;
+  }
+
+  .aptitude-analysis-title {
+    margin-bottom: 16px;
+  }
+
+  .aptitude-analysis-title::after {
+    content: '';
+    display: block;
+    width: 56px;
+    height: 3px;
+    margin: 8px auto 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #3f37c9 0%, #0ea5e9 100%);
+  }
+
+  .aptitude-analysis-grid .mapping-card h4 {
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  .aptitude-analysis-grid .mapping-card--above {
+    border-color: #bbf7d0;
+    background: linear-gradient(180deg, #f7fff9 0%, #ffffff 72%);
+  }
+
+  .aptitude-analysis-grid .mapping-card--above h4 {
+    color: #166534;
+  }
+
+  .aptitude-analysis-grid .mapping-card--average {
+    border-color: #bfdbfe;
+    background: linear-gradient(180deg, #f5f8ff 0%, #ffffff 72%);
+  }
+
+  .aptitude-analysis-grid .mapping-card--average h4 {
+    color: #1d4ed8;
+  }
+
+  .aptitude-analysis-grid .mapping-card--below {
+    border-color: #fecaca;
+    background: linear-gradient(180deg, #fff7f7 0%, #ffffff 72%);
+  }
+
+  .aptitude-analysis-grid .mapping-card--below h4 {
+    color: #b91c1c;
+  }
+
+  .aptitude-analysis-grid .list-grid {
+    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+    gap: 8px;
+  }
+
+  .aptitude-analysis-grid .list-item.aptitude-item {
+    min-height: 42px;
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1.35;
   }
 
   .mapping-card h4 {
@@ -1396,11 +1455,24 @@
     .career-dashboard-panel {
       grid-template-columns: 1fr;
     }
+
+    .mapping-grid,
+    .aptitude-analysis-grid {
+      grid-template-columns: 1fr;
+    }
   }
 
   @media (max-width: 1199px) {
     .test-list.timeline-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .mapping-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .aptitude-analysis-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
   }
 

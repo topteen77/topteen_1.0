@@ -698,11 +698,13 @@
       {% endif %}
         (function () {
           var scriptEl = document.currentScript;
-          var root = (scriptEl && (
-            scriptEl.closest('.parent-inline-psychometric-dashboard')
-            || scriptEl.closest('.psychometric-dashboard-page')
-            || scriptEl.closest('.parent-assessment-report-pane')
-          )) || document;
+          var root = (window.__ttParentReportRoot)
+            || (scriptEl && (
+              scriptEl.closest('.parent-inline-psychometric-dashboard')
+              || scriptEl.closest('.psychometric-dashboard-page')
+              || scriptEl.closest('.parent-assessment-report-pane')
+            ))
+            || document;
           function clampScore(raw) {
             var score = Number(raw);
             if (!Number.isFinite(score)) return 0;
