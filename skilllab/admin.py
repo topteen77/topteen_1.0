@@ -122,7 +122,9 @@ class SkillLabCourseAdmin(SkillLabAdminMixin, admin.ModelAdmin):
                 course_ids = [obj.pk for obj in cl.result_list if obj.pk]
                 counts = skilllab_course_student_counts_bulk(course_ids)
                 for obj in cl.result_list:
-                    obj._student_user_count = counts.get(obj.pk, 0)
+                    obj._student_user_counts = counts.get(
+                        obj.pk, {"active": 0, "deleted": 0}
+                    )
         except Exception:
             pass
         return response
@@ -151,13 +153,29 @@ class SkillLabCourseAdmin(SkillLabAdminMixin, admin.ModelAdmin):
     def users_link(self, obj):
         if not obj.pk:
             return "-"
-        count = getattr(obj, "_student_user_count", 0)
-        url = (
+        counts = getattr(obj, "_student_user_counts", {"active": 0, "deleted": 0})
+        active = counts.get("active", 0)
+        deleted = counts.get("deleted", 0)
+        base_url = (
             reverse("admin:skilllab_skilllabcourseprogresssummary_changelist")
             + f"?skilllab_course__id__exact={obj.pk}"
         )
-        if count:
-            return format_html('<a href="{}">{} Users</a>', url, count)
+        active_url = base_url + f"&object_status__exact={choices.ObjectStatus.ACTIVE}"
+        deleted_url = base_url + f"&object_status__exact={choices.ObjectStatus.DELETED}"
+
+        parts = []
+        if active:
+            parts.append(format_html('<a href="{}">{} Users</a>', active_url, active))
+        if deleted:
+            parts.append(
+                format_html(
+                    '<a href="{}" title="Soft-deleted — restore or hard delete">{} deleted</a>',
+                    deleted_url,
+                    deleted,
+                )
+            )
+        if parts:
+            return format_html(" · ".join(str(p) for p in parts))
         return format_html('<span style="color:#999;">0 Users</span>')
 
     users_link.short_description = "Users"
@@ -397,6 +415,7 @@ class SkillLabCourseProgressSummaryAdmin(SkillLabAdminMixin, admin.ModelAdmin):
     readonly_fields = ["progress_percentage", "completed_sections_count", "total_sections_count", "updated_at"]
     ordering = ["user", "-progress_percentage"]
     list_select_related = ["user", "skilllab_course"]
+    list_editable = ["object_status"]
 
 
 @admin.register(SkillLabCourseResume)

@@ -60,6 +60,9 @@ def session_settings_summary():
     """Human-readable session config for debugging/support."""
     age = getattr(settings, "SESSION_COOKIE_AGE", 0) or 0
     return {
+        "session_engine": getattr(settings, "SESSION_ENGINE", ""),
+        "session_cache_alias": getattr(settings, "SESSION_CACHE_ALIAS", ""),
+        "session_use_signed_cookies": getattr(settings, "SESSION_USE_SIGNED_COOKIES", False),
         "session_cookie_age_seconds": age,
         "session_cookie_age_days": round(age / 86400, 2) if age else 0,
         "default_login_session_age_seconds": DEFAULT_LOGIN_SESSION_AGE,
@@ -68,5 +71,7 @@ def session_settings_summary():
         "session_expire_at_browser_close": getattr(settings, "SESSION_EXPIRE_AT_BROWSER_CLOSE", False),
         "session_cookie_secure": getattr(settings, "SESSION_COOKIE_SECURE", False),
         "session_cookie_samesite": getattr(settings, "SESSION_COOKIE_SAMESITE", "Lax"),
+        "session_cookie_domain": getattr(settings, "SESSION_COOKIE_DOMAIN", None),
+        "session_cookie_name": getattr(settings, "SESSION_COOKIE_NAME", "sessionid"),
         "use_https": getattr(settings, "USE_HTTPS", False),
     }

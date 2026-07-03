@@ -192,6 +192,14 @@ SESSION_SAVE_EVERY_REQUEST = config('SESSION_SAVE_EVERY_REQUEST', default=True, 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = config('SESSION_EXPIRE_AT_BROWSER_CLOSE', default=False, cast=bool)
 SESSION_COOKIE_SAMESITE = config('SESSION_COOKIE_SAMESITE', default='Lax')
 SESSION_COOKIE_HTTPONLY = True
+# Share login across subdomains (e.g. .topteen.in for www + demo). Leave unset for localhost.
+SESSION_COOKIE_DOMAIN = config('SESSION_COOKIE_DOMAIN', default='') or None
+SESSION_COOKIE_NAME = config('SESSION_COOKIE_NAME', default='sessionid')
+CSRF_COOKIE_SAMESITE = config('CSRF_COOKIE_SAMESITE', default=SESSION_COOKIE_SAMESITE)
+_CSRF_COOKIE_DOMAIN = config('CSRF_COOKIE_DOMAIN', default=SESSION_COOKIE_DOMAIN or '')
+CSRF_COOKIE_DOMAIN = _CSRF_COOKIE_DOMAIN or None
+# JSON serializer avoids pickle issues across deploys; signed cookies use SECRET_KEY (HMAC).
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 DEFAULT_LOGIN_SESSION_AGE = SESSION_COOKIE_AGE
 REMEMBER_ME_SESSION_AGE = config('REMEMBER_ME_SESSION_AGE', default=2592000, cast=int)  # 30 days
 # When behind reverse proxy (nginx, etc.) that terminates SSL
@@ -634,6 +642,35 @@ else:
             'LOCATION': 'topteen-default',
         }
     }
+
+# Session storage uses a dedicated cache alias (never DummyCache — that would drop logins in DEBUG).
+_redis_host = config('REDIS_HOST', default='127.0.0.1') or '127.0.0.1'
+_redis_port = config('REDIS_PORT', default='6379') or '6379'
+SESSION_REDIS_DB = config('SESSION_REDIS_DB', default=2, cast=int)
+SESSION_CACHE_ALIAS = 'sessions'
+SESSION_USE_SIGNED_COOKIES = config('SESSION_USE_SIGNED_COOKIES', default=False, cast=bool)
+
+if ENABLE_REDIS:
+    CACHES['sessions'] = {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': f"redis://{_redis_host}:{_redis_port}/{SESSION_REDIS_DB}",
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'KEY_PREFIX': 'topteen_sess',
+        'TIMEOUT': SESSION_COOKIE_AGE,
+    }
+
+SESSION_ENGINE = (config('SESSION_ENGINE', default='') or '').strip()
+if not SESSION_ENGINE:
+    if SESSION_USE_SIGNED_COOKIES:
+        # Signed cookie backend: session data lives in the cookie (SECRET_KEY HMAC). Max ~4KB total.
+        SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+    elif ENABLE_REDIS:
+        # Redis cache + DB fallback: fast reads, survives Redis restarts, stable across workers.
+        SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+    else:
+        SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 # Celery broker: use Redis only when both Celery and Redis are enabled, else in-memory (no broker required)
 # Use explicit host so Kombu does not emit "No hostname was supplied. Reverting to default 'localhost'"

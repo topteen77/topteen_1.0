@@ -304,6 +304,18 @@ class TestLoginSessionExpiry(SimpleTestCase):
         self.assertTrue(settings.SESSION_SAVE_EVERY_REQUEST)
         self.assertFalse(settings.SESSION_EXPIRE_AT_BROWSER_CLOSE)
         self.assertGreaterEqual(settings.SESSION_COOKIE_AGE, DEFAULT_LOGIN_SESSION_AGE)
+        self.assertEqual(
+            settings.SESSION_SERIALIZER,
+            "django.contrib.sessions.serializers.JSONSerializer",
+        )
+        self.assertIn(
+            settings.SESSION_ENGINE,
+            (
+                "django.contrib.sessions.backends.db",
+                "django.contrib.sessions.backends.cached_db",
+                "django.contrib.sessions.backends.signed_cookies",
+            ),
+        )
 
     def test_login_user_with_session_applies_expiry_after_login(self):
         calls = []
