@@ -47,3 +47,11 @@
   {% endif %}
   {{ block.super }}
 {% endblock %}
+
+{% block footer %}
+{{ block.super }}
+{% load static %}
+{% include 'admin/course_mindmap/sidebar_help_modal.html' %}
+<link rel="stylesheet" href="{% static 'admin/css/course_mindmap_admin.css' %}">
+<script src="{% static 'admin/js/course_mindmap_sidebar_help.js' %}" defer></script>
+{% endblock %}

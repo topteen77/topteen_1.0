@@ -1,0 +1,35 @@
+{% extends "admin/change_list.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/course_mindmap_admin.css' %}">
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="{% static 'admin/js/course_mindmap_admin.js' %}" defer></script>
+{% endblock %}
+
+{% block content_title %}
+<div class="cmm-admin-header">
+  <h1>Course mindmap generations</h1>
+  {{ help_panel }}
+</div>
+{% endblock %}
+
+{% block object-tools-items %}
+<li>
+  <a href="{% url 'admin:course_mindmap_generate' %}" class="addlink">Generate mindmap</a>
+</li>
+{{ block.super }}
+{% endblock %}
+
+{% block result_list %}
+<p class="help" style="margin:0 0 12px;max-width:720px">
+  <strong>Dry run</strong> only: Action → Delete selected dry-run entries (preview logs, no live data).
+  <strong>Delete</strong> any row or use Action → <strong>Delete complete mindmap</strong> to remove data + config + all logs for that course.
+  <strong>Regenerate:</strong> Generate → same course → Run.
+</p>
+{{ block.super }}
+{% endblock %}

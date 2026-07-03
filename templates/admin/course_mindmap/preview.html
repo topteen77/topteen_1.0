@@ -1,0 +1,77 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/course_mindmap_admin.css' %}">
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="{% static 'admin/js/course_mindmap_admin.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="cmm-admin-wrap">
+  <div class="cmm-admin-header">
+    <h1>{{ title }}</h1>
+    {{ help_panel }}
+  </div>
+
+  <div class="module">
+    <h2>Generation summary</h2>
+    <table class="cmm-summary-table">
+      <tr><th>Status</th><td>{{ generation.get_status_display }}{% if generation.dry_run %} (dry run){% endif %}</td></tr>
+      <tr><th>Course type</th><td>{{ generation.course_type_key }}</td></tr>
+      <tr><th>Map type</th><td>{{ map_type }}</td></tr>
+      <tr><th>Scopes</th><td>{{ report.valid_total|default:0 }} / {{ report.total|default:0 }} valid</td></tr>
+      <tr><th>Counts</th><td>Course: {{ report.counts.course|default:0 }} · Chapters: {{ report.counts.chapter|default:0 }} · Sections: {{ report.counts.section|default:0 }}</td></tr>
+    </table>
+
+    {% if report.warnings %}
+    <h3>Warnings</h3>
+    <ul class="cmm-warnings">{% for w in report.warnings %}<li>{{ w }}</li>{% endfor %}</ul>
+    {% endif %}
+    {% if report.errors %}
+    <h3>Errors</h3>
+    <ul class="cmm-errors">{% for e in report.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+    {% endif %}
+  </div>
+
+  <div class="submit-row">
+    {% if can_verify %}
+    <a href="{% url 'admin:course_mindmap_verify' generation.pk %}" class="button default"
+       onclick="return confirm('Mark this mindmap as verified? Configuration will be unlocked.');">Mark as verified</a>
+    {% endif %}
+    {% if config and config.is_verified %}
+    <a href="{% url 'admin:course_mindmap_coursemindmapconfig_change' config.pk %}" class="button">Open configuration</a>
+    {% endif %}
+    <a href="{% url 'admin:course_mindmap_generate' %}?course_type_key={{ generation.course_type_key }}&course_id={{ generation.object_id }}" class="button">Regenerate</a>
+    <a href="{% url 'admin:course_mindmap_coursemindmapgeneration_changelist' %}" class="button cancel-link">Back to list</a>
+  </div>
+
+  <div class="module cmm-preview-module">
+    <h2>Scope previews</h2>
+    {% for item in preview_items %}
+    <details class="cmm-scope-panel" {% if forloop.first %}open{% endif %}>
+      <summary>
+        <span class="cmm-scope-label">{{ item.label }}</span>
+        <span class="cmm-scope-meta">({{ item.scope }}:{{ item.scope_id }})</span>
+        {% if item.is_valid %}<span class="cmm-ok">valid</span>{% else %}<span class="cmm-bad">invalid</span>{% endif %}
+      </summary>
+      {% if item.error %}<p class="cmm-errors">{{ item.error }}</p>{% endif %}
+      <div class="cmm-widget-wrap">
+        <iframe
+          class="cmm-preview-iframe"
+          title="Mindmap preview: {{ item.label }}"
+          src="{% url 'admin:course_mindmap_scope_frame' generation.pk %}?scope={{ item.scope }}&scope_id={{ item.scope_id }}&label={{ item.label|urlencode }}"
+          loading="lazy"
+        ></iframe>
+      </div>
+    </details>
+    {% empty %}
+    <p>No scopes in this generation.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

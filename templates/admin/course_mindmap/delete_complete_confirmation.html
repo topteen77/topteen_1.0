@@ -1,0 +1,14 @@
+{% extends "admin/delete_confirmation.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="messagewarning">
+  <p><strong>{% translate "Complete mindmap deletion" %}</strong></p>
+  <p>
+    {% blocktranslate %}
+    This will permanently remove <strong>all</strong> mindmap data, configuration, and generation logs for this course — not only the selected record.
+    {% endblocktranslate %}
+  </p>
+</div>
+{{ block.super }}
+{% endblock %}

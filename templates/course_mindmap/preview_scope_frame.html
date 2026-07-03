@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Mindmap preview — {{ scope_label }}</title>
+  <link rel="stylesheet" href="{{ static('counselor/classic-mindmap/classic-mindmap.css') }}">
+  <style>
+    body { margin: 0; padding: 8px; font-family: system-ui, sans-serif; background: #f8f9fa; }
+    h1 { font-size: 14px; margin: 0 0 8px; color: #333; }
+  </style>
+</head>
+<body>
+  <h1>{{ scope_label }}</h1>
+  {% include 'template20/counselor/includes/counselor_mindmap_widget.html' %}
+</body>
+</html>

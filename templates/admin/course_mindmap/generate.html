@@ -1,0 +1,53 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/course_mindmap_admin.css' %}">
+<link rel="stylesheet" href="{% static 'counselor/classic-mindmap/classic-mindmap.css' %}">
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="{% static 'admin/js/course_mindmap_admin.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="cmm-admin-wrap">
+  <div class="cmm-admin-header">
+    <h1>{{ title }}</h1>
+    {{ help_panel }}
+  </div>
+
+  <form method="post" class="cmm-generate-form">
+    {% csrf_token %}
+    <fieldset class="module aligned">
+      {% for field in form %}
+      <div class="form-row">
+        {{ field.errors }}
+        <div>
+          <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+          {{ field }}
+          {% if field.help_text %}<p class="help">{{ field.help_text }}</p>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </fieldset>
+
+    <div class="submit-row cmm-submit-row">
+      <button type="submit" name="action" value="dry_run" class="button">Dry Run</button>
+      <button type="submit" name="action" value="run" class="button default">Run (save to DB)</button>
+      <a href="{% url 'admin:course_mindmap_coursemindmapgeneration_changelist' %}" class="button cancel-link">Cancel</a>
+    </div>
+  </form>
+
+  <div class="module">
+    <h2>Quick guide</h2>
+    <ol>
+      <li><strong>Dry Run</strong> — builds mindmaps in memory and shows a preview report (no database writes).</li>
+      <li><strong>Run</strong> — persists JSON to <code>CourseMindmapData</code> for fast reads.</li>
+      <li>Open preview → verify → configure placements on the config page.</li>
+    </ol>
+  </div>
+</div>
+{% endblock %}

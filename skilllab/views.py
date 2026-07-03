@@ -590,6 +590,9 @@ class SkillLabCourseLearningView(TemplateView):
             title=skilllab_course.name,
             description=skilllab_course.description or skilllab_course.name
         )
+        from course_mindmap.frontend import build_skilllab_mindmap_context
+
+        ctx.update(build_skilllab_mindmap_context(request, skilllab_course))
         return ctx
 
     def get(self, request, course_slug, *args, **kwargs):
@@ -1120,6 +1123,19 @@ class SkillLabSectionContentView(View):
             if section:
                 ctx['chapter'] = section.chapter
                 ctx['content'] = section.content or ''
+                from course_mindmap.frontend import get_section_mindmap_for_content
+
+                mm = get_section_mindmap_for_content(request, skilllab_course, section.id)
+                active_tab = (request.GET.get('tab') or 'content').lower()
+                if mm:
+                    ctx['section_mindmap'] = mm
+                    ctx['section_id'] = section.id
+                    ctx['active_tab'] = 'mindmap' if active_tab == 'mindmap' else 'content'
+                    return render(
+                        request,
+                        'template20/skilllab/partials/section_intro_with_tabs.html',
+                        ctx,
+                    )
                 return render(request, 'template20/skilllab/partials/section_intro.html', ctx)
             # Fallback: legacy chapter.content with step param
             chapter = get_object_or_404(SkillLabCourseChapter, id=section_id, skilllab=skilllab_course)
@@ -1127,6 +1143,19 @@ class SkillLabSectionContentView(View):
             intro_parts = _split_content_by_headings(chapter.content or '')
             step_idx = max(0, min(int(step_str) if step_str.isdigit() else 0, len(intro_parts) - 1))
             ctx['content'] = intro_parts[step_idx][1] if intro_parts else ''
+            from course_mindmap.frontend import get_section_mindmap_for_content
+
+            mm = get_section_mindmap_for_content(request, skilllab_course, chapter.id)
+            active_tab = (request.GET.get('tab') or 'content').lower()
+            if mm:
+                ctx['section_mindmap'] = mm
+                ctx['section_id'] = chapter.id
+                ctx['active_tab'] = 'mindmap' if active_tab == 'mindmap' else 'content'
+                return render(
+                    request,
+                    'template20/skilllab/partials/section_intro_with_tabs.html',
+                    ctx,
+                )
             return render(request, 'template20/skilllab/partials/section_intro.html', ctx)
         elif section_type == 'worksheet':
             activity = get_object_or_404(SkillLabCourseActivity, id=section_id, skilllab_chapter__skilllab=skilllab_course)

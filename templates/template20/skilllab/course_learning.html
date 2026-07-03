@@ -23,7 +23,16 @@
 
       <div class="course-header-info">
         <p class="course-header-label">Skill Lab</p>
-        <h1 class="course-title" title="{{ skilllab_course.name }}">{{ skilllab_course.name }}</h1>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <h1 class="course-title mb-0" title="{{ skilllab_course.name }}">{{ skilllab_course.name }}</h1>
+          {% if course_mindmap_info %}
+          <a href="{{ course_mindmap_info.fullscreen_url }}" target="_blank" rel="noopener noreferrer"
+             class="skilllab-mindmap-icon-link" title="Course mindmap (opens in new tab)"
+             aria-label="Open course mindmap">
+            <i class='bx bx-git-branch'></i>
+          </a>
+          {% endif %}
+        </div>
       </div>
 
       <div class="course-header-actions">
@@ -642,6 +651,38 @@
   margin-top: 2px;
 }
 
+.skilllab-mindmap-icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  color: #5249DF;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.skilllab-mindmap-icon-link:hover {
+  background: rgba(82, 73, 223, 0.1);
+  color: #3f37c9;
+}
+.chapter-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+}
+.section-item-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.section-item-row .section-item {
+  flex: 1;
+  min-width: 0;
+}
+
 .section-item {
   padding: 0.65rem 0.85rem;
   margin: 0 0.45rem;
@@ -933,10 +974,20 @@
               {% for ch in chapters %}
               <div class="chapter-accordion-item {% if ch.id == current_chapter.id %}active{% endif %}" data-chapter-id="{{ ch.id }}">
                 <div class="chapter-accordion-header" role="button" tabindex="0" aria-expanded="{% if ch.id == current_chapter.id %}true{% else %}false{% endif %}">
-                  <h4 class="chapter-title">
-                    <span class="chapter-title-text">{{ ch.chapter_name }}</span>
-                    {% if chapter_progress.get(ch.id, false) %}<i class='bx bx-check-circle text-success' style="font-size: 1.25rem;"></i>{% endif %}{% if chapter_locked_status.get(ch.id, true) %}<i class='bx bx-lock d-none' style="font-size: 1.25rem; color: #999;"></i>{% endif %}<i class='bx bx-chevron-down chapter-chevron' style="font-size: 1.25rem; color: #5249DF;"></i>
-                  </h4>
+                  <div class="chapter-title-row">
+                    <h4 class="chapter-title mb-0">
+                      <span class="chapter-title-text">{{ ch.chapter_name }}</span>
+                      {% if chapter_progress.get(ch.id, false) %}<i class='bx bx-check-circle text-success' style="font-size: 1.25rem;"></i>{% endif %}{% if chapter_locked_status.get(ch.id, true) %}<i class='bx bx-lock d-none' style="font-size: 1.25rem; color: #999;"></i>{% endif %}<i class='bx bx-chevron-down chapter-chevron' style="font-size: 1.25rem; color: #5249DF;"></i>
+                    </h4>
+                    {% set ch_mm = chapter_mindmap_by_id.get(ch.id) if chapter_mindmap_by_id is defined else none %}
+                    {% if ch_mm and not chapter_locked_status.get(ch.id, true) %}
+                    <a href="{{ ch_mm.fullscreen_url }}" target="_blank" rel="noopener noreferrer"
+                       class="skilllab-mindmap-icon-link" title="Chapter mindmap"
+                       onclick="event.stopPropagation();" aria-label="Open chapter mindmap">
+                      <i class='bx bx-git-branch'></i>
+                    </a>
+                    {% endif %}
+                  </div>
                 </div>
                 <div class="chapter-accordion-content">
                   <ul class="chapter-sections">
@@ -948,6 +999,7 @@
                     {% set sec_id = sec.get('id') %}
                     {% set sec_step = sec.get('step', 0) %}
                     {% set is_completed = (is_intro and ('intro', sec_id, sec_step) in reached_sections) or (is_worksheet and sec_id in worksheet_progress_ids) or (is_mcq and sec_id in mcq_attempts_ids) %}
+                    {% set sec_mm = section_mindmap_by_id.get(sec_id) if (is_intro and section_mindmap_by_id is defined) else none %}
                     <li>
                       {% if is_locked %}
                       <span class="section-item locked d-flex align-items-center gap-2">
@@ -960,6 +1012,7 @@
                         <span class="section-item-lock-right"><i class='bx bx-lock' title="Locked"></i></span>
                       </span>
                       {% else %}
+                      <div class="section-item-row">
                       <a href="#" class="section-item load-section d-flex align-items-center gap-2 text-decoration-none {% if is_completed %}completed{% endif %}"
                          data-section-type="{{ sec.get('type') }}" data-section-id="{{ sec_id }}" data-chapter-id="{{ ch.id }}" data-section-step="{{ sec.get('step', 0) }}">
                         {% if sec.get('type') == 'intro' %}
@@ -970,6 +1023,14 @@
                         <span>{{ sec.get('short_title', sec.get('title')) }}</span>
                         {% if is_completed %}<span class="section-item-tick"><i class='bx bxs-badge-check fs-22' style="color:#11b377;"></i></span>{% endif %}
                       </a>
+                      {% if sec_mm %}
+                      <a href="{{ sec_mm.fullscreen_url }}" target="_blank" rel="noopener noreferrer"
+                         class="skilllab-mindmap-icon-link" title="Section mindmap"
+                         aria-label="Open section mindmap">
+                        <i class='bx bx-git-branch'></i>
+                      </a>
+                      {% endif %}
+                      </div>
                       {% endif %}
                     </li>
                     {% endfor %}
@@ -1331,6 +1392,8 @@
     if (titleEl) titleEl.textContent = title;
     var url = sectionContentUrl + '?section_type=' + encodeURIComponent(sectionType) + '&section_id=' + sectionId + '&course_slug=' + encodeURIComponent(courseSlug);
     if (sectionType === 'intro' && step !== undefined) url += '&step=' + step;
+    var tabParam = new URLSearchParams(window.location.search).get('tab');
+    if (tabParam) url += '&tab=' + encodeURIComponent(tabParam);
     fetch(url, { credentials: 'same-origin' })
       .then(function(r) { return r.text(); })
       .then(function(html) {
@@ -1441,6 +1504,29 @@
 
   function initSectionHandlers(container) {
     if (!container) return;
+    var mindmapTab = container.querySelector('#sl-mindmap-tab');
+    var contentTab = container.querySelector('#sl-content-tab');
+    var mindmapFrame = container.querySelector('.sl-mindmap-frame');
+    function loadMindmapFrame() {
+      if (!mindmapFrame) return;
+      var src = mindmapFrame.getAttribute('data-src');
+      if (src && !mindmapFrame.getAttribute('src')) mindmapFrame.setAttribute('src', src);
+    }
+    function setTabParam(tab) {
+      var u = new URL(window.location.href);
+      if (tab === 'mindmap') u.searchParams.set('tab', 'mindmap');
+      else u.searchParams.delete('tab');
+      window.history.replaceState({}, '', u);
+    }
+    if (mindmapTab) {
+      mindmapTab.addEventListener('shown.bs.tab', function () { setTabParam('mindmap'); loadMindmapFrame(); });
+    }
+    if (contentTab) {
+      contentTab.addEventListener('shown.bs.tab', function () { setTabParam('content'); });
+    }
+    // If the Mindmap tab is already active on load (e.g. ?tab=mindmap), load the iframe now.
+    var mmPane = container.querySelector('#sl-mindmap-pane');
+    if (mmPane && mmPane.classList.contains('active')) loadMindmapFrame();
     container.querySelectorAll('.section-worksheet[data-downloaded="true"] .btn-download-worksheet').forEach(function(btn) {
       btn.outerHTML = '<span class="text-success"><i class="bx bx-check-circle"></i> Downloaded</span>';
     });

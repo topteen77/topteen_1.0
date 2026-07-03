@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     'institute',
     'app',
     'counselor',
+    'course_mindmap',
     'nested_admin',
     'analytics_dashboard',
     'app_post_matric',

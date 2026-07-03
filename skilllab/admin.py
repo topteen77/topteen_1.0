@@ -106,12 +106,13 @@ class SkillLabCourseAdmin(SkillLabAdminMixin, admin.ModelAdmin):
     search_fields = ["name"]
     list_editable = ["object_status"]
     filter_horizontal = ["grades"]
-    readonly_fields = ["related_content_links"]
+    readonly_fields = ["related_content_links", "mindmap_admin_link"]
     fieldsets = (
         (None, {"fields": ("name", "slug", "category", "amount", "image", "video_url", "object_status")}),
         ("Catalog filters (class & topic)", {"fields": ("grades", "topic_category")}),
         ("Course Introduction (tab content)", {"fields": ("course_intro_html",)}),
         ("Course Index (tab content)", {"fields": ("course_index_html",)}),
+        ("Mindmap", {"fields": ("mindmap_admin_link",)}),
         ("Related content", {"fields": ("related_content_links",)}),
     )
 
@@ -122,6 +123,24 @@ class SkillLabCourseAdmin(SkillLabAdminMixin, admin.ModelAdmin):
         return ", ".join(labels) if labels else "-"
 
     grades_display.short_description = "Classes"
+
+    def mindmap_admin_link(self, obj):
+        if not obj.pk:
+            return "-"
+        from course_mindmap.constants import COURSE_TYPE_SKILLLAB
+
+        url = (
+            reverse("admin:course_mindmap_generate")
+            + f"?course_type_key={COURSE_TYPE_SKILLLAB}&course_id={obj.pk}"
+        )
+        config_url = reverse("admin:course_mindmap_coursemindmapconfig_changelist")
+        return format_html(
+            '<a href="{}">Generate / preview mindmap</a> · <a href="{}">All mindmap configs</a>',
+            url,
+            config_url,
+        )
+
+    mindmap_admin_link.short_description = "Course mindmap"
 
     def chapters_link(self, obj):
         if not obj.pk:

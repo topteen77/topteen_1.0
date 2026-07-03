@@ -1,0 +1,15 @@
+{% extends "admin/delete_selected_confirmation.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="messagewarning">
+  <p><strong>{% translate "Complete mindmap deletion" %}</strong></p>
+  <p>
+    {% blocktranslate %}
+    This will permanently remove <strong>all</strong> mindmap data, configuration, and generation logs for each affected course — not only the selected row(s).
+    {% endblocktranslate %}
+  </p>
+  <p>{% translate "Tip: use “Delete selected dry-run entries” to remove preview logs only without touching live mindmap data." %}</p>
+</div>
+{{ block.super }}
+{% endblock %}

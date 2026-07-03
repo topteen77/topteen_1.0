@@ -1,0 +1,293 @@
+/* Course mindmap admin UI */
+.cmm-admin-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.cmm-info-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #417690;
+  background: #79aec8;
+  color: #fff;
+  font-weight: bold;
+  font-size: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.cmm-info-btn:hover,
+.cmm-info-btn[aria-expanded="true"] {
+  background: #417690;
+}
+
+.cmm-help-panel {
+  flex: 1 1 100%;
+  max-width: 720px;
+  background: #fffff8;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.cmm-help-panel h3 {
+  margin: 12px 0 6px;
+  font-size: 14px;
+}
+
+.cmm-help-panel ol {
+  margin: 0 0 8px 18px;
+}
+
+.cmm-debug-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.cmm-debug-list li {
+  margin-bottom: 10px;
+}
+
+.cmm-debug-cmd {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  padding: 8px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 4px 0 0;
+}
+
+.cmm-submit-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.cmm-summary-table th {
+  text-align: left;
+  padding-right: 16px;
+  vertical-align: top;
+  width: 140px;
+}
+
+.cmm-scope-panel {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: #fff;
+}
+
+.cmm-scope-panel summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 4px 0;
+}
+
+.cmm-scope-meta {
+  color: #666;
+  font-weight: normal;
+  font-size: 12px;
+  margin-left: 6px;
+}
+
+.cmm-ok {
+  color: #198754;
+  font-size: 11px;
+  margin-left: 8px;
+}
+
+.cmm-bad {
+  color: #dc3545;
+  font-size: 11px;
+  margin-left: 8px;
+}
+
+.cmm-warnings {
+  color: #856404;
+}
+
+.cmm-errors {
+  color: #dc3545;
+}
+
+.cmm-preview-iframe {
+  width: 100%;
+  min-height: 360px;
+  height: 420px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.cmm-widget-wrap {
+  margin-top: 8px;
+}
+
+.cmm-preview-module h2 {
+  margin-top: 24px;
+}
+
+/* Sidebar info button (Course Mindmaps app caption) */
+#nav-sidebar .app-course_mindmap table caption {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.cmm-sidebar-info-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-weight: bold;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  vertical-align: middle;
+}
+
+.cmm-sidebar-info-btn:hover,
+.cmm-sidebar-info-btn:focus {
+  background: #fff;
+  color: #417690;
+  outline: none;
+}
+
+/* Also show on dashboard app list (main content) */
+#content-main .app-course_mindmap table caption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#content-main .cmm-sidebar-info-btn {
+  border-color: #417690;
+  background: #79aec8;
+  color: #fff;
+}
+
+/* Sidebar help modal */
+.cmm-sidebar-help-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.cmm-sidebar-help-modal[hidden] {
+  display: none !important;
+}
+
+.cmm-sidebar-help-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.cmm-sidebar-help-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(640px, 100%);
+  max-height: min(85vh, 720px);
+  display: flex;
+  flex-direction: column;
+  background: var(--body-bg, #fff);
+  color: var(--body-fg, #333);
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.cmm-sidebar-help-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--hairline-color, #ddd);
+  background: var(--darkened-bg, #f8f8f8);
+}
+
+.cmm-sidebar-help-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.cmm-sidebar-help-close {
+  border: none;
+  background: transparent;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  color: inherit;
+  padding: 0 4px;
+}
+
+.cmm-sidebar-help-body {
+  overflow-y: auto;
+  padding: 16px 18px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.cmm-help-intro {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  background: var(--darkened-bg, #f0f4f8);
+  border-radius: 6px;
+}
+
+.cmm-help-section {
+  margin-bottom: 18px;
+}
+
+.cmm-help-section h4 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: var(--body-quiet-color, #666);
+  text-transform: none;
+}
+
+.cmm-help-section ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.cmm-help-section ol li {
+  margin-bottom: 6px;
+}
+
+.cmm-sidebar-help-footer {
+  padding: 12px 18px;
+  border-top: 1px solid var(--hairline-color, #ddd);
+  text-align: right;
+  background: var(--darkened-bg, #f8f8f8);
+}
+
+body.cmm-help-modal-open {
+  overflow: hidden;
+}

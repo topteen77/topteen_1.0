@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mindmap</title>
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ static('css_new/bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ static('counselor/classic-mindmap/classic-mindmap.css') }}">
+  <style>
+    html, body { margin: 0; height: 100%; background: #fff; }
+    .sl-embed-wrap { padding: 8px; height: 100vh; box-sizing: border-box; }
+    .sl-embed-wrap .counselor-mindmap-widget { height: 100%; margin: 0 !important; border: 0 !important; }
+    .sl-embed-wrap .counselor-mm-host {
+      height: calc(100vh - 20px) !important;
+      min-height: 320px !important;
+    }
+    .sl-embed-wrap .counselor-mindmap-svg {
+      min-height: 0 !important;
+      height: 100% !important;
+      width: 100% !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="sl-embed-wrap">
+    {% set widget_id = 'sl-embed' %}
+    {% set fullscreen_url = none %}
+    {% set mindmap_map_type = mindmap_map_type|default('classic_vertical', true) %}
+    {% include 'template20/counselor/includes/counselor_mindmap_widget.html' %}
+  </div>
+</body>
+</html>

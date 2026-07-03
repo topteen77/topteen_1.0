@@ -147,6 +147,14 @@ class WebsiteSettingsForm(forms.Form):
             '(curriculum course map, learning sidebar icons, full-page views, part Mindmap tab). When disabled, all of these are hidden.'
         ),
     )
+    ENABLE_COURSE_MINDMAP = forms.BooleanField(
+        required=False,
+        label='Enable SkillLab / course mindmaps',
+        help_text=(
+            'When enabled, verified course mindmaps appear in the SkillLab player (title, sidebar, content tab) '
+            'for courses configured in Course mindmap configurations. When disabled, all student-facing course mindmaps are hidden.'
+        ),
+    )
     DEFAULT_MINDMAP_TYPE = forms.ChoiceField(
         choices=MINDMAP_TYPE_CHOICES,
         required=True,
@@ -554,6 +562,12 @@ class ConfigurationAdmin(admin.ModelAdmin):
                 config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
                 config.value = val
                 config.save()
+                # ENABLE_COURSE_MINDMAP
+                key = 'ENABLE_COURSE_MINDMAP'
+                val = 'true' if form.cleaned_data.get(key, False) else 'false'
+                config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
+                config.value = val
+                config.save()
                 # DEFAULT_MINDMAP_TYPE
                 key = 'DEFAULT_MINDMAP_TYPE'
                 val = coerce_default_mindmap_type((form.cleaned_data.get(key) or '6').strip() or '6')
@@ -622,6 +636,7 @@ class ConfigurationAdmin(admin.ModelAdmin):
             form = WebsiteSettingsForm(initial={
                 'ENABLE_CAREER_MINDMAP': _config_bool('ENABLE_CAREER_MINDMAP'),
                 'ENABLE_COUNSELOR_COURSE_MINDMAP': _config_bool('ENABLE_COUNSELOR_COURSE_MINDMAP'),
+                'ENABLE_COURSE_MINDMAP': _config_bool('ENABLE_COURSE_MINDMAP'),
                 'DEFAULT_MINDMAP_TYPE': default_type,
                 'DEFAULT_course_MINDMAP_TYPE': default_course_mm,
                 'CHATBOT_DEFAULT_MODE': Configuration.get('CHATBOT_DEFAULT_MODE', 'default', editable=True) or 'default',

@@ -1,0 +1,16 @@
+{% load course_mindmap_admin %}
+<div id="cmm-sidebar-help-modal" class="cmm-sidebar-help-modal" role="dialog" aria-modal="true" aria-labelledby="cmm-sidebar-help-title" hidden>
+  <div class="cmm-sidebar-help-backdrop" data-cmm-help-close tabindex="-1"></div>
+  <div class="cmm-sidebar-help-dialog">
+    <header class="cmm-sidebar-help-header">
+      <h2 id="cmm-sidebar-help-title">Course mindmap guide</h2>
+      <button type="button" class="cmm-sidebar-help-close" data-cmm-help-close aria-label="Close help">&times;</button>
+    </header>
+    <div class="cmm-sidebar-help-body">
+      {% course_mindmap_sidebar_help_body %}
+    </div>
+    <footer class="cmm-sidebar-help-footer">
+      <button type="button" class="button" data-cmm-help-close>Close</button>
+    </footer>
+  </div>
+</div>

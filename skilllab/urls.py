@@ -1,5 +1,12 @@
 from django.urls import path,include
 from . import views
+from .mindmap_views import (
+    SkillLabChapterMindmapFullscreenView,
+    SkillLabCourseMindmapFullscreenView,
+    SkillLabMindmapJsonView,
+    SkillLabSectionMindmapEmbedView,
+    SkillLabSectionMindmapFullscreenView,
+)
 
 app_name = "skilllabcourse"
 urlpatterns = [
@@ -8,6 +15,31 @@ urlpatterns = [
     path("international-online-courses/", views.InternationalOnlineCourseList.as_view(), name="internationalonlinecourses"),
     path("skilllabcoursedetail/<slug:skilllab_slug>/",views.SkillLabCourseDetail.as_view(),name="skilllabcoursedetail"),
     path("course_learning/<slug:course_slug>/",views.SkillLabCourseLearningView.as_view(),name="course_learning"),
+    path(
+        "course_learning/<slug:course_slug>/mindmap/json/<int:data_id>/",
+        SkillLabMindmapJsonView.as_view(),
+        name="mindmap_json",
+    ),
+    path(
+        "course_learning/<slug:course_slug>/mindmap/course/",
+        SkillLabCourseMindmapFullscreenView.as_view(),
+        name="mindmap_course",
+    ),
+    path(
+        "course_learning/<slug:course_slug>/mindmap/chapter/<int:chapter_id>/",
+        SkillLabChapterMindmapFullscreenView.as_view(),
+        name="mindmap_chapter",
+    ),
+    path(
+        "course_learning/<slug:course_slug>/mindmap/section/<int:section_id>/",
+        SkillLabSectionMindmapFullscreenView.as_view(),
+        name="mindmap_section",
+    ),
+    path(
+        "course_learning/<slug:course_slug>/mindmap/section/<int:section_id>/embed/",
+        SkillLabSectionMindmapEmbedView.as_view(),
+        name="mindmap_section_embed",
+    ),
     path("save-resume/", views.SkillLabSaveResumeView.as_view(), name="save_resume"),
     path("mark-chapter-complete/",views.SkillLabMarkChapterCompleteView.as_view(),name="mark_chapter_complete"),
     path("section-content/",views.SkillLabSectionContentView.as_view(),name="section_content"),
