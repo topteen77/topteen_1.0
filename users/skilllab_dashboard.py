@@ -308,3 +308,290 @@ def skilllab_student_status(user, course) -> Dict[str, Any]:
         "certificate_url": skilllab_course_certificate_url(course) if completed else "",
         "detail_url": skilllab_course_detail_url(course),
     }
+
+
+def skilllab_course_student_user_ids(course_id: int) -> Set[int]:
+    """Distinct user IDs with any learning or payment data for a Skill Lab course."""
+    from skilllab.models import (
+        SkillLabCourseProgress,
+        SkillLabCourseProgressSummary,
+        SkillLabCourseResume,
+        SkillLabMCQAttempt,
+        SkillLabUserBookmark,
+        SkillLabUserHighlight,
+        SkillLabUserNote,
+        SkillLabWorksheetProgress,
+        SkilllabCoursePayment,
+    )
+
+    user_ids: Set[int] = set()
+    user_ids.update(
+        SkillLabCourseProgressSummary.objects.complete()
+        .filter(skilllab_course_id=course_id)
+        .values_list("user_id", flat=True)
+    )
+    user_ids.update(
+        SkillLabCourseResume.objects.complete()
+        .filter(skilllab_course_id=course_id)
+        .values_list("user_id", flat=True)
+    )
+    user_ids.update(
+        SkillLabCourseProgress.objects.complete()
+        .filter(skilllab_course_id=course_id)
+        .values_list("user_id", flat=True)
+    )
+    user_ids.update(
+        SkillLabUserHighlight.objects.complete()
+        .filter(skilllab_course_id=course_id)
+        .values_list("user_id", flat=True)
+    )
+    user_ids.update(
+        SkillLabUserNote.objects.complete()
+        .filter(skilllab_course_id=course_id)
+        .values_list("user_id", flat=True)
+    )
+    user_ids.update(
+        SkillLabUserBookmark.objects.complete()
+        .filter(skilllab_course_id=course_id)
+        .values_list("user_id", flat=True)
+    )
+    user_ids.update(
+        SkilllabCoursePayment.objects.complete()
+        .filter(skilllab_course_id=course_id)
+        .values_list("user_id", flat=True)
+    )
+    user_ids.update(
+        SkillLabWorksheetProgress.objects.complete()
+        .filter(activity__skilllab_chapter__skilllab_id=course_id)
+        .values_list("user_id", flat=True)
+    )
+    user_ids.update(
+        SkillLabMCQAttempt.objects.complete()
+        .filter(mcq__skilllab_chapter__skilllab_id=course_id)
+        .values_list("user_id", flat=True)
+    )
+    return {uid for uid in user_ids if uid}
+
+
+def skilllab_course_student_counts_bulk(course_ids: List[int]) -> Dict[int, int]:
+    """Return {course_id: distinct_student_count} for admin list display."""
+    from collections import defaultdict
+
+    from skilllab.models import (
+        SkillLabCourseProgress,
+        SkillLabCourseProgressSummary,
+        SkillLabCourseResume,
+        SkillLabMCQAttempt,
+        SkillLabUserBookmark,
+        SkillLabUserHighlight,
+        SkillLabUserNote,
+        SkillLabWorksheetProgress,
+        SkilllabCoursePayment,
+    )
+
+    if not course_ids:
+        return {}
+
+    by_course: Dict[int, Set[int]] = defaultdict(set)
+    id_set = set(course_ids)
+
+    def _add_pairs(rows):
+        for course_id, user_id in rows:
+            if course_id in id_set and user_id:
+                by_course[course_id].add(user_id)
+
+    _add_pairs(
+        SkillLabCourseProgressSummary.objects.complete()
+        .filter(skilllab_course_id__in=id_set)
+        .values_list("skilllab_course_id", "user_id")
+    )
+    _add_pairs(
+        SkillLabCourseResume.objects.complete()
+        .filter(skilllab_course_id__in=id_set)
+        .values_list("skilllab_course_id", "user_id")
+    )
+    _add_pairs(
+        SkillLabCourseProgress.objects.complete()
+        .filter(skilllab_course_id__in=id_set)
+        .values_list("skilllab_course_id", "user_id")
+    )
+    _add_pairs(
+        SkillLabUserHighlight.objects.complete()
+        .filter(skilllab_course_id__in=id_set)
+        .values_list("skilllab_course_id", "user_id")
+    )
+    _add_pairs(
+        SkillLabUserNote.objects.complete()
+        .filter(skilllab_course_id__in=id_set)
+        .values_list("skilllab_course_id", "user_id")
+    )
+    _add_pairs(
+        SkillLabUserBookmark.objects.complete()
+        .filter(skilllab_course_id__in=id_set)
+        .values_list("skilllab_course_id", "user_id")
+    )
+    _add_pairs(
+        SkilllabCoursePayment.objects.complete()
+        .filter(skilllab_course_id__in=id_set)
+        .values_list("skilllab_course_id", "user_id")
+    )
+    _add_pairs(
+        SkillLabWorksheetProgress.objects.complete()
+        .filter(activity__skilllab_chapter__skilllab_id__in=id_set)
+        .values_list("activity__skilllab_chapter__skilllab_id", "user_id")
+    )
+    _add_pairs(
+        SkillLabMCQAttempt.objects.complete()
+        .filter(mcq__skilllab_chapter__skilllab_id__in=id_set)
+        .values_list("mcq__skilllab_chapter__skilllab_id", "user_id")
+    )
+
+    return {cid: len(by_course.get(cid, set())) for cid in course_ids}
+
+
+def skilllab_course_student_user_ids(course_id: int) -> Set[int]:
+    """Distinct user IDs with any learning or payment data for a Skill Lab course."""
+    from skilllab.models import (
+        SkillLabCourseProgress,
+        SkillLabCourseProgressSummary,
+        SkillLabCourseResume,
+        SkillLabMCQAttempt,
+        SkillLabUserBookmark,
+        SkillLabUserHighlight,
+        SkillLabUserNote,
+        SkillLabWorksheetProgress,
+        SkilllabCoursePayment,
+    )
+
+    user_ids: Set[int] = set()
+    user_ids.update(
+        SkillLabCourseProgressSummary.objects.complete()
+        .filter(skilllab_course_id=course_id)
+        .values_list("user_id", flat=True)
+    )
+    user_ids.update(
+        SkillLabCourseResume.objects.complete()
+        .filter(skilllab_course_id=course_id)
+        .values_list("user_id", flat=True)
+    )
+    user_ids.update(
+        SkillLabCourseProgress.objects.complete()
+        .filter(skilllab_course_id=course_id)
+        .values_list("user_id", flat=True)
+    )
+    user_ids.update(
+        SkillLabUserHighlight.objects.complete()
+        .filter(skilllab_course_id=course_id)
+        .values_list("user_id", flat=True)
+    )
+    user_ids.update(
+        SkillLabUserNote.objects.complete()
+        .filter(skilllab_course_id=course_id)
+        .values_list("user_id", flat=True)
+    )
+    user_ids.update(
+        SkillLabUserBookmark.objects.complete()
+        .filter(skilllab_course_id=course_id)
+        .values_list("user_id", flat=True)
+    )
+    user_ids.update(
+        SkilllabCoursePayment.objects.complete()
+        .filter(skilllab_course_id=course_id)
+        .values_list("user_id", flat=True)
+    )
+    user_ids.update(
+        SkillLabWorksheetProgress.objects.complete()
+        .filter(activity__skilllab_chapter__skilllab_id=course_id)
+        .values_list("user_id", flat=True)
+    )
+    user_ids.update(
+        SkillLabMCQAttempt.objects.complete()
+        .filter(mcq__skilllab_chapter__skilllab_id=course_id)
+        .values_list("user_id", flat=True)
+    )
+    return {uid for uid in user_ids if uid}
+
+
+def skilllab_course_student_counts_bulk(course_ids: List[int]) -> Dict[int, int]:
+    """Return {course_id: distinct_student_count} for admin list display."""
+    from collections import defaultdict
+
+    from skilllab.models import (
+        SkillLabCourseProgress,
+        SkillLabCourseProgressSummary,
+        SkillLabCourseResume,
+        SkillLabMCQAttempt,
+        SkillLabUserBookmark,
+        SkillLabUserHighlight,
+        SkillLabUserNote,
+        SkillLabWorksheetProgress,
+        SkilllabCoursePayment,
+    )
+
+    if not course_ids:
+        return {}
+
+    by_course: Dict[int, Set[int]] = defaultdict(set)
+    id_set = set(course_ids)
+
+    def _add_pairs(qs, course_field: str):
+        for course_id, user_id in qs:
+            if course_id in id_set and user_id:
+                by_course[course_id].add(user_id)
+
+    _add_pairs(
+        SkillLabCourseProgressSummary.objects.complete()
+        .filter(skilllab_course_id__in=id_set)
+        .values_list("skilllab_course_id", "user_id"),
+        "skilllab_course_id",
+    )
+    _add_pairs(
+        SkillLabCourseResume.objects.complete()
+        .filter(skilllab_course_id__in=id_set)
+        .values_list("skilllab_course_id", "user_id"),
+        "skilllab_course_id",
+    )
+    _add_pairs(
+        SkillLabCourseProgress.objects.complete()
+        .filter(skilllab_course_id__in=id_set)
+        .values_list("skilllab_course_id", "user_id"),
+        "skilllab_course_id",
+    )
+    _add_pairs(
+        SkillLabUserHighlight.objects.complete()
+        .filter(skilllab_course_id__in=id_set)
+        .values_list("skilllab_course_id", "user_id"),
+        "skilllab_course_id",
+    )
+    _add_pairs(
+        SkillLabUserNote.objects.complete()
+        .filter(skilllab_course_id__in=id_set)
+        .values_list("skilllab_course_id", "user_id"),
+        "skilllab_course_id",
+    )
+    _add_pairs(
+        SkillLabUserBookmark.objects.complete()
+        .filter(skilllab_course_id__in=id_set)
+        .values_list("skilllab_course_id", "user_id"),
+        "skilllab_course_id",
+    )
+    _add_pairs(
+        SkilllabCoursePayment.objects.complete()
+        .filter(skilllab_course_id__in=id_set)
+        .values_list("skilllab_course_id", "user_id"),
+        "skilllab_course_id",
+    )
+    _add_pairs(
+        SkillLabWorksheetProgress.objects.complete()
+        .filter(activity__skilllab_chapter__skilllab_id__in=id_set)
+        .values_list("activity__skilllab_chapter__skilllab_id", "user_id"),
+        "skilllab_course_id",
+    )
+    _add_pairs(
+        SkillLabMCQAttempt.objects.complete()
+        .filter(mcq__skilllab_chapter__skilllab_id__in=id_set)
+        .values_list("mcq__skilllab_chapter__skilllab_id", "user_id"),
+        "skilllab_course_id",
+    )
+
+    return {cid: len(by_course.get(cid, set())) for cid in course_ids}
