@@ -696,6 +696,40 @@
     object-fit: contain;
   }
 
+  .user-dashboard .dashboard-enrolled-progress {
+    margin-top: 8px;
+  }
+
+  .user-dashboard .dashboard-enrolled-progress-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    color: #6b7280;
+    margin-bottom: 4px;
+  }
+
+  .user-dashboard .dashboard-enrolled-progress-track {
+    height: 6px;
+    border-radius: 999px;
+    background: #e8ecf8;
+    overflow: hidden;
+  }
+
+  .user-dashboard .dashboard-enrolled-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #403fa6 0%, #1ba883 100%);
+    transition: width 0.25s ease;
+  }
+
+  .user-dashboard .dashboard-enrolled-action.is-complete {
+    pointer-events: none;
+    background: #10b981 !important;
+    border-color: #10b981 !important;
+    color: #fff !important;
+  }
+
   @media (max-width: 1199.98px) {
     .user-dashboard .dashboard-enrolled-card {
       flex-direction: column !important;
@@ -1160,12 +1194,31 @@
                     {% if item.result_subline %}
                     <p class="text-gray fs-10 mb-0 mt-1 dashboard-enrolled-result-sub" style="line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;" title="{{ item.result_subline }}">{{ item.result_subline }}</p>
                     {% endif %}
+                    {% if item.kind == 'skilllab' and item.progress_pct is defined and not item.hide_progress %}
+                    <div class="dashboard-enrolled-progress">
+                      <div class="dashboard-enrolled-progress-head">
+                        <span>Course progress</span>
+                        <strong>{{ item.progress_pct|default(0) }}%</strong>
+                      </div>
+                      <div class="dashboard-enrolled-progress-track" role="progressbar"
+                        aria-valuenow="{{ item.progress_pct|default(0) }}" aria-valuemin="0" aria-valuemax="100">
+                        <div class="dashboard-enrolled-progress-fill" style="width: {{ item.progress_pct|default(0) }}%;"></div>
+                      </div>
+                    </div>
+                    {% endif %}
                   </div>
                 </div>
+                {% if item.is_complete %}
+                <a href="{{ item.certificate_url or item.start_url }}"
+                  class="btn btn-sm custom-button dashboard-enrolled-action blue-button px-3">
+                  Completed
+                </a>
+                {% else %}
                 <a href="{{ item.start_url }}"
                   class="btn btn-sm custom-button dashboard-enrolled-action {% if item.action_variant == 'report' %}blue-button{% else %}purple-button{% endif %} px-3">
                   {{ item.action_label|default('Start') }}
                 </a>
+                {% endif %}
               </div>
             </div>
             {% endfor %}

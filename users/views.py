@@ -800,11 +800,27 @@ class ParentsDashboardView(TemplateView):
             for s in students
         ]
 
+        course_suggestions_by_student = {}
+        try:
+            from users.parent_courses_catalog import (
+                _student_payload,
+                build_parent_skilllab_suggestions,
+            )
+
+            student_payloads = [_student_payload(s) for s in students]
+            student_users_by_id = {int(s.id): s for s in students if getattr(s, "id", None)}
+            course_suggestions_by_student = build_parent_skilllab_suggestions(
+                student_payloads, student_users_by_id, preview_limit=4
+            )
+        except Exception:
+            pass
+
         ctx = {
             "linked_students": students,
             "psychometric_students": psychometric_students,
             "selected_student": selected_student,
             "students_dashboard_payload_json": mark_safe(json.dumps(students_dashboard_payload)),
+            "course_suggestions_json": mark_safe(json.dumps(course_suggestions_by_student)),
             "selected_student_id": selected_student_id,
             "student_assessment_reports": student_assessment_reports,
         }
@@ -3704,35 +3720,14 @@ class UserDashboard(TemplateView):
         except Exception:
             pass
 
-        # Dashboard: enrolled Skill Lab courses + psychometric test (start links)
+        # Dashboard: College & Career Readiness (Skill Lab) + psychometric + MI/EQ
         ctx["dashboard_enrolled_items"] = []
         try:
-            payments_sl = SkilllabCoursePayment.objects.filter(
-                user=profile_user,
-                is_success=choices.YesNoChoices.YES,
-                skilllab_course__isnull=False,
-            ).select_related("skilllab_course").order_by("-created")
-            seen_slugs = set()
-            for p in payments_sl:
-                c = p.skilllab_course
-                if not c or not getattr(c, "slug", None) or c.slug in seen_slugs:
-                    continue
-                seen_slugs.add(c.slug)
-                sl_started = c.user_has_started(profile_user)
-                ctx["dashboard_enrolled_items"].append(
-                    {
-                        "kind": "skilllab",
-                        "title": c.name,
-                        "subtitle": "Skill Lab",
-                        "start_url": reverse(
-                            "skilllabcourse:course_learning", args=[c.slug]
-                        ),
-                        "action_label": "Resume" if sl_started else "Start",
-                        "action_variant": "start",
-                        "icon_src": "images_new/icons/skill-labs-cion.png",
-                        "icon_bg": "#eef6ff",
-                    }
-                )
+            from users.skilllab_dashboard import build_student_skilllab_dashboard_items
+
+            ctx["dashboard_enrolled_items"].extend(
+                build_student_skilllab_dashboard_items(profile_user)
+            )
         except Exception:
             pass
         if ctx.get("has_test_payment") and ctx.get("test_dashboard_url"):

@@ -13,6 +13,16 @@ from core.student_psychometric_metrics import (
     post_matric_complete_user_ids,
 )
 from users.parent_student_insights import resolve_student_grade
+from users.skilllab_dashboard import (
+    SKILLLAB_SECTION_SUBTITLE,
+    SKILLLAB_SECTION_TITLE,
+    skilllab_categories_for_grade,
+    skilllab_completed_user_ids,
+    skilllab_course_eligible_for_student,
+    skilllab_owned_user_ids,
+    skilllab_started_user_ids,
+    skilllab_student_status,
+)
 
 
 def _price_label(amount) -> Tuple[str, bool]:
@@ -71,16 +81,7 @@ def _any_eligible(student_data: Dict[str, Any]) -> bool:
 
 
 def _skilllab_categories_for_grade(grade_bucket: str) -> List[int]:
-    if grade_bucket == "12":
-        return [
-            choices.SkillLabCourseTypeChoice.after_12_class,
-            choices.SkillLabCourseTypeChoice.BOTH,
-            choices.SkillLabCourseTypeChoice.after_college,
-        ]
-    return [
-        choices.SkillLabCourseTypeChoice.after_10_class,
-        choices.SkillLabCourseTypeChoice.BOTH,
-    ]
+    return skilllab_categories_for_grade(grade_bucket)
 
 
 def _infer_class_label_from_name(name: str) -> str:
@@ -261,61 +262,21 @@ def _assessment_item(
 # ---------------------------------------------------------------------------
 
 def _skilllab_started_ids(student_ids, course) -> Set[int]:
-    if not student_ids:
-        return set()
-    started = set(
-        course.skilllabcourseresume.filter(user_id__in=student_ids).values_list(
-            "user_id", flat=True
-        )
-    )
-    started.update(
-        course.skilllabcourseprogress.filter(user_id__in=student_ids).values_list(
-            "user_id", flat=True
-        )
-    )
-    started.update(
-        course.skilllabcourseprogresssummary.filter(
-            user_id__in=student_ids, progress_percentage__gt=0
-        ).values_list("user_id", flat=True)
-    )
-    return started
+    return skilllab_started_user_ids(student_ids, course)
 
 
 def _skilllab_completed_ids(student_ids: List[int], course) -> Set[int]:
-    if not student_ids:
-        return set()
-    chapters = list(course.skilllabcoursechapter.values_list("id", flat=True))
-    if not chapters:
-        return set()
-
-    completed: Set[int] = set()
-    for sid in student_ids:
-        done_chapters = set(
-            course.skilllabcourseprogress.filter(
-                user_id=sid, chapter_id__in=chapters, completed=True
-            ).values_list("chapter_id", flat=True)
-        )
-        if len(done_chapters) >= len(chapters):
-            completed.add(sid)
-    return completed
+    return skilllab_completed_user_ids(student_ids, course)
 
 
 def _skilllab_owned_ids(student_ids, course, is_free) -> Set[int]:
-    from skilllab.models import SkilllabCoursePayment
-
-    paid_ids = set(
-        SkilllabCoursePayment.objects.filter(
-            user_id__in=student_ids,
-            skilllab_course_id=course.id,
-            is_success=choices.YesNoChoices.YES,
-        ).values_list("user_id", flat=True)
-    )
-    if is_free:
-        return paid_ids | _skilllab_started_ids(student_ids, course)
-    return paid_ids
+    return skilllab_owned_user_ids(student_ids, course, is_free)
 
 
-def _skilllab_items(students: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def _skilllab_items(
+    students: List[Dict[str, Any]],
+    student_users_by_id: Dict[int, Any],
+) -> List[Dict[str, Any]]:
     from skilllab.models import SkillLabCourse
 
     all_categories = {
@@ -328,17 +289,9 @@ def _skilllab_items(students: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     items: List[Dict[str, Any]] = []
 
     for course in courses:
-        eligible = [
-            s
-            for s in students
-            if course.category in _skilllab_categories_for_grade(s["grade_bucket"])
-        ]
-        if not eligible:
-            continue
-
-        eligible_ids = [s["id"] for s in eligible]
         price_label, is_free = _price_label(course.amount)
-        owned_ids = _skilllab_owned_ids(eligible_ids, course, is_free)
+        student_ids = [s["id"] for s in students]
+        owned_ids = _skilllab_owned_ids(student_ids, course, is_free)
         started_ids = _skilllab_started_ids(list(owned_ids), course) if owned_ids else set()
         completed_ids = _skilllab_completed_ids(list(owned_ids), course) if owned_ids else set()
 
@@ -352,21 +305,32 @@ def _skilllab_items(students: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             }
             class_label = cat_map.get(course.category, "Career readiness")
 
-        eligible_id_set = set(eligible_ids)
         student_data: Dict[str, Any] = {}
         for s in students:
             sid = s["id"]
-            if sid not in eligible_id_set:
-                student_data[str(sid)] = {"eligible": False}
-                continue
-            enrolled = sid in owned_ids
+            user = student_users_by_id.get(sid)
+            grade_match = bool(
+                user and skilllab_course_eligible_for_student(user, course)
+            )
+            status = skilllab_student_status(user, course) if user else {}
+            enrolled = status.get("enrolled", sid in owned_ids)
+            started = status.get("started", sid in started_ids)
+            completed = status.get("completed", sid in completed_ids)
             student_data[str(sid)] = {
                 "eligible": True,
+                "grade_match": grade_match,
                 "enrolled": enrolled,
+                "started": started,
+                "completed": completed,
+                "progress_pct": status.get("progress_pct", 0),
+                "cta": status.get("cta", "Start" if enrolled else "Enroll"),
+                "start_url": status.get("start_url", ""),
+                "certificate_url": status.get("certificate_url", ""),
+                "student_dashboard_url": reverse("parents_student_dashboard", args=[sid]),
                 "steps": _journey_steps(
                     enrolled=enrolled,
-                    started=sid in started_ids,
-                    completed=sid in completed_ids,
+                    started=started,
+                    completed=completed,
                     final_label="Certificate",
                 ),
             }
@@ -378,7 +342,7 @@ def _skilllab_items(students: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                 "enroll_track": "",
                 "enroll_slug": course.slug,
                 "title": course.name,
-                "subtitle": "Career Readiness · Skill Lab",
+                "subtitle": f"{SKILLLAB_SECTION_TITLE} · {SKILLLAB_SECTION_SUBTITLE}",
                 "class_label": class_label,
                 "price_label": price_label,
                 "is_free": is_free,
@@ -394,6 +358,58 @@ def _skilllab_items(students: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             }
         )
     return items
+
+
+def build_parent_skilllab_suggestions(
+    students: List[Dict[str, Any]],
+    student_users_by_id: Dict[int, Any],
+    *,
+    preview_limit: int = 4,
+) -> Dict[str, Any]:
+    """Per-student course suggestions for the parent dashboard (class-matched + other)."""
+    items = _skilllab_items(students, student_users_by_id)
+    by_student: Dict[str, Any] = {}
+
+    for s in students:
+        sid = str(s["id"])
+        grade_label = s.get("grade_label") or "Your class"
+        class_courses: List[Dict[str, Any]] = []
+        other_courses: List[Dict[str, Any]] = []
+
+        for item in items:
+            sd = item["student_data"].get(sid) or {}
+            if not sd.get("eligible"):
+                continue
+            compact = {
+                "id": item["id"],
+                "title": item["title"],
+                "subtitle": item.get("subtitle", ""),
+                "detail_url": item["detail_url"],
+                "class_label": item.get("class_label", ""),
+                "price_label": item.get("price_label", ""),
+                "is_free": item.get("is_free", False),
+                "image_url": item.get("image_url", ""),
+                "cta": sd.get("cta", "Enroll"),
+                "progress_pct": sd.get("progress_pct", 0),
+                "enrolled": sd.get("enrolled", False),
+                "student_dashboard_url": sd.get("student_dashboard_url", ""),
+            }
+            if sd.get("grade_match"):
+                class_courses.append(compact)
+            else:
+                other_courses.append(compact)
+
+        by_student[sid] = {
+            "grade_label": grade_label,
+            "class_section_title": f"{grade_label} courses",
+            "other_section_title": "Other class courses",
+            "class_courses": class_courses[:preview_limit],
+            "other_courses": other_courses[:preview_limit],
+            "class_total": len(class_courses),
+            "other_total": len(other_courses),
+        }
+
+    return by_student
 
 
 def build_parent_courses_catalog(parent) -> Dict[str, Any]:
@@ -450,7 +466,8 @@ def build_parent_courses_catalog(parent) -> Dict[str, Any]:
     ]
     assessments = [item for item in assessment_candidates if _any_eligible(item["student_data"])]
 
-    career_courses = _skilllab_items(students)
+    student_users_by_id = {int(s.id): s for s in raw_students if getattr(s, "id", None)}
+    career_courses = _skilllab_items(students, student_users_by_id)
 
     sections = []
     if assessments:
@@ -465,9 +482,21 @@ def build_parent_courses_catalog(parent) -> Dict[str, Any]:
     if career_courses:
         sections.append(
             {
-                "key": "career_readiness",
-                "title": "Career Readiness Courses",
-                "subtitle": "Skill-building courses matched to your child's class",
+                "key": "career_readiness_class",
+                "title": "Class courses",
+                "title_dynamic": True,
+                "filter": "grade_match",
+                "subtitle": "Recommended for your child's class",
+                "catalog_items": career_courses,
+            }
+        )
+        sections.append(
+            {
+                "key": "career_readiness_other",
+                "title": "Other class courses",
+                "title_dynamic": False,
+                "filter": "other",
+                "subtitle": "Explore courses from other grade levels",
                 "catalog_items": career_courses,
             }
         )

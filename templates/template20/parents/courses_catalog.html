@@ -162,6 +162,38 @@
   }
   .catalog-card-footer .btn { flex: 1 1 auto; min-width: 120px; }
 
+  .catalog-progress { margin-top: 10px; }
+  .catalog-progress-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: #6b7280;
+    margin-bottom: 4px;
+  }
+  .catalog-progress-track {
+    height: 6px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    overflow: hidden;
+  }
+  .catalog-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #403fa6 0%, #10b981 100%);
+  }
+  .catalog-cta-complete {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    background: #ecfdf5;
+    color: #047857;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
   .catalog-empty {
     text-align: center; padding: 48px 24px;
     border: 1px dashed #cfd7f4; border-radius: 14px; background: #fff;
@@ -201,7 +233,8 @@
             {% for s in linked_students %}
             <button type="button"
                     class="parent-student-tab{% if loop.first %} is-active{% endif %}"
-                    data-student-id="{{ s.id }}">
+                    data-student-id="{{ s.id }}"
+                    data-grade-label="{{ s.grade_label }}">
               {{ s.name }}<span class="grade-pill">· {{ s.grade_label }}</span>
             </button>
             {% endfor %}
@@ -220,7 +253,10 @@
     </div>
     {% else %}
       {% for section in sections %}
-      <div class="mb-4 catalog-section" data-section-key="{{ section.key }}">
+      <div class="mb-4 catalog-section"
+           data-section-key="{{ section.key }}"
+           data-filter="{{ section.filter|default('') }}"
+           data-title-dynamic="{{ '1' if section.title_dynamic else '0' }}">
         <h3 class="catalog-section-title">{{ section.title }}</h3>
         <p class="catalog-section-sub">{{ section.subtitle }}</p>
         <div class="row g-3 catalog-section-grid">
@@ -292,6 +328,22 @@
   var firstTab = tabs.length ? tabs[0] : null;
   var selectedStudentId = firstTab ? firstTab.getAttribute('data-student-id') : null;
 
+  function selectedGradeLabel() {
+    var tab = tabs.find(function (t) {
+      return t.getAttribute('data-student-id') === selectedStudentId;
+    });
+    return (tab && tab.getAttribute('data-grade-label')) || 'Your class';
+  }
+
+  function updateSectionTitles() {
+    var gradeLabel = selectedGradeLabel();
+    Array.prototype.slice.call(document.querySelectorAll('.catalog-section')).forEach(function (section) {
+      if (section.getAttribute('data-title-dynamic') !== '1') return;
+      var titleEl = section.querySelector('.catalog-section-title');
+      if (titleEl) titleEl.textContent = gradeLabel + ' courses';
+    });
+  }
+
   function buildEnrollUrl(kind, studentId, track, slug, isFree) {
     if (kind === 'psychometric') {
       return buyPsychometricTpl.replace('99999', String(studentId)).replace('TRACK', track || '10');
@@ -323,12 +375,22 @@
 
   function renderCard(card) {
     var col = card.closest('.catalog-col');
+    var section = card.closest('.catalog-section');
+    var filter = section ? (section.getAttribute('data-filter') || '') : '';
     var data;
     try { data = JSON.parse(card.getAttribute('data-students') || '{}'); }
     catch (e) { data = {}; }
 
     var sd = selectedStudentId ? data[selectedStudentId] : null;
     if (!sd || !sd.eligible) {
+      if (col) col.style.display = 'none';
+      return;
+    }
+    if (filter === 'grade_match' && !sd.grade_match) {
+      if (col) col.style.display = 'none';
+      return;
+    }
+    if (filter === 'other' && sd.grade_match) {
       if (col) col.style.display = 'none';
       return;
     }
@@ -339,11 +401,44 @@
     var journeyHost = card.querySelector('.catalog-journey');
     journeyHost.innerHTML = renderJourney(sd.steps || []);
 
+    var actionsHost = card.querySelector('.catalog-card-actions');
+    var progressHtml = '';
+    if (sd.enrolled && typeof sd.progress_pct === 'number') {
+      progressHtml =
+        '<div class="catalog-progress">' +
+          '<div class="catalog-progress-head"><span>Course progress</span><strong>' + sd.progress_pct + '%</strong></div>' +
+          '<div class="catalog-progress-track" role="progressbar" aria-valuenow="' + sd.progress_pct + '" aria-valuemin="0" aria-valuemax="100">' +
+            '<div class="catalog-progress-fill" style="width:' + sd.progress_pct + '%;"></div>' +
+          '</div>' +
+        '</div>';
+    }
+    if (actionsHost) {
+      actionsHost.innerHTML = '<div class="catalog-journey" aria-label="Course progress"></div>' + progressHtml;
+      journeyHost = actionsHost.querySelector('.catalog-journey');
+      journeyHost.innerHTML = renderJourney(sd.steps || []);
+    }
+
     var footer = card.querySelector('.catalog-card-footer');
     var detailUrl = card.getAttribute('data-detail-url') || '#';
+    var kind = card.getAttribute('data-kind') || '';
     if (sd.enrolled) {
-      footer.innerHTML = '';
-      footer.style.display = 'none';
+      footer.style.display = 'flex';
+      var cta = sd.cta || 'Start';
+      var studentDash = sd.student_dashboard_url || studentDashboardTpl.replace('99999', String(selectedStudentId));
+      if (kind === 'skilllab' && cta === 'Completed') {
+        var certUrl = sd.certificate_url || detailUrl;
+        footer.innerHTML =
+          '<span class="catalog-cta-complete"><i class="bx bx-check-circle"></i> Completed</span>' +
+          '<a href="' + studentDash + '" class="btn btn-sm btn-outline-secondary">Student dashboard</a>' +
+          '<a href="' + certUrl + '" class="btn btn-sm custom-button blue-button" target="_blank" rel="noopener noreferrer">Certificate</a>';
+      } else if (kind === 'skilllab' && (cta === 'Start' || cta === 'Resume')) {
+        footer.innerHTML =
+          '<a href="' + detailUrl + '" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener noreferrer">View detail</a>' +
+          '<a href="' + studentDash + '" class="btn btn-sm custom-button purple-button">' + cta + '</a>';
+      } else {
+        footer.innerHTML =
+          '<a href="' + studentDash + '" class="btn btn-sm custom-button purple-button">View progress</a>';
+      }
     } else {
       footer.style.display = 'flex';
       footer.innerHTML =
@@ -365,6 +460,7 @@
   }
 
   function render() {
+    updateSectionTitles();
     cards.forEach(renderCard);
     refreshSections();
   }

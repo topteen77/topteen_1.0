@@ -422,6 +422,56 @@
     background: linear-gradient(90deg, #ff8a00 0%, #5c54d4 50%, #1db4e8 100%);
   }
 
+  .parent-course-suggest-card {
+    border: 1px solid #dbe4ff;
+    border-radius: 12px;
+    background: #fff;
+    padding: 12px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .parent-course-suggest-top {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .parent-course-suggest-thumb {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: #ecfdf3;
+  }
+  .parent-course-suggest-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #25306f;
+    margin: 0 0 4px;
+    line-height: 1.35;
+  }
+  .parent-course-suggest-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 10px;
+  }
+  .parent-course-suggest-badge {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(64, 63, 166, 0.1);
+    color: #403fa6;
+    font-weight: 700;
+  }
+  .parent-course-suggest-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: auto;
+  }
+  .parent-course-suggest-actions .btn { flex: 1; font-size: 12px; }
+
   .parent-dashboard .student-cta-card {
     position: relative;
     overflow: hidden;
@@ -596,11 +646,33 @@
       <div class="viz-card d-flex flex-wrap align-items-center justify-content-between gap-3">
         <div>
           <h3 class="fs-18 fw-700 mb-1">Courses & Tests</h3>
-          <p class="text-muted fs-13 mb-0">Psychometric tests, MI/EQ assessments, and career readiness courses — view, pay, and enroll for your linked students.</p>
+          <p class="text-muted fs-13 mb-0">Psychometric tests, MI/EQ assessments, and College &amp; Career Readiness courses — view, pay, and track start, resume, or completion for linked students.</p>
         </div>
         <a href="{{ url('parents_courses') }}" class="btn custom-button purple-button fw-600">
           <i class='bx bx-book-open me-1'></i>Browse catalog
         </a>
+      </div>
+    </div>
+
+    <div class="parent-students-card mb-4" id="parentCourseSuggestions" hidden>
+      <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
+        <div>
+          <h3 class="fs-18 fw-700 mb-1">Suggested courses</h3>
+          <p class="text-muted fs-12 mb-0">College &amp; Career Readiness — matched to your child's class, plus other grades</p>
+        </div>
+        <a href="{{ url('parents_courses') }}" class="btn btn-sm btn-outline-secondary">View all courses</a>
+      </div>
+
+      <div class="mb-4">
+        <h4 class="fs-15 fw-semibold mb-2" id="parentClassCoursesTitle">Class courses</h4>
+        <div class="row g-3" id="parentClassCoursesGrid"></div>
+        <p class="text-muted fs-12 mb-0 mt-2" id="parentClassCoursesMore" hidden></p>
+      </div>
+
+      <div>
+        <h4 class="fs-15 fw-semibold mb-2" id="parentOtherCoursesTitle">Other class courses</h4>
+        <div class="row g-3" id="parentOtherCoursesGrid"></div>
+        <p class="text-muted fs-12 mb-0 mt-2" id="parentOtherCoursesMore" hidden></p>
       </div>
     </div>
 
@@ -640,6 +712,7 @@
 {% block additionaljs %}
 {{ super() }}
 <script type="application/json" id="studentsDashboardPayload">{{ students_dashboard_payload_json }}</script>
+<script type="application/json" id="courseSuggestionsPayload">{{ course_suggestions_json|default('{}') }}</script>
 <script>
   (function () {
     function parseJsonScript(id) {
@@ -648,6 +721,7 @@
       try { return JSON.parse(el.textContent || '{}'); } catch (e) { return null; }
     }
     var studentsPayload = parseJsonScript('studentsDashboardPayload') || [];
+    var courseSuggestions = parseJsonScript('courseSuggestionsPayload') || {};
     var studentSelect = document.getElementById('studentFocusSelect');
     var reportHost = document.getElementById('parentAssessmentReportHost');
     var initialStudentId = reportHost
@@ -859,10 +933,69 @@
       return studentsPayload[0];
     }
 
+    function renderCourseSuggestions(studentId) {
+      var host = document.getElementById('parentCourseSuggestions');
+      if (!host) return;
+      var data = courseSuggestions[String(studentId)];
+      if (!data) {
+        host.hidden = true;
+        return;
+      }
+      host.hidden = false;
+
+      var classTitle = document.getElementById('parentClassCoursesTitle');
+      var otherTitle = document.getElementById('parentOtherCoursesTitle');
+      if (classTitle) classTitle.textContent = data.class_section_title || 'Class courses';
+      if (otherTitle) otherTitle.textContent = data.other_section_title || 'Other class courses';
+
+      function courseCardHtml(course) {
+        var thumb = course.image_url
+          ? '<img class="parent-course-suggest-thumb" src="' + course.image_url + '" alt="" loading="lazy" />'
+          : '<div class="parent-course-suggest-thumb d-flex align-items-center justify-content-center"><i class="bx bx-book-reader fs-20 text-success"></i></div>';
+        var cta = course.cta || 'View';
+        var dashUrl = course.student_dashboard_url || '#';
+        var detailUrl = course.detail_url || '#';
+        var progress = (typeof course.progress_pct === 'number' && course.enrolled)
+          ? '<span class="parent-course-suggest-badge">' + course.progress_pct + '%</span>' : '';
+        return '<div class="col-12 col-md-6 col-xl-3"><div class="parent-course-suggest-card">' +
+          '<div class="parent-course-suggest-top">' + thumb +
+          '<div class="min-w-0"><p class="parent-course-suggest-title">' + course.title + '</p>' +
+          '<div class="parent-course-suggest-meta">' +
+          '<span class="parent-course-suggest-badge">' + (course.class_label || '') + '</span>' +
+          '<span class="parent-course-suggest-badge">' + (course.price_label || '') + '</span>' +
+          progress + '</div></div></div>' +
+          '<div class="parent-course-suggest-actions">' +
+          '<a href="' + detailUrl + '" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener noreferrer">Detail</a>' +
+          '<a href="' + dashUrl + '" class="btn btn-sm custom-button purple-button">' + cta + '</a>' +
+          '</div></div></div>';
+      }
+
+      function fillGrid(gridId, moreId, courses, total) {
+        var grid = document.getElementById(gridId);
+        var more = document.getElementById(moreId);
+        if (!grid) return;
+        grid.innerHTML = (courses || []).map(courseCardHtml).join('');
+        if (more) {
+          var extra = (total || 0) - (courses || []).length;
+          if (extra > 0) {
+            more.hidden = false;
+            more.textContent = '+' + extra + ' more in the full catalog';
+          } else {
+            more.hidden = true;
+            more.textContent = '';
+          }
+        }
+      }
+
+      fillGrid('parentClassCoursesGrid', 'parentClassCoursesMore', data.class_courses, data.class_total);
+      fillGrid('parentOtherCoursesGrid', 'parentOtherCoursesMore', data.other_courses, data.other_total);
+    }
+
     function renderSelectedStudent() {
       var student = getCurrentStudent();
       if (!student) return;
       setFocusHeader(student);
+      renderCourseSuggestions(student.id);
       showAssessmentReport(parseInt(student.id, 10));
     }
 
@@ -870,6 +1003,7 @@
       var student = getCurrentStudent();
       if (student) setFocusHeader(student);
       var sid = initialStudentId || (student ? parseInt(student.id, 10) : null);
+      if (sid) renderCourseSuggestions(sid);
       if (sid && getReportPane(sid)) {
         showAssessmentReport(sid);
         return;
