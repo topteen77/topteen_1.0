@@ -77,11 +77,17 @@ def mark_skilllab_course_complete(user, skilllab_course):
         )
 
 
-def _generate_skilllab_certificate_code():
-    latest_cert = SkillLabCertification.objects.order_by('-id').first()
-    if latest_cert:
-        return f"TPTSL{latest_cert.id + 1:04d}"
-    return "TPTSL0001"
+def _skilllab_certificate_code(certification_id):
+    return f"TPTSL{certification_id:04d}"
+
+
+def ensure_skilllab_certificate_code(certification):
+    """Assign a stable serial number from the certification record id."""
+    if certification.certificate_code:
+        return certification
+    certification.certificate_code = _skilllab_certificate_code(certification.id)
+    certification.save(update_fields=['certificate_code'])
+    return certification
 
 
 def issue_skilllab_certificate_if_eligible(user, skilllab_course):
@@ -100,8 +106,10 @@ def issue_skilllab_certificate_if_eligible(user, skilllab_course):
         certification = SkillLabCertification.objects.create(
             user=user,
             skilllab_course=skilllab_course,
-            certificate_code=_generate_skilllab_certificate_code(),
         )
+        ensure_skilllab_certificate_code(certification)
+    else:
+        ensure_skilllab_certificate_code(certification)
 
     mark_skilllab_course_complete(user, skilllab_course)
     return certification

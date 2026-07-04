@@ -399,7 +399,8 @@
 }
 
 .course-layout.is-sidebar-collapsed .sidebar-title,
-.course-layout.is-sidebar-collapsed .chapters-accordion {
+.course-layout.is-sidebar-collapsed .chapters-accordion,
+.course-layout.is-sidebar-collapsed .skilllab-certificate-sidebar {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -559,6 +560,59 @@
 .chapters-accordion::-webkit-scrollbar-thumb {
   background: #d0d5dd;
   border-radius: 999px;
+}
+
+.skilllab-certificate-sidebar {
+  flex-shrink: 0;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #eef0f4;
+}
+
+.skilllab-certificate-sidebar__inner {
+  padding: 16px;
+  text-align: center;
+  background: linear-gradient(135deg, #5249DF 0%, #6438d0 100%);
+  border-radius: 12px;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(82, 73, 223, 0.25);
+}
+
+.skilllab-certificate-sidebar__icon {
+  font-size: 2rem;
+  color: #fcd34d;
+  margin-bottom: 0.35rem;
+  display: block;
+}
+
+.skilllab-certificate-sidebar__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0 0 0.35rem;
+  color: #fff;
+}
+
+.skilllab-certificate-sidebar__code {
+  font-size: 0.75rem;
+  margin: 0 0 0.65rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.skilllab-certificate-sidebar__btn {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: #fff;
+  color: #5249DF;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.skilllab-certificate-sidebar__btn:hover {
+  background: #f5f3ff;
+  color: #4338ca;
 }
 
 .chapter-accordion-item {
@@ -1430,28 +1484,26 @@
               </div>
               {% endfor %}
               </div>
+              {% if all_completed %}
+              <div class="skilllab-certificate-sidebar">
+                <div class="skilllab-certificate-sidebar__inner">
+                  <i class='bx bx-award skilllab-certificate-sidebar__icon'></i>
+                  <h6 class="skilllab-certificate-sidebar__title">Certificate Earned!</h6>
+                  {% if certification and certification.certificate_code %}
+                  <p class="skilllab-certificate-sidebar__code">Code: {{ certification.certificate_code }}</p>
+                  {% endif %}
+                  <a href="{{ url('skilllabcourse:skilllab_certificate', args=[skilllab_course.slug]) }}" class="skilllab-certificate-sidebar__btn">
+                    View Certificate
+                  </a>
+                </div>
+              </div>
+              {% endif %}
             </div>
           </aside>
         </div>
 
         <div class="course-content-area">
           <div class="course-content-wrapper">
-            {% if all_completed %}
-            <div class="content-section">
-              <div class="certificate-section">
-                <h3><i class='bx bx-certificate'></i> Congratulations! Course Completed</h3>
-                <p class="mb-4">You have completed all chapters of {{ skilllab_course.name }}.</p>
-                <div class="d-flex flex-wrap gap-3 justify-content-center">
-                  <a href="{{ url('skilllabcourse:skilllab_certificate', args=[skilllab_course.slug]) }}" class="btn-mark-complete" style="text-decoration: none;">
-                    <i class='bx bx-certificate'></i> View Certificate
-                  </a>
-                  <a href="{{ url('skilllabcourse:course_learning', args=[skilllab_course.slug]) }}?entry=resume" class="btn-mark-complete btn-mark-complete-outline" style="text-decoration: none;">
-                    <i class='bx bx-book-open'></i> View Course
-                  </a>
-                </div>
-              </div>
-            </div>
-            {% endif %}
             {% if current_chapter %}
             <div class="content-section">
               <div class="content-header">

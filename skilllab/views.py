@@ -558,6 +558,10 @@ class SkillLabCourseLearningView(TemplateView):
         if all_completed:
             chapter_locked_status = {ch.id: False for ch in chapters}
 
+        certification = None
+        if all_completed:
+            certification = issue_skilllab_certificate_if_eligible(request.user, skilllab_course)
+
         # Reached sections for green tick: intro/section/wrap-up show tick when user has viewed them
         resume = SkillLabCourseResume.objects.filter(
             user=request.user, skilllab_course=skilllab_course
@@ -643,6 +647,7 @@ class SkillLabCourseLearningView(TemplateView):
             'is_current_locked': is_current_locked,
             'is_current_completed': is_current_completed,
             'all_completed': all_completed,
+            'certification': certification,
             'prev_chapter': chapters[chapter_index - 1] if chapter_index > 0 else None,
             'next_chapter': chapters[chapter_index + 1] if chapter_index < len(chapters) - 1 else None,
             'sections_by_chapter': sections_by_chapter,
