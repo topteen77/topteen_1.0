@@ -51,17 +51,24 @@ def skilllab_started_user_ids(student_ids, course) -> Set[int]:
 def skilllab_completed_user_ids(student_ids: List[int], course) -> Set[int]:
     if not student_ids:
         return set()
+
+    completed = set(
+        course.certifications.filter(user_id__in=student_ids).values_list("user_id", flat=True)
+    )
+
     chapters = list(course.skilllabcoursechapter.values_list("id", flat=True))
     if not chapters:
-        completed: Set[int] = set()
         for sid in student_ids:
+            if sid in completed:
+                continue
             summary = course.skilllabcourseprogresssummary.filter(user_id=sid).first()
             if summary and (summary.progress_percentage or 0) >= 100:
                 completed.add(sid)
         return completed
 
-    completed = set()
     for sid in student_ids:
+        if sid in completed:
+            continue
         done_chapters = set(
             course.skilllabcourseprogress.filter(
                 user_id=sid, chapter_id__in=chapters, completed=True
@@ -88,6 +95,10 @@ def skilllab_owned_user_ids(student_ids, course, is_free: bool) -> Set[int]:
 
 
 def skilllab_course_progress_pct(user, course) -> int:
+    from skilllab.models import SkillLabCertification
+
+    if SkillLabCertification.objects.filter(user=user, skilllab_course=course).exists():
+        return 100
     summary = course.skilllabcourseprogresssummary.filter(user=user).first()
     if summary and summary.progress_percentage is not None:
         return int(summary.progress_percentage or 0)
@@ -263,6 +274,7 @@ def build_skilllab_dashboard_item(user, course) -> Dict[str, Any]:
         "progress_pct": progress_pct,
         "is_complete": is_complete,
         "certificate_url": skilllab_course_certificate_url(course) if is_complete else "",
+        "view_course_url": skilllab_course_resume_url(course) if is_complete else "",
         "detail_url": skilllab_course_detail_url(course),
         "image_url": course.get_image_url(),
         "icon_src": "images_new/icons/skill-labs-cion.png",
@@ -313,6 +325,7 @@ def skilllab_student_status(user, course) -> Dict[str, Any]:
         "cta": cta,
         "start_url": skilllab_course_resume_url(course) if cta == "Resume" else skilllab_course_start_url(course),
         "certificate_url": skilllab_course_certificate_url(course) if completed else "",
+        "view_course_url": skilllab_course_resume_url(course) if completed else "",
         "detail_url": skilllab_course_detail_url(course),
     }
 

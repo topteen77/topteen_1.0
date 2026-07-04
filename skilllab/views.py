@@ -30,7 +30,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
 from core.s3_utils import get_s3_upload_service
+from users.skilllab_dashboard import (
+    skilllab_course_completed,
+    skilllab_course_certificate_url,
+)
 from skilllab.learner_header import enrich_skilllab_header_context, skilllab_course_queryset
+from skilllab.certificate import issue_skilllab_certificate_if_eligible, is_skilllab_course_completed
 import logging
 
 logger = logging.getLogger(__name__)
@@ -308,6 +313,16 @@ class SkillLabCourseDetail(TemplateView):
             if request.user.is_authenticated
             else False
         )
+        ctx['skilllab_course_completed'] = (
+            skilllab_course_completed(request.user, skillab)
+            if request.user.is_authenticated
+            else False
+        )
+        ctx['skilllab_certificate_url'] = (
+            skilllab_course_certificate_url(skillab)
+            if request.user.is_authenticated
+            else ''
+        )
         enrich_skilllab_header_context(ctx, request, skillab)
         return ctx
 
@@ -436,9 +451,6 @@ class SkillLabCourseLearningView(TemplateView):
         is_current_locked = chapter_locked_status.get(current_chapter.id, True) if current_chapter else False
         is_current_completed = chapter_progress.get(current_chapter.id, False) if current_chapter else False
 
-        # Certificate: show if all chapters completed
-        all_completed = all(chapter_progress.get(ch.id, False) for ch in chapters) if chapters else False
-
         def _short_section_title(t):
             """Extract 'Section N' from 'Section N: Long title...' for nav/sidebar display."""
             if not t:
@@ -538,6 +550,13 @@ class SkillLabCourseLearningView(TemplateView):
                 }
             )
         progress_percentage = progress_summary.progress_percentage
+
+        # Certificate: show if all chapters completed or certificate already issued
+        all_completed = is_skilllab_course_completed(request.user, skilllab_course)
+        if all_completed and progress_percentage < 100:
+            progress_percentage = 100
+        if all_completed:
+            chapter_locked_status = {ch.id: False for ch in chapters}
 
         # Reached sections for green tick: intro/section/wrap-up show tick when user has viewed them
         resume = SkillLabCourseResume.objects.filter(
@@ -721,6 +740,7 @@ class SkillLabMarkChapterCompleteView(APIView):
             chapter=chapter,
             defaults={'completed': True, 'completed_at': timezone.now()}
         )
+        issue_skilllab_certificate_if_eligible(request.user, skilllab_course)
         return Response({'success': True, 'completed': progress.completed})
 
 
@@ -1473,29 +1493,31 @@ class SkillLabSubmitMCQView(View):
 @method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
 class SkillLabCourseCertificateView(TemplateView):
     """Certificate view - shown when all chapters are completed."""
-    template_name = "template20/skilllab/course_certificate.html"
+    incomplete_template_name = "template20/skilllab/course_certificate.html"
+    template_name = "template20/skilllab/view_certificate.html"
 
     def get_context(self, request, course_slug, *args, **kwargs):
         skilllab_course = get_object_or_404(SkillLabCourse, slug=course_slug)
         if not skilllab_course.is_user_vissible(request):
             raise Http404("You do not have access to this course.")
-        chapters = list(skilllab_course.skilllabcoursechapter.order_by('created'))
-        chapter_progress = SkillLabCourseProgress.objects.filter(
-            user=request.user, skilllab_course=skilllab_course, chapter__isnull=False
-        )
-        completed_ids = set(chapter_progress.filter(completed=True).values_list('chapter_id', flat=True))
-        all_completed = all(ch.id in completed_ids for ch in chapters) if chapters else False
+        all_completed = is_skilllab_course_completed(request.user, skilllab_course)
+        certification = None
+        if all_completed:
+            certification = issue_skilllab_certificate_if_eligible(request.user, skilllab_course)
         ctx = {
             'skilllab_course': skilllab_course,
             'all_completed': all_completed,
-            'certificate_date': timezone.now(),
+            'certification': certification,
+            'user': request.user,
+            'certificate_date': certification.issued_at if certification else timezone.now(),
         }
         ctx["html_head"] = build_html_head(title=f"Certificate - {skilllab_course.name}", description=skilllab_course.name)
         return ctx
 
     def get(self, request, course_slug, *args, **kwargs):
         ctx = self.get_context(request, course_slug, *args, **kwargs)
-        return render(request, self.template_name, ctx)
+        template = self.template_name if ctx['all_completed'] else self.incomplete_template_name
+        return render(request, template, ctx)
 
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')

@@ -614,6 +614,32 @@ class SkillLabUserBookmark(BaseModel):
         super().save(*args, **kwargs)
 
 
+class SkillLabCertification(BaseModel):
+    """Certificate issued when a student completes a Skill Lab course."""
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='skilllab_certifications', db_index=True
+    )
+    skilllab_course = models.ForeignKey(
+        SkillLabCourse,
+        on_delete=models.CASCADE,
+        related_name='certifications',
+        db_index=True,
+    )
+    certificate_code = models.CharField(max_length=12, null=True, blank=True)
+    issued_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Skill Lab Certification'
+        verbose_name_plural = 'Skill Lab Certifications'
+        unique_together = [('user', 'skilllab_course')]
+        indexes = [
+            models.Index(fields=['user', 'skilllab_course']),
+        ]
+
+    def __str__(self):
+        return f"{self.user} - {self.skilllab_course.name} - {self.certificate_code}"
+
+
 class InternationalOnlineCourse(BaseModel):
     title = models.CharField(max_length=255)
     description = models.TextField()

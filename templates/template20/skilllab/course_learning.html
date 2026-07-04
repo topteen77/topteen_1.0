@@ -22,7 +22,7 @@
       </div>
 
       <div class="course-header-info">
-        <p class="course-header-label">{{ course_topic_category }}</p>
+        <p class="course-header-label">Skill Lab</p>
         <div class="d-flex align-items-center gap-2 flex-wrap">
           <h1 class="course-title mb-0" title="{{ skilllab_course.name }}">{{ skilllab_course.name }}</h1>
           {% if course_mindmap_info %}
@@ -33,69 +33,35 @@
           </a>
           {% endif %}
         </div>
-        {% with course_only=true, hide_course_category_chip=true %}
-        {% include 'template20/skilllab/includes/course_context_meta.html' %}
-        {% endwith %}
       </div>
 
-      <div class="course-header-right">
-        {% if learner_logged_in and (learner_name or learner_class) %}
-        <div class="course-header-student-row" aria-label="Student">
-          {% if learner_name %}
-          {% set _student_display = learner_name.split('@')[0] if '@' in learner_name else learner_name %}
-          <span class="course-header-student-pill">
-            <span class="course-header-student-pill__key">Name</span>
-            <span class="course-header-student-pill__val" title="{{ learner_name }}">{{ _student_display }}</span>
-          </span>
-          {% endif %}
-          {% if learner_class %}
-          <span class="course-header-student-pill">
-            <span class="course-header-student-pill__key">Class</span>
-            <span class="course-header-student-pill__val">{{ learner_class }}</span>
-          </span>
-          {% endif %}
-        </div>
-        {% endif %}
-
-        <div class="course-header-toolbar-row">
-          <div class="course-header-progress">
-            <div class="course-progress-compact">
-              <div class="course-progress-compact__top">
-                <span class="course-progress-title">Progress</span>
-                <span class="course-progress-percentage" id="progress-percentage">{{ progress_percentage }}%</span>
-              </div>
-              <div class="course-progress-bar">
-                <div class="course-progress-fill" id="progress-fill" style="width: {{ progress_percentage }}%"></div>
-              </div>
-            </div>
+      <div class="course-header-actions">
+        <div class="skilllab-saved-dropdown" id="skilllab-saved-dropdown">
+          <button type="button" class="skilllab-saved-toggle" id="skilllab-saved-toggle" title="Your saved bookmarks" aria-expanded="false" aria-haspopup="true">
+            <i class='bx bx-bookmark-heart'></i>
+            <span class="skilllab-saved-toggle__text">Saved</span>
+            <span class="count" id="skilllab-saved-count">0</span>
+          </button>
+          <div class="skilllab-saved-panel" id="skilllab-saved-panel" role="menu">
+            <h6><i class='bx bx-bookmark'></i> Bookmarked sections</h6>
+            <ul id="skilllab-saved-bookmarks-list"></ul>
+            <div class="empty-msg" id="skilllab-saved-empty">No bookmarks yet. Use "Bookmark" on any section to save it here.</div>
           </div>
+        </div>
+        <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[skilllab_course.slug]) }}" class="course-header-back">
+          <i class='bx bx-arrow-back'></i>
+          <span>Back to Course</span>
+        </a>
+      </div>
 
-          <div class="course-header-icon-actions">
-            <div class="skilllab-notes-dropdown" id="skilllab-notes-dropdown">
-              <button type="button" class="skilllab-notes-toggle course-header-icon-btn" id="skilllab-notes-toggle" title="My notes" aria-label="My notes" aria-expanded="false" aria-haspopup="true">
-                <i class='bx bx-note'></i>
-                <span class="count" id="skilllab-notes-count">0</span>
-              </button>
-              <div class="skilllab-saved-panel skilllab-notes-panel" id="skilllab-notes-panel" role="menu">
-                <h6><i class='bx bx-note'></i> My notes</h6>
-                <ul id="skilllab-saved-notes-list"></ul>
-                <div class="empty-msg" id="skilllab-notes-empty">No notes yet. Use "Add note" on any section.</div>
-              </div>
-            </div>
-            <div class="skilllab-saved-dropdown" id="skilllab-saved-dropdown">
-              <button type="button" class="skilllab-saved-toggle course-header-icon-btn" id="skilllab-saved-toggle" title="Saved bookmarks" aria-label="Saved bookmarks" aria-expanded="false" aria-haspopup="true">
-                <i class='bx bx-bookmark'></i>
-                <span class="count" id="skilllab-saved-count">0</span>
-              </button>
-              <div class="skilllab-saved-panel" id="skilllab-saved-panel" role="menu">
-                <h6><i class='bx bx-bookmark'></i> Bookmarked sections</h6>
-                <ul id="skilllab-saved-bookmarks-list"></ul>
-                <div class="empty-msg" id="skilllab-saved-empty">No bookmarks yet. Use "Bookmark" on any section to save it here.</div>
-              </div>
-            </div>
-            <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[skilllab_course.slug]) }}" class="course-header-back course-header-icon-btn" title="Back to Course" aria-label="Back to Course">
-              <i class='bx bx-arrow-back'></i>
-            </a>
+      <div class="course-header-progress">
+        <div class="course-progress-compact">
+          <div class="course-progress-compact__top">
+            <span class="course-progress-title">Course Progress</span>
+            <span class="course-progress-percentage" id="progress-percentage">{{ progress_percentage }}%</span>
+          </div>
+          <div class="course-progress-bar">
+            <div class="course-progress-fill" id="progress-fill" style="width: {{ progress_percentage }}%"></div>
           </div>
         </div>
       </div>
@@ -105,7 +71,6 @@
 {% endblock %}
 
 {% block content %}
-{% include 'template20/skilllab/includes/course_context_meta_styles.html' %}
 <style>
 .course-page-header {
   background: #fff;
@@ -126,11 +91,13 @@
 
 .course-header-grid {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) minmax(220px, 340px);
-  grid-template-areas: "brand info right";
-  gap: 8px 16px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "brand info actions"
+    "progress progress progress";
+  gap: 10px 20px;
   align-items: center;
-  padding: 8px 0 10px;
+  padding: 12px 0 14px;
 }
 
 .course-header-brand {
@@ -148,7 +115,7 @@
 }
 
 .course-header-logo img {
-  height: 28px;
+  height: 34px;
   width: auto;
   display: block;
 }
@@ -156,146 +123,6 @@
 .course-header-info {
   grid-area: info;
   min-width: 0;
-}
-
-.course-header-info .skilllab-context-meta {
-  margin-top: 4px;
-}
-
-.course-header-info .skilllab-context-group--course {
-  padding: 3px 8px;
-  gap: 6px;
-  border-radius: 8px;
-}
-
-.course-header-info .skilllab-context-group__label {
-  display: none;
-}
-
-.course-header-info .skilllab-context-field {
-  padding: 2px 7px;
-}
-
-.course-header-info .skilllab-context-field__key {
-  font-size: 9px;
-}
-
-.course-header-info .skilllab-context-field__val {
-  font-size: 11px;
-}
-
-.course-header-right {
-  grid-area: right;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: center;
-  gap: 5px;
-  min-width: 0;
-  max-width: 340px;
-  width: 100%;
-  justify-self: end;
-}
-
-.course-header-student-row {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
-  flex-wrap: nowrap;
-  width: 100%;
-  min-width: 0;
-}
-
-.course-header-student-pill {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 5px;
-  max-width: 100%;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: #fff;
-  border: 1px solid #e6e8f0;
-  line-height: 1.35;
-  white-space: nowrap;
-  min-width: 0;
-}
-
-.course-header-student-pill__key {
-  font-size: 9px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: #98a0b3;
-  flex-shrink: 0;
-}
-
-.course-header-student-pill__val {
-  font-size: 11px;
-  font-weight: 600;
-  color: #1f2937;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0;
-  max-width: 140px;
-}
-
-.course-header-toolbar-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  min-width: 0;
-}
-
-.course-header-icon-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.course-header-icon-btn {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border-radius: 8px;
-  border: 1px solid #e4e7ef;
-  background: #fff;
-  color: #5249DF;
-  text-decoration: none;
-  font-size: 18px;
-  line-height: 1;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.course-header-icon-btn:hover {
-  color: #4338ca;
-  border-color: #c7d2fe;
-  background: #f5f3ff;
-}
-
-.course-header-icon-btn .count {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background: #5249DF;
-  color: #fff;
-  font-size: 9px;
-  min-width: 16px;
-  height: 16px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 4px;
-  font-weight: 700;
-  border: 2px solid #fff;
 }
 
 .course-header-label {
@@ -309,45 +136,54 @@
 }
 
 .course-title {
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: #1f2937;
   margin: 0;
-  line-height: 1.25;
+  line-height: 1.35;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.course-header-actions {
+  grid-area: actions;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
 .course-header-progress {
-  flex: 1 1 auto;
+  grid-area: progress;
   min-width: 0;
 }
 
 .course-progress-compact {
   background: #f8f9fc;
   border: 1px solid #eceff5;
-  border-radius: 8px;
-  padding: 6px 10px;
+  border-radius: 12px;
+  padding: 10px 14px;
 }
 
 .course-progress-compact__top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: 12px;
+  margin-bottom: 8px;
 }
 
 .course-progress-title {
-  font-size: 10px;
+  font-size: 12px;
   margin: 0;
   color: #667085;
   font-weight: 600;
 }
 
 .course-progress-percentage {
-  font-size: 11px;
+  font-size: 13px;
   color: #5249DF;
   font-weight: 700;
   line-height: 1;
@@ -355,7 +191,7 @@
 
 .course-progress-bar {
   width: 100%;
-  height: 4px;
+  height: 6px;
   background: #e4e7ef;
   border-radius: 999px;
   overflow: hidden;
@@ -371,7 +207,23 @@
 .course-header-back {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #e4e7ef;
+  background: #fff;
+  color: #5249DF;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.course-header-back:hover {
+  color: #4338ca;
+  border-color: #c7d2fe;
+  background: #f5f3ff;
 }
 
 .back-to-course-btn {
@@ -389,77 +241,21 @@
   transform: translateX(-3px);
 }
 
-.skilllab-saved-dropdown,
-.skilllab-notes-dropdown {
+.skilllab-saved-dropdown {
   position: relative;
-}
-
-.skilllab-notes-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  padding: 0;
-  border-radius: 8px;
-  background: #fff;
-  border: 1px solid #e4e7ef;
-  color: #5249DF;
-  font-weight: 600;
-  font-size: 18px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.2s ease;
-}
-
-.skilllab-notes-toggle:hover {
-  background: #f5f3ff;
-  border-color: #c7d2fe;
-  color: #5249DF;
-}
-
-.skilllab-notes-toggle .count {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background: #5249DF;
-  color: #fff;
-  font-size: 9px;
-  min-width: 16px;
-  height: 16px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 4px;
-  font-weight: 700;
-  border: 2px solid #fff;
-}
-
-.skilllab-notes-panel li .note-item-label {
-  display: block;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 2px;
-}
-
-.skilllab-notes-panel li .note-item-preview {
-  display: block;
-  font-size: 0.85rem;
-  color: #666;
 }
 
 .skilllab-saved-toggle {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 0;
-  padding: 0;
-  border-radius: 8px;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 10px;
   background: #fff;
   border: 1px solid #e4e7ef;
-  color: #5249DF;
+  color: #344054;
   font-weight: 600;
-  font-size: 18px;
+  font-size: 13px;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s ease;
@@ -472,21 +268,16 @@
 }
 
 .skilllab-saved-toggle .count {
-  position: absolute;
-  top: -5px;
-  right: -5px;
   background: #5249DF;
   color: #fff;
-  font-size: 9px;
-  min-width: 16px;
-  height: 16px;
-  border-radius: 999px;
+  font-size: 11px;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0 4px;
-  font-weight: 700;
-  border: 2px solid #fff;
+  padding: 0 6px;
 }
 
 .mobile-sidebar-toggle {
@@ -507,50 +298,43 @@
   font-size: 13px;
 }
 
-@media (max-width: 991.98px) {
+@media (min-width: 1200px) {
   .course-header-grid {
-    grid-template-columns: auto minmax(0, 1fr) minmax(180px, 280px);
-    grid-template-areas:
-      "brand right"
-      "info info";
-    gap: 6px 10px;
+    grid-template-columns: auto minmax(0, 1fr) minmax(220px, 280px) auto;
+    grid-template-areas: "brand info progress actions";
+    gap: 16px 24px;
+    padding: 14px 0 16px;
   }
 
-  .course-header-right {
+  .course-header-progress {
     max-width: 280px;
+    justify-self: end;
+  }
+
+  .course-title {
+    font-size: 1.15rem;
   }
 }
 
 @media (max-width: 767.98px) {
   .course-header-grid {
-    grid-template-columns: auto 1fr minmax(150px, 1fr);
+    grid-template-columns: auto 1fr auto;
     grid-template-areas:
-      "brand right right"
-      "info info info";
-    gap: 5px 8px;
-    padding: 8px 0 10px;
+      "brand . actions"
+      "info info info"
+      "progress progress progress";
+    gap: 8px 12px;
+    padding: 10px 0 12px;
   }
 
-  .course-header-right {
-    max-width: none;
+  .course-header-back span,
+  .skilllab-saved-toggle__text {
+    display: none;
   }
 
-  .course-header-student-pill__val {
-    max-width: 100px;
-  }
-
-  .course-header-student-pill__key {
-    font-size: 8px;
-  }
-
-  .course-header-student-pill__val {
-    font-size: 10px;
-  }
-
-  .course-header-icon-btn {
-    width: 30px;
-    height: 30px;
-    font-size: 16px;
+  .course-header-back,
+  .skilllab-saved-toggle {
+    padding: 8px 10px;
   }
 
   .course-title {
@@ -1253,6 +1037,8 @@
 .content-lock-message { background: #f0eaff; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #5249DF; margin-top: 2rem; }
 .btn-mark-complete { background: linear-gradient(135deg, #5249DF 0%, #6438d0 100%); color: #fff; padding: 0.875rem 2rem; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease; }
 .btn-mark-complete:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(82,73,223,0.3); color: #fff; }
+.btn-mark-complete-outline { background: #fff; color: #5249DF; border: 2px solid #5249DF; }
+.btn-mark-complete-outline:hover { background: #f0eaff; color: #5249DF; box-shadow: 0 4px 12px rgba(82,73,223,0.15); }
 .btn-mark-complete:disabled { opacity: 0.6; cursor: not-allowed; }
 .section-navigation { display: flex; justify-content: space-between; align-items: center; margin-top: 3rem; padding-top: 2rem; border-top: 2px solid #f0f0f0; }
 .nav-btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.875rem 2rem; border-radius: 8px; font-weight: 600; text-decoration: none; transition: all 0.3s ease; border: none; cursor: pointer; }
@@ -1651,17 +1437,22 @@
         <div class="course-content-area">
           <div class="course-content-wrapper">
             {% if all_completed %}
-            <!-- Certificate Section -->
             <div class="content-section">
               <div class="certificate-section">
                 <h3><i class='bx bx-certificate'></i> Congratulations! Course Completed</h3>
                 <p class="mb-4">You have completed all chapters of {{ skilllab_course.name }}.</p>
-                <a href="{{ url('skilllabcourse:skilllab_certificate', args=[skilllab_course.slug]) }}" class="btn-mark-complete" style="text-decoration: none;">
-                  <i class='bx bx-certificate'></i> View Certificate
-                </a>
+                <div class="d-flex flex-wrap gap-3 justify-content-center">
+                  <a href="{{ url('skilllabcourse:skilllab_certificate', args=[skilllab_course.slug]) }}" class="btn-mark-complete" style="text-decoration: none;">
+                    <i class='bx bx-certificate'></i> View Certificate
+                  </a>
+                  <a href="{{ url('skilllabcourse:course_learning', args=[skilllab_course.slug]) }}?entry=resume" class="btn-mark-complete btn-mark-complete-outline" style="text-decoration: none;">
+                    <i class='bx bx-book-open'></i> View Course
+                  </a>
+                </div>
               </div>
             </div>
-            {% elif current_chapter %}
+            {% endif %}
+            {% if current_chapter %}
             <div class="content-section">
               <div class="content-header">
                 <h1 class="content-chapter-title" id="chapter-title-text">{{ current_chapter.chapter_name }}</h1>

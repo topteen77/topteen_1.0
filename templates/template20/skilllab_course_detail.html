@@ -11,7 +11,6 @@
 {% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
 
 {% block content %}
-{% include 'template20/skilllab/includes/course_context_meta_styles.html' %}
 <style>
 /* Single Course Detail - from single-course-detail.html */
 .course-detail-container { padding: 3rem 0; }
@@ -89,6 +88,11 @@
 .feature-item i { color: #5249DF; margin-right: 0.75rem; margin-top: 0.25rem; }
 .payment-btn { background-color: #5249DF; color: white; border: none; border-radius: 6px; padding: 0.75rem 1.5rem; font-weight: 600; width: 100%; font-size: 1.1rem; cursor: pointer; transition: all 0.3s ease; text-decoration: none; display: block; text-align: center; }
 .payment-btn:hover { background-color: #6438d0; color: white; }
+.payment-btn-completed { background-color: #16a34a; }
+.payment-btn-completed:hover { background-color: #15803d; color: white; }
+.payment-btn-outline { background-color: #fff; color: #5249DF; border: 2px solid #5249DF; margin-top: 0.75rem; }
+.payment-btn-outline:hover { background-color: #f0eaff; color: #5249DF; }
+.completed-actions { display: flex; flex-direction: column; gap: 0.75rem; }
 .money-back { display: flex; align-items: center; justify-content: center; margin-top: 1rem; color: #666; }
 .money-back i { margin-right: 0.5rem; color: #5249DF; }
 .related-courses-section { margin-top: 4rem; padding-top: 3rem; border-top: 2px solid #f0f0f0; }
@@ -138,14 +142,6 @@
     padding: 15px 5px;
   } .related-courses-grid { grid-template-columns: 1fr; } }
 </style>
-
-{% if course_topic_category or course_grade_label or learner_logged_in %}
-<div class="skilllab-context-meta-bar">
-  <div class="container">
-    {% include 'template20/skilllab/includes/course_context_meta.html' %}
-  </div>
-</div>
-{% endif %}
 
 <section class="hero-section-inner pt-md-18 pt-14 pb-5">
   <div class="container">
@@ -259,11 +255,33 @@
             {% endif %}
           </div>
           {% if skilllab.is_user_vissible(request) %}
+            {% if skilllab_course_completed %}
+          <div class="completed-actions">
+            <a href="{{ skilllab_certificate_url }}" class="payment-btn payment-btn-completed" data-require-login="true">
+              <i class='bx bx-certification'></i> View Certificate
+            </a>
+            <a href="{{ url('skilllabcourse:course_learning', args=[skilllab.slug]) }}?entry=resume" class="payment-btn payment-btn-outline" data-require-login="true">
+              <i class='bx bx-book-open'></i> View Course
+            </a>
+          </div>
+            {% else %}
           <a href="{{ url('skilllabcourse:course_learning', args=[skilllab.slug]) }}{% if skilllab_course_started %}?entry=resume{% endif %}" class="payment-btn" data-require-login="true">{{ 'Resume' if skilllab_course_started else 'Start' }}</a>
+            {% endif %}
           {% elif skilllab.amount and skilllab.amount > 0 %}
           <a href="{{ url('skilllabcourse:createskilllabcoursepayment', args=[skilllab.slug]) }}" class="payment-btn" data-require-login="true">Enroll Now</a>
           {% else %}
+            {% if skilllab_course_completed %}
+          <div class="completed-actions">
+            <a href="{{ skilllab_certificate_url }}" class="payment-btn payment-btn-completed" data-require-login="true">
+              <i class='bx bx-certification'></i> View Certificate
+            </a>
+            <a href="{{ url('skilllabcourse:course_learning', args=[skilllab.slug]) }}?entry=resume" class="payment-btn payment-btn-outline" data-require-login="true">
+              <i class='bx bx-book-open'></i> View Course
+            </a>
+          </div>
+            {% else %}
           <a href="{{ url('skilllabcourse:course_learning', args=[skilllab.slug]) }}{% if skilllab_course_started %}?entry=resume{% endif %}" class="payment-btn" data-require-login="true">{{ 'Resume' if skilllab_course_started else 'Start' }}</a>
+            {% endif %}
           {% endif %}
           {% if skilllab.amount and skilllab.amount > 0 %}
           <!-- <div class="money-back"><i class='bx bx-shield'></i><span>30-Day Money-Back Guarantee</span></div> -->

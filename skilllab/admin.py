@@ -25,6 +25,7 @@ from .models import (
     SkillLabUserHighlight,
     SkillLabUserNote,
     SkillLabUserBookmark,
+    SkillLabCertification,
     InternationalOnlineCourse,
 )
 from users.skilllab_dashboard import skilllab_course_student_counts_bulk
@@ -557,3 +558,12 @@ class SkilllabCoursePaymentAdmin(SkillLabAdminMixin, admin.ModelAdmin):
     search_fields = ["user__email", "skilllab_course__name"]
     list_editable = ["object_status"]
     raw_id_fields = ["user", "skilllab_course"]
+
+
+@admin.register(SkillLabCertification)
+class SkillLabCertificationAdmin(SkillLabAdminMixin, admin.ModelAdmin):
+    list_display = ["id", "user", "skilllab_course", "certificate_code", "issued_at", "object_status"]
+    list_filter = ["skilllab_course", "object_status"]
+    search_fields = ["user__email", "user__name", "skilllab_course__name", "certificate_code"]
+    raw_id_fields = ["user", "skilllab_course"]
+    readonly_fields = ["certificate_code", "issued_at", "created", "modified"]

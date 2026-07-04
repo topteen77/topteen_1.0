@@ -1,0 +1,563 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Certificate of Completion - {{ skilllab_course.name }} | Top Teen{% endblock %}
+{% block description_content %}View and download your Skill Lab course certificate for {{ skilllab_course.name }}.{% endblock %}
+
+{% block bodyclass %}{{ super() }} view-certificate-page skilllab-certificate-page{% endblock %}
+
+{% block chatbot %}{% endblock %}
+{% block chatbot_css %}{% endblock %}
+{% block chatbot_js %}{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Playfair+Display:wght@400;700&display=swap');
+
+  .view-certificate-page {
+    padding-top: 80px;
+    background: #f7f7fa;
+    min-height: 100vh;
+  }
+
+  .certificate-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    overflow: visible;
+  }
+
+  .certificate-container {
+    position: relative;
+    width: 100%;
+    min-height: 800px;
+    height: auto;
+    background-size: contain;
+    background-position: center top;
+    background-repeat: no-repeat;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    border: 1px solid #e0e0e0;
+    aspect-ratio: 827 / 609;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .certificate-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #ffffff;
+    background-image:
+      linear-gradient(rgba(0,0,0,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px);
+    background-size: 20px 20px;
+    z-index: -1;
+  }
+
+  .certificate-overlay {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    min-height: 800px;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .certificate-overlay > * {
+    pointer-events: auto;
+  }
+
+  .certificate-container,
+  .certificate-overlay,
+  .recipient-name-overlay,
+  .course-name-overlay,
+  .date-overlay,
+  .serial-overlay {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .recipient-name-overlay {
+    position: absolute;
+    top: 39%;
+    left: 39%;
+    transform: translateX(-50%);
+    width: 45%;
+    max-width: 380px;
+    min-width: 200px;
+    font-family: 'Dancing Script', cursive;
+    font-size: clamp(32px, 4.2vw, 45px);
+    font-weight: 700;
+    color: #1a237e;
+    line-height: 1.3;
+    text-align: left;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    box-sizing: border-box;
+    padding: 0 15px;
+    margin-left: -190px;
+    z-index: 2;
+  }
+
+  .course-name-overlay {
+    position: absolute;
+    top: 60.5%;
+    left: 7.8%;
+    width: 56%;
+    max-width: 520px;
+    font-family: 'Dancing Script', cursive;
+    font-size: clamp(20px, 2.6vw, 38px);
+    font-weight: 700;
+    color: #1a237e;
+    line-height: 1.25;
+    text-align: left;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    box-sizing: border-box;
+    z-index: 2;
+  }
+
+  .date-overlay {
+    position: absolute;
+    bottom: 7.4%;
+    left: 9.7%;
+    font-size: 15px;
+    color: #333;
+    font-weight: 500;
+    white-space: nowrap;
+    z-index: 2;
+  }
+
+  .serial-overlay {
+    position: absolute;
+    bottom: 3.3%;
+    left: 9.7%;
+    font-size: 15px;
+    color: #333;
+    font-weight: 500;
+    white-space: nowrap;
+    z-index: 2;
+  }
+
+  @media (max-width: 1200px) {
+    .recipient-name-overlay {
+      max-width: 350px;
+      margin-left: -175px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .recipient-name-overlay {
+      font-size: 36px;
+      top: 38%;
+      left: 40px;
+      right: 180px;
+      margin-left: 0;
+      transform: none;
+      max-width: none;
+      width: auto;
+    }
+    .course-name-overlay {
+      top: 63%;
+      left: 24px;
+      right: 180px;
+      width: auto;
+      max-width: none;
+      font-size: 24px;
+    }
+    .date-overlay,
+    .serial-overlay {
+      left: 40px;
+      font-size: 12px;
+    }
+  }
+
+  .certificate-actions {
+    margin-top: 30px;
+    text-align: center;
+  }
+
+  @media print {
+    header, nav, .navbar, .main-header, footer, .footer, .sidebar, aside,
+    .certificate-actions, .d-flex.justify-content-between, .certificate-wrapper > .d-flex,
+    .certificate-page-header {
+      display: none !important;
+      height: 0 !important;
+      width: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+      visibility: hidden !important;
+      position: absolute !important;
+      left: -9999px !important;
+    }
+
+    @page {
+      margin: 0 !important;
+      size: landscape !important;
+    }
+
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      height: 100% !important;
+      overflow: hidden !important;
+    }
+
+    .view-certificate-page {
+      background: #fff !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      height: 100vh !important;
+      overflow: hidden !important;
+      page-break-before: avoid !important;
+      page-break-after: avoid !important;
+    }
+
+    .container {
+      width: 100% !important;
+      max-width: 100% !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      height: 100% !important;
+    }
+
+    .certificate-wrapper {
+      margin: 0 !important;
+      padding: 0 !important;
+      max-width: 100% !important;
+      height: 100% !important;
+    }
+
+    .certificate-container {
+      box-shadow: none !important;
+      border: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+      page-break-inside: avoid !important;
+      height: 100vh !important;
+      width: 100% !important;
+      background-size: contain !important;
+      background-position: center !important;
+    }
+
+    .certificate-overlay {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+    }
+
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+    }
+
+    .recipient-name-overlay {
+      max-width: 650px !important;
+      width: 650px !important;
+      left: 65px !important;
+      top: 310px !important;
+      margin-left: 0 !important;
+      transform: none !important;
+      font-size: 45px !important;
+      padding: 0 20px !important;
+    }
+
+    .course-name-overlay {
+      top: 488px !important;
+      left: 65px !important;
+      max-width: 460px !important;
+      width: 460px !important;
+      font-size: 36px !important;
+    }
+
+    .date-overlay,
+    .serial-overlay {
+      position: absolute !important;
+      left: 78px !important;
+    }
+
+    .date-overlay { bottom: 65px !important; }
+    .serial-overlay { bottom: 40px !important; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="view-certificate-page pb-5">
+  <div class="container">
+    <div class="certificate-wrapper">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 certificate-page-header">
+        <h2 class="fs-24 fw-semibold mb-0">Certificate of Completion</h2>
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+          <a href="{{ url('skilllabcourse:course_learning', args=[skilllab_course.slug]) }}"
+             class="btn btn-outline-secondary">
+            <i class='bx bx-arrow-back me-1'></i>Back to Course
+          </a>
+          <a href="{{ url('skilllabcourse:course_learning', args=[skilllab_course.slug]) }}?entry=resume"
+             class="btn btn-outline-secondary">
+            <i class='bx bx-book-open me-1'></i>View Course
+          </a>
+          <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[skilllab_course.slug]) }}"
+             class="btn btn-outline-secondary">
+            <i class='bx bx-book me-1'></i>Course Details
+          </a>
+        </div>
+      </div>
+
+      {% set bg_image_url = static('images_new/certificate_logos/skilllab-certificate-background.png') %}
+      <div class="certificate-container" id="certificateContent"
+           data-bg-url="{{ bg_image_url }}"
+           style="background-image: url('{{ bg_image_url }}'); background-size: contain; background-position: center top; background-repeat: no-repeat;">
+        <img src="{{ bg_image_url }}" alt="Certificate Background" id="certificateBgImage"
+             style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; min-height: 800px; object-fit: contain; object-position: center top; z-index: 0; opacity: 0; pointer-events: none; display: none;">
+
+        <div class="certificate-overlay">
+          <div class="recipient-name-overlay">
+            {% if user.name %}
+              {{ user.name }}
+            {% else %}
+              {{ user.email }}
+            {% endif %}
+          </div>
+
+          <div class="course-name-overlay">
+            {{ skilllab_course.name }}
+          </div>
+
+          <div class="date-overlay">
+            {% if certification.issued_at %}
+              {{ date_format(certification.issued_at) }}
+            {% else %}
+              {{ date_format(now) }}
+            {% endif %}
+          </div>
+
+          <div class="serial-overlay">
+            Sr. No.- {{ certification.certificate_code|default("TPTSL0001") }}
+          </div>
+        </div>
+      </div>
+
+      <div class="certificate-actions">
+        <button onclick="window.print()" class="btn custom-button purple-button me-3">
+          <i class='bx bx-printer me-2'></i>Print Certificate
+        </button>
+        <button onclick="downloadCertificate()" class="btn btn-outline-primary">
+          <i class='bx bx-download me-2'></i>Download PDF
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+  function downloadCertificate() {
+    const element = document.getElementById('certificateContent');
+    const computedStyle = window.getComputedStyle(element);
+    let bgImageUrl = element.getAttribute('data-bg-url') || computedStyle.backgroundImage.replace(/url\(['"]?/, '').replace(/['"]?\)/, '');
+
+    let absoluteBgUrl = bgImageUrl;
+    if (bgImageUrl && bgImageUrl !== 'none' && !bgImageUrl.startsWith('http') && !bgImageUrl.startsWith('data:')) {
+      absoluteBgUrl = bgImageUrl.startsWith('/')
+        ? window.location.origin + bgImageUrl
+        : window.location.origin + '/' + bgImageUrl;
+    }
+
+    const convertImageToBase64 = (url) => new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = this.width;
+        canvas.height = this.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(this, 0, 0);
+        try { resolve(canvas.toDataURL('image/png')); }
+        catch (e) { resolve(url); }
+      };
+      img.onerror = () => resolve(url);
+      img.src = absoluteBgUrl;
+    });
+
+    convertImageToBase64(absoluteBgUrl).then((finalBgUrl) => {
+      const bgImgElement = document.getElementById('certificateBgImage');
+      if (bgImgElement && finalBgUrl && finalBgUrl !== 'none') {
+        bgImgElement.src = finalBgUrl;
+        bgImgElement.style.display = 'block';
+        bgImgElement.style.opacity = '1';
+      }
+
+      const bgLoadPromise = bgImgElement ? new Promise((resolve) => {
+        if (bgImgElement.complete && bgImgElement.naturalWidth > 0) resolve();
+        else {
+          bgImgElement.onload = () => setTimeout(resolve, 100);
+          bgImgElement.onerror = () => resolve();
+          setTimeout(() => resolve(), 10000);
+        }
+      }) : Promise.resolve();
+
+      bgLoadPromise.then(() => setTimeout(() => {
+        const rect = element.getBoundingClientRect();
+        let elementWidth = rect.width || element.offsetWidth || element.scrollWidth;
+        let elementHeight = rect.height || element.offsetHeight || element.scrollHeight;
+        if (elementWidth < 800) elementWidth = 1123;
+        if (elementHeight < 600) elementHeight = 826;
+
+        if (bgImgElement) {
+          bgImgElement.style.width = elementWidth + 'px';
+          bgImgElement.style.height = elementHeight + 'px';
+        }
+
+        element.querySelectorAll('.recipient-name-overlay, .course-name-overlay, .date-overlay, .serial-overlay').forEach((overlay) => {
+          overlay.style.display = 'block';
+          overlay.style.visibility = 'visible';
+          overlay.style.opacity = '1';
+        });
+
+        html2canvas(element, {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+          backgroundColor: null,
+          imageTimeout: 30000,
+          removeContainer: false,
+          foreignObjectRendering: false,
+          scrollX: 0,
+          scrollY: 0,
+          windowWidth: elementWidth,
+          windowHeight: elementHeight,
+          width: elementWidth,
+          height: elementHeight,
+          x: 0,
+          y: 0,
+          onclone: function(clonedDoc) {
+            const clonedElement = clonedDoc.getElementById('certificateContent');
+            const clonedBgImg = clonedDoc.getElementById('certificateBgImage');
+            const clonedName = clonedDoc.querySelector('.recipient-name-overlay');
+            const clonedCourse = clonedDoc.querySelector('.course-name-overlay');
+            const clonedDate = clonedDoc.querySelector('.date-overlay');
+            const clonedSerial = clonedDoc.querySelector('.serial-overlay');
+
+            if (clonedElement && finalBgUrl && finalBgUrl !== 'none') {
+              clonedElement.style.cssText +=
+                `background-image: url('${finalBgUrl}') !important; ` +
+                `background-size: contain !important; ` +
+                `background-position: center top !important; ` +
+                `background-repeat: no-repeat !important; ` +
+                `width: ${elementWidth}px !important; ` +
+                `height: ${elementHeight}px !important; ` +
+                `min-height: 800px !important;`;
+            }
+
+            const clonedOverlay = clonedDoc.querySelector('.certificate-overlay');
+            if (clonedOverlay) {
+              clonedOverlay.style.cssText +=
+                'width: 100% !important; height: 100% !important; min-height: 800px !important; display: block !important;';
+            }
+
+            if (clonedBgImg && finalBgUrl) {
+              clonedBgImg.src = finalBgUrl;
+              clonedBgImg.style.display = 'block';
+              clonedBgImg.style.opacity = '1';
+              clonedBgImg.style.width = elementWidth + 'px';
+              clonedBgImg.style.height = elementHeight + 'px';
+              clonedBgImg.style.objectFit = 'contain';
+              clonedBgImg.style.objectPosition = 'center top';
+            }
+
+            if (clonedName) {
+              clonedName.style.cssText +=
+                'display: block !important; visibility: visible !important; ' +
+                'left: 65px !important; top: 310px !important; max-width: 380px !important; ' +
+                'transform: none !important; margin-left: 0 !important; font-size: 45px !important;';
+            }
+
+            if (clonedCourse) {
+              clonedCourse.style.cssText +=
+                'display: block !important; visibility: visible !important; ' +
+                'top: 488px !important; left: 65px !important; max-width: 460px !important; font-size: 36px !important;';
+            }
+
+            if (clonedDate) {
+              clonedDate.style.cssText +=
+                'display: block !important; visibility: visible !important; ' +
+                'position: absolute !important; bottom: 65px !important; left: 78px !important;';
+            }
+
+            if (clonedSerial) {
+              clonedSerial.style.cssText +=
+                'display: block !important; visibility: visible !important; ' +
+                'position: absolute !important; bottom: 40px !important; left: 78px !important;';
+            }
+          }
+        }).then(canvas => {
+          if (bgImgElement) {
+            bgImgElement.style.display = 'none';
+            bgImgElement.style.opacity = '0';
+          }
+
+          if (canvas.width === 0 || canvas.height === 0) {
+            throw new Error('Canvas is empty');
+          }
+
+          const imgData = canvas.toDataURL('image/png', 1.0);
+          const { jsPDF } = window.jspdf;
+          const pdfWidth = 297;
+          const pdfHeight = 210;
+          const canvasAspectRatio = canvas.width / canvas.height;
+          const pdfAspectRatio = pdfWidth / pdfHeight;
+
+          let finalWidth, finalHeight, offsetX = 0, offsetY = 0;
+          if (canvasAspectRatio > pdfAspectRatio) {
+            finalWidth = pdfWidth;
+            finalHeight = pdfWidth / canvasAspectRatio;
+            if (finalHeight > pdfHeight) {
+              finalHeight = pdfHeight;
+              finalWidth = pdfHeight * canvasAspectRatio;
+              offsetX = (pdfWidth - finalWidth) / 2;
+            } else {
+              offsetY = (pdfHeight - finalHeight) / 2;
+            }
+          } else {
+            finalHeight = pdfHeight;
+            finalWidth = pdfHeight * canvasAspectRatio;
+            if (finalWidth > pdfWidth) {
+              finalWidth = pdfWidth;
+              finalHeight = pdfWidth / canvasAspectRatio;
+              offsetY = (pdfHeight - finalHeight) / 2;
+            } else {
+              offsetX = (pdfWidth - finalWidth) / 2;
+            }
+          }
+
+          const pdf = new jsPDF('landscape', 'mm', 'a4');
+          pdf.addImage(imgData, 'PNG', offsetX, offsetY, finalWidth, finalHeight, '', 'FAST');
+          pdf.save('skilllab-certificate-{{ certification.certificate_code|default("TPTSL0001") }}.pdf');
+        }).catch(error => {
+          console.error('Error generating PDF:', error);
+          alert('Error generating PDF. Please try again.');
+          if (bgImgElement) {
+            bgImgElement.style.display = 'none';
+            bgImgElement.style.opacity = '0';
+          }
+        });
+      }, 1500));
+    });
+  }
+</script>
+{% endblock %}
