@@ -11,6 +11,7 @@
 {% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
 
 {% block content %}
+{% include 'template20/skilllab/includes/course_context_meta_styles.html' %}
 <style>
 /* Single Course Detail - from single-course-detail.html */
 .course-detail-container { padding: 3rem 0; }
@@ -138,6 +139,14 @@
   } .related-courses-grid { grid-template-columns: 1fr; } }
 </style>
 
+{% if course_topic_category or course_grade_label or learner_logged_in %}
+<div class="skilllab-context-meta-bar">
+  <div class="container">
+    {% include 'template20/skilllab/includes/course_context_meta.html' %}
+  </div>
+</div>
+{% endif %}
+
 <section class="hero-section-inner pt-md-18 pt-14 pb-5">
   <div class="container">
     <div class="row">
@@ -166,6 +175,8 @@
           {% endif %}
         </div>
         <div class="course-meta">
+          <div class="meta-item"><i class='bx bx-category'></i><span>{{ course_topic_category }}</span></div>
+          <div class="meta-item"><i class='bx bx-book-open'></i><span>{{ course_grade_label }}</span></div>
           <div class="meta-item"><i class='bx bx-book'></i><span>{{ skilllab.skilllabcoursechapter.all()|length }} Chapters</span></div>
           <div class="meta-item"><i class='bx bx-file'></i><span>Downloadable resources</span></div>
           <div class="meta-item"><i class='bx bx-globe'></i><span>Online access</span></div>
@@ -248,11 +259,11 @@
             {% endif %}
           </div>
           {% if skilllab.is_user_vissible(request) %}
-          <a href="{{ url('skilllabcourse:course_learning', args=[skilllab.slug]) }}" class="payment-btn" data-require-login="true">{{ 'Resume' if skilllab_course_started else 'Start' }}</a>
+          <a href="{{ url('skilllabcourse:course_learning', args=[skilllab.slug]) }}{% if skilllab_course_started %}?entry=resume{% endif %}" class="payment-btn" data-require-login="true">{{ 'Resume' if skilllab_course_started else 'Start' }}</a>
           {% elif skilllab.amount and skilllab.amount > 0 %}
           <a href="{{ url('skilllabcourse:createskilllabcoursepayment', args=[skilllab.slug]) }}" class="payment-btn" data-require-login="true">Enroll Now</a>
           {% else %}
-          <a href="{{ url('skilllabcourse:course_learning', args=[skilllab.slug]) }}" class="payment-btn" data-require-login="true">{{ 'Resume' if skilllab_course_started else 'Start' }}</a>
+          <a href="{{ url('skilllabcourse:course_learning', args=[skilllab.slug]) }}{% if skilllab_course_started %}?entry=resume{% endif %}" class="payment-btn" data-require-login="true">{{ 'Resume' if skilllab_course_started else 'Start' }}</a>
           {% endif %}
           {% if skilllab.amount and skilllab.amount > 0 %}
           <!-- <div class="money-back"><i class='bx bx-shield'></i><span>30-Day Money-Back Guarantee</span></div> -->

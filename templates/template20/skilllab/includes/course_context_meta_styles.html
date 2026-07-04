@@ -1,0 +1,124 @@
+<style>
+.skilllab-context-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 8px 14px;
+  margin-top: 8px;
+  min-width: 0;
+}
+
+/* A labeled group (Course / Student) */
+.skilllab-context-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: #f8f9fc;
+  border: 1px solid #eceff5;
+}
+.skilllab-context-group__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8a90a2;
+}
+.skilllab-context-group__label i {
+  font-size: 14px;
+}
+.skilllab-context-group--course .skilllab-context-group__label { color: #5249DF; }
+.skilllab-context-group--course {
+  background: #f5f3ff;
+  border-color: #e4defb;
+}
+.skilllab-context-group--student .skilllab-context-group__label { color: #0f766e; }
+.skilllab-context-group--student {
+  background: #f2fbf9;
+  border-color: #d9f2ec;
+}
+.skilllab-context-group__items {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  min-width: 0;
+}
+
+/* Individual key/value field */
+.skilllab-context-field {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  max-width: 100%;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid #e6e8f0;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.skilllab-context-field__key {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #98a0b3;
+  flex-shrink: 0;
+}
+.skilllab-context-field__val {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+.skilllab-context-group--course .skilllab-context-field { border-color: #e4defb; }
+.skilllab-context-group--course .skilllab-context-field__val { color: #3f37c9; }
+.skilllab-context-group--student .skilllab-context-field { border-color: #d9f2ec; }
+
+/* Divider between the two groups */
+.skilllab-context-divider {
+  display: none;
+}
+
+/* Sticky bar wrapper (detail + list pages) */
+.skilllab-context-meta-bar {
+  position: sticky;
+  top: 88px;
+  z-index: 8870;
+  background: #fff;
+  border-bottom: 1px solid #e8eaf0;
+  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.04);
+}
+.skilllab-context-meta-bar .container,
+.skilllab-context-meta-bar .container-fluid {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+.skilllab-context-meta-bar .skilllab-context-meta {
+  margin-top: 0;
+}
+
+@media (max-width: 991px) {
+  .skilllab-context-meta-bar { top: 72px; }
+}
+@media (max-width: 767.98px) {
+  .skilllab-context-meta { gap: 6px; }
+  .skilllab-context-group {
+    width: 100%;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 10px;
+  }
+  .skilllab-context-field__val { max-width: 60vw; }
+}
+</style>

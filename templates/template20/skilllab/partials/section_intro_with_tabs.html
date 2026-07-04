@@ -1,31 +1,22 @@
 <div class="skilllab-section-tabs card border-0 shadow-sm">
-  <style>
-    .skilllab-section-tabs .lesson-content-tabs.nav-tabs { border-bottom: 1px solid #e8eaf0; }
-    .skilllab-section-tabs .lesson-content-tabs .nav-link {
-      color: #667085; font-weight: 500; border: none; border-bottom: 2px solid transparent;
-    }
-    .skilllab-section-tabs .lesson-content-tabs .nav-link.active {
-      color: #5249DF; border-bottom-color: #5249DF; background: transparent;
-    }
-    .skilllab-section-tabs #sl-mindmap-pane .counselor-mm-host {
-      min-height: 360px; height: 50vh;
-    }
-  </style>
-  <ul class="nav nav-tabs lesson-content-tabs px-2 pt-2" role="tablist">
-    <li class="nav-item" role="presentation">
-      <button class="nav-link {% if active_tab != 'mindmap' %}active{% endif %}" id="sl-content-tab" data-bs-toggle="tab" data-bs-target="#sl-content-pane" type="button" role="tab" aria-selected="{{ 'false' if active_tab == 'mindmap' else 'true' }}">
-        <i class='bx bx-file-blank me-1'></i> Content
-      </button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link {% if active_tab == 'mindmap' %}active{% endif %}" id="sl-mindmap-tab" data-bs-toggle="tab" data-bs-target="#sl-mindmap-pane" type="button" role="tab" aria-selected="{{ 'true' if active_tab == 'mindmap' else 'false' }}">
-        <i class='bx bx-git-branch me-1'></i> Mindmap
-      </button>
-    </li>
-  </ul>
-  <div class="tab-content p-3">
+  <div class="skilllab-section-tabs-header">
+    <ul class="nav nav-tabs lesson-content-tabs mb-0" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link {% if active_tab != 'mindmap' %}active{% endif %}" id="sl-content-tab" data-bs-toggle="tab" data-bs-target="#sl-content-pane" type="button" role="tab" aria-selected="{{ 'false' if active_tab == 'mindmap' else 'true' }}">
+          <i class='bx bx-file-blank'></i> Content
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link {% if active_tab == 'mindmap' %}active{% endif %}" id="sl-mindmap-tab" data-bs-toggle="tab" data-bs-target="#sl-mindmap-pane" type="button" role="tab" aria-selected="{{ 'true' if active_tab == 'mindmap' else 'false' }}">
+          <i class='bx bx-git-branch'></i> Mindmap
+        </button>
+      </li>
+    </ul>
+    <div id="skilllab-tabs-toolbar-slot" class="skilllab-tabs-toolbar-slot"></div>
+  </div>
+  <div class="tab-content">
     <div class="tab-pane fade {% if active_tab != 'mindmap' %}show active{% endif %}" id="sl-content-pane" role="tabpanel">
-      <div class="section-content-intro introduction-content ckeditorStyles">
+      <div class="section-content-intro introduction-content skilllab-lesson-prose">
         {% if content %}{{ content|safe }}{% else %}<p>Welcome to {{ chapter.chapter_name }}.</p>{% endif %}
       </div>
     </div>

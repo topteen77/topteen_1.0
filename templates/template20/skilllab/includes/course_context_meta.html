@@ -1,0 +1,56 @@
+{# Flags: course_only, student_only, hide_course_category_chip #}
+{% set _show_course = (not student_only) and ((course_topic_category and not hide_course_category_chip) or course_grade_label) %}
+{% set _show_student = (not course_only) and learner_logged_in and (learner_name or learner_school or learner_class) %}
+{% if _show_course or _show_student %}
+<div class="skilllab-context-meta" role="group" aria-label="{% if student_only %}Student details{% elif course_only %}Course details{% else %}Course and student details{% endif %}">
+  {% if _show_course %}
+  <div class="skilllab-context-group skilllab-context-group--course">
+    <span class="skilllab-context-group__label"><i class='bx bx-book-content' aria-hidden="true"></i>Course</span>
+    <div class="skilllab-context-group__items">
+      {% if course_topic_category and not hide_course_category_chip %}
+      <span class="skilllab-context-field">
+        <span class="skilllab-context-field__key">Category</span>
+        <span class="skilllab-context-field__val">{{ course_topic_category }}</span>
+      </span>
+      {% endif %}
+      {% if course_grade_label %}
+      <span class="skilllab-context-field">
+        <span class="skilllab-context-field__key">Suitable for</span>
+        <span class="skilllab-context-field__val">{{ course_grade_label }}</span>
+      </span>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if _show_course and _show_student and not course_only and not student_only %}
+  <span class="skilllab-context-divider" aria-hidden="true"></span>
+  {% endif %}
+
+  {% if _show_student %}
+  <div class="skilllab-context-group skilllab-context-group--student">
+    <span class="skilllab-context-group__label"><i class='bx bx-user-circle' aria-hidden="true"></i>Student</span>
+    <div class="skilllab-context-group__items">
+      {% if learner_name %}
+      <span class="skilllab-context-field">
+        <span class="skilllab-context-field__key">Name</span>
+        <span class="skilllab-context-field__val" title="{{ learner_name }}">{{ learner_name }}</span>
+      </span>
+      {% endif %}
+      {% if learner_school %}
+      <span class="skilllab-context-field">
+        <span class="skilllab-context-field__key">School</span>
+        <span class="skilllab-context-field__val" title="{{ learner_school }}">{{ learner_school }}</span>
+      </span>
+      {% endif %}
+      {% if learner_class %}
+      <span class="skilllab-context-field">
+        <span class="skilllab-context-field__key">Class</span>
+        <span class="skilllab-context-field__val">{{ learner_class }}</span>
+      </span>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}

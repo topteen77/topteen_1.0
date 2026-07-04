@@ -144,7 +144,7 @@
 
   {% block additionalcss %}
   {% if show_ai_counsellor_bot or show_page_chat_widget %}
-  <link rel="stylesheet" href="{{ static('css_new/chatbot-rule-widgets-layout.css') }}?v=20260626" type="text/css" media="all" />
+  <link rel="stylesheet" href="{{ static('css_new/chatbot-rule-widgets-layout.css') }}?v=20260704" type="text/css" media="all" />
   {% endif %}
   {# cb-root position & same-side stack: body classes via chatbot_widget_body_class + chatbot-widget.css #}
   {% endblock %}
@@ -155,7 +155,7 @@
 
 </head>
 
-<body class="{% block bodyclass %} {% endblock %}{{ chatbot_widget_body_class }}">
+<body class="{% block bodyclass %}{% endblock %}{% if chatbot_widget_body_class %} {{ chatbot_widget_body_class }}{% endif %}">
   {% block header %}
   {% include 'template20/includes/header.html' %}
   {% endblock %}

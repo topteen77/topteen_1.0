@@ -1,9 +1,15 @@
 /**
  * Shared layout for rule-driven chat widgets (page chat + career counsellor).
  * Body classes are set in topteens.context_processor.globals → chatbot_widget_body_class.
+ *
+ * Position matrix (admin Chatbot Rules):
+ *   Ask AI left + Career right  → (no extra classes; defaults)
+ *   Ask AI right + Career right → cb-page-chat-right cb-bots-stack
+ *   Ask AI left + Career left   → cb-ai-pos-left cb-bots-stack
+ *   Ask AI right + Career left  → cb-page-chat-right cb-ai-pos-left
  */
 
-/* Page chat on the right (admin rule: position = Right) */
+/* ---- Ask AI on the right (admin rule: position = Right) ---- */
 body.cb-page-chat-right #pc-fab {
   left: auto !important;
   right: 28px !important;
@@ -22,6 +28,39 @@ body.cb-page-chat-right #pc-win {
   }
 
   body.cb-page-chat-right #pc-win {
+    right: 18px !important;
+    left: auto !important;
+    transform-origin: bottom right !important;
+  }
+}
+
+/* ---- Same-side stack: Career Counsellor above Ask AI ---- */
+body.cb-bots-stack #pc-fab {
+  bottom: 28px !important;
+}
+
+body.cb-bots-stack #pc-win {
+  bottom: 92px !important;
+}
+
+body.cb-bots-stack.cb-page-chat-right #pc-fab {
+  left: auto !important;
+  right: 28px !important;
+}
+
+body.cb-bots-stack.cb-page-chat-right #pc-win {
+  left: auto !important;
+  right: 28px !important;
+  transform-origin: bottom right !important;
+}
+
+@media (max-width: 768px) {
+  body.cb-bots-stack.cb-page-chat-right #pc-fab {
+    right: 18px !important;
+    left: auto !important;
+  }
+
+  body.cb-bots-stack.cb-page-chat-right #pc-win {
     right: 18px !important;
     left: auto !important;
   }
@@ -76,4 +115,20 @@ body.cb-standalone-report-page.cb-bots-stack #cb-window {
   body.cb-standalone-report-page.cb-bots-stack #cb-window {
     bottom: 230px !important;
   }
+}
+
+/* Skill Lab course learning: keep bots above page chrome */
+body.skilllab-course-learning-page #pc-root,
+body.skilllab-course-learning-page #cb-root {
+  z-index: 2147483000;
+}
+
+body.skilllab-course-learning-page #pc-fab,
+body.skilllab-course-learning-page #pc-win {
+  z-index: 2147483001;
+}
+
+body.skilllab-course-learning-page #cb-fab-wrap,
+body.skilllab-course-learning-page #cb-window {
+  z-index: 2147483002;
 }

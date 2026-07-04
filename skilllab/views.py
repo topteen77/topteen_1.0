@@ -30,6 +30,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.conf import settings
 from core.s3_utils import get_s3_upload_service
+from skilllab.learner_header import enrich_skilllab_header_context, skilllab_course_queryset
 import logging
 
 logger = logging.getLogger(__name__)
@@ -165,6 +166,7 @@ class SkillLabCourseList(TemplateView):
         ctx.setdefault("skilllab_grade_options", filter_opts["skilllab_grade_options"])
         ctx.setdefault("skilllab_topic_categories", filter_opts["skilllab_topic_categories"])
         ctx['intl_courses'] = InternationalOnlineCourse.objects.all()[:4]
+        enrich_skilllab_header_context(ctx, request)
         return ctx
 
     def get_fallback_context(self, request):
@@ -294,7 +296,7 @@ class SkillLabCourseDetail(TemplateView):
     
     def get_context(self,request,skil_slug,*args,**kwargs):
         ctx={}
-        skillab=get_object_or_404(SkillLabCourse, slug=skil_slug)
+        skillab=get_object_or_404(skilllab_course_queryset(), slug=skil_slug)
         ctx['skilllab']=skillab
         ctx['first_chapter']=skillab.skilllabcoursechapter.order_by('created').first()
         ctx['activecourses']=SkillLabCourse.objects.filter(category=skillab.category).exclude(id=skillab.id)
@@ -306,6 +308,7 @@ class SkillLabCourseDetail(TemplateView):
             if request.user.is_authenticated
             else False
         )
+        enrich_skilllab_header_context(ctx, request, skillab)
         return ctx
 
     def _breadcrumb(self, skilllab):
@@ -404,7 +407,7 @@ class SkillLabCourseLearningView(TemplateView):
         return int((completed / len(sections_flat)) * 100)
 
     def get_context(self, request, course_slug, *args, **kwargs):
-        skilllab_course = get_object_or_404(SkillLabCourse, slug=course_slug)
+        skilllab_course = get_object_or_404(skilllab_course_queryset(), slug=course_slug)
         if not skilllab_course.is_user_vissible(request):
             raise Http404("You do not have access to this course.")
 
@@ -540,7 +543,15 @@ class SkillLabCourseLearningView(TemplateView):
         resume = SkillLabCourseResume.objects.filter(
             user=request.user, skilllab_course=skilllab_course
         ).first()
-        last_section_idx = resume.last_section_index if (resume and resume.last_section_index is not None) else -1
+        stored_section_idx = resume.last_section_index if (resume and resume.last_section_index is not None) else -1
+        mcq_completed_ids = set(mcq_attempts_ids)
+        progress_from_artifacts = -1
+        for idx, sec in enumerate(sections_flat):
+            if sec['type'] == 'worksheet' and sec['id'] in worksheet_progress:
+                progress_from_artifacts = max(progress_from_artifacts, idx)
+            elif sec['type'] == 'mcq' and sec['id'] in mcq_completed_ids:
+                progress_from_artifacts = max(progress_from_artifacts, idx)
+        last_section_idx = max(stored_section_idx, progress_from_artifacts)
         reached_sections = set()
         for i, sec in enumerate(sections_flat):
             if i <= last_section_idx:
@@ -549,19 +560,58 @@ class SkillLabCourseLearningView(TemplateView):
                 else:
                     reached_sections.add((sec['type'], sec['id']))
 
-        # When no URL params: restore from SkillLabCourseResume or first incomplete chapter
+        # When no URL params: Resume opens at last completed; otherwise furthest progress
         initial_section_idx = None
+        entry_mode = (request.GET.get('entry') or '').strip().lower()
+        last_completed_idx = _get_last_completed_section_index(
+            sections_flat, last_section_idx, worksheet_progress, mcq_completed_ids
+        )
+        if last_completed_idx >= 0:
+            last_section_idx = max(last_section_idx, last_completed_idx)
+            reached_sections = set()
+            for i, sec in enumerate(sections_flat):
+                if i <= last_section_idx:
+                    if sec['type'] == 'intro':
+                        reached_sections.add(('intro', sec['id'], sec.get('step', 0)))
+                    else:
+                        reached_sections.add((sec['type'], sec['id']))
+        completed_section_indices = [
+            idx for idx, sec in enumerate(sections_flat)
+            if _is_skilllab_section_completed(
+                sec, idx, last_section_idx, worksheet_progress, mcq_completed_ids
+            )
+        ]
+        completed_section_keys = set()
+        for idx, sec in enumerate(sections_flat):
+            if idx not in completed_section_indices:
+                continue
+            if sec['type'] == 'intro':
+                completed_section_keys.add(('intro', sec['id'], sec.get('step', 0)))
+            else:
+                completed_section_keys.add((sec['type'], sec['id']))
         if chapter_slug is None and chapter_num is None:
-            if resume and 0 <= resume.last_section_index < len(sections_flat):
+            if entry_mode == 'resume' and last_completed_idx >= 0:
+                initial_section_idx = last_completed_idx
+                chapter_index = sections_flat[last_completed_idx]['chapterIndex']
+                current_chapter = chapters[chapter_index] if chapters else None
+            elif last_completed_idx >= 0:
+                initial_section_idx = last_completed_idx
+                chapter_index = sections_flat[last_completed_idx]['chapterIndex']
+                current_chapter = chapters[chapter_index] if chapters else None
+            elif resume and 0 <= resume.last_section_index < len(sections_flat):
+                initial_section_idx = resume.last_section_index
                 chapter_index = sections_flat[resume.last_section_index]['chapterIndex']
                 current_chapter = chapters[chapter_index] if chapters else None
-                initial_section_idx = resume.last_section_index
             else:
                 for i, ch in enumerate(chapters):
                     if not chapter_progress.get(ch.id, False):
                         chapter_index = i
                         current_chapter = chapters[chapter_index] if chapters else None
                         break
+        elif chapter_num is not None and resume and 0 <= resume.last_section_index < len(sections_flat):
+            resume_chapter_index = sections_flat[resume.last_section_index]['chapterIndex']
+            if resume_chapter_index == chapter_index:
+                initial_section_idx = resume.last_section_index
 
         ctx = {
             'skilllab_course': skilllab_course,
@@ -583,8 +633,14 @@ class SkillLabCourseLearningView(TemplateView):
             'worksheet_progress_ids': worksheet_progress_ids,
             'mcq_attempts_ids': mcq_attempts_ids,
             'initial_section_idx': initial_section_idx,
+            'last_reached_section_idx': last_section_idx,
+            'last_viewed_section_idx': stored_section_idx,
+            'last_completed_section_idx': last_completed_idx,
+            'completed_section_indices': completed_section_indices,
+            'completed_section_keys': completed_section_keys,
             'reached_sections': reached_sections,
             'server_has_resume': resume is not None,
+            'resume_entry_mode': entry_mode == 'resume',
         }
         ctx["html_head"] = build_html_head(
             title=skilllab_course.name,
@@ -593,6 +649,7 @@ class SkillLabCourseLearningView(TemplateView):
         from course_mindmap.frontend import build_skilllab_mindmap_context
 
         ctx.update(build_skilllab_mindmap_context(request, skilllab_course))
+        enrich_skilllab_header_context(ctx, request, skilllab_course)
         return ctx
 
     def get(self, request, course_slug, *args, **kwargs):
@@ -624,11 +681,15 @@ class SkillLabSaveResumeView(APIView):
             idx = max(0, idx)
         except (TypeError, ValueError):
             idx = 0
+        existing = SkillLabCourseResume.objects.filter(
+            user=request.user, skilllab_course=skilllab_course
+        ).first()
+        progress_idx = max(existing.last_section_index, idx) if existing else idx
         upsert_active(
             SkillLabCourseResume,
             user=request.user,
             skilllab_course=skilllab_course,
-            defaults={'last_section_index': idx}
+            defaults={'last_section_index': progress_idx}
         )
         update_skilllab_course_progress_summary(request.user, skilllab_course)
         summary = SkillLabCourseProgressSummary.objects.get(
@@ -818,7 +879,7 @@ class SkillLabNoteSaveView(APIView):
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
 class SkillLabNoteListView(APIView):
-    """GET: List notes for a section."""
+    """GET: List notes for a section, or all notes for a course when section params omitted."""
 
     def get(self, request):
         course_slug = request.GET.get('course_slug')
@@ -828,8 +889,24 @@ class SkillLabNoteListView(APIView):
         section_type = request.GET.get('section_type')
         section_id = request.GET.get('section_id')
         section_step = request.GET.get('section_step')
-        if not section_type or not section_id:
-            return Response({'success': False, 'error': 'section_type, section_id required'}, status=status.HTTP_400_BAD_REQUEST)
+        if section_type is None or section_id is None:
+            notes = SkillLabUserNote.objects.filter(
+                user=request.user,
+                skilllab_course=skilllab_course,
+            ).order_by('-created')
+            items = [
+                {
+                    'id': n.id,
+                    'section_type': n.section_type,
+                    'section_id': n.section_id,
+                    'section_step': n.section_step,
+                    'name': n.name or '',
+                    'note_text': n.note_text,
+                    'anchor_text': n.anchor_text,
+                }
+                for n in notes
+            ]
+            return Response({'success': True, 'notes': items})
         try:
             section_id = int(section_id)
             section_step = int(section_step) if section_step not in (None, '') else None
@@ -1007,11 +1084,39 @@ class SkillLabSavedCountView(APIView):
         })
 
 
+_EMPTY_CONTENT_BREAK_RE = re.compile(
+    r'<p(?:\s[^>]*)?>(?:\s|&nbsp;|&#160;|&#xA0;|<br\s*/?>)*</p>',
+    re.IGNORECASE,
+)
+
+
+def _strip_empty_content_breaks(html):
+    """Remove CKEditor spacer paragraphs (nbsp/br/whitespace only) from lesson HTML."""
+    if not html:
+        return html
+    cleaned = html
+    while True:
+        next_html = _EMPTY_CONTENT_BREAK_RE.sub('', cleaned)
+        if next_html == cleaned:
+            break
+        cleaned = next_html
+    return cleaned
+
+
+def _prepare_lesson_content_html(html):
+    """Normalize lesson HTML for display: strip spacer breaks and tidy list markup."""
+    html = _strip_empty_content_breaks(html)
+    if not html:
+        return html
+    html = re.sub(r'(<li[^>]*>)\s+', r'\1', html, flags=re.IGNORECASE)
+    html = re.sub(r'\s+(</li>)', r'\1', html, flags=re.IGNORECASE)
+    return html
+
+
 def _split_content_by_headings(html):
     """Split HTML content by h2/h3 into steps. Returns list of (title, html) tuples."""
     if not html or not html.strip():
         return [('Introduction', html or '')]
-    import re
     parts = re.split(r'(?=<h[23][^>]*>)', html, flags=re.IGNORECASE)
     result = []
     for i, part in enumerate(parts):
@@ -1022,6 +1127,28 @@ def _split_content_by_headings(html):
         title = title_match.group(1).strip() if title_match else ('Introduction' if i == 0 else f'Section {i + 1}')
         result.append((title, part))
     return result if result else [('Introduction', html)]
+
+
+def _is_skilllab_section_completed(sec, idx, last_section_idx, worksheet_progress, mcq_attempts_ids):
+    """Whether a flat section index counts as completed for resume/navigation."""
+    if sec['type'] == 'intro':
+        return idx <= last_section_idx
+    if sec['type'] == 'worksheet':
+        return sec['id'] in worksheet_progress
+    if sec['type'] == 'mcq':
+        return sec['id'] in mcq_attempts_ids
+    return False
+
+
+def _get_last_completed_section_index(sections_flat, last_section_idx, worksheet_progress, mcq_attempts_ids):
+    """Highest flat index whose section is completed; -1 if none."""
+    last_completed = -1
+    for idx, sec in enumerate(sections_flat):
+        if _is_skilllab_section_completed(
+            sec, idx, last_section_idx, worksheet_progress, mcq_attempts_ids
+        ):
+            last_completed = idx
+    return last_completed
 
 
 def update_skilllab_course_progress_summary(user, skilllab_course):
@@ -1122,7 +1249,7 @@ class SkillLabSectionContentView(View):
             ).select_related('chapter').first()
             if section:
                 ctx['chapter'] = section.chapter
-                ctx['content'] = section.content or ''
+                ctx['content'] = _prepare_lesson_content_html(section.content or '')
                 from course_mindmap.frontend import get_section_mindmap_for_content
 
                 mm = get_section_mindmap_for_content(request, skilllab_course, section.id)
@@ -1142,7 +1269,7 @@ class SkillLabSectionContentView(View):
             ctx['chapter'] = chapter
             intro_parts = _split_content_by_headings(chapter.content or '')
             step_idx = max(0, min(int(step_str) if step_str.isdigit() else 0, len(intro_parts) - 1))
-            ctx['content'] = intro_parts[step_idx][1] if intro_parts else ''
+            ctx['content'] = _prepare_lesson_content_html(intro_parts[step_idx][1] if intro_parts else '')
             from course_mindmap.frontend import get_section_mindmap_for_content
 
             mm = get_section_mindmap_for_content(request, skilllab_course, chapter.id)

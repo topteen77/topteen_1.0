@@ -178,7 +178,9 @@ def generate_mindmaps(
         )
 
         if not dry_run and not errors:
-            CourseMindmapData.objects.filter(content_type=ct, object_id=course_id).delete()
+            _hard_delete_queryset(
+                CourseMindmapData.objects.filter(content_type=ct, object_id=course_id)
+            )
             for row in scope_rows:
                 CourseMindmapData.objects.create(
                     course_type_key=course_type_key,

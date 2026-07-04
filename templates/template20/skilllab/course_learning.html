@@ -22,7 +22,7 @@
       </div>
 
       <div class="course-header-info">
-        <p class="course-header-label">Skill Lab</p>
+        <p class="course-header-label">{{ course_topic_category }}</p>
         <div class="d-flex align-items-center gap-2 flex-wrap">
           <h1 class="course-title mb-0" title="{{ skilllab_course.name }}">{{ skilllab_course.name }}</h1>
           {% if course_mindmap_info %}
@@ -33,35 +33,69 @@
           </a>
           {% endif %}
         </div>
+        {% with course_only=true, hide_course_category_chip=true %}
+        {% include 'template20/skilllab/includes/course_context_meta.html' %}
+        {% endwith %}
       </div>
 
-      <div class="course-header-actions">
-        <div class="skilllab-saved-dropdown" id="skilllab-saved-dropdown">
-          <button type="button" class="skilllab-saved-toggle" id="skilllab-saved-toggle" title="Your saved bookmarks" aria-expanded="false" aria-haspopup="true">
-            <i class='bx bx-bookmark-heart'></i>
-            <span class="skilllab-saved-toggle__text">Saved</span>
-            <span class="count" id="skilllab-saved-count">0</span>
-          </button>
-          <div class="skilllab-saved-panel" id="skilllab-saved-panel" role="menu">
-            <h6><i class='bx bx-bookmark'></i> Bookmarked sections</h6>
-            <ul id="skilllab-saved-bookmarks-list"></ul>
-            <div class="empty-msg" id="skilllab-saved-empty">No bookmarks yet. Use "Bookmark" on any section to save it here.</div>
-          </div>
+      <div class="course-header-right">
+        {% if learner_logged_in and (learner_name or learner_class) %}
+        <div class="course-header-student-row" aria-label="Student">
+          {% if learner_name %}
+          {% set _student_display = learner_name.split('@')[0] if '@' in learner_name else learner_name %}
+          <span class="course-header-student-pill">
+            <span class="course-header-student-pill__key">Name</span>
+            <span class="course-header-student-pill__val" title="{{ learner_name }}">{{ _student_display }}</span>
+          </span>
+          {% endif %}
+          {% if learner_class %}
+          <span class="course-header-student-pill">
+            <span class="course-header-student-pill__key">Class</span>
+            <span class="course-header-student-pill__val">{{ learner_class }}</span>
+          </span>
+          {% endif %}
         </div>
-        <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[skilllab_course.slug]) }}" class="course-header-back">
-          <i class='bx bx-arrow-back'></i>
-          <span>Back to Course</span>
-        </a>
-      </div>
+        {% endif %}
 
-      <div class="course-header-progress">
-        <div class="course-progress-compact">
-          <div class="course-progress-compact__top">
-            <span class="course-progress-title">Course Progress</span>
-            <span class="course-progress-percentage" id="progress-percentage">{{ progress_percentage }}%</span>
+        <div class="course-header-toolbar-row">
+          <div class="course-header-progress">
+            <div class="course-progress-compact">
+              <div class="course-progress-compact__top">
+                <span class="course-progress-title">Progress</span>
+                <span class="course-progress-percentage" id="progress-percentage">{{ progress_percentage }}%</span>
+              </div>
+              <div class="course-progress-bar">
+                <div class="course-progress-fill" id="progress-fill" style="width: {{ progress_percentage }}%"></div>
+              </div>
+            </div>
           </div>
-          <div class="course-progress-bar">
-            <div class="course-progress-fill" id="progress-fill" style="width: {{ progress_percentage }}%"></div>
+
+          <div class="course-header-icon-actions">
+            <div class="skilllab-notes-dropdown" id="skilllab-notes-dropdown">
+              <button type="button" class="skilllab-notes-toggle course-header-icon-btn" id="skilllab-notes-toggle" title="My notes" aria-label="My notes" aria-expanded="false" aria-haspopup="true">
+                <i class='bx bx-note'></i>
+                <span class="count" id="skilllab-notes-count">0</span>
+              </button>
+              <div class="skilllab-saved-panel skilllab-notes-panel" id="skilllab-notes-panel" role="menu">
+                <h6><i class='bx bx-note'></i> My notes</h6>
+                <ul id="skilllab-saved-notes-list"></ul>
+                <div class="empty-msg" id="skilllab-notes-empty">No notes yet. Use "Add note" on any section.</div>
+              </div>
+            </div>
+            <div class="skilllab-saved-dropdown" id="skilllab-saved-dropdown">
+              <button type="button" class="skilllab-saved-toggle course-header-icon-btn" id="skilllab-saved-toggle" title="Saved bookmarks" aria-label="Saved bookmarks" aria-expanded="false" aria-haspopup="true">
+                <i class='bx bx-bookmark'></i>
+                <span class="count" id="skilllab-saved-count">0</span>
+              </button>
+              <div class="skilllab-saved-panel" id="skilllab-saved-panel" role="menu">
+                <h6><i class='bx bx-bookmark'></i> Bookmarked sections</h6>
+                <ul id="skilllab-saved-bookmarks-list"></ul>
+                <div class="empty-msg" id="skilllab-saved-empty">No bookmarks yet. Use "Bookmark" on any section to save it here.</div>
+              </div>
+            </div>
+            <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[skilllab_course.slug]) }}" class="course-header-back course-header-icon-btn" title="Back to Course" aria-label="Back to Course">
+              <i class='bx bx-arrow-back'></i>
+            </a>
           </div>
         </div>
       </div>
@@ -71,14 +105,8 @@
 {% endblock %}
 
 {% block content %}
+{% include 'template20/skilllab/includes/course_context_meta_styles.html' %}
 <style>
-.content-section ul { list-style: none; padding-left: 0; }
-.content-section ul li { position: relative; padding-left: 32px; margin-bottom: 10px; }
-.content-section ul li::before {
-  content: ""; position: absolute; left: 0; top: 4px; width: 18px; height: 14px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='19' viewBox='0 0 24 19'%3E%3Cpath fill='%233F37C9' d='M23.828 2.828 8.414 18.242 0 9.828 2.828 7l5.586 5.586L21 0l2.828 2.828Z'/%3E%3C/svg%3E") no-repeat center;
-  background-size: contain;
-}
 .course-page-header {
   background: #fff;
   border-bottom: 1px solid #e8eaf0;
@@ -98,13 +126,11 @@
 
 .course-header-grid {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas:
-    "brand info actions"
-    "progress progress progress";
-  gap: 10px 20px;
+  grid-template-columns: auto minmax(0, 1fr) minmax(220px, 340px);
+  grid-template-areas: "brand info right";
+  gap: 8px 16px;
   align-items: center;
-  padding: 12px 0 14px;
+  padding: 8px 0 10px;
 }
 
 .course-header-brand {
@@ -122,7 +148,7 @@
 }
 
 .course-header-logo img {
-  height: 34px;
+  height: 28px;
   width: auto;
   display: block;
 }
@@ -130,6 +156,146 @@
 .course-header-info {
   grid-area: info;
   min-width: 0;
+}
+
+.course-header-info .skilllab-context-meta {
+  margin-top: 4px;
+}
+
+.course-header-info .skilllab-context-group--course {
+  padding: 3px 8px;
+  gap: 6px;
+  border-radius: 8px;
+}
+
+.course-header-info .skilllab-context-group__label {
+  display: none;
+}
+
+.course-header-info .skilllab-context-field {
+  padding: 2px 7px;
+}
+
+.course-header-info .skilllab-context-field__key {
+  font-size: 9px;
+}
+
+.course-header-info .skilllab-context-field__val {
+  font-size: 11px;
+}
+
+.course-header-right {
+  grid-area: right;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  max-width: 340px;
+  width: 100%;
+  justify-self: end;
+}
+
+.course-header-student-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-wrap: nowrap;
+  width: 100%;
+  min-width: 0;
+}
+
+.course-header-student-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  max-width: 100%;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid #e6e8f0;
+  line-height: 1.35;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.course-header-student-pill__key {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #98a0b3;
+  flex-shrink: 0;
+}
+
+.course-header-student-pill__val {
+  font-size: 11px;
+  font-weight: 600;
+  color: #1f2937;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  max-width: 140px;
+}
+
+.course-header-toolbar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.course-header-icon-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.course-header-icon-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid #e4e7ef;
+  background: #fff;
+  color: #5249DF;
+  text-decoration: none;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.course-header-icon-btn:hover {
+  color: #4338ca;
+  border-color: #c7d2fe;
+  background: #f5f3ff;
+}
+
+.course-header-icon-btn .count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #5249DF;
+  color: #fff;
+  font-size: 9px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  font-weight: 700;
+  border: 2px solid #fff;
 }
 
 .course-header-label {
@@ -143,54 +309,45 @@
 }
 
 .course-title {
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: #1f2937;
   margin: 0;
-  line-height: 1.35;
+  line-height: 1.25;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.course-header-actions {
-  grid-area: actions;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
 .course-header-progress {
-  grid-area: progress;
+  flex: 1 1 auto;
   min-width: 0;
 }
 
 .course-progress-compact {
   background: #f8f9fc;
   border: 1px solid #eceff5;
-  border-radius: 12px;
-  padding: 10px 14px;
+  border-radius: 8px;
+  padding: 6px 10px;
 }
 
 .course-progress-compact__top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: 8px;
+  margin-bottom: 4px;
 }
 
 .course-progress-title {
-  font-size: 12px;
+  font-size: 10px;
   margin: 0;
   color: #667085;
   font-weight: 600;
 }
 
 .course-progress-percentage {
-  font-size: 13px;
+  font-size: 11px;
   color: #5249DF;
   font-weight: 700;
   line-height: 1;
@@ -198,7 +355,7 @@
 
 .course-progress-bar {
   width: 100%;
-  height: 6px;
+  height: 4px;
   background: #e4e7ef;
   border-radius: 999px;
   overflow: hidden;
@@ -214,23 +371,7 @@
 .course-header-back {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border-radius: 10px;
-  border: 1px solid #e4e7ef;
-  background: #fff;
-  color: #5249DF;
-  text-decoration: none;
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-  transition: all 0.2s ease;
-}
-
-.course-header-back:hover {
-  color: #4338ca;
-  border-color: #c7d2fe;
-  background: #f5f3ff;
+  justify-content: center;
 }
 
 .back-to-course-btn {
@@ -248,21 +389,77 @@
   transform: translateX(-3px);
 }
 
-.skilllab-saved-dropdown {
+.skilllab-saved-dropdown,
+.skilllab-notes-dropdown {
   position: relative;
+}
+
+.skilllab-notes-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 0;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #e4e7ef;
+  color: #5249DF;
+  font-weight: 600;
+  font-size: 18px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.skilllab-notes-toggle:hover {
+  background: #f5f3ff;
+  border-color: #c7d2fe;
+  color: #5249DF;
+}
+
+.skilllab-notes-toggle .count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #5249DF;
+  color: #fff;
+  font-size: 9px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  font-weight: 700;
+  border: 2px solid #fff;
+}
+
+.skilllab-notes-panel li .note-item-label {
+  display: block;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.skilllab-notes-panel li .note-item-preview {
+  display: block;
+  font-size: 0.85rem;
+  color: #666;
 }
 
 .skilllab-saved-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border-radius: 10px;
+  justify-content: center;
+  gap: 0;
+  padding: 0;
+  border-radius: 8px;
   background: #fff;
   border: 1px solid #e4e7ef;
-  color: #344054;
+  color: #5249DF;
   font-weight: 600;
-  font-size: 13px;
+  font-size: 18px;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s ease;
@@ -275,16 +472,21 @@
 }
 
 .skilllab-saved-toggle .count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
   background: #5249DF;
   color: #fff;
-  font-size: 11px;
-  min-width: 20px;
-  height: 20px;
-  border-radius: 10px;
+  font-size: 9px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0 6px;
+  padding: 0 4px;
+  font-weight: 700;
+  border: 2px solid #fff;
 }
 
 .mobile-sidebar-toggle {
@@ -305,43 +507,50 @@
   font-size: 13px;
 }
 
-@media (min-width: 1200px) {
+@media (max-width: 991.98px) {
   .course-header-grid {
-    grid-template-columns: auto minmax(0, 1fr) minmax(220px, 280px) auto;
-    grid-template-areas: "brand info progress actions";
-    gap: 16px 24px;
-    padding: 14px 0 16px;
+    grid-template-columns: auto minmax(0, 1fr) minmax(180px, 280px);
+    grid-template-areas:
+      "brand right"
+      "info info";
+    gap: 6px 10px;
   }
 
-  .course-header-progress {
+  .course-header-right {
     max-width: 280px;
-    justify-self: end;
-  }
-
-  .course-title {
-    font-size: 1.15rem;
   }
 }
 
 @media (max-width: 767.98px) {
   .course-header-grid {
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: auto 1fr minmax(150px, 1fr);
     grid-template-areas:
-      "brand . actions"
-      "info info info"
-      "progress progress progress";
-    gap: 8px 12px;
-    padding: 10px 0 12px;
+      "brand right right"
+      "info info info";
+    gap: 5px 8px;
+    padding: 8px 0 10px;
   }
 
-  .course-header-back span,
-  .skilllab-saved-toggle__text {
-    display: none;
+  .course-header-right {
+    max-width: none;
   }
 
-  .course-header-back,
-  .skilllab-saved-toggle {
-    padding: 8px 10px;
+  .course-header-student-pill__val {
+    max-width: 100px;
+  }
+
+  .course-header-student-pill__key {
+    font-size: 8px;
+  }
+
+  .course-header-student-pill__val {
+    font-size: 10px;
+  }
+
+  .course-header-icon-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
   }
 
   .course-title {
@@ -725,10 +934,23 @@
   pointer-events: none;
 }
 
-.section-item.section-future {
+.section-item.section-future:not(.completed) {
   opacity: 0.45;
   cursor: not-allowed;
   pointer-events: none;
+}
+
+.section-item.completed {
+  opacity: 1;
+  cursor: pointer;
+  pointer-events: auto;
+  color: #344054;
+}
+
+.section-item.completed.section-future {
+  opacity: 1;
+  cursor: pointer;
+  pointer-events: auto;
 }
 
 .section-item .section-item-tick {
@@ -772,7 +994,22 @@
 }
 .course-content-wrapper { background: #fff; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; width: 100%; max-width: 100%; word-wrap: break-word; box-sizing: border-box; }
 .content-section { padding: 2.5rem; max-width: 100%; overflow-x: hidden; word-wrap: break-word; box-sizing: border-box; }
-.content-header { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid #f0f0f0; }
+.content-header { margin-bottom: 1.75rem; padding-bottom: 1.25rem; border-bottom: 2px solid #f0f0f0; }
+.content-chapter-title {
+  font-size: clamp(1.45rem, 2.4vw, 2rem);
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.3;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+.content-section-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #5249DF;
+  margin: 0;
+  line-height: 1.45;
+}
 .content-title { font-size: 1.35rem; font-weight: 700; color: #333; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.75rem; }
 .content-title i { color: #5249DF; }
 .content-subtitle { color: #666; font-size: 1.1rem; margin: 0; }
@@ -781,11 +1018,237 @@
 .section-content-intro > h3:first-child,
 .section-content-intro > div:first-child > h2:first-child,
 .section-content-intro > div:first-child > h3:first-child { display: none; }
-.content-body { line-height: 1.8; color: #555; }
+.content-body { line-height: 1.75; color: #344054; }
 .content-body * { max-width: 100%; box-sizing: border-box; }
-.introduction-content h3 { font-size: 1.75rem; color: #5249DF; margin-top: 2rem; margin-bottom: 1rem; }
-.introduction-content h4 { font-size: 1.5rem; color: #333; margin-top: 2rem; margin-bottom: 1rem; }
-.introduction-content p { margin-bottom: 1.25rem; font-size: 1.05rem; }
+/* ── Lesson prose: headings, paragraphs, lists ── */
+.content-section .skilllab-lesson-prose,
+.content-section .introduction-content,
+.content-section .section-content-intro {
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  color: #344054;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+.content-section .skilllab-lesson-prose > *:first-child,
+.content-section .introduction-content > *:first-child,
+.content-section .section-content-intro > *:first-child { margin-top: 0; }
+.content-section .skilllab-lesson-prose > *:last-child,
+.content-section .introduction-content > *:last-child,
+.content-section .section-content-intro > *:last-child { margin-bottom: 0; }
+.content-section .skilllab-lesson-prose p,
+.content-section .introduction-content p,
+.content-section .section-content-intro p {
+  margin: 0 0 1rem;
+  line-height: 1.75;
+  font-size: inherit;
+}
+.content-section .skilllab-lesson-prose p:last-child,
+.content-section .introduction-content p:last-child,
+.content-section .section-content-intro p:last-child { margin-bottom: 0; }
+.content-section .skilllab-lesson-prose h2 + p,
+.content-section .introduction-content h2 + p,
+.content-section .section-content-intro h2 + p,
+.content-section .skilllab-lesson-prose h3 + p,
+.content-section .introduction-content h3 + p,
+.content-section .section-content-intro h3 + p,
+.content-section .skilllab-lesson-prose h4 + p,
+.content-section .introduction-content h4 + p,
+.content-section .section-content-intro h4 + p { margin-top: 0; }
+.content-section .skilllab-lesson-prose p + ul,
+.content-section .introduction-content p + ul,
+.content-section .section-content-intro p + ul,
+.content-section .skilllab-lesson-prose p + ol,
+.content-section .introduction-content p + ol,
+.content-section .section-content-intro p + ol { margin-top: 0.25rem; }
+.content-section .skilllab-lesson-prose ul + p,
+.content-section .introduction-content ul + p,
+.content-section .section-content-intro ul + p,
+.content-section .skilllab-lesson-prose ol + p,
+.content-section .introduction-content ol + p,
+.content-section .section-content-intro ol + p { margin-top: 0.875rem; }
+/* Hide CKEditor spacer paragraphs (nbsp-only, br-only, or whitespace-only) */
+.content-section .skilllab-lesson-prose p:empty,
+.content-section .introduction-content p:empty,
+.content-section .section-content-intro p:empty,
+.content-section .skilllab-lesson-prose .skilllab-empty-break,
+.content-section .introduction-content .skilllab-empty-break,
+.content-section .section-content-intro .skilllab-empty-break {
+  display: none;
+  margin: 0;
+  padding: 0;
+  height: 0;
+  line-height: 0;
+}
+.content-section .skilllab-lesson-prose h2,
+.content-section .introduction-content h2,
+.content-section .section-content-intro h2 {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.35;
+  margin: 2rem 0 0.75rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid #eaecf0;
+}
+.content-section .skilllab-lesson-prose h2 strong,
+.content-section .introduction-content h2 strong,
+.content-section .section-content-intro h2 strong { font-weight: inherit; color: inherit; }
+.content-section .skilllab-lesson-prose h3,
+.content-section .introduction-content h3,
+.content-section .section-content-intro h3 {
+  font-size: 1.1875rem;
+  font-weight: 700;
+  color: #5249DF;
+  line-height: 1.4;
+  margin: 1.625rem 0 0.625rem;
+}
+.content-section .skilllab-lesson-prose h3 strong,
+.content-section .introduction-content h3 strong,
+.content-section .section-content-intro h3 strong { font-weight: inherit; color: inherit; }
+.content-section .skilllab-lesson-prose h4,
+.content-section .introduction-content h4,
+.content-section .section-content-intro h4 {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: #344054;
+  line-height: 1.45;
+  margin: 1.375rem 0 0.5rem;
+}
+.content-section .skilllab-lesson-prose h4 strong,
+.content-section .introduction-content h4 strong,
+.content-section .section-content-intro h4 strong { font-weight: inherit; }
+.content-section .skilllab-lesson-prose h5,
+.content-section .introduction-content h5,
+.content-section .section-content-intro h5,
+.content-section .skilllab-lesson-prose h6,
+.content-section .introduction-content h6,
+.content-section .section-content-intro h6 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #475467;
+  line-height: 1.5;
+  margin: 1.125rem 0 0.375rem;
+}
+.content-section .skilllab-lesson-prose strong,
+.content-section .introduction-content strong,
+.content-section .section-content-intro strong { font-weight: 600; color: #1f2937; }
+.content-section .skilllab-lesson-prose ul,
+.content-section .introduction-content ul,
+.content-section .section-content-intro ul {
+  list-style: none;
+  margin: 0.625rem 0 1.125rem;
+  padding: 0;
+}
+.content-section .skilllab-lesson-prose ul li,
+.content-section .introduction-content ul li,
+.content-section .section-content-intro ul li {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.625rem;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  line-height: 1.65;
+}
+.content-section .skilllab-lesson-prose ul li > ul,
+.content-section .introduction-content ul li > ul,
+.content-section .section-content-intro ul li > ul,
+.content-section .skilllab-lesson-prose ul li > ol,
+.content-section .introduction-content ul li > ol,
+.content-section .section-content-intro ul li > ol {
+  flex: 0 0 100%;
+  margin: 0.375rem 0 0 1.5rem;
+}
+.content-section .skilllab-lesson-prose ul li:last-child,
+.content-section .introduction-content ul li:last-child,
+.content-section .section-content-intro ul li:last-child { margin-bottom: 0; }
+.content-section .skilllab-lesson-prose ul li::before,
+.content-section .introduction-content ul li::before,
+.content-section .section-content-intro ul li::before {
+  content: "";
+  flex: 0 0 1.125rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-top: 0.2em;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='19' viewBox='0 0 24 19'%3E%3Cpath fill='%233F37C9' d='M23.828 2.828 8.414 18.242 0 9.828 2.828 7l5.586 5.586L21 0l2.828 2.828Z'/%3E%3C/svg%3E") no-repeat center;
+  background-size: contain;
+}
+.content-section .skilllab-lesson-prose ul li p,
+.content-section .introduction-content ul li p,
+.content-section .section-content-intro ul li p {
+  margin: 0;
+  line-height: inherit;
+}
+.content-section .skilllab-lesson-prose ul ul,
+.content-section .introduction-content ul ul,
+.content-section .section-content-intro ul ul {
+  margin: 0.375rem 0 0.125rem;
+  width: 100%;
+  padding-left: 0.25rem;
+}
+.content-section .skilllab-lesson-prose ul ul li::before,
+.content-section .introduction-content ul ul li::before,
+.content-section .section-content-intro ul ul li::before {
+  flex-basis: 0.75rem;
+  width: 0.75rem;
+  height: 0.75rem;
+  opacity: 0.85;
+}
+.content-section .skilllab-lesson-prose ol,
+.content-section .introduction-content ol,
+.content-section .section-content-intro ol {
+  margin: 0.625rem 0 1.125rem;
+  padding-left: 1.625rem;
+  line-height: 1.65;
+  list-style-type: decimal;
+  list-style-position: outside;
+}
+.content-section .skilllab-lesson-prose ol li,
+.content-section .introduction-content ol li,
+.content-section .section-content-intro ol li {
+  margin: 0 0 0.5rem;
+  padding-left: 0.375rem;
+}
+.content-section .skilllab-lesson-prose ol li:last-child,
+.content-section .introduction-content ol li:last-child,
+.content-section .section-content-intro ol li:last-child { margin-bottom: 0; }
+.content-section .skilllab-lesson-prose ol li::marker,
+.content-section .introduction-content ol li::marker,
+.content-section .section-content-intro ol li::marker {
+  font-weight: 600;
+  color: #5249DF;
+}
+.content-section .skilllab-lesson-prose ol li p,
+.content-section .introduction-content ol li p,
+.content-section .section-content-intro ol li p { margin: 0; }
+.content-section .skilllab-lesson-prose blockquote,
+.content-section .introduction-content blockquote,
+.content-section .section-content-intro blockquote {
+  margin: 1.25rem 0;
+  padding: 0.875rem 1rem;
+  border-left: 3px solid #5249DF;
+  background: #f8f9fc;
+  color: #475467;
+  border-radius: 0 8px 8px 0;
+}
+.content-section .skilllab-lesson-prose a,
+.content-section .introduction-content a,
+.content-section .section-content-intro a {
+  color: #5249DF;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.content-section .skilllab-lesson-prose img,
+.content-section .introduction-content img,
+.content-section .section-content-intro img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 0.75rem 0;
+}
 .content-lock-overlay { background: linear-gradient(to bottom, transparent 60%, rgba(255,255,255,0.95) 100%); padding-top: 2rem; position: relative; }
 .content-lock-message { background: #f0eaff; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #5249DF; margin-top: 2rem; }
 .btn-mark-complete { background: linear-gradient(135deg, #5249DF 0%, #6438d0 100%); color: #fff; padding: 0.875rem 2rem; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease; }
@@ -805,13 +1268,145 @@
 .skilllab-saved-toast { position: fixed; top: calc(var(--header-height, 88px) + 12px); right: 20px; z-index: 1100; background: #11b377; color: #fff; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none; align-items: center; gap: 8px; animation: skilllab-toast-in 0.25s ease; }
 .skilllab-saved-toast.show { display: flex; }
 @keyframes skilllab-toast-in { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-/* Toolbar: highlighter, notes, bookmark */
-.skilllab-toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
-.skilllab-toolbar .btn-tool { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; border: 1px solid #e0e0e0; background: #fff; color: #555; cursor: pointer; transition: all 0.2s ease; }
-.skilllab-toolbar .btn-tool:hover { background: #f8f9fa; border-color: #5249DF; color: #5249DF; }
-.skilllab-toolbar .btn-tool:disabled { opacity: 0.5; cursor: not-allowed; }
-.skilllab-toolbar .btn-tool.active { background: #f0eaff; border-color: #5249DF; color: #5249DF; }
-.skilllab-toolbar .btn-tool i { font-size: 1.2rem; }
+/* Toolbar + section tab bar */
+#skilllab-toolbar-home {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.75rem;
+}
+.skilllab-toolbar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-bottom: 0;
+}
+.skilllab-toolbar .btn-tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: #667085;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  white-space: nowrap;
+}
+.skilllab-toolbar .btn-tool:hover:not(:disabled) { background: #f0eaff; color: #5249DF; }
+.skilllab-toolbar .btn-tool:disabled { opacity: 0.35; cursor: not-allowed; }
+.skilllab-toolbar .btn-tool.active { background: #5249DF; color: #fff; box-shadow: 0 1px 3px rgba(82, 73, 223, 0.35); }
+.skilllab-toolbar .btn-tool.active i { color: #fff; }
+.skilllab-toolbar .btn-tool i { font-size: 1.05rem; line-height: 1; color: inherit; }
+#skilllab-toolbar-home .skilllab-toolbar:not(.skilllab-toolbar--inline) {
+  padding: 4px;
+  background: #fff;
+  border: 1px solid #eaecf0;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+}
+.skilllab-section-tabs {
+  border: 1px solid #eaecf0 !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+  box-shadow: none !important;
+  background: #fff;
+}
+.skilllab-section-tabs .skilllab-section-tabs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 10px 0 0;
+  background: linear-gradient(180deg, #fafbff 0%, #f8f9fc 100%);
+  border-bottom: 1px solid #eaecf0;
+}
+.skilllab-section-tabs .skilllab-section-tabs-header .lesson-content-tabs.nav-tabs {
+  border: none;
+  margin: 0;
+  padding: 0 0 0 6px;
+  flex: 0 1 auto;
+  min-width: 0;
+  gap: 0;
+}
+.skilllab-section-tabs .lesson-content-tabs,
+.skilllab-section-tabs .lesson-content-tabs .nav-item {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.skilllab-section-tabs .lesson-content-tabs .nav-item::before,
+.skilllab-section-tabs .lesson-content-tabs .nav-link::before {
+  content: none !important;
+  display: none !important;
+}
+.skilllab-section-tabs .lesson-content-tabs .nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 13px 16px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #667085;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.skilllab-section-tabs .lesson-content-tabs .nav-link i { font-size: 1.05rem; opacity: 0.9; }
+.skilllab-section-tabs .lesson-content-tabs .nav-link:hover {
+  color: #5249DF;
+  border-bottom-color: rgba(82, 73, 223, 0.28);
+}
+.skilllab-section-tabs .lesson-content-tabs .nav-link.active {
+  color: #5249DF;
+  border-bottom-color: #5249DF;
+  background: transparent;
+}
+.skilllab-section-tabs .tab-content { padding: 1.75rem 2rem 2rem !important; }
+#section-content-container > .section-content-intro.skilllab-lesson-prose {
+  padding: 0.25rem 0 0;
+}
+.skilllab-tabs-toolbar-slot {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  min-width: 0;
+  padding: 6px 0;
+}
+.skilllab-tabs-toolbar-slot::before {
+  content: '';
+  flex: 0 0 1px;
+  align-self: center;
+  height: 28px;
+  background: #d0d5dd;
+  margin: 0 10px 0 6px;
+}
+.skilllab-toolbar--inline {
+  gap: 2px;
+  padding: 3px;
+  background: #fff;
+  border: 1px solid #eaecf0;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+}
+.skilllab-toolbar--inline .btn-tool {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 7px;
+}
+.skilllab-toolbar--inline .btn-tool .btn-tool-label { display: none; }
+.skilllab-toolbar--inline .btn-tool i { font-size: 1.15rem; }
 .skilllab-floating-shortcut { display: none; position: absolute; z-index: 100; background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); padding: 4px 6px; gap: 4px; align-items: center; }
 .skilllab-floating-shortcut.show { display: inline-flex; }
 .skilllab-floating-shortcut .btn-shortcut { display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; border: none; border-radius: 6px; background: #f8f9fa; color: #333; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
@@ -916,7 +1511,17 @@
   .mobile-overlay.active { display: block; }
   .skilllab-saved-toast { top: calc(var(--header-height, 120px) + 12px); right: 10px; }
 }
-@media (max-width: 576px) { .content-section { padding: 1rem; } .content-title { font-size: 1.4rem; flex-direction: column; align-items: flex-start; } .section-navigation { flex-direction: column; gap: 0.75rem; } .nav-btn { width: 100%; justify-content: center; } .skilllab-toolbar { margin-bottom: 0.75rem; } }
+@media (max-width: 576px) {
+  .content-section { padding: 1rem; }
+  .content-chapter-title { font-size: 1.35rem; }
+  .content-section-title { font-size: 0.98rem; }
+  .section-navigation { flex-direction: column; gap: 0.75rem; }
+  .nav-btn { width: 100%; justify-content: center; }
+  .skilllab-section-tabs .skilllab-section-tabs-header { flex-wrap: wrap; padding: 0 8px 8px; }
+  .skilllab-tabs-toolbar-slot::before { display: none; }
+  .skilllab-tabs-toolbar-slot { width: 100%; justify-content: center; padding-top: 0; }
+  .skilllab-section-tabs .lesson-content-tabs .nav-link { padding: 10px 12px; font-size: 0.78rem; }
+}
 </style>
 
 <!-- Saved notification (top right) -->
@@ -998,7 +1603,7 @@
                     {% set is_mcq = sec.get('type') == 'mcq' %}
                     {% set sec_id = sec.get('id') %}
                     {% set sec_step = sec.get('step', 0) %}
-                    {% set is_completed = (is_intro and ('intro', sec_id, sec_step) in reached_sections) or (is_worksheet and sec_id in worksheet_progress_ids) or (is_mcq and sec_id in mcq_attempts_ids) %}
+                    {% set is_completed = (is_intro and ('intro', sec_id, sec_step) in completed_section_keys) or (is_worksheet and ('worksheet', sec_id) in completed_section_keys) or (is_mcq and ('mcq', sec_id) in completed_section_keys) %}
                     {% set sec_mm = section_mindmap_by_id.get(sec_id) if (is_intro and section_mindmap_by_id is defined) else none %}
                     <li>
                       {% if is_locked %}
@@ -1059,26 +1664,25 @@
             {% elif current_chapter %}
             <div class="content-section">
               <div class="content-header">
-                <h2 class="content-title" id="section-header-title">
-                  <i class='bx bx-book-reader'></i>
-                  <span id="section-title-text">{{ current_chapter.chapter_name }} - Introduction</span>
-                </h2>
-                <p class="content-subtitle" id="section-subtitle">Select a section from the sidebar</p>
+                <h1 class="content-chapter-title" id="chapter-title-text">{{ current_chapter.chapter_name }}</h1>
+                <p class="content-section-title" id="section-title-text">Introduction</p>
               </div>
               <div class="content-body">
-                <div class="skilllab-toolbar" id="skilllab-toolbar">
-                  <button type="button" class="btn-tool" id="skilllab-btn-meaning" title="Show meaning of selected text" disabled>
-                    <i class='bx bx-book-open'></i> <span>Show meaning</span>
-                  </button>
-                  <button type="button" class="btn-tool" id="skilllab-btn-highlight" title="Highlight selected text" disabled>
-                    <i class='bx bx-highlight'></i> <span>Add highlight</span>
-                  </button>
-                  <button type="button" class="btn-tool" id="skilllab-btn-note" title="Add note">
-                    <i class='bx bx-note'></i> <span>Add note</span>
-                  </button>
-                  <button type="button" class="btn-tool" id="skilllab-btn-bookmark" title="Bookmark this section">
-                    <i class='bx bx-bookmark'></i> <span>Bookmark</span>
-                  </button>
+                <div id="skilllab-toolbar-home">
+                  <div class="skilllab-toolbar" id="skilllab-toolbar" role="toolbar" aria-label="Study tools">
+                    <button type="button" class="btn-tool" id="skilllab-btn-meaning" title="Show meaning of selected text" aria-label="Show meaning" disabled>
+                      <i class='bx bx-book-open'></i> <span class="btn-tool-label">Meaning</span>
+                    </button>
+                    <button type="button" class="btn-tool" id="skilllab-btn-highlight" title="Highlight selected text" aria-label="Add highlight" disabled>
+                      <i class='bx bx-highlight'></i> <span class="btn-tool-label">Highlight</span>
+                    </button>
+                    <button type="button" class="btn-tool" id="skilllab-btn-note" title="Add note" aria-label="Add note">
+                      <i class='bx bx-note'></i> <span class="btn-tool-label">Note</span>
+                    </button>
+                    <button type="button" class="btn-tool" id="skilllab-btn-bookmark" title="Bookmark this section" aria-label="Bookmark section">
+                      <i class='bx bx-bookmark'></i> <span class="btn-tool-label">Bookmark</span>
+                    </button>
+                  </div>
                 </div>
                 <div id="skilllab-floating-shortcut-wrap" style="position: relative;">
                 <div class="skilllab-floating-shortcut" id="skilllab-floating-shortcut">
@@ -1138,10 +1742,73 @@
   var bookmarkDeleteUrl = "{{ url('skilllabcourse:bookmark_delete')|escapejs }}";
   var savedCountUrl = "{{ url('skilllabcourse:saved_count')|escapejs }}";
   var initialSectionIdx = {{ initial_section_idx|tojson }};
+  var lastReachedSectionIdx = {{ last_reached_section_idx|tojson }};
+  var lastViewedSectionIdx = {{ last_viewed_section_idx|tojson }};
+  var lastCompletedSectionIdx = {{ last_completed_section_idx|tojson }};
+  var completedSectionIndices = {{ completed_section_indices|tojson }};
   var serverHasResume = {{ server_has_resume|tojson }};
+  var resumeEntryMode = {{ resume_entry_mode|tojson }};
   var currentSectionIdx = 0;
   var RESUME_STORAGE_KEY = 'skilllab_resume_';
   var currentSectionInfo = { type: '', id: '', step: null };
+
+  function isSectionIndexCompleted(idx) {
+    if (idx < 0 || idx >= sectionsFlat.length) return false;
+    if (completedSectionIndices.indexOf(idx) >= 0) return true;
+    var section = sectionsFlat[idx];
+    if (!section) return false;
+    if (section.type === 'intro') return idx <= lastReachedSectionIdx;
+    if (section.type === 'worksheet') return idInList(section.id, worksheetProgressIds);
+    if (section.type === 'mcq') return idInList(section.id, mcqAttemptsIds);
+    return false;
+  }
+
+  function markSectionIndexCompleted(idx) {
+    if (idx < 0 || idx >= sectionsFlat.length) return;
+    if (completedSectionIndices.indexOf(idx) < 0) completedSectionIndices.push(idx);
+    if (sectionsFlat[idx] && sectionsFlat[idx].type === 'intro' && idx > lastReachedSectionIdx) {
+      lastReachedSectionIdx = idx;
+    }
+    var link = findSidebarLinkForSection(sectionsFlat[idx]);
+    if (link) markSectionCompletedInSidebar(link);
+  }
+
+  function findSidebarLinkForSection(s) {
+    if (!s) return null;
+    var step = (s.step != null && s.step !== undefined) ? String(s.step) : '0';
+    var sel = document.querySelector('.load-section[data-section-type="' + s.type + '"][data-section-id="' + s.id + '"][data-section-step="' + step + '"]');
+    if (!sel && s.type !== 'intro') {
+      sel = document.querySelector('.load-section[data-section-type="' + s.type + '"][data-section-id="' + s.id + '"]');
+    }
+    if (!sel && s.type === 'intro' && s.step === undefined) {
+      sel = document.querySelector('.load-section[data-section-type="intro"][data-section-id="' + s.id + '"]');
+    }
+    return sel;
+  }
+
+  function syncSidebarFromProgressState() {
+    for (var i = 0; i < completedSectionIndices.length; i++) {
+      markSectionIndexCompleted(completedSectionIndices[i]);
+    }
+    for (var j = 0; j <= lastReachedSectionIdx; j++) {
+      if (sectionsFlat[j] && sectionsFlat[j].type === 'intro') {
+        markSectionIndexCompleted(j);
+      }
+    }
+    updateSectionFutureState();
+  }
+
+  function seedLocalResumeState(idx) {
+    try {
+      if (idx < 0 || idx >= sectionsFlat.length) return;
+      var key = RESUME_STORAGE_KEY + courseSlug;
+      var sec = sectionsFlat[idx];
+      localStorage.setItem(key, JSON.stringify({
+        sectionIdx: idx,
+        chapterIndex: sec ? sec.chapterIndex : 0
+      }));
+    } catch (e) {}
+  }
 
   function saveState() {
     saveStateWithIndex(currentSectionIdx);
@@ -1149,6 +1816,15 @@
 
   function saveStateWithIndex(idx) {
     try {
+      if (idx > lastReachedSectionIdx) lastReachedSectionIdx = idx;
+      if (sectionsFlat[idx] && sectionsFlat[idx].type === 'intro') {
+        for (var i = 0; i <= idx; i++) {
+          if (sectionsFlat[i] && sectionsFlat[i].type === 'intro' && completedSectionIndices.indexOf(i) < 0) {
+            completedSectionIndices.push(i);
+          }
+        }
+      }
+      markSectionIndexCompleted(idx);
       var key = RESUME_STORAGE_KEY + courseSlug;
       var sec = sectionsFlat[idx];
       var data = { sectionIdx: idx };
@@ -1224,6 +1900,44 @@
     return false;
   }
 
+  function isSectionCompletedForNav(section, idx) {
+    return isSectionIndexCompleted(idx);
+  }
+
+  function isSectionNavigable(idx) {
+    if (idx <= currentSectionIdx) return true;
+    return isSectionIndexCompleted(idx);
+  }
+
+  function resolveInitialSectionIdx() {
+    var entryResume = resumeEntryMode || (new URLSearchParams(window.location.search).get('entry') === 'resume');
+    if (entryResume) {
+      if (lastCompletedSectionIdx >= 0 && lastCompletedSectionIdx < sectionsFlat.length) {
+        return lastCompletedSectionIdx;
+      }
+      if (initialSectionIdx !== null && initialSectionIdx >= 0 && initialSectionIdx < sectionsFlat.length) {
+        return initialSectionIdx;
+      }
+      return 0;
+    }
+    var savedIdx = loadSavedState();
+    if (savedIdx !== null) return savedIdx;
+    if (initialSectionIdx !== null && initialSectionIdx >= 0 && initialSectionIdx < sectionsFlat.length) {
+      return initialSectionIdx;
+    }
+    if (lastCompletedSectionIdx >= 0 && lastCompletedSectionIdx < sectionsFlat.length) {
+      return lastCompletedSectionIdx;
+    }
+    if (lastViewedSectionIdx >= 0 && lastViewedSectionIdx < sectionsFlat.length) {
+      return lastViewedSectionIdx;
+    }
+    if (currentChapterId) {
+      var idx = sectionsFlat.findIndex(function(s) { return s.chapterId == currentChapterId; });
+      if (idx >= 0) return idx;
+    }
+    return 0;
+  }
+
   function showSavedToast(message, isError) {
     message = message || 'Saved';
     var el = document.getElementById('skilllab-saved-toast');
@@ -1279,16 +1993,44 @@
     return div.innerHTML;
   }
 
+  function hideEmptyContentBreaks(container) {
+    var root = getSectionContentRoot(container) || container;
+    if (!root) return;
+    root.querySelectorAll('p').forEach(function(el) {
+      if (el.closest('.skilllab-notes-list') || el.closest('.skilllab-toolbar')) return;
+      var clone = el.cloneNode(true);
+      clone.querySelectorAll('br').forEach(function(br) { br.remove(); });
+      var text = (clone.textContent || '').replace(/\u00a0/g, ' ').trim();
+      if (!text) el.classList.add('skilllab-empty-break');
+    });
+  }
+
+  function getSectionContentRoot(container) {
+    if (!container) return null;
+    return container.querySelector('#sl-content-pane .section-content-intro') ||
+      container.querySelector('.section-content-intro') ||
+      container.querySelector('.section-worksheet') ||
+      container.querySelector('.section-mcq') ||
+      null;
+  }
+
+  function getSectionContentHost(container) {
+    if (!container) return null;
+    return container.querySelector('#sl-content-pane') || container;
+  }
+
   function applyHighlightsForSection(container) {
     if (!container || !currentSectionInfo.type || !currentSectionInfo.id) return Promise.resolve();
+    var root = getSectionContentRoot(container);
+    if (!root) return Promise.resolve();
     var params = 'course_slug=' + encodeURIComponent(courseSlug) + '&section_type=' + encodeURIComponent(currentSectionInfo.type) + '&section_id=' + encodeURIComponent(currentSectionInfo.id);
     if (currentSectionInfo.step != null && currentSectionInfo.step !== '') params += '&section_step=' + encodeURIComponent(currentSectionInfo.step);
     return fetch(highlightListUrl + '?' + params, { credentials: 'same-origin' })
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        var html = stripHighlightWraps(container.innerHTML);
+        var html = stripHighlightWraps(root.innerHTML);
         if (!data.success || !data.highlights || !data.highlights.length) {
-          container.innerHTML = html;
+          root.innerHTML = html;
           return;
         }
         for (var i = 0; i < data.highlights.length; i++) {
@@ -1300,18 +2042,20 @@
             html = html.substring(0, idx) + wrapped + html.substring(idx + h.highlighted_text.length);
           }
         }
-        container.innerHTML = html;
+        root.innerHTML = html;
       });
   }
 
   function renderNotesForSection(container) {
     if (!container || !currentSectionInfo.type || !currentSectionInfo.id) return Promise.resolve();
+    var host = getSectionContentHost(container);
+    if (!host) return Promise.resolve();
     var params = 'course_slug=' + encodeURIComponent(courseSlug) + '&section_type=' + encodeURIComponent(currentSectionInfo.type) + '&section_id=' + encodeURIComponent(currentSectionInfo.id);
     if (currentSectionInfo.step != null && currentSectionInfo.step !== '') params += '&section_step=' + encodeURIComponent(currentSectionInfo.step);
     return fetch(noteListUrl + '?' + params, { credentials: 'same-origin' })
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        var listEl = container.querySelector('.skilllab-notes-list');
+        var listEl = host.querySelector('.skilllab-notes-list');
         if (listEl) listEl.remove();
         if (!data.success || !data.notes || !data.notes.length) return;
         var wrap = document.createElement('div');
@@ -1328,7 +2072,7 @@
           item.innerHTML = '<div class="skilllab-note-content">' + namePart + '<span class="skilllab-note-text">' + escapeHtml(n.note_text) + '</span>' + (n.anchor_text ? ' <small class="text-muted">— "' + escapeHtml(n.anchor_text.substring(0, 50)) + (n.anchor_text.length > 50 ? '…' : '') + '"</small>' : '') + '</div><span class="note-delete" data-note-id="' + n.id + '" title="Delete note"><i class="bx bx-trash"></i></span>';
           wrap.appendChild(item);
         }
-        container.appendChild(wrap);
+        host.appendChild(wrap);
         wrap.querySelectorAll('.skilllab-note-content').forEach(function(el) {
           var item = el.closest('.skilllab-note-item');
           var anchorText = item ? item.getAttribute('data-anchor-text') : '';
@@ -1336,8 +2080,9 @@
           el.addEventListener('click', function(e) {
             e.preventDefault();
             var cont = document.getElementById('section-content-container');
-            if (!cont) return;
-            var found = findElementContainingText(cont, anchorText);
+            var contentRoot = cont ? getSectionContentRoot(cont) : null;
+            if (!contentRoot) return;
+            var found = findElementContainingText(contentRoot, anchorText);
             if (found) {
               found.classList.add('note-highlight-pulse');
               found.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1372,24 +2117,50 @@
         if (data.success && data.is_bookmarked) {
           btn.classList.add('active');
           btn.querySelector('i').className = 'bx bxs-bookmark';
-          btn.querySelector('span').textContent = 'Bookmarked';
+          btn.setAttribute('aria-label', 'Remove bookmark');
+          var label = btn.querySelector('.btn-tool-label');
+          if (label) label.textContent = 'Saved';
         } else {
           btn.classList.remove('active');
           btn.querySelector('i').className = 'bx bx-bookmark';
-          btn.querySelector('span').textContent = 'Bookmark';
+          btn.setAttribute('aria-label', 'Bookmark section');
+          var labelOff = btn.querySelector('.btn-tool-label');
+          if (labelOff) labelOff.textContent = 'Bookmark';
         }
       });
+  }
+
+  function updateContentHeader(sectionTitle) {
+    var sec = sectionsFlat[currentSectionIdx];
+    var chapterEl = document.getElementById('chapter-title-text');
+    var sectionEl = document.getElementById('section-title-text');
+    if (chapterEl && sec && sec.chapterName) chapterEl.textContent = sec.chapterName;
+    if (sectionEl) sectionEl.textContent = sectionTitle || (sec ? sec.title : '');
+  }
+
+  function placeSkillLabToolbar(contentContainer) {
+    var toolbar = document.getElementById('skilllab-toolbar');
+    var home = document.getElementById('skilllab-toolbar-home');
+    if (!toolbar || !home) return;
+    var slot = contentContainer ? contentContainer.querySelector('#skilllab-tabs-toolbar-slot') : null;
+    if (slot) {
+      slot.appendChild(toolbar);
+      toolbar.classList.add('skilllab-toolbar--inline');
+      home.style.display = 'none';
+    } else {
+      home.appendChild(toolbar);
+      toolbar.classList.remove('skilllab-toolbar--inline');
+      home.style.display = '';
+    }
   }
 
   function loadSectionContent(sectionType, sectionId, title, step) {
     var container = document.getElementById('section-content-container');
     if (!container) return;
     currentSectionInfo = { type: sectionType, id: String(sectionId), step: step !== undefined ? step : null };
+    placeSkillLabToolbar(null);
     container.innerHTML = '<p class="text-muted">Loading...</p>';
-    var subtitle = document.getElementById('section-subtitle');
-    if (subtitle) { subtitle.textContent = ''; subtitle.classList.add('d-none'); }
-    var titleEl = document.getElementById('section-title-text');
-    if (titleEl) titleEl.textContent = title;
+    updateContentHeader(title);
     var url = sectionContentUrl + '?section_type=' + encodeURIComponent(sectionType) + '&section_id=' + sectionId + '&course_slug=' + encodeURIComponent(courseSlug);
     if (sectionType === 'intro' && step !== undefined) url += '&step=' + step;
     var tabParam = new URLSearchParams(window.location.search).get('tab');
@@ -1399,6 +2170,8 @@
       .then(function(html) {
         container.innerHTML = html;
         container.classList.remove('section-content-loading');
+        hideEmptyContentBreaks(container);
+        placeSkillLabToolbar(container);
         var p = applyHighlightsForSection(container);
         p.then(function() { return renderNotesForSection(container); }).then(function() {
           updateBookmarkButtonState();
@@ -1438,7 +2211,7 @@
       var id = a.getAttribute('data-section-id');
       var step = a.getAttribute('data-section-step') || '0';
       var idx = sectionsFlat.findIndex(function(s) { return sectionMatches(s, type, id, step); });
-      if (idx > currentSectionIdx) a.classList.add('section-future');
+      if (idx < 0 || !isSectionNavigable(idx)) a.classList.add('section-future');
       else a.classList.remove('section-future');
     });
   }
@@ -1547,10 +2320,10 @@
               btn.outerHTML = '<span class="text-success"><i class="bx bx-check-circle"></i> Downloaded</span>';
               var wsEl = container.querySelector('.section-worksheet');
               if (wsEl) wsEl.setAttribute('data-downloaded', 'true');
-              var sidebarItem = document.querySelector('.load-section[data-section-type="worksheet"][data-section-id="' + activityId + '"]');
-              if (sidebarItem) sidebarItem.classList.add('completed');
+              markSectionIndexCompleted(currentSectionIdx);
               if (data.progress_percentage !== undefined) updateProgressBar(data.progress_percentage);
               updateNextButton();
+              updateSectionFutureState();
             }
           });
         }
@@ -1609,8 +2382,7 @@
         }).then(function(r) { return r.json(); }).then(function(data) {
           if (data.success) {
             if (mcqAttemptsIds.indexOf(parseInt(mcqId, 10)) < 0) mcqAttemptsIds.push(parseInt(mcqId, 10));
-            var sidebarItem = document.querySelector('.load-section[data-section-type="mcq"][data-section-id="' + mcqId + '"]');
-            if (sidebarItem) sidebarItem.classList.add('completed');
+            markSectionIndexCompleted(currentSectionIdx);
             var mcqSection = form.closest('.section-mcq');
             var resultBox = mcqSection.querySelector('.mcq-result-detail');
             var formContainer = mcqSection.querySelector('.mcq-form-container');
@@ -1631,6 +2403,7 @@
             }
             if (data.progress_percentage !== undefined) updateProgressBar(data.progress_percentage);
             updateNextButton();
+            updateSectionFutureState();
           }
         });
       });
@@ -1650,6 +2423,41 @@
         updateNextButton();
       });
     });
+  }
+
+  function navigateToSavedSection(type, id, step, onDone) {
+    var idx = sectionsFlat.findIndex(function(s) { return sectionMatches(s, type, id, step); });
+    if (idx < 0 || idx >= sectionsFlat.length) return;
+    currentSectionIdx = idx;
+    var s = sectionsFlat[idx];
+    var loadStep = s.type === 'intro' ? (s.step != null ? s.step : parseInt(step, 10) || 0) : undefined;
+    loadSectionContent(s.type, s.id, s.title, loadStep);
+    saveState();
+    var sel = findSidebarLinkForSection(s);
+    if (sel) {
+      document.querySelectorAll('.section-item').forEach(function(x) { x.classList.remove('active'); });
+      sel.classList.add('active');
+      markSectionIndexCompleted(idx);
+    }
+    expandAccordionForChapter(s.chapterId);
+    updateSectionFutureState();
+    updateNextButton();
+    if (typeof onDone === 'function') onDone();
+    setTimeout(function() {
+      var contentEl = document.getElementById('section-content-container');
+      if (contentEl) contentEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 400);
+  }
+
+  function closeHeaderPanels() {
+    var savedPanel = document.getElementById('skilllab-saved-panel');
+    var savedToggle = document.getElementById('skilllab-saved-toggle');
+    var notesPanel = document.getElementById('skilllab-notes-panel');
+    var notesToggle = document.getElementById('skilllab-notes-toggle');
+    if (savedPanel) savedPanel.classList.remove('show');
+    if (savedToggle) savedToggle.setAttribute('aria-expanded', 'false');
+    if (notesPanel) notesPanel.classList.remove('show');
+    if (notesToggle) notesToggle.setAttribute('aria-expanded', 'false');
   }
 
   function loadSavedBookmarksPanel() {
@@ -1684,27 +2492,57 @@
             var type = this.getAttribute('data-section-type');
             var id = this.getAttribute('data-section-id');
             var step = this.getAttribute('data-section-step') || '0';
-            var idx = sectionsFlat.findIndex(function(s) { return sectionMatches(s, type, id, step); });
-            if (idx >= 0 && idx < sectionsFlat.length) {
-              currentSectionIdx = idx;
-              var s = sectionsFlat[idx];
-              var loadStep = s.type === 'intro' ? (s.step != null ? s.step : parseInt(step, 10) || 0) : undefined;
-              loadSectionContent(s.type, s.id, s.title, loadStep);
-              saveState();
-              document.getElementById('skilllab-saved-panel').classList.remove('show');
-              document.getElementById('skilllab-saved-toggle').setAttribute('aria-expanded', 'false');
-              var stepAttr = (s.step != null && s.step !== undefined) ? String(s.step) : '';
-              var sel = document.querySelector('.load-section[data-section-type="' + s.type + '"][data-section-id="' + s.id + '"][data-section-step="' + stepAttr + '"]');
-              if (!sel && s.type !== 'intro') sel = document.querySelector('.load-section[data-section-type="' + s.type + '"][data-section-id="' + s.id + '"]');
-              if (sel) { document.querySelectorAll('.section-item').forEach(function(x) { x.classList.remove('active'); }); sel.classList.add('active'); }
-              expandAccordionForChapter(s.chapterId);
-              updateSectionFutureState();
-              updateNextButton();
-              setTimeout(function() {
-                var contentEl = document.getElementById('section-content-container');
-                if (contentEl) contentEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              }, 400);
-            }
+            navigateToSavedSection(type, id, step, closeHeaderPanels);
+          });
+          li.appendChild(a);
+          listEl.appendChild(li);
+        });
+      });
+  }
+
+  function loadSavedNotesPanel() {
+    var listEl = document.getElementById('skilllab-saved-notes-list');
+    var emptyEl = document.getElementById('skilllab-notes-empty');
+    var countEl = document.getElementById('skilllab-notes-count');
+    if (!listEl) return;
+    var params = 'course_slug=' + encodeURIComponent(courseSlug);
+    fetch(noteListUrl + '?' + params, { credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (!data.success || !data.notes || !data.notes.length) {
+          listEl.innerHTML = '';
+          if (emptyEl) emptyEl.style.display = 'block';
+          if (countEl) countEl.textContent = '0';
+          return;
+        }
+        if (emptyEl) emptyEl.style.display = 'none';
+        if (countEl) countEl.textContent = data.notes.length;
+        listEl.innerHTML = '';
+        data.notes.forEach(function(n) {
+          var li = document.createElement('li');
+          var a = document.createElement('a');
+          a.href = '#note-' + n.id;
+          var label = (n.name && n.name.trim()) ? n.name.trim() : (n.note_text || 'Note');
+          var preview = '';
+          if (n.anchor_text && n.anchor_text.trim()) {
+            preview = n.anchor_text.trim();
+          } else if (n.note_text && n.note_text.trim() && n.note_text.trim() !== label) {
+            preview = n.note_text.trim();
+          }
+          if (label.length > 50) label = label.substring(0, 50) + '…';
+          if (preview.length > 60) preview = preview.substring(0, 60) + '…';
+          a.innerHTML = '<span class="note-item-label">' + escapeHtml(label) + '</span>' +
+            (preview ? '<span class="note-item-preview">' + escapeHtml(preview) + '</span>' : '');
+          a.setAttribute('data-section-type', n.section_type);
+          a.setAttribute('data-section-id', String(n.section_id));
+          a.setAttribute('data-section-step', (n.section_step != null && n.section_step !== '') ? String(n.section_step) : '');
+          a.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var type = this.getAttribute('data-section-type');
+            var id = this.getAttribute('data-section-id');
+            var step = this.getAttribute('data-section-step') || '0';
+            navigateToSavedSection(type, id, step, closeHeaderPanels);
           });
           li.appendChild(a);
           listEl.appendChild(li);
@@ -1722,15 +2560,32 @@
     document.getElementById('skilllab-saved-toggle').addEventListener('click', function(e) {
       e.stopPropagation();
       var panel = document.getElementById('skilllab-saved-panel');
+      var notesPanel = document.getElementById('skilllab-notes-panel');
+      if (notesPanel) notesPanel.classList.remove('show');
+      var notesToggle = document.getElementById('skilllab-notes-toggle');
+      if (notesToggle) notesToggle.setAttribute('aria-expanded', 'false');
       panel.classList.toggle('show');
       this.setAttribute('aria-expanded', panel.classList.contains('show'));
       if (panel.classList.contains('show')) loadSavedBookmarksPanel();
     });
-    document.addEventListener('click', function() {
-      document.getElementById('skilllab-saved-panel').classList.remove('show');
-      document.getElementById('skilllab-saved-toggle').setAttribute('aria-expanded', 'false');
-    });
+    var notesToggleEl = document.getElementById('skilllab-notes-toggle');
+    if (notesToggleEl) {
+      notesToggleEl.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var panel = document.getElementById('skilllab-notes-panel');
+        var savedPanel = document.getElementById('skilllab-saved-panel');
+        if (savedPanel) savedPanel.classList.remove('show');
+        var savedToggle = document.getElementById('skilllab-saved-toggle');
+        if (savedToggle) savedToggle.setAttribute('aria-expanded', 'false');
+        panel.classList.toggle('show');
+        this.setAttribute('aria-expanded', panel.classList.contains('show'));
+        if (panel.classList.contains('show')) loadSavedNotesPanel();
+      });
+    }
+    document.addEventListener('click', closeHeaderPanels);
     document.getElementById('skilllab-saved-dropdown').addEventListener('click', function(e) { e.stopPropagation(); });
+    var notesDropdown = document.getElementById('skilllab-notes-dropdown');
+    if (notesDropdown) notesDropdown.addEventListener('click', function(e) { e.stopPropagation(); });
 
     var noteModalBackdrop = document.getElementById('skilllab-note-modal-backdrop');
     var noteModalRef = document.getElementById('skilllab-note-modal-ref');
@@ -1757,13 +2612,22 @@
     document.getElementById('skilllab-note-modal-close').addEventListener('click', closeNoteModal);
     document.getElementById('skilllab-note-modal-cancel').addEventListener('click', closeNoteModal);
     var definitionPopover = document.getElementById('skilllab-definition-popover');
+    var btnMeaning = document.getElementById('skilllab-btn-meaning');
+    var floatShortcut = document.getElementById('skilllab-floating-shortcut');
+    var floatMeaning = document.getElementById('skilllab-float-meaning');
+    var floatHighlight = document.getElementById('skilllab-float-highlight');
+    var floatNote = document.getElementById('skilllab-float-note');
+    var lastContentSelection = null;
     document.getElementById('skilllab-definition-popover-close').addEventListener('click', function() {
       if (definitionPopover) definitionPopover.classList.remove('show');
     });
     noteModalBackdrop.addEventListener('click', function(e) { if (e.target === noteModalBackdrop) closeNoteModal(); });
     document.addEventListener('click', function(e) {
-      if (definitionPopover && definitionPopover.classList.contains('show') && !definitionPopover.contains(e.target) && (!floatShortcut || !floatShortcut.contains(e.target)))
-        definitionPopover.classList.remove('show');
+      if (!definitionPopover || !definitionPopover.classList.contains('show')) return;
+      if (definitionPopover.contains(e.target)) return;
+      if (floatShortcut && floatShortcut.contains(e.target)) return;
+      if (e.target.closest && e.target.closest('#skilllab-toolbar')) return;
+      definitionPopover.classList.remove('show');
     });
 
     container.addEventListener('click', function(e) {
@@ -1797,26 +2661,55 @@
           body: body,
           credentials: 'same-origin'
         }).then(function(r) { return r.json(); }).then(function(res) {
-          if (res.success) { showSavedToast('Note removed'); renderNotesForSection(container); }
+          if (res.success) { showSavedToast('Note removed'); renderNotesForSection(container); loadSavedNotesPanel(); }
         }).catch(function() { showSavedToast('Could not remove note'); });
         return;
       }
     });
-
-    var btnMeaning = document.getElementById('skilllab-btn-meaning');
-    var floatShortcut = document.getElementById('skilllab-floating-shortcut');
-    var floatMeaning = document.getElementById('skilllab-float-meaning');
-    var floatHighlight = document.getElementById('skilllab-float-highlight');
-    var floatNote = document.getElementById('skilllab-float-note');
 
     function getSelectionInContainer() {
       var sel = window.getSelection();
       var text = sel ? sel.toString().trim() : '';
       if (!text) return { text: '', inContainer: false };
       var range = sel && sel.rangeCount ? sel.getRangeAt(0) : null;
-      var inContainer = range && container.contains(range.commonAncestorContainer);
+      var contentRoot = getSectionContentRoot(container);
+      var inContainer = range && contentRoot && contentRoot.contains(range.commonAncestorContainer);
       return { text: text, inContainer: inContainer, range: range };
     }
+
+    function rememberContentSelection(s) {
+      if (!s || !s.text || !s.inContainer) return;
+      lastContentSelection = {
+        text: s.text,
+        rangeRect: s.range ? s.range.getBoundingClientRect() : null
+      };
+    }
+
+    function getActiveContentSelection() {
+      var s = getSelectionInContainer();
+      if (s.text && s.inContainer) {
+        rememberContentSelection(s);
+        return s;
+      }
+      if (lastContentSelection && lastContentSelection.text) {
+        return {
+          text: lastContentSelection.text,
+          inContainer: true,
+          range: null,
+          rangeRect: lastContentSelection.rangeRect
+        };
+      }
+      return s;
+    }
+
+    function preventToolbarSelectionLoss(btn) {
+      if (!btn) return;
+      btn.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+      });
+    }
+
+    [btnMeaning, btnHighlight, btnNote, floatMeaning, floatHighlight, floatNote].forEach(preventToolbarSelectionLoss);
 
     function expandRangeToWordBoundaries(range) {
       if (!range) return range;
@@ -1839,14 +2732,17 @@
     }
 
     function isSingleWord(text) {
-      var t = (text || '').trim();
+      var t = (text || '').trim().replace(/^[^\w'-]+|[^\w'-]+$/g, '');
       return t.length > 0 && t.indexOf(' ') === -1;
     }
 
     function updateHighlightButton() {
       var s = getSelectionInContainer();
+      if (s.text && s.inContainer) rememberContentSelection(s);
       var enabled = !!s.text && s.inContainer;
-      var meaningEnabled = enabled && isSingleWord(s.text);
+      var active = getActiveContentSelection();
+      var meaningEnabled = (enabled && isSingleWord(s.text)) ||
+        (active.text && active.inContainer && isSingleWord(active.text));
       btnHighlight.disabled = !enabled;
       if (btnMeaning) btnMeaning.disabled = !meaningEnabled;
       if (floatShortcut) {
@@ -1898,21 +2794,28 @@
         if (left + w > window.innerWidth - 8) left = window.innerWidth - w - 8;
         popover.style.left = left + 'px';
         popover.style.top = (rect.bottom + 12) + 'px';
+        popover.style.transform = '';
+      } else {
+        popover.style.left = '50%';
+        popover.style.top = '35%';
+        popover.style.transform = 'translateX(-50%)';
       }
     }
 
     function doShowMeaning() {
-      var s = getSelectionInContainer();
+      var s = getActiveContentSelection();
       if (!s.text || !isSingleWord(s.text)) return;
       var text = s.text.trim();
       var defineUrl = 'https://www.google.com/search?q=define+' + encodeURIComponent(text);
       var title = 'Definition: "' + (text.length > 35 ? text.substring(0, 35) + '…' : text) + '"';
       var popContent = document.getElementById('skilllab-definition-popover-content');
       if (popContent) popContent.innerHTML = '<p class="text-muted">Loading definition…</p>';
-      var posRect = (floatShortcut && floatShortcut.classList.contains('show') ? floatShortcut.getBoundingClientRect() : (s.range ? s.range.getBoundingClientRect() : null));
+      var posRect = s.rangeRect ||
+        (s.range ? s.range.getBoundingClientRect() : null) ||
+        (floatShortcut && floatShortcut.classList.contains('show') ? floatShortcut.getBoundingClientRect() : null);
       showDefinitionOnPage(title, '<p class="text-muted">Loading definition…</p>', defineUrl, posRect);
-      var word = text.split(/\s+/)[0];
-      if (word && text.indexOf(' ') === -1) {
+      var word = text.replace(/[^\w'-]/g, '');
+      if (word && isSingleWord(text)) {
         fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(word), { credentials: 'omit' })
           .then(function(r) { return r.ok ? r.json() : null; })
           .then(function(data) {
@@ -1938,7 +2841,7 @@
     }
 
     function doAddHighlight() {
-      var s = getSelectionInContainer();
+      var s = getActiveContentSelection();
       if (!s.text || !currentSectionInfo.type || !currentSectionInfo.id) return;
       var range = s.range;
       var textToHighlight = s.text;
@@ -1965,22 +2868,26 @@
       });
     }
 
-    if (btnMeaning) btnMeaning.addEventListener('click', doShowMeaning);
-    if (floatMeaning) floatMeaning.addEventListener('click', doShowMeaning);
+    if (btnMeaning) btnMeaning.addEventListener('click', function(e) {
+      e.stopPropagation();
+      doShowMeaning();
+    });
+    if (floatMeaning) floatMeaning.addEventListener('click', function(e) {
+      e.stopPropagation();
+      doShowMeaning();
+    });
     if (floatHighlight) floatHighlight.addEventListener('click', doAddHighlight);
     if (floatNote) floatNote.addEventListener('click', function() {
-      var sel = window.getSelection();
-      var anchorText = (sel && sel.toString) ? sel.toString().trim() : '';
-      openNoteModal(anchorText);
+      var s = getActiveContentSelection();
+      openNoteModal(s.text || '');
       if (floatShortcut) floatShortcut.classList.remove('show');
     });
 
     btnHighlight.addEventListener('click', doAddHighlight);
 
     btnNote.addEventListener('click', function() {
-      var sel = window.getSelection();
-      var anchorText = (sel && sel.toString) ? sel.toString().trim() : '';
-      openNoteModal(anchorText);
+      var s = getActiveContentSelection();
+      openNoteModal(s.text || '');
     });
     document.getElementById('skilllab-note-modal-save').addEventListener('click', function() {
       var name = noteModalName ? noteModalName.value.trim() : '';
@@ -2002,7 +2909,7 @@
         }),
         credentials: 'same-origin'
       }).then(function(r) { return r.json(); }).then(function(data) {
-        if (data.success) { showSavedToast('Note saved'); renderNotesForSection(container); }
+        if (data.success) { showSavedToast('Note saved'); renderNotesForSection(container); loadSavedNotesPanel(); }
         else { showSavedToast(data.error || 'Note could not be saved', true); }
       }).catch(function() { showSavedToast('Note could not be saved', true); });
     });
@@ -2057,6 +2964,8 @@
     initDesktopSidebarToggle();
 
     initSkillLabToolbar();
+    loadSavedBookmarksPanel();
+    loadSavedNotesPanel();
 
     document.querySelectorAll('.chapter-accordion-header').forEach(function(hdr) {
       hdr.addEventListener('click', function(e) {
@@ -2088,54 +2997,48 @@
     document.querySelectorAll('.load-section').forEach(function(a) {
       a.addEventListener('click', function(e) {
         e.preventDefault();
-        if (this.classList.contains('section-future') || this.classList.contains('locked')) return;
+        if (this.classList.contains('locked')) return;
         var type = this.getAttribute('data-section-type');
         var id = this.getAttribute('data-section-id');
         var step = this.getAttribute('data-section-step') || '0';
         var chapterId = this.getAttribute('data-chapter-id');
         var title = this.textContent.trim();
         var idx = sectionsFlat.findIndex(function(s) { return sectionMatches(s, type, id, step); });
-        if (idx >= 0) currentSectionIdx = idx;
+        if (idx < 0 || !isSectionNavigable(idx)) return;
+        currentSectionIdx = idx;
         saveState();
         expandAccordionForChapter(chapterId);
         loadSectionContent(type, id, title, type === 'intro' ? parseInt(step, 10) : undefined);
         document.querySelectorAll('.section-item').forEach(function(s) { s.classList.remove('active'); });
         this.classList.add('active');
-        if (type === 'intro') markSectionCompletedInSidebar(this);
+        markSectionIndexCompleted(idx);
         updateSectionFutureState();
         updateNextButton();
       });
     });
 
     if (sectionsFlat.length > 0 && document.getElementById('section-content-container')) {
-      var initialIdx = 0;
-      if (initialSectionIdx !== null && initialSectionIdx >= 0 && initialSectionIdx < sectionsFlat.length) {
-        initialIdx = initialSectionIdx;
-      } else {
-        var savedIdx = loadSavedState();
-        if (savedIdx !== null) {
-          initialIdx = savedIdx;
-        } else if (currentChapterId) {
-          var idx = sectionsFlat.findIndex(function(s) { return s.chapterId == currentChapterId; });
-          if (idx >= 0) initialIdx = idx;
-        }
-      }
+      var initialIdx = resolveInitialSectionIdx();
       var first = sectionsFlat[initialIdx];
       currentSectionIdx = initialIdx;
+      if (lastViewedSectionIdx >= 0) {
+        lastReachedSectionIdx = Math.max(lastReachedSectionIdx, lastViewedSectionIdx);
+      }
+      seedLocalResumeState(initialIdx);
+      syncSidebarFromProgressState();
+      if (resumeEntryMode && typeof history !== 'undefined' && history.replaceState) {
+        history.replaceState(null, '', window.location.pathname);
+      }
       if (first) {
         expandAccordionForChapter(first.chapterId);
-        if (typeof history !== 'undefined' && history.replaceState) {
-          history.replaceState(null, '', '?chapter=' + first.chapterIndex);
-        }
       }
       var step = first.type === 'intro' ? (first.step || 0) : undefined;
       loadSectionContent(first.type, first.id, first.title, step);
-      var firstLink = document.querySelector('.load-section[data-section-type="' + first.type + '"][data-section-id="' + first.id + '"][data-section-step="' + (first.step || 0) + '"]');
-      if (!firstLink && first.type !== 'intro') firstLink = document.querySelector('.load-section[data-section-type="' + first.type + '"][data-section-id="' + first.id + '"]');
+      var firstLink = findSidebarLinkForSection(first);
       if (firstLink) {
         document.querySelectorAll('.section-item').forEach(function(s) { s.classList.remove('active'); });
         firstLink.classList.add('active');
-        if (first.type === 'intro') markSectionCompletedInSidebar(firstLink);
+        markSectionIndexCompleted(initialIdx);
       }
       updateSectionFutureState();
       updateProgressBar();
@@ -2180,7 +3083,7 @@
         loadSectionContent(s.type, s.id, s.title, step);
         var sel = document.querySelector('.load-section[data-section-type="' + s.type + '"][data-section-id="' + s.id + '"][data-section-step="' + (s.step || 0) + '"]');
         if (!sel && s.type !== 'intro') sel = document.querySelector('.load-section[data-section-type="' + s.type + '"][data-section-id="' + s.id + '"]');
-        if (sel) { document.querySelectorAll('.section-item').forEach(function(x) { x.classList.remove('active'); }); sel.classList.add('active'); if (s.type === 'intro') markSectionCompletedInSidebar(sel); }
+        if (sel) { document.querySelectorAll('.section-item').forEach(function(x) { x.classList.remove('active'); }); sel.classList.add('active'); markSectionIndexCompleted(currentSectionIdx); }
         updateSectionFutureState();
         updateNextButton();
       }
@@ -2210,7 +3113,7 @@
           loadSectionContent(s.type, s.id, s.title, step);
           var sel = document.querySelector('.load-section[data-section-type="' + s.type + '"][data-section-id="' + s.id + '"][data-section-step="' + (s.step || 0) + '"]');
           if (!sel && s.type !== 'intro') sel = document.querySelector('.load-section[data-section-type="' + s.type + '"][data-section-id="' + s.id + '"]');
-          if (sel) { document.querySelectorAll('.section-item').forEach(function(x) { x.classList.remove('active'); }); sel.classList.add('active'); if (s.type === 'intro') markSectionCompletedInSidebar(sel); }
+          if (sel) { document.querySelectorAll('.section-item').forEach(function(x) { x.classList.remove('active'); }); sel.classList.add('active'); markSectionIndexCompleted(currentSectionIdx); }
           updateSectionFutureState();
           updateNextButton();
         }

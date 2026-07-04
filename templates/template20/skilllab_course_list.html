@@ -746,7 +746,17 @@ learning today to stay ahead!
 <link rel="stylesheet" href="{{ static('css_new/international-online-courses.css') }}">
 <link rel="stylesheet" href="{{ static('css_new/skilllab-course-finder.css') }}">
 
+{% include 'template20/skilllab/includes/course_context_meta_styles.html' %}
+
 <main class="skilllab-page">
+
+  {% if learner_logged_in %}
+  <div class="skilllab-context-meta-bar">
+    <div class="container">
+      {% include 'template20/skilllab/includes/course_context_meta.html' %}
+    </div>
+  </div>
+  {% endif %}
 
   <section class="skilllab-hero hero-section-inner pt-md-18 pt-14 pb-0">
 

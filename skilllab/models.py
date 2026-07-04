@@ -264,11 +264,26 @@ class SkillLabCourse(SlugModel,BaseModel,BaseMoneyModel):
         except Exception:
             pass
 
-class SkillLabCourseChapter(SlugModel,BaseModel):
-    skilllab=models.ForeignKey(SkillLabCourse,null=True,on_delete=models.CASCADE,related_name="skilllabcoursechapter")
-    chapter_name=models.CharField(max_length=160)
-    content = RichTextField(null=True, blank=True, help_text="Legacy: full chapter content. Used when no sections exist.")
-    
+class SkillLabCourseChapter(SlugModel, BaseModel):
+    skilllab = models.ForeignKey(
+        SkillLabCourse,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="skilllabcoursechapter",
+        db_index=True,
+    )
+    chapter_name = models.CharField(max_length=160)
+    content = RichTextField(
+        null=True,
+        blank=True,
+        help_text="Legacy: full chapter content. Used when no sections exist.",
+    )
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['skilllab', 'created']),
+        ]
+
     def get_slug_field(self):
         return 'chapter_name'
 
@@ -281,7 +296,7 @@ class SkillLabChapterSection(BaseModel):
         ('chapter_wrap_up', 'Chapter Wrap-Up'),
     ]
     chapter = models.ForeignKey(
-        SkillLabCourseChapter, on_delete=models.CASCADE, related_name='sections'
+        SkillLabCourseChapter, on_delete=models.CASCADE, related_name='sections', db_index=True
     )
     section_type = models.CharField(
         max_length=20, choices=SECTION_TYPE_CHOICES, default='section',
@@ -300,20 +315,38 @@ class SkillLabChapterSection(BaseModel):
     def __str__(self):
         return f"{self.chapter.chapter_name} - {self.title}"
 
-class SkillLabCourseActivity(SlugModel,BaseModel):
-    skilllab_chapter=models.ForeignKey(SkillLabCourseChapter,null=True,on_delete=models.CASCADE,related_name="skilllabcourseactivity")
+class SkillLabCourseActivity(SlugModel, BaseModel):
+    skilllab_chapter = models.ForeignKey(
+        SkillLabCourseChapter,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="skilllabcourseactivity",
+        db_index=True,
+    )
     name = models.CharField(max_length=160)
     type = models.SmallIntegerField(choices=choices.SkillLabAcivityChoice.CHOICE)
-    content = RichTextField(null=True,blank=True) 
-    downloadable_file=models.FileField(upload_to=skill_lab_image_directory,null=True,blank=True,max_length=250)
-    
-    
+    content = RichTextField(null=True, blank=True)
+    downloadable_file = models.FileField(
+        upload_to=skill_lab_image_directory, null=True, blank=True, max_length=250
+    )
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['skilllab_chapter', 'type']),
+        ]
+
+
 class SkillLabMCQ(BaseModel):
     """MCQ/Quiz for a Skill Lab chapter."""
     title = models.CharField(max_length=200, blank=True, null=True)
     description = RichTextField(blank=True, null=True)
     skilllab_chapter = models.ForeignKey(
-        SkillLabCourseChapter, null=True, blank=True, on_delete=models.CASCADE, related_name='mcqs'
+        SkillLabCourseChapter,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='mcqs',
+        db_index=True,
     )
 
     class Meta:
@@ -328,7 +361,7 @@ class SkillLabMCQQuestion(BaseModel):
     question_text = models.TextField()
     order = models.PositiveIntegerField(default=0)
     mcq = models.ForeignKey(
-        SkillLabMCQ, on_delete=models.CASCADE, related_name='questions'
+        SkillLabMCQ, on_delete=models.CASCADE, related_name='questions', db_index=True
     )
 
     class Meta:
@@ -345,7 +378,7 @@ class SkillLabMCQAnswer(BaseModel):
     is_correct = models.BooleanField(default=False)
     order = models.PositiveIntegerField(default=0)
     question = models.ForeignKey(
-        SkillLabMCQQuestion, on_delete=models.CASCADE, related_name='answers'
+        SkillLabMCQQuestion, on_delete=models.CASCADE, related_name='answers', db_index=True
     )
 
     class Meta:
@@ -357,8 +390,15 @@ class SkillLabMCQAnswer(BaseModel):
 
 class SkillLabWorksheetProgress(BaseModel):
     """Tracks worksheet/activity download by user."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='skilllabworksheetprogress')
-    activity = models.ForeignKey(SkillLabCourseActivity, on_delete=models.CASCADE, related_name='skilllabworksheetprogress')
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='skilllabworksheetprogress', db_index=True
+    )
+    activity = models.ForeignKey(
+        SkillLabCourseActivity,
+        on_delete=models.CASCADE,
+        related_name='skilllabworksheetprogress',
+        db_index=True,
+    )
     downloaded_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
@@ -372,8 +412,12 @@ class SkillLabWorksheetProgress(BaseModel):
 
 class SkillLabMCQAttempt(BaseModel):
     """Tracks MCQ attempt - score and answers for re-attempt / result view."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='skilllabmcqattempts')
-    mcq = models.ForeignKey(SkillLabMCQ, on_delete=models.CASCADE, related_name='skilllabmcqattempts')
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='skilllabmcqattempts', db_index=True
+    )
+    mcq = models.ForeignKey(
+        SkillLabMCQ, on_delete=models.CASCADE, related_name='skilllabmcqattempts', db_index=True
+    )
     score = models.PositiveIntegerField(default=0)
     total = models.PositiveIntegerField(default=0)
     answers = models.JSONField(default=dict, blank=True)  # {question_id: answer_id}
@@ -383,6 +427,10 @@ class SkillLabMCQAttempt(BaseModel):
         verbose_name = 'Skill Lab MCQ Attempt'
         verbose_name_plural = 'Skill Lab MCQ Attempts'
         ordering = ['-attempted_at']
+        indexes = [
+            models.Index(fields=['user', 'mcq']),
+            models.Index(fields=['user', 'mcq', '-attempted_at']),
+        ]
 
     def __str__(self):
         return f"{self.user} - {self.mcq.title or 'Quiz'} - {self.score}/{self.total}"
@@ -390,9 +438,23 @@ class SkillLabMCQAttempt(BaseModel):
 
 class SkillLabCourseProgress(BaseModel):
     """Tracks user progress through Skill Lab Courses (chapter completion)."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='skilllabcourseprogress')
-    skilllab_course = models.ForeignKey(SkillLabCourse, on_delete=models.CASCADE, related_name='skilllabcourseprogress')
-    chapter = models.ForeignKey(SkillLabCourseChapter, null=True, blank=True, on_delete=models.CASCADE, related_name='skilllabcourseprogress')
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='skilllabcourseprogress', db_index=True
+    )
+    skilllab_course = models.ForeignKey(
+        SkillLabCourse,
+        on_delete=models.CASCADE,
+        related_name='skilllabcourseprogress',
+        db_index=True,
+    )
+    chapter = models.ForeignKey(
+        SkillLabCourseChapter,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name='skilllabcourseprogress',
+        db_index=True,
+    )
     completed = models.BooleanField(default=False)
     completed_at = models.DateTimeField(null=True, blank=True)
 
@@ -402,6 +464,7 @@ class SkillLabCourseProgress(BaseModel):
         unique_together = [('user', 'skilllab_course', 'chapter')]
         indexes = [
             models.Index(fields=['user', 'skilllab_course']),
+            models.Index(fields=['user', 'chapter']),
         ]
 
     def __str__(self):
@@ -411,8 +474,15 @@ class SkillLabCourseProgress(BaseModel):
 
 class SkillLabCourseProgressSummary(BaseModel):
     """Stores overall course progress per user per course. Updated when worksheet downloaded or MCQ submitted."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='skilllabcourseprogresssummary')
-    skilllab_course = models.ForeignKey(SkillLabCourse, on_delete=models.CASCADE, related_name='skilllabcourseprogresssummary')
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='skilllabcourseprogresssummary', db_index=True
+    )
+    skilllab_course = models.ForeignKey(
+        SkillLabCourse,
+        on_delete=models.CASCADE,
+        related_name='skilllabcourseprogresssummary',
+        db_index=True,
+    )
     progress_percentage = models.PositiveSmallIntegerField(default=0)
     completed_sections_count = models.PositiveIntegerField(default=0)
     total_sections_count = models.PositiveIntegerField(default=0)
@@ -430,8 +500,15 @@ class SkillLabCourseProgressSummary(BaseModel):
 
 class SkillLabCourseResume(BaseModel):
     """Stores last viewed section per user/course for state restore across devices."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='skilllabcourseresume')
-    skilllab_course = models.ForeignKey(SkillLabCourse, on_delete=models.CASCADE, related_name='skilllabcourseresume')
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='skilllabcourseresume', db_index=True
+    )
+    skilllab_course = models.ForeignKey(
+        SkillLabCourse,
+        on_delete=models.CASCADE,
+        related_name='skilllabcourseresume',
+        db_index=True,
+    )
     last_section_index = models.PositiveIntegerField(default=0)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -447,8 +524,15 @@ class SkillLabCourseResume(BaseModel):
 
 class SkillLabUserHighlight(BaseModel):
     """User highlight on Skill Lab course content (section/section step)."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='skilllab_highlights')
-    skilllab_course = models.ForeignKey(SkillLabCourse, on_delete=models.CASCADE, related_name='user_highlights')
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='skilllab_highlights', db_index=True
+    )
+    skilllab_course = models.ForeignKey(
+        SkillLabCourse,
+        on_delete=models.CASCADE,
+        related_name='user_highlights',
+        db_index=True,
+    )
     section_type = models.CharField(max_length=20)  # intro, worksheet, mcq
     section_id = models.PositiveIntegerField()    # section id or chapter id (intro step) or activity id or mcq id
     section_step = models.PositiveIntegerField(null=True, blank=True)  # for intro steps only
@@ -460,14 +544,24 @@ class SkillLabUserHighlight(BaseModel):
         verbose_name_plural = 'Skill Lab User Highlights'
         ordering = ['-created']
         indexes = [
-            models.Index(fields=['user', 'skilllab_course', 'section_type', 'section_id']),
+            models.Index(
+                fields=['user', 'skilllab_course', 'section_type', 'section_id', 'section_step'],
+                name='skilllab_sk_hl_section_idx',
+            ),
         ]
 
 
 class SkillLabUserNote(BaseModel):
     """User note on Skill Lab course content."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='skilllab_notes')
-    skilllab_course = models.ForeignKey(SkillLabCourse, on_delete=models.CASCADE, related_name='user_notes')
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='skilllab_notes', db_index=True
+    )
+    skilllab_course = models.ForeignKey(
+        SkillLabCourse,
+        on_delete=models.CASCADE,
+        related_name='user_notes',
+        db_index=True,
+    )
     section_type = models.CharField(max_length=20)
     section_id = models.PositiveIntegerField()
     section_step = models.PositiveIntegerField(null=True, blank=True)
@@ -480,14 +574,24 @@ class SkillLabUserNote(BaseModel):
         verbose_name_plural = 'Skill Lab User Notes'
         ordering = ['-created']
         indexes = [
-            models.Index(fields=['user', 'skilllab_course', 'section_type', 'section_id']),
+            models.Index(
+                fields=['user', 'skilllab_course', 'section_type', 'section_id', 'section_step'],
+                name='skilllab_sk_nt_section_idx',
+            ),
         ]
 
 
 class SkillLabUserBookmark(BaseModel):
     """User bookmark of a section in a Skill Lab course."""
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='skilllab_bookmarks')
-    skilllab_course = models.ForeignKey(SkillLabCourse, on_delete=models.CASCADE, related_name='user_bookmarks')
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='skilllab_bookmarks', db_index=True
+    )
+    skilllab_course = models.ForeignKey(
+        SkillLabCourse,
+        on_delete=models.CASCADE,
+        related_name='user_bookmarks',
+        db_index=True,
+    )
     section_type = models.CharField(max_length=20)
     section_id = models.PositiveIntegerField()
     section_step = models.PositiveIntegerField(null=True, blank=True)
@@ -628,11 +732,26 @@ class InternationalOnlineCourse(BaseModel):
         super().delete(hard_delete=hard_delete)
 
 
-class SkilllabCoursePayment(BaseModel,BaseMoneyModel):
-    skilllab_course = models.ForeignKey(SkillLabCourse,null=True,on_delete=models.SET_NULL,related_name="skilllabcourpayment")
-    user=models.ForeignKey(User,on_delete=models.CASCADE,related_name="userskillabcourse")
-    gateway_receipt=models.CharField(max_length=120,blank=True,null=True)
-    is_success = models.SmallIntegerField(choices=choices.YesNoChoices.CHOICES,default=choices.YesNoChoices.NO)
+class SkilllabCoursePayment(BaseModel, BaseMoneyModel):
+    skilllab_course = models.ForeignKey(
+        SkillLabCourse,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="skilllabcourpayment",
+        db_index=True,
+    )
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="userskillabcourse", db_index=True
+    )
+    gateway_receipt = models.CharField(max_length=120, blank=True, null=True)
+    is_success = models.SmallIntegerField(
+        choices=choices.YesNoChoices.CHOICES, default=choices.YesNoChoices.NO, db_index=True
+    )
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'skilllab_course', 'is_success']),
+        ]
     
     def get_payment_success_fail_url(self):
         d={}

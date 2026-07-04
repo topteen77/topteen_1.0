@@ -126,8 +126,15 @@ def skilllab_course_cta(user, course, *, enrolled: Optional[bool] = None) -> str
     return "Start"
 
 
-def skilllab_course_start_url(course) -> str:
-    return reverse("skilllabcourse:course_learning", args=[course.slug])
+def skilllab_course_start_url(course, *, resume=False) -> str:
+    url = reverse("skilllabcourse:course_learning", args=[course.slug])
+    if resume:
+        return f"{url}?entry=resume"
+    return url
+
+
+def skilllab_course_resume_url(course) -> str:
+    return skilllab_course_start_url(course, resume=True)
 
 
 def skilllab_course_certificate_url(course) -> str:
@@ -242,7 +249,7 @@ def build_skilllab_dashboard_item(user, course) -> Dict[str, Any]:
         action_url = skilllab_course_detail_url(course)
         action_variant = "start"
     else:
-        action_url = skilllab_course_start_url(course)
+        action_url = skilllab_course_resume_url(course) if cta == "Resume" else skilllab_course_start_url(course)
         action_variant = "start"
 
     return {
@@ -304,7 +311,7 @@ def skilllab_student_status(user, course) -> Dict[str, Any]:
         "completed": completed,
         "progress_pct": progress_pct,
         "cta": cta,
-        "start_url": skilllab_course_start_url(course),
+        "start_url": skilllab_course_resume_url(course) if cta == "Resume" else skilllab_course_start_url(course),
         "certificate_url": skilllab_course_certificate_url(course) if completed else "",
         "detail_url": skilllab_course_detail_url(course),
     }
