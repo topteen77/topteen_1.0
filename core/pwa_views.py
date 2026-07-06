@@ -5,6 +5,8 @@ from django.conf import settings
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.http import HttpResponse
 
+from core.pwa_version import get_pwa_cache_version
+
 
 def _pwa_enabled():
     return getattr(settings, 'PWA_ENABLED', True)
@@ -29,7 +31,7 @@ def manifest_json(request):
         'display': 'standalone',
         'orientation': 'portrait-primary',
         'background_color': '#ffffff',
-        'theme_color': '#1a237e',
+        'theme_color': '#3F37C9',
         'icons': [
             {
                 'src': _icon_url(request, 'images_new/fav-icon/android-chrome-192x192.png'),
@@ -69,7 +71,7 @@ def service_worker_js(request):
 
     sw_path = Path(settings.BASE_DIR) / 'static' / 'js_new' / 'pwa-service-worker.js'
     content = sw_path.read_text(encoding='utf-8')
-    version = str(getattr(settings, 'PWA_CACHE_VERSION', '1'))
+    version = get_pwa_cache_version()
     content = content.replace('__PWA_CACHE_VERSION__', version)
 
     response = HttpResponse(content, content_type='application/javascript')

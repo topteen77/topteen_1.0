@@ -427,7 +427,8 @@ STATIC_ROOT = os.path.join(COMMON_BASE_PATH, 'staticfiles')
 
 # Progressive Web App (manifest + service worker)
 PWA_ENABLED = config('PWA_ENABLED', default=True, cast=bool)
-PWA_CACHE_VERSION = config('PWA_CACHE_VERSION', default='1')
+# Use "auto" to bust caches from git SHA or static file fingerprint (no manual bump per deploy).
+PWA_CACHE_VERSION = config('PWA_CACHE_VERSION', default='auto')
 
 # Media files configuration
 MEDIA_URL = '/media/'
@@ -977,8 +978,14 @@ DEFAULT_DIRECT_INSTITUTE_MARKETING_ADMIN_USER_ID = config(
     cast=int,
 )
 
-# Only allow Google (and other search engines) to index when ENVIRONMENT=production in .env
-ALLOW_SEARCH_ENGINE_INDEX = (ENVIRONMENT == 'production')
+# Production indexing. Override with ALLOW_SEARCH_ENGINE_INDEX=true in .env when needed.
+ALLOW_SEARCH_ENGINE_INDEX = config(
+    'ALLOW_SEARCH_ENGINE_INDEX',
+    default=(ENVIRONMENT == 'production'),
+    cast=bool,
+)
+# demo.topteen.in / localhost: allow index for Lighthouse QA (robots.txt + meta robots).
+ALLOW_DEMO_SEARCH_INDEX = config('ALLOW_DEMO_SEARCH_INDEX', default=True, cast=bool)
 WEBADMINEMAIL = config('WEBADMINEMAIL', default='')
 # Daily new user report schedule: core.Configuration key DAILY_USER_REPORT_TIME (HH:MM, 24h, IST).
 # Celery Beat uses CELERY_TIMEZONE (default Asia/Kolkata). Edit in Service monitor or Admin → Configuration.

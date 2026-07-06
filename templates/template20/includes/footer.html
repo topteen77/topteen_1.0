@@ -38,13 +38,13 @@
           <div class="social-icon mt-md-5 w-100 clearfix">
             <ul>
               <li>
-                <a class="facebook-icon me-md-2" href="https://www.facebook.com/topteen.in" target="_blank"></a>
+                <a class="facebook-icon me-md-2" href="https://www.facebook.com/topteen.in" target="_blank" rel="noopener noreferrer" aria-label="TopTeen on Facebook"></a>
               </li>
               <li>
-                <a class="twitter-icon me-md-2" href="https://www.instagram.com/topteen.careers/" target="_blank"></a>
+                <a class="twitter-icon me-md-2" href="https://www.instagram.com/topteen.careers/" target="_blank" rel="noopener noreferrer" aria-label="TopTeen on Instagram"></a>
               </li>
               <li>
-                <a class="insta-icon me-md-2" href="https://www.instagram.com/topteen.careers/" target="_blank"></a>
+                <a class="insta-icon me-md-2" href="https://www.instagram.com/topteen.careers/" target="_blank" rel="noopener noreferrer" aria-label="TopTeen on Instagram"></a>
               </li>
             </ul>
           </div>
@@ -66,8 +66,8 @@
         </div>
 
         <div class="col-6 col-md-2 col-sm-12  mt-md-0 mt-5">
+          <p class="ft-title">About Topteen</p>
           <ul class="list-group tp-footer-text">
-            <li class="ft-title">About Topteen</li>
             <li><a href="{{ url('core:aboutus') }}">About Us</a></li>
             <li><a href="{{ url('core:contactus') }}">Contact Us</a></li>
             <li><a href="{{ url('core:privacypolicy') }}">Privacy Policy</a></li>
@@ -82,8 +82,8 @@
         </div>
         
         <div class="col-6 col-md-3 col-sm-12 ps-md-8 mt-md-0 mt-5">
+          <p class="ft-title">Resources</p>
           <ul class="list-group tp-footer-text">
-            <li class="ft-title">Resources</li>
             <li><a href="{{ url('psychometrictests:psychometrictest') }}">Career Assessment Test</a></li>
             <li><a href="{{ url('forum:index') }}">Career AI Forum</a></li>
             <li><a href="{{ url('careers:careervideos') }}">Videos</a></li>
@@ -96,8 +96,8 @@
         </div>
         
         <div class="col-12 col-md-3 col-sm-12 mt-md-0 mt-5">
+          <p class="ft-title">Trending Career Paths</p>
           <ul class="list-group tp-footer-text">
-            <li class="ft-title">Trending Career Paths</li>
             {% for cluster in footer_career_clusters or [] %}
             <li><a href="{{ url('careers:career_cluster', args=[cluster.slug, cluster.id]) }}">{{ cluster.name|title }}</a></li>
             {% else %}

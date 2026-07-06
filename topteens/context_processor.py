@@ -1,5 +1,6 @@
 from careers.models import Career, CareerTags, Videos, CareerCluster
 from core.models import Configuration
+from core.pwa_version import get_pwa_cache_version
 from core.translate_languages import get_enabled_languages_csv
 from core.seo_schema import get_organization_schema, get_website_schema
 from blog.models import Blog, BlogCategory
@@ -514,8 +515,10 @@ def globals(request):
     if body_class_parts:
         chatbot_widget_body_class = ' '.join(body_class_parts)
 
+    from core.seo_indexing import resolve_allow_search_engine_index
+
     kwargs = {
-        "allow_search_engine_index": getattr(settings, 'ALLOW_SEARCH_ENGINE_INDEX', False),
+        "allow_search_engine_index": resolve_allow_search_engine_index(request),
         "freetrail_seconds": getattr(settings, 'FREETRAIL_TIME_SECONDS', 5),
         "show_chatbot": show_chatbot,
         "show_ai_counsellor_bot": show_ai_counsellor_bot,
@@ -549,7 +552,7 @@ def globals(request):
         "footer_career_clusters": _footer_career_clusters(),
         # SEO: absolute site base URL for canonical/og:image when request is not available
         "site_base_url": getattr(settings, "ENQUIRY_SOURCE_BASE_URL", "https://www.topteen.in").rstrip("/"),
-        "pwa_cache_version": str(getattr(settings, "PWA_CACHE_VERSION", "1")),
+        "pwa_cache_version": get_pwa_cache_version(),
         # SEO: JSON-LD schema for Organization and WebSite (included on every page)
         "seo_organization": _seo_organization_schema(),
         "seo_website": _seo_website_schema(),

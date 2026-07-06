@@ -704,10 +704,12 @@ window.addEventListener("load", () => {
 });
 
 // OWL CAROUSEL //
-
-
-// PSYCHOMETRIC TEST CAROUSEL //
 $(document).ready(function ($) {
+  if (typeof $.fn.owlCarousel !== 'function') {
+    return;
+  }
+
+  // PSYCHOMETRIC TEST CAROUSEL //
   $(".psy-carousel").owlCarousel({
     loop: true,
     margin: 20,

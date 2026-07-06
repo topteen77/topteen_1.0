@@ -23,11 +23,13 @@ def _footer_career_clusters():
 
 def allow_search_engine_index_processor(request):
     """
-    Django context processor: only production (ENVIRONMENT=production) should be indexed by Google.
+    Django context processor: indexing follows core.seo_indexing rules (production + optional demo QA).
     Injects allow_search_engine_index (bool) for templates.
     """
+    from core.seo_indexing import resolve_allow_search_engine_index
+
     return {
-        "allow_search_engine_index": getattr(settings, "ALLOW_SEARCH_ENGINE_INDEX", False),
+        "allow_search_engine_index": resolve_allow_search_engine_index(request),
         "footer_career_clusters": _footer_career_clusters(),
     }
 
