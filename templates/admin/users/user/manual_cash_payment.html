@@ -1,0 +1,72 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+  &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+  &rsaquo; <a href="{% url 'admin:users_user_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+  &rsaquo; <a href="{% url 'admin:users_user_change' target_user.pk %}">{{ target_user.email|default:target_user.pk }}</a>
+  &rsaquo; {% trans 'Manual payment (cash)' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>{% trans 'Manual payment (cash)' %}</h1>
+<p>
+  {% trans 'User' %}:
+  <strong>{{ target_user.email|default:target_user.pk }}</strong>
+  {% if target_user.name %}({{ target_user.name }}){% endif %}
+</p>
+<p class="help">
+  {% trans 'Record an offline cash payment and activate the course immediately. No Razorpay. The remark is stored on the payment record.' %}
+</p>
+
+<form method="post">
+  {% csrf_token %}
+  {% if payment_id %}<input type="hidden" name="payment_id" value="{{ payment_id }}">{% endif %}
+  {% if course_payment_id %}<input type="hidden" name="course_payment_id" value="{{ course_payment_id }}">{% endif %}
+
+  <fieldset class="module aligned">
+    <div class="form-row">
+      <label for="id_course_id">{% trans 'Course' %}:</label>
+      <select name="course_id" id="id_course_id" required style="min-width:320px;">
+        <option value="">{% trans 'Select course' %}</option>
+        {% for course in paid_courses %}
+        <option value="{{ course.pk }}" data-amount="{{ course.amount }}"
+          {% if preset_course and preset_course.pk == course.pk %}selected{% endif %}>
+          {{ course.name }} (₹{{ course.amount }})
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-row">
+      <label for="id_amount">{% trans 'Amount (₹)' %}:</label>
+      <input type="number" name="amount" id="id_amount" min="0" step="1" required style="min-width:160px;"
+        value="{% if preset_amount %}{{ preset_amount }}{% elif preset_course %}{{ preset_course.amount }}{% endif %}">
+    </div>
+    <div class="form-row">
+      <label for="id_remark">{% trans 'Remark' %}:</label>
+      <input type="text" name="remark" id="id_remark" maxlength="500" style="min-width:320px;" value="{{ default_remark }}">
+      <p class="help">{% trans 'Default: Manual payment cash' %}</p>
+    </div>
+  </fieldset>
+  <div class="submit-row">
+    <input type="submit" class="default" value="{% trans 'Record cash payment & activate course' %}">
+    <a href="{% url 'admin:users_user_change' target_user.pk %}" class="button cancel-link">{% trans 'Cancel' %}</a>
+  </div>
+</form>
+
+<script>
+(function () {
+  var courseSelect = document.getElementById('id_course_id');
+  var amountInput = document.getElementById('id_amount');
+  if (!courseSelect || !amountInput) return;
+  courseSelect.addEventListener('change', function () {
+    var opt = courseSelect.options[courseSelect.selectedIndex];
+    var amount = opt && opt.getAttribute('data-amount');
+    if (amount) amountInput.value = amount;
+  });
+})();
+</script>
+{% endblock %}

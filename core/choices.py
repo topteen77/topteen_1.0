@@ -272,9 +272,11 @@ class FAQFeaturedType(object):
 class GatewayChoices(object):
     RAZORPAY=1
     ICICIEAZYPAY=2
+    MANUAL=3
     CHOICES = (
         (RAZORPAY, 'Razorpay'),
         (ICICIEAZYPAY,"Icici eazypay"),
+        (MANUAL, 'Manual / cash'),
     )
 
 class YesNoChoices(object):

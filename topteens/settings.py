@@ -165,29 +165,31 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     'https://www.topteen.in',
     'http://demo.topteen.in',
+    'https://demo.topteen.in',
     'https://topteenc.s3.ap-northeast-1.amazonaws.com',
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     'https://www.topteen.in',
     'http://demo.topteen.in',
+    'https://demo.topteen.in',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
-    'http://10.0.0.93:8000',  # Replace with your actual domain
-    
-    # Add your domain here
+    'http://10.0.0.93:8000',
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True # If needed for cookies or auth
 
 # HTTP vs HTTPS - controlled by USE_HTTPS env (True=HTTPS, False=HTTP)
+ENVIRONMENT = config('ENVIRONMENT', default='production')
+TOPTEEN_SITE_URL = config('TOPTEEN_SITE_URL', default='https://www.topteen.in')
 USE_HTTPS = config('USE_HTTPS', default=False, cast=bool)
 SECURE_SSL_REDIRECT = USE_HTTPS
 SESSION_COOKIE_SECURE = USE_HTTPS
 CSRF_COOKIE_SECURE = USE_HTTPS
 # Keep users signed in during normal browsing (avoid mobile browser clearing session cookies).
-SESSION_COOKIE_AGE = config('SESSION_COOKIE_AGE', default=1209600, cast=int)  # 14 days
+SESSION_COOKIE_AGE = config('SESSION_COOKIE_AGE', default=604800, cast=int)  # 7 days
 SESSION_SAVE_EVERY_REQUEST = config('SESSION_SAVE_EVERY_REQUEST', default=True, cast=bool)
 SESSION_EXPIRE_AT_BROWSER_CLOSE = config('SESSION_EXPIRE_AT_BROWSER_CLOSE', default=False, cast=bool)
 SESSION_COOKIE_SAMESITE = config('SESSION_COOKIE_SAMESITE', default='Lax')
@@ -198,10 +200,19 @@ SESSION_COOKIE_NAME = config('SESSION_COOKIE_NAME', default='sessionid')
 CSRF_COOKIE_SAMESITE = config('CSRF_COOKIE_SAMESITE', default=SESSION_COOKIE_SAMESITE)
 _CSRF_COOKIE_DOMAIN = config('CSRF_COOKIE_DOMAIN', default=SESSION_COOKIE_DOMAIN or '')
 CSRF_COOKIE_DOMAIN = _CSRF_COOKIE_DOMAIN or None
+# Demo/staging hosts need host-only cookies; production SESSION_COOKIE_DOMAIN breaks CSRF there.
+if (
+    ENVIRONMENT in ('development', 'staging', 'demo')
+    or 'demo.topteen.in' in TOPTEEN_SITE_URL.lower()
+):
+    SESSION_COOKIE_DOMAIN = None
+    CSRF_COOKIE_DOMAIN = None
 # JSON serializer avoids pickle issues across deploys; signed cookies use SECRET_KEY (HMAC).
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 DEFAULT_LOGIN_SESSION_AGE = SESSION_COOKIE_AGE
 REMEMBER_ME_SESSION_AGE = config('REMEMBER_ME_SESSION_AGE', default=2592000, cast=int)  # 30 days
+DEMO_LOGIN_SESSION_AGE = config('DEMO_LOGIN_SESSION_AGE', default=SESSION_COOKIE_AGE, cast=int)
+CSRF_FAILURE_VIEW = 'users.views.csrf_failure'
 # When behind reverse proxy (nginx, etc.) that terminates SSL
 if USE_HTTPS:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -928,7 +939,6 @@ STREAM_SORTER_TEST_AMOUNT = config('STREAM_SORTER_TEST_AMOUNT', default=999, cas
 CAREER_DIRECTION_TEST_AMOUNT = config('CAREER_DIRECTION_TEST_AMOUNT', default=999, cast=int)
 
 LOGO_URL="https://topteen.in/static/images/logos/topteen-logo-with-text.png"
-TOPTEEN_SITE_URL = config('TOPTEEN_SITE_URL', default='https://www.topteen.in')
 TOPTEEN_EMAIL_LOGO_URL = config(
     'TOPTEEN_EMAIL_LOGO_URL',
     default='https://www.topteen.in/static/images_new/logos/logo.svg',
@@ -963,7 +973,6 @@ DEFAULT_DIRECT_INSTITUTE_MARKETING_ADMIN_USER_ID = config(
     cast=int,
 )
 
-ENVIRONMENT = config('ENVIRONMENT', default='production')
 # Only allow Google (and other search engines) to index when ENVIRONMENT=production in .env
 ALLOW_SEARCH_ENGINE_INDEX = (ENVIRONMENT == 'production')
 WEBADMINEMAIL = config('WEBADMINEMAIL', default='')

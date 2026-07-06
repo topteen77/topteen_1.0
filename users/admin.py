@@ -37,6 +37,74 @@ try:
     from psychometric_tests.models import PsychometricTestPayment
 except ImportError:
     PsychometricTestPayment = None
+try:
+    from skilllab.models import SkilllabCoursePayment, SkillLabCourse
+except ImportError:
+    SkilllabCoursePayment = None
+    SkillLabCourse = None
+
+MANUAL_CASH_PAYMENT_DEFAULT_REMARK = 'Manual payment cash'
+
+
+def _record_manual_cash_skilllab_payment(user, course, amount=None, remark=None, staff_user=None):
+    """
+    Record an offline cash payment and activate Skill Lab course access.
+    No Razorpay — stores remark on the Payment row.
+    Returns (skilllab_payment, payment, status) where status is 'created' or 'already_active'.
+    """
+    from payments.models import Payment
+    from payments.reconciliation import finalize_side_effects_after_gateway_success
+
+    if not course:
+        raise ValueError('Course is required')
+    amount = amount if amount is not None else course.amount
+    remark = (remark or MANUAL_CASH_PAYMENT_DEFAULT_REMARK).strip() or MANUAL_CASH_PAYMENT_DEFAULT_REMARK
+    if staff_user and getattr(staff_user, 'pk', None):
+        remark = '{} (staff #{})'.format(remark, staff_user.pk)
+
+    gateway_receipt = 'SL{}_{}'.format(user.id, course.id)
+    sp, _ = SkilllabCoursePayment.objects.get_or_create(
+        user=user,
+        skilllab_course=course,
+        defaults={
+            'gateway_receipt': gateway_receipt,
+            'is_success': choices.YesNoChoices.NO,
+            'amount': amount,
+            'currency': choices.Currency.IND,
+        },
+    )
+    if sp.is_success == choices.YesNoChoices.YES:
+        return sp, None, 'already_active'
+
+    sp.gateway_receipt = gateway_receipt
+    sp.amount = amount
+    sp.save(update_fields=['gateway_receipt', 'amount'])
+
+    payment, _ = Payment.objects.get_or_create(
+        user=user,
+        gateway_receipt=gateway_receipt,
+        obj_id=sp.id,
+        obj_type=choices.PaymentObjectType.SKILLLABCOURSE,
+        defaults={
+            'gateway': choices.GatewayChoices.MANUAL,
+            'is_success': choices.YesNoChoices.NO,
+            'amount': amount,
+            'currency': choices.Currency.IND,
+            'payment_mode': 'Manual cash',
+            'response_details': remark,
+        },
+    )
+    payment.gateway = choices.GatewayChoices.MANUAL
+    payment.amount = amount
+    payment.payment_mode = 'Manual cash'
+    payment.response_details = remark
+    payment.is_success = choices.YesNoChoices.YES
+    payment.save(
+        update_fields=['gateway', 'amount', 'payment_mode', 'response_details', 'is_success']
+    )
+    finalize_side_effects_after_gateway_success(payment)
+    return sp, payment, 'created'
+
 
 # Register your models here.
 
@@ -264,7 +332,7 @@ class PaymentInline(admin.TabularInline):
     can_delete = False
     readonly_fields = (
         'payment_id', 'amount_display', 'gateway_display', 'obj_type_display',
-        'is_success_display', 'gateway_order_id', 'created',
+        'is_success_display', 'payment_remark_display', 'gateway_order_id', 'created', 'payment_actions',
     )
     fields = readonly_fields
     show_change_link = True
@@ -299,6 +367,89 @@ class PaymentInline(admin.TabularInline):
         return format_html('<span style="color: red;">✗</span>')
 
     is_success_display.short_description = 'Success'
+
+    def payment_remark_display(self, obj):
+        if not obj:
+            return '-'
+        if obj.gateway == choices.GatewayChoices.MANUAL or (obj.payment_mode or '').lower().startswith('manual'):
+            return obj.response_details or MANUAL_CASH_PAYMENT_DEFAULT_REMARK
+        return format_html('<span style="color:#999;">—</span>')
+
+    payment_remark_display.short_description = 'Remark'
+
+    def payment_actions(self, obj):
+        if not obj or not obj.pk or not obj.user_id:
+            return '-'
+        if obj.is_success == choices.YesNoChoices.YES:
+            return format_html('<span style="color:#666;">—</span>')
+        if obj.obj_type != choices.PaymentObjectType.SKILLLABCOURSE:
+            return format_html('<span style="color:#999;">—</span>')
+        cash_url = reverse(
+            'admin:users_user_manual_cash_payment',
+            args=[obj.user_id],
+        ) + '?payment_id={}'.format(obj.id)
+        return format_html(
+            '<a class="button" href="{}" style="padding:4px 8px;font-size:11px;">Manual payment (cash)</a>',
+            cash_url,
+        )
+
+    payment_actions.short_description = 'Actions'
+
+
+class SkilllabCoursePaymentInline(admin.TabularInline):
+    extra = 0
+    max_num = 0
+    can_delete = False
+    readonly_fields = (
+        'payment_id', 'course_display', 'amount_display', 'is_success_display', 'created',
+        'course_payment_actions',
+    )
+    fields = readonly_fields
+    show_change_link = True
+    verbose_name = 'Skill Lab course payment'
+    verbose_name_plural = 'Skill Lab course payments'
+
+    def payment_id(self, obj):
+        return obj.id if obj else '-'
+
+    payment_id.short_description = 'ID'
+
+    def course_display(self, obj):
+        if not obj or not obj.skilllab_course:
+            return '-'
+        return obj.skilllab_course.name
+
+    course_display.short_description = 'Course'
+
+    def amount_display(self, obj):
+        return obj.get_display_price() if obj else '-'
+
+    amount_display.short_description = 'Amount'
+
+    def is_success_display(self, obj):
+        if obj is None:
+            return '-'
+        if obj.is_success == 1:
+            return format_html('<span style="color: green;">✓ Active</span>')
+        return format_html('<span style="color: red;">✗ Not active</span>')
+
+    is_success_display.short_description = 'Access'
+
+    def course_payment_actions(self, obj):
+        if not obj or not obj.pk or obj.is_success == choices.YesNoChoices.YES:
+            return format_html('<span style="color:#666;">—</span>')
+        if not obj.user_id:
+            return '-'
+        cash_url = reverse(
+            'admin:users_user_manual_cash_payment',
+            args=[obj.user_id],
+        ) + '?course_payment_id={}'.format(obj.id)
+        return format_html(
+            '<a class="button" href="{}" style="padding:4px 8px;font-size:11px;">Manual payment (cash)</a>',
+            cash_url,
+        )
+
+    course_payment_actions.short_description = 'Actions'
 
 
 class PsychometricTestPaymentInline(admin.TabularInline):
@@ -393,6 +544,9 @@ def _user_admin_inlines():
     if Payment is not None:
         PaymentInline.model = Payment
         inlines.append(PaymentInline)
+    if SkilllabCoursePayment is not None:
+        SkilllabCoursePaymentInline.model = SkilllabCoursePayment
+        inlines.append(SkilllabCoursePaymentInline)
     if PsychometricTestPayment is not None:
         PsychometricTestPaymentInline.model = PsychometricTestPayment
         inlines.append(PsychometricTestPaymentInline)
@@ -416,8 +570,9 @@ class UserAdmin(admin.ModelAdmin):
         'is_demo_account',
         'is_system_demo',
         'admin_password_reset',
+        'admin_payment_tools',
     ]
-    readonly_fields = ['is_system_demo', 'admin_password_reset']
+    readonly_fields = ['is_system_demo', 'admin_password_reset', 'admin_payment_tools']
     inlines = _user_admin_inlines()
     # date_hierarchy = 'created'
     list_display = [
@@ -464,6 +619,22 @@ class UserAdmin(admin.ModelAdmin):
 
     admin_password_reset.short_description = 'Password reset (admin)'
 
+    def admin_payment_tools(self, obj):
+        if not obj or not obj.pk:
+            return format_html(
+                '<span class="help">Save the user first, then add a manual cash payment to activate a paid Skill Lab course.</span>'
+            )
+        cash_url = reverse('admin:users_user_manual_cash_payment', args=[obj.pk])
+        return format_html(
+            '<p style="margin:0 0 8px;">Record an offline <strong>cash payment</strong> to activate a paid Skill Lab course. '
+            'No Razorpay — a remark such as <em>Manual payment cash</em> is stored on the payment row.</p>'
+            '<a class="button" href="{}" style="display:inline-block;padding:10px 15px;background:#417690;color:#fff;'
+            'text-decoration:none;border-radius:4px;font-weight:600;">Add manual payment (cash)</a>',
+            cash_url,
+        )
+
+    admin_payment_tools.short_description = 'Manual payment (cash)'
+
     def admin_password_reset_link(self, obj):
         url = reverse(
             'admin:%s_%s_set_password'
@@ -486,6 +657,11 @@ class UserAdmin(admin.ModelAdmin):
                 'set-password/<int:user_id>/',
                 self.admin_site.admin_view(self.set_password_view),
                 name='%s_%s_set_password' % (self.model._meta.app_label, self.model._meta.model_name),
+            ),
+            path(
+                'manual-cash-payment/<int:user_id>/',
+                self.admin_site.admin_view(self.manual_cash_payment_view),
+                name='users_user_manual_cash_payment',
             ),
             path('student-test-reset/', self.admin_site.admin_view(self.student_test_reset_view), name='users_user_student_test_reset'),
             path('student-test-reset/list/', self.admin_site.admin_view(self.student_test_reset_list_view), name='users_user_student_test_reset_list'),
@@ -537,6 +713,119 @@ class UserAdmin(admin.ModelAdmin):
             'target_user': target,
         }
         return render(request, 'admin/users/user/set_password.html', context)
+
+    def _staff_can_manage_payments(self, request):
+        """Manual cash payment: Django admin / staff with user change permission only."""
+        return request.user.is_active and (
+            request.user.is_superuser
+            or (
+                request.user.is_staff
+                and request.user.has_perm('users.change_user')
+            )
+        )
+
+    def manual_cash_payment_view(self, request, user_id):
+        """Staff: record offline cash payment and activate Skill Lab course access."""
+        if not self._staff_can_manage_payments(request):
+            messages.error(request, 'You do not have permission to record manual payments.')
+            return redirect('admin:index')
+
+        from payments.models import Payment
+
+        target_user = get_object_or_404(User, pk=user_id)
+        payment_id = (request.GET.get('payment_id') or request.POST.get('payment_id') or '').strip()
+        course_payment_id = (request.GET.get('course_payment_id') or request.POST.get('course_payment_id') or '').strip()
+
+        preset_course = None
+        preset_amount = None
+        if payment_id:
+            gateway_payment = get_object_or_404(
+                Payment,
+                pk=int(payment_id),
+                user_id=user_id,
+                obj_type=choices.PaymentObjectType.SKILLLABCOURSE,
+            )
+            if gateway_payment.is_success == choices.YesNoChoices.YES:
+                messages.warning(request, 'Payment #{} is already successful.'.format(gateway_payment.id))
+                return redirect('admin:users_user_change', user_id)
+            if SkilllabCoursePayment is not None:
+                preset_course = SkilllabCoursePayment.objects.filter(
+                    pk=gateway_payment.obj_id, user_id=user_id
+                ).select_related('skilllab_course').first()
+                if preset_course and preset_course.skilllab_course:
+                    preset_course = preset_course.skilllab_course
+            preset_amount = gateway_payment.amount
+        elif course_payment_id and SkilllabCoursePayment is not None:
+            sp = get_object_or_404(
+                SkilllabCoursePayment.objects.select_related('skilllab_course'),
+                pk=int(course_payment_id),
+                user_id=user_id,
+            )
+            if sp.is_success == choices.YesNoChoices.YES:
+                messages.warning(request, 'This course is already active for the user.')
+                return redirect('admin:users_user_change', user_id)
+            preset_course = sp.skilllab_course
+            preset_amount = sp.amount
+
+        paid_courses = []
+        if SkillLabCourse is not None:
+            paid_courses = list(
+                SkillLabCourse.objects.filter(amount__gt=0, object_status=choices.ObjectStatus.ACTIVE)
+                .order_by('name')
+            )
+
+        if request.method == 'POST':
+            course_id = (request.POST.get('course_id') or '').strip()
+            remark = (request.POST.get('remark') or MANUAL_CASH_PAYMENT_DEFAULT_REMARK).strip()
+            amount_raw = (request.POST.get('amount') or '').strip()
+            try:
+                course = get_object_or_404(SkillLabCourse, pk=int(course_id))
+                amount = int(amount_raw) if amount_raw else course.amount
+            except (TypeError, ValueError):
+                messages.error(request, 'Select a valid course and amount.')
+            else:
+                try:
+                    sp, payment, status = _record_manual_cash_skilllab_payment(
+                        target_user,
+                        course,
+                        amount=amount,
+                        remark=remark,
+                        staff_user=request.user,
+                    )
+                except Exception as exc:
+                    messages.error(request, 'Could not record payment: {}'.format(exc))
+                else:
+                    if status == 'already_active':
+                        messages.warning(
+                            request,
+                            '{} is already active for this user.'.format(
+                                course.name if course else 'Course'
+                            ),
+                        )
+                    else:
+                        messages.success(
+                            request,
+                            'Manual cash payment recorded (₹{}). {} is now active. Remark: {}'.format(
+                                amount,
+                                course.name,
+                                remark,
+                            ),
+                        )
+                    return redirect('admin:users_user_change', user_id)
+
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'Manual payment (cash)',
+            'opts': self.model._meta,
+            'target_user': target_user,
+            'paid_courses': paid_courses,
+            'preset_course': preset_course,
+            'preset_amount': preset_amount,
+            'default_remark': MANUAL_CASH_PAYMENT_DEFAULT_REMARK,
+            'payment_id': payment_id,
+            'course_payment_id': course_payment_id,
+        }
+        return render(request, 'admin/users/user/manual_cash_payment.html', context)
 
     def student_test_reset_view(self, request):
         context = {

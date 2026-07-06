@@ -293,10 +293,10 @@ class TestLoginSessionExpiry(SimpleTestCase):
         apply_login_session_expiry(request, remember_me=True)
         self.assertEqual(request.session.get_expiry_age(), REMEMBER_ME_SESSION_AGE)
 
-    def test_demo_login_uses_browser_session(self):
+    def test_demo_login_uses_same_session_as_default(self):
         request = self._request_with_session()
         apply_login_session_expiry(request, demo=True)
-        self.assertEqual(request.session.get_expiry_age(), 0)
+        self.assertEqual(request.session.get_expiry_age(), DEFAULT_LOGIN_SESSION_AGE)
 
     def test_session_settings_keep_users_signed_in_during_browsing(self):
         from django.conf import settings

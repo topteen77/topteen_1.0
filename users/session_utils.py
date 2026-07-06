@@ -2,8 +2,8 @@ from django.conf import settings
 
 
 REMEMBER_ME_SESSION_AGE = getattr(settings, "REMEMBER_ME_SESSION_AGE", 2592000)  # 30 days
-DEFAULT_LOGIN_SESSION_AGE = getattr(settings, "DEFAULT_LOGIN_SESSION_AGE", 1209600)  # 14 days
-DEMO_LOGIN_SESSION_AGE = getattr(settings, "DEMO_LOGIN_SESSION_AGE", 0)  # browser session
+DEFAULT_LOGIN_SESSION_AGE = getattr(settings, "DEFAULT_LOGIN_SESSION_AGE", 604800)  # 7 days
+DEMO_LOGIN_SESSION_AGE = getattr(settings, "DEMO_LOGIN_SESSION_AGE", DEFAULT_LOGIN_SESSION_AGE)
 DEFAULT_LOGIN_BACKEND = "users.backends.CustomUserBackend"
 
 
@@ -20,10 +20,9 @@ def apply_login_session_expiry(request, remember_me=False, demo=False):
     Set how long the session cookie should last.
 
     Call after django.contrib.auth.login() so session cycle_key does not drop custom expiry.
+    Demo and normal logins use the same default duration (1 week) unless remember-me is checked.
     """
-    if demo:
-        request.session.set_expiry(DEMO_LOGIN_SESSION_AGE)
-    elif _is_truthy(remember_me):
+    if _is_truthy(remember_me):
         request.session.set_expiry(REMEMBER_ME_SESSION_AGE)
     else:
         request.session.set_expiry(DEFAULT_LOGIN_SESSION_AGE)

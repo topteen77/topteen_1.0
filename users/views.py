@@ -38,7 +38,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from users.decorators import institute_dashboard_roles_only
 from users.session_utils import login_user_with_session
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from careers.models import Videos,Career,CareerTags
 from core.models import EntranceTestPrepExam
 from colleges.models import College,CollegeShortlist
@@ -71,7 +71,6 @@ from institute.models import (
     resolve_marketing_group_for_public_registration,
 )
 from django.middleware.csrf import get_token
-from django.views.decorators.csrf import ensure_csrf_cookie
 # from .forms import InstituteRegistrationForm
 import json
 import re
@@ -524,6 +523,7 @@ def create_institute(request):
 
 
 
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class LoginView(TemplateView):
     template_name='template20/sign_in.html'
 
@@ -603,37 +603,91 @@ class LoginView(TemplateView):
         return render(request, self.template_name, ctx)
 
 
+def csrf_failure(request, reason=""):
+    """
+    Never show Django's 403 CSRF page to users — send them back to login with a friendly message.
+    """
+    path = (request.path or "").lower()
+    if path.startswith("/student/"):
+        login_path = reverse("student_login")
+    elif path.startswith("/parents/"):
+        login_path = reverse("parents_login")
+    else:
+        login_path = settings.LOGIN_URL
+
+    message = "Your session has expired. Please sign in again."
+    wants_json = (
+        request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        or "application/json" in (request.headers.get("Accept") or "")
+    )
+    if wants_json:
+        return JsonResponse(
+            {"success": False, "message": message, "redirect": login_path, "session_expired": True},
+            status=401,
+        )
+    try:
+        messages.warning(request, message)
+    except Exception:
+        pass
+    return redirect(login_path)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
 class DemoLoginView(View):
     """
     POST-only view: log in as a demo user by token (signed user id).
     Only users with is_demo_account=True and is_active=True can be used.
     Credentials are never sent to the client.
     """
-    def _login_fallback_url(self, request):
-        """Redirect to institute/counselor login if request came from there."""
-        referer = (request.META.get('HTTP_REFERER') or '').strip()
+    def _is_ajax(self, request):
+        return request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+    def _login_fallback_path(self, request):
+        referer = (request.META.get('HTTP_REFERER') or '').strip().lower()
+        if '/student/login' in referer:
+            return reverse('student_login')
+        if '/parents/login' in referer:
+            return reverse('parents_login')
         if '/institute/auth/login' in referer:
-            return redirect('institute:login')
+            return reverse('institute:login')
         if '/counselor/auth/login' in referer:
-            return redirect('counselor:login')
-        return redirect('users:login')
+            return reverse('counselor:login')
+        return reverse('users:login')
+
+    def _login_fallback_url(self, request):
+        return redirect(self._login_fallback_path(request))
+
+    def _ajax_or_redirect(self, request, redirect_url, *, success=False, message=''):
+        if self._is_ajax(request):
+            payload = {'success': success, 'redirect': redirect_url}
+            if message:
+                payload['message'] = message
+            return JsonResponse(payload, status=200 if success else 400)
+        if success:
+            return redirect(redirect_url)
+        messages.error(request, message or 'Unable to sign in with this demo account.')
+        return redirect(redirect_url)
 
     def post(self, request):
         token = (request.POST.get('token') or '').strip()
+        fallback = self._login_fallback_path(request)
         if not token:
-            messages.error(request, 'Invalid demo login request.')
-            return self._login_fallback_url(request)
+            return self._ajax_or_redirect(
+                request, fallback, success=False, message='Invalid demo login request.'
+            )
         try:
             sign = Signer()
             obj = sign.unsign_object(token)
             user_id = obj.get('demo_user_id')
         except Exception:
-            messages.error(request, 'Invalid demo login link.')
-            return self._login_fallback_url(request)
+            return self._ajax_or_redirect(
+                request, fallback, success=False, message='Invalid demo login link.'
+            )
         user = User.objects.filter(pk=user_id).first()
         if not user or not user.is_active:
-            messages.error(request, 'This demo account is not available.')
-            return self._login_fallback_url(request)
+            return self._ajax_or_redirect(
+                request, fallback, success=False, message='This demo account is not available.'
+            )
         # Allow: is_demo_account (user demo) OR created_by of a demo institute
         from institute.models import Institute
         is_demo_user = user.is_demo_account
@@ -641,14 +695,16 @@ class DemoLoginView(View):
             created_by=user, is_demo_institute=True
         ).exists()
         if not (is_demo_user or is_demo_institute_user):
-            messages.error(request, 'This demo account is not available.')
-            return self._login_fallback_url(request)
+            return self._ajax_or_redirect(
+                request, fallback, success=False, message='This demo account is not available.'
+            )
         if not user.get_user_status():
-            messages.error(request, 'Account is blocked or inactive.')
-            return self._login_fallback_url(request)
+            return self._ajax_or_redirect(
+                request, fallback, success=False, message='Account is blocked or inactive.'
+            )
         login_user_with_session(request, user, demo=True)
         redirect_url = self._redirect_url(request, user)
-        return redirect(redirect_url)
+        return self._ajax_or_redirect(request, redirect_url, success=True)
 
     def _redirect_url(self, request, user):
         return get_dashboard_url_for_user(request, user)
@@ -5180,9 +5236,11 @@ class UserHistoryView(TemplateView):
         from invoices.models import Invoice
         ctx={}
         ctx["html_head"] = self.html_head()
-        ctx['payments'] = Payment.objects.filter(user=request.user).order_by('-created')
+        ctx['payments'] = Payment.user_facing_queryset(request.user)
         ctx['payment_id_to_invoice_id'] = dict(
-            Invoice.objects.filter(payment__user=request.user).values_list('payment_id', 'id')
+            Invoice.objects.filter(payment__user=request.user)
+            .exclude(payment__gateway=choices.GatewayChoices.MANUAL)
+            .values_list('payment_id', 'id')
         )
         ctx['breadcrumb']=self.__breadcrumb()
         return ctx

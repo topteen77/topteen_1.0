@@ -41,6 +41,17 @@ class Payment(BaseModel,BaseMoneyModel):
     tps=models.TextField(null=True,blank=True)
     rsv=models.TextField(null=True,blank=True)
 
+    def is_admin_manual_cash(self):
+        """Staff-recorded offline cash payment — hidden from user-facing pages."""
+        return self.gateway == choices.GatewayChoices.MANUAL
+
+    @classmethod
+    def user_facing_queryset(cls, user):
+        """Payments shown on the student/parent payment history page."""
+        return cls.objects.filter(user=user).exclude(
+            gateway=choices.GatewayChoices.MANUAL
+        ).order_by('-created')
+
     def get_order_id(self):
         rsvc = RazorpayService()
         order_receipt = self.gateway_receipt

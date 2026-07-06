@@ -26,6 +26,8 @@ def on_payment_success_create_invoice(sender, instance, created, **kwargs):
     """Create invoice only when payment is successful. Never for failed payments. Institute free students skipped unless config allows."""
     if instance.is_success != choices.YesNoChoices.YES:
         return
+    if instance.gateway == choices.GatewayChoices.MANUAL:
+        return
     if _is_institute_free_student_payment(instance):
         from invoices.services import get_config
         if not get_config().generate_invoice_for_institute_students:
