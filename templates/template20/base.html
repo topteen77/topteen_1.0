@@ -15,13 +15,23 @@
   {% endif %}
   {% endblock %}
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="apple-touch-icon" href="{{ static('images_new/fav-icon/apple-touch-icon.png') }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ static('images_new/fav-icon/apple-touch-icon.png') }}">
   <link rel="icon" type="image/png" sizes="32x32" href="{{ static('images_new/fav-icon/favicon-32x32.png') }}">
   <link rel="icon" type="image/png" sizes="16x16" href="{{ static('images_new/fav-icon/favicon-16x16.png') }}">
   <link rel="mask-icon" href="{{ static('images_new/fav-icon/safari-pinned-tab.svg') }}" color="#5bbad5">
   <meta name="msapplication-TileColor" content="#da532c">
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#3F37C9">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="stylesheet" href="{{ static('css_new/pwa-splash.css') }}?v=1">
+  <script>
+    (function () {
+      if (window.matchMedia('(display-mode: standalone)').matches ||
+          window.matchMedia('(display-mode: fullscreen)').matches ||
+          window.navigator.standalone === true) {
+        document.documentElement.classList.add('pwa-launch-pending');
+      }
+    })();
+  </script>
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -159,6 +169,7 @@
 </head>
 
 <body class="{% block bodyclass %}{% endblock %}{% if chatbot_widget_body_class %} {{ chatbot_widget_body_class }}{% endif %}">
+  {% include 'template20/includes/pwa_launch_screen.html' %}
   {% block header %}
   {% include 'template20/includes/header.html' %}
   {% endblock %}
@@ -221,6 +232,7 @@
   <script src="{{ static('js_new/bootstrap.bundle.min.js') }}" defer></script>
   <script src="{{ static('js_new/main.js') }}?v=20260706-5" defer></script>
   <script src="{{ static('js_new/search.js') }}" defer></script>
+  <script src="{{ static('js_new/pwa-splash.js') }}?v=1"></script>
   <script src="{{ static('js_new/pwa-register.js') }}?v=1" defer></script>
 
   {# When both widgets load, page-chat must mount first so cb-root is later in DOM (same z-index stacking). #}

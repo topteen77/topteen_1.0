@@ -21,38 +21,38 @@ def manifest_json(request):
         return HttpResponse(status=404)
 
     manifest = {
-        'name': 'Top Teen — Every Student, Career Ready',
+        'name': 'TopTeen — Explore Careers. Discover Your Strengths. Shape Your Future.',
         'short_name': 'TopTeen',
         'description': (
-            'TopTeen helps students find their perfect career path with confidence.'
+            'Explore Careers. Discover Your Strengths. Shape Your Future.'
         ),
         'start_url': '/',
         'scope': '/',
         'display': 'standalone',
         'orientation': 'portrait-primary',
         'background_color': '#ffffff',
-        'theme_color': '#3F37C9',
+        'theme_color': '#ffffff',
         'icons': [
             {
-                'src': _icon_url(request, 'images_new/fav-icon/android-chrome-192x192.png'),
+                'src': _icon_url(request, 'images_new/fav-icon/pwa-icon-192x192.png'),
                 'sizes': '192x192',
                 'type': 'image/png',
                 'purpose': 'any',
             },
             {
-                'src': _icon_url(request, 'images_new/fav-icon/android-chrome-512x512.png'),
+                'src': _icon_url(request, 'images_new/fav-icon/pwa-icon-512x512.png'),
                 'sizes': '512x512',
                 'type': 'image/png',
                 'purpose': 'any',
             },
             {
-                'src': _icon_url(request, 'images_new/fav-icon/web-app-manifest-192x192.png'),
+                'src': _icon_url(request, 'images_new/fav-icon/pwa-icon-192x192.png'),
                 'sizes': '192x192',
                 'type': 'image/png',
                 'purpose': 'maskable',
             },
             {
-                'src': _icon_url(request, 'images_new/fav-icon/web-app-manifest-512x512.png'),
+                'src': _icon_url(request, 'images_new/fav-icon/pwa-icon-512x512.png'),
                 'sizes': '512x512',
                 'type': 'image/png',
                 'purpose': 'maskable',

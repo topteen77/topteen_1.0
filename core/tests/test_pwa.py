@@ -15,8 +15,12 @@ class PWAEndpointTests(TestCase):
         self.assertIn('application/manifest+json', response['Content-Type'])
 
         data = json.loads(response.content.decode())
-        self.assertEqual(data['name'], 'Top Teen — Every Student, Career Ready')
+        self.assertEqual(data['name'], 'TopTeen — Explore Careers. Discover Your Strengths. Shape Your Future.')
         self.assertEqual(data['short_name'], 'TopTeen')
+        self.assertEqual(
+            data['description'],
+            'Explore Careers. Discover Your Strengths. Shape Your Future.',
+        )
         self.assertEqual(data['start_url'], '/')
         self.assertEqual(data['display'], 'standalone')
 
@@ -25,6 +29,7 @@ class PWAEndpointTests(TestCase):
         self.assertIn('512x512', sizes)
         for icon in data['icons']:
             self.assertTrue(icon['src'].startswith('http'))
+            self.assertIn('pwa-icon', icon['src'])
 
     def test_service_worker_js(self):
         response = self.client.get('/service-worker.js')
@@ -53,6 +58,8 @@ class PWAEndpointTests(TestCase):
         self.assertContains(response, 'rel="manifest"')
         self.assertContains(response, '/manifest.json')
         self.assertContains(response, 'pwa-register.js')
+        self.assertContains(response, 'pwa-splash.js')
+        self.assertContains(response, 'Explore Careers. Discover Your Strengths. Shape Your Future.')
         self.assertContains(response, 'data-pwa-version="test-1"')
 
     @override_settings(PWA_ENABLED=False)
