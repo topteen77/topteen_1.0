@@ -38,3 +38,9 @@ class CoreConfig(AppConfig):
             }
         except Exception as e:
             logger.debug('Daily report beat schedule not patched from Configuration: %s', e)
+
+        try:
+            from core.admin_hub import register_admin_hub_urls
+            register_admin_hub_urls()
+        except Exception as e:
+            logger.exception('Failed to register admin hub URLs: %s', e)

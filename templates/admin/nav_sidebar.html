@@ -1,18 +1,82 @@
 {% load i18n static %}
 <button class="sticky toggle-nav-sidebar" id="toggle-nav-sidebar" aria-label="{% translate 'Toggle navigation' %}"></button>
 <nav class="sticky" id="nav-sidebar" aria-label="{% translate 'Sidebar' %}">
-  <div class="admin-quick-nav">
-    <a href="{% url 'core:home' %}" target="_blank" rel="noopener noreferrer">Website</a>
-    {% if user.is_superuser %}
-      <a href="{% url 'user_analytics:admin_dashboard' %}">Dashboard</a>
-    {% elif user.is_staff %}
-      <a href="{% url 'user_analytics:business_dashboard' %}">Dashboard</a>
-    {% endif %}
-    <a href="{% url 'topteenadmin:topteendashboard' %}">TopTeen Admin</a>
-    <a href="{% url 'topteenadminmanaged:bloglist' %}">Blog (CMS)</a>
+  <div class="tt-sidebar-help">
+    <strong>{% translate 'How to navigate' %}</strong>
+    <p>{% translate 'Pick a functional area below. Each listing page groups related CRUD screens — you rarely need the advanced model list.' %}</p>
   </div>
-  <input type="search" id="nav-filter"
-         placeholder="{% translate 'Start typing to filter…' %}"
-         aria-label="{% translate 'Filter navigation items' %}">
-  {% include 'admin/app_list.html' with app_list=available_apps show_changelinks=False %}
+
+  <ul class="tt-sidebar-nav">
+    <li class="tt-sidebar-nav__item{% if sidebar_active == 'home' %} is-active{% endif %}">
+      <a href="{% url 'admin:index' %}" data-sidebar-nav="home">
+        <span class="tt-sidebar-nav__icon" aria-hidden="true">⌂</span>
+        {% translate 'Admin home' %}
+      </a>
+    </li>
+
+    <li class="tt-sidebar-nav__group{% if sidebar_active == 'configuration' %} is-active is-open{% endif %}">
+      <a href="{% url 'admin:hub_configuration' %}" data-sidebar-nav="configuration">
+        <span class="tt-sidebar-nav__icon tt-sidebar-nav__icon--config" aria-hidden="true">⚙</span>
+        {% translate 'Website configuration' %}
+      </a>
+      {% if sidebar_config_sections %}
+      <ul class="tt-sidebar-nav__children">
+        {% for section in sidebar_config_sections %}
+        <li>
+          <a href="{% url 'admin:hub_configuration' %}#{{ section.section_id }}"
+             data-sidebar-section="{{ section.section_id }}"
+             {% if sidebar_you_are_here and sidebar_you_are_here.section_id == section.section_id %}class="is-active"{% endif %}>{{ section.title }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </li>
+
+    <li class="tt-sidebar-nav__group tt-sidebar-nav__group--ops{% if sidebar_active == 'operations' %} is-active is-open{% endif %}">
+      <a href="{% url 'admin:hub_operations' %}" data-sidebar-nav="operations">
+        <span class="tt-sidebar-nav__icon tt-sidebar-nav__icon--ops" aria-hidden="true">◆</span>
+        {% translate 'Operations & content' %}
+      </a>
+      {% if sidebar_ops_sections %}
+      <ul class="tt-sidebar-nav__children">
+        {% for section in sidebar_ops_sections %}
+        <li>
+          <a href="{% url 'admin:hub_operations' %}#{{ section.section_id }}"
+             data-sidebar-section="{{ section.section_id }}"
+             {% if sidebar_you_are_here and sidebar_you_are_here.section_id == section.section_id %}class="is-active"{% endif %}>{{ section.title }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </li>
+  </ul>
+
+  {% if sidebar_you_are_here %}
+  <div class="tt-sidebar-context" id="tt-sidebar-context">
+    <strong>{% translate 'You are here' %}</strong>
+    <p class="tt-sidebar-context__page">{{ sidebar_you_are_here.page_label }}</p>
+    <p class="tt-sidebar-context__hint">
+      {% translate 'Use the list to add, edit, or delete records. Return to the section listing when done.' %}
+    </p>
+    <a href="{{ sidebar_you_are_here.section_url }}" class="tt-sidebar-context__back">
+      {% blocktranslate with section=sidebar_you_are_here.section_title %}← {{ section }}{% endblocktranslate %}
+    </a>
+    <a href="{{ sidebar_you_are_here.hub_url }}" class="tt-sidebar-context__back">
+      {% blocktranslate with zone=sidebar_you_are_here.zone_label %}← All {{ zone }}{% endblocktranslate %}
+    </a>
+  </div>
+  {% endif %}
+
+  <details class="tt-sidebar-advanced" id="tt-sidebar-advanced">
+    <summary>{% translate 'Advanced: all Django models' %}</summary>
+    <p class="tt-sidebar-advanced__hint">
+      {% translate 'Power users only — every model grouped by Django app. Prefer the configuration or operations listings above.' %}
+    </p>
+    <input type="search" id="nav-filter"
+           placeholder="{% translate 'Filter models…' %}"
+           aria-label="{% translate 'Filter navigation items' %}">
+    <div class="tt-sidebar-advanced__apps">
+      {% include 'admin/app_list.html' with app_list=available_apps show_changelinks=False %}
+    </div>
+  </details>
 </nav>

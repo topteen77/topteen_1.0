@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block content %}
-<p style="margin-bottom: 20px; color: #666;">Manage core website features. Changes take effect immediately.</p>
+<p style="margin-bottom: 20px; color: var(--tt-text-muted, #666);">Manage core website features. Changes take effect immediately.</p>
 
 <form method="post" id="website-settings-form">
   {% csrf_token %}
@@ -24,7 +24,7 @@
         {{ field }}
         <label for="{{ field.id_for_label }}" style="font-weight: normal; margin-left: 8px;">{{ field.label }}</label>
         {% if field.help_text %}
-        <p class="help" style="margin: 5px 0 0 24px; color: #666; font-size: 12px;">{{ field.help_text }}</p>
+        <p class="help" style="margin: 5px 0 0 24px; font-size: 12px;">{{ field.help_text }}</p>
         {% endif %}
       </div>
     </div>

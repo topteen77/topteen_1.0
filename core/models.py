@@ -56,8 +56,16 @@ class BaseModel(models.Model):
         post_delete.send(sender=self.__class__, instance=self)
 
     def __str__(self):
-        value = self.name if hasattr(self,'name') else getattr(self,"id")
-        return "{}".format(value)
+        if hasattr(self, 'name'):
+            value = getattr(self, 'name', None)
+            if value:
+                return "{}".format(value)
+        for attr in ('title', 'question', 'label', 'key', 'slug'):
+            if hasattr(self, attr):
+                value = getattr(self, attr, None)
+                if value:
+                    return "{}".format(value)
+        return "{}".format(getattr(self, "id"))
 
     def _get_class_name(self):
         return self.__class__.__name__

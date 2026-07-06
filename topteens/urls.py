@@ -22,6 +22,7 @@ from users import views as users_views
 from user_analytics import views as user_analytics_views
 from core import views as core_views
 from core.seo_views import robots_txt, sitemap_xml
+from core.pwa_views import manifest_json, service_worker_js
 from core.sitemaps import (
     BlogSitemap,
     CareerSitemap,
@@ -48,6 +49,14 @@ sitemaps = {
 }
 
 urlpatterns = [
+    path("manifest.json", manifest_json, name="pwa_manifest"),
+    path("service-worker.js", service_worker_js, name="pwa_service_worker"),
+    path("sw.js", service_worker_js, name="pwa_service_worker_alias"),
+    path(
+        "offline/",
+        TemplateView.as_view(template_name="template20/pwa/offline.html"),
+        name="pwa_offline",
+    ),
     path("sitemap.xml", sitemap_xml, {"sitemaps": sitemaps}, name="sitemap"),
     path("robots.txt", robots_txt, name="robots_txt"),
     # S3 media proxy: serve S3 files through Django when S3_MEDIA_ACCESS_MODE=proxy (only your site can show media)

@@ -1,8 +1,13 @@
 {% extends "admin/app_index.html" %}
 {% load i18n admin_urls %}
 
-{# Add quick link for Psychometric Test Settings under Core app #}
+{# Add quick link for configuration hub under Core app #}
 {% block object-tools-items %}
+  <li>
+    <a href="{% url 'admin:hub_configuration' %}" class="historylink">
+      Configuration hub
+    </a>
+  </li>
   <li>
     <a href="{% url 'admin:core_configuration_psychometric_settings' %}" class="historylink">
       Psychometric Test Settings

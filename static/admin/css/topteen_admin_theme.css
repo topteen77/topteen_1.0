@@ -1,0 +1,718 @@
+/* TopTeen admin — global theme (light / dark / auto) for ALL admin pages */
+
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+html[data-theme="auto"] {
+  color-scheme: light dark;
+}
+
+:root,
+html[data-theme="light"] {
+  --tt-surface: #ffffff;
+  --tt-surface-2: #f8fafc;
+  --tt-surface-3: #f1f5f9;
+  --tt-border: #e2e8f0;
+  --tt-text: #0f172a;
+  --tt-text-muted: #64748b;
+  --tt-header-grad: linear-gradient(135deg, #1e3a5f 0%, #2563eb 50%, #0d9488 100%);
+  --tt-page-grad: linear-gradient(135deg, #334155 0%, #475569 100%);
+  --tt-input-bg: #ffffff;
+  --tt-input-border: #cbd5e1;
+  --tt-table-stripe: #f8fafc;
+  --tt-table-hover: #eff6ff;
+  --tt-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+  --tt-shadow-md: 0 4px 20px rgba(15, 23, 42, 0.08);
+  --tt-radius: 12px;
+  --tt-radius-sm: 8px;
+}
+
+html[data-theme="dark"] {
+  --tt-surface: #1a1a1a;
+  --tt-surface-2: #212121;
+  --tt-surface-3: #2a2a2a;
+  --tt-border: #3a3a3a;
+  --tt-text: #eeeeee;
+  --tt-text-muted: #a3a3a3;
+  --tt-header-grad: linear-gradient(135deg, #0f172a 0%, #1e3a8a 45%, #115e59 100%);
+  --tt-page-grad: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  --tt-input-bg: #262626;
+  --tt-input-border: #525252;
+  --tt-table-stripe: #222222;
+  --tt-table-hover: #2d3748;
+  --tt-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+  --tt-shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+@media (prefers-color-scheme: dark) {
+  html[data-theme="auto"] {
+    --tt-surface: #1a1a1a;
+    --tt-surface-2: #212121;
+    --tt-surface-3: #2a2a2a;
+    --tt-border: #3a3a3a;
+    --tt-text: #eeeeee;
+    --tt-text-muted: #a3a3a3;
+    --tt-header-grad: linear-gradient(135deg, #0f172a 0%, #1e3a8a 45%, #115e59 100%);
+    --tt-page-grad: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    --tt-input-bg: #262626;
+    --tt-input-border: #525252;
+    --tt-table-stripe: #222222;
+    --tt-table-hover: #2d3748;
+    --tt-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
+    --tt-shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  html[data-theme="auto"] {
+    --tt-surface: #ffffff;
+    --tt-surface-2: #f8fafc;
+    --tt-surface-3: #f1f5f9;
+    --tt-border: #e2e8f0;
+    --tt-text: #0f172a;
+    --tt-text-muted: #64748b;
+    --tt-header-grad: linear-gradient(135deg, #1e3a5f 0%, #2563eb 50%, #0d9488 100%);
+    --tt-page-grad: linear-gradient(135deg, #334155 0%, #475569 100%);
+    --tt-input-bg: #ffffff;
+    --tt-input-border: #cbd5e1;
+    --tt-table-stripe: #f8fafc;
+    --tt-table-hover: #eff6ff;
+    --tt-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+    --tt-shadow-md: 0 4px 20px rgba(15, 23, 42, 0.08);
+  }
+}
+
+/* Body & main canvas */
+body.tt-admin-themed {
+  background: var(--body-bg) !important;
+  color: var(--body-fg);
+}
+
+body.tt-admin-themed #container {
+  background: var(--body-bg);
+}
+
+body.tt-admin-themed .main > .content {
+  background: var(--body-bg);
+}
+
+body.tt-admin-themed #content {
+  background: transparent;
+}
+
+/* Header */
+body.tt-admin-themed #header {
+  background: var(--tt-header-grad) !important;
+  border-bottom: none;
+  box-shadow: var(--tt-shadow-md);
+}
+
+body.tt-admin-themed #branding h1,
+body.tt-admin-themed #branding h1 a:link,
+body.tt-admin-themed #branding h1 a:visited {
+  color: #fff !important;
+  font-weight: 800;
+}
+
+body.tt-admin-themed #user-tools,
+body.tt-admin-themed #user-tools a,
+body.tt-admin-themed #logout-form button {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+body.tt-admin-themed #user-tools a:hover,
+body.tt-admin-themed #logout-form button:hover {
+  color: #fff !important;
+}
+
+body.tt-admin-themed .theme-toggle svg {
+  fill: #fff !important;
+  color: var(--tt-header-grad) !important;
+}
+
+/* Breadcrumbs */
+body.tt-admin-themed .breadcrumbs {
+  background: var(--tt-surface-2) !important;
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius-sm);
+  padding: 8px 14px !important;
+  margin-bottom: 16px;
+  color: var(--tt-text-muted) !important;
+  box-shadow: var(--tt-shadow-sm);
+}
+
+body.tt-admin-themed .breadcrumbs a {
+  color: var(--link-fg) !important;
+}
+
+/* CRUD page title strip */
+body.tt-admin-themed.change-list #content > h1,
+body.tt-admin-themed.change-form #content > h1,
+body.tt-admin-themed.delete-confirmation #content > h1,
+body.tt-admin-themed.history #content > h1 {
+  margin: 0 0 18px;
+  padding: 16px 20px;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #fff !important;
+  background: var(--tt-page-grad);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow-md);
+}
+
+body.tt-admin-themed .tt-admin-page-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 18px;
+  padding: 14px 18px;
+  color: #fff;
+  background: var(--tt-page-grad);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow-md);
+}
+
+body.tt-admin-themed .tt-admin-page-strip__title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #fff !important;
+}
+
+body.tt-admin-themed .tt-admin-page-strip__hint {
+  margin: 0;
+  font-size: 12px;
+  opacity: 0.9;
+  color: #fff !important;
+}
+
+body.tt-admin-themed .tt-admin-page-strip__actions a {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 20px;
+}
+
+body.tt-admin-themed .tt-admin-page-strip__actions a:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+body.tt-admin-themed.change-list #content > h1:has(+ .tt-admin-page-strip),
+body.tt-admin-themed.change-form #content > h1:has(+ .tt-admin-page-strip),
+body.tt-admin-themed.delete-confirmation #content > h1:has(+ .tt-admin-page-strip),
+body.tt-admin-themed.history #content > h1:has(+ .tt-admin-page-strip),
+body.tt-admin-themed #content > h1:has(+ .tt-admin-page-strip) {
+  display: none;
+}
+
+/* Modules / cards */
+body.tt-admin-themed .module,
+body.tt-admin-themed #content-related .module {
+  background: var(--tt-surface) !important;
+  border: 1px solid var(--tt-border) !important;
+  border-radius: var(--tt-radius) !important;
+  box-shadow: var(--tt-shadow-sm);
+  overflow: hidden;
+}
+
+body.tt-admin-themed .module h2,
+body.tt-admin-themed .module caption {
+  background: var(--tt-surface-2) !important;
+  color: var(--tt-text) !important;
+  border-bottom: 1px solid var(--tt-border);
+}
+
+/* Django default uses --header-link-color (white) on captions; fix contrast on light surfaces */
+body.tt-admin-themed .module h2 a.section:link,
+body.tt-admin-themed .module h2 a.section:visited,
+body.tt-admin-themed .module caption a.section:link,
+body.tt-admin-themed .module caption a.section:visited {
+  color: var(--tt-text) !important;
+  text-decoration: none;
+}
+
+body.tt-admin-themed .module h2 a.section:hover,
+body.tt-admin-themed .module h2 a.section:focus,
+body.tt-admin-themed .module caption a.section:hover,
+body.tt-admin-themed .module caption a.section:focus {
+  color: var(--link-fg) !important;
+  text-decoration: underline;
+}
+
+body.tt-admin-themed .inline-group h2 {
+  background: var(--tt-surface-2) !important;
+  color: var(--tt-text) !important;
+}
+
+/* Changelist */
+body.tt-admin-themed #changelist {
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow-sm);
+  overflow: hidden;
+}
+
+body.tt-admin-themed #toolbar {
+  background: var(--tt-surface-2) !important;
+  border-bottom: 1px solid var(--tt-border);
+  padding: 12px 14px !important;
+}
+
+body.tt-admin-themed #changelist-filter {
+  background: var(--tt-surface) !important;
+  border-left: 1px solid var(--tt-border) !important;
+}
+
+body.tt-admin-themed #changelist-filter h2 {
+  background: var(--tt-surface-2) !important;
+  color: var(--tt-text) !important;
+}
+
+body.tt-admin-themed #result_list thead th {
+  background: var(--tt-surface-2) !important;
+  color: var(--tt-text) !important;
+  border-bottom: 1px solid var(--tt-border) !important;
+}
+
+body.tt-admin-themed #result_list tbody tr:nth-child(even) {
+  background: var(--tt-table-stripe);
+}
+
+body.tt-admin-themed #result_list tbody tr:hover {
+  background: var(--tt-table-hover) !important;
+}
+
+body.tt-admin-themed #result_list td,
+body.tt-admin-themed #result_list th {
+  border-color: var(--tt-border) !important;
+  color: var(--body-fg);
+}
+
+/* Forms */
+body.tt-admin-themed input[type="text"],
+body.tt-admin-themed input[type="password"],
+body.tt-admin-themed input[type="email"],
+body.tt-admin-themed input[type="url"],
+body.tt-admin-themed input[type="number"],
+body.tt-admin-themed input[type="date"],
+body.tt-admin-themed input[type="datetime-local"],
+body.tt-admin-themed input[type="time"],
+body.tt-admin-themed input[type="search"],
+body.tt-admin-themed textarea,
+body.tt-admin-themed select,
+body.tt-admin-themed .vTextField,
+body.tt-admin-themed .vLargeTextField,
+body.tt-admin-themed .vURLField {
+  background: var(--tt-input-bg) !important;
+  color: var(--body-fg) !important;
+  border: 1px solid var(--tt-input-border) !important;
+  border-radius: 6px !important;
+}
+
+body.tt-admin-themed fieldset.module.aligned {
+  border-radius: var(--tt-radius-sm);
+}
+
+body.tt-admin-themed .form-row {
+  border-bottom-color: var(--tt-border) !important;
+}
+
+body.tt-admin-themed .help,
+body.tt-admin-themed p.help,
+body.tt-admin-themed .quiet,
+body.tt-admin-themed span.quiet {
+  color: var(--tt-text-muted) !important;
+}
+
+/* Buttons */
+body.tt-admin-themed input[type="submit"],
+body.tt-admin-themed input[type="button"],
+body.tt-admin-themed .button,
+body.tt-admin-themed button.submit-row-btn {
+  border-radius: 8px !important;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+body.tt-admin-themed input[type="submit"].default,
+body.tt-admin-themed .button.default {
+  box-shadow: var(--tt-shadow-sm);
+}
+
+body.tt-admin-themed .submit-row {
+  background: var(--tt-surface-2) !important;
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius-sm);
+  padding: 12px 14px !important;
+}
+
+body.tt-admin-themed .object-tools a {
+  border-radius: 20px !important;
+  padding: 6px 14px !important;
+  font-weight: 600;
+  box-shadow: var(--tt-shadow-sm);
+}
+
+/* Reset Django's negative float — it overlaps our page strip header */
+body.tt-admin-themed.change-list #content-main .object-tools,
+body.tt-admin-themed.change-form #content-main .object-tools {
+  float: none;
+  position: static;
+  margin: 0 0 14px;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+}
+
+body.tt-admin-themed.change-list #content-main .object-tools li,
+body.tt-admin-themed.change-form #content-main .object-tools li {
+  float: none;
+  margin: 0;
+  height: auto;
+}
+
+body.tt-admin-themed.change-list #content-main .object-tools a,
+body.tt-admin-themed.change-form #content-main .object-tools a {
+  float: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Messages */
+body.tt-admin-themed ul.messagelist li {
+  border-radius: var(--tt-radius-sm);
+  box-shadow: var(--tt-shadow-sm);
+}
+
+/* Nav sidebar chrome */
+body.tt-admin-themed #nav-sidebar {
+  background: var(--tt-surface) !important;
+  border-right-color: var(--tt-border) !important;
+}
+
+body.tt-admin-themed .toggle-nav-sidebar {
+  background: var(--tt-surface) !important;
+  border-color: var(--tt-border) !important;
+}
+
+body.tt-admin-themed #nav-filter {
+  background: var(--tt-input-bg) !important;
+  color: var(--body-fg) !important;
+  border-color: var(--tt-input-border) !important;
+}
+
+/* Advanced sidebar app list — section headers & model links */
+body.tt-admin-themed #nav-sidebar .tt-sidebar-advanced__apps .module {
+  background: var(--tt-surface) !important;
+  border-color: var(--tt-border) !important;
+}
+
+body.tt-admin-themed #nav-sidebar .tt-sidebar-advanced__apps .module caption {
+  background: var(--tt-surface-3) !important;
+  color: var(--tt-text) !important;
+  padding: 8px 12px !important;
+  text-align: left;
+}
+
+body.tt-admin-themed #nav-sidebar .tt-sidebar-advanced__apps .module caption a.section:link,
+body.tt-admin-themed #nav-sidebar .tt-sidebar-advanced__apps .module caption a.section:visited {
+  color: var(--tt-text) !important;
+  font-weight: 700;
+}
+
+body.tt-admin-themed #nav-sidebar .tt-sidebar-advanced__apps .module caption a.section:hover,
+body.tt-admin-themed #nav-sidebar .tt-sidebar-advanced__apps .module caption a.section:focus {
+  color: var(--link-fg) !important;
+}
+
+body.tt-admin-themed #nav-sidebar .current-app .section:link,
+body.tt-admin-themed #nav-sidebar .current-app .section:visited {
+  color: var(--link-fg) !important;
+}
+
+body.tt-admin-themed #nav-sidebar .tt-sidebar-advanced__apps .module th,
+body.tt-admin-themed #nav-sidebar .tt-sidebar-advanced__apps .module td {
+  background: var(--tt-surface);
+  color: var(--body-fg);
+}
+
+body.tt-admin-themed #nav-sidebar .tt-sidebar-advanced__apps .module th a:link,
+body.tt-admin-themed #nav-sidebar .tt-sidebar-advanced__apps .module th a:visited {
+  color: var(--link-fg) !important;
+}
+
+body.tt-admin-themed #nav-sidebar .tt-sidebar-advanced__apps .module th a:hover,
+body.tt-admin-themed #nav-sidebar .tt-sidebar-advanced__apps .module th a:focus {
+  color: var(--link-hover-color) !important;
+}
+
+body.tt-admin-themed #nav-sidebar .tt-sidebar-advanced__apps .current-model th {
+  background: var(--selected-row) !important;
+}
+
+body.tt-admin-themed #nav-sidebar .tt-sidebar-advanced__apps .current-model th a {
+  font-weight: 700;
+}
+
+body.tt-admin-themed #nav-sidebar .cmm-sidebar-info-btn {
+  border-color: var(--tt-border) !important;
+  background: var(--tt-surface) !important;
+  color: var(--link-fg) !important;
+}
+
+body.tt-admin-themed #nav-sidebar .cmm-sidebar-info-btn:hover,
+body.tt-admin-themed #nav-sidebar .cmm-sidebar-info-btn:focus {
+  background: var(--tt-surface-2) !important;
+  color: var(--link-hover-color) !important;
+}
+
+/* Hero text always white on gradient */
+.tt-admin-hero,
+.tt-admin-hero h1,
+.tt-admin-hero p,
+.tt-admin-hero__intro,
+.tt-admin-hero__meta,
+.tt-admin-hero__badge {
+  color: #fff !important;
+}
+
+html[data-theme="dark"] .tt-admin-hero--home,
+html[data-theme="dark"] .tt-admin-hero--config,
+html[data-theme="dark"] .tt-admin-hero--ops {
+  box-shadow: var(--tt-shadow-md);
+}
+
+@media (prefers-color-scheme: dark) {
+  html[data-theme="auto"] .tt-admin-hero--home,
+  html[data-theme="auto"] .tt-admin-hero--config,
+  html[data-theme="auto"] .tt-admin-hero--ops {
+    box-shadow: var(--tt-shadow-md);
+  }
+}
+
+/* Hub / home cards in dark mode */
+html[data-theme="dark"] .tt-admin-home__card,
+html[data-theme="dark"] .tt-admin-hub__section,
+html[data-theme="dark"] .tt-admin-panel,
+html[data-theme="dark"] .tt-admin-hub__link-card a {
+  border-color: var(--tt-border) !important;
+}
+
+html[data-theme="dark"] .tt-admin-hub__link-card a {
+  background: var(--tt-surface-2) !important;
+}
+
+html[data-theme="dark"] .tt-admin-hub__link-label {
+  color: var(--body-fg) !important;
+}
+
+html[data-theme="dark"] .tt-admin-hub__link-desc {
+  color: var(--body-quiet-color) !important;
+}
+
+html[data-theme="dark"] .tt-admin-hub__section h2 {
+  color: var(--body-fg) !important;
+}
+
+html[data-theme="dark"] .tt-admin-hub__section-instruction {
+  color: var(--body-quiet-color) !important;
+  background: var(--tt-surface-2) !important;
+}
+
+html[data-theme="dark"] .tt-admin-hub__link-card a:hover {
+  background: var(--tt-surface-3) !important;
+}
+
+html[data-theme="dark"] .tt-sidebar-help {
+  background: var(--tt-surface-2) !important;
+  border-color: var(--tt-border) !important;
+  box-shadow: var(--tt-shadow-sm);
+}
+
+html[data-theme="dark"] .tt-sidebar-nav__item:not(.is-active) > a:hover,
+html[data-theme="dark"] .tt-sidebar-nav__group:not(.is-active) > a:hover {
+  background: var(--tt-surface-3) !important;
+}
+
+html[data-theme="dark"] .tt-sidebar-nav__item.is-active > a {
+  background: linear-gradient(135deg, #475569, #1e293b) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  html[data-theme="auto"] .tt-admin-home__card,
+  html[data-theme="auto"] .tt-admin-hub__section,
+  html[data-theme="auto"] .tt-admin-panel {
+    border-color: var(--tt-border) !important;
+  }
+
+  html[data-theme="auto"] .tt-sidebar-help {
+    background: var(--tt-surface-2) !important;
+    border-color: var(--tt-border) !important;
+  }
+
+  html[data-theme="auto"] .tt-admin-hub__link-label,
+  html[data-theme="auto"] .tt-admin-hub__section h2 {
+    color: var(--body-fg) !important;
+  }
+
+  html[data-theme="auto"] .tt-admin-hub__link-desc,
+  html[data-theme="auto"] .tt-admin-hub__section-instruction {
+    color: var(--body-quiet-color) !important;
+  }
+}
+
+/* Login page */
+body.tt-admin-themed.login #container {
+  background: var(--body-bg);
+}
+
+body.tt-admin-themed.login #header {
+  background: var(--tt-header-grad) !important;
+}
+
+body.tt-admin-themed.login #content {
+  padding: 20px;
+}
+
+body.tt-admin-themed.login #content-main {
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow-md);
+  padding: 24px;
+}
+
+/* Generic page title (custom views without page strip yet) */
+body.tt-admin-themed #content > h1:not(:has(+ .tt-admin-page-strip)) {
+  margin: 0 0 18px;
+  padding: 14px 18px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--tt-text) !important;
+  background: var(--tt-surface);
+  border: 1px solid var(--tt-border);
+  border-radius: var(--tt-radius);
+  box-shadow: var(--tt-shadow-sm);
+}
+
+/* Pagination & actions */
+body.tt-admin-themed .paginator,
+body.tt-admin-themed .actions {
+  background: var(--tt-surface-2) !important;
+  border-color: var(--tt-border) !important;
+  color: var(--body-fg);
+}
+
+body.tt-admin-themed .paginator a:link,
+body.tt-admin-themed .paginator a:visited {
+  color: var(--link-fg) !important;
+}
+
+/* Inline admin */
+body.tt-admin-themed .inline-group {
+  border-color: var(--tt-border) !important;
+  border-radius: var(--tt-radius-sm);
+}
+
+body.tt-admin-themed .inline-related h3 {
+  background: var(--tt-surface-2) !important;
+  color: var(--tt-text) !important;
+  border-color: var(--tt-border) !important;
+}
+
+body.tt-admin-themed .inline-deletelink {
+  color: var(--delete-button-bg, #ba2121) !important;
+}
+
+/* Related widget & calendar */
+body.tt-admin-themed .related-widget-wrapper select {
+  background: var(--tt-input-bg) !important;
+}
+
+body.tt-admin-themed .calendarbox,
+body.tt-admin-themed .clockbox {
+  background: var(--tt-surface) !important;
+  border-color: var(--tt-border) !important;
+  box-shadow: var(--tt-shadow-md);
+}
+
+body.tt-admin-themed .calendar caption,
+body.tt-admin-themed .calendar th {
+  background: var(--tt-surface-2) !important;
+  color: var(--tt-text) !important;
+}
+
+body.tt-admin-themed .calendar td a {
+  color: var(--link-fg) !important;
+}
+
+/* App index */
+body.tt-admin-themed.app-index #content-main .module {
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+body.tt-admin-themed.app-index #content-main .module:hover {
+  box-shadow: var(--tt-shadow-md);
+}
+
+/* Muted inline text in custom templates */
+body.tt-admin-themed #content [style*="color: #666"],
+body.tt-admin-themed #content [style*="color:#666"],
+body.tt-admin-themed #content p[style*="color: #666"] {
+  color: var(--tt-text-muted) !important;
+}
+
+/* Dark mode: soften hardcoded white panels in legacy templates */
+html[data-theme="dark"] body.tt-admin-themed [style*="background:#fff"],
+html[data-theme="dark"] body.tt-admin-themed [style*="background: #fff"],
+html[data-theme="dark"] body.tt-admin-themed [style*="background:white"],
+html[data-theme="dark"] body.tt-admin-themed [style*="background: white"],
+html[data-theme="dark"] body.tt-admin-themed [style*="background:#ffffff"],
+html[data-theme="dark"] body.tt-admin-themed [style*="background: #ffffff"] {
+  background: var(--tt-surface) !important;
+  border-color: var(--tt-border) !important;
+  color: var(--body-fg) !important;
+}
+
+html[data-theme="dark"] body.tt-admin-themed [style*="background:#fffafa"],
+html[data-theme="dark"] body.tt-admin-themed [style*="background: #fffafa"] {
+  background: var(--tt-surface-2) !important;
+}
+
+html[data-theme="dark"] body.tt-admin-themed [style*="background:#fff3cd"],
+html[data-theme="dark"] body.tt-admin-themed [style*="background: #fff3cd"],
+html[data-theme="dark"] body.tt-admin-themed [style*="background:#fff8e6"],
+html[data-theme="dark"] body.tt-admin-themed [style*="background: #fff8e6"],
+html[data-theme="dark"] body.tt-admin-themed [style*="background:#fffaf0"],
+html[data-theme="dark"] body.tt-admin-themed [style*="background: #fffaf0"] {
+  background: rgba(234, 179, 8, 0.12) !important;
+  color: var(--body-fg) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  html[data-theme="auto"] body.tt-admin-themed [style*="background:#fff"],
+  html[data-theme="auto"] body.tt-admin-themed [style*="background: #fff"],
+  html[data-theme="auto"] body.tt-admin-themed [style*="background:white"],
+  html[data-theme="auto"] body.tt-admin-themed [style*="background: white"] {
+    background: var(--tt-surface) !important;
+    border-color: var(--tt-border) !important;
+    color: var(--body-fg) !important;
+  }
+}

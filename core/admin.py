@@ -1038,7 +1038,17 @@ class ReviewAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Review, ReviewAdmin)
-admin.site.register(CommonFAQ)
+
+
+@admin.register(CommonFAQ)
+class CommonFAQAdmin(admin.ModelAdmin):
+    list_display = ('id', 'question', 'user_type', 'priority', 'is_featured', 'object_status', 'modified')
+    list_display_links = ('id', 'question')
+    list_filter = ('user_type', 'is_featured', 'object_status')
+    search_fields = ('question', 'answer')
+    ordering = ('priority', '-modified')
+
+
 admin.site.register(APILog)
 admin.site.register(Stories)
 admin.site.register(Contact,ContactAdmin)

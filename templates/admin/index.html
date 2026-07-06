@@ -1,63 +1,91 @@
 {% extends "admin/base_site.html" %}
-{% load i18n static %}
+{% load i18n static log %}
 
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static "admin/css/dashboard.css" %}">{% endblock %}
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'admin/css/admin_hub.css' %}">
+{% endblock %}
 
-{% block coltype %}colMS{% endblock %}
+{% block coltype %}colM{% endblock %}
 
-{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+{% block bodyclass %}{{ block.super }} dashboard tt-admin-home-page{% endblock %}
 
-{% block nav-breadcrumbs %}{% endblock %}
-
-{% block nav-sidebar %}{% endblock %}
+{% block content_title %}{% endblock %}
 
 {% block content %}
 <div id="content-main">
-  {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+  <header class="tt-admin-hero tt-admin-hero--home">
+    <div class="tt-admin-hero__glow" aria-hidden="true"></div>
+    <div class="tt-admin-hero__content">
+      <span class="tt-admin-hero__badge">{% translate 'Control center' %}</span>
+      <h1>{% translate 'TopTeen administration' %}</h1>
+      <p class="tt-admin-hero__intro">
+        {% translate 'Choose a hub below. Each card opens grouped CRUD tools — no more hunting through hundreds of models.' %}
+      </p>
+    </div>
+  </header>
+
+  <div class="tt-admin-home">
+    <div class="tt-admin-home__cards">
+      <a href="{% url 'admin:hub_configuration' %}" class="tt-admin-home__card tt-admin-home__card--config">
+        <span class="tt-admin-home__card-icon" aria-hidden="true">⚙</span>
+        <h2>{% translate 'Website & configuration' %}</h2>
+        <p>
+          {% translate 'Site features, language bar, SEO, gamification, assessments, email templates, and integrations.' %}
+        </p>
+        <span class="tt-admin-home__card-cta">
+          {% blocktranslate with count=hub_configuration_count %}{{ count }} shortcuts{% endblocktranslate %}
+          <span class="tt-admin-home__card-arrow" aria-hidden="true">→</span>
+        </span>
+      </a>
+
+      <a href="{% url 'admin:hub_operations' %}" class="tt-admin-home__card tt-admin-home__card--ops">
+        <span class="tt-admin-home__card-icon" aria-hidden="true">◆</span>
+        <h2>{% translate 'Operations & content' %}</h2>
+        <p>
+          {% translate 'Users, careers, courses, institutes, payments, leads, analytics, and the TopTeen CMS.' %}
+        </p>
+        <span class="tt-admin-home__card-cta">
+          {% blocktranslate with count=hub_operations_count %}{{ count }} shortcuts{% endblocktranslate %}
+          <span class="tt-admin-home__card-arrow" aria-hidden="true">→</span>
+        </span>
+      </a>
+    </div>
+  </div>
+
+  <details class="tt-admin-home__all-apps tt-admin-panel" id="all-apps">
+    <summary>{% translate 'Browse all Django models (advanced)' %}</summary>
+    {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+  </details>
+
+  <div class="tt-admin-home__recent tt-admin-panel module" id="recent-actions-module">
+    <h2><span class="tt-admin-panel__icon" aria-hidden="true">⏱</span> {% translate 'Recent actions' %}</h2>
+    <h3>{% translate 'My actions' %}</h3>
+    {% get_admin_log 10 as admin_log for_user user %}
+    {% if not admin_log %}
+      <p>{% translate 'None available' %}</p>
+    {% else %}
+      <ul class="actionlist">
+        {% for entry in admin_log %}
+        <li class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %}changelink{% endif %}{% if entry.is_deletion %}deletelink{% endif %}">
+          {% if entry.is_deletion or not entry.get_admin_url %}
+            {{ entry.object_repr }}
+          {% else %}
+            <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
+          {% endif %}
+          <br>
+          {% if entry.content_type %}
+            <span class="mini quiet">{% filter capfirst %}{{ entry.content_type.name }}{% endfilter %}</span>
+          {% else %}
+            <span class="mini quiet">{% translate 'Unknown content' %}</span>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}
 
-{% block sidebar %}
-<div id="content-related">
-    <div class="module" id="quick-nav-module">
-        <h2>{% translate 'Quick links' %}</h2>
-        <ul>
-            <li><a href="{% url 'core:home' %}" target="_blank" rel="noopener noreferrer">Website</a></li>
-            {% if user.is_superuser %}
-            <li><a href="{% url 'user_analytics:admin_dashboard' %}">Dashboard</a></li>
-            {% elif user.is_staff %}
-            <li><a href="{% url 'user_analytics:business_dashboard' %}">Dashboard</a></li>
-            {% endif %}
-            <li><a href="{% url 'topteenadmin:topteendashboard' %}">TopTeen Admin</a></li>
-            <li><a href="{% url 'topteenadminmanaged:bloglist' %}">Blog (CMS)</a></li>
-        </ul>
-    </div>
-    <div class="module" id="recent-actions-module">
-        <h2>{% translate 'Recent actions' %}</h2>
-        <h3>{% translate 'My actions' %}</h3>
-            {% load log %}
-            {% get_admin_log 10 as admin_log for_user user %}
-            {% if not admin_log %}
-            <p>{% translate 'None available' %}</p>
-            {% else %}
-            <ul class="actionlist">
-            {% for entry in admin_log %}
-            <li class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %}changelink{% endif %}{% if entry.is_deletion %}deletelink{% endif %}">
-                {% if entry.is_deletion or not entry.get_admin_url %}
-                    {{ entry.object_repr }}
-                {% else %}
-                    <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
-                {% endif %}
-                <br>
-                {% if entry.content_type %}
-                    <span class="mini quiet">{% filter capfirst %}{{ entry.content_type.name }}{% endfilter %}</span>
-                {% else %}
-                    <span class="mini quiet">{% translate 'Unknown content' %}</span>
-                {% endif %}
-            </li>
-            {% endfor %}
-            </ul>
-            {% endif %}
-    </div>
-</div>
-{% endblock %}
+{% block sidebar %}{% endblock %}

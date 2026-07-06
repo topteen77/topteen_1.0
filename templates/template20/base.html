@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en" data-pwa-version="{{ pwa_cache_version | default('1') }}">
 
 <head>
   <meta charset="utf-8">
@@ -21,6 +21,12 @@
   <link rel="icon" type="image/png" sizes="16x16" href="{{ static('images_new/fav-icon/favicon-16x16.png') }}">
   <link rel="mask-icon" href="{{ static('images_new/fav-icon/safari-pinned-tab.svg') }}" color="#5bbad5">
   <meta name="msapplication-TileColor" content="#da532c">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1a237e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="TopTeen">
   
   {% block title %}
   {% if html_head and html_head.title %}
@@ -176,6 +182,41 @@
 
   {% include 'template20/includes/language_selector_widget.html' %}
 
+  <div id="pwa-update-banner" class="pwa-update-banner" hidden>
+    <span>A new version of TopTeen is available.</span>
+    <button type="button" data-pwa-refresh>Refresh</button>
+  </div>
+  <style>
+    .pwa-update-banner {
+      position: fixed;
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+      z-index: 13000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: #1a237e;
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(26, 35, 126, 0.35);
+      font-size: 0.95rem;
+    }
+    .pwa-update-banner[hidden] { display: none !important; }
+    .pwa-update-banner button {
+      border: 0;
+      border-radius: 999px;
+      padding: 8px 14px;
+      background: #fff;
+      color: #1a237e;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+  </style>
+
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/emoji-mart@latest/dist/browser.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
@@ -187,6 +228,7 @@
   <script src="{{ static('js_new/bootstrap.bundle.min.js') }}"></script>
   <script src="{{ static('js_new/main.js') }}?v=20260706-4"></script>
   <script src="{{ static('js_new/search.js') }}"></script>
+  <script src="{{ static('js_new/pwa-register.js') }}?v=1"></script>
 
   {# When both widgets load, page-chat must mount first so cb-root is later in DOM (same z-index stacking). #}
   {% if show_page_chat_widget and show_ai_counsellor_bot %}

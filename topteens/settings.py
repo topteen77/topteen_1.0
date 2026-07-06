@@ -425,6 +425,10 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = os.path.join(COMMON_BASE_PATH, 'staticfiles')
 
+# Progressive Web App (manifest + service worker)
+PWA_ENABLED = config('PWA_ENABLED', default=True, cast=bool)
+PWA_CACHE_VERSION = config('PWA_CACHE_VERSION', default='1')
+
 # Media files configuration
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(COMMON_BASE_PATH, 'media')

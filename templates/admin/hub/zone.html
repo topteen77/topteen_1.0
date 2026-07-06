@@ -1,0 +1,106 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/admin_hub.css' %}">
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="{% static 'admin/js/admin_hub.js' %}" defer></script>
+{% endblock %}
+
+{% block bodyclass %}{{ block.super }} tt-admin-hub-page tt-admin-hub-page--{{ hub_zone }}{% endblock %}
+
+{% block coltype %}colM{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+  &rsaquo; {% if hub_zone == 'configuration' %}{% trans 'Configuration' %}{% else %}{% trans 'Operations' %}{% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+{% include "admin/hub/includes/zone_nav.html" %}
+
+<div class="tt-admin-hub tt-admin-hub--zone">
+  <header class="tt-admin-hero tt-admin-hero--{% if hub_zone == 'configuration' %}config{% else %}ops{% endif %}">
+    <div class="tt-admin-hero__glow" aria-hidden="true"></div>
+    <div class="tt-admin-hero__content">
+      <span class="tt-admin-hero__badge">
+        {% if hub_zone == 'configuration' %}{% trans 'Configuration hub' %}{% else %}{% trans 'Operations hub' %}{% endif %}
+      </span>
+      <h1>{{ title }}</h1>
+      <p class="tt-admin-hero__intro">{{ hub_intro }}</p>
+      <p class="tt-admin-hero__meta">
+        <span class="tt-admin-hero__stat">{{ hub_link_count }}</span>
+        {% trans 'shortcuts available for your account' %}
+      </p>
+    </div>
+  </header>
+
+  <div class="tt-admin-hub__howto tt-admin-panel">
+    <p class="tt-admin-hub__howto-title">
+      <span class="tt-admin-panel__icon" aria-hidden="true">💡</span>
+      <strong>{% trans 'How this page works' %}</strong>
+    </p>
+    <ul>
+      <li>{% trans 'Each section groups related tools — open a card, then add/change/delete on that screen.' %}</li>
+      <li>{% trans 'Use search to filter cards. Tips under each section explain the best workflow.' %}</li>
+      <li>{% trans 'Sidebar section links jump here; header links open Website, Analytics, and external CMS.' %}</li>
+    </ul>
+  </div>
+
+  <div class="tt-admin-hub__toolbar">
+    <div class="tt-admin-hub__search-wrap">
+      <span class="tt-admin-hub__search-icon" aria-hidden="true">⌕</span>
+      <input type="search"
+             id="tt-admin-hub-search"
+             class="tt-admin-hub__search"
+             placeholder="{% trans 'Filter shortcuts…' %}"
+             aria-label="{% trans 'Filter shortcuts' %}"
+             autocomplete="off">
+    </div>
+    <a href="{% url 'admin:index' %}#all-apps" class="button tt-admin-hub__browse-all">{% trans 'All models' %}</a>
+  </div>
+
+  <div class="tt-admin-hub__sections" id="tt-admin-hub-sections">
+    {% for section in hub_sections %}
+    <section class="tt-admin-hub__section tt-admin-hub__section--{{ section.section_id }}" id="{{ section.section_id }}" data-hub-section>
+      <div class="tt-admin-hub__section-head">
+        <h2><span class="tt-admin-hub__section-icon" aria-hidden="true"></span>{{ section.title }}</h2>
+        <span class="tt-admin-hub__section-count">{{ section.links|length }}</span>
+      </div>
+      <p class="tt-admin-hub__section-desc">{{ section.description }}</p>
+      {% if section.instruction %}
+      <p class="tt-admin-hub__section-instruction">
+        <span class="tt-admin-hub__tip-label">{% trans 'Tip' %}</span>
+        {{ section.instruction }}
+      </p>
+      {% endif %}
+      <ul class="tt-admin-hub__links">
+        {% for link in section.links %}
+        <li class="tt-admin-hub__link-card" data-hub-item data-search="{{ link.search_text }}">
+          <a href="{{ link.url }}">
+            <span class="tt-admin-hub__link-label">{{ link.label }}</span>
+            {% if link.description %}
+            <span class="tt-admin-hub__link-desc">{{ link.description }}</span>
+            {% endif %}
+            <span class="tt-admin-hub__link-arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% empty %}
+    <p class="tt-admin-hub__empty">{% trans 'No items available for your permissions in this hub.' %}</p>
+    {% endfor %}
+  </div>
+
+  <p class="tt-admin-hub__no-results" id="tt-admin-hub-no-results" hidden>
+    {% trans 'No shortcuts match your search.' %}
+  </p>
+</div>
+{% endblock %}

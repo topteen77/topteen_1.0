@@ -1,0 +1,24 @@
+{% load i18n %}
+<nav class="tt-admin-hub-nav" aria-label="{% trans 'Admin hub navigation' %}">
+  <a href="{% url 'admin:index' %}" class="tt-admin-hub-nav__item">
+    <span class="tt-admin-hub-nav__icon" aria-hidden="true">⌂</span>
+    {% trans 'Admin home' %}
+  </a>
+  <a href="{% url 'admin:hub_configuration' %}"
+     class="tt-admin-hub-nav__item tt-admin-hub-nav__item--config{% if hub_zone == 'configuration' %} is-active{% endif %}">
+    <span class="tt-admin-hub-nav__icon" aria-hidden="true">⚙</span>
+    {% trans 'Configuration' %}
+    <span class="tt-admin-hub-nav__count">{{ hub_configuration_count }}</span>
+  </a>
+  <a href="{% url 'admin:hub_operations' %}"
+     class="tt-admin-hub-nav__item tt-admin-hub-nav__item--ops{% if hub_zone == 'operations' %} is-active{% endif %}">
+    <span class="tt-admin-hub-nav__icon" aria-hidden="true">◆</span>
+    {% trans 'Operations' %}
+    <span class="tt-admin-hub-nav__count">{{ hub_operations_count }}</span>
+  </a>
+  {% if hub_sibling %}
+  <a href="{{ hub_sibling.url }}" class="tt-admin-hub-nav__sibling">
+    {% blocktrans with label=hub_sibling.label count=hub_sibling.count %}Go to {{ label }} ({{ count }}) →{% endblocktrans %}
+  </a>
+  {% endif %}
+</nav>

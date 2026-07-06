@@ -549,6 +549,7 @@ def globals(request):
         "footer_career_clusters": _footer_career_clusters(),
         # SEO: absolute site base URL for canonical/og:image when request is not available
         "site_base_url": getattr(settings, "ENQUIRY_SOURCE_BASE_URL", "https://www.topteen.in").rstrip("/"),
+        "pwa_cache_version": str(getattr(settings, "PWA_CACHE_VERSION", "1")),
         # SEO: JSON-LD schema for Organization and WebSite (included on every page)
         "seo_organization": _seo_organization_schema(),
         "seo_website": _seo_website_schema(),
