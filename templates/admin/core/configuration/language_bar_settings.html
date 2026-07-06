@@ -1,0 +1,246 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+  #language-bar-settings-form .tt-lang-admin-intro {
+    margin-bottom: 16px;
+    color: #d8d8d8 !important;
+  }
+
+  .tt-lang-admin-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .tt-lang-admin-search {
+    flex: 1 1 240px;
+    max-width: 360px;
+    padding: 8px 12px;
+    border: 1px solid #8a8a8a;
+    border-radius: 4px;
+    font-size: 14px;
+    background: #fff !important;
+    color: #1a1a1a !important;
+  }
+
+  .tt-lang-admin-search::placeholder {
+    color: #666 !important;
+    opacity: 1;
+  }
+
+  .tt-lang-admin-meta {
+    color: #e0e0e0 !important;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .tt-lang-admin-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .tt-lang-admin-actions button {
+    padding: 6px 12px;
+    border: 1px solid #8a8a8a;
+    border-radius: 4px;
+    background: #fff !important;
+    color: #1a1a1a !important;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .tt-lang-admin-actions button:hover {
+    background: #f3f2ff !important;
+    border-color: #5249df;
+    color: #2d2a6e !important;
+  }
+
+  #language-bar-settings-form fieldset.module {
+    background: transparent;
+  }
+
+  .tt-lang-admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 8px;
+    max-height: 62vh;
+    overflow: auto;
+    padding: 12px;
+    border: 1px solid #bbb;
+    border-radius: 6px;
+    background: #fff !important;
+  }
+
+  .tt-lang-admin-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 4px;
+    background: #fff !important;
+    border: 1px solid #d0d0d0;
+    font-size: 13px;
+    color: #1a1a1a !important;
+  }
+
+  .tt-lang-admin-item.is-required {
+    background: #f3f2ff !important;
+    border-color: #b8b2ff;
+  }
+
+  .tt-lang-admin-item.is-hidden {
+    display: none;
+  }
+
+  .tt-lang-admin-item label {
+    margin: 0;
+    cursor: pointer;
+    font-weight: 600;
+    flex: 1;
+    color: #1a1a1a !important;
+  }
+
+  .tt-lang-admin-item.is-required label {
+    color: #2d2a6e !important;
+  }
+
+  .tt-lang-admin-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    accent-color: #5249df;
+  }
+
+  .tt-lang-admin-item input[type="checkbox"]:disabled {
+    opacity: 1;
+  }
+
+  .tt-lang-admin-name {
+    color: #1a1a1a !important;
+  }
+
+  .tt-lang-admin-code {
+    display: inline-block;
+    margin-left: 6px;
+    color: #555 !important;
+    font-size: 11px;
+    font-weight: 500;
+  }
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:core_configuration_changelist' %}">Configuration</a>
+&rsaquo; Language bar settings
+</div>
+{% endblock %}
+
+{% block content %}
+<p class="tt-lang-admin-intro">
+  Choose which languages appear in the site header language bar. English is always included first.
+  Changes take effect immediately on the website.
+</p>
+
+<form method="post" id="language-bar-settings-form">
+  {% csrf_token %}
+
+  <div class="tt-lang-admin-toolbar">
+    <input type="search" id="tt-lang-admin-search" class="tt-lang-admin-search" placeholder="Search languages..." autocomplete="off" aria-label="Search languages">
+    <span class="tt-lang-admin-meta"><span id="tt-lang-admin-count">{{ enabled_count }}</span> selected</span>
+    <div class="tt-lang-admin-actions">
+      <button type="button" id="tt-lang-admin-select-visible">Select visible</button>
+      <button type="button" id="tt-lang-admin-clear-visible">Clear visible</button>
+    </div>
+  </div>
+
+  <fieldset class="module aligned">
+    <div class="tt-lang-admin-grid" id="tt-lang-admin-grid">
+      {% for lang in languages %}
+      <div class="tt-lang-admin-item{% if lang.required %} is-required{% endif %}" data-search="{{ lang.name|lower }} {{ lang.code|lower }}">
+        <input
+          type="checkbox"
+          name="enabled_codes"
+          value="{{ lang.code }}"
+          id="lang-{{ lang.code }}"
+          {% if lang.enabled %}checked{% endif %}
+          {% if lang.required %}disabled checked{% endif %}
+        >
+        <label for="lang-{{ lang.code }}">
+          <span class="tt-lang-admin-name">{{ lang.name }}</span>
+          <span class="tt-lang-admin-code">{{ lang.code }}</span>
+        </label>
+      </div>
+      {% endfor %}
+    </div>
+    <input type="hidden" name="enabled_codes" value="en">
+  </fieldset>
+
+  <div class="submit-row" style="margin-top: 20px;">
+    <input type="submit" value="Save languages" class="default">
+    <a href="{% url 'admin:core_configuration_changelist' %}" class="button cancel-link">Cancel</a>
+  </div>
+</form>
+
+<script>
+(function () {
+  var searchInput = document.getElementById('tt-lang-admin-search');
+  var grid = document.getElementById('tt-lang-admin-grid');
+  var countEl = document.getElementById('tt-lang-admin-count');
+  if (!searchInput || !grid) return;
+
+  function getItems() {
+    return Array.prototype.slice.call(grid.querySelectorAll('.tt-lang-admin-item'));
+  }
+
+  function getCheckboxes(item) {
+    return item.querySelector('input[type="checkbox"]');
+  }
+
+  function updateCount() {
+    var selected = grid.querySelectorAll('input[type="checkbox"]:checked').length;
+    countEl.textContent = selected;
+  }
+
+  function filterItems() {
+    var query = (searchInput.value || '').trim().toLowerCase();
+    getItems().forEach(function (item) {
+      var haystack = item.getAttribute('data-search') || '';
+      item.classList.toggle('is-hidden', query && haystack.indexOf(query) === -1);
+    });
+  }
+
+  function setVisibleChecked(checked) {
+    getItems().forEach(function (item) {
+      if (item.classList.contains('is-hidden')) return;
+      var checkbox = getCheckboxes(item);
+      if (!checkbox || checkbox.disabled) return;
+      checkbox.checked = checked;
+    });
+    updateCount();
+  }
+
+  searchInput.addEventListener('input', filterItems);
+  grid.addEventListener('change', updateCount);
+
+  document.getElementById('tt-lang-admin-select-visible').addEventListener('click', function () {
+    setVisibleChecked(true);
+  });
+  document.getElementById('tt-lang-admin-clear-visible').addEventListener('click', function () {
+    setVisibleChecked(false);
+  });
+
+  updateCount();
+})();
+</script>
+{% endblock %}

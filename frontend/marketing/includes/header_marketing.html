@@ -21,6 +21,9 @@
         </li>
         
         {% if user.is_authenticated %}
+        <li class="menu-item">
+          {% include "template20/includes/language_selector_trigger.html" %}
+        </li>
         <li class="menu-item dropdown">
           <span class="dropdown-toggle menu-link float-end">
             <img src="{{ static('images_new/icons/user-icon.svg') }}" alt="user" />
@@ -39,6 +42,9 @@
           </div>
         </li>
         {% else %}
+        <li class="menu-item">
+          {% include "template20/includes/language_selector_trigger.html" %}
+        </li>
         <li class="menu-item dropdown">
           <span class="dropdown-toggle menu-link float-end">
             <img src="{{ static('images_new/icons/user-icon.svg') }}" alt="user" />

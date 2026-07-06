@@ -994,79 +994,218 @@ if (document.readyState === 'loading') {
 }
 
 
-// Initialize Google Translate
+// Initialize Google Translate — centralized show/hide language widget
+var ttLanguageWidgetReady = false;
+window.TT_INCLUDED_LANGUAGES = window.TT_INCLUDED_LANGUAGES || 'ar,as,awa,bn,bho,zh-CN,cs,dog,nl,en,fr,fr-CA,de,el,gu,hi,it,ja,kn,ks,kok,ko,mai,ms,ml,mr,mwr,mni,np,or,pa,pt,pt-BR,ru,sat,sd,es,sw,ta,te,tr,ur,vi,si,ne,tl,th,kk,uz';
+
+function getIncludedLanguages() {
+  return window.TT_INCLUDED_LANGUAGES || 'en';
+}
+
 function googleTranslateElementInit() {
   new google.translate.TranslateElement({
     pageLanguage: 'en',
-    includedLanguages: 'ar,as,awa,bn,bho,zh-CN,cs,dog,nl,en,fr,fr-CA,de,el,gu,hi,it,ja,kn,ks,kok,ko,mai,ms,ml,mr,mwr,mni,np,or,pa,pt,pt-BR,ru,sat,sd,es,sw,ta,te,tr,ur,vi,si,ne,tl,th,kk,uz',
-    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+    includedLanguages: getIncludedLanguages(),
+    layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL,
     autoDisplay: false
   }, 'google_translate_element');
+  initCustomLanguageSelector();
 }
 
-// Custom language selection handler
-document.addEventListener('DOMContentLoaded', function () {
-  const languageLinks = document.querySelectorAll('.dropdown-content a');
-  const dropbtn = document.querySelector('.dropbtn');
-  
-  // Only initialize if dropbtn exists (not all pages have language selector)
-  if (!dropbtn) {
+function initCustomLanguageSelector() {
+  var widget = document.getElementById('tt-language-widget');
+  if (!widget || widget.dataset.ttLangReady === '1') {
     return;
   }
-  
-  let currentLanguage = 'en'; // Default language
 
-  // Store original texts
-  const elementsToTranslate = document.querySelectorAll('[data-translate]');
-  const originalTexts = new Map();
-  elementsToTranslate.forEach(el => {
-    originalTexts.set(el, el.textContent);
-  });
+  var grid = document.getElementById('tt-lang-grid');
+  var searchInput = document.getElementById('tt-lang-search');
+  var resetBtn = widget.querySelector('[data-tt-lang-reset]');
+  var currentLanguage = 'en';
+  var isOpen = false;
 
-  languageLinks.forEach(link => {
-    link.addEventListener('click', function (e) {
-      e.preventDefault();
-      const lang = this.getAttribute('data-lang');
-      const langName = this.textContent;
-
-      // Update dropdown button text
-      if (dropbtn) {
-        dropbtn.textContent = langName;
-      }
-      currentLanguage = lang;
-
-      // Reset to original text before new translation
-      elementsToTranslate.forEach(el => {
-        el.textContent = originalTexts.get(el);
-      });
-
-      // Wait for Google Translate to be ready
-      setTimeout(() => {
-        const translateSelect = document.querySelector('.goog-te-combo');
-        if (translateSelect) {
-          translateSelect.value = lang;
-          translateSelect.dispatchEvent(new Event('change'));
-        }
-      }, 100); // Small delay to ensure reset completes
-    });
-  });
-  // Monitor Google Translate changes
-  const observer = new MutationObserver((mutations) => {
-    // Ensure the dropdown shows the current language
-    const selectedLang = document.querySelector(`.dropdown-content a[data-lang="${currentLanguage}"]`);
-    if (selectedLang && dropbtn) {
-      dropbtn.textContent = selectedLang.textContent;
+  function getTranslateCombo() {
+    var container = document.getElementById('google_translate_element');
+    if (container) {
+      return container.querySelector('.goog-te-combo');
     }
-  });
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true,
-    characterData: true
-  });
-  // Set initial language display
-  if (dropbtn) {
-    dropbtn.textContent = 'English';
+    return document.querySelector('.goog-te-combo');
   }
+
+  function getTriggers() {
+    return document.querySelectorAll('[data-tt-lang-trigger]');
+  }
+
+  function setWidgetOpen(open) {
+    isOpen = !!open;
+    widget.hidden = !isOpen;
+    widget.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+    widget.classList.toggle('is-open', isOpen);
+    document.body.classList.toggle('tt-lang-menu-open', isOpen);
+    getTriggers().forEach(function (trigger) {
+      trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+    if (isOpen && searchInput) {
+      searchInput.value = '';
+      filterLanguages('');
+      window.setTimeout(function () {
+        searchInput.focus();
+      }, 50);
+    }
+  }
+
+  function updateTriggerLabels(langCode, langName) {
+    document.querySelectorAll('[data-tt-lang-trigger] .tt-lang-toggle-label').forEach(function (labelEl) {
+      labelEl.textContent = langCode === 'en' ? 'Language' : langName;
+    });
+  }
+
+  function selectLanguage(langCode, langName) {
+    var combo = getTranslateCombo();
+    if (!combo || !grid) {
+      return;
+    }
+    currentLanguage = langCode;
+    combo.value = langCode;
+    combo.dispatchEvent(new Event('change'));
+    updateTriggerLabels(langCode, langName);
+    grid.querySelectorAll('.tt-lang-option').forEach(function (btn) {
+      btn.classList.toggle('is-active', btn.getAttribute('data-lang') === langCode);
+    });
+    setWidgetOpen(false);
+  }
+
+  function filterLanguages(query) {
+    if (!grid) {
+      return;
+    }
+    var normalized = query.trim().toLowerCase();
+    grid.querySelectorAll('.tt-lang-option').forEach(function (btn) {
+      var label = (btn.textContent || '').toLowerCase();
+      btn.hidden = normalized && label.indexOf(normalized) === -1;
+    });
+  }
+
+  function resetLanguage() {
+    var hostname = window.location.hostname;
+    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.' + hostname;
+    selectLanguage('en', 'English');
+  }
+
+  function sortLanguageOptions(options) {
+    return options.slice().sort(function (a, b) {
+      if (a.value === 'en') {
+        return -1;
+      }
+      if (b.value === 'en') {
+        return 1;
+      }
+      return a.textContent.trim().localeCompare(b.textContent.trim());
+    });
+  }
+
+  function buildLanguageOptions(combo) {
+    if (!grid) {
+      return;
+    }
+    grid.innerHTML = '';
+    var options = sortLanguageOptions(
+      Array.from(combo.options).filter(function (option) {
+        return option.value;
+      })
+    );
+    options.forEach(function (option) {
+      var langName = option.value === 'en' ? 'English' : option.textContent.trim();
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'tt-lang-option';
+      btn.setAttribute('data-lang', option.value);
+      btn.setAttribute('role', 'option');
+      btn.textContent = langName;
+      if (option.value === currentLanguage) {
+        btn.classList.add('is-active');
+      }
+      btn.addEventListener('click', function () {
+        selectLanguage(option.value, langName);
+      });
+      grid.appendChild(btn);
+    });
+    updateTriggerLabels(currentLanguage, 'English');
+  }
+
+  function bindControls() {
+    if (ttLanguageWidgetReady) {
+      return;
+    }
+    ttLanguageWidgetReady = true;
+    widget.dataset.ttLangReady = '1';
+
+    document.addEventListener('click', function (e) {
+      if (e.target.closest('[data-tt-lang-trigger]')) {
+        e.preventDefault();
+        e.stopPropagation();
+        setWidgetOpen(!isOpen);
+        return;
+      }
+      if (e.target.closest('[data-tt-lang-close]')) {
+        e.preventDefault();
+        e.stopPropagation();
+        setWidgetOpen(false);
+      }
+    });
+
+    if (resetBtn) {
+      resetBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        resetLanguage();
+      });
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener('input', function () {
+        filterLanguages(searchInput.value);
+      });
+      searchInput.addEventListener('click', function (e) {
+        e.stopPropagation();
+      });
+    }
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && isOpen) {
+        setWidgetOpen(false);
+      }
+    });
+
+    window.ttLanguageSelector = {
+      open: function () { setWidgetOpen(true); },
+      close: function () { setWidgetOpen(false); },
+      toggle: function () { setWidgetOpen(!isOpen); }
+    };
+  }
+
+  function waitForCombo(attempts) {
+    if (ttLanguageWidgetReady) {
+      return;
+    }
+    var combo = getTranslateCombo();
+    if (combo && combo.options.length > 1) {
+      buildLanguageOptions(combo);
+      bindControls();
+      return;
+    }
+    if ((attempts || 0) < 50) {
+      setTimeout(function () {
+        waitForCombo((attempts || 0) + 1);
+      }, 100);
+    }
+  }
+
+  waitForCombo(0);
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  initCustomLanguageSelector();
 });
 
 

@@ -108,6 +108,9 @@ body.ttv2-shell .ttv2-topbar-pay-now {
       </a>
       {% endif %}
       </div>
+      {% with icon_only=true, shell=true %}
+      {% include "template20/includes/language_selector_trigger.html" %}
+      {% endwith %}
       <button type="button" id="ttv2ThemeToggle" class="ttv2-theme-toggle border rounded-circle p-2" aria-label="Toggle theme">
         <i class="bx bx-moon"></i>
       </button>

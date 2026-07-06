@@ -101,6 +101,22 @@ class Configuration(BaseModel):
         return str(c.value) if c.value is not None else str(default)
 
 
+class TranslateLanguage(models.Model):
+    """Languages available in the site header translate bar (admin-managed)."""
+    code = models.CharField(max_length=20, unique=True, db_index=True)
+    name = models.CharField(max_length=100)
+    enabled = models.BooleanField(default=False)
+    sort_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ('sort_order', 'name')
+        verbose_name = 'Translate language'
+        verbose_name_plural = 'Translate languages'
+
+    def __str__(self):
+        return f'{self.name} ({self.code})'
+
+
 class MasterClass(BaseModel):
     """
     Master table of school classes/grades. Admins can create rows (e.g. value=6..12)

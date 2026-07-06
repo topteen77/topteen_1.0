@@ -1,5 +1,6 @@
 from careers.models import Career, CareerTags, Videos, CareerCluster
 from core.models import Configuration
+from core.translate_languages import get_enabled_languages_csv
 from core.seo_schema import get_organization_schema, get_website_schema
 from blog.models import Blog, BlogCategory
 from django.db.models import Count
@@ -532,6 +533,7 @@ def globals(request):
         ),
         "mindmap_type_choices": MINDMAP_TYPE_CHOICES,
         "counselor_mindmap_map_type": get_counselor_mindmap_map_type(),
+        "translate_enabled_languages_csv": get_enabled_languages_csv(),
         "popular_categories":BlogCategory.objects.filter(id__in=popular_categories),
         "popular_tags":CareerTags.objects.filter(id__in=popular_tags),
         "blogs":Blog.get_published_objects().all(),

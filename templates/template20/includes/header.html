@@ -132,6 +132,11 @@
             <i class='bx bx-search fs-20'></i>
           </a>
         </div>
+        <div class="tt-header-mobile-action">
+          {% with icon_only=true %}
+          {% include "template20/includes/language_selector_trigger.html" %}
+          {% endwith %}
+        </div>
         {% if hdr_user.is_authenticated %}
         <div class="tt-header-mobile-action">
           {% include "notifications/includes/notification_bell.html" %}
@@ -229,8 +234,12 @@
           {% include "template20/includes/header_account_menu.html" %}
         </li>
         
-        <li class="translate-container">
-          <div id="google_translate_element"></div>
+        <li class="menu-item d-lg-none translate-container-menu">
+          {% include "template20/includes/language_selector_trigger.html" %}
+        </li>
+
+        <li class="menu-item d-none d-lg-flex">
+          {% include "template20/includes/language_selector_trigger.html" %}
         </li>
       </ul>
     </div>

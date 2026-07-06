@@ -387,6 +387,7 @@ class ConfigurationAdmin(admin.ModelAdmin):
             ),
             path('student-id-settings/', self.admin_site.admin_view(self.student_id_settings_view), name='core_configuration_student_id_settings'),
             path('website-settings/', self.admin_site.admin_view(self.website_settings_view), name='core_configuration_website_settings'),
+            path('language-bar-settings/', self.admin_site.admin_view(self.language_bar_settings_view), name='core_configuration_language_bar_settings'),
             path('dashboard-statistics/', self.admin_site.admin_view(self.dashboard_statistics_view), name='core_configuration_dashboard_statistics'),
         ]
         return custom + urls
@@ -652,6 +653,44 @@ class ConfigurationAdmin(admin.ModelAdmin):
             'opts': self.model._meta,
         }
         return render(request, 'admin/core/configuration/website_settings.html', context)
+
+    def language_bar_settings_view(self, request):
+        """Admin UI to enable/disable languages shown in the site header translate bar."""
+        from core.models import TranslateLanguage
+        from core.translate_languages import (
+            CATALOG_CODES,
+            ensure_language_catalog,
+            get_enabled_language_codes,
+            get_language_choices_for_admin,
+        )
+
+        ensure_language_catalog()
+
+        if request.method == 'POST':
+            enabled_codes = request.POST.getlist('enabled_codes')
+            if 'en' not in enabled_codes:
+                enabled_codes.insert(0, 'en')
+            enabled_codes = [code for code in enabled_codes if code in CATALOG_CODES]
+            if not enabled_codes:
+                enabled_codes = ['en']
+            TranslateLanguage.objects.update(enabled=False)
+            TranslateLanguage.objects.filter(code__in=enabled_codes).update(enabled=True)
+            TranslateLanguage.objects.filter(code='en').update(enabled=True)
+            messages.success(
+                request,
+                f'Language bar updated ({len(get_enabled_language_codes())} languages enabled).',
+            )
+            return redirect('admin:core_configuration_language_bar_settings')
+
+        languages = get_language_choices_for_admin()
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'Language bar settings',
+            'languages': languages,
+            'enabled_count': sum(1 for lang in languages if lang['enabled']),
+            'opts': self.model._meta,
+        }
+        return render(request, 'admin/core/configuration/language_bar_settings.html', context)
 
     def dashboard_statistics_view(self, request):
         """Landing page for Dashboard Statistics (gamification) section with links to Level Bands, Point Rules, Trophies, Streak Config."""

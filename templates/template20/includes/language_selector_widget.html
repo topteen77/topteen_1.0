@@ -1,0 +1,23 @@
+{# Centralized language picker — one instance per page; opened via [data-tt-lang-trigger] buttons. #}
+<div id="tt-language-widget" class="tt-lang-widget" hidden aria-hidden="true">
+  <div class="tt-lang-widget-backdrop" data-tt-lang-close tabindex="-1" aria-hidden="true"></div>
+  <div class="tt-lang-widget-panel" role="dialog" aria-modal="true" aria-labelledby="tt-lang-widget-title">
+    <div class="tt-lang-dropdown-head tt-lang-widget-head">
+      <span class="tt-lang-dropdown-title" id="tt-lang-widget-title">Choose language</span>
+      <button type="button" class="tt-lang-close" data-tt-lang-close aria-label="Close language menu">
+        <i class="bx bx-x" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="tt-lang-search-wrap">
+      <div class="tt-lang-search-field">
+        <i class="bx bx-search tt-lang-search-icon" aria-hidden="true"></i>
+        <input type="search" class="tt-lang-search" id="tt-lang-search" placeholder="Search" aria-label="Search language" autocomplete="off">
+      </div>
+      <button type="button" class="tt-lang-reset" id="tt-lang-reset" data-tt-lang-reset aria-label="Reset to English" title="Reset to English">
+        <i class="bx bx-revision" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="tt-lang-grid" id="tt-lang-grid"></div>
+  </div>
+</div>
+<div id="google_translate_element" class="tt-google-translate-hidden" aria-hidden="true"></div>

@@ -24,6 +24,10 @@
           <a href="{{ url('institute:login') }}" class="menu-link">Login</a>
         </li>
         
+        <li class="menu-item">
+          {% include "template20/includes/language_selector_trigger.html" %}
+        </li>
+        
         {% if user.is_authenticated %}
         <li class="menu-item dropdown">
           <span class="dropdown-toggle menu-link float-end">
