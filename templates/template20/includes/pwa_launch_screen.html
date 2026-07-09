@@ -1,12 +1,19 @@
 <div id="pwa-launch-screen" class="pwa-launch-screen" hidden aria-live="polite" aria-label="TopTeen is loading">
-  <img
-    class="pwa-launch-screen__logo"
-    src="{{ static('images_new/fav-icon/pwa-icon-512x512.png') }}"
-    alt="TopTeen"
-    width="220"
-    height="220"
-  />
-  <p class="pwa-launch-screen__tagline">
-    Explore Careers. Discover Your Strengths. Shape Your Future.
-  </p>
+  <picture>
+    <source
+      media="(min-width: 420px) and (orientation: portrait)"
+      srcset="{{ static('images_new/fav-icon/pwa-splash-1284x2778.png') }}"
+    />
+    <source
+      media="(orientation: portrait)"
+      srcset="{{ static('images_new/fav-icon/pwa-splash-1170x2532.png') }}"
+    />
+    <img
+      class="pwa-launch-screen__art"
+      src="{{ static('images_new/fav-icon/pwa-splash-1080x1920.png') }}"
+      alt="TopTeen — Explore Careers. Discover Your Strengths. Shape Your Future."
+      width="1080"
+      height="1920"
+    />
+  </picture>
 </div>

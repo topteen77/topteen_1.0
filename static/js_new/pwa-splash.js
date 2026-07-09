@@ -1,4 +1,6 @@
 (function () {
+  var STORAGE_KEY = 'topteen_pwa_launch_shown';
+
   function isStandalonePwa() {
     return (
       window.matchMedia('(display-mode: standalone)').matches ||
@@ -7,7 +9,34 @@
     );
   }
 
-  if (!isStandalonePwa()) {
+  function isIOS() {
+    return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+  }
+
+  function shouldShowLaunchScreen() {
+    if (!isStandalonePwa()) {
+      return false;
+    }
+    /* iOS uses apple-touch-startup-image (logo + tagline) on cold start. */
+    if (isIOS()) {
+      return false;
+    }
+    try {
+      return window.sessionStorage.getItem(STORAGE_KEY) !== '1';
+    } catch (err) {
+      return true;
+    }
+  }
+
+  function markLaunchScreenShown() {
+    try {
+      window.sessionStorage.setItem(STORAGE_KEY, '1');
+    } catch (err) {
+      /* ignore */
+    }
+  }
+
+  if (!shouldShowLaunchScreen()) {
     return;
   }
 
@@ -16,8 +45,8 @@
     return;
   }
 
-  var minVisibleMs = 1600;
-  var maxVisibleMs = 4000;
+  var minVisibleMs = 1400;
+  var maxVisibleMs = 3500;
   var startedAt = Date.now();
   var hidden = false;
 
@@ -29,6 +58,7 @@
       return;
     }
     hidden = true;
+    markLaunchScreenShown();
     splash.classList.add('is-hiding');
     window.setTimeout(function () {
       splash.hidden = true;

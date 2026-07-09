@@ -22,16 +22,10 @@
   <meta name="msapplication-TileColor" content="#da532c">
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#ffffff">
-  <link rel="stylesheet" href="{{ static('css_new/pwa-splash.css') }}?v=1">
-  <script>
-    (function () {
-      if (window.matchMedia('(display-mode: standalone)').matches ||
-          window.matchMedia('(display-mode: fullscreen)').matches ||
-          window.navigator.standalone === true) {
-        document.documentElement.classList.add('pwa-launch-pending');
-      }
-    })();
-  </script>
+  <link rel="stylesheet" href="{{ static('css_new/pwa-splash.css') }}?v=2">
+  <link rel="apple-touch-startup-image" href="{{ static('images_new/fav-icon/pwa-splash-1170x2532.png') }}" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+  <link rel="apple-touch-startup-image" href="{{ static('images_new/fav-icon/pwa-splash-1284x2778.png') }}" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+  <link rel="apple-touch-startup-image" href="{{ static('images_new/fav-icon/pwa-splash-1080x1920.png') }}" media="(orientation: portrait)">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -232,7 +226,7 @@
   <script src="{{ static('js_new/bootstrap.bundle.min.js') }}" defer></script>
   <script src="{{ static('js_new/main.js') }}?v=20260706-5" defer></script>
   <script src="{{ static('js_new/search.js') }}" defer></script>
-  <script src="{{ static('js_new/pwa-splash.js') }}?v=1"></script>
+  <script src="{{ static('js_new/pwa-splash.js') }}?v=2"></script>
   <script src="{{ static('js_new/pwa-register.js') }}?v=1" defer></script>
 
   {# When both widgets load, page-chat must mount first so cb-root is later in DOM (same z-index stacking). #}

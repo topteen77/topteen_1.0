@@ -59,7 +59,8 @@ class PWAEndpointTests(TestCase):
         self.assertContains(response, '/manifest.json')
         self.assertContains(response, 'pwa-register.js')
         self.assertContains(response, 'pwa-splash.js')
-        self.assertContains(response, 'Explore Careers. Discover Your Strengths. Shape Your Future.')
+        self.assertContains(response, 'Explore Careers. Discover Your Strengths. Shape Your Future.', html=False)
+        self.assertContains(response, 'apple-touch-startup-image')
         self.assertContains(response, 'data-pwa-version="test-1"')
 
     @override_settings(PWA_ENABLED=False)
