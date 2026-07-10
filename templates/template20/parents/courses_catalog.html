@@ -54,144 +54,399 @@
   .parent-student-tab .grade-pill { font-size: 11px; color: #6b7280; margin-left: 4px; }
 
   .catalog-section-title { font-size: 18px; font-weight: 700; color: #25306f; margin-bottom: 4px; }
-  .catalog-section-sub { font-size: 13px; color: #6b7280; margin-bottom: 16px; }
+  .catalog-section-sub { font-size: 13px; color: #6b7280; }
   .catalog-section-empty {
     text-align: center; padding: 24px; border: 1px dashed #cfd7f4;
     border-radius: 14px; background: #fff; color: #6b7280; font-size: 14px;
   }
 
+  .catalog-col { display: flex; }
+
   .catalog-card {
     position: relative;
-    border: 1px solid #dbe4ff;
-    border-radius: 14px;
-    background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
-    padding: 16px;
-    height: 100%;
+    flex: 1;
+    width: 100%;
+    border: 1px solid #e4eaf8;
+    border-radius: 16px;
+    background: #fff;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: 0 8px 20px rgba(76, 94, 177, 0.08);
+    min-height: 100%;
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+    box-shadow: 0 6px 18px rgba(76, 94, 177, 0.07);
   }
-  .catalog-card:not(.is-owned):hover {
-    transform: translateY(-3px);
-    box-shadow: 0 14px 28px rgba(76, 94, 177, 0.14);
+  .catalog-card::before {
+    content: '';
+    display: block;
+    height: 4px;
+    background: linear-gradient(90deg, #d6ddf6 0%, #eef2ff 100%);
   }
-  .catalog-card.is-owned { background: #f8fafc; border-color: #d1fae5; }
-  .catalog-owned-badge {
-    position: absolute; top: 12px; right: 12px;
-    width: 30px; height: 30px; border-radius: 50%;
-    background: #10b981; color: #fff;
-    display: none; align-items: center; justify-content: center;
-    font-size: 18px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35); z-index: 2;
+  .catalog-card.is-owned::before {
+    background: linear-gradient(90deg, #5249df 0%, #10b981 100%);
   }
-  .catalog-card.is-owned .catalog-owned-badge { display: flex; }
+  .catalog-card.is-complete::before {
+    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  }
+  .catalog-card:hover {
+    transform: translateY(-4px);
+    border-color: #c7cef6;
+    box-shadow: 0 14px 28px rgba(76, 94, 177, 0.12);
+  }
 
-  .catalog-card-top { display: flex; gap: 12px; align-items: flex-start; flex: 1; }
+  .catalog-card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 16px 16px 0;
+  }
+
+  .catalog-status-pill {
+    position: absolute;
+    top: 14px;
+    right: 12px;
+    z-index: 2;
+    display: none;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+  .catalog-status-pill i { font-size: 12px; }
+  .catalog-card.is-owned .catalog-status-pill.is-enrolled,
+  .catalog-card.is-complete .catalog-status-pill.is-complete,
+  .catalog-card.is-progress .catalog-status-pill.is-progress {
+    display: inline-flex;
+  }
+  .catalog-status-pill.is-enrolled {
+    color: #403fa6;
+    background: #f3f0ff;
+    border: 1px solid #d6cdf8;
+  }
+  .catalog-status-pill.is-progress {
+    color: #0369a1;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+  }
+  .catalog-status-pill.is-complete {
+    color: #047857;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+  }
+
+  .catalog-owned-badge { display: none !important; }
+
+  .catalog-card-top {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+    padding-right: 72px;
+  }
   .catalog-icon-wrap {
-    width: 52px; height: 52px; border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; overflow: hidden;
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    border: 1px solid rgba(110, 129, 228, 0.12);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6);
   }
-  .catalog-icon-wrap img { width: 32px; height: 32px; object-fit: contain; }
+  .catalog-icon-wrap img:not(.catalog-thumb) { width: 32px; height: 32px; object-fit: contain; }
+  .catalog-icon-wrap .catalog-thumb { width: 100%; height: 100%; object-fit: cover; }
   .catalog-icon-wrap i { font-size: 26px; color: #403fa6; }
-  .catalog-thumb { width: 100%; height: 100%; object-fit: cover; }
   .catalog-title {
-    font-size: 15px; font-weight: 700; color: #25306f;
-    line-height: 1.35; margin: 0 0 4px; padding-right: 28px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #1e2660;
+    line-height: 1.35;
+    margin: 0 0 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.7em;
   }
-  .catalog-subtitle { font-size: 12px; color: #6b7280; margin: 0 0 8px; line-height: 1.4; }
+  .catalog-subtitle {
+    font-size: 12px;
+    color: #7c83a8;
+    margin: 0 0 10px;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
   .catalog-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
   .catalog-class-badge, .catalog-price-badge {
-    display: inline-flex; align-items: center;
-    padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
   }
   .catalog-class-badge {
-    color: #403fa6; background: rgba(92, 84, 212, 0.1); border: 1px solid rgba(92, 84, 212, 0.2);
+    color: #403fa6;
+    background: #f3f0ff;
+    border: 1px solid #e4ddfc;
   }
   .catalog-price-badge {
-    color: #0f766e; background: rgba(20, 184, 166, 0.1); border: 1px solid rgba(20, 184, 166, 0.2);
+    color: #0f766e;
+    background: #ecfdf5;
+    border: 1px solid #bbf7d0;
   }
   .catalog-price-badge.is-free {
-    color: #7c3aed; background: rgba(124, 58, 237, 0.1); border: 1px solid rgba(124, 58, 237, 0.2);
+    color: #7c3aed;
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
   }
 
   .catalog-card-actions {
-    margin-top: 14px; padding-top: 12px; border-top: 1px solid #e8ecf8;
+    margin-top: auto;
+    padding: 12px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #f8faff 0%, #f3f6ff 100%);
+    border: 1px solid #e8ecf8;
+    min-height: 88px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
   .catalog-journey { display: flex; align-items: flex-start; width: 100%; }
   .catalog-journey-step {
-    flex: 1; display: flex; flex-direction: column; align-items: center;
-    position: relative; min-width: 0; background: none; border: 0; padding: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    min-width: 0;
+    background: none;
+    border: 0;
+    padding: 0;
   }
   button.catalog-journey-step { cursor: default; }
   button.catalog-journey-step.is-action { cursor: pointer; }
   .catalog-journey-step:not(:last-child)::after {
-    content: ''; position: absolute; top: 11px;
-    left: calc(50% + 14px); right: calc(-50% + 14px);
-    height: 2px; background: #e5e7eb; z-index: 0;
+    content: '';
+    position: absolute;
+    top: 13px;
+    left: calc(50% + 15px);
+    right: calc(-50% + 15px);
+    height: 3px;
+    background: #e2e8f0;
+    border-radius: 999px;
+    z-index: 0;
   }
-  .catalog-journey-step.is-done:not(:last-child)::after { background: #10b981; }
+  .catalog-journey-step.is-done:not(:last-child)::after { background: #34d399; }
   .catalog-journey-step.is-active:not(:last-child)::after {
-    background: linear-gradient(90deg, #10b981 0%, #e5e7eb 100%);
+    background: linear-gradient(90deg, #34d399 0%, #e2e8f0 100%);
   }
   .catalog-journey-dot {
-    width: 24px; height: 24px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 700; position: relative; z-index: 1; flex-shrink: 0;
-    border: 2px solid #e5e7eb; background: #f3f4f6; color: #9ca3af;
-    transition: transform 0.15s ease;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    border: 2px solid #e2e8f0;
+    background: #fff;
+    color: #94a3b8;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
   }
-  .catalog-journey-step.is-done .catalog-journey-dot { background: #10b981; border-color: #10b981; color: #fff; }
+  .catalog-journey-step.is-done .catalog-journey-dot {
+    background: #10b981;
+    border-color: #10b981;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.28);
+  }
   .catalog-journey-step.is-active .catalog-journey-dot {
-    background: #403fa6; border-color: #403fa6; color: #fff; box-shadow: 0 0 0 4px rgba(64, 63, 166, 0.15);
+    background: #5249df;
+    border-color: #5249df;
+    color: #fff;
+    box-shadow: 0 0 0 4px rgba(82, 73, 223, 0.14);
   }
   .catalog-journey-step.is-action .catalog-journey-dot {
-    background: #5249df; border-color: #5249df; color: #fff; box-shadow: 0 0 0 4px rgba(82, 73, 223, 0.18);
+    background: #5249df;
+    border-color: #5249df;
+    color: #fff;
+    box-shadow: 0 0 0 4px rgba(82, 73, 223, 0.18);
   }
-  button.catalog-journey-step.is-action:hover .catalog-journey-dot { transform: scale(1.08); }
+  button.catalog-journey-step.is-action:hover .catalog-journey-dot { transform: scale(1.06); }
   .catalog-journey-label {
-    margin-top: 6px; font-size: 10px; font-weight: 700; color: #9ca3af;
-    text-align: center; line-height: 1.2; max-width: 82px;
+    margin-top: 7px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-align: center;
+    line-height: 1.2;
+    max-width: 76px;
   }
-  .catalog-journey-step.is-done .catalog-journey-label { color: #047857; }
-  .catalog-journey-step.is-active .catalog-journey-label { color: #403fa6; }
+  .catalog-journey-step.is-done .catalog-journey-label { color: #059669; }
+  .catalog-journey-step.is-active .catalog-journey-label,
   .catalog-journey-step.is-action .catalog-journey-label { color: #5249df; }
 
-  .catalog-card-footer {
-    margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  .catalog-section-card {
+    background: #fff;
+    border: 1px solid rgba(110, 129, 228, 0.14);
+    border-radius: 18px;
+    padding: 20px 22px;
+    box-shadow: 0 8px 24px rgba(76, 94, 177, 0.06);
   }
-  .catalog-card-footer .btn { flex: 1 1 auto; min-width: 120px; }
+  .catalog-section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px 16px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #eef1f8;
+  }
 
-  .catalog-progress { margin-top: 10px; }
+  .parent-dashboard .catalog-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
+  }
+  .parent-dashboard .catalog-btn i { font-size: 16px; line-height: 1; }
+  .parent-dashboard .catalog-btn-primary {
+    background: linear-gradient(135deg, #5249df 0%, #403fa6 100%);
+    color: #fff !important;
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(64, 63, 166, 0.32);
+  }
+  .parent-dashboard .catalog-btn-primary:hover,
+  .parent-dashboard .catalog-btn-primary:focus-visible {
+    color: #fff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(64, 63, 166, 0.4);
+    background: linear-gradient(135deg, #5f56ea 0%, #4a49b8 100%);
+  }
+  .parent-dashboard .catalog-btn-outline {
+    background: #fff;
+    color: #403fa6 !important;
+    border-color: #c7cef6;
+    box-shadow: 0 2px 8px rgba(76, 94, 177, 0.06);
+  }
+  .parent-dashboard .catalog-btn-outline:hover,
+  .parent-dashboard .catalog-btn-outline:focus-visible {
+    color: #403fa6 !important;
+    background: #f3f0ff;
+    border-color: #6f7deb;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(76, 94, 177, 0.1);
+  }
+  .parent-dashboard .catalog-btn-accent {
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+    color: #fff !important;
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.28);
+  }
+  .parent-dashboard .catalog-btn-accent:hover,
+  .parent-dashboard .catalog-btn-accent:focus-visible {
+    color: #fff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(2, 132, 199, 0.36);
+    background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+  }
+  .parent-dashboard .catalog-btn-back {
+    background: #fff;
+    border: 1px solid #d6ddf6;
+    color: #4b4f7a !important;
+    border-radius: 999px;
+    padding: 9px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(76, 94, 177, 0.06);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+  }
+  .parent-dashboard .catalog-btn-back:hover,
+  .parent-dashboard .catalog-btn-back:focus-visible {
+    color: #403fa6 !important;
+    border-color: #6f7deb;
+    background: #f3f0ff;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(76, 94, 177, 0.1);
+  }
+
+  .catalog-card-footer {
+    margin-top: 0;
+    padding: 12px 16px 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    background: #fff;
+    border-top: 1px solid #eef1f8;
+  }
+  .catalog-card-footer.is-single { grid-template-columns: 1fr; }
+  .catalog-card-footer .catalog-btn {
+    width: 100%;
+    min-height: 40px;
+    padding: 9px 12px;
+    font-size: 12px;
+  }
+  .catalog-card-footer .catalog-btn i { font-size: 15px; }
+
+  .catalog-progress {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed #dde3f4;
+  }
   .catalog-progress-head {
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 11px;
-    color: #6b7280;
-    margin-bottom: 4px;
+    font-weight: 600;
+    color: #7c83a8;
+    margin-bottom: 6px;
+  }
+  .catalog-progress-head strong {
+    color: #5249df;
+    font-size: 12px;
   }
   .catalog-progress-track {
-    height: 6px;
+    height: 7px;
     border-radius: 999px;
-    background: #e5e7eb;
+    background: #e2e8f0;
     overflow: hidden;
   }
   .catalog-progress-fill {
     height: 100%;
     border-radius: 999px;
-    background: linear-gradient(90deg, #403fa6 0%, #10b981 100%);
-  }
-  .catalog-cta-complete {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
-    border-radius: 8px;
-    background: #ecfdf5;
-    color: #047857;
-    font-size: 13px;
-    font-weight: 700;
+    background: linear-gradient(90deg, #5249df 0%, #10b981 100%);
+    transition: width 0.3s ease;
   }
 
   .catalog-empty {
@@ -224,25 +479,25 @@
 <section class="pt-4 px-3 px-lg-4 px-xl-5 mb-4">
   <div class="container-fluid px-0">
     <div class="parent-overview-card py-3 mb-4">
-      <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">
-        <div class="flex-grow-1">
-          <h2 class="parent-page-title fw-700 mb-1">{{ page_title }}</h2>
-          <p class="parent-page-subtitle mb-0">Pick a student, then view and enroll them in courses and tests. Progress shows the selected student's journey.</p>
-          {% if linked_students and linked_students|length %}
-          <div class="parent-student-tabs" role="tablist" aria-label="Select student" id="catalogStudentTabs">
-            {% for s in linked_students %}
-            <button type="button"
-                    class="parent-student-tab{% if loop.first %} is-active{% endif %}"
-                    data-student-id="{{ s.id }}"
-                    data-grade-label="{{ s.grade_label }}">
-              {{ s.name }}<span class="grade-pill">· {{ s.grade_label }}</span>
-            </button>
-            {% endfor %}
-          </div>
-          {% endif %}
-        </div>
-        <a href="{{ url('parents_dashboard') }}" class="btn btn-outline-secondary btn-sm">Back to dashboard</a>
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
+        <h2 class="parent-page-title fw-700 mb-0">{{ page_title }}</h2>
+        <a href="{{ url('parents_dashboard') }}" class="catalog-btn-back">
+          <i class='bx bx-arrow-back'></i>Back to dashboard
+        </a>
       </div>
+      <p class="parent-page-subtitle mb-0">Pick a student, then view and enroll them in courses and tests. Progress shows the selected student's journey.</p>
+      {% if linked_students and linked_students|length %}
+      <div class="parent-student-tabs" role="tablist" aria-label="Select student" id="catalogStudentTabs">
+        {% for s in linked_students %}
+        <button type="button"
+                class="parent-student-tab{% if loop.first %} is-active{% endif %}"
+                data-student-id="{{ s.id }}"
+                data-grade-label="{{ s.grade_label }}">
+          {{ s.name }}<span class="grade-pill">· {{ s.grade_label }}</span>
+        </button>
+        {% endfor %}
+      </div>
+      {% endif %}
     </div>
 
     {% if not has_linked_students %}
@@ -253,12 +508,16 @@
     </div>
     {% else %}
       {% for section in sections %}
-      <div class="mb-4 catalog-section"
+      <div class="mb-4 catalog-section catalog-section-card"
            data-section-key="{{ section.key }}"
            data-filter="{{ section.filter|default('') }}"
            data-title-dynamic="{{ '1' if section.title_dynamic else '0' }}">
-        <h3 class="catalog-section-title">{{ section.title }}</h3>
-        <p class="catalog-section-sub">{{ section.subtitle }}</p>
+        <div class="catalog-section-head">
+          <div>
+            <h3 class="catalog-section-title mb-0">{{ section.title }}</h3>
+            <p class="catalog-section-sub mb-0 mt-1">{{ section.subtitle }}</p>
+          </div>
+        </div>
         <div class="row g-3 catalog-section-grid">
           {% for item in section.catalog_items %}
           <div class="col-12 col-md-6 col-xl-4 catalog-col">
@@ -270,39 +529,43 @@
                  data-slug="{{ item.enroll_slug }}"
                  data-detail-url="{{ item.detail_url }}"
                  data-students='{{ item.student_data|tojson }}'>
-              <span class="catalog-owned-badge" title="Already enrolled"><i class='bx bx-check'></i></span>
-              <div class="catalog-card-top">
-                <div class="catalog-icon-wrap" style="background: {{ item.icon_bg|default('#eef2ff') }};">
-                  {% if item.image_url %}
-                  <img class="catalog-thumb"
-                       src="{{ item.image_url }}"
-                       alt="{{ item.title }}"
-                       loading="lazy"
-                       onerror="this.onerror=null; this.src='{{ item.image_fallback_url|default(static('images/skilllab-default.png')) }}';" />
-                  {% elif item.icon_src %}
-                  <img src="{{ static(item.icon_src) }}"
-                       alt="{{ item.title }}"
-                       onerror="this.onerror=null; this.style.display='none'; var ic=this.nextElementSibling; if(ic){ic.style.display='flex';}" />
-                  <i class='bx bx-book-open' style="display:none;"></i>
-                  {% elif item.icon_bx %}
-                  <i class='bx {{ item.icon_bx }}'></i>
-                  {% else %}
-                  <i class='bx bx-book-open'></i>
-                  {% endif %}
-                </div>
-                <div class="min-w-0 flex-grow-1">
-                  <p class="catalog-title">{{ item.title }}</p>
-                  <p class="catalog-subtitle">{{ item.subtitle }}</p>
-                  <div class="catalog-meta">
-                    {% if item.class_label %}
-                    <span class="catalog-class-badge">{{ item.class_label }}</span>
+              <span class="catalog-status-pill is-enrolled"><i class='bx bx-check-circle'></i> Enrolled</span>
+              <span class="catalog-status-pill is-progress"><i class='bx bx-loader-circle'></i> In progress</span>
+              <span class="catalog-status-pill is-complete"><i class='bx bx-badge-check'></i> Completed</span>
+              <div class="catalog-card-body">
+                <div class="catalog-card-top">
+                  <div class="catalog-icon-wrap" style="background: {{ item.icon_bg|default('#eef2ff') }};">
+                    {% if item.image_url %}
+                    <img class="catalog-thumb"
+                         src="{{ item.image_url }}"
+                         alt="{{ item.title }}"
+                         loading="lazy"
+                         onerror="this.onerror=null; this.src='{{ item.image_fallback_url|default(static('images/skilllab-default.png')) }}';" />
+                    {% elif item.icon_src %}
+                    <img src="{{ static(item.icon_src) }}"
+                         alt="{{ item.title }}"
+                         onerror="this.onerror=null; this.style.display='none'; var ic=this.nextElementSibling; if(ic){ic.style.display='flex';}" />
+                    <i class='bx bx-book-open' style="display:none;"></i>
+                    {% elif item.icon_bx %}
+                    <i class='bx {{ item.icon_bx }}'></i>
+                    {% else %}
+                    <i class='bx bx-book-open'></i>
                     {% endif %}
-                    <span class="catalog-price-badge{% if item.is_free %} is-free{% endif %}">{{ item.price_label }}</span>
+                  </div>
+                  <div class="min-w-0 flex-grow-1">
+                    <p class="catalog-title">{{ item.title }}</p>
+                    <p class="catalog-subtitle">{{ item.subtitle }}</p>
+                    <div class="catalog-meta">
+                      {% if item.class_label %}
+                      <span class="catalog-class-badge">{{ item.class_label }}</span>
+                      {% endif %}
+                      <span class="catalog-price-badge{% if item.is_free %} is-free{% endif %}">{{ item.price_label }}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class="catalog-card-actions">
-                <div class="catalog-journey" aria-label="Course progress"></div>
+                <div class="catalog-card-actions">
+                  <div class="catalog-journey" aria-label="Course progress"></div>
+                </div>
               </div>
               <div class="catalog-card-footer"></div>
             </div>
@@ -373,6 +636,12 @@
     }).join('');
   }
 
+  function catalogBtn(cls, href, label, icon, extraAttrs) {
+    var attrs = extraAttrs || '';
+    return '<a href="' + href + '" class="catalog-btn ' + cls + '"' + attrs + '>' +
+      (icon ? "<i class='bx " + icon + "'></i>" : '') + label + '</a>';
+  }
+
   function renderCard(card) {
     var col = card.closest('.catalog-col');
     var section = card.closest('.catalog-section');
@@ -396,17 +665,29 @@
     }
     if (col) col.style.display = '';
 
-    card.classList.toggle('is-owned', !!sd.enrolled);
+    var detailUrl = card.getAttribute('data-detail-url') || '#';
+    var kind = card.getAttribute('data-kind') || '';
+    card.classList.remove('is-owned', 'is-complete', 'is-progress');
+    var cta = sd.cta || 'Start';
+    var isComplete = sd.enrolled && kind === 'skilllab' && cta === 'Completed';
+    var isInProgress = sd.enrolled && kind === 'skilllab' && (cta === 'Start' || cta === 'Resume');
+    if (isComplete) {
+      card.classList.add('is-owned', 'is-complete');
+    } else if (isInProgress) {
+      card.classList.add('is-owned', 'is-progress');
+    } else if (sd.enrolled) {
+      card.classList.add('is-owned');
+    }
 
     var journeyHost = card.querySelector('.catalog-journey');
     journeyHost.innerHTML = renderJourney(sd.steps || []);
 
     var actionsHost = card.querySelector('.catalog-card-actions');
     var progressHtml = '';
-    if (sd.enrolled && typeof sd.progress_pct === 'number') {
+    if (sd.enrolled && typeof sd.progress_pct === 'number' && sd.progress_pct > 0 && sd.progress_pct < 100) {
       progressHtml =
         '<div class="catalog-progress">' +
-          '<div class="catalog-progress-head"><span>Course progress</span><strong>' + sd.progress_pct + '%</strong></div>' +
+          '<div class="catalog-progress-head"><span>Progress</span><strong>' + sd.progress_pct + '%</strong></div>' +
           '<div class="catalog-progress-track" role="progressbar" aria-valuenow="' + sd.progress_pct + '" aria-valuemin="0" aria-valuemax="100">' +
             '<div class="catalog-progress-fill" style="width:' + sd.progress_pct + '%;"></div>' +
           '</div>' +
@@ -419,30 +700,38 @@
     }
 
     var footer = card.querySelector('.catalog-card-footer');
-    var detailUrl = card.getAttribute('data-detail-url') || '#';
-    var kind = card.getAttribute('data-kind') || '';
+    footer.classList.remove('is-single');
     if (sd.enrolled) {
-      footer.style.display = 'flex';
-      var cta = sd.cta || 'Start';
+      footer.style.display = 'grid';
+      cta = sd.cta || 'Start';
       var studentDash = sd.student_dashboard_url || studentDashboardTpl.replace('99999', String(selectedStudentId));
       if (kind === 'skilllab' && cta === 'Completed') {
         var certUrl = sd.certificate_url || detailUrl;
         footer.innerHTML =
-          '<span class="catalog-cta-complete"><i class="bx bx-check-circle"></i> Completed</span>' +
-          '<a href="' + studentDash + '" class="btn btn-sm btn-outline-secondary">Student dashboard</a>' +
-          '<a href="' + certUrl + '" class="btn btn-sm custom-button blue-button" target="_blank" rel="noopener noreferrer">Certificate</a>';
+          catalogBtn('catalog-btn-outline', studentDash, 'Dashboard', 'bx-grid-alt') +
+          catalogBtn('catalog-btn-accent', certUrl, 'Certificate', 'bx-certification', ' target="_blank" rel="noopener noreferrer"');
       } else if (kind === 'skilllab' && (cta === 'Start' || cta === 'Resume')) {
+        var ctaIcon = cta === 'Resume' ? 'bx-play-circle' : 'bx-play';
         footer.innerHTML =
-          '<a href="' + detailUrl + '" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener noreferrer">View detail</a>' +
-          '<a href="' + studentDash + '" class="btn btn-sm custom-button purple-button">' + cta + '</a>';
+          catalogBtn('catalog-btn-outline', detailUrl, 'Details', 'bx-info-circle', ' target="_blank" rel="noopener noreferrer"') +
+          catalogBtn('catalog-btn-primary', studentDash, cta, ctaIcon);
       } else {
-        footer.innerHTML =
-          '<a href="' + studentDash + '" class="btn btn-sm custom-button purple-button">View progress</a>';
+        footer.classList.add('is-single');
+        footer.innerHTML = catalogBtn('catalog-btn-primary', studentDash, 'View progress', 'bx-line-chart');
       }
     } else {
-      footer.style.display = 'flex';
-      footer.innerHTML =
-        '<a href="' + detailUrl + '" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener noreferrer">View detail</a>';
+      footer.style.display = 'grid';
+      var enrollSteps = (sd.steps || []).some(function (s) { return s.state === 'action'; });
+      if (enrollSteps) {
+        footer.innerHTML =
+          catalogBtn('catalog-btn-outline', detailUrl, 'Details', 'bx-info-circle', ' target="_blank" rel="noopener noreferrer"') +
+          '<button type="button" class="catalog-btn catalog-btn-primary catalog-enrol-action">' +
+            "<i class='bx bx-plus-circle'></i>Enroll" +
+          '</button>';
+      } else {
+        footer.classList.add('is-single');
+        footer.innerHTML = catalogBtn('catalog-btn-outline', detailUrl, 'View details', 'bx-info-circle', ' target="_blank" rel="noopener noreferrer"');
+      }
     }
   }
 

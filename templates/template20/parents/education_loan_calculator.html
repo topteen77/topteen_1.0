@@ -22,8 +22,181 @@
     background: linear-gradient(130deg, #ffffff 0%, #f8faff 100%);
     border: 1px solid rgba(110, 129, 228, 0.18);
     border-radius: 16px;
-    padding: 16px 18px;
+    padding: 18px 20px;
     box-shadow: 0 14px 30px rgba(76, 94, 177, 0.12);
+  }
+
+  .parent-dashboard .loan-overview-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px 16px;
+  }
+
+  .parent-dashboard .loan-form-card {
+    background: #fff;
+    border: 1px solid rgba(110, 129, 228, 0.14);
+    border-radius: 18px;
+    padding: 22px 22px 20px;
+    box-shadow: 0 10px 24px rgba(76, 94, 177, 0.08);
+    overflow: hidden;
+  }
+
+  .parent-dashboard .loan-form-card::before {
+    content: '';
+    display: block;
+    height: 4px;
+    margin: -22px -22px 18px;
+    background: linear-gradient(90deg, #5249df 0%, #0ea5e9 55%, #10b981 100%);
+  }
+
+  .parent-dashboard .loan-section-head {
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #eef1f8;
+  }
+
+  .parent-dashboard .loan-section-head h4 {
+    color: #1e2660;
+    margin-bottom: 4px;
+  }
+
+  .parent-dashboard .loan-section-head p {
+    color: #7c83a8;
+    margin-bottom: 0;
+  }
+
+  .parent-dashboard .loan-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-radius: 10px;
+    padding: 11px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .parent-dashboard .loan-btn i { font-size: 16px; line-height: 1; }
+
+  .parent-dashboard .loan-btn-outline {
+    background: #fff;
+    color: #403fa6 !important;
+    border-color: #c7cef6;
+    box-shadow: 0 2px 8px rgba(76, 94, 177, 0.06);
+  }
+
+  .parent-dashboard .loan-btn-outline:hover,
+  .parent-dashboard .loan-btn-outline:focus-visible {
+    color: #403fa6 !important;
+    background: #f3f0ff;
+    border-color: #6f7deb;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(76, 94, 177, 0.1);
+  }
+
+  .parent-dashboard .loan-btn-primary {
+    background: linear-gradient(135deg, #5249df 0%, #403fa6 100%);
+    color: #fff !important;
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(64, 63, 166, 0.32);
+  }
+
+  .parent-dashboard .loan-btn-primary:hover,
+  .parent-dashboard .loan-btn-primary:focus-visible {
+    color: #fff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(64, 63, 166, 0.4);
+    background: linear-gradient(135deg, #5f56ea 0%, #4a49b8 100%);
+  }
+
+  .parent-dashboard .loan-btn-accent {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #fff !important;
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.28);
+  }
+
+  .parent-dashboard .loan-btn-accent:hover:not(:disabled),
+  .parent-dashboard .loan-btn-accent:focus-visible:not(:disabled) {
+    color: #fff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.36);
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  }
+
+  .parent-dashboard .loan-btn-accent.is-ready {
+    background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28);
+  }
+
+  .parent-dashboard .loan-btn-accent.is-ready:hover:not(:disabled),
+  .parent-dashboard .loan-btn-accent.is-ready:focus-visible:not(:disabled) {
+    background: linear-gradient(135deg, #38bdf8 0%, #3b82f6 100%);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.36);
+  }
+
+  .parent-dashboard .loan-btn:disabled,
+  .parent-dashboard .loan-btn.disabled {
+    background: #e8ecf8 !important;
+    color: #9aa3c7 !important;
+    border-color: #e2e8f5 !important;
+    box-shadow: none !important;
+    cursor: not-allowed;
+    transform: none !important;
+    opacity: 1;
+  }
+
+  .parent-dashboard .loan-actions-bar {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid #eef1f8;
+  }
+
+  @media (min-width: 768px) {
+    .parent-dashboard .loan-actions-bar {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: start;
+    }
+  }
+
+  .parent-dashboard .loan-action-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .parent-dashboard .loan-action-item .loan-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .parent-dashboard .loan-cta-note {
+    margin: 0;
+    font-size: 11px;
+    color: #7c83a8;
+    text-align: center;
+    line-height: 1.35;
+  }
+
+  .parent-dashboard .loan-cta-note i {
+    color: #5249df;
+  }
+
+  .parent-dashboard .form-label {
+    font-weight: 600;
+    color: #4b4f7a;
   }
 
   .parent-dashboard .parent-page-title {
@@ -43,11 +216,11 @@
 
   .parent-dashboard .parent-students-card,
   .parent-dashboard .viz-card {
-    background: #fff;
-    border: 1px solid rgba(110, 129, 228, 0.14);
-    border-radius: 16px;
-    padding: 18px 20px;
-    box-shadow: 0 10px 24px rgba(76, 94, 177, 0.08);
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
   }
 
   .parent-dashboard .tile {
@@ -60,39 +233,18 @@
 
   .parent-dashboard .btn { border-radius: 10px; }
 
-  .parent-dashboard #loanCalcBtn {
-    border-radius: 12px;
-    font-weight: 700;
-    letter-spacing: 0.2px;
-    box-shadow: 0 10px 22px rgba(73, 86, 175, 0.2);
+  #educationLoanApplyModal .loan-btn {
+    min-height: 40px;
+    padding: 9px 16px;
   }
 
-  .parent-dashboard .loan-apply-btn {
-    border: 0;
-    border-radius: 12px;
-    background: linear-gradient(120deg, #16a34a 0%, #0ea5a4 52%, #2563eb 100%);
-    color: #fff;
-    font-weight: 700;
-    letter-spacing: 0.2px;
-    box-shadow: 0 12px 26px rgba(36, 99, 235, 0.28);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  #educationLoanApplyModal .modal-footer {
+    gap: 8px;
+    flex-wrap: wrap;
   }
 
-  .parent-dashboard .loan-apply-btn:hover,
-  .parent-dashboard .loan-apply-btn:focus-visible {
-    color: #fff;
-    transform: translateY(-1px);
-    filter: saturate(1.05);
-    box-shadow: 0 16px 30px rgba(37, 99, 235, 0.34);
-  }
-
-  .parent-dashboard .loan-apply-btn:disabled,
-  .parent-dashboard .loan-apply-btn.disabled {
-    background: linear-gradient(120deg, #b9c2e9 0%, #cad2ee 100%);
-    color: #f5f7ff;
-    box-shadow: none;
-    cursor: not-allowed;
-    opacity: 1;
+  #educationLoanApplyModal #loanSubmitBtn.loan-btn-primary {
+    margin-left: auto;
   }
 
   .parent-dashboard #loanResultRow .tile {
@@ -121,17 +273,6 @@
     letter-spacing: -0.2px;
   }
 
-  .parent-dashboard .loan-cta-note {
-    margin-top: 6px;
-    font-size: 12px;
-    color: #5e6696;
-  }
-
-  .parent-dashboard .loan-cta-note i {
-    color: #5c54d4;
-  }
-
-  .parent-dashboard .form-select,
   .parent-dashboard .form-control {
     border-radius: 11px;
     border-color: #d6ddf6;
@@ -257,21 +398,6 @@
     border-color: #bfdbfe;
     color: #1e40af;
   }
-
-  .parent-dashboard .loan-save-draft-btn {
-    border-radius: 12px;
-    font-weight: 600;
-    border-color: #c7d2fe;
-    color: #4338ca;
-    background: #fff;
-  }
-
-  .parent-dashboard .loan-save-draft-btn:hover,
-  .parent-dashboard .loan-save-draft-btn:focus-visible {
-    background: #eef2ff;
-    color: #3730a3;
-    border-color: #a5b4fc;
-  }
 </style>
 {% endblock %}
 
@@ -298,20 +424,24 @@
 <section class="pt-4 px-3 px-lg-4 px-xl-5 mb-4">
   <div class="container-fluid px-0">
     <div class="parent-overview-card py-3 mb-4">
-      <h2 class="parent-page-title fw-700 mb-1">Education Loan Calculator</h2>
-      <p class="parent-page-subtitle mb-0">Estimate EMI with moratorium interest loading before repayment starts.</p>
-      <div class="d-flex flex-wrap gap-2 mt-3">
-        <a href="{{ loan_applications_url }}" class="btn btn-sm btn-outline-primary">
-          <i class='bx bx-file me-1'></i>My Loan Applications
+      <div class="loan-overview-head">
+        <div>
+          <h2 class="parent-page-title fw-700 mb-1">Education Loan Calculator</h2>
+          <p class="parent-page-subtitle mb-0">Estimate EMI with moratorium interest loading before repayment starts.</p>
+        </div>
+        <a href="{{ loan_applications_url }}" class="loan-btn loan-btn-outline">
+          <i class='bx bx-file'></i>My Loan Applications
         </a>
       </div>
       <div class="loan-status-banner is-info mt-3 d-none" id="loanStatusBanner" role="status"></div>
     </div>
 
     <div class="parent-students-card">
-      <div class="viz-card mb-0">
-        <h4 class="fs-16 fw-700 mb-3">Loan details</h4>
-        <p class="text-muted fs-12 mb-3">Moratorium interest is added to principal before EMI starts.</p>
+      <div class="loan-form-card">
+        <div class="loan-section-head">
+          <h4 class="fs-16 fw-700 mb-0">Loan details</h4>
+          <p class="fs-12 mt-1">Moratorium interest is added to principal before EMI starts.</p>
+        </div>
         <div class="row g-3 align-items-end">
           <div class="col-12 col-md-3">
             <label class="form-label fs-12 text-muted" for="loanAmount">Loan Amount (INR)</label>
@@ -349,23 +479,25 @@
             <div class="invalid-feedback" id="loanCountryPreferenceError">Please select a country preference.</div>
           </div>
         </div>
-        <div class="row g-3 align-items-end mt-1">
-          <div class="col-12 col-md-3">
-            <button type="button" class="btn btn-outline-primary w-100 loan-save-draft-btn" id="loanCalcDraftBtn">
-              <i class='bx bx-save me-1'></i>Save Draft
+        <div class="loan-actions-bar">
+          <div class="loan-action-item">
+            <button type="button" class="loan-btn loan-btn-outline" id="loanCalcDraftBtn">
+              <i class='bx bx-save'></i>Save Draft
             </button>
           </div>
-          <div class="col-12 col-md-3">
-            <button type="button" class="btn custom-button purple-button w-100" id="loanCalcBtn">Calculate EMI</button>
+          <div class="loan-action-item">
+            <button type="button" class="loan-btn loan-btn-primary" id="loanCalcBtn">
+              <i class='bx bx-calculator'></i>Calculate EMI
+            </button>
           </div>
-          <div class="col-12 col-md-3">
-            <button type="button" class="btn w-100 loan-apply-btn" id="loanApplyBtn" data-bs-toggle="modal" data-bs-target="#educationLoanApplyModal" disabled>
-              <i class='bx bx-send me-1'></i>Apply Loan
+          <div class="loan-action-item">
+            <button type="button" class="loan-btn loan-btn-accent" id="loanApplyBtn" data-bs-toggle="modal" data-bs-target="#educationLoanApplyModal" disabled>
+              <i class='bx bx-send'></i>Apply Loan
             </button>
             <p class="loan-cta-note mb-0"><i class='bx bx-info-circle me-1'></i>Enabled after EMI calculation</p>
           </div>
         </div>
-        <div class="row g-3 mt-1" id="loanResultRow" style="display:none;">
+        <div class="row g-3 mt-3" id="loanResultRow" style="display:none;">
           <div class="col-12 col-md-4"><div class="tile"><p class="fs-12 text-muted mb-1">EMI</p><h5 class="mb-0" id="emiValue">-</h5></div></div>
           <div class="col-12 col-md-4"><div class="tile"><p class="fs-12 text-muted mb-1">Total Interest</p><h5 class="mb-0" id="interestValue">-</h5></div></div>
           <div class="col-12 col-md-4"><div class="tile"><p class="fs-12 text-muted mb-1">Total Payable</p><h5 class="mb-0" id="payableValue">-</h5></div></div>
@@ -457,11 +589,13 @@
         <div class="alert alert-danger mt-3 mb-0 d-none" id="loanApplyErrorMsg"></div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-outline-primary loan-save-draft-btn" id="loanModalDraftBtn">
-          <i class='bx bx-save me-1'></i>Save Draft
+        <button type="button" class="loan-btn loan-btn-outline" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="loan-btn loan-btn-outline" id="loanModalDraftBtn">
+          <i class='bx bx-save'></i>Save Draft
         </button>
-        <button type="button" class="btn btn-primary" id="loanSubmitBtn">Send Application Enquiry</button>
+        <button type="button" class="loan-btn loan-btn-primary" id="loanSubmitBtn">
+          <i class='bx bx-paper-plane'></i>Send Application Enquiry
+        </button>
       </div>
     </div>
   </div>

@@ -69,8 +69,7 @@
     border-radius: 12px;
     background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.95) 0%, rgba(244, 253, 255, 0.82) 45%, rgba(219, 246, 255, 0.72) 100%);
     border: 1px solid rgba(76, 196, 255, 0.35);
-    box-shadow: 0 6px 18px rgba(34, 230, 116, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.35) inset;
-    padding: 4px;
+        padding: 4px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
 
@@ -675,16 +674,51 @@
     color: #db2777 !important;
   }
 
+  .user-dashboard .dashboard-enrolled-badge-career {
+    font-size: 10px;
+    letter-spacing: 0.4px;
+    background: #e8f8ee !important;
+    color: #198754 !important;
+  }
+
+  .user-dashboard .dashboard-enrolled-badge-psychometric {
+    font-size: 10px;
+    letter-spacing: 0.4px;
+    background: #eef2ff !important;
+    color: #3f37c9 !important;
+  }
+
+  .user-dashboard .dashboard-enrolled-kind-badge {
+    font-weight: 700;
+    padding: 3px 8px;
+    font-size: 9px;
+    letter-spacing: 0.35px;
+    line-height: 1.2;
+    white-space: nowrap;
+    flex: 0 0 auto;
+    margin-top: 2px;
+  }
+
+  .user-dashboard .dashboard-enrolled-content {
+    min-width: 0;
+    flex: 1 1 0%;
+    overflow: hidden;
+  }
+
   .user-dashboard .dashboard-enrolled-title-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 8px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 6px;
+    min-width: 0;
+    width: 100%;
     margin-bottom: 2px;
   }
 
   .user-dashboard .dashboard-enrolled-title-row .dashboard-enrolled-title {
+    flex: 1 1 auto;
     min-width: 0;
+    margin-bottom: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -734,6 +768,7 @@
     .user-dashboard .dashboard-enrolled-card {
       flex-direction: column !important;
       align-items: stretch !important;
+      overflow: visible !important;
     }
 
     .user-dashboard .dashboard-enrolled-action {
@@ -742,8 +777,39 @@
       text-align: center;
     }
 
-    .user-dashboard .dashboard-enrolled-title-row {
-      grid-template-columns: minmax(0, 1fr);
+    .user-dashboard .dashboard-enrolled-body {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .user-dashboard .dashboard-enrolled-title-row .dashboard-enrolled-title {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      white-space: normal;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    .user-dashboard .dashboard-enrolled-subtitle {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      white-space: normal;
+      line-height: 1.35;
+    }
+  }
+
+  @media (max-width: 767.98px) {
+    .user-dashboard .dashboard-enrolled-body {
+      align-items: flex-start !important;
+    }
+
+    .user-dashboard .dashboard-enrolled-icon-wrap {
+      width: 42px !important;
+      height: 42px !important;
     }
   }
 
@@ -1155,8 +1221,7 @@
           <div class="row g-3">
             {% for item in dashboard_enrolled_items %}
             <div class="col-12 col-xl-6">
-              <div class="d-flex border rounded-4 p-3 h-100 dashboard-enrolled-card"
-                style="transition:all .2s ease;overflow:hidden;">
+              <div class="d-flex border rounded-4 p-3 h-100 dashboard-enrolled-card">
                 <div class="d-flex align-items-center gap-3 dashboard-enrolled-body">
                   <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0 dashboard-enrolled-icon-wrap"
                     style="width:48px;height:48px;background:{{ item.icon_bg|default('#eef6ff' if item.kind == 'psychometric' else '#f0fff4') }};">
@@ -1170,24 +1235,20 @@
                     <i class='bx bx-book-reader fs-24' style="color:#198754;"></i>
                     {% endif %}
                   </div>
-                  <div class="min-w-0 w-100">
+                  <div class="min-w-0 w-100 dashboard-enrolled-content">
                     <div class="dashboard-enrolled-title-row">
                       <p class="fs-15 fw-semibold mb-0 dashboard-enrolled-title" title="{{ item.title }}">{{ item.title }}</p>
                       {% if item.kind_badge %}
-                      <span class="badge rounded-pill text-uppercase flex-shrink-0{% if item.kind_badge_style == 'free' %} dashboard-enrolled-badge-free{% endif %}"
-                        {% if item.kind_badge_style != 'free' %}
-                        style="font-size:10px;letter-spacing:.4px;background:{% if item.kind == 'psychometric' %}#eef2ff{% else %}#e8f8ee{% endif %};color:{% if item.kind == 'psychometric' %}#3f37c9{% else %}#198754{% endif %};"
-                        {% endif %}>
+                      <span class="badge rounded-pill text-uppercase dashboard-enrolled-kind-badge flex-shrink-0{% if item.kind_badge_style == 'free' %} dashboard-enrolled-badge-free{% elif item.kind == 'psychometric' %} dashboard-enrolled-badge-psychometric{% else %} dashboard-enrolled-badge-career{% endif %}">
                         {{ item.kind_badge }}
                       </span>
                       {% elif not item.hide_kind_badge %}
-                      <span class="badge rounded-pill text-uppercase flex-shrink-0"
-                        style="font-size:10px;letter-spacing:.4px;background:{% if item.kind == 'psychometric' %}#eef2ff{% else %}#e8f8ee{% endif %};color:{% if item.kind == 'psychometric' %}#3f37c9{% else %}#198754{% endif %};">
-                        {{ item.kind }}
+                      <span class="badge rounded-pill text-uppercase dashboard-enrolled-kind-badge flex-shrink-0 dashboard-enrolled-badge-psychometric">
+                        Psychometric
                       </span>
                       {% endif %}
                     </div>
-                    <p class="text-gray fs-11 mb-0 text-truncate lh-sm" title="{{ item.subtitle }}">{{ item.subtitle }}</p>
+                    <p class="text-gray fs-11 mb-0 lh-sm dashboard-enrolled-subtitle" title="{{ item.subtitle }}">{{ item.subtitle }}</p>
                     {% if item.result_preview %}
                     <p class="fs-12 fw-semibold mb-0 mt-2 text-dark dashboard-enrolled-result-line" style="line-height:1.4;" title="{{ item.result_preview }}">{{ item.result_preview }}</p>
                     {% endif %}
