@@ -103,35 +103,78 @@ Explore our comprehensive collection of career paths organized by industry and i
 /* Career inner filter: single bar (input + Search + Reset) like reference */
 .career-inner-search-bar {
   display: flex;
-  align-items: stretch;
-  flex-wrap: wrap;
+  align-items: center;
+  flex-wrap: nowrap;
   gap: 0;
   background: #fff;
   border: 1px solid rgba(63, 55, 201, 0.2);
   border-radius: 9999px;
   box-shadow: 0 2px 8px rgba(63, 55, 201, 0.08);
   overflow: hidden;
-  min-height: 48px;
+  min-height: 52px;
+  padding-right: 6px;
 }
 .career-inner-search-input-wrap {
-  flex: 1 1 200px;
+  flex: 1 1 auto;
   min-width: 0;
   padding: 6px 6px 6px 18px;
   display: flex;
   align-items: center;
   background: #fff;
 }
+.career-inner-search-input-wrap {
+  min-height: 38px;
+}
+.career-inner-search-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-left: 4px;
+}
 .career-inner-search-input-wrap .select2-container {
   width: 100% !important;
+  max-width: 100%;
+}
+.career-inner-search-input-wrap .select2-container--bootstrap-5 {
+  border: none !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  display: block;
 }
 .career-inner-search-input-wrap .select2-container--bootstrap-5 .select2-selection {
   border: none !important;
   background: transparent !important;
-  min-height: 36px;
+  min-height: 38px;
   box-shadow: none !important;
+  overflow: hidden !important;
+}
+.career-inner-search-input-wrap .select2-container--bootstrap-5 .select2-selection--multiple {
+  overflow: hidden !important;
 }
 .career-inner-search-input-wrap .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered {
   padding: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  overflow: hidden;
+  width: 100%;
+}
+.career-inner-search-input-wrap .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice {
+  display: none !important;
+}
+.career-inner-search-input-wrap .select2-search--inline {
+  flex: 1 1 auto;
+  min-width: 140px;
+  float: none !important;
+  width: auto !important;
+}
+.career-inner-search-input-wrap .select2-search__field {
+  width: 100% !important;
+  min-width: 140px;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.4;
 }
 /* Remove cross/clear icon from career search Select2 input */
 .career-inner-search-input-wrap .select2-selection__clear,
@@ -262,32 +305,49 @@ Explore our comprehensive collection of career paths organized by industry and i
   color: #fff;
   border: none;
   border-radius: 9999px;
-  padding: 10px 16px;
-  margin: 6px 4px 6px 0;
-  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  padding: 0;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   font-size: 1.25rem;
   line-height: 1;
+  flex-shrink: 0;
 }
 .career-inner-search-bar .career-inner-search-btn:hover {
   background: #322fb0;
   color: #fff;
   box-shadow: 0 4px 10px rgba(63, 55, 201, 0.35);
+  transform: translateY(-1px);
 }
 .career-inner-search-bar .career-inner-reset-btn {
-  background: transparent;
-  color: #0dcaf0;
-  border: 1px solid #0dcaf0;
+  background: #fff;
+  color: #403fa6;
+  border: 1px solid #c7cef6;
   border-radius: 9999px;
-  padding: 10px 18px;
-  font-weight: 500;
-  margin: 6px 10px 6px 0;
+  padding: 0 16px;
+  height: 42px;
+  min-width: 84px;
+  font-weight: 600;
+  font-size: 13px;
+  margin: 0;
   text-decoration: none;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  flex-shrink: 0;
 }
 .career-inner-search-bar .career-inner-reset-btn:hover {
-  background: rgba(13, 202, 240, 0.1);
-  color: #0aa2c0;
-  border-color: #0dcaf0;
+  background: #f3f0ff;
+  color: #403fa6;
+  border-color: #6f7deb;
+  transform: translateY(-1px);
 }
 /* Selected career tags above search: increased height + hover effect with close button */
 #selected-career-tags .career-selected-tag {
@@ -602,6 +662,11 @@ Explore our comprehensive collection of career paths organized by industry and i
 	border-radius: 30px;
 	margin-bottom: 6px;
 }
+.career-inner-search-input-wrap .select2-container--bootstrap-5 {
+	border: none !important;
+	border-radius: 0 !important;
+	margin-bottom: 0 !important;
+}
 
 .select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option {
   padding: 10px 19px !important;
@@ -656,18 +721,31 @@ Explore our comprehensive collection of career paths organized by industry and i
 }
 
 .career-inner-search-bar {
-  display: inherit;
-  box-shadow: 0 2px 8px rgba(63, 55, 201, 0.08);
-  border-radius: 11px;  
+  flex-direction: column;
+  align-items: stretch;
+  border-radius: 16px;
+  padding: 8px;
+  padding-right: 8px;
+  overflow: visible;
 }
-
 .career-inner-search-input-wrap {
-  padding: 6px 6px 6px 6px;
+  padding: 4px 8px 4px 12px;
 }
-
+.career-inner-search-actions {
+  width: 100%;
+  padding: 0 4px 2px;
+}
+.career-inner-search-bar .career-inner-search-btn,
+.career-inner-search-bar .career-inner-reset-btn {
+  flex: 1 1 0;
+}
+.career-inner-search-bar .career-inner-search-btn {
+  width: auto;
+  min-width: 0;
+}
 .career-inner-search-input-wrap .select2-container--bootstrap-5 .select2-selection {
-	min-height: 45px;
-	padding-top: 10px;
+	min-height: 42px;
+	padding-top: 8px;
 }
 
 
@@ -758,8 +836,10 @@ Explore our comprehensive collection of career paths organized by industry and i
                           {% endfor %}
                         </select>
                       </div>
-                      <button type="submit" class="btn career-inner-search-btn" title="Search" aria-label="Search"><i class="bx bx-search" aria-hidden="true"></i></button>
-                      <a href="{{ cluster_page_url }}" class="btn career-inner-reset-btn">Reset</a>
+                      <div class="career-inner-search-actions">
+                        <button type="submit" class="btn career-inner-search-btn" title="Search" aria-label="Search"><i class="bx bx-search" aria-hidden="true"></i></button>
+                        <a href="{{ cluster_page_url }}" class="btn career-inner-reset-btn">Reset</a>
+                      </div>
                     </div>
                     <p class="small text-muted mt-1 mb-0">Suggestions show career name and cluster. Select one or more, then click Search or Reset.</p>
                   </div>
@@ -2160,11 +2240,8 @@ body.ai-fullscreen-active {
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
 
-<!-- jQuery MUST be loaded BEFORE Select2 -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-
-<!-- Select2 JS - must be loaded AFTER jQuery -->
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<!-- Select2 JS: defer so it runs after base.html jQuery (also defer), avoiding jQuery overwrite -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js" defer></script>
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ static('js/radial-mindmap.js') }}"></script>
