@@ -110,6 +110,21 @@
   .purple-button {
     width: 133px;
   }
+  .psychometric-btn {
+    width: 133px;
+  }
+  .psychometric-package-banner {
+    margin-top: 12px;
+  }
+  .psychometric-package-badge {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    padding: 8px 14px;
+    background: #eef2ff;
+    color: #3f37c9;
+    border: 1px solid #c7d2fe;
+  }
   @media screen and (max-width: 768px) {
     .psychometric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
     .purple-button { width: 101px !important; padding: 7px 0px; }
@@ -141,90 +156,11 @@
 {% endif %}
 
 <h2 class="title-test-info mb-0 mt-md-0 mt-3">Psychometric Assessment</h2>
+{% include 'template20/psychometric/includes/custom_package_banner.html' %}
 
 <div class="view-reports mt-5 pb-md-0 pb-10">
   <div class="psychometric-grid">
-          <!-- Test 1: Personality Assessment -->
-          <div class="psychometric-card">
-            <div class="psychometric-card-header">
-              <div class="psychometric-card-icon">
-                <img class="img-fluid" src="{{ static('images/interest-icon.svg') }}" alt="Personality assessment" />
-              </div>
-              <div>
-                <h3>Personality assessment</h3>
-                <p>Discover your personality traits and career preferences</p>
-              </div>
-            </div>
-            <div class="psychometric-card-body">
-              <div class="psychometric-card-action">
-                <div class="view-rr">
-                  {% if test_completion.test1_complete %}
-                  <a href="{{ url('app:test1_report_html') }}" class="btn blue-button" style="width: 133px; display: inline-block; text-align: center; padding: 8px 0;">View report</a>
-                  {% else %}
-                  <form action="{{ url('app:test1-intro') }}" method="GET">
-                    <button type="submit" class="btn purple-button" style="width: 133px;">Start Test</button>
-                  </form>
-                  {% endif %}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Test 2: Career Interest Assessment -->
-          <div class="psychometric-card">
-            <div class="psychometric-card-header">
-              <div class="psychometric-card-icon">
-                <img class="img-fluid" src="{{ static('images/personality-icon.svg') }}" alt="Career interest assessment" />
-              </div>
-              <div>
-                <h3>Career Interest assessment</h3>
-                <p>Explore careers that match your interests and values</p>
-              </div>
-            </div>
-            <div class="psychometric-card-body">
-              <div class="psychometric-card-action">
-                <div class="view-rr">
-                  {% if test_completion.test2_complete %}
-                  <a href="{{ url('app:test2_report_html') }}" class="btn blue-button" style="width: 133px; display: inline-block; text-align: center; padding: 8px 0;">View report</a>
-                  {% else %}
-                  <form action="{{ url('app:test2-intro') }}" method="GET">
-                    <button type="submit" class="btn purple-button" style="width: 133px;">
-                      {% if test_started_status.test2_started %}Resume Test{% else %}Start Test{% endif %}
-                    </button>
-                  </form>
-                  {% endif %}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Test 3: Comprehensive Aptitude Assessment -->
-          <div class="psychometric-card">
-            <div class="psychometric-card-header">
-              <div class="psychometric-card-icon">
-                <img class="img-fluid" src="{{ static('images/aptitute-icon.svg') }}" alt="Comprehensive aptitude assessment" />
-              </div>
-              <div>
-                <h3>Comprehensive Aptitude assessment</h3>
-                <p>Assess your cognitive abilities across multiple dimensions</p>
-              </div>
-            </div>
-            <div class="psychometric-card-body">
-              <div class="psychometric-card-action mt-0">
-                <div class="view-rr">
-                  {% if test_completion and test_completion.test3_complete and all_test3_subtests_complete %}
-                  <a href="{{ url('app:test3_report_html') }}" class="btn blue-button" style="width: 133px; display: inline-block; text-align: center; padding: 8px 0;">View report</a>
-                  {% else %}
-                  <form action="{{ url('app:test3-intro') }}" method="GET">
-                    <button type="submit" class="btn purple-button mt-0" style="width: 133px;">
-                      {% if test_started_status.test3_started %}Resume Test{% else %}Start Test{% endif %}
-                    </button>
-                  </form>
-                  {% endif %}
-                </div>
-              </div>
-            </div>
-          </div>
+    {% include 'template20/psychometric/includes/class10_test_cards.html' %}
   </div>
 </div>
 {% endblock %}

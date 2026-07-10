@@ -158,6 +158,17 @@ class Institute(BaseModel, SlugModel):
         verbose_name="Credit Count",
         help_text="Number of credits allocated to the institute"
     )
+    assignment_credits = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Assignment credits",
+        help_text="Pool of credits consumed when assigning psychometric packages to students.",
+    )
+    psychometric_access_mode = models.CharField(
+        max_length=20,
+        choices=choices.PsychometricAccessMode.CHOICES,
+        default=choices.PsychometricAccessMode.FULL_BUNDLE,
+        verbose_name="Psychometric access mode",
+    )
     institute_group = models.ForeignKey(
         InstituteGroup,
         on_delete=models.SET_NULL,
@@ -265,6 +276,34 @@ class Institute(BaseModel, SlugModel):
         sm = StudentManagement.objects.filter(institute=self).count()
         current_credits = self.credit_counts - sm
         return 0 < current_credits <= self.credit_counts
+
+    def has_assignment_credits(self, amount):
+        return int(self.assignment_credits or 0) >= int(amount or 0)
+
+    def uses_package_psychometric_mode(self):
+        from django.conf import settings
+        if not getattr(settings, 'ENABLE_PSYCHOMETRIC_PACKAGES', False):
+            return False
+        return self.psychometric_access_mode == choices.PsychometricAccessMode.PACKAGE
+
+    def get_enabled_psychometric_package_codes(self):
+        """Package codes marketing assigned to this institute (empty = all active packages)."""
+        from psychometric_tests.models import InstitutePackagePrice
+
+        return list(
+            InstitutePackagePrice.objects.filter(institute=self)
+            .values_list('package__code', flat=True)
+        )
+
+    def get_psychometric_csv_package_choices(self):
+        from institute.psychometric_packages import (
+            get_package_choices_for_institute,
+            institute_package_mode_active,
+        )
+
+        if not institute_package_mode_active(self):
+            return []
+        return get_package_choices_for_institute(self)
 
     def clean(self):
         """
@@ -437,6 +476,13 @@ class InstituteTieUpLineItem(BaseModel):
         InstituteTieUpOrder, on_delete=models.CASCADE, related_name="line_items"
     )
     product_type = models.SmallIntegerField(choices=choices.TieUpProductType.CHOICES)
+    psychometric_package = models.ForeignKey(
+        'psychometric_tests.PsychometricPackage',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='tieup_line_items',
+    )
     quantity = models.PositiveIntegerField(default=1)
     unit_price = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     line_subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)

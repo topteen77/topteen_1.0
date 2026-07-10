@@ -71,6 +71,19 @@
           </td>
           <td class="text-end tieup-billing-subtotal tieup-subtotal" data-for="tieup_skilllab_qty">₹0.00</td>
         </tr>
+        <tr>
+          <td class="tieup-billing-product">
+            Psychometric assignment credits
+            <span class="tieup-billing-hint d-block">Pool for per-test package assignments</span>
+          </td>
+          <td>
+            <input type="number" class="form-control form-control-sm text-end tieup-qty" name="tieup_assignment_credits_qty" min="0" step="1" placeholder="0" data-unit="tieup_assignment_credits_price" value="{{ _ti.tieup_assignment_credits_qty|default('') }}">
+          </td>
+          <td>
+            <input type="number" class="form-control form-control-sm text-end tieup-price" name="tieup_assignment_credits_price" min="0" step="0.01" placeholder="0.00" value="{{ _ti.tieup_assignment_credits_price|default('') }}">
+          </td>
+          <td class="text-end tieup-billing-subtotal tieup-subtotal" data-for="tieup_assignment_credits_qty">₹0.00</td>
+        </tr>
       </tbody>
     </table>
   </div>

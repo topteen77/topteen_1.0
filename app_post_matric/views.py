@@ -260,33 +260,19 @@ def Home(request):
     from psychometric_tests.models import PsychometricTestPayment
     from core import choices
     from institute.models import StudentManagement
-    
+    from core.assessment_access import (
+        can_access_psychometric_dashboard,
+        institute_student_exempt_from_payment,
+    )
+
     # Check if user is authenticated and is an institute-registered student (exempt from payment check)
     if request.user.is_authenticated:
         is_institute_student = StudentManagement.objects.filter(student=request.user).exists()
-        
-        # Only check payment for non-institute students
-        if not is_institute_student:
-            # Determine student class from UserProfile
-            student_class = None
-            try:
-                user_profile = request.user.user_profile
-                if user_profile and user_profile.grade:
-                    student_class = str(user_profile.grade)
-            except (AttributeError, UserProfile.DoesNotExist):
-                pass
-            
-            # Check if user has purchased test for their class
-            if student_class == "12":
-                # Class 12 should have ADVANCED test (Career Direction)
-                has_payment = PsychometricTestPayment.objects.filter(
-                    user=request.user,
-                    test_type=choices.PsychometricTestType.ADVANCED,
-                    is_success=choices.YesNoChoices.YES
-                ).exists()
-                if not has_payment:
-                    # Redirect to Career Direction buy page
-                    return redirect(reverse('psychometrictests:PsychometricTest12'))
+
+        # Only check payment for non-exempt students
+        if not institute_student_exempt_from_payment(request.user):
+            if not can_access_psychometric_dashboard(request.user):
+                return redirect(reverse('psychometrictests:PsychometricTest12'))
     
     context = {}
     
@@ -403,6 +389,13 @@ def Tests(request):
     from psychometric_tests.models import PsychometricTestPayment
     from core import choices
     from institute.models import StudentManagement
+    from core.assessment_access import (
+        can_access_psychometric_dashboard,
+        get_student_entitled_assessment_codes,
+        has_post_matric_test_access,
+        institute_student_exempt_from_payment,
+        packages_enabled,
+    )
     
     # Debug logging
     print("\n" + "="*80)
@@ -412,28 +405,10 @@ def Tests(request):
     # Check if user is an institute-registered student (exempt from payment check)
     is_institute_student = StudentManagement.objects.filter(student=request.user).exists()
     
-    # Only check payment for non-institute students
-    if not is_institute_student:
-        # Determine student class from UserProfile
-        student_class = None
-        try:
-            user_profile = request.user.user_profile
-            if user_profile and user_profile.grade:
-                student_class = str(user_profile.grade)
-        except (AttributeError, UserProfile.DoesNotExist):
-            pass
-        
-        # Check if user has purchased test for their class
-        if student_class == "12":
-            # Class 12 should have ADVANCED test (Career Direction)
-            has_payment = PsychometricTestPayment.objects.filter(
-                user=request.user,
-                test_type=choices.PsychometricTestType.ADVANCED,
-                is_success=choices.YesNoChoices.YES
-            ).exists()
-            if not has_payment:
-                # Redirect to Career Direction buy page
-                return redirect(reverse('psychometrictests:PsychometricTest12'))
+    # Only check payment for non-exempt students
+    if not institute_student_exempt_from_payment(request.user):
+        if not can_access_psychometric_dashboard(request.user):
+            return redirect(reverse('psychometrictests:PsychometricTest12'))
     
     # Initialize test status dictionary with default values for all tests
     test_status = {
@@ -3214,7 +3189,10 @@ def Results_details(request):
     return render(request, "result-details.html")
 
 def Take_test(request, id):
-    
+    from core.assessment_access import redirect_if_no_post_matric_test_access
+    denied = redirect_if_no_post_matric_test_access(request, id)
+    if denied:
+        return denied
     return render(request, "template20/app_post_matric/take_test.html", {"test_id": id})
 
 def Test_details(request, id):

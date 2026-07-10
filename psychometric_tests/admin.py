@@ -1,5 +1,35 @@
 from django.contrib import admin
-from .models import PsychometricTestPayment,CentralTestCandidate,CandidateTest,PsychometricTestResult
+from .models import (
+    PsychometricTestPayment,
+    CentralTestCandidate,
+    CandidateTest,
+    PsychometricTestResult,
+    Assessment,
+    PsychometricPackage,
+    PackageAssessment,
+    InstitutePackagePrice,
+    StudentPackageAssignment,
+    StudentAssessmentEntitlement,
+)
+
+
+class PackageAssessmentInline(admin.TabularInline):
+    model = PackageAssessment
+    extra = 0
+
+
+class PsychometricPackageAdmin(admin.ModelAdmin):
+    list_display = ('code', 'name', 'track', 'credit_cost', 'list_price', 'is_legacy_bundle', 'is_active')
+    list_filter = ('track', 'is_legacy_bundle', 'is_active')
+    search_fields = ('code', 'name')
+    inlines = [PackageAssessmentInline]
+
+
+class AssessmentAdmin(admin.ModelAdmin):
+    list_display = ('code', 'name', 'track', 'engine_key', 'is_active')
+    list_filter = ('track', 'is_active')
+    search_fields = ('code', 'name')
+
 
 class PsychometricTestPaymentAdmin(admin.ModelAdmin):
     list_display = ['id', 'user', 'user_type_display', 'test_type', 'amount_display', 'is_success', 'gateway_receipt', 'created']
@@ -32,3 +62,8 @@ admin.site.register(PsychometricTestPayment,PsychometricTestPaymentAdmin)
 admin.site.register(CentralTestCandidate,CentralTestCandidateAdmin)
 admin.site.register(CandidateTest,CandidateTestAdmin)
 admin.site.register(PsychometricTestResult,PsychometricTestResultAdmin)
+admin.site.register(Assessment, AssessmentAdmin)
+admin.site.register(PsychometricPackage, PsychometricPackageAdmin)
+admin.site.register(InstitutePackagePrice)
+admin.site.register(StudentPackageAssignment)
+admin.site.register(StudentAssessmentEntitlement)

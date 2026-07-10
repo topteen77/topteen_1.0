@@ -4022,6 +4022,23 @@ body.ttv2-shell .ttv2-student-actions .btn.btn-outline-primary:hover{
   background: linear-gradient(135deg, #2563eb, #4f46e5);
   box-shadow: 0 8px 18px rgba(37,99,235,0.28);
 }
+body.ttv2-shell .ttv2-student-report-unavailable{
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px dashed #cbd5e1;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-student-report-unavailable{
+  color: #94a3b8;
+  background: rgba(148, 163, 184, 0.12);
+  border-color: rgba(148, 163, 184, 0.35);
+}
 body.ttv2-shell .ttv2-ca-side-card{
   border: 1px solid color-mix(in srgb, var(--c-border, var(--ttv2-border)) 78%, transparent);
   background:
@@ -5304,6 +5321,26 @@ body.ttv2-shell .ttv2-student-assessment-list .ttv2-chip{
 html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-student-assessment-list{
   border-color: rgba(148, 163, 184, 0.28);
   background: linear-gradient(180deg, rgba(148, 163, 184, 0.12), rgba(148, 163, 184, 0.05));
+}
+body.ttv2-shell .ttv2-student-package-banner{
+  margin: 8px 0 4px;
+}
+body.ttv2-shell .ttv2-student-package-badge{
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: #3f37c9;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-student-package-badge{
+  color: #c7d2fe;
+  background: rgba(99, 102, 241, 0.18);
+  border-color: rgba(148, 163, 184, 0.35);
 }
 
 /* Students insights (shared KPI + charts) */

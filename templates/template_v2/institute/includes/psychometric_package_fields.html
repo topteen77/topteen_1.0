@@ -1,0 +1,29 @@
+{# Psychometric package picker — shown when institute is in package assignment mode #}
+{% if institute_package_mode and psychometric_package_choices %}
+<div class="mb-3 psychometric-package-field" data-psych-package-field>
+  <label class="form-label">
+    {% if csv_bulk_upload is defined and csv_bulk_upload %}
+    Psychometric package for this upload
+    {% else %}
+    Psychometric package
+    {% endif %}
+    {% if not (csv_bulk_upload is defined and csv_bulk_upload) %}
+    <span class="text-danger">*</span>
+    {% endif %}
+  </label>
+  <select name="psychometric_package" class="form-select" {% if not (csv_bulk_upload is defined and csv_bulk_upload) %}required{% endif %}>
+    <option value="">{% if csv_bulk_upload is defined and csv_bulk_upload %}Select default package (optional if CSV has package_code)…{% else %}Select package…{% endif %}</option>
+    {% for pkg in psychometric_package_choices %}
+    <option value="{{ pkg.code }}">
+      {{ pkg.name }} ({{ pkg.credit_cost }} credit{% if pkg.credit_cost != 1 %}s{% endif %})
+    </option>
+    {% endfor %}
+  </select>
+  <small class="text-muted d-block mt-1">
+    {% if csv_bulk_upload is defined and csv_bulk_upload %}
+    Applied to every imported student unless the CSV includes a <code>package_code</code> column for that row.
+    {% endif %}
+    Assignment credits available: <strong>{{ institute_assignment_credits }}</strong>
+  </small>
+</div>
+{% endif %}

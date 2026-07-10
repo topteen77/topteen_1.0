@@ -313,10 +313,41 @@ class TieUpProductType(object):
     STUDENT_TEST_CREDITS=10
     COUNSELOR_COURSE_SEATS=20
     CAREER_READINESS_SKILLLAB=30
+    ASSIGNMENT_TEST_CREDITS=40
     CHOICES=(
         (STUDENT_TEST_CREDITS,"Exam credits"),
         (COUNSELOR_COURSE_SEATS,"Counsellor Course"),
         (CAREER_READINESS_SKILLLAB,"College & Career Readiness"),
+        (ASSIGNMENT_TEST_CREDITS,"Psychometric assignment credits"),
+    )
+
+
+class PsychometricAccessMode(object):
+    FULL_BUNDLE = 'full_bundle'
+    PACKAGE = 'package'
+    CHOICES = (
+        (FULL_BUNDLE, 'Full bundle (legacy)'),
+        (PACKAGE, 'Package-based assignment'),
+    )
+
+
+class PsychometricTrack(object):
+    CLASS10 = 'class10'
+    POST_MATRIC = 'post_matric'
+    CHOICES = (
+        (CLASS10, 'Class 10'),
+        (POST_MATRIC, 'Class 11-12'),
+    )
+
+
+class EntitlementSource(object):
+    LEGACY_BUNDLE = 'legacy_bundle'
+    PACKAGE_ASSIGNMENT = 'package_assignment'
+    ADMIN_GRANT = 'admin_grant'
+    CHOICES = (
+        (LEGACY_BUNDLE, 'Legacy bundle'),
+        (PACKAGE_ASSIGNMENT, 'Package assignment'),
+        (ADMIN_GRANT, 'Admin grant'),
     )
 
 
@@ -356,11 +387,13 @@ class CouponAppliesTo(object):
     STUDENT_TEST_CREDITS="student_test_credits"
     COUNSELOR_COURSE_SEATS="counselor_course_seats"
     CAREER_READINESS_SKILLLAB="career_readiness_skilllab"
+    ASSIGNMENT_TEST_CREDITS="assignment_test_credits"
     CHOICES=(
         (ALL,"All products"),
         (STUDENT_TEST_CREDITS,"Exam credits"),
         (COUNSELOR_COURSE_SEATS,"Counsellor Course"),
         (CAREER_READINESS_SKILLLAB,"College & Career Readiness"),
+        (ASSIGNMENT_TEST_CREDITS,"Psychometric assignment credits"),
     )
 
 class GenderChoices(object):

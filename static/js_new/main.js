@@ -999,6 +999,178 @@ if (document.readyState === 'loading') {
 // Initialize Google Translate — centralized show/hide language widget
 var ttLanguageWidgetReady = false;
 window.TT_INCLUDED_LANGUAGES = window.TT_INCLUDED_LANGUAGES || 'ar,as,awa,bn,bho,zh-CN,cs,dog,nl,en,fr,fr-CA,de,el,gu,hi,it,ja,kn,ks,kok,ko,mai,ms,ml,mr,mwr,mni,np,or,pa,pt,pt-BR,ru,sat,sd,es,sw,ta,te,tr,ur,vi,si,ne,tl,th,kk,uz';
+window.TT_TRANSLATE_COMPLEXITY_ENABLED = window.TT_TRANSLATE_COMPLEXITY_ENABLED !== false;
+window.TT_TRANSLATE_COMPLEXITY_API = window.TT_TRANSLATE_COMPLEXITY_API || '/api/translate-complexity/';
+
+var TT_COMPLEXITY_STORAGE_KEY = 'tt_translate_complexity';
+var TT_COMPLEXITY_HINTS = {
+  easy: 'Easy uses simple everyday words — best for younger students.',
+  medium: 'Medium keeps a balanced, clear tone.',
+  hard: 'Hard uses formal, academic language.'
+};
+var TT_CONTENT_ROOT_SELECTORS = ['main', '[role="main"]', '#content', '.main-content'];
+var TT_CONTENT_TEXT_SELECTORS = 'p, h1, h2, h3, h4, h5, h6, li, td, th, dt, dd, label, figcaption, blockquote, .card-text, .report-text';
+var TT_SKIP_ANCESTOR_SELECTORS = '#tt-language-widget, header, footer, nav, script, style, noscript, .goog-te-banner-frame, .skiptranslate, .tt-lang-widget, .modal';
+
+function getTranslateComplexity() {
+  try {
+    var stored = window.localStorage.getItem(TT_COMPLEXITY_STORAGE_KEY);
+    if (stored === 'easy' || stored === 'medium' || stored === 'hard') {
+      return stored;
+    }
+  } catch (e) {}
+  return 'easy';
+}
+
+function setTranslateComplexity(level) {
+  try {
+    window.localStorage.setItem(TT_COMPLEXITY_STORAGE_KEY, level);
+  } catch (e) {}
+}
+
+function getCsrfToken() {
+  var match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : '';
+}
+
+function getPageContentRoot() {
+  var index;
+  for (index = 0; index < TT_CONTENT_ROOT_SELECTORS.length; index += 1) {
+    var node = document.querySelector(TT_CONTENT_ROOT_SELECTORS[index]);
+    if (node) {
+      return node;
+    }
+  }
+  return document.body;
+}
+
+function shouldSkipTranslatedNode(node) {
+  if (!node || !node.closest) {
+    return true;
+  }
+  return !!node.closest(TT_SKIP_ANCESTOR_SELECTORS);
+}
+
+function collectTranslatableElements(root) {
+  var seen = new Set();
+  var elements = [];
+  root.querySelectorAll(TT_CONTENT_TEXT_SELECTORS).forEach(function (el) {
+    if (seen.has(el) || shouldSkipTranslatedNode(el)) {
+      return;
+    }
+    var text = (el.innerText || '').replace(/\s+/g, ' ').trim();
+    if (text.length < 20) {
+      return;
+    }
+    seen.add(el);
+    elements.push({ el: el, text: text });
+  });
+  return elements;
+}
+
+function chunkArray(items, size) {
+  var chunks = [];
+  var index;
+  for (index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
+}
+
+function showTranslateComplexityStatus(message, isError) {
+  var existing = document.getElementById('tt-translate-complexity-status');
+  if (existing) {
+    existing.remove();
+  }
+  var toast = document.createElement('div');
+  toast.id = 'tt-translate-complexity-status';
+  toast.className = 'tt-translate-complexity-status' + (isError ? ' is-error' : '');
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  window.setTimeout(function () {
+    if (toast.parentNode) {
+      toast.parentNode.removeChild(toast);
+    }
+  }, 3200);
+}
+
+var ttComplexityRequestToken = 0;
+
+function applyTranslateComplexity(langCode, level) {
+  if (!window.TT_TRANSLATE_COMPLEXITY_ENABLED || !langCode || langCode === 'en') {
+    return Promise.resolve();
+  }
+  if (level === 'medium') {
+    return Promise.resolve();
+  }
+
+  var requestToken = ++ttComplexityRequestToken;
+  var root = getPageContentRoot();
+  var items = collectTranslatableElements(root);
+  if (!items.length) {
+    return Promise.resolve();
+  }
+
+  showTranslateComplexityStatus('Adjusting reading level…', false);
+
+  var batches = chunkArray(items, 20);
+  var chain = Promise.resolve();
+
+  batches.forEach(function (batch) {
+    chain = chain.then(function () {
+      if (requestToken !== ttComplexityRequestToken) {
+        return;
+      }
+      return fetch(window.TT_TRANSLATE_COMPLEXITY_API, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCsrfToken()
+        },
+        body: JSON.stringify({
+          texts: batch.map(function (item) { return item.text; }),
+          target_lang: langCode,
+          level: level
+        })
+      }).then(function (response) {
+        return response.json().then(function (payload) {
+          if (requestToken !== ttComplexityRequestToken) {
+            return;
+          }
+          if (!response.ok || !payload.ok) {
+            throw new Error((payload && payload.error) || 'Adjustment failed');
+          }
+          payload.texts.forEach(function (value, index) {
+            if (value && batch[index] && batch[index].el) {
+              batch[index].el.textContent = value;
+            }
+          });
+        });
+      });
+    });
+  });
+
+  return chain.then(function () {
+    if (requestToken !== ttComplexityRequestToken) {
+      return;
+    }
+    var label = level.charAt(0).toUpperCase() + level.slice(1);
+    showTranslateComplexityStatus(label + ' reading level applied', false);
+  }).catch(function (error) {
+    if (requestToken !== ttComplexityRequestToken) {
+      return;
+    }
+    showTranslateComplexityStatus(error.message || 'Could not adjust reading level', true);
+  });
+}
+
+function scheduleTranslateComplexity(langCode, level, delayMs) {
+  window.clearTimeout(window._ttComplexityTimer);
+  window._ttComplexityTimer = window.setTimeout(function () {
+    applyTranslateComplexity(langCode, level);
+  }, delayMs || 1800);
+}
 
 function getIncludedLanguages() {
   return window.TT_INCLUDED_LANGUAGES || 'en';
@@ -1023,7 +1195,13 @@ function initCustomLanguageSelector() {
   var grid = document.getElementById('tt-lang-grid');
   var searchInput = document.getElementById('tt-lang-search');
   var resetBtn = widget.querySelector('[data-tt-lang-reset]');
+  var complexityWrap = document.getElementById('tt-lang-complexity-wrap');
+  var complexityHint = document.getElementById('tt-lang-complexity-hint');
+  var complexityButtons = complexityWrap
+    ? complexityWrap.querySelectorAll('[data-complexity]')
+    : [];
   var currentLanguage = 'en';
+  var currentComplexity = getTranslateComplexity();
   var isOpen = false;
 
   function getTranslateCombo() {
@@ -1058,8 +1236,45 @@ function initCustomLanguageSelector() {
 
   function updateTriggerLabels(langCode, langName) {
     document.querySelectorAll('[data-tt-lang-trigger] .tt-lang-toggle-label').forEach(function (labelEl) {
-      labelEl.textContent = langCode === 'en' ? 'Language' : langName;
+      if (langCode === 'en') {
+        labelEl.textContent = 'Language';
+        return;
+      }
+      var levelLabel = currentComplexity.charAt(0).toUpperCase() + currentComplexity.slice(1);
+      labelEl.textContent = langName + ' · ' + levelLabel;
     });
+  }
+
+  function updateComplexityUi() {
+    if (!complexityWrap) {
+      return;
+    }
+    var showComplexity = window.TT_TRANSLATE_COMPLEXITY_ENABLED && currentLanguage !== 'en';
+    complexityWrap.hidden = !showComplexity;
+    complexityButtons.forEach(function (btn) {
+      var level = btn.getAttribute('data-complexity');
+      var active = level === currentComplexity;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-checked', active ? 'true' : 'false');
+    });
+    if (complexityHint) {
+      complexityHint.textContent = TT_COMPLEXITY_HINTS[currentComplexity] || '';
+    }
+  }
+
+  function setComplexity(level, rerun) {
+    if (level !== 'easy' && level !== 'medium' && level !== 'hard') {
+      return;
+    }
+    currentComplexity = level;
+    setTranslateComplexity(level);
+    updateComplexityUi();
+    var activeBtn = grid && grid.querySelector('.tt-lang-option.is-active');
+    var langName = activeBtn ? activeBtn.textContent.trim() : 'English';
+    updateTriggerLabels(currentLanguage, langName);
+    if (rerun && currentLanguage !== 'en') {
+      scheduleTranslateComplexity(currentLanguage, currentComplexity, 300);
+    }
   }
 
   function selectLanguage(langCode, langName) {
@@ -1071,10 +1286,16 @@ function initCustomLanguageSelector() {
     combo.value = langCode;
     combo.dispatchEvent(new Event('change'));
     updateTriggerLabels(langCode, langName);
+    updateComplexityUi();
     grid.querySelectorAll('.tt-lang-option').forEach(function (btn) {
       btn.classList.toggle('is-active', btn.getAttribute('data-lang') === langCode);
     });
     setWidgetOpen(false);
+    if (langCode !== 'en') {
+      scheduleTranslateComplexity(langCode, currentComplexity, 1800);
+    } else {
+      ttComplexityRequestToken += 1;
+    }
   }
 
   function filterLanguages(query) {
@@ -1164,6 +1385,15 @@ function initCustomLanguageSelector() {
       });
     }
 
+    complexityButtons.forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        setComplexity(btn.getAttribute('data-complexity'), true);
+      });
+    });
+
+    setComplexity(currentComplexity, false);
+
     if (searchInput) {
       searchInput.addEventListener('input', function () {
         filterLanguages(searchInput.value);
@@ -1186,6 +1416,15 @@ function initCustomLanguageSelector() {
     };
   }
 
+  function readCookieLanguage() {
+    var match = document.cookie.match(/(?:^|;\s*)googtrans=([^;]+)/);
+    if (!match) {
+      return 'en';
+    }
+    var parts = decodeURIComponent(match[1]).split('/');
+    return parts.length >= 3 ? parts[2] : 'en';
+  }
+
   function waitForCombo(attempts) {
     if (ttLanguageWidgetReady) {
       return;
@@ -1194,6 +1433,15 @@ function initCustomLanguageSelector() {
     if (combo && combo.options.length > 1) {
       buildLanguageOptions(combo);
       bindControls();
+      var cookieLang = readCookieLanguage();
+      if (cookieLang && cookieLang !== 'en') {
+        currentLanguage = cookieLang;
+        var activeBtn = grid.querySelector('[data-lang="' + cookieLang + '"]');
+        var langName = activeBtn ? activeBtn.textContent.trim() : cookieLang;
+        updateTriggerLabels(cookieLang, langName);
+        updateComplexityUi();
+        scheduleTranslateComplexity(cookieLang, currentComplexity, 2200);
+      }
       return;
     }
     if ((attempts || 0) < 50) {

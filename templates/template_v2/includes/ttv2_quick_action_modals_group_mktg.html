@@ -67,6 +67,7 @@
               <input type="file" class="form-control" name="institute_logo" accept=".jpg,.png" required>
               <small class="text-muted">Accepted formats: JPG, PNG</small>
             </div>
+            {% include "template_v2/institute/includes/psychometric_institute_settings.html" %}
             {% with tieup_exam_credits_required=true, tieup_hide_coupon=true %}
             {% include "template_v2/institute/includes/tieup_billing_fields.html" %}
             {% endwith %}

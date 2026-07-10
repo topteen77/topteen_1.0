@@ -142,6 +142,7 @@ urlpatterns = [
     path("<slug:slug>/heatmap-legacy/", views.InstituteHeatmapView.as_view(), name="instituteheatmap_legacy"),
     # Assign institute student to counselor (AJAX)
     path("<slug:slug>/assign-counselor/", views.AssignStudentToCounselorView.as_view(), name="assign_student_counselor"),
+    path("<slug:slug>/assign-package/", views.AssignStudentPackageView.as_view(), name="assign_student_package"),
     # Change/unassign counselor for a student (AJAX)
     path("<slug:slug>/set-counselor/", views.SetStudentCounselorView.as_view(), name="set_student_counselor"),
     path("<slug:slug>/api/student_name_suggest/", views.institute_student_name_suggest, name="institute_student_name_suggest"),

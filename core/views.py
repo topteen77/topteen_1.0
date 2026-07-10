@@ -2835,3 +2835,48 @@ def eq_report_pdf(request, user_id=None):
     filename = _assessment_report_filename(target_user, "Emotional-Intelligence-Report")
     response["Content-Disposition"] = '%s; filename="%s"' % ("inline" if inline_preview else "attachment", filename)
     return response
+
+
+@require_POST
+def translate_complexity_api(request):
+    """
+    Adjust already-translated page text to easy / medium / hard reading level.
+    POST JSON: { texts: [...], target_lang: "hi", level: "easy" }
+    """
+    from core.translation_complexity import (
+        DEFAULT_TRANSLATION_COMPLEXITY,
+        TRANSLATION_MAX_SEGMENTS,
+        is_valid_complexity,
+    )
+    from core.translation_service import adjust_text_complexity, translation_complexity_available
+
+    try:
+        body = json.loads(request.body) if request.body else {}
+    except json.JSONDecodeError:
+        return JsonResponse({'ok': False, 'error': 'Invalid JSON'}, status=400)
+
+    texts = body.get('texts')
+    target_lang = (body.get('target_lang') or '').strip().lower()
+    level = (body.get('level') or DEFAULT_TRANSLATION_COMPLEXITY).strip().lower()
+
+    if not isinstance(texts, list) or not texts:
+        return JsonResponse({'ok': False, 'error': 'texts must be a non-empty array'}, status=400)
+    if len(texts) > TRANSLATION_MAX_SEGMENTS:
+        return JsonResponse(
+            {'ok': False, 'error': f'Maximum {TRANSLATION_MAX_SEGMENTS} text segments per request'},
+            status=400,
+        )
+    if not target_lang or target_lang == 'en':
+        return JsonResponse({'ok': False, 'error': 'target_lang required (not en)'}, status=400)
+    if not is_valid_complexity(level):
+        return JsonResponse({'ok': False, 'error': 'Invalid level (easy, medium, hard)'}, status=400)
+    if not translation_complexity_available():
+        return JsonResponse({'ok': False, 'error': 'Translation complexity is not configured'}, status=503)
+
+    try:
+        adjusted = adjust_text_complexity(texts, target_lang, level)
+    except Exception as exc:
+        logger.exception('translate_complexity_api failed')
+        return JsonResponse({'ok': False, 'error': str(exc)}, status=500)
+
+    return JsonResponse({'ok': True, 'texts': adjusted, 'level': level})

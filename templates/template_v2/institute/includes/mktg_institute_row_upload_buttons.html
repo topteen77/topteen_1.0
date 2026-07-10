@@ -13,6 +13,10 @@
           data-institute-id="{{ ins.id }}"
           data-institute-name="{{ ins.name }}"
           data-credits-remaining="{{ _row_rem }}"
+          {% if psychometric_packages_enabled is defined and psychometric_packages_enabled %}
+          data-assignment-credits="{{ ins.assignment_credits|default(0) }}"
+          data-package-choices='{{ ins.get_psychometric_csv_package_choices()|tojson }}'
+          {% endif %}
           title="Bulk upload students — Class 9–10 ({{ _row_rem }} credits left)">
     <i class="bx bx-cloud-upload" aria-hidden="true"></i>
     <span>Class 10</span>
@@ -24,6 +28,10 @@
           data-institute-id="{{ ins.id }}"
           data-institute-name="{{ ins.name }}"
           data-credits-remaining="{{ _row_rem }}"
+          {% if psychometric_packages_enabled is defined and psychometric_packages_enabled %}
+          data-assignment-credits="{{ ins.assignment_credits|default(0) }}"
+          data-package-choices='{{ ins.get_psychometric_csv_package_choices()|tojson }}'
+          {% endif %}
           title="Bulk upload students — Class 11–12 ({{ _row_rem }} credits left)">
     <i class="bx bx-cloud-upload" aria-hidden="true"></i>
     <span>Class 12</span>

@@ -20,12 +20,14 @@ _PRODUCT_TYPE_MAP = {
     "student_test_credits": choices.TieUpProductType.STUDENT_TEST_CREDITS,
     "counselor_course_seats": choices.TieUpProductType.COUNSELOR_COURSE_SEATS,
     "career_readiness_skilllab": choices.TieUpProductType.CAREER_READINESS_SKILLLAB,
+    "assignment_test_credits": choices.TieUpProductType.ASSIGNMENT_TEST_CREDITS,
 }
 
 _APPLIES_TO_PRODUCT = {
     choices.CouponAppliesTo.STUDENT_TEST_CREDITS: choices.TieUpProductType.STUDENT_TEST_CREDITS,
     choices.CouponAppliesTo.COUNSELOR_COURSE_SEATS: choices.TieUpProductType.COUNSELOR_COURSE_SEATS,
     choices.CouponAppliesTo.CAREER_READINESS_SKILLLAB: choices.TieUpProductType.CAREER_READINESS_SKILLLAB,
+    choices.CouponAppliesTo.ASSIGNMENT_TEST_CREDITS: choices.TieUpProductType.ASSIGNMENT_TEST_CREDITS,
 }
 
 _PRODUCT_LABELS = dict(choices.TieUpProductType.CHOICES)
@@ -65,6 +67,8 @@ def get_tieup_billing_form_initial(institute):
         "tieup_counselor_seats_price": "",
         "tieup_skilllab_qty": "",
         "tieup_skilllab_price": "",
+        "tieup_assignment_credits_qty": "",
+        "tieup_assignment_credits_price": "",
     }
     if not institute:
         return initial
@@ -86,6 +90,10 @@ def get_tieup_billing_form_initial(institute):
             "tieup_counselor_seats_price",
         ),
         "career_readiness_skilllab": ("tieup_skilllab_qty", "tieup_skilllab_price"),
+        "assignment_test_credits": (
+            "tieup_assignment_credits_qty",
+            "tieup_assignment_credits_price",
+        ),
     }
     if order:
         for li in order.line_items.all():
@@ -95,6 +103,8 @@ def get_tieup_billing_form_initial(institute):
                 continue
             initial[names[0]] = li.quantity
             initial[names[1]] = li.unit_price
+    elif int(institute.assignment_credits or 0) > 0:
+        initial["tieup_assignment_credits_qty"] = institute.assignment_credits
     elif int(institute.credit_counts or 0) > 0:
         initial["tieup_student_test_credits_qty"] = institute.credit_counts
     return initial
@@ -224,6 +234,7 @@ def parse_line_items_from_post(post):
         ("student_test_credits", "tieup_student_test_credits_qty", "tieup_student_test_credits_price"),
         ("counselor_course_seats", "tieup_counselor_seats_qty", "tieup_counselor_seats_price"),
         ("career_readiness_skilllab", "tieup_skilllab_qty", "tieup_skilllab_price"),
+        ("assignment_test_credits", "tieup_assignment_credits_qty", "tieup_assignment_credits_price"),
     ]
     lines = []
     for key, qty_field, price_field in specs:
@@ -1136,6 +1147,13 @@ def sync_student_test_credits(institute, quantity):
     institute.save(update_fields=["credit_counts", "modified"])
 
 
+def sync_assignment_test_credits(institute, quantity):
+    """Add assignment credits when assignment_test_credits line is received."""
+    from psychometric_tests.package_assignment import add_assignment_credits
+
+    add_assignment_credits(institute, int(quantity))
+
+
 @transaction.atomic
 def mark_line_item_received(line_item, user):
     if line_item.payment_status == choices.TieUpPaymentStatus.RECEIVED:
@@ -1149,6 +1167,8 @@ def mark_line_item_received(line_item, user):
     institute = line_item.order.institute
     if line_item.product_type == choices.TieUpProductType.STUDENT_TEST_CREDITS:
         sync_student_test_credits(institute, line_item.quantity)
+    elif line_item.product_type == choices.TieUpProductType.ASSIGNMENT_TEST_CREDITS:
+        sync_assignment_test_credits(institute, line_item.quantity)
     order = line_item.order
     if order.coupon_id and _order_fully_received(order):
         _increment_coupon_usage(order.coupon)
@@ -1177,6 +1197,8 @@ def _finalize_order_lines(order, payment, success):
             line.received_at = timezone.now()
             if line.product_type == choices.TieUpProductType.STUDENT_TEST_CREDITS:
                 sync_student_test_credits(institute, line.quantity)
+            elif line.product_type == choices.TieUpProductType.ASSIGNMENT_TEST_CREDITS:
+                sync_assignment_test_credits(institute, line.quantity)
         else:
             line.payment_status = choices.TieUpPaymentStatus.FAILED
         if payment:

@@ -1648,6 +1648,11 @@ def test_buttons(request):
     
     # Check if user is an institute-registered student (exempt from payment check)
     is_institute_student = StudentManagement.objects.filter(student=request.user).exists()
+    from core.assessment_access import (
+        build_class10_psychometric_page_context,
+        can_access_psychometric_dashboard,
+        institute_student_exempt_from_payment,
+    )
 
     # UPDATED: After completing all psychometric tests, institute students must add/verify mobile to continue.
     # Allow login, but block this dashboard/action until mobile is present.
@@ -1674,40 +1679,12 @@ def test_buttons(request):
     except Exception:
         pass
     
-    # Only check payment for non-institute students
-    if not is_institute_student:
-        # Check if user has purchased test for their class - protect test dashboard access
-        has_payment = False
-        if student_class == "10":
-            # Class 10 should have BASIC test (Stream Sorter)
-            has_payment = PsychometricTestPayment.objects.filter(
-                user=request.user,
-                test_type=choices.PsychometricTestType.BASIC,
-                is_success=choices.YesNoChoices.YES
-            ).exists()
-            if not has_payment:
-                # Redirect to Stream Sorter buy page
-                return redirect(reverse('psychometrictests:psychometrictest'))
-        elif student_class == "12":
-            # Class 12 should have ADVANCED test (Career Direction)
-            has_payment = PsychometricTestPayment.objects.filter(
-                user=request.user,
-                test_type=choices.PsychometricTestType.ADVANCED,
-                is_success=choices.YesNoChoices.YES
-            ).exists()
-            if not has_payment:
-                # Redirect to Career Direction buy page
+    # Only check payment for non-exempt students
+    if not institute_student_exempt_from_payment(request.user):
+        if not can_access_psychometric_dashboard(request.user):
+            if student_class == "12":
                 return redirect(reverse('psychometrictests:PsychometricTest12'))
-        else:
-            # Default to class 10 if class not determined
-            has_payment = PsychometricTestPayment.objects.filter(
-                user=request.user,
-                test_type=choices.PsychometricTestType.BASIC,
-                is_success=choices.YesNoChoices.YES
-            ).exists()
-            if not has_payment:
-                # Redirect to Stream Sorter buy page
-                return redirect(reverse('psychometrictests:psychometrictest'))
+            return redirect(reverse('psychometrictests:psychometrictest'))
 
     try:
         test_completion = TestCompletion.objects.get(user=request.user)
@@ -1755,6 +1732,7 @@ def test_buttons(request):
         "Grade:": grade,
         'student_class': student_class,  # "10" or "12" for filtering tests
         'all_test3_subtests_complete': all_test3_subtests_complete,
+        **build_class10_psychometric_page_context(request.user),
     }
     return render(request, 'template20/psychometric/home.html', context)
 
@@ -1805,6 +1783,10 @@ def test2_intro(request):
 
 @login_required(login_url=reverse_lazy('users:login'))
 def test3_intro(request):
+    from core.assessment_access import redirect_if_no_class10_test_access
+    denied = redirect_if_no_class10_test_access(request, 'test3')
+    if denied:
+        return denied
     # Ensure user PDF folder exists before starting test
     ensure_user_pdf_folder(request.user.id)
     try:
@@ -1819,6 +1801,9 @@ def test3_intro(request):
 
 @login_required(login_url=reverse_lazy('users:login'))
 def test1_view(request):
+    from core.assessment_access import has_class10_test_access
+    if not has_class10_test_access(request.user, 'test1'):
+        return redirect(reverse('app:test_buttons'))
     questions = Question.objects.filter(test_paper='test1')
     csrf_token = get_token(request)
     try:
@@ -1837,6 +1822,9 @@ def test1_view(request):
 
 @login_required(login_url=reverse_lazy('users:login'))
 def test2_view(request):
+    from core.assessment_access import has_class10_test_access
+    if not has_class10_test_access(request.user, 'test2'):
+        return redirect(reverse('app:test_buttons'))
     questions = list(Question.objects.filter(test_paper='test2'))
     csrf_token = get_token(request)
     try:
@@ -1859,6 +1847,9 @@ def test2_view(request):
 
 @login_required(login_url=reverse_lazy('users:login'))
 def test3_view(request):
+    from core.assessment_access import has_class10_test_access
+    if not has_class10_test_access(request.user, 'test3'):
+        return redirect(reverse('app:test_buttons'))
     context = {}
     if request.method == 'POST':
         test_paper = request.POST.get('test_paper')
@@ -2022,6 +2013,10 @@ def test3_view(request):
 
 @login_required(login_url=reverse_lazy('users:login'))
 def test3_numerical(request):
+    from core.assessment_access import redirect_if_no_class10_test_access
+    denied = redirect_if_no_class10_test_access(request, 'test3')
+    if denied:
+        return denied
     questions = list(Question.objects.filter(test_paper='test3', category='Numerical'))
     user = 'unique_identifier_for_test11'  # This should be dynamically determined
     try:
@@ -2048,6 +2043,10 @@ def test3_numerical(request):
 
 @login_required(login_url=reverse_lazy('users:login'))
 def test3_logical(request):
+    from core.assessment_access import redirect_if_no_class10_test_access
+    denied = redirect_if_no_class10_test_access(request, 'test3')
+    if denied:
+        return denied
     questions = list(Question.objects.filter(test_paper='test3', category ='Logical'))
     try:
         test_completion = TestCompletion.objects.get(user=request.user)
@@ -2073,6 +2072,10 @@ def test3_logical(request):
 
 @login_required(login_url=reverse_lazy('users:login'))
 def test3_verbal(request):
+    from core.assessment_access import redirect_if_no_class10_test_access
+    denied = redirect_if_no_class10_test_access(request, 'test3')
+    if denied:
+        return denied
     
     questions = list(Question.objects.filter(test_paper='test3', category ='Verbal'))
     try:
@@ -2099,6 +2102,10 @@ def test3_verbal(request):
 
 @login_required(login_url=reverse_lazy('users:login'))
 def test3_emotional(request):
+    from core.assessment_access import redirect_if_no_class10_test_access
+    denied = redirect_if_no_class10_test_access(request, 'test3')
+    if denied:
+        return denied
     questions = Question.objects.filter(test_paper='test3', category ='Emotional')
     try:
         test_completion = TestCompletion.objects.get(user=request.user)
@@ -2124,6 +2131,10 @@ def test3_emotional(request):
 
 @login_required(login_url=reverse_lazy('users:login'))
 def test3_language(request):
+    from core.assessment_access import redirect_if_no_class10_test_access
+    denied = redirect_if_no_class10_test_access(request, 'test3')
+    if denied:
+        return denied
     questions = Question.objects.filter(test_paper='test3', category ='Language')
     try:
         test_completion = TestCompletion.objects.get(user=request.user)
@@ -2149,6 +2160,10 @@ def test3_language(request):
 
 @login_required(login_url=reverse_lazy('users:login'))
 def test3_machanical(request):
+    from core.assessment_access import redirect_if_no_class10_test_access
+    denied = redirect_if_no_class10_test_access(request, 'test3')
+    if denied:
+        return denied
     questions = Question.objects.filter(test_paper='test3', category ='Mechanical')
     try:
         test_completion = TestCompletion.objects.get(user=request.user)
@@ -2174,6 +2189,10 @@ def test3_machanical(request):
 
 @login_required(login_url=reverse_lazy('users:login'))
 def test3_spatial(request):
+    from core.assessment_access import redirect_if_no_class10_test_access
+    denied = redirect_if_no_class10_test_access(request, 'test3')
+    if denied:
+        return denied
     questions = Question.objects.filter(test_paper='test3', category ='Spatial')
     try:
         test_completion = TestCompletion.objects.get(user=request.user)
@@ -2513,18 +2532,29 @@ def app_submit(request):
     }
     
     # Prepare context for rendering the template
+    from core.assessment_access import (
+        build_class10_psychometric_page_context,
+        has_legacy_full_bundle_access,
+    )
+
     context = {
         # 'analysis_content': analysis_content,
         'test_completion': test_completion,
         'test_started_status': test_started_status,
         'user_profile': user_profile,
         'all_test3_subtests_complete': all_subtests_complete,  # Add this for template check
+        **build_class10_psychometric_page_context(request.user),
     }
     generate_pdf(request)
     # When student has finished all tests, show psychometric dashboard
-    if (test_completion.test1_complete and test_completion.test2_complete and
-            test_completion.test3_complete and all_subtests_complete):
-        return redirect(reverse('app:dashboard'))
+    if has_legacy_full_bundle_access(request.user):
+        if (
+            test_completion.test1_complete
+            and test_completion.test2_complete
+            and test_completion.test3_complete
+            and all_subtests_complete
+        ):
+            return redirect(reverse('app:dashboard'))
     return render(request, 'template20/psychometric/test_submit.html', context)
 
 @login_required(login_url=reverse_lazy('users:login'))

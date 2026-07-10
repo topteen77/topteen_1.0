@@ -1,7 +1,7 @@
 {# Full institute edit modal — profile, approval, tie-up billing (marketing / group admin) #}
 {% set _ti = ins.tieup_form_initial if ins.tieup_form_initial is defined else {} %}
-<div class="modal fade ttv2-update-institute-modal" id="updateInstituteModal{{ ins.id }}" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable ttv2-create-institute-modal__dialog">
+<div class="modal fade ttv2-create-institute-modal ttv2-update-institute-modal" id="updateInstituteModal{{ ins.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered ttv2-create-institute-modal__dialog">
     <div class="modal-content border-0 shadow ttv2-create-institute-modal__content">
       <div class="modal-header border-bottom pb-3 flex-shrink-0">
         <div>
@@ -54,6 +54,9 @@
               <label class="form-label">Institute logo</label>
               <input type="file" name="institute_logo" class="form-control" accept=".jpg,.png">
               <small class="text-muted">Leave empty to keep current logo</small>
+            </div>
+            <div class="col-12">
+              {% include "template_v2/institute/includes/psychometric_institute_settings.html" %}
             </div>
             <div class="col-12">
               {% with tieup_exam_credits_required=true, tieup_hide_coupon=true, tieup_initial=_ti, tieup_edit_mode=true %}

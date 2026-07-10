@@ -118,6 +118,11 @@
   <script src="{{ static('js_new/bootstrap.min.js') }}"></script>
   <script src="{{ static('js_new/main.js') }}?v=20260706-4"></script>
   <script src="{{ static('js_new/search.js') }}"></script>
+  <script>
+    window.TT_INCLUDED_LANGUAGES = {{ translate_enabled_languages_csv | tojson }};
+    window.TT_TRANSLATE_COMPLEXITY_ENABLED = {{ translate_complexity_enabled | tojson }};
+    window.TT_TRANSLATE_COMPLEXITY_API = {{ translate_complexity_api_url | tojson }};
+  </script>
   <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
   {% block additionaljs %}

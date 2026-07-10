@@ -1857,10 +1857,17 @@ class ParentStudentSuggestedListView(TemplateView):
 def _compute_student_destination(user):
     """
     Returns a *relative* destination path for student users.
-    - Class 11/12 -> post_matric:tests
+    - Package students with incomplete entitled tests -> psychometric test home
+    - Class 11/12 legacy track -> post_matric:tests
     - Else -> users:userdashboard
     """
     try:
+        from core.assessment_access import get_package_student_login_redirect
+
+        package_dest = get_package_student_login_redirect(user)
+        if package_dest:
+            return package_dest
+
         sm = StudentManagement.objects.filter(student=user).first()
         if sm and sm.class_and_section and sm.class_and_section.class_and_section:
             class_prefix = sm.class_and_section.class_and_section[:2].strip()
@@ -3789,44 +3796,17 @@ class UserDashboard(TemplateView):
         if ctx.get("has_test_payment") and ctx.get("test_dashboard_url"):
             psychometric_action_label = "Start"
             psychometric_action_variant = "start"
+            psychometric_start_url = ctx["test_dashboard_url"]
+            psychometric_cta = None
             try:
-                if ctx["test_dashboard_url"] == reverse("app:dashboard"):
-                    psychometric_action_label = "View report"
-                    psychometric_action_variant = "report"
-                elif ctx.get("combined_report_url") and ctx["test_dashboard_url"] == ctx["combined_report_url"]:
-                    psychometric_action_label = "View combined report"
-                    psychometric_action_variant = "report"
-                else:
-                    # If student has started any psychometric test but not completed report flow,
-                    # show "Resume" instead of "Start" in My courses & tests.
-                    has_attempted_test = False
-                    if (ctx.get("test_name") or "").strip().lower() == "stream sorter":
-                        from app.models import TestCompletion, Results
-                        tc = TestCompletion.objects.filter(user=profile_user).first()
-                        if tc:
-                            has_attempted_test = any(
-                                [
-                                    bool(tc.test1_complete),
-                                    bool(tc.test2_complete),
-                                    bool(tc.test3_complete),
-                                    bool(tc.numerical_complete),
-                                    bool(tc.verbal_complete),
-                                    bool(tc.logical_complete),
-                                    bool(tc.emotional_complete),
-                                    bool(tc.machanical_complete),
-                                    bool(tc.language_complete),
-                                    bool(tc.spatial_complete),
-                                ]
-                            )
-                        if not has_attempted_test:
-                            has_attempted_test = Results.objects.filter(user=profile_user).exists()
-                    elif (ctx.get("test_name") or "").strip().lower() == "career direction":
-                        from app_post_matric.models import TestSession
-                        has_attempted_test = TestSession.objects.filter(user=profile_user).exists()
+                from core.assessment_access import get_student_psychometric_dashboard_cta
 
-                    if has_attempted_test:
-                        psychometric_action_label = "Resume"
-                        psychometric_action_variant = "start"
+                psychometric_cta = get_student_psychometric_dashboard_cta(profile_user)
+                psychometric_action_label = psychometric_cta["action_label"]
+                psychometric_action_variant = psychometric_cta["action_variant"]
+                psychometric_start_url = psychometric_cta["url"]
+                if psychometric_cta.get("test_name"):
+                    ctx["test_name"] = psychometric_cta["test_name"]
             except Exception:
                 pass
             ctx["dashboard_enrolled_items"].insert(
@@ -3834,8 +3814,8 @@ class UserDashboard(TemplateView):
                 {
                     "kind": "psychometric",
                     "title": ctx.get("test_name") or "Psychometric test",
-                    "subtitle": "Assessment",
-                    "start_url": ctx["test_dashboard_url"],
+                    "subtitle": psychometric_cta.get("subtitle", "Assessment") if psychometric_cta else "Assessment",
+                    "start_url": psychometric_start_url,
                     "action_label": psychometric_action_label,
                     "action_variant": psychometric_action_variant,
                     "icon_src": "images_new/icons/psychometric.png",

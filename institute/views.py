@@ -712,16 +712,25 @@ def _render_ttv2_tieup_payments_partial(request, ctx):
     return render(request, template, ctx)
 
 
+def _resolve_dashboard_institute_from_request(request):
+    """Institute from ?institute_slug= when the user may access it (marketing / group)."""
+    raw = (request.GET.get("institute_slug") or "").strip()
+    if not raw:
+        return None
+    inst = Institute.objects.filter(slug=raw).first()
+    if inst and user_manages_institute_for_api(request.user, inst):
+        return inst
+    return None
+
+
 def scoped_student_management_for_dashboard(request):
     """
     Role-scoped StudentManagement queryset for marketing / institute-group dashboards.
     Optional GET institute_slug=... narrows to one institute when the user may access it.
     """
-    raw = (request.GET.get("institute_slug") or "").strip()
-    if raw:
-        inst = Institute.objects.filter(slug=raw).first()
-        if inst and user_manages_institute_for_api(request.user, inst):
-            return get_students_by_role(request.user, counselor=None, institute=inst)
+    inst = _resolve_dashboard_institute_from_request(request)
+    if inst:
+        return get_students_by_role(request.user, counselor=None, institute=inst)
     if request.user.user_type == choices.UserType.INSTITUTEGROUPADMIN:
         return student_management_for_institute_group_admin(request.user)
     return get_students_by_role(request.user, counselor=None, institute=None)
@@ -1946,6 +1955,13 @@ class InstituteCreateView(TemplateView):
                 institute_status=initial_status,
             )
             ins.save()
+            from institute.psychometric_packages import (
+                apply_institute_psychometric_settings_from_post,
+                sync_institute_packages_from_post,
+            )
+
+            apply_institute_psychometric_settings_from_post(ins, request.POST, save=True)
+            sync_institute_packages_from_post(ins, request.POST)
             from institute.tieup_billing import (
                 create_tieup_order,
                 tieup_lines_for_institute_create,
@@ -2328,6 +2344,11 @@ class MarketingGroupDashboardView(TemplateView):
     
     def get_context(self, request, *args, **kwargs):
         ctx = {}
+        from core.assessment_access import packages_enabled
+        from institute.psychometric_packages import build_marketing_psychometric_form_ctx
+
+        ctx["psychometric_packages_enabled"] = packages_enabled()
+        ctx.update(build_marketing_psychometric_form_ctx())
         ctx["html_head"] = self.html_head()
         
         # Get search parameters
@@ -2784,12 +2805,13 @@ class MarketingGroupDashboardView(TemplateView):
                 .select_related("student", "class_and_section", "institute", "counselor")
                 .prefetch_related("counselors")
             )
+            scoped_institute = _resolve_dashboard_institute_from_request(request)
             iv = InstituteDashboardView()
             ctx = iv.get_student_table_context_ajax(
                 request,
                 *args,
                 stu_manage=stu_qs,
-                institute=None,
+                institute=scoped_institute,
                 **kwargs,
             )
             ctx["table_config"] = get_student_table_config("marketing")
@@ -3001,6 +3023,9 @@ class InstituteMarketingProfileEditView(TemplateView):
             or status_updated
             or tieup_qty_raw
             or parse_line_items_from_post(request.POST)
+            or request.POST.get("psychometric_access_mode")
+            or (request.POST.get("assignment_credits") or "").strip() != ""
+            or request.POST.getlist("institute_package_codes")
         )
         if profile_changed:
             if ins_name:
@@ -3017,7 +3042,14 @@ class InstituteMarketingProfileEditView(TemplateView):
                 ins.institute_group = institute_group
             if ins_logo:
                 ins.logo = ins_logo
+            from institute.psychometric_packages import (
+                apply_institute_psychometric_settings_from_post,
+                sync_institute_packages_from_post,
+            )
+
+            apply_institute_psychometric_settings_from_post(ins, request.POST, save=False)
             ins.save()
+            sync_institute_packages_from_post(ins, request.POST)
             try:
                 sync_institute_tieup_from_post(ins, request.user, request.POST)
             except ValueError as e:
@@ -3188,6 +3220,9 @@ class InstituteGroupDashboardView(TemplateView):
     
     def get_context(self,request,*args,**kwargs):
         ctx={}
+        from institute.psychometric_packages import build_marketing_psychometric_form_ctx
+
+        ctx.update(build_marketing_psychometric_form_ctx())
         ctx["html_head"] = self.html_head()
         
         # Check if this is an AJAX request for specific data
@@ -3509,12 +3544,13 @@ class InstituteGroupDashboardView(TemplateView):
                 .select_related("student", "class_and_section", "institute", "counselor")
                 .prefetch_related("counselors")
             )
+            scoped_institute = _resolve_dashboard_institute_from_request(request)
             iv = InstituteDashboardView()
             ctx = iv.get_student_table_context_ajax(
                 request,
                 *args,
                 stu_manage=stu_qs,
-                institute=None,
+                institute=scoped_institute,
                 **kwargs,
             )
             ctx["table_config"] = get_student_table_config("institute_group")
@@ -4275,11 +4311,10 @@ class InstituteDashboardView(TemplateView):
         try:
             if not test_completion:
                 # If no TestCompletion record exists, student hasn't taken any tests
-                from django.urls import reverse
                 return {
                     "streams": {},
                     "test_success": False,
-                    "test_link": reverse('app:test_buttons'),
+                    "test_link": None,
                     "success_count": 0,
                     "test_status": "no_tests",
                     "test_details": {
@@ -4366,20 +4401,20 @@ class InstituteDashboardView(TemplateView):
             else:
                 success_count = 0
             
-            # Get test link
+            # Get test link only when the full Class 10 bundle is complete.
+            # Never fall back to the test-home URL — that made Report open a non-report page.
             from django.urls import reverse
             test_link = None
             if test_status == "completed":
-                # Try to get latest result for test link
                 latest_result = None
                 if results_list:
-                    # Get the latest result by created date
                     latest_result = max(results_list, key=lambda r: r.created if hasattr(r, 'created') else r.id)
                     if latest_result:
-                        test_link = latest_result.get_test_report_or_test_link(user)
-            
-            if not test_link:
-                test_link = reverse('app:test_buttons')
+                        candidate = latest_result.get_test_report_or_test_link(user)
+                        if candidate and candidate != '#':
+                            test_link = candidate
+                if not test_link:
+                    test_link = reverse('app:dashboard_for_user', args=[user.id])
             
             return {
                 "streams": scores,
@@ -4397,11 +4432,10 @@ class InstituteDashboardView(TemplateView):
             
         except Exception as e:
             print(f"Error in _get_psychometric_test_result_optimized: {e}")
-            from django.urls import reverse
             return {
                 "streams": {},
                 "test_success": False,
-                "test_link": reverse('app:test_buttons'),
+                "test_link": None,
                 "success_count": 0,
                 "test_status": "no_tests",
                 "test_details": {
@@ -4667,6 +4701,15 @@ class InstituteDashboardView(TemplateView):
         ctx["central_test_candidate"]=CentralTestCandidate.objects.none()  # Don't load all
         ctx["institute"]=institute
         ctx["class_and_sections"]=class_and_sections
+        ctx["ttv2_dashboard_body_role"] = "institute"
+        if institute:
+            from institute.psychometric_packages import (
+                build_institute_package_dashboard_ctx,
+                get_student_package_labels_for_institute,
+            )
+
+            ctx.update(build_institute_package_dashboard_ctx(institute))
+            ctx["student_psychometric_packages"] = get_student_package_labels_for_institute(institute)
         ctx['class_counts']=class_counts  # Add class counts for dropdown
         ctx['unique_streams']=unique_streams  # Add unique streams for dropdown
         ctx['stu']=stu_manage  # Keep as QuerySet, don't convert to list
@@ -6771,6 +6814,40 @@ class InstituteDashboardView(TemplateView):
                     except Exception:
                         bulk_counselor_opts = []
 
+        pkg_ctx = {}
+        from institute.psychometric_packages import (
+            build_institute_package_dashboard_ctx,
+            build_roster_assessment_map,
+            get_student_package_labels_for_institute,
+            get_student_package_labels_for_user_ids,
+            institute_package_mode_active,
+        )
+        from core.assessment_access import packages_enabled
+
+        pkg_ctx["student_roster_assessments"] = build_roster_assessment_map(
+            page_list, results_data
+        )
+        pkg_ctx["psychometric_packages_enabled"] = packages_enabled()
+        if institute:
+            pkg_ctx.update(build_institute_package_dashboard_ctx(institute))
+            pkg_ctx["student_psychometric_packages"] = get_student_package_labels_for_institute(
+                institute
+            )
+        else:
+            page_student_ids = [sm.student_id for sm in page_list if sm.student_id]
+            pkg_ctx["student_psychometric_packages"] = get_student_package_labels_for_user_ids(
+                page_student_ids
+            )
+            # Multi-school roster (marketing / institute-group): keep package column
+            # and card badges available whenever the feature flag is on.
+            pkg_ctx["institute_package_mode"] = bool(packages_enabled()) and (
+                any(
+                    institute_package_mode_active(getattr(sm, "institute", None))
+                    for sm in page_list
+                )
+                or bool(pkg_ctx["student_psychometric_packages"])
+            )
+
         return {
             "total_students": total_students,
             "total_students_count": stu_manage.count(),
@@ -6786,6 +6863,7 @@ class InstituteDashboardView(TemplateView):
             "ttv2_counselors_by_institute_id": _ttv2_counselor_options_by_institute_id(page_list),
             "ttv2_bulk_counselor_options": bulk_counselor_opts,
             "ttv2_followup_latest_map": followup_latest_map,
+            **pkg_ctx,
         }
     
     def post(self, request, *args, **kwargs):
@@ -6814,6 +6892,8 @@ class InstituteDashboardView(TemplateView):
                 student.save()
                 stu_manage=StudentManagement(institute=institute,student=student,class_and_section=cas)
                 stu_manage.save()
+                from institute.psychometric_packages import maybe_assign_package_from_post
+                maybe_assign_package_from_post(request, institute, student)
                 update_student_data.delay(institute.id,institute.name)
                 create_student_and_send_mail.delay(stu_manage.id,semail,password,institute.name,institute.logo.url)
                 # messages.success(request, "{} Created".format(semail))
@@ -6835,6 +6915,44 @@ class InstituteDashboardView(TemplateView):
         ctx["error_list"]=error_list
         create_institute_log.delay(institute.id,error_list,len(email_list))
         return render(request, _dashboard_primary_template_name(self), ctx)
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
+@method_decorator(institute_authenticated_user_only, name='dispatch')
+class AssignStudentPackageView(View):
+    """Assign a psychometric package to an existing institute student."""
+
+    def post(self, request, *args, **kwargs):
+        slug = kwargs.get("slug")
+        institute = get_object_or_404(Institute, slug=slug)
+        sm_id = request.POST.get("student_management_id")
+        package_code = (request.POST.get("psychometric_package") or "").strip()
+
+        try:
+            sm_id = int(sm_id)
+        except (TypeError, ValueError):
+            messages.error(request, "Invalid student.")
+            return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/"))
+
+        sm = get_object_or_404(StudentManagement, id=sm_id, institute=institute)
+        student = sm.student
+        if not student:
+            messages.error(request, "Student account not found.")
+            return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/"))
+
+        from institute.psychometric_packages import try_assign_package_code
+
+        ok, message = try_assign_package_code(
+            institute,
+            student,
+            package_code,
+            assigned_by=request.user,
+        )
+        if ok:
+            messages.success(request, f"Package assigned to {student.email}.")
+        else:
+            messages.error(request, message or "Could not assign package.")
+        return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/"))
 
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
@@ -7267,6 +7385,8 @@ class InstituteStudentCreateView(TemplateView):
                 student=User.create_user(**user_dict)
                 stu_manage=StudentManagement(institute=institute,student=student,class_and_section=cas)
                 stu_manage.save()
+                from institute.psychometric_packages import maybe_assign_package_from_post
+                maybe_assign_package_from_post(request, institute, student)
                 update_student_data.delay(institute.id,institute.name)
                 create_student_and_send_mail.delay(stu_manage.id,stu_email,password,institute.name,institute.logo.url)
             else:
@@ -7355,6 +7475,7 @@ class InstituteCsvStudentCreateView(TemplateView):
         email_list = []
         row_number = 1
         imported_ok = 0
+        default_package_code = (request.POST.get('psychometric_package') or '').strip()
 
         for stu in stu_file:
             row_number += 1
@@ -7408,6 +7529,18 @@ class InstituteCsvStudentCreateView(TemplateView):
                         class_and_section=cas,
                     )
                     stu_manage.save()
+                    package_code = (
+                        stu_d.get('package_code')
+                        or stu_d.get('psychometric_package')
+                        or default_package_code
+                        or ''
+                    ).strip()
+                    from institute.psychometric_packages import try_assign_package_code
+                    ok_pkg, pkg_msg = try_assign_package_code(
+                        institute, student, package_code, assigned_by=request.user
+                    )
+                    if not ok_pkg and pkg_msg:
+                        messages.error(request, f'{stu_email}: {pkg_msg}')
                     update_student_data.delay(institute.id, institute.name)
                     create_student_and_send_mail.delay(
                         stu_manage.id,
@@ -7552,6 +7685,7 @@ class InstitutePostMatricCsvStudentCreateView(TemplateView):
         email_list = []
         row_number = 1
         imported_ok = 0
+        default_package_code = (request.POST.get('psychometric_package') or '').strip()
 
         for stu in stu_file:
             row_number += 1
@@ -7613,6 +7747,18 @@ class InstitutePostMatricCsvStudentCreateView(TemplateView):
                         class_and_section=cas,
                     )
                     stu_manage.save()
+                    package_code = (
+                        stu_d.get('package_code')
+                        or stu_d.get('psychometric_package')
+                        or default_package_code
+                        or ''
+                    ).strip()
+                    from institute.psychometric_packages import try_assign_package_code
+                    ok_pkg, pkg_msg = try_assign_package_code(
+                        institute, student, package_code, assigned_by=request.user
+                    )
+                    if not ok_pkg and pkg_msg:
+                        messages.error(request, f'{stu_email}: {pkg_msg}')
                     update_student_data.delay(institute.id, institute.name)
                     create_student_and_send_mail.delay(
                         stu_manage.id,

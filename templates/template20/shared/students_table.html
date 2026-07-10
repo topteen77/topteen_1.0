@@ -88,6 +88,11 @@
         <th class="ttv2-col-index ttv2-sticky-col">S. no.</th>
         <th class="ttv2-col-student ttv2-sticky-col">Student</th>
         <th>Class</th>
+        {% if institute_package_mode is defined and institute_package_mode %}
+        <th>Psychometric package</th>
+        {% elif psychometric_packages_enabled is defined and psychometric_packages_enabled %}
+        <th>Psychometric package</th>
+        {% endif %}
         {% if table_config and table_config.show_stream %}
         <th>Stream</th>
         {% endif %}
@@ -128,6 +133,7 @@
           {% set _cls = ((_class_section.class_and_section if (_class_section and _class_section.class_and_section) else '')|lower) %}
           {% set is_class10 = ('10' in _cls) %}
           {% set is_senior = (('11' in _cls) or ('12' in _cls)) %}
+          {% set _roster = (student_roster_assessments.get(_student.id) if (student_roster_assessments is defined and _student and student_roster_assessments.get(_student.id)) else none) %}
           {% set _class10_labels = ['Personality', 'Career interest', 'Aptitude'] %}
           {% set _class12_labels = ['Personality', 'Motivation', 'Career interest', 'Aptitude'] %}
           {% if is_class10 %}
@@ -150,14 +156,33 @@
             {% set _values = [td.get('test1'), td.get('test2'), td.get('test3'), td.get('test4')] %}
           {% endif %}
           {% set _report_ns = namespace(all_attempted=true) %}
-          {% for _rv in _values %}
-            {% set _rs = (_rv|string)|lower|trim %}
-            {% set _row_attempted = (_rv is sameas true) or (_rs in ['1', 'true', 'yes', 'y', 'completed', 'complete', 'done', 'attempted']) %}
-            {% if not _row_attempted %}
+          {% if _roster and _roster.rows is defined %}
+            {% for _row in _roster.rows %}
+              {% if not _row.attempted %}
+                {% set _report_ns.all_attempted = false %}
+              {% endif %}
+            {% endfor %}
+            {% if not (_roster.rows|length) %}
               {% set _report_ns.all_attempted = false %}
             {% endif %}
-          {% endfor %}
-          {% set report_url = (result.test_link if (result and result.test_link and _report_ns.all_attempted) else '') %}
+          {% else %}
+            {% for _rv in _values %}
+              {% set _rs = (_rv|string)|lower|trim %}
+              {% set _row_attempted = (_rv is sameas true) or (_rs in ['1', 'true', 'yes', 'y', 'completed', 'complete', 'done', 'attempted']) %}
+              {% if not _row_attempted %}
+                {% set _report_ns.all_attempted = false %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          {% set _rep = namespace(url='') %}
+          {% if _roster is not none %}
+            {% if _roster.report_ready and _roster.report_url %}
+              {% set _rep.url = _roster.report_url %}
+            {% endif %}
+          {% elif result and result.test_link and _report_ns.all_attempted and (result.test_status == 'completed') %}
+            {% set _rep.url = result.test_link %}
+          {% endif %}
+          {% set report_url = _rep.url %}
           {% set track = (result.track if (result and result.track) else '') %}
           {% set match = (result.match_pct if (result and result.match_pct) else '') %}
           {% set risk = (result.risk_score if (result and result.risk_score) else '') %}
@@ -236,6 +261,21 @@
               </div>
             </td>
             <td>{% if _class_section and _class_section.class_and_section %}{{ _class_section.class_and_section }}{% else %}-{% endif %}</td>
+            {% if (institute_package_mode is defined and institute_package_mode) or (psychometric_packages_enabled is defined and psychometric_packages_enabled) %}
+            <td class="small">
+              {% set _row_pkg = namespace(labels=[]) %}
+              {% if _roster and _roster.package_labels %}
+                {% set _row_pkg.labels = _roster.package_labels %}
+              {% elif _student and student_psychometric_packages is defined and student_psychometric_packages.get(_student.id) %}
+                {% set _row_pkg.labels = student_psychometric_packages.get(_student.id) %}
+              {% endif %}
+              {% if _row_pkg.labels %}
+                {{ _row_pkg.labels|join(', ') }}
+              {% else %}
+                <span class="text-muted">Not assigned</span>
+              {% endif %}
+            </td>
+            {% endif %}
             {% if table_config and table_config.show_stream %}
             <td>{% if _class_section and _class_section.stream %}{{ _class_section.stream }}{% else %}-{% endif %}</td>
             {% endif %}
@@ -371,7 +411,30 @@
             </td>
             <td>
               <div class="ttv2-table-report-cell">
-                {% if result %}
+                {% if _roster is not none %}
+                  {% if _roster.report_ready %}
+                    <span class="badge bg-success" title="Assigned package assessments complete">Complete</span>
+                  {% elif _roster.rows and (_roster.rows|selectattr('attempted')|list|length) > 0 %}
+                    <span class="badge bg-warning text-dark" title="Assigned package in progress">In progress</span>
+                  {% elif _roster.package_labels %}
+                    <span class="badge bg-secondary" title="Package assigned, not started">Pending</span>
+                  {% else %}
+                    <span class="badge bg-secondary" title="No package assigned">No package</span>
+                  {% endif %}
+                  {% if report_url %}
+                    <button type="button"
+                            class="btn btn-sm btn-outline-primary ttv2-table-inline-btn"
+                            data-ttv2-open-report
+                            data-ttv2-student-id="{{ _student.id if _student else '' }}"
+                            data-ttv2-report-url="{{ report_url }}"
+                            data-ttv2-report-title="{{ _student.name if (_student and _student.name) else 'Student report' }}">
+                      <i class="bx bx-bar-chart-alt-2" aria-hidden="true"></i>
+                      <span>Open report</span>
+                    </button>
+                  {% else %}
+                    <span class="ttv2-student-report-unavailable">No report yet</span>
+                  {% endif %}
+                {% elif result %}
                   {% if result.test_status == "completed" %}
                     <span class="badge bg-success" title="{{ result.tooltip }}">Complete</span>
                   {% elif result.test_status == "in_progress" %}
@@ -383,11 +446,14 @@
                     <button type="button"
                             class="btn btn-sm btn-outline-primary ttv2-table-inline-btn"
                             data-ttv2-open-report
+                            data-ttv2-student-id="{{ _student.id if _student else '' }}"
                             data-ttv2-report-url="{{ report_url }}"
                             data-ttv2-report-title="{{ _student.name if (_student and _student.name) else 'Student report' }}">
                       <i class="bx bx-bar-chart-alt-2" aria-hidden="true"></i>
                       <span>Open report</span>
                     </button>
+                  {% else %}
+                    <span class="ttv2-student-report-unavailable">No report yet</span>
                   {% endif %}
                 {% else %}
                   <span class="badge bg-secondary">-</span>
@@ -457,6 +523,16 @@
             {% endif %}
             <td>
               <div class="ttv2-table-action-stack">
+                {% if institute_package_mode is defined and institute_package_mode and institute is defined and institute.slug %}
+                  <button type="button"
+                          class="btn btn-sm btn-outline-primary ttv2-table-inline-btn"
+                          data-ttv2-assign-package-open
+                          data-sm-id="{{ _sm_id }}"
+                          data-student-label="{{ _student.email if _student else '-' }}">
+                    <i class="bx bx-package" aria-hidden="true"></i>
+                    <span>Assign package</span>
+                  </button>
+                {% endif %}
                 {% if not table_config or table_config.role != 'counselor' %}
                   <button type="button"
                           class="btn btn-sm btn-outline-secondary ttv2-table-inline-btn"

@@ -942,6 +942,7 @@ ICICI_EAZYPAY_PAYMENT_SUCESS_RESPONSE_CODE = config('ICICI_EAZYPAY_PAYMENT_SUCES
 # Psychometric Test Amounts
 STREAM_SORTER_TEST_AMOUNT = config('STREAM_SORTER_TEST_AMOUNT', default=999, cast=int)
 CAREER_DIRECTION_TEST_AMOUNT = config('CAREER_DIRECTION_TEST_AMOUNT', default=999, cast=int)
+ENABLE_PSYCHOMETRIC_PACKAGES = config('ENABLE_PSYCHOMETRIC_PACKAGES', default=False, cast=bool)
 
 LOGO_URL="https://topteen.in/static/images/logos/topteen-logo-with-text.png"
 TOPTEEN_EMAIL_LOGO_URL = config(

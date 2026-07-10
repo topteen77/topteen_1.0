@@ -4,8 +4,9 @@ from institute.models import StudentManagement,Institute,InstituteLog
 from users.models import UserProfile
 @app.task()
 def create_student_and_send_mail(stu_manage_id,email,password,ins_name,image_url):
-    sm=StudentManagement.objects.get(id=stu_manage_id)
-    sm.create_student_psychometric_test()
+    sm=StudentManagement.objects.select_related('institute').get(id=stu_manage_id)
+    if not sm.institute or not sm.institute.uses_package_psychometric_mode():
+        sm.create_student_psychometric_test()
     import time
     time.sleep(20)
     test_link=sm.get_student_test_link()

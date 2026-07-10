@@ -579,9 +579,15 @@
               <p class="ttv2-csv-format-hint-text mb-0">
                 Your CSV must match our column layout.
                 <a href="{{ url('institute:download_student_sample_csv') }}" target="_blank" rel="noopener" download>Download sample CSV</a>
+                {% if institute_package_mode is defined and institute_package_mode %}
+                — optional column <code>package_code</code> (e.g. <code>pkg_c10_personality</code>).
+                {% endif %}
               </p>
             </div>
           </div>
+          {% with csv_bulk_upload=true %}
+          {% include "template_v2/institute/includes/psychometric_package_fields.html" %}
+          {% endwith %}
           <div class="mb-0">
             <label class="form-label" for="bodyCsvMatric">CSV file <span class="text-danger">*</span></label>
             {% with field_id='bodyCsvMatric' %}
@@ -618,9 +624,15 @@
               <p class="ttv2-csv-format-hint-text mb-0">
                 Post-matric rows use a separate template.
                 <a href="{{ url('institute:post_matric_student_sample_csv') }}" target="_blank" rel="noopener" download>Download sample CSV</a>
+                {% if institute_package_mode is defined and institute_package_mode %}
+                — optional column <code>package_code</code> per row.
+                {% endif %}
               </p>
             </div>
           </div>
+          {% with csv_bulk_upload=true %}
+          {% include "template_v2/institute/includes/psychometric_package_fields.html" %}
+          {% endwith %}
           <div class="mb-0">
             <label class="form-label" for="bodyCsvPostMatric">CSV file <span class="text-danger">*</span></label>
             {% with field_id='bodyCsvPostMatric' %}

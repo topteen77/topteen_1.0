@@ -1,0 +1,7 @@
+{% if psychometric_custom_package_names %}
+<div class="psychometric-package-banner mb-3">
+  <span class="badge rounded-pill psychometric-package-badge">
+    Assigned package: {{ psychometric_custom_package_names|join(', ') }}
+  </span>
+</div>
+{% endif %}

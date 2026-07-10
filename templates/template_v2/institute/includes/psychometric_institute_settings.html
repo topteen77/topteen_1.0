@@ -1,0 +1,70 @@
+{# Institute psychometric package settings (marketing create / edit) #}
+{% if psychometric_packages_enabled %}
+<div class="col-12 psychometric-institute-settings" data-psych-institute-settings>
+  <div class="border rounded p-3 bg-light">
+    <h6 class="fw-semibold mb-2">Psychometric packages</h6>
+    <p class="text-muted small mb-3 mb-md-2">
+      Choose <strong>Package-based assignment</strong> to sell individual tests. Pick which enabled packages
+      this institute may assign to students. Legacy institutes keep <strong>Full bundle</strong> behavior.
+    </p>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">Psychometric access mode</label>
+        <select name="psychometric_access_mode"
+                class="form-select"
+                data-psych-access-mode
+                aria-controls="psychPackageCatalog{{ ins.id if ins is defined and ins else 'new' }}">
+          {% set _mode = ins.psychometric_access_mode if ins is defined and ins else 'full_bundle' %}
+          <option value="full_bundle" {% if _mode == 'full_bundle' %}selected{% endif %}>
+            Full bundle (legacy)
+          </option>
+          <option value="package" {% if _mode == 'package' %}selected{% endif %}>
+            Package-based assignment
+          </option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Assignment credits (pool)</label>
+        <input type="number"
+               name="assignment_credits"
+               class="form-control"
+               min="0"
+               step="1"
+               value="{{ ins.assignment_credits|default(0) if ins is defined and ins else 0 }}">
+        <small class="text-muted">Credits consumed when the institute assigns packages to students.</small>
+      </div>
+      <div class="col-12 {% if _mode != 'package' %}d-none{% endif %}"
+           id="psychPackageCatalog{{ ins.id if ins is defined and ins else 'new' }}"
+           data-psych-package-catalog>
+        <label class="form-label mb-2">Enabled packages for this institute</label>
+        {% set _catalog = psychometric_catalog_packages if psychometric_catalog_packages is defined else [] %}
+        {% set _enabled = ins.get_enabled_psychometric_package_codes() if ins is defined and ins else [] %}
+        {% if _catalog %}
+        <div class="row g-2">
+          {% for pkg in _catalog %}
+          <div class="col-md-6 col-lg-4">
+            <div class="form-check border rounded px-3 py-2 h-100 bg-white">
+              <input class="form-check-input"
+                     type="checkbox"
+                     name="institute_package_codes"
+                     value="{{ pkg.code }}"
+                     id="pkg-{{ ins.id if ins is defined and ins else 'new' }}-{{ pkg.code }}"
+                     {% if not _enabled or pkg.code in _enabled %}checked{% endif %}>
+              <label class="form-check-label small"
+                     for="pkg-{{ ins.id if ins is defined and ins else 'new' }}-{{ pkg.code }}">
+                <span class="fw-semibold d-block">{{ pkg.name }}</span>
+                <span class="text-muted">{{ pkg.credit_cost }} credit{% if pkg.credit_cost != 1 %}s{% endif %} per student</span>
+              </label>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <small class="text-muted d-block mt-2">Only admin-enabled packages are listed. Uncheck to remove a package from this institute.</small>
+        {% else %}
+        <p class="text-muted small mb-0">No active packages in the catalog. Ask admin to enable packages or run <code>seed_psychometric_packages</code>.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}

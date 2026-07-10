@@ -1,0 +1,93 @@
+<!-- Test 1: Personality Assessment -->
+{% if show_all_psychometric_tests is not defined or show_all_psychometric_tests or test_access.test1 or test_completion.test1_complete %}
+<div class="psychometric-card">
+  <div class="psychometric-card-header">
+    <div class="psychometric-card-icon">
+      <img class="img-fluid" src="{{ static('images/interest-icon.svg') }}" alt="Personality assessment" />
+    </div>
+    <div>
+      <h3>Personality assessment</h3>
+      <p>Discover your personality traits and career preferences</p>
+    </div>
+  </div>
+  <div class="psychometric-card-body">
+    <div class="psychometric-card-action">
+      <div class="view-rr">
+        {% if test_completion.test1_complete %}
+          <a href="{{ url('app:test1_report_html') }}" class="btn blue-button psychometric-btn">View report</a>
+        {% elif test_access is defined and not test_access.test1 %}
+          <button type="button" class="btn btn-secondary psychometric-btn" disabled title="Not included in your assigned package">Locked</button>
+        {% else %}
+          <form action="{{ url('app:test1-intro') }}" method="GET">
+            <button type="submit" class="btn purple-button psychometric-btn">Start Test</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Test 2: Career Interest Assessment -->
+{% if show_all_psychometric_tests is not defined or show_all_psychometric_tests or test_access.test2 or test_completion.test2_complete %}
+<div class="psychometric-card">
+  <div class="psychometric-card-header">
+    <div class="psychometric-card-icon">
+      <img class="img-fluid" src="{{ static('images/personality-icon.svg') }}" alt="Career interest assessment" />
+    </div>
+    <div>
+      <h3>Career Interest assessment</h3>
+      <p>Explore careers that match your interests and values</p>
+    </div>
+  </div>
+  <div class="psychometric-card-body">
+    <div class="psychometric-card-action">
+      <div class="view-rr">
+        {% if test_completion.test2_complete %}
+          <a href="{{ url('app:test2_report_html') }}" class="btn blue-button psychometric-btn">View report</a>
+        {% elif test_access is defined and not test_access.test2 %}
+          <button type="button" class="btn btn-secondary psychometric-btn" disabled title="Not included in your assigned package">Locked</button>
+        {% else %}
+          <form action="{{ url('app:test2-intro') }}" method="GET">
+            <button type="submit" class="btn purple-button psychometric-btn">
+              {% if test_started_status.test2_started %}Resume Test{% else %}Start Test{% endif %}
+            </button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Test 3: Comprehensive Aptitude Assessment -->
+{% if show_all_psychometric_tests is not defined or show_all_psychometric_tests or test_access.test3 or test_completion.test3_complete %}
+<div class="psychometric-card">
+  <div class="psychometric-card-header">
+    <div class="psychometric-card-icon">
+      <img class="img-fluid" src="{{ static('images/aptitute-icon.svg') }}" alt="Comprehensive aptitude assessment" />
+    </div>
+    <div>
+      <h3>Comprehensive Aptitude assessment</h3>
+      <p>Assess your cognitive abilities across multiple dimensions</p>
+    </div>
+  </div>
+  <div class="psychometric-card-body">
+    <div class="psychometric-card-action mt-0">
+      <div class="view-rr">
+        {% if test_completion and test_completion.test3_complete %}
+          <a href="{{ url('app:test3_report_html') }}" class="btn blue-button psychometric-btn">View report</a>
+        {% elif test_access is defined and not test_access.test3 %}
+          <button type="button" class="btn btn-secondary psychometric-btn" disabled title="Not included in your assigned package">Locked</button>
+        {% else %}
+          <form action="{{ url('app:test3-intro') }}" method="GET">
+            <button type="submit" class="btn purple-button psychometric-btn mt-0">
+              {% if test_started_status.test3_started %}Resume Test{% else %}Start Test{% endif %}
+            </button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}

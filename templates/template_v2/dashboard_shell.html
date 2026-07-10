@@ -31,46 +31,72 @@ body.ttv2-shell .ttv2-topbar-pay-now {
   box-shadow: 0 1px 2px rgba(245, 158, 11, 0.25);
 }
 
-/* Create institute modal — wider dialog, scrollable body, fixed header/footer */
-#ttv2AddInstituteModal .ttv2-create-institute-modal__dialog,
-#addInstituteModal .ttv2-create-institute-modal__dialog {
+/* Create / update institute modals — wider dialog, scrollable body, fixed header/footer */
+.ttv2-create-institute-modal .ttv2-create-institute-modal__dialog,
+.ttv2-update-institute-modal .ttv2-create-institute-modal__dialog {
   max-width: min(920px, 96vw);
   width: 96vw;
   margin: 0.75rem auto;
   max-height: calc(100vh - 1.5rem);
 }
-#ttv2AddInstituteModal .ttv2-create-institute-modal__content,
-#addInstituteModal .ttv2-create-institute-modal__content {
+.ttv2-create-institute-modal .ttv2-create-institute-modal__content,
+.ttv2-update-institute-modal .ttv2-create-institute-modal__content {
   max-height: calc(100vh - 1.5rem);
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
-#ttv2AddInstituteModal .ttv2-create-institute-modal__form,
-#addInstituteModal .ttv2-create-institute-modal__form {
+.ttv2-create-institute-modal .ttv2-create-institute-modal__form,
+.ttv2-update-institute-modal .ttv2-create-institute-modal__form {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
 }
-#ttv2AddInstituteModal .ttv2-create-institute-modal__body,
-#addInstituteModal .ttv2-create-institute-modal__body {
+.ttv2-create-institute-modal .ttv2-create-institute-modal__body,
+.ttv2-update-institute-modal .ttv2-create-institute-modal__body {
   overflow-y: auto;
   overflow-x: hidden;
   flex: 1 1 auto;
   min-height: 0;
   max-height: calc(100vh - 11.5rem);
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 @media (max-width: 575.98px) {
-  #ttv2AddInstituteModal .ttv2-create-institute-modal__body,
-  #addInstituteModal .ttv2-create-institute-modal__body {
+  .ttv2-create-institute-modal .ttv2-create-institute-modal__body,
+  .ttv2-update-institute-modal .ttv2-create-institute-modal__body {
     max-height: calc(100vh - 10rem);
   }
 }
 
 </style>
+<script>
+(function () {
+  if (window.__psychInstituteSettingsBound) return;
+  window.__psychInstituteSettingsBound = true;
+  function syncPsychPackageCatalog(select) {
+    if (!select) return;
+    var targetId = select.getAttribute('aria-controls');
+    if (!targetId) return;
+    var catalog = document.getElementById(targetId);
+    if (!catalog) return;
+    if (select.value === 'package') catalog.classList.remove('d-none');
+    else catalog.classList.add('d-none');
+  }
+  document.addEventListener('change', function (e) {
+    var el = e && e.target;
+    if (!el || !el.matches || !el.matches('[data-psych-access-mode]')) return;
+    syncPsychPackageCatalog(el);
+  });
+  document.addEventListener('shown.bs.modal', function (e) {
+    var modal = e && e.target;
+    if (!modal || !modal.querySelectorAll) return;
+    modal.querySelectorAll('[data-psych-access-mode]').forEach(syncPsychPackageCatalog);
+  });
+})();
+</script>
 
 {% endblock %}
 
@@ -384,6 +410,14 @@ body.ttv2-shell .ttv2-topbar-pay-now {
           u.searchParams.set('user_id', String(sid));
           if (u.pathname.indexOf('combined_report') !== -1) {
             u.pathname = u.pathname.replace(/combined_report\/\d+/, 'combined_report/' + String(sid));
+          }
+          if (/\/test[123]_report\/?$/.test(u.pathname)) {
+            u.pathname = u.pathname.replace(/\/test[123]_report\/?$/, function (m) {
+              return m.replace(/\/?$/, '/') + String(sid);
+            });
+          }
+          if (u.pathname.indexOf('/dashboard/') !== -1 && !/\/dashboard\/\d+/.test(u.pathname)) {
+            u.pathname = u.pathname.replace(/\/dashboard\/?$/, '/dashboard/' + String(sid));
           }
         }
         return u.toString();

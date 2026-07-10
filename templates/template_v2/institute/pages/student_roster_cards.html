@@ -15,6 +15,14 @@
         {% set _cls = ((cas.class_and_section if (cas and cas.class_and_section) else '')|lower) %}
         {% set is_class10 = ('10' in _cls) %}
         {% set is_senior = (('11' in _cls) or ('12' in _cls)) %}
+        {% set _roster = (student_roster_assessments.get(u.id) if (student_roster_assessments is defined and u and student_roster_assessments.get(u.id)) else none) %}
+        {% set _pkg = namespace(labels=[]) %}
+        {% if _roster and _roster.package_labels %}
+          {% set _pkg.labels = _roster.package_labels %}
+        {% elif u and student_psychometric_packages is defined and student_psychometric_packages.get(u.id) %}
+          {% set _pkg.labels = student_psychometric_packages.get(u.id) %}
+        {% endif %}
+        {% set _pkg_labels = _pkg.labels %}
         {% set _class10_labels = [
           'Personality Assessment',
           'Career Interest assessment',
@@ -46,13 +54,21 @@
           {% set _values = [td.get('test1'), td.get('test2'), td.get('test3'), td.get('test4')] %}
         {% endif %}
         {% set _report_ns = namespace(all_attempted=true) %}
-        {% for _rv in _values %}
-          {% set _rs = (_rv|string)|lower|trim %}
-          {% set _row_attempted = (_rv is sameas true) or (_rs in ['1', 'true', 'yes', 'y', 'completed', 'complete', 'done', 'attempted']) %}
-          {% if not _row_attempted %}
-            {% set _report_ns.all_attempted = false %}
-          {% endif %}
-        {% endfor %}
+        {% if _roster and _roster.rows is defined %}
+          {% for _row in _roster.rows %}
+            {% if not _row.attempted %}
+              {% set _report_ns.all_attempted = false %}
+            {% endif %}
+          {% endfor %}
+        {% else %}
+          {% for _rv in _values %}
+            {% set _rs = (_rv|string)|lower|trim %}
+            {% set _row_attempted = (_rv is sameas true) or (_rs in ['1', 'true', 'yes', 'y', 'completed', 'complete', 'done', 'attempted']) %}
+            {% if not _row_attempted %}
+              {% set _report_ns.all_attempted = false %}
+            {% endif %}
+          {% endfor %}
+        {% endif %}
         {% set track = (r.track if (r and r.track) else '') %}
         {% set match = (r.match_pct if (r and r.match_pct) else '') %}
         {% set risk = (r.risk_score if (r and r.risk_score) else '') %}
@@ -64,7 +80,16 @@
         {% set eq = (_eq_raw is sameas true) or (_eq_s in ['1', 'true', 'yes', 'y', 'completed', 'complete', 'done', 'attempted']) %}
         {% set mi_report_url = (r.mi_report_url if (r and r.mi_report_url) else '') %}
         {% set eq_report_url = (r.eq_report_url if (r and r.eq_report_url) else '') %}
-        {% set report_url = (r.test_link if (r and r.test_link and _report_ns.all_attempted) else '') %}
+        {# namespace avoids Jinja for-loop scoping so report_url cannot leak across cards #}
+        {% set _rep = namespace(url='') %}
+        {% if _roster is not none %}
+          {% if _roster.report_ready and _roster.report_url %}
+            {% set _rep.url = _roster.report_url %}
+          {% endif %}
+        {% elif r and r.test_link and _report_ns.all_attempted and (r.test_status == 'completed') %}
+          {% set _rep.url = r.test_link %}
+        {% endif %}
+        {% set report_url = _rep.url %}
         {% set abroad = (r.abroad_exploring if (r and r.abroad_exploring) else false) %}
         {% set _fu = (ttv2_followup_latest_map.get(sm.id) if (ttv2_followup_latest_map is defined and ttv2_followup_latest_map) else none) %}
         {% set _is_counselor_roster = (ttv2_students_role is defined and ttv2_students_role == 'counselor') %}
@@ -101,7 +126,7 @@
            tabindex="0"
            data-ttv2-student-id="{{ u.id if u else '' }}"
            data-ttv2-student-name="{{ u.name if (u and u.name) else '' }}"
-           data-ttv2-report-url="{{ report_url }}">
+           {% if report_url %}data-ttv2-report-url="{{ report_url }}"{% endif %}>
           <div class="ttv2-student-card-head">
             <div class="ttv2-student-avatar">{{ (u.name[0] if (u and u.name) else 'S')|upper }}</div>
             <div class="min-w-0 flex-grow-1">
@@ -218,7 +243,33 @@
 
           <div class="ttv2-student-hr" aria-hidden="true"></div>
 
+          {% if _pkg_labels %}
+          <div class="ttv2-student-package-banner">
+            <span class="ttv2-student-package-badge">Package: {{ _pkg_labels|join(', ') }}</span>
+          </div>
+          {% endif %}
+
           <div class="ttv2-student-bars ttv2-student-assessment-list">
+            {% if _roster is not none and _roster.rows is defined and (_roster.rows|length) > 0 %}
+              {% for _row in _roster.rows %}
+              <div class="ttv2-student-barrow">
+                <div class="ttv2-student-barlabel">{{ _row.label }}</div>
+                <div style="display:flex;justify-content:flex-end;">
+                  <span class="ttv2-chip {% if _row.attempted %}ttv2-chip--solid{% else %}ttv2-chip--disabled{% endif %}">
+                    {% if _row.attempted %}Completed{% else %}Not attempted{% endif %}
+                  </span>
+                </div>
+              </div>
+              {% endfor %}
+            {% elif _roster is not none and not _roster.show_all_tests %}
+              <div class="ttv2-student-barrow">
+                <div class="ttv2-student-barlabel text-muted">No package assigned</div>
+              </div>
+            {% elif institute_package_mode is defined and institute_package_mode %}
+              <div class="ttv2-student-barrow">
+                <div class="ttv2-student-barlabel text-muted">No package assigned</div>
+              </div>
+            {% else %}
             {% for _label in _labels %}
               {% set _v = _values[loop.index0] if (loop.index0 < (_values|length)) else none %}
               {% set _s = (_v|string)|lower|trim %}
@@ -227,29 +278,29 @@
                 <div class="ttv2-student-barlabel">{{ _label }}</div>
                 <div style="display:flex;justify-content:flex-end;">
                   <span class="ttv2-chip {% if _attempted %}ttv2-chip--solid{% else %}ttv2-chip--disabled{% endif %}">
-                    {% if _attempted %}Attempted{% else %}Not attempted{% endif %}
+                    {% if _attempted %}Completed{% else %}Not attempted{% endif %}
                   </span>
                 </div>
               </div>
             {% endfor %}
+            {% endif %}
           </div>
 
           <div class="ttv2-student-actions st-mob-btn">
             <div class="ttv2-student-actions-primary">
+              {% if report_url %}
               <button type="button"
-                      class="btn btn-sm btn-outline-primary {% if not report_url %}disabled{% endif %}"
-                      {% if report_url %}
-                        data-ttv2-open-report
-                        data-ttv2-student-id="{{ u.id if u else '' }}"
-                        data-ttv2-report-url="{{ report_url }}"
-                        data-ttv2-report-title="{{ u.name if (u and u.name) else 'Student report' }}"
-                      {% else %}
-                        disabled
-                        aria-disabled="true"
-                      {% endif %}>
+                      class="btn btn-sm btn-outline-primary"
+                      data-ttv2-open-report
+                      data-ttv2-student-id="{{ u.id if u else '' }}"
+                      data-ttv2-report-url="{{ report_url }}"
+                      data-ttv2-report-title="{{ u.name if (u and u.name) else 'Student report' }}">
                 <i class="bx bx-bar-chart-alt-2" aria-hidden="true"></i>
                 <span>Report</span>
               </button>
+              {% else %}
+              <span class="ttv2-student-report-unavailable" title="Report available after assigned assessments are completed">No report yet</span>
+              {% endif %}
             </div>
             {% if (_is_counselor_roster and _has_followup_modal) or (not _is_counselor_roster) or ((_has_followup_modal and _fu and _fu.show_followup_btn and not _is_counselor_roster) or (_adv and _set_counselor_url != '#')) %}
               <div class="ttv2-student-actions-secondary">

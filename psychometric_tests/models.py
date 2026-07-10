@@ -207,3 +207,161 @@ class PsychometricFAQ(BaseModel):
     question = models.CharField(max_length=300,null=True)
     answer = RichTextField(null=True)
     priority = models.PositiveSmallIntegerField(default=1,help_text="1 is higher than 2")
+
+
+class Assessment(BaseModel):
+    """Atomic psychometric test unit (personality, interest, aptitude, etc.)."""
+    code = models.SlugField(max_length=80, unique=True)
+    name = models.CharField(max_length=200)
+    track = models.CharField(max_length=20, choices=choices.PsychometricTrack.CHOICES)
+    engine_key = models.CharField(
+        max_length=40,
+        help_text="Class 10: test1/test2/test3. Post-matric: post_matric Test pk as string.",
+    )
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ('track', 'code')
+
+    def __str__(self):
+        return f"{self.name} ({self.code})"
+
+
+class PsychometricPackage(BaseModel):
+    """Sellable package composed of one or more assessments."""
+    code = models.SlugField(max_length=80, unique=True)
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True, default='')
+    track = models.CharField(max_length=20, choices=choices.PsychometricTrack.CHOICES)
+    credit_cost = models.PositiveSmallIntegerField(
+        default=1,
+        help_text="Assignment credits deducted when this package is assigned to a student.",
+    )
+    list_price = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    is_legacy_bundle = models.BooleanField(
+        default=False,
+        help_text="Maps to legacy Stream Sorter / Career Direction full bundles.",
+    )
+    is_active = models.BooleanField(default=True)
+    assessments = models.ManyToManyField(
+        Assessment,
+        through='PackageAssessment',
+        related_name='packages',
+    )
+
+    class Meta:
+        ordering = ('track', 'name')
+
+    def __str__(self):
+        return self.name
+
+
+class PackageAssessment(BaseModel):
+    package = models.ForeignKey(
+        PsychometricPackage,
+        on_delete=models.CASCADE,
+        related_name='package_assessments',
+    )
+    assessment = models.ForeignKey(
+        Assessment,
+        on_delete=models.CASCADE,
+        related_name='package_assessments',
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        unique_together = ('package', 'assessment')
+        ordering = ('sort_order', 'id')
+
+    def __str__(self):
+        return f"{self.package.code} -> {self.assessment.code}"
+
+
+class InstitutePackagePrice(BaseModel):
+    institute = models.ForeignKey(
+        'institute.Institute',
+        on_delete=models.CASCADE,
+        related_name='package_prices',
+    )
+    package = models.ForeignKey(
+        PsychometricPackage,
+        on_delete=models.CASCADE,
+        related_name='institute_prices',
+    )
+    unit_price = models.DecimalField(max_digits=12, decimal_places=2)
+
+    class Meta:
+        unique_together = ('institute', 'package')
+
+    def __str__(self):
+        return f"{self.institute} — {self.package.code} @ {self.unit_price}"
+
+
+class StudentPackageAssignment(BaseModel):
+    student = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='package_assignments',
+    )
+    package = models.ForeignKey(
+        PsychometricPackage,
+        on_delete=models.PROTECT,
+        related_name='student_assignments',
+    )
+    institute = models.ForeignKey(
+        'institute.Institute',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='package_assignments',
+    )
+    assigned_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='package_assignments_made',
+    )
+    credits_charged = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ('-created',)
+
+    def __str__(self):
+        return f"{self.student_id} <- {self.package.code}"
+
+
+class StudentAssessmentEntitlement(BaseModel):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='assessment_entitlements',
+    )
+    assessment = models.ForeignKey(
+        Assessment,
+        on_delete=models.CASCADE,
+        related_name='entitlements',
+    )
+    source = models.CharField(
+        max_length=30,
+        choices=choices.EntitlementSource.CHOICES,
+        default=choices.EntitlementSource.PACKAGE_ASSIGNMENT,
+    )
+    package_assignment = models.ForeignKey(
+        StudentPackageAssignment,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='entitlements',
+    )
+    is_active = models.BooleanField(default=True)
+    revoked_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('user', 'assessment')
+        indexes = [
+            models.Index(fields=['user', 'is_active']),
+        ]
+
+    def __str__(self):
+        return f"{self.user_id} — {self.assessment.code}"

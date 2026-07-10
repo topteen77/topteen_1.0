@@ -23,6 +23,7 @@
               </p>
             </div>
           </div>
+          <div class="mb-3 d-none" data-ttv2-csv-package-field></div>
           <div class="mb-0">
             <label class="form-label" for="mktgRowCsvMatric">CSV file <span class="text-danger">*</span></label>
             {% with field_id='mktgRowCsvMatric' %}
@@ -63,6 +64,7 @@
               </p>
             </div>
           </div>
+          <div class="mb-3 d-none" data-ttv2-csv-package-field></div>
           <div class="mb-0">
             <label class="form-label" for="mktgRowCsvPostMatric">CSV file <span class="text-danger">*</span></label>
             {% with field_id='mktgRowCsvPostMatric' %}
@@ -78,3 +80,50 @@
     </div>
   </div>
 </div>
+
+<script>
+(function () {
+  if (window.__ttv2CsvPackageFieldBound) return;
+  window.__ttv2CsvPackageFieldBound = true;
+
+  function renderPackageField(container, choices, credits) {
+    if (!container) return;
+    container.innerHTML = '';
+    if (!choices || !choices.length) {
+      container.classList.add('d-none');
+      return;
+    }
+    var html = '<div class="psychometric-package-field" data-psych-package-field>'
+      + '<label class="form-label">Psychometric package for this upload</label>'
+      + '<select name="psychometric_package" class="form-select">'
+      + '<option value="">Select default package (optional if CSV has package_code)…</option>';
+    choices.forEach(function (pkg) {
+      var label = pkg.name + ' (' + pkg.credit_cost + ' credit' + (pkg.credit_cost === 1 ? '' : 's') + ')';
+      html += '<option value="' + String(pkg.code).replace(/"/g, '&quot;') + '">' + label + '</option>';
+    });
+    html += '</select><small class="text-muted d-block mt-1">'
+      + 'Applied to every imported student unless the CSV includes a <code>package_code</code> column. '
+      + 'Assignment credits available: <strong>' + (credits || 0) + '</strong></small></div>';
+    container.innerHTML = html;
+    container.classList.remove('d-none');
+  }
+
+  window.ttv2PopulateCsvPackageField = function (modalEl, triggerBtn) {
+    if (!modalEl || !triggerBtn) return;
+    var slot = modalEl.querySelector('[data-ttv2-csv-package-field]');
+    if (!slot) return;
+    var raw = triggerBtn.getAttribute('data-package-choices') || '[]';
+    var choices = [];
+    try { choices = JSON.parse(raw); } catch (e) { choices = []; }
+    var credits = triggerBtn.getAttribute('data-assignment-credits') || '0';
+    renderPackageField(slot, choices, credits);
+  };
+
+  document.addEventListener('show.bs.modal', function (ev) {
+    var modal = ev.target;
+    if (!modal || !modal.querySelector) return;
+    if (!modal.querySelector('[data-ttv2-csv-package-field]')) return;
+    window.ttv2PopulateCsvPackageField(modal, ev.relatedTarget);
+  });
+})();
+</script>

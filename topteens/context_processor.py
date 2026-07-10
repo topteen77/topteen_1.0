@@ -2,6 +2,8 @@ from careers.models import Career, CareerTags, Videos, CareerCluster
 from core.models import Configuration
 from core.pwa_version import get_pwa_cache_version
 from core.translate_languages import get_enabled_languages_csv
+from core.translation_service import translation_complexity_available
+from core.translation_complexity import DEFAULT_TRANSLATION_COMPLEXITY
 from core.seo_schema import get_organization_schema, get_website_schema
 from blog.models import Blog, BlogCategory
 from django.db.models import Count
@@ -18,6 +20,7 @@ from django.db.models import Q, Count, Q as DjangoQ
 from functools import reduce
 from operator import or_
 from django.conf import settings
+from django.urls import reverse
 from django.db import connection
 import json
 import logging
@@ -537,6 +540,9 @@ def globals(request):
         "mindmap_type_choices": MINDMAP_TYPE_CHOICES,
         "counselor_mindmap_map_type": get_counselor_mindmap_map_type(),
         "translate_enabled_languages_csv": get_enabled_languages_csv(),
+        "translate_complexity_enabled": translation_complexity_available(),
+        "translate_complexity_default": DEFAULT_TRANSLATION_COMPLEXITY,
+        "translate_complexity_api_url": reverse("api_translate_complexity"),
         "popular_categories":BlogCategory.objects.filter(id__in=popular_categories),
         "popular_tags":CareerTags.objects.filter(id__in=popular_tags),
         "blogs":Blog.get_published_objects().all(),
