@@ -691,12 +691,13 @@
 
 @media (max-width: 575px) {
   .stream-decision-popup-overlay {
-    padding: 10px;
-    align-items: flex-end;
+    padding: 10px 10px max(10px, env(safe-area-inset-bottom));
+    align-items: center;
+    justify-content: center;
   }
 
   .stream-decision-popup-card {
-    max-height: calc(100vh - 16px);
+    max-height: calc(100vh - 24px);
     border-radius: 16px;
     width: 100%;
   }
@@ -728,13 +729,33 @@
   }
 
   .stream-decision-popup-actions {
-    flex-direction: column-reverse;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .stream-decision-popup-actions-left {
+    flex: 0 0 auto;
+  }
+
+  .stream-decision-popup-actions-right {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-left: 0;
+    flex-wrap: nowrap;
+    gap: 8px;
   }
 
   .stream-decision-popup-actions .stream-decision-btn-primary,
   .stream-decision-popup-actions .stream-decision-btn-secondary {
-    width: 100%;
-    justify-content: center;
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
+    padding: 10px 12px;
+    font-size: 0.875rem;
+    text-align: center;
+    white-space: nowrap;
   }
 
   .stream-decision-badge {
@@ -787,7 +808,7 @@
   }
 
   .stream-decision-option span:not(.stream-decision-option-content):not(.stream-decision-option-label):not(.stream-decision-option-meta):not(.stream-decision-score-badge) {
-    font-size: 1rem;
+    font-size:0.9rem;
   }
 
   .stream-decision-score-badge {

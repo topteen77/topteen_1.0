@@ -311,7 +311,7 @@
 
 @media (max-width: 640px) {
   .career-battle-popup-overlay {
-    align-items: flex-start;
+    align-items: center;
     padding: 12px;
   }
 
@@ -366,7 +366,8 @@
   }
 
   .career-battle-feature-item p {
-    font-size: 13px;
+    font-size: 11px;
+    line-height: 15px;
   }
 
   .career-battle-popup-actions {

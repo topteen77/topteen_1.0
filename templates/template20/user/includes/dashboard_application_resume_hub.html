@@ -192,12 +192,12 @@
     color: #fff;
   }
   .tt-app-hub .tt-hub-score-pill .num {
-    font-size: 21px;
+    font-size: 19px;
     line-height: 1;
     font-weight: 800;
   }
   .tt-app-hub .tt-hub-score-pill .lbl {
-    font-size: 10px;
+    font-size:9px;
     opacity: 0.9;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -787,6 +787,37 @@
     .tt-app-hub .tt-hub-hero-title {
       font-size: 21px;
     }
+    .tt-app-hub .tt-hub-hero-side {
+      flex-direction: column;
+      align-items: stretch !important;
+      width: 100%;
+      gap: 12px;
+    }
+    .tt-app-hub .tt-hub-score-pill {
+      align-self: center;
+      min-width: 68px;
+      height: 68px;
+    }
+    .tt-app-hub .tt-hub-hero-actions {
+      flex-wrap: nowrap;
+      width: 100%;
+      gap: 8px;
+    }
+    .tt-app-hub .tt-hub-hero-btn {
+      flex: 1 1 0;
+      min-width: 0;
+      justify-content: center;
+      padding: 10px 8px;
+      font-size: 12px;
+      gap: 0;
+    }
+    .tt-app-hub .tt-hub-hero-btn-icon {
+      display: none;
+    }
+    .tt-app-hub .tt-hub-hero-btn-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .tt-app-hub .tt-hub-upcoming-head {
       flex-direction: column;
       align-items: flex-start;
@@ -821,7 +852,7 @@
           Discover opportunities, strengthen your profile, monitor readiness, and stay focused on your goals.
         </p>
       </div>
-      <div class="d-flex align-items-center gap-3">
+      <div class="d-flex align-items-center gap-3 tt-hub-hero-side">
         <div class="tt-hub-score-pill">
           <span class="num">{{ readiness_score }}%</span>
           <span class="lbl">Readiness</span>

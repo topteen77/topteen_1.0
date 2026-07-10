@@ -1217,21 +1217,39 @@ function initCustomLanguageSelector() {
   }
 
   function setWidgetOpen(open) {
-    isOpen = !!open;
-    widget.hidden = !isOpen;
-    widget.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
-    widget.classList.toggle('is-open', isOpen);
+    var nextOpen = !!open;
+    if (nextOpen === isOpen) {
+      return;
+    }
+    isOpen = nextOpen;
+
+    if (isOpen) {
+      widget.hidden = false;
+      widget.setAttribute('aria-hidden', 'false');
+      requestAnimationFrame(function () {
+        widget.classList.add('is-open');
+      });
+      if (searchInput) {
+        searchInput.value = '';
+        filterLanguages('');
+        window.setTimeout(function () {
+          searchInput.focus();
+        }, 320);
+      }
+    } else {
+      widget.classList.remove('is-open');
+      widget.setAttribute('aria-hidden', 'true');
+      window.setTimeout(function () {
+        if (!isOpen) {
+          widget.hidden = true;
+        }
+      }, 320);
+    }
+
     document.body.classList.toggle('tt-lang-menu-open', isOpen);
     getTriggers().forEach(function (trigger) {
       trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     });
-    if (isOpen && searchInput) {
-      searchInput.value = '';
-      filterLanguages('');
-      window.setTimeout(function () {
-        searchInput.focus();
-      }, 50);
-    }
   }
 
   function updateTriggerLabels(langCode, langName) {

@@ -31,6 +31,22 @@
     devMode : false,  // Production mode - auto-creates sessions
   }, global.ChatbotConfig || {});
 
+  const FAB_TOOLTIP_LS_KEY = 'topteen_cb_fab_tooltip_dismissed';
+
+  function isFabTooltipDismissed() {
+    try {
+      return localStorage.getItem(FAB_TOOLTIP_LS_KEY) === '1';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function persistFabTooltipDismissed() {
+    try {
+      localStorage.setItem(FAB_TOOLTIP_LS_KEY, '1');
+    } catch (e) {}
+  }
+
   /* ============================================================
    * CSS LOADER
    * Detects the script's own path and loads chatbot-widget.css
@@ -356,7 +372,7 @@
       this._typingMessageIndex = 0;
       this._typingInterval  = null;
       this._firstMessageSent = false;  // Track if first message has been sent
-      this._fabTooltipDismissed = false;
+      this._fabTooltipDismissed = isFabTooltipDismissed();
 
       injectStylesheet();
       loadMarked();         // async — loaded before first message in normal use
@@ -549,6 +565,7 @@
 
     _hideFabTooltip() {
       this._fabTooltipDismissed = true;
+      persistFabTooltipDismissed();
       if (!this._fabTip) return;
       this._fabTip.classList.remove('cb-visible');
     }
