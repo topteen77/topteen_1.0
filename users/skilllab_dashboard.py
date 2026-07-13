@@ -14,19 +14,6 @@ SKILLLAB_SECTION_TITLE = "College & Career Readiness"
 SKILLLAB_SECTION_SUBTITLE = "Skill Lab"
 
 
-def skilllab_categories_for_grade(grade_bucket: str) -> List[int]:
-    if grade_bucket == "12":
-        return [
-            choices.SkillLabCourseTypeChoice.after_12_class,
-            choices.SkillLabCourseTypeChoice.BOTH,
-            choices.SkillLabCourseTypeChoice.after_college,
-        ]
-    return [
-        choices.SkillLabCourseTypeChoice.after_10_class,
-        choices.SkillLabCourseTypeChoice.BOTH,
-    ]
-
-
 def skilllab_started_user_ids(student_ids, course) -> Set[int]:
     if not student_ids:
         return set()
@@ -157,13 +144,11 @@ def skilllab_course_detail_url(course) -> str:
 
 
 def skilllab_course_eligible_for_student(user, course) -> bool:
-    """True when the course matches the student's class (uses grades M2M when set)."""
+    """True when the course's class grades include the student's class."""
     grade_num = _extract_grade_number(user)
-    if grade_num is not None:
-        return course.matches_skilllab_filters(grade=grade_num)
-    grade_bucket, _ = resolve_student_grade(user)
-    grade_bucket = grade_bucket if grade_bucket in ("10", "12") else "10"
-    return course.category in skilllab_categories_for_grade(grade_bucket)
+    if grade_num is None:
+        return False
+    return course.matches_skilllab_filters(grade=grade_num)
 
 
 def skilllab_is_career_readiness_grade_student(user) -> bool:
@@ -176,23 +161,21 @@ def skilllab_is_career_readiness_grade_student(user) -> bool:
 
 
 def skilllab_eligible_courses_queryset(user):
-    """All College & Career Readiness courses matching the student's class."""
+    """Courses whose Grades M2M includes the student's class number."""
     from skilllab.models import SkillLabCourse
 
     grade_num = _extract_grade_number(user)
     base = SkillLabCourse.objects.all().order_by("-modified")
-    if grade_num is not None:
-        matched_ids = set(
-            base.filter(grades__grade_number=grade_num).values_list("id", flat=True)
-        )
-        for course in base.exclude(id__in=matched_ids).iterator():
-            if course.matches_skilllab_filters(grade=grade_num):
-                matched_ids.add(course.id)
-        return base.filter(id__in=matched_ids)
-
-    grade_bucket, _ = resolve_student_grade(user)
-    grade_bucket = grade_bucket if grade_bucket in ("10", "12") else "10"
-    return base.filter(category__in=skilllab_categories_for_grade(grade_bucket))
+    if grade_num is None:
+        return base.none()
+    matched_ids = set(
+        base.filter(grades__grade_number=grade_num).values_list("id", flat=True)
+    )
+    # Include courses with unset grades M2M that still resolve to this class via name.
+    for course in base.exclude(id__in=matched_ids).prefetch_related("grades").iterator():
+        if course.matches_skilllab_filters(grade=grade_num):
+            matched_ids.add(course.id)
+    return base.filter(id__in=matched_ids)
 
 
 def skilllab_active_course_ids_for_user(user) -> Set[int]:

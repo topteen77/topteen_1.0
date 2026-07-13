@@ -16,7 +16,6 @@ from users.parent_student_insights import resolve_student_grade
 from users.skilllab_dashboard import (
     SKILLLAB_SECTION_SUBTITLE,
     SKILLLAB_SECTION_TITLE,
-    skilllab_categories_for_grade,
     skilllab_completed_user_ids,
     skilllab_course_eligible_for_student,
     skilllab_owned_user_ids,
@@ -78,23 +77,6 @@ def _student_payload(student) -> Dict[str, Any]:
 
 def _any_eligible(student_data: Dict[str, Any]) -> bool:
     return any(v.get("eligible") for v in student_data.values())
-
-
-def _skilllab_categories_for_grade(grade_bucket: str) -> List[int]:
-    return skilllab_categories_for_grade(grade_bucket)
-
-
-def _infer_class_label_from_name(name: str) -> str:
-    low = (name or "").lower()
-    if "class 7" in low or "class 8" in low or "class 6" in low:
-        return "Class 6–8"
-    if "class 9" in low or "class 10" in low or "after 10" in low:
-        return "Class 9–10"
-    if "class 11" in low or "class 12" in low or "high school" in low:
-        return "Class 11–12"
-    if "college" in low:
-        return "After college"
-    return ""
 
 
 # ---------------------------------------------------------------------------
@@ -279,13 +261,11 @@ def _skilllab_items(
 ) -> List[Dict[str, Any]]:
     from skilllab.models import SkillLabCourse
 
-    all_categories = {
-        choices.SkillLabCourseTypeChoice.after_10_class,
-        choices.SkillLabCourseTypeChoice.after_12_class,
-        choices.SkillLabCourseTypeChoice.BOTH,
-        choices.SkillLabCourseTypeChoice.after_college,
-    }
-    courses = SkillLabCourse.objects.filter(category__in=all_categories).order_by("-modified")
+    courses = (
+        SkillLabCourse.objects.all()
+        .prefetch_related("grades")
+        .order_by("-modified")
+    )
     items: List[Dict[str, Any]] = []
 
     for course in courses:
@@ -295,15 +275,8 @@ def _skilllab_items(
         started_ids = _skilllab_started_ids(list(owned_ids), course) if owned_ids else set()
         completed_ids = _skilllab_completed_ids(list(owned_ids), course) if owned_ids else set()
 
-        class_label = _infer_class_label_from_name(course.name)
-        if not class_label:
-            cat_map = {
-                choices.SkillLabCourseTypeChoice.after_10_class: "After Class 10",
-                choices.SkillLabCourseTypeChoice.after_12_class: "After Class 12",
-                choices.SkillLabCourseTypeChoice.BOTH: "Class 9–12",
-                choices.SkillLabCourseTypeChoice.after_college: "After college",
-            }
-            class_label = cat_map.get(course.category, "Career readiness")
+        # Catalog class from Grades M2M (e.g. Class 11–12), not legacy category.
+        class_label = course.get_grade_label()
 
         student_data: Dict[str, Any] = {}
         for s in students:
@@ -366,7 +339,7 @@ def build_parent_skilllab_suggestions(
     *,
     preview_limit: int = 4,
 ) -> Dict[str, Any]:
-    """Per-student course suggestions for the parent dashboard (class-matched + other)."""
+    """Per-student class-matched course suggestions for the parent dashboard."""
     items = _skilllab_items(students, student_users_by_id)
     by_student: Dict[str, Any] = {}
 
@@ -374,39 +347,33 @@ def build_parent_skilllab_suggestions(
         sid = str(s["id"])
         grade_label = s.get("grade_label") or "Your class"
         class_courses: List[Dict[str, Any]] = []
-        other_courses: List[Dict[str, Any]] = []
 
         for item in items:
             sd = item["student_data"].get(sid) or {}
-            if not sd.get("eligible"):
+            if not sd.get("eligible") or not sd.get("grade_match"):
                 continue
-            compact = {
-                "id": item["id"],
-                "title": item["title"],
-                "subtitle": item.get("subtitle", ""),
-                "detail_url": item["detail_url"],
-                "class_label": item.get("class_label", ""),
-                "price_label": item.get("price_label", ""),
-                "is_free": item.get("is_free", False),
-                "image_url": item.get("image_url", ""),
-                "cta": sd.get("cta", "Enroll"),
-                "progress_pct": sd.get("progress_pct", 0),
-                "enrolled": sd.get("enrolled", False),
-                "student_dashboard_url": sd.get("student_dashboard_url", ""),
-            }
-            if sd.get("grade_match"):
-                class_courses.append(compact)
-            else:
-                other_courses.append(compact)
+            class_courses.append(
+                {
+                    "id": item["id"],
+                    "title": item["title"],
+                    "subtitle": item.get("subtitle", ""),
+                    "detail_url": item["detail_url"],
+                    "class_label": item.get("class_label", ""),
+                    "price_label": item.get("price_label", ""),
+                    "is_free": item.get("is_free", False),
+                    "image_url": item.get("image_url", ""),
+                    "cta": sd.get("cta", "Enroll"),
+                    "progress_pct": sd.get("progress_pct", 0),
+                    "enrolled": sd.get("enrolled", False),
+                    "student_dashboard_url": sd.get("student_dashboard_url", ""),
+                }
+            )
 
         by_student[sid] = {
             "grade_label": grade_label,
             "class_section_title": f"{grade_label} courses",
-            "other_section_title": "Other class courses",
             "class_courses": class_courses[:preview_limit],
-            "other_courses": other_courses[:preview_limit],
             "class_total": len(class_courses),
-            "other_total": len(other_courses),
         }
 
     return by_student

@@ -160,32 +160,33 @@ class SkillLabCourse(SlugModel,BaseModel,BaseMoneyModel):
         return labels.get(self.get_topic_category_key(), "Skills")
 
     def get_grade_numbers(self):
+        """Class levels for this course from the Grades M2M (catalog class), not legacy category."""
         if self.pk:
             nums = list(self.grades.values_list('grade_number', flat=True))
             if nums:
                 return set(nums)
         import re
 
+        # Fallback only when grades are unset: parse class from the course name.
         name = self._name_lower()
         for grade in range(6, 13):
             if re.search(rf"\b(class|grade)\s*{grade}\b", name):
                 return {grade}
         if any(x in name for x in ("middle school", "6-8", "6–8", "classes 6")):
             return {6, 7, 8}
-        if any(x in name for x in ("high school", "highschool", "teen", "highschoolers")):
-            return {9, 10, 11, 12}
-        if self.category == choices.SkillLabCourseTypeChoice.after_10_class:
-            return {9, 10}
-        if self.category == choices.SkillLabCourseTypeChoice.after_12_class:
+        if any(x in name for x in ("class 11-12", "class 11–12", "classes 11")):
             return {11, 12}
-        if self.category == choices.SkillLabCourseTypeChoice.BOTH:
+        if any(x in name for x in ("class 9-12", "class 9–12", "classes 9")):
             return {9, 10, 11, 12}
-        if self.category == choices.SkillLabCourseTypeChoice.after_college:
-            return {12}
-        return {9, 10, 11, 12}
+        if any(x in name for x in ("class 9-10", "class 9–10")):
+            return {9, 10}
+        # Do not map legacy `category` (After 10th / After 12th / Both) to class labels.
+        return set()
 
     def get_grade_label(self):
         grades = sorted(self.get_grade_numbers())
+        if not grades:
+            return "All classes"
         if len(grades) == 1:
             g = grades[0]
             if g % 100 // 10 == 1:

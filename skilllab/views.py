@@ -304,7 +304,19 @@ class SkillLabCourseDetail(TemplateView):
         skillab=get_object_or_404(skilllab_course_queryset(), slug=skil_slug)
         ctx['skilllab']=skillab
         ctx['first_chapter']=skillab.skilllabcoursechapter.order_by('created').first()
-        ctx['activecourses']=SkillLabCourse.objects.filter(category=skillab.category).exclude(id=skillab.id)
+        # Related by overlapping class grades (not legacy audience category).
+        grade_nums = skillab.get_grade_numbers()
+        if grade_nums:
+            ctx['activecourses'] = (
+                SkillLabCourse.objects.filter(grades__grade_number__in=grade_nums)
+                .exclude(id=skillab.id)
+                .prefetch_related('grades')
+                .distinct()
+            )
+        else:
+            ctx['activecourses'] = (
+                SkillLabCourse.objects.exclude(id=skillab.id).prefetch_related('grades')
+            )
         ctx['breadcrumb'] = self._breadcrumb(skillab)
         ctx["html_head"] = self.html_head(skillab)
         ctx['user_authenticated'] = request.user.is_authenticated

@@ -313,7 +313,8 @@
                   <img src="{{ static('images_new/short-courses/course-placeholder.png') }}" alt="{{ course.name }}" />
                   {% endif %}
                 </a>
-                {% if course.category %}<div class="course-badge">{{ course.get_category_display() if course.get_category_display else 'Course' }}</div>{% endif %}
+                {% set grade_badge = course.get_grade_label() if course.get_grade_label else '' %}
+                {% if grade_badge %}<div class="course-badge">{{ grade_badge }}</div>{% endif %}
               </div>
               <div class="related-course-content">
                 <h3 class="related-course-title"><a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[course.slug]) }}" class="text-decoration-none text-dark">{{ course.name }}</a></h3>

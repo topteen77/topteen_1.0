@@ -683,8 +683,9 @@ if not SESSION_ENGINE:
         # Signed cookie backend: session data lives in the cookie (SECRET_KEY HMAC). Max ~4KB total.
         SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
     elif ENABLE_REDIS:
-        # Redis cache + DB fallback: fast reads, survives Redis restarts, stable across workers.
-        SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+        # Redis cache + DB fallback; custom store drops Redis orphans missing from DB
+        # (avoids SessionInterrupted when SESSION_SAVE_EVERY_REQUEST / analytics save).
+        SESSION_ENGINE = 'topteens.session_backends'
     else:
         SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 

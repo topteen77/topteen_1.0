@@ -7,7 +7,7 @@ from skilllab.models import SkillLabCourse
 class SkillLabCourseDocument(Document):
     slug=fields.KeywordField()
     description=fields.KeywordField()
-    category=fields.TextField(attr="get_category_display")
+    category=fields.TextField(attr="get_grade_label")
     
     url=fields.TextField(attr="url")
     

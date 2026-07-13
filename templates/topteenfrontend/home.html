@@ -1605,7 +1605,7 @@ class="mx-auto relative z-10 lg:px-[0px] px-[17px] py-[17px] lg:py-0 overflow-hi
             <p
               class="text-[10px] leading-[13.5px] font-normal text-white text-opacity-[0.77] mb-[3px]"
             >
-              {{skilllab_course.get_category_display()}}
+              {{skilllab_course.get_grade_label()}}
             </p>
             <h5 class="text-[15px] leading-[20px] semibold text-white">
               <a href="{{url('skilllabcourse:skilllabcoursedetail',args=[skilllab_course.slug])}}">{{skilllab_course.name}}</a>
@@ -1667,7 +1667,7 @@ class="mx-auto relative z-10 lg:px-[0px] px-[17px] py-[17px] lg:py-0 overflow-hi
            <p
              class="text-[10px] leading-[13.5px] font-normal text-opacity-[0.77] col-start-2 col-span-3 text-white"
            >
-            {{skilllab_course.get_category_display()}}
+            {{skilllab_course.get_grade_label()}}
            </p>
            <div class="w-[25px] h-[24px]">
              <img

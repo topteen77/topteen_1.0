@@ -791,21 +791,15 @@ text-align: left !important;
       <div class="parent-section-head">
         <div>
           <h3 class="fs-18 fw-700">Suggested courses</h3>
-          <p class="fs-12">College &amp; Career Readiness — matched to your child's class, plus other grades</p>
+          <p class="fs-12">College &amp; Career Readiness — matched to your child's class</p>
         </div>
         <a href="{{ url('parents_courses') }}" class="btn btn-sm btn-outline-secondary align-self-start">View all courses</a>
       </div>
 
-      <div class="mb-4">
+      <div>
         <h4 class="fs-15 fw-semibold mb-2 text-secondary" id="parentClassCoursesTitle">Class courses</h4>
         <div class="row g-3 align-items-stretch" id="parentClassCoursesGrid"></div>
         <p class="text-muted fs-12 mb-0 mt-2" id="parentClassCoursesMore" hidden></p>
-      </div>
-
-      <div>
-        <h4 class="fs-15 fw-semibold mb-2 text-secondary" id="parentOtherCoursesTitle">Other class courses</h4>
-        <div class="row g-3 align-items-stretch" id="parentOtherCoursesGrid"></div>
-        <p class="text-muted fs-12 mb-0 mt-2" id="parentOtherCoursesMore" hidden></p>
       </div>
     </div>
 
@@ -1070,9 +1064,7 @@ text-align: left !important;
       host.hidden = false;
 
       var classTitle = document.getElementById('parentClassCoursesTitle');
-      var otherTitle = document.getElementById('parentOtherCoursesTitle');
       if (classTitle) classTitle.textContent = data.class_section_title || 'Class courses';
-      if (otherTitle) otherTitle.textContent = data.other_section_title || 'Other class courses';
 
       function courseCardHtml(course) {
         var thumb = course.image_url
@@ -1117,7 +1109,6 @@ text-align: left !important;
       }
 
       fillGrid('parentClassCoursesGrid', 'parentClassCoursesMore', data.class_courses, data.class_total);
-      fillGrid('parentOtherCoursesGrid', 'parentOtherCoursesMore', data.other_courses, data.other_total);
     }
 
     function renderSelectedStudent() {
