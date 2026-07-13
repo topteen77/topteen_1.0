@@ -301,7 +301,13 @@ class TestLoginSessionExpiry(SimpleTestCase):
     def test_session_settings_keep_users_signed_in_during_browsing(self):
         from django.conf import settings
 
-        self.assertTrue(settings.SESSION_SAVE_EVERY_REQUEST)
+        # Prefer False + SlideSessionForAuthenticatedMiddleware (logged-in sliding expiry)
+        # over saving every anonymous request under load.
+        self.assertFalse(settings.SESSION_SAVE_EVERY_REQUEST)
+        self.assertIn(
+            'topteens.custome_middleware.SlideSessionForAuthenticatedMiddleware',
+            settings.MIDDLEWARE,
+        )
         self.assertFalse(settings.SESSION_EXPIRE_AT_BROWSER_CLOSE)
         self.assertGreaterEqual(settings.SESSION_COOKIE_AGE, DEFAULT_LOGIN_SESSION_AGE)
         self.assertEqual(

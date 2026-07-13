@@ -150,6 +150,8 @@ MIDDLEWARE = [
     'core.indexing_middleware.URLIndexingMiddleware',  # Add X-Robots-Tag for admin-blocked URL patterns
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # After auth: slide session expiry for logged-in users when SAVE_EVERY_REQUEST is False
+    'topteens.custome_middleware.SlideSessionForAuthenticatedMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'topteens.admin_template_middleware.AdminTemplateMiddleware',  # Force Django templates for admin
@@ -190,7 +192,9 @@ SESSION_COOKIE_SECURE = USE_HTTPS
 CSRF_COOKIE_SECURE = USE_HTTPS
 # Keep users signed in during normal browsing (avoid mobile browser clearing session cookies).
 SESSION_COOKIE_AGE = config('SESSION_COOKIE_AGE', default=604800, cast=int)  # 7 days
-SESSION_SAVE_EVERY_REQUEST = config('SESSION_SAVE_EVERY_REQUEST', default=True, cast=bool)
+# False = only save when session data changes (much cheaper under load).
+# Logged-in sliding expiry is handled by SlideSessionForAuthenticatedMiddleware.
+SESSION_SAVE_EVERY_REQUEST = config('SESSION_SAVE_EVERY_REQUEST', default=False, cast=bool)
 SESSION_EXPIRE_AT_BROWSER_CLOSE = config('SESSION_EXPIRE_AT_BROWSER_CLOSE', default=False, cast=bool)
 SESSION_COOKIE_SAMESITE = config('SESSION_COOKIE_SAMESITE', default='Lax')
 SESSION_COOKIE_HTTPONLY = True

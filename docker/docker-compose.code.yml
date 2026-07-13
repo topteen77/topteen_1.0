@@ -17,7 +17,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - LOG_PATH=/app/logs
-      - GUNICORN_WORKERS=${GUNICORN_WORKERS:-4}
+      - GUNICORN_WORKERS=${GUNICORN_WORKERS:-8}
       - GUNICORN_THREADS=${GUNICORN_THREADS:-4}
       - REDIS_HOST=redis
     expose:

@@ -13,6 +13,28 @@ from django.contrib import messages
 from django.contrib.messages.api import MessageFailure
 from social_core.utils import social_logger
 
+
+class SlideSessionForAuthenticatedMiddleware:
+    """
+    When SESSION_SAVE_EVERY_REQUEST=False, still refresh session expiry for
+    logged-in users on each request (keeps them signed in while browsing).
+
+    Anonymous traffic (homepage Locust, guests) does not force a session write
+    unless something actually changed the session (login, analytics, CSRF flow).
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        user = getattr(request, "user", None)
+        session = getattr(request, "session", None)
+        if user is not None and getattr(user, "is_authenticated", False) and session is not None:
+            session.modified = True
+        return response
+
+
 class TopteenAdminPermissionMiddleware(object):
     def __init__(self, get_response):
         self.get_response = get_response

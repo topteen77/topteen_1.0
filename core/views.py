@@ -3,6 +3,7 @@ import logging
 import random
 import re
 import os
+import time
 from urllib.parse import quote, urlparse
 
 logger = logging.getLogger(__name__)
@@ -24,6 +25,7 @@ from core.models import CommonFAQ, Country, Review, Contact, Lead, Ebook, FourPi
 from courses.models import Course
 from colleges.models import College
 from django.conf import settings
+from django.core.cache import cache
 from .forms import ImageUploadModelForm
 from django.core.paginator import Paginator
 from django.http import HttpResponse,JsonResponse
@@ -46,9 +48,14 @@ from django.views.decorators.http import require_http_methods, require_GET, requ
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.cache import cache_page
-from django.utils.decorators import method_decorator
 from pathlib import Path
+
+# Anonymous homepage HTML is shared across all visitors (cookie-independent).
+# Django's cache_page keys on Vary: Cookie, so Locust/session cookies bust it under load.
+HOME_ANON_HTML_CACHE_KEY = 'home:anon:html:v1'
+HOME_ANON_HTML_CACHE_TTL = 900  # 15 minutes
+HOME_ANON_HTML_LOCK_KEY = 'home:anon:html:lock'
+HOME_ANON_HTML_LOCK_TTL = 45
 
 User = get_user_model()
 
@@ -86,150 +93,173 @@ class Home(TemplateView):
 
     def dispatch(self, request, *args, **kwargs):
         """
-        Cache the homepage for 15 minutes for anonymous users only.
-        Authenticated users should always see a fresh version so
-        login/logout state in the header is correct.
+        Cache full HTML for anonymous users with a single shared Redis key.
+        Avoids Django cache_page cookie-vary stampede under concurrent load.
+        Authenticated users always get a fresh render (header login state).
         """
         if request.user.is_authenticated:
             return super().dispatch(request, *args, **kwargs)
-        # Apply per-view cache only for anonymous users
-        cached_dispatch = cache_page(900)(super().dispatch)
-        return cached_dispatch(request, *args, **kwargs)
+
+        cached_html = cache.get(HOME_ANON_HTML_CACHE_KEY)
+        if cached_html is not None:
+            response = HttpResponse(cached_html, content_type='text/html; charset=utf-8')
+            response['X-Cache'] = 'HIT'
+            return response
+
+        got_lock = cache.add(HOME_ANON_HTML_LOCK_KEY, '1', HOME_ANON_HTML_LOCK_TTL)
+        if not got_lock:
+            # Another worker is rebuilding; wait briefly for shared HTML.
+            for _ in range(40):
+                time.sleep(0.25)
+                cached_html = cache.get(HOME_ANON_HTML_CACHE_KEY)
+                if cached_html is not None:
+                    response = HttpResponse(cached_html, content_type='text/html; charset=utf-8')
+                    response['X-Cache'] = 'HIT-WAIT'
+                    return response
+
+        response = super().dispatch(request, *args, **kwargs)
+        try:
+            if response.status_code == 200 and hasattr(response, 'content'):
+                cache.set(HOME_ANON_HTML_CACHE_KEY, response.content, HOME_ANON_HTML_CACHE_TTL)
+                response['X-Cache'] = 'MISS'
+        except Exception:
+            logger.exception('Failed to cache anonymous homepage HTML')
+        finally:
+            cache.delete(HOME_ANON_HTML_LOCK_KEY)
+        return response
 
     def html_head(self):
-        name='Every Student, Career Ready'
+        name = 'Every Student, Career Ready'
         return build_html_head(title=name, description=name)
 
-    def get_context(self, request, *args, **kwargs):
-        tags = CareerTags.objects.all().order_by('priority')[:5]
-        country = Country.objects.all().order_by('priority')
-        ctx = {}
-        ctx['blogs'] = Blog.get_published_objects().select_related('author', 'category').order_by('-modified')[:12]
-        ctx['colleges'] = College.get_all_colleges().select_related('country', 'state', 'city')[:24]
-        ctx['careers'] = Career.get_all_careers().only('id', 'name', 'slug', 'image', 'summary')[:24]
-        video_ids = list(Videos.objects.values_list('id', flat=True)[:80])
-        if video_ids:
-            ctx['videos'] = Videos.objects.filter(id__in=random.sample(video_ids, min(8, len(video_ids))))
-            del video_ids
-        else:
-            ctx['videos'] = Videos.objects.none()
-        ctx['careers_video'] = (
-            Career.objects.filter(publish_status=choices.PublishStatus.PUBLISHED)
-            .exclude(Q(video_url="") | Q(video_url__isnull=True))
-            .only('id', 'name', 'slug', 'video_url')[:12]
-        )
-        ctx['courses'] = Course.get_all_courses()[:12]
-        ctx['reviewers'] = Review.get_published_objects()[:6]
-        ctx['tags']=tags
-        ctx['countries']=country
-        ctx['body_css_class']='no-scrollbar overflow-x-hidden'
-        ctx['comman_faq']=CommonFAQ.get_commonfaq_by_priority()
-        ctx['parent_faq']=CommonFAQ.get_commonfaq_by_priority().filter(user_type=choices.FAQType.parent, is_featured=choices.FAQFeaturedType.HOME)[:10]
-        ctx['student_faq']=CommonFAQ.get_commonfaq_by_priority().filter(user_type=choices.FAQType.student,is_featured=choices.FAQFeaturedType.HOME)[:10]
-        ctx["html_head"] = self.html_head()
-        ctx['skilllab_courses'] = SkillLabCourse.all_objects()[:12]
-        ctx['after_10_course'] = SkillLabCourse.objects.filter(
-            category=choices.SkillLabCourseTypeChoice.after_10_class
-        ).first()
-        if not ctx['after_10_course']:
-            ctx['after_10_course'] = SkillLabCourse.objects.filter(
-                category=choices.SkillLabCourseTypeChoice.BOTH
-            ).first()
-        ctx['after_12_course'] = SkillLabCourse.objects.filter(
-            category=choices.SkillLabCourseTypeChoice.after_12_class
-        ).first()
-        if not ctx['after_12_course']:
-            ctx['after_12_course'] = SkillLabCourse.objects.filter(
-                category=choices.SkillLabCourseTypeChoice.BOTH
-            ).first()
-        ctx['after_college_course'] = SkillLabCourse.objects.filter(
-            category=choices.SkillLabCourseTypeChoice.after_college
-        ).first()
-        exam_ids = list(EntranceTestPrepExam.objects.filter(object_status=choices.ObjectStatus.ACTIVE).values_list('id', flat=True)[:30])
-        if exam_ids:
-            ctx['exams'] = EntranceTestPrepExam.objects.filter(id__in=random.sample(exam_ids, min(3, len(exam_ids))), object_status=choices.ObjectStatus.ACTIVE)
-            del exam_ids
-        else:
-            ctx['exams'] = EntranceTestPrepExam.objects.none()
-        # Find Your Perfect Fit!: show all active career clusters from admin (same list as /admin/careers/careercluster/); each card links to careers/?mode=view-mode&cluster=ID
-        clusters = CareerCluster.objects.filter(object_status=choices.ObjectStatus.ACTIVE).order_by('name')
-        ctx['clusters'] = clusters
-        from django.templatetags.static import static
-        careers_base_url = reverse('careers:career')
-        default_career_library_url = reverse('careers:defaultcareerlibrary')
-        default_svg_icon_url = static('images_new/careers/career-tracks/stem-icon.svg') or '/static/images_new/careers/career-tracks/stem-icon.svg'
-        career_track_cards = []
-        if clusters:
-            for c in clusters:
-                if not c.name:
-                    continue
-                label = (c.name or '').strip()
-                # Each cluster card links to its own cluster page (all careers for that cluster)
-                url = f"{careers_base_url}?mode=view-mode&cluster={c.id}"
-                # Use Career track icon: S3 URL if set, else uploaded file URL, else default SVG (keeps icon with category)
-                icon_url = (
-                    getattr(c, 'career_track_icon_s3_url', None) or
-                    (c.career_track_icon.url if (c.career_track_icon and c.career_track_icon.name) else None)
-                ) or default_svg_icon_url
-                career_track_cards.append({
-                    'label': label,
-                    'icon_url': icon_url,
-                    'url': url,
-                })
-        if not career_track_cards:
-            # Original static list: distinct labels and icons, all link to career library (no cluster filter when no clusters)
-            career_track_specs = [
-                ("Agriculture & Environmental Sciences", "agriculture-icon.svg"),
-                ("Architecture & Constructions", "architecture-icon.svg"),
-                ("Arts, Media & Mass Communication", "avtechnology.svg"),
-                ("Business, Management & Administration", "businessmanage-icon.svg"),
-                ("Finance, Economics and Statistics", "finance-icon.svg"),
-                ("Education And Training", "educationtraining.svg"),
-                ("Government Sector, Pub Adm. & Int. Relations", "government-services.svg"),
-                ("Engineering & Technology", "eit-icon.svg"),
-                ("Information Technology (IT)", "it-icon.svg"),
-                ("STEM", "stem-icon.svg"),
-                ("Health Science & Medical Services", "health-services.svg"),
-                ("Hospitality and Tourism", "tourism-icon.svg"),
-                ("Humanities, Social Work & Psychology", "humanities-icon.svg"),
-                ("Law and Public Safety", "law-icon.svg"),
-                ("Distribution, Transportation & Logistics", "transport.svg"),
-                ("Marketing & Sales", "marketing-icon.svg"),
-                ("Scientific Research, R & D", "scientific-research.svg"),
-                ("Sports, Fitness & Wellness", "sports-icon.svg"),
-                ("Fashion, Design & Creativity", "faishion-icon.svg"),
-            ]
-            for label, icon_name in career_track_specs:
-                icon_url = static(f"images_new/careers/career-tracks/{icon_name}") or f"/static/images_new/careers/career-tracks/{icon_name}"
-                career_track_cards.append({
-                    'label': label,
-                    'icon_url': icon_url,
-                    'url': f"{careers_base_url}?mode=view-mode",
-                })
-        ctx['career_track_cards'] = career_track_cards
-        ctx['default_career_library_url'] = default_career_library_url
+    def _skilllab_featured_courses(self):
+        """One query for after-10 / after-12 / after-college cards (BOTH as fallback)."""
+        cat_10 = choices.SkillLabCourseTypeChoice.after_10_class
+        cat_12 = choices.SkillLabCourseTypeChoice.after_12_class
+        cat_college = choices.SkillLabCourseTypeChoice.after_college
+        cat_both = choices.SkillLabCourseTypeChoice.BOTH
+        by_cat = {}
+        for course in SkillLabCourse.objects.filter(
+            category__in=[cat_10, cat_12, cat_college, cat_both]
+        ).order_by('id'):
+            by_cat.setdefault(course.category, course)
+        both = by_cat.get(cat_both)
+        return {
+            'after_10_course': by_cat.get(cat_10) or both,
+            'after_12_course': by_cat.get(cat_12) or both,
+            'after_college_course': by_cat.get(cat_college),
+        }
 
-        # Homepage hero video: Configuration keys HOME_VIDEO_URL, HOME_VIDEO_THUMBNAIL (thumbnail shown first in modal, then play on click)
+    def _career_track_cards(self):
+        from django.templatetags.static import static
+
+        clusters = CareerCluster.objects.filter(
+            object_status=choices.ObjectStatus.ACTIVE
+        ).order_by('name')
+        careers_base_url = reverse('careers:career')
+        default_svg_icon_url = (
+            static('images_new/careers/career-tracks/stem-icon.svg')
+            or '/static/images_new/careers/career-tracks/stem-icon.svg'
+        )
+        career_track_cards = []
+        for c in clusters:
+            if not c.name:
+                continue
+            icon_url = (
+                getattr(c, 'career_track_icon_s3_url', None)
+                or (c.career_track_icon.url if (c.career_track_icon and c.career_track_icon.name) else None)
+                or default_svg_icon_url
+            )
+            career_track_cards.append({
+                'label': (c.name or '').strip(),
+                'icon_url': icon_url,
+                'url': f"{careers_base_url}?mode=view-mode&cluster={c.id}",
+            })
+        if career_track_cards:
+            return career_track_cards
+
+        career_track_specs = [
+            ("Agriculture & Environmental Sciences", "agriculture-icon.svg"),
+            ("Architecture & Constructions", "architecture-icon.svg"),
+            ("Arts, Media & Mass Communication", "avtechnology.svg"),
+            ("Business, Management & Administration", "businessmanage-icon.svg"),
+            ("Finance, Economics and Statistics", "finance-icon.svg"),
+            ("Education And Training", "educationtraining.svg"),
+            ("Government Sector, Pub Adm. & Int. Relations", "government-services.svg"),
+            ("Engineering & Technology", "eit-icon.svg"),
+            ("Information Technology (IT)", "it-icon.svg"),
+            ("STEM", "stem-icon.svg"),
+            ("Health Science & Medical Services", "health-services.svg"),
+            ("Hospitality and Tourism", "tourism-icon.svg"),
+            ("Humanities, Social Work & Psychology", "humanities-icon.svg"),
+            ("Law and Public Safety", "law-icon.svg"),
+            ("Distribution, Transportation & Logistics", "transport.svg"),
+            ("Marketing & Sales", "marketing-icon.svg"),
+            ("Scientific Research, R & D", "scientific-research.svg"),
+            ("Sports, Fitness & Wellness", "sports-icon.svg"),
+            ("Fashion, Design & Creativity", "faishion-icon.svg"),
+        ]
+        for label, icon_name in career_track_specs:
+            icon_url = (
+                static(f"images_new/careers/career-tracks/{icon_name}")
+                or f"/static/images_new/careers/career-tracks/{icon_name}"
+            )
+            career_track_cards.append({
+                'label': label,
+                'icon_url': icon_url,
+                'url': f"{careers_base_url}?mode=view-mode",
+            })
+        return career_track_cards
+
+    def _home_video_context(self):
         from core.models import Configuration
+
         default_home_video = 'https://topteenc.s3.ap-northeast-1.amazonaws.com/media/TopTeen_1080P.mp4'
-        home_video_url = (Configuration.get('HOME_VIDEO_URL', default=default_home_video, editable=True) or default_home_video or '').strip()
-        home_video_thumbnail_url = (Configuration.get('HOME_VIDEO_THUMBNAIL', default='', editable=True) or '').strip()
+        home_video_url = (
+            Configuration.get('HOME_VIDEO_URL', default=default_home_video, editable=True)
+            or default_home_video
+            or ''
+        ).strip()
+        home_video_thumbnail_url = (
+            Configuration.get('HOME_VIDEO_THUMBNAIL', default='', editable=True) or ''
+        ).strip()
         home_video_embed_url = home_video_url
         home_video_yt_id = ''
         if home_video_url:
-            yt_match = re.search(r'(?:youtube\.com/watch\?v=|youtu\.be/)([a-zA-Z0-9_-]{11})', home_video_url)
+            yt_match = re.search(
+                r'(?:youtube\.com/watch\?v=|youtu\.be/)([a-zA-Z0-9_-]{11})',
+                home_video_url,
+            )
             if yt_match:
                 home_video_yt_id = yt_match.group(1)
-                home_video_embed_url = 'https://www.youtube.com/embed/' + home_video_yt_id + '?autoplay=1'
+                home_video_embed_url = (
+                    'https://www.youtube.com/embed/' + home_video_yt_id + '?autoplay=1'
+                )
                 if not home_video_thumbnail_url:
-                    home_video_thumbnail_url = 'https://img.youtube.com/vi/' + home_video_yt_id + '/maxresdefault.jpg'
-        ctx['home_video_url'] = home_video_url
-        ctx['home_video_thumbnail_url'] = home_video_thumbnail_url
-        ctx['home_video_embed_url'] = home_video_embed_url
-        ctx['home_video_yt_id'] = home_video_yt_id
+                    home_video_thumbnail_url = (
+                        'https://img.youtube.com/vi/' + home_video_yt_id + '/maxresdefault.jpg'
+                    )
+        return {
+            'home_video_url': home_video_url,
+            'home_video_thumbnail_url': home_video_thumbnail_url,
+            'home_video_embed_url': home_video_embed_url,
+            'home_video_yt_id': home_video_yt_id,
+        }
 
+    def get_context(self, request, *args, **kwargs):
+        # Only load data used by template20/home_new.html (+ html_head for base).
+        ctx = {
+            'html_head': self.html_head(),
+            'blogs': Blog.get_published_objects()
+            .select_related('author', 'category')
+            .order_by('-modified')[:3],
+            'reviewers': Review.get_published_objects()[:6],
+            'career_track_cards': self._career_track_cards(),
+        }
+        ctx.update(self._skilllab_featured_courses())
+        ctx.update(self._home_video_context())
         return ctx
-        
+
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, self.get_context(request, args, kwargs))
 

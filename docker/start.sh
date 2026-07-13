@@ -11,7 +11,7 @@ echo "[start] collectstatic OK."
 # Optimal Gunicorn: gthread for I/O, keepalive for nginx; access/error logs to central folder
 exec gunicorn topteens.wsgi:application \
   --bind 0.0.0.0:8000 \
-  --workers "${GUNICORN_WORKERS:-4}" \
+  --workers "${GUNICORN_WORKERS:-8}" \
   --worker-class gthread \
   --threads "${GUNICORN_THREADS:-4}" \
   --max-requests 2000 \
