@@ -34,7 +34,11 @@ from users.skilllab_dashboard import (
     skilllab_course_completed,
     skilllab_course_certificate_url,
 )
-from skilllab.learner_header import enrich_skilllab_header_context, skilllab_course_queryset
+from skilllab.learner_header import (
+    enrich_skilllab_header_context,
+    related_skilllab_courses,
+    skilllab_course_queryset,
+)
 from skilllab.certificate import issue_skilllab_certificate_if_eligible, is_skilllab_course_completed
 import logging
 
@@ -304,19 +308,7 @@ class SkillLabCourseDetail(TemplateView):
         skillab=get_object_or_404(skilllab_course_queryset(), slug=skil_slug)
         ctx['skilllab']=skillab
         ctx['first_chapter']=skillab.skilllabcoursechapter.order_by('created').first()
-        # Related by overlapping class grades (not legacy audience category).
-        grade_nums = skillab.get_grade_numbers()
-        if grade_nums:
-            ctx['activecourses'] = (
-                SkillLabCourse.objects.filter(grades__grade_number__in=grade_nums)
-                .exclude(id=skillab.id)
-                .prefetch_related('grades')
-                .distinct()
-            )
-        else:
-            ctx['activecourses'] = (
-                SkillLabCourse.objects.exclude(id=skillab.id).prefetch_related('grades')
-            )
+        ctx['activecourses'] = related_skilllab_courses(skillab, limit=3)
         ctx['breadcrumb'] = self._breadcrumb(skillab)
         ctx["html_head"] = self.html_head(skillab)
         ctx['user_authenticated'] = request.user.is_authenticated
