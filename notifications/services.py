@@ -444,6 +444,59 @@ def _existing_paths_with_glob(paths):
     return out
 
 
+def _celery_truncate(value, max_len=120):
+    text = repr(value) if not isinstance(value, str) else value
+    if len(text) <= max_len:
+        return text
+    return text[: max_len - 1] + '…'
+
+
+def _celery_format_started(time_start):
+    """Celery time_start is epoch seconds (float); return short local display or ''."""
+    if time_start is None:
+        return ''
+    try:
+        from datetime import datetime
+
+        from django.utils import timezone as dj_tz
+
+        ts = float(time_start)
+        dt = datetime.fromtimestamp(ts)
+        if getattr(settings, 'USE_TZ', False):
+            dt = dj_tz.make_aware(dt, dj_tz.get_current_timezone())
+            return dj_tz.localtime(dt).strftime('%Y-%m-%d %H:%M:%S')
+        return dt.strftime('%Y-%m-%d %H:%M:%S')
+    except (TypeError, ValueError, OSError):
+        return str(time_start)
+
+
+def _normalize_celery_task_rows(bucket, state):
+    """Flatten inspect active/reserved/scheduled maps into display rows."""
+    rows = []
+    if not bucket:
+        return rows
+    for worker, tasks in bucket.items():
+        for item in tasks or []:
+            req = item.get('request') if isinstance(item, dict) and state == 'scheduled' else item
+            if not isinstance(req, dict):
+                continue
+            args = req.get('args', ())
+            kwargs = req.get('kwargs', {})
+            rows.append(
+                {
+                    'state': state,
+                    'worker': worker or req.get('hostname') or '—',
+                    'id': req.get('id') or '',
+                    'name': req.get('name') or req.get('type') or '—',
+                    'args': _celery_truncate(args),
+                    'kwargs': _celery_truncate(kwargs),
+                    'started': _celery_format_started(req.get('time_start')),
+                    'eta': (item.get('eta') if state == 'scheduled' else '') or '',
+                }
+            )
+    return rows
+
+
 def _get_celery_runtime_diagnostics():
     diag = {
         'workers_up': 0,
@@ -451,6 +504,7 @@ def _get_celery_runtime_diagnostics():
         'active_tasks': 0,
         'reserved_tasks': 0,
         'scheduled_tasks': 0,
+        'task_rows': [],
         'inspect_ok': False,
         'inspect_error': '',
     }
@@ -459,7 +513,7 @@ def _get_celery_runtime_diagnostics():
     try:
         from topteens.celery import app as celery_app
 
-        insp = celery_app.control.inspect(timeout=1)
+        insp = celery_app.control.inspect(timeout=1.5)
         ping = insp.ping() or {}
         active = insp.active() or {}
         reserved = insp.reserved() or {}
@@ -469,6 +523,11 @@ def _get_celery_runtime_diagnostics():
         diag['reserved_tasks'] = sum(len(v or []) for v in reserved.values())
         diag['scheduled_tasks'] = sum(len(v or []) for v in scheduled.values())
         diag['open_tasks'] = diag['active_tasks'] + diag['reserved_tasks'] + diag['scheduled_tasks']
+        diag['task_rows'] = (
+            _normalize_celery_task_rows(active, 'active')
+            + _normalize_celery_task_rows(reserved, 'reserved')
+            + _normalize_celery_task_rows(scheduled, 'scheduled')
+        )
         diag['inspect_ok'] = True
     except Exception as exc:
         diag['inspect_error'] = str(exc)
@@ -520,6 +579,7 @@ def get_runtime_service_status():
     service_map['celery']['active_tasks'] = celery_diag['active_tasks']
     service_map['celery']['reserved_tasks'] = celery_diag['reserved_tasks']
     service_map['celery']['scheduled_tasks'] = celery_diag['scheduled_tasks']
+    service_map['celery']['task_rows'] = celery_diag.get('task_rows') or []
     service_map['celery']['inspect_ok'] = celery_diag['inspect_ok']
     service_map['celery']['inspect_error'] = celery_diag['inspect_error']
 
