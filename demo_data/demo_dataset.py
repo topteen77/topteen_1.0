@@ -2,6 +2,9 @@
 Shared logic for creating the fixed demo dataset.
 Only this module sets is_system_demo on User and Institute.
 Uses DemoDatasetConfig (singleton) for: student counts per class, psychometric options, result type.
+
+Remove/reset hard-deletes system-demo users and related Skill Lab, package personality,
+psychometric payments, analytics tracking, counseling follow-ups, and legacy test results.
 """
 from django.db import transaction
 
@@ -810,6 +813,164 @@ def create_demo_dataset(config=None):
         }
 
 
+def _qs_hard_delete(qs):
+    """Physically remove rows (soft-delete managers expose .hard_delete())."""
+    if hasattr(qs, "hard_delete"):
+        return qs.hard_delete()
+    return qs.delete()
+
+
+def _delete_skilllab_for_users(demo_user_ids):
+    """Skill Lab enrollment + progress for demo users (payments, chapters, quizzes, certs)."""
+    if not demo_user_ids:
+        return
+    try:
+        from skilllab.models import (
+            SkilllabCoursePayment,
+            SkillLabCourseProgress,
+            SkillLabCourseProgressSummary,
+            SkillLabCourseResume,
+            SkillLabWorksheetProgress,
+            SkillLabMCQAttempt,
+            SkillLabUserHighlight,
+            SkillLabUserNote,
+            SkillLabUserBookmark,
+            SkillLabCertification,
+        )
+    except Exception:
+        return
+
+    for Model in (
+        SkillLabCourseProgress,
+        SkillLabCourseProgressSummary,
+        SkillLabCourseResume,
+        SkillLabWorksheetProgress,
+        SkillLabMCQAttempt,
+        SkillLabUserHighlight,
+        SkillLabUserNote,
+        SkillLabUserBookmark,
+        SkillLabCertification,
+    ):
+        _qs_hard_delete(Model.objects.complete().filter(user_id__in=demo_user_ids))
+
+    for pay in SkilllabCoursePayment.objects.complete().filter(user_id__in=demo_user_ids):
+        pay.delete(hard_delete=True)
+
+
+def _delete_psychometric_packages_and_payments_for_users(demo_user_ids):
+    """
+    Single-package personality assignments/entitlements + legacy PsychometricTestPayment /
+    CentralTestCandidate (and CandidateTest / PsychometricTestResult).
+    """
+    if not demo_user_ids:
+        return
+    try:
+        from django.db.models import Q
+        from psychometric_tests.models import (
+            StudentAssessmentEntitlement,
+            StudentPackageAssignment,
+            PsychometricTestPayment,
+            CentralTestCandidate,
+            CandidateTest,
+            PsychometricTestResult,
+        )
+    except Exception:
+        return
+
+    _qs_hard_delete(
+        StudentAssessmentEntitlement.objects.complete().filter(user_id__in=demo_user_ids)
+    )
+    _qs_hard_delete(
+        StudentPackageAssignment.objects.complete().filter(student_id__in=demo_user_ids)
+    )
+
+    payment_ids = list(
+        PsychometricTestPayment.objects.complete()
+        .filter(user_id__in=demo_user_ids)
+        .values_list("id", flat=True)
+    )
+    ctc_ids = list(
+        CentralTestCandidate.objects.complete()
+        .filter(user_id__in=demo_user_ids)
+        .values_list("id", flat=True)
+    )
+    ct_ids = list(
+        CandidateTest.objects.complete()
+        .filter(
+            Q(pyschometric_test_payment_id__in=payment_ids)
+            | Q(central_test_candidate_id__in=ctc_ids)
+        )
+        .values_list("id", flat=True)
+    )
+    if ct_ids:
+        _qs_hard_delete(
+            PsychometricTestResult.objects.complete().filter(assessment_id__in=ct_ids)
+        )
+        _qs_hard_delete(CandidateTest.objects.complete().filter(id__in=ct_ids))
+
+    for pay in PsychometricTestPayment.objects.complete().filter(user_id__in=demo_user_ids):
+        pay.delete(hard_delete=True)
+    for ctc in CentralTestCandidate.objects.complete().filter(user_id__in=demo_user_ids):
+        ctc.delete(hard_delete=True)
+
+
+def _delete_analytics_for_users(demo_user_ids):
+    """Hard-delete analytics tracking rows (FK is SET_NULL — User delete alone leaves orphans)."""
+    if not demo_user_ids:
+        return
+    try:
+        from user_analytics.models import (
+            UserActivity,
+            UserEvent,
+            UserJourney,
+            Lead,
+            GA4Session,
+        )
+    except Exception:
+        return
+
+    for Model in (UserActivity, UserEvent, UserJourney, Lead, GA4Session):
+        _qs_hard_delete(Model.objects.complete().filter(user_id__in=demo_user_ids))
+
+
+def _delete_misc_student_extras(demo_user_ids, demo_institute_ids):
+    """Counseling follow-ups, career shortlists, resumes if present."""
+    if demo_user_ids:
+        try:
+            from careers.models import CareerShortlist
+
+            _qs_hard_delete(
+                CareerShortlist.objects.complete().filter(user_id__in=demo_user_ids)
+            )
+        except Exception:
+            pass
+        try:
+            from users.models import UserResume, UserFolder, UserNote, UserCalender
+
+            for Model in (UserResume, UserFolder, UserNote, UserCalender):
+                _qs_hard_delete(Model.objects.complete().filter(user_id__in=demo_user_ids))
+        except Exception:
+            pass
+
+    try:
+        from django.db.models import Q
+        from counselor.models import FollowUpStatus
+        from institute.models import StudentManagement
+
+        sm_filter = Q(student_id__in=demo_user_ids)
+        if demo_institute_ids:
+            sm_filter |= Q(institute_id__in=demo_institute_ids)
+        sm_ids = list(
+            StudentManagement.objects.complete().filter(sm_filter).values_list("id", flat=True)
+        )
+        if sm_ids:
+            _qs_hard_delete(
+                FollowUpStatus.objects.complete().filter(student_id__in=sm_ids)
+            )
+    except Exception:
+        pass
+
+
 def _delete_system_demo_data():
     """Delete all data that has is_system_demo=True (and related FKs). Uses hard_delete for User and Institute so they can be recreated."""
     demo_user_ids = list(
@@ -823,6 +984,12 @@ def _delete_system_demo_data():
 
     if not demo_user_ids and not demo_institute_ids:
         return
+
+    # Skill Lab + single-package personality + analytics (must run before User hard_delete)
+    _delete_skilllab_for_users(demo_user_ids)
+    _delete_psychometric_packages_and_payments_for_users(demo_user_ids)
+    _delete_analytics_for_users(demo_user_ids)
+    _delete_misc_student_extras(demo_user_ids, demo_institute_ids)
 
     # Counselor course: payments (soft-delete model — hard_delete), progress, profile
     for pay in Payment.objects.complete().filter(user_id__in=demo_user_ids):
@@ -839,7 +1006,7 @@ def _delete_system_demo_data():
     SectionSession.objects.filter(session__user_id__in=demo_user_ids).delete()
     TestSession.objects.filter(user_id__in=demo_user_ids).delete()
 
-    # Psychometric
+    # Psychometric (legacy app Results / TestCompletion)
     TestCompletion.objects.filter(user_id__in=demo_user_ids).delete()
     Results.objects.filter(user_id__in=demo_user_ids).delete()
 

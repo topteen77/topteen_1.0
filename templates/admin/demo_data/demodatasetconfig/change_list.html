@@ -36,10 +36,18 @@
   {% if last_job_message %}<p style="margin: 0 0 0.35em 0; color: #333;">{{ last_job_message }}</p>{% endif %}
   {% if last_job_task_id %}<p style="margin: 0 0 0.35em 0; color: #666; font-size: 12px;">Celery task id: <code>{{ last_job_task_id }}</code></p>{% endif %}
   {% if last_job_started_at %}<p style="margin: 0; color: #666; font-size: 12px;">Started: {{ last_job_started_at }}{% if last_job_finished_at %} · Finished: {{ last_job_finished_at }}{% endif %}</p>{% endif %}
+  <p style="margin: 0.5em 0 0 0; color: #333; font-size: 13px;">
+    <strong>Live demo students (from last successful setup):</strong> {{ live_demo_student_count|default:0 }}
+    {% if live_demo_student_count %}
+    — still present until Remove finishes with <em>Success</em>.
+    {% else %}
+    — none tracked (remove succeeded, or never set up).
+    {% endif %}
+  </p>
   {% if job_in_progress %}
   <p style="margin: 0.75em 0 0 0;">
     <a href="{% url 'admin:demo_data_demodatasetconfig_changelist' %}" class="button">Refresh status</a>
-    <a href="{% url 'admin:demo_data_clear_job' %}" class="button" style="margin-left: 0.5em;" onclick="return confirm('Clear job status marker? Only if the worker is stuck — this does not cancel a running Celery task.');">Clear stuck job status</a>
+    <a href="{% url 'admin:demo_data_clear_job' %}" class="button" style="margin-left: 0.5em;" onclick="return confirm('Clear job status marker only? This does NOT delete demo students. Use only if Celery shows 0 open tasks.');">Clear stuck job status</a>
     <span style="color: #856404; margin-left: 0.5em;">Job still running — refresh until Success / Failed.</span>
   </p>
   {% endif %}
@@ -49,10 +57,14 @@
 <div class="module" style="margin-bottom: 1.5em; padding: 1em; border-left: 4px solid #417690; background: #f8f9fa;">
   <h2 style="margin-top: 0;">Celery running / queued tasks</h2>
   <p style="margin: 0 0 0.75em 0; color: #555; font-size: 13px;">
+    Workers up: <strong>{{ celery_workers_up|default:0 }}</strong> ·
     Open tasks: <strong>{{ celery_open_tasks|default:0 }}</strong>.
     Live snapshot from workers — use Stop to revoke/terminate. Periodic beat jobs may reappear later.
     {% if not celery_inspect_ok and celery_inspect_error %}
     <span style="color: #d9534f;"> Inspect error: {{ celery_inspect_error }}</span>
+    {% endif %}
+    {% if celery_workers_up == 0 %}
+    <span style="color: #d9534f;"> No workers — Reset/Remove will not run until celery is restarted/redeployed.</span>
     {% endif %}
   </p>
   {% if celery_task_rows %}
@@ -129,6 +141,11 @@
 {# Student demo: configuration #}
 <div class="module" style="margin-bottom: 1.5em;">
   <h2 style="margin-top: 0;">Student demo configuration</h2>
+  <p style="margin: 0 0 0.75em 0; color: #555; font-size: 13px;">
+    These numbers are the <strong>plan for the next Setup/Reset</strong>, not a live headcount.
+    Live count after the last successful create: <strong>{{ live_demo_student_count|default:0 }}</strong> students.
+    Remove sets live count to 0 but leaves this plan unchanged.
+  </p>
   <form method="post" action="{% url 'admin:demo_data_config_save' %}" id="demo-config-form">
     {% csrf_token %}
     <table style="width: 100%; max-width: 720px;" class="table">

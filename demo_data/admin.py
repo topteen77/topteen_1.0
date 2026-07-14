@@ -23,6 +23,7 @@ from .tasks import (
     setup_demo_counselor_task,
     setup_demo_dataset_task,
 )
+from .job_status import celery_workers_ready, reconcile_stale_demo_job
 from notifications.services import get_celery_open_tasks, revoke_celery_task, revoke_celery_tasks
 
 User = get_user_model()
@@ -169,6 +170,16 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
         if cid:
             demo_counselor_user = User.objects.filter(id=cid).first()
         extra_context["demo_counselor_user"] = demo_counselor_user
+
+        # Auto-fail orphaned Queued/Running markers when Celery no longer has the task.
+        if reconcile_stale_demo_job():
+            config = DemoDatasetConfig.get_singleton()
+            messages.warning(
+                request,
+                config.last_job_message
+                or "Previous demo Celery job was orphaned and marked failed. Data was not changed — queue again.",
+            )
+
         extra_context["job_in_progress"] = config.job_in_progress()
         extra_context["last_job_status"] = config.last_job_status
         extra_context["last_job_status_label"] = dict(DemoJobStatus.CHOICES).get(
@@ -181,10 +192,14 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
         extra_context["last_job_task_id"] = config.last_job_task_id
         extra_context["last_job_started_at"] = config.last_job_started_at
         extra_context["last_job_finished_at"] = config.last_job_finished_at
+        extra_context["live_demo_student_count"] = len(
+            list(getattr(config, "student_user_ids", []) or [])
+        )
 
         celery_diag = get_celery_open_tasks()
         extra_context["celery_task_rows"] = celery_diag.get("task_rows") or []
         extra_context["celery_open_tasks"] = celery_diag.get("open_tasks") or 0
+        extra_context["celery_workers_up"] = celery_diag.get("workers_up") or 0
         extra_context["celery_inspect_ok"] = celery_diag.get("inspect_ok")
         extra_context["celery_inspect_error"] = celery_diag.get("inspect_error") or ""
 
@@ -392,7 +407,10 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
             raise PermissionDenied
         config = DemoDatasetConfig.get_singleton()
         config.last_job_status = DemoJobStatus.IDLE
-        config.last_job_message = "Job status cleared manually."
+        config.last_job_message = (
+            "Job status cleared manually — no demo data was deleted or created. "
+            "Re-run Reset/Remove if you still need that action."
+        )
         config.last_job_finished_at = timezone.now()
         config.save(
             update_fields=[
@@ -402,34 +420,53 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
                 "updated_at",
             ]
         )
-        messages.info(request, "Background job status cleared. You can queue a new demo job.")
+        messages.warning(
+            request,
+            "Background job status cleared only. Demo students were NOT removed/reset. "
+            "Click Remove or Reset again once Celery workers are healthy.",
+        )
         return redirect("admin:demo_data_demodatasetconfig_changelist")
 
     def _enqueue_demo_job(self, request, action, celery_task, queued_message):
         """Queue a long demo job on Celery; refuse if another job is already running."""
         config = DemoDatasetConfig.get_singleton()
         if config.job_in_progress():
-            messages.warning(
+            # Opportunistic reconcile in case marker is already orphaned.
+            if reconcile_stale_demo_job(grace=timedelta(seconds=0)):
+                config = DemoDatasetConfig.get_singleton()
+            else:
+                messages.warning(
+                    request,
+                    f"A demo job is already {config.last_job_status} "
+                    f"({DemoJobAction.LABELS.get(config.last_job_action, config.last_job_action)}). "
+                    "Wait for it to finish (refresh this page), then try again.",
+                )
+                return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+        task_name = getattr(celery_task, "name", None) or ""
+        ready, detail = celery_workers_ready(required_task_name=task_name or None)
+        if not ready:
+            messages.error(
                 request,
-                f"A demo job is already {config.last_job_status} "
-                f"({DemoJobAction.LABELS.get(config.last_job_action, config.last_job_action)}). "
-                "Wait for it to finish (refresh this page), then try again.",
+                f"Cannot queue demo job: {detail} "
+                "Student data was not changed.",
             )
             return redirect("admin:demo_data_demodatasetconfig_changelist")
+
         try:
             async_result = celery_task.delay()
             config.mark_job_queued(action, async_result.id, queued_message)
             messages.success(
                 request,
                 f"{queued_message} Task id: {async_result.id}. "
-                "Refresh this page to see progress (Celery worker must be running).",
+                "Refresh this page until Success / Failed. Celery workers are available.",
             )
         except Exception as e:
             config.mark_job_failed(f"Could not queue job: {e}")
             messages.error(
                 request,
                 f"Could not queue Celery job: {e}. "
-                "Check Redis / celery worker is up.",
+                "Check Redis / celery worker is up. Student data was not changed.",
             )
         return redirect("admin:demo_data_demodatasetconfig_changelist")
 
