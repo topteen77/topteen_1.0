@@ -2454,13 +2454,17 @@ def submit_clicks(request):
                     }
                 )
             test2_result.save()
-            test_completion= TestCompletion.objects.get(user=request.user)
+            # get_or_create: TC may be missing if test2 is attempted before other tests
+            test_completion, _ = TestCompletion.objects.get_or_create(user=request.user)
             test_completion.test2_complete = True
-            test_completion.save()          
+            test_completion.save(update_fields=['test2_complete'])
             
             return JsonResponse({'message': 'Success'}, status=200)
         except json.JSONDecodeError:
             return JsonResponse({'message': 'Invalid JSON data'}, status=400)
+        except Exception as e:
+            logger.exception("submit_clicks failed for user_id=%s: %s", getattr(request.user, 'id', None), e)
+            return JsonResponse({'message': 'Unable to save career interest responses.'}, status=500)
     return JsonResponse({'message': 'Invalid request'}, status=400)
     
 @login_required(login_url=reverse_lazy('users:login'))

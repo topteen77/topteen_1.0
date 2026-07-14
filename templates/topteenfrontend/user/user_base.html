@@ -159,11 +159,17 @@
           <li class="flex relative">
             <div>
               <button class="popTrigr h-[42px] w-[42px] rounded-full -mr-[16px]">
+                {% if request.user.image %}
                 <img
-                  src="{{request.user.image.url}}"
+                  src="{{ request.user.image.url }}"
                   alt="update image"
                   class="h-full w-full rounded-full object-cover"
                 />
+                {% else %}
+                <span class="h-full w-full rounded-full bg-[#e0e0e0] flex items-center justify-center text-[14px] font-semibold text-[#4f4f4f]">
+                  {{ (request.user.name or request.user.email or "?")[0]|upper }}
+                </span>
+                {% endif %}
               </button>
             </div>
 

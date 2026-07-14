@@ -26,16 +26,33 @@
 {% block content %}
 <div class="module" style="margin-bottom: 1.5em;">
   <p style="margin-bottom: 0;">Only data marked with the <em>system demo</em> flag is touched for <strong>student</strong> demo; <strong>demo counselor</strong> is managed separately and is not removed by student setup/reset/remove.</p>
+  <p style="margin: 0.5em 0 0 0; color: #555;">Setup / reset / remove run on the <strong>Celery queue</strong> so large batches (100+ students) do not cause 502 timeouts.</p>
+</div>
+
+{# Background job status #}
+<div class="module" style="margin-bottom: 1.5em; padding: 1em; border-left: 4px solid {% if job_in_progress %}#f0ad4e{% elif last_job_status == 'failed' %}#d9534f{% elif last_job_status == 'success' %}#5cb85c{% else %}#777{% endif %}; background: #f8f9fa;">
+  <h2 style="margin-top: 0;">Background job status</h2>
+  <p style="margin: 0 0 0.35em 0;"><strong>Status:</strong> {{ last_job_status_label|default:"Idle" }}{% if last_job_action_label and last_job_action_label != "—" %} — {{ last_job_action_label }}{% endif %}</p>
+  {% if last_job_message %}<p style="margin: 0 0 0.35em 0; color: #333;">{{ last_job_message }}</p>{% endif %}
+  {% if last_job_task_id %}<p style="margin: 0 0 0.35em 0; color: #666; font-size: 12px;">Celery task id: <code>{{ last_job_task_id }}</code></p>{% endif %}
+  {% if last_job_started_at %}<p style="margin: 0; color: #666; font-size: 12px;">Started: {{ last_job_started_at }}{% if last_job_finished_at %} · Finished: {{ last_job_finished_at }}{% endif %}</p>{% endif %}
+  {% if job_in_progress %}
+  <p style="margin: 0.75em 0 0 0;">
+    <a href="{% url 'admin:demo_data_demodatasetconfig_changelist' %}" class="button">Refresh status</a>
+    <a href="{% url 'admin:demo_data_clear_job' %}" class="button" style="margin-left: 0.5em;" onclick="return confirm('Clear job status marker? Only if the worker is stuck — this does not cancel a running Celery task.');">Clear stuck job status</a>
+    <span style="color: #856404; margin-left: 0.5em;">Job still running — refresh until Success / Failed.</span>
+  </p>
+  {% endif %}
 </div>
 
 {# Student demo: actions #}
 <div class="module" style="margin-bottom: 1.5em;">
   <h2 style="margin-top: 0;">Student / institute demo</h2>
-  <p style="margin-bottom: 0.75em;">Institute, parent, students, psychometric — not mixed with counselor course demo.</p>
+  <p style="margin-bottom: 0.75em;">Institute, parent, students, psychometric — queued on Celery (not mixed with counselor course demo).</p>
   <ul style="list-style: none; padding-left: 0; margin: 0;">
     <li style="margin-bottom: 0.5em;">
-      <a href="{% url 'admin:demo_data_setup' %}" class="button">Setup student demo data</a>
-      <span style="color: #666; margin-left: 0.5em;">— Create from current config below.</span>
+      <a href="{% url 'admin:demo_data_setup' %}" class="button"{% if job_in_progress %} onclick="alert('A demo job is already running. Refresh and wait for it to finish.'); return false;"{% endif %}>Setup student demo data</a>
+      <span style="color: #666; margin-left: 0.5em;">— Queue create from current config (async).</span>
     </li>
     <li style="margin-bottom: 0.5em;">
       <a href="{% url 'admin:demo_data_reset' %}?confirm=1" class="button" onclick="return confirm('Reset student demo data? Demo counselor is not affected.');">Reset student demo data</a>
@@ -66,14 +83,14 @@
           <td style="padding: 0.5em; font-weight: 600;">{{ row.user }}</td>
           <td style="padding: 0.5em;">
             {% if row.editable %}
-            <input type="number" name="{% if row.user == 'Class 10' %}num_students_class_10{% else %}num_students_class_12{% endif %}" value="{{ row.total_students }}" min="0" max="20" style="width: 4em;">
+            <input type="number" name="{% if row.user == 'Class 10' %}num_students_class_10{% else %}num_students_class_12{% endif %}" value="{{ row.total_students }}" min="0" max="500" style="width: 5em;">
             {% else %}
             {{ row.total_students }}
             {% endif %}
           </td>
           <td style="padding: 0.5em;">
             {% if row.editable %}
-            <input type="number" name="{% if row.user == 'Class 10' %}num_psychometric_class_10{% else %}num_psychometric_class_12{% endif %}" value="{{ row.psych_completed }}" min="0" max="20" style="width: 4em;">
+            <input type="number" name="{% if row.user == 'Class 10' %}num_psychometric_class_10{% else %}num_psychometric_class_12{% endif %}" value="{{ row.psych_completed }}" min="0" max="500" style="width: 5em;">
             {% else %}
             —
             {% endif %}

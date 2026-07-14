@@ -30,6 +30,41 @@ class ResultType:
     ]
 
 
+class DemoJobStatus:
+    """Background Celery job status for long demo setup/reset/remove runs."""
+    IDLE = "idle"
+    QUEUED = "queued"
+    RUNNING = "running"
+    SUCCESS = "success"
+    FAILED = "failed"
+    CHOICES = [
+        (IDLE, "Idle"),
+        (QUEUED, "Queued"),
+        (RUNNING, "Running"),
+        (SUCCESS, "Success"),
+        (FAILED, "Failed"),
+    ]
+    IN_PROGRESS = (QUEUED, RUNNING)
+
+
+class DemoJobAction:
+    SETUP_STUDENTS = "setup_students"
+    RESET_STUDENTS = "reset_students"
+    REMOVE_STUDENTS = "remove_students"
+    SETUP_COUNSELOR = "setup_counselor"
+    RESET_COUNSELOR = "reset_counselor"
+    REMOVE_COUNSELOR = "remove_counselor"
+    CHOICES = [
+        (SETUP_STUDENTS, "Setup student demo"),
+        (RESET_STUDENTS, "Reset student demo"),
+        (REMOVE_STUDENTS, "Remove student demo"),
+        (SETUP_COUNSELOR, "Setup demo counselor"),
+        (RESET_COUNSELOR, "Reset demo counselor"),
+        (REMOVE_COUNSELOR, "Remove demo counselor"),
+    ]
+    LABELS = dict(CHOICES)
+
+
 class DemoDatasetConfig(models.Model):
     """
     Singleton (one row): configuration for demo data generation + IDs from last run.
@@ -97,6 +132,34 @@ class DemoDatasetConfig(models.Model):
         blank=True,
         help_text="Demo Counselor profile ID (from last setup/reset).",
     )
+
+    # --- Background job status (Celery) ---
+    last_job_status = models.CharField(
+        max_length=20,
+        choices=DemoJobStatus.CHOICES,
+        default=DemoJobStatus.IDLE,
+        help_text="Status of the last queued demo setup/reset/remove job.",
+    )
+    last_job_action = models.CharField(
+        max_length=40,
+        choices=DemoJobAction.CHOICES,
+        blank=True,
+        default="",
+        help_text="Which admin action was last queued.",
+    )
+    last_job_task_id = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text="Celery task id of the last queued job.",
+    )
+    last_job_message = models.TextField(
+        blank=True,
+        default="",
+        help_text="Human-readable status / error from the last job.",
+    )
+    last_job_started_at = models.DateTimeField(null=True, blank=True)
+    last_job_finished_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     class Meta:
@@ -130,3 +193,73 @@ class DemoDatasetConfig(models.Model):
         if obj is None:
             obj = cls.objects.create()
         return obj
+
+    def job_in_progress(self):
+        return self.last_job_status in DemoJobStatus.IN_PROGRESS
+
+    def mark_job_queued(self, action, task_id, message=""):
+        from django.utils import timezone
+
+        self.last_job_status = DemoJobStatus.QUEUED
+        self.last_job_action = action
+        self.last_job_task_id = task_id or ""
+        self.last_job_message = message or "Queued on Celery worker."
+        self.last_job_started_at = timezone.now()
+        self.last_job_finished_at = None
+        self.save(
+            update_fields=[
+                "last_job_status",
+                "last_job_action",
+                "last_job_task_id",
+                "last_job_message",
+                "last_job_started_at",
+                "last_job_finished_at",
+                "updated_at",
+            ]
+        )
+
+    def mark_job_running(self, message=""):
+        from django.utils import timezone
+
+        self.last_job_status = DemoJobStatus.RUNNING
+        self.last_job_message = message or "Running…"
+        if not self.last_job_started_at:
+            self.last_job_started_at = timezone.now()
+        self.save(
+            update_fields=[
+                "last_job_status",
+                "last_job_message",
+                "last_job_started_at",
+                "updated_at",
+            ]
+        )
+
+    def mark_job_success(self, message=""):
+        from django.utils import timezone
+
+        self.last_job_status = DemoJobStatus.SUCCESS
+        self.last_job_message = message or "Completed successfully."
+        self.last_job_finished_at = timezone.now()
+        self.save(
+            update_fields=[
+                "last_job_status",
+                "last_job_message",
+                "last_job_finished_at",
+                "updated_at",
+            ]
+        )
+
+    def mark_job_failed(self, message=""):
+        from django.utils import timezone
+
+        self.last_job_status = DemoJobStatus.FAILED
+        self.last_job_message = message or "Job failed."
+        self.last_job_finished_at = timezone.now()
+        self.save(
+            update_fields=[
+                "last_job_status",
+                "last_job_message",
+                "last_job_finished_at",
+                "updated_at",
+            ]
+        )

@@ -7,15 +7,21 @@ from core.choices import UserType
 from django.utils import timezone
 from datetime import timedelta
 import random
-from .models import DemoDatasetConfig, DemoCounselorCourseState, ResultType
-from .demo_dataset import (
-    create_demo_dataset,
-    remove_demo_counselor_data,
-    remove_demo_data,
-    reset_demo_counselor_data,
-    reset_demo_data,
-    reseed_demo_student_psychometric,
-    setup_demo_counselor_data,
+from .models import (
+    DemoDatasetConfig,
+    DemoCounselorCourseState,
+    DemoJobAction,
+    DemoJobStatus,
+    ResultType,
+)
+from .demo_dataset import reseed_demo_student_psychometric
+from .tasks import (
+    remove_demo_counselor_task,
+    remove_demo_dataset_task,
+    reset_demo_counselor_task,
+    reset_demo_dataset_task,
+    setup_demo_counselor_task,
+    setup_demo_dataset_task,
 )
 
 User = get_user_model()
@@ -35,6 +41,7 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
         "student_count",
         "institute_id",
         "counselor_id",
+        "last_job_status",
         "updated_at",
     ]
     list_editable = [
@@ -52,6 +59,12 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
         "student_user_ids",
         "counselor_user_id",
         "counselor_id",
+        "last_job_status",
+        "last_job_action",
+        "last_job_task_id",
+        "last_job_message",
+        "last_job_started_at",
+        "last_job_finished_at",
         "updated_at",
     ]
     fieldsets = (
@@ -80,6 +93,19 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
                     "counselor_user_id",
                     "counselor_id",
                     "updated_at",
+                ),
+            },
+        ),
+        (
+            "Background job (Celery)",
+            {
+                "fields": (
+                    "last_job_status",
+                    "last_job_action",
+                    "last_job_task_id",
+                    "last_job_message",
+                    "last_job_started_at",
+                    "last_job_finished_at",
                 ),
             },
         ),
@@ -142,6 +168,18 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
         if cid:
             demo_counselor_user = User.objects.filter(id=cid).first()
         extra_context["demo_counselor_user"] = demo_counselor_user
+        extra_context["job_in_progress"] = config.job_in_progress()
+        extra_context["last_job_status"] = config.last_job_status
+        extra_context["last_job_status_label"] = dict(DemoJobStatus.CHOICES).get(
+            config.last_job_status, config.last_job_status
+        )
+        extra_context["last_job_action_label"] = DemoJobAction.LABELS.get(
+            config.last_job_action, config.last_job_action or "—"
+        )
+        extra_context["last_job_message"] = config.last_job_message
+        extra_context["last_job_task_id"] = config.last_job_task_id
+        extra_context["last_job_started_at"] = config.last_job_started_at
+        extra_context["last_job_finished_at"] = config.last_job_finished_at
 
         # Demo student dropdown (for dummy counseling/session data generation)
         demo_students = []
@@ -250,8 +288,62 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
                 self.admin_site.admin_view(self.reset_heatmap_data_view),
                 name="demo_data_reset_heatmap",
             ),
+            path(
+                "clear_job/",
+                self.admin_site.admin_view(self.clear_demo_job_view),
+                name="demo_data_clear_job",
+            ),
         ]
         return custom + urls
+
+    def clear_demo_job_view(self, request):
+        """Unlock a stuck queued/running status marker (does not revoke Celery)."""
+        if not request.user.is_staff:
+            from django.core.exceptions import PermissionDenied
+
+            raise PermissionDenied
+        config = DemoDatasetConfig.get_singleton()
+        config.last_job_status = DemoJobStatus.IDLE
+        config.last_job_message = "Job status cleared manually."
+        config.last_job_finished_at = timezone.now()
+        config.save(
+            update_fields=[
+                "last_job_status",
+                "last_job_message",
+                "last_job_finished_at",
+                "updated_at",
+            ]
+        )
+        messages.info(request, "Background job status cleared. You can queue a new demo job.")
+        return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+    def _enqueue_demo_job(self, request, action, celery_task, queued_message):
+        """Queue a long demo job on Celery; refuse if another job is already running."""
+        config = DemoDatasetConfig.get_singleton()
+        if config.job_in_progress():
+            messages.warning(
+                request,
+                f"A demo job is already {config.last_job_status} "
+                f"({DemoJobAction.LABELS.get(config.last_job_action, config.last_job_action)}). "
+                "Wait for it to finish (refresh this page), then try again.",
+            )
+            return redirect("admin:demo_data_demodatasetconfig_changelist")
+        try:
+            async_result = celery_task.delay()
+            config.mark_job_queued(action, async_result.id, queued_message)
+            messages.success(
+                request,
+                f"{queued_message} Task id: {async_result.id}. "
+                "Refresh this page to see progress (Celery worker must be running).",
+            )
+        except Exception as e:
+            config.mark_job_failed(f"Could not queue job: {e}")
+            messages.error(
+                request,
+                f"Could not queue Celery job: {e}. "
+                "Check Redis / celery worker is up.",
+            )
+        return redirect("admin:demo_data_demodatasetconfig_changelist")
 
     def generate_counseling_data_view(self, request):
         """
@@ -624,15 +716,12 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
         if not request.user.is_staff:
             from django.core.exceptions import PermissionDenied
             raise PermissionDenied
-        try:
-            setup_demo_counselor_data()
-            messages.success(
-                request,
-                "Demo counselor created (demo_counselor@topteen.demo / demo123). Separate from student demo data.",
-            )
-        except Exception as e:
-            messages.error(request, f"Demo counselor setup failed: {e}")
-        return redirect("admin:demo_data_demodatasetconfig_changelist")
+        return self._enqueue_demo_job(
+            request,
+            DemoJobAction.SETUP_COUNSELOR,
+            setup_demo_counselor_task,
+            "Demo counselor setup queued on Celery.",
+        )
 
     def reset_demo_counselor_view(self, request):
         if not request.user.is_staff:
@@ -645,12 +734,12 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
                 "Add ?confirm=1 to confirm reset demo counselor only (student demo data is not touched).",
             )
             return redirect("admin:demo_data_demodatasetconfig_changelist")
-        try:
-            reset_demo_counselor_data()
-            messages.success(request, "Demo counselor reset complete.")
-        except Exception as e:
-            messages.error(request, f"Reset failed: {e}")
-        return redirect("admin:demo_data_demodatasetconfig_changelist")
+        return self._enqueue_demo_job(
+            request,
+            DemoJobAction.RESET_COUNSELOR,
+            reset_demo_counselor_task,
+            "Demo counselor reset queued on Celery.",
+        )
 
     def remove_demo_counselor_view(self, request):
         if not request.user.is_staff:
@@ -663,26 +752,23 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
                 "Add ?confirm=1 to confirm remove demo counselor only (student demo data is not touched).",
             )
             return redirect("admin:demo_data_demodatasetconfig_changelist")
-        try:
-            remove_demo_counselor_data()
-            messages.success(request, "Demo counselor removed.")
-        except Exception as e:
-            messages.error(request, f"Remove failed: {e}")
-        return redirect("admin:demo_data_demodatasetconfig_changelist")
+        return self._enqueue_demo_job(
+            request,
+            DemoJobAction.REMOVE_COUNSELOR,
+            remove_demo_counselor_task,
+            "Demo counselor remove queued on Celery.",
+        )
 
     def setup_demo_data_view(self, request):
         if not request.user.is_staff:
             from django.core.exceptions import PermissionDenied
             raise PermissionDenied
-        try:
-            create_demo_dataset()
-            messages.success(
-                request,
-                "Student / institute demo dataset created. Demo counselor is unchanged — use Setup demo counselor separately.",
-            )
-        except Exception as e:
-            messages.error(request, f"Setup failed: {e}")
-        return redirect("admin:demo_data_demodatasetconfig_changelist")
+        return self._enqueue_demo_job(
+            request,
+            DemoJobAction.SETUP_STUDENTS,
+            setup_demo_dataset_task,
+            "Student demo setup queued on Celery (avoids 502 on large batches).",
+        )
 
     def reset_demo_data_view(self, request):
         if not request.user.is_staff:
@@ -695,15 +781,12 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
                 "Add ?confirm=1 to the URL to confirm reset. Only system-generated demo data will be deleted and recreated.",
             )
             return redirect("admin:demo_data_demodatasetconfig_changelist")
-        try:
-            reset_demo_data()
-            messages.success(
-                request,
-                "Student / institute demo reset complete. Demo counselor was not modified — use Reset demo counselor if needed.",
-            )
-        except Exception as e:
-            messages.error(request, f"Reset failed: {e}")
-        return redirect("admin:demo_data_demodatasetconfig_changelist")
+        return self._enqueue_demo_job(
+            request,
+            DemoJobAction.RESET_STUDENTS,
+            reset_demo_dataset_task,
+            "Student demo reset queued on Celery.",
+        )
 
     def reseed_student_psych_view(self, request):
         """
@@ -746,12 +829,9 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
                 "Add ?confirm=1 to the URL to confirm remove. Only system-generated demo data will be deleted (not recreated).",
             )
             return redirect("admin:demo_data_demodatasetconfig_changelist")
-        try:
-            remove_demo_data()
-            messages.success(
-                request,
-                "Student / institute demo removed. Demo counselor account was not removed — use Remove demo counselor if needed.",
-            )
-        except Exception as e:
-            messages.error(request, f"Remove failed: {e}")
-        return redirect("admin:demo_data_demodatasetconfig_changelist")
+        return self._enqueue_demo_job(
+            request,
+            DemoJobAction.REMOVE_STUDENTS,
+            remove_demo_dataset_task,
+            "Student demo remove queued on Celery.",
+        )
