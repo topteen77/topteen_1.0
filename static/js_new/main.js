@@ -806,26 +806,47 @@ $(document).ready(function ($) {
 
   // CAREER PLANNING CAROUSEL //
 
-  var owl = $(".owl-carousel");
-  owl.owlCarousel();
-  $(".next-btn").click(function () {
-    owl.trigger("next.owl.carousel");
-  });
-  $(".prev-btn").click(function () {
-    owl.trigger("prev.owl.carousel");
-  });
-  $(".prev-btn").addClass("disabled");
-  $(owl).on("translated.owl.carousel", function (event) {
-    if ($(".owl-prev").hasClass("disabled")) {
-      $(".prev-btn").addClass("disabled");
+  function syncAboutCarouselNav($carousel, $prevBtn, $nextBtn) {
+    if (!$carousel.length || !$prevBtn.length || !$nextBtn.length) return;
+    var $nav = $carousel.find('.owl-nav');
+    if ($nav.find('.owl-prev').hasClass('disabled')) {
+      $prevBtn.addClass('disabled');
     } else {
-      $(".prev-btn").removeClass("disabled");
+      $prevBtn.removeClass('disabled');
     }
-    if ($(".owl-next").hasClass("disabled")) {
-      $(".next-btn").addClass("disabled");
+    if ($nav.find('.owl-next').hasClass('disabled')) {
+      $nextBtn.addClass('disabled');
     } else {
-      $(".next-btn").removeClass("disabled");
+      $nextBtn.removeClass('disabled');
     }
+  }
+
+  $('.about-test-carousels').each(function () {
+    var $section = $(this);
+    var $carousel = $section.find('.owl-carousel').first();
+    var $controls = $section.nextAll('.d-flex.justify-content-center').first().find('.btn-wrap');
+    if (!$carousel.length || !$controls.length) return;
+
+    var $prevBtn = $controls.find('.prev-btn');
+    var $nextBtn = $controls.find('.next-btn');
+
+    $nextBtn.on('click', function () {
+      $carousel.trigger('next.owl.carousel');
+    });
+    $prevBtn.on('click', function () {
+      $carousel.trigger('prev.owl.carousel');
+    });
+
+    syncAboutCarouselNav($carousel, $prevBtn, $nextBtn);
+    $carousel.on('translated.owl.carousel', function () {
+      syncAboutCarouselNav($carousel, $prevBtn, $nextBtn);
+    });
+  });
+
+  $('button[data-bs-toggle="pill"]').on('shown.bs.tab', function (event) {
+    var target = event.target.getAttribute('data-bs-target');
+    if (!target) return;
+    $(target).find('.owl-carousel.owl-loaded').trigger('refresh.owl.carousel');
   });
 });
 
@@ -1188,7 +1209,7 @@ function googleTranslateElementInit() {
 
 function initCustomLanguageSelector() {
   var widget = document.getElementById('tt-language-widget');
-  if (!widget || widget.dataset.ttLangReady === '1') {
+  if (!widget) {
     return;
   }
 
@@ -1375,12 +1396,25 @@ function initCustomLanguageSelector() {
     updateTriggerLabels(currentLanguage, 'English');
   }
 
-  function bindControls() {
-    if (ttLanguageWidgetReady) {
+  function bindWidgetShell() {
+    if (widget.dataset.ttLangShellBound === '1') {
       return;
     }
-    ttLanguageWidgetReady = true;
-    widget.dataset.ttLangReady = '1';
+    widget.dataset.ttLangShellBound = '1';
+
+    function bindDirectTriggers() {
+      getTriggers().forEach(function (trigger) {
+        if (trigger.dataset.ttLangDirectBound === '1') {
+          return;
+        }
+        trigger.dataset.ttLangDirectBound = '1';
+        trigger.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          setWidgetOpen(!isOpen);
+        });
+      });
+    }
 
     document.addEventListener('click', function (e) {
       if (e.target.closest('[data-tt-lang-trigger]')) {
@@ -1395,6 +1429,29 @@ function initCustomLanguageSelector() {
         setWidgetOpen(false);
       }
     });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && isOpen) {
+        setWidgetOpen(false);
+      }
+    });
+
+    bindDirectTriggers();
+
+    window.ttLanguageSelector = {
+      open: function () { setWidgetOpen(true); },
+      close: function () { setWidgetOpen(false); },
+      toggle: function () { setWidgetOpen(!isOpen); },
+      refreshTriggers: bindDirectTriggers
+    };
+  }
+
+  function bindWidgetOptions() {
+    if (widget.dataset.ttLangReady === '1') {
+      return;
+    }
+    widget.dataset.ttLangReady = '1';
+    ttLanguageWidgetReady = true;
 
     if (resetBtn) {
       resetBtn.addEventListener('click', function (e) {
@@ -1420,18 +1477,10 @@ function initCustomLanguageSelector() {
         e.stopPropagation();
       });
     }
+  }
 
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && isOpen) {
-        setWidgetOpen(false);
-      }
-    });
-
-    window.ttLanguageSelector = {
-      open: function () { setWidgetOpen(true); },
-      close: function () { setWidgetOpen(false); },
-      toggle: function () { setWidgetOpen(!isOpen); }
-    };
+  function bindControls() {
+    bindWidgetOptions();
   }
 
   function readCookieLanguage() {
@@ -1444,13 +1493,16 @@ function initCustomLanguageSelector() {
   }
 
   function waitForCombo(attempts) {
-    if (ttLanguageWidgetReady) {
+    if (widget.dataset.ttLangReady === '1') {
       return;
     }
     var combo = getTranslateCombo();
     if (combo && combo.options.length > 1) {
       buildLanguageOptions(combo);
       bindControls();
+      if (window.ttLanguageSelector && window.ttLanguageSelector.refreshTriggers) {
+        window.ttLanguageSelector.refreshTriggers();
+      }
       var cookieLang = readCookieLanguage();
       if (cookieLang && cookieLang !== 'en') {
         currentLanguage = cookieLang;
@@ -1462,14 +1514,23 @@ function initCustomLanguageSelector() {
       }
       return;
     }
-    if ((attempts || 0) < 50) {
+    if ((attempts || 0) < 100) {
       setTimeout(function () {
         waitForCombo((attempts || 0) + 1);
       }, 100);
+      return;
     }
+    if (grid && !grid.children.length) {
+      grid.innerHTML = '<p class="tt-lang-loading-fallback px-3 py-2 text-muted mb-0">Language list is still loading. Check your connection, then close and reopen this menu.</p>';
+    }
+    bindWidgetOptions();
   }
 
-  waitForCombo(0);
+  bindWidgetShell();
+  if (widget.dataset.ttLangComboWait !== '1') {
+    widget.dataset.ttLangComboWait = '1';
+    waitForCombo(0);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', function () {

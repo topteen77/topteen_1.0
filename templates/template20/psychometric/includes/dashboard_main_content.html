@@ -751,9 +751,6 @@
               }).join('');
             }
           });
-        })();
-
-        (function initCareerViewMore() {
           root.querySelectorAll('[data-career-view-more]').forEach(function (btn) {
             var grid = btn.closest('[data-career-group-chips]');
             if (!grid && btn.previousElementSibling && btn.previousElementSibling.matches('[data-career-group-chips]')) {
