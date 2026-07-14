@@ -51,7 +51,12 @@ def celery_workers_ready(required_task_name=None):
                 return (
                     False,
                     f"Workers are up but do not know task '{required_task_name}'. "
-                    "Rebuild/redeploy the celery worker image so it includes demo_data.tasks.",
+                    "The celery container is still on an old image (often after "
+                    "'./deploy.sh web' without recreating workers). "
+                    "On the server: rebuild then "
+                    "'docker compose ... up -d --force-recreate --no-deps celery celery_beat' "
+                    "or './deploy.sh web' / full './deploy.sh deploy' with the updated script. "
+                    "Verify with: celery -A topteens inspect registered | grep demo_data",
                 )
         except Exception as exc:
             return False, f"Could not check registered tasks: {exc}"

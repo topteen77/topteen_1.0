@@ -241,12 +241,14 @@ do_up() {
 }
 
 do_up_web() {
-  log "Updating web container only (mysql, redis, celery, nginx stay running)..."
-  if ! run_compose $COMPOSE_FILES up -d web; then
-    err "Web container update failed."
+  # web/celery/celery_beat share the same app image. Recreating only web leaves
+  # workers on the old filesystem (missing new tasks like demo_data.tasks.*).
+  log "Updating web + celery + celery_beat (shared app image; mysql/redis/nginx stay running)..."
+  if ! run_compose $COMPOSE_FILES up -d --force-recreate --no-deps web celery celery_beat; then
+    err "Web/celery container update failed."
     exit 1
   fi
-  log "Web container updated."
+  log "Web + celery + celery_beat containers updated."
 }
 
 do_migrate() {
@@ -544,7 +546,8 @@ case "${1:-deploy}" in
     echo "  Legacy (unified compose):"
     echo "    deploy       - Full deploy (docker-compose.yml)"
     echo "    rebuild      - Full deploy with --no-cache"
-    echo "    web          - Build & update web only"
+    echo "    web          - Build & update web + celery + celery_beat (shared image)"
+    echo "    web-rebuild  - Same as web with --no-cache build"
     echo "    rollback     - Rollback to :previous"
     echo "    stop         - docker compose down"
     exit 1
