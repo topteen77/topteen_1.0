@@ -25,7 +25,12 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from notifications.services import clear_service_monitor_tail_logs, get_runtime_service_status
+from notifications.services import (
+    clear_service_monitor_tail_logs,
+    get_runtime_service_status,
+    revoke_celery_task,
+    revoke_celery_tasks,
+)
 from topteens.email_logging import format_ts_for_display, get_email_send_log_path, load_email_log_entries_newest_first
 
 from django.contrib.contenttypes.models import ContentType
@@ -1521,6 +1526,61 @@ def web_owner_daily_report_schedule(request):
         'Restart the Celery beat process for the change to apply.',
     )
     return redirect('user_analytics:web_owner_services_monitor')
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+@require_POST
+def web_owner_revoke_celery_task(request):
+    """Revoke / terminate a Celery task from the service monitor task list."""
+    task_id = (request.POST.get('task_id') or '').strip()
+    task_name = (request.POST.get('task_name') or '').strip()
+    # Active tasks need terminate=True; reserved/scheduled can revoke without kill.
+    state = (request.POST.get('state') or '').strip().lower()
+    terminate = state in ('', 'active') or request.POST.get('terminate') == '1'
+
+    result = revoke_celery_task(task_id, terminate=terminate)
+    label = f'{task_name} ({task_id})' if task_name else task_id
+    if result.get('ok'):
+        messages.success(
+            request,
+            f"Stopped Celery task {label}. "
+            'If this is a beat-scheduled job, Celery Beat may enqueue it again later.',
+        )
+    else:
+        messages.error(request, result.get('message') or f'Failed to stop task {label}.')
+    return redirect(reverse('user_analytics:web_owner_services_monitor') + '#service-celery')
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+@require_POST
+def web_owner_revoke_all_celery_tasks(request):
+    """Revoke all currently open (active/reserved/scheduled) Celery tasks."""
+    status = get_runtime_service_status()
+    celery_row = next((s for s in status.get('services', []) if s.get('key') == 'celery'), None) or {}
+    task_rows = celery_row.get('task_rows') or []
+    task_ids = [t.get('id') for t in task_rows if t.get('id')]
+    if not task_ids:
+        messages.info(request, 'No open Celery tasks to stop.')
+        return redirect(reverse('user_analytics:web_owner_services_monitor') + '#service-celery')
+
+    # Terminate so active workers are interrupted; reserved/scheduled are also covered by revoke.
+    summary = revoke_celery_tasks(task_ids, terminate=True)
+    if summary.get('ok_count'):
+        messages.success(
+            request,
+            f"Stopped {summary['ok_count']} Celery task(s). "
+            'Beat may re-queue periodic tasks on the next schedule tick.',
+        )
+    if summary.get('fail_count'):
+        first_err = next((r.get('message') for r in summary.get('results', []) if not r.get('ok')), '')
+        messages.warning(
+            request,
+            f"Could not stop {summary['fail_count']} task(s)."
+            + (f' {first_err}' if first_err else ''),
+        )
+    return redirect(reverse('user_analytics:web_owner_services_monitor') + '#service-celery')
 
 
 @login_required

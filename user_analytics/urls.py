@@ -44,6 +44,16 @@ urlpatterns = [
         views.web_owner_clear_service_logs,
         name='web_owner_clear_service_logs',
     ),
+    path(
+        'web-owner/services/celery/revoke/',
+        views.web_owner_revoke_celery_task,
+        name='web_owner_revoke_celery_task',
+    ),
+    path(
+        'web-owner/services/celery/revoke-all/',
+        views.web_owner_revoke_all_celery_tasks,
+        name='web_owner_revoke_all_celery_tasks',
+    ),
     path('web-owner/email-logs/', views.web_owner_email_logs, name='web_owner_email_logs'),
     
     # User Journey

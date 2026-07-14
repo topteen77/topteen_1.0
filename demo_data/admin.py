@@ -23,6 +23,7 @@ from .tasks import (
     setup_demo_counselor_task,
     setup_demo_dataset_task,
 )
+from notifications.services import get_celery_open_tasks, revoke_celery_task, revoke_celery_tasks
 
 User = get_user_model()
 
@@ -181,6 +182,12 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
         extra_context["last_job_started_at"] = config.last_job_started_at
         extra_context["last_job_finished_at"] = config.last_job_finished_at
 
+        celery_diag = get_celery_open_tasks()
+        extra_context["celery_task_rows"] = celery_diag.get("task_rows") or []
+        extra_context["celery_open_tasks"] = celery_diag.get("open_tasks") or 0
+        extra_context["celery_inspect_ok"] = celery_diag.get("inspect_ok")
+        extra_context["celery_inspect_error"] = celery_diag.get("inspect_error") or ""
+
         # Demo student dropdown (for dummy counseling/session data generation)
         demo_students = []
         try:
@@ -293,8 +300,89 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
                 self.admin_site.admin_view(self.clear_demo_job_view),
                 name="demo_data_clear_job",
             ),
+            path(
+                "celery_revoke/",
+                self.admin_site.admin_view(self.revoke_celery_task_view),
+                name="demo_data_celery_revoke",
+            ),
+            path(
+                "celery_revoke_all/",
+                self.admin_site.admin_view(self.revoke_all_celery_tasks_view),
+                name="demo_data_celery_revoke_all",
+            ),
         ]
         return custom + urls
+
+    def _maybe_mark_demo_job_cancelled(self, task_id, reason="Cancelled from admin."):
+        """If the revoked id matches the tracked demo job, clear the in-progress marker."""
+        config = DemoDatasetConfig.get_singleton()
+        if not task_id or config.last_job_task_id != task_id:
+            return
+        if config.job_in_progress():
+            config.mark_job_failed(reason)
+
+    def revoke_celery_task_view(self, request):
+        if not request.user.is_staff:
+            from django.core.exceptions import PermissionDenied
+
+            raise PermissionDenied
+        if request.method != "POST":
+            return redirect("admin:demo_data_demodatasetconfig_changelist")
+        task_id = (request.POST.get("task_id") or "").strip()
+        task_name = (request.POST.get("task_name") or "").strip()
+        state = (request.POST.get("state") or "").strip().lower()
+        terminate = state in ("", "active") or request.POST.get("terminate") == "1"
+        result = revoke_celery_task(task_id, terminate=terminate)
+        label = f"{task_name} ({task_id})" if task_name else task_id
+        if result.get("ok"):
+            self._maybe_mark_demo_job_cancelled(
+                task_id, f"Cancelled from admin: {task_name or task_id}"
+            )
+            messages.success(
+                request,
+                f"Stopped Celery task {label}. "
+                "Periodic beat jobs may be re-queued later.",
+            )
+        else:
+            messages.error(
+                request, result.get("message") or f"Failed to stop task {label}."
+            )
+        return redirect("admin:demo_data_demodatasetconfig_changelist")
+
+    def revoke_all_celery_tasks_view(self, request):
+        if not request.user.is_staff:
+            from django.core.exceptions import PermissionDenied
+
+            raise PermissionDenied
+        if request.method != "POST":
+            return redirect("admin:demo_data_demodatasetconfig_changelist")
+        diag = get_celery_open_tasks()
+        task_rows = diag.get("task_rows") or []
+        task_ids = [t.get("id") for t in task_rows if t.get("id")]
+        if not task_ids:
+            messages.info(request, "No open Celery tasks to stop.")
+            return redirect("admin:demo_data_demodatasetconfig_changelist")
+        summary = revoke_celery_tasks(task_ids, terminate=True)
+        config = DemoDatasetConfig.get_singleton()
+        if config.job_in_progress() and config.last_job_task_id in task_ids:
+            config.mark_job_failed("Cancelled from admin (stop all open tasks).")
+        if summary.get("ok_count"):
+            messages.success(
+                request,
+                f"Stopped {summary['ok_count']} Celery task(s). "
+                "Beat may re-queue periodic tasks on the next schedule tick.",
+            )
+        if summary.get("fail_count"):
+            first_err = next(
+                (r.get("message") for r in summary.get("results", []) if not r.get("ok")),
+                "",
+            )
+            messages.warning(
+                request,
+                f"Could not stop {summary['fail_count']} task(s)."
+                + (f" {first_err}" if first_err else ""),
+            )
+        return redirect("admin:demo_data_demodatasetconfig_changelist")
 
     def clear_demo_job_view(self, request):
         """Unlock a stuck queued/running status marker (does not revoke Celery)."""

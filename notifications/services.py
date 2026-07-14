@@ -534,6 +534,59 @@ def _get_celery_runtime_diagnostics():
     return diag
 
 
+_CELERY_TASK_ID_RE = re.compile(r'^[a-zA-Z0-9_.:-]{8,255}$')
+
+
+def get_celery_open_tasks():
+    """
+    Public helper: return Celery inspect snapshot for UI (service monitor, demo admin).
+    Keys: workers_up, open_tasks, active_tasks, reserved_tasks, scheduled_tasks,
+    task_rows, inspect_ok, inspect_error.
+    """
+    return _get_celery_runtime_diagnostics()
+
+
+def revoke_celery_task(task_id, terminate=True, signal='SIGTERM'):
+    """
+    Revoke a Celery task by id.
+
+    terminate=True sends signal to the worker child for active tasks.
+    Returns a dict: ok, message, task_id.
+    """
+    task_id = (task_id or '').strip()
+    if not task_id or not _CELERY_TASK_ID_RE.match(task_id):
+        return {'ok': False, 'message': 'Invalid Celery task id.', 'task_id': task_id}
+    if not getattr(settings, 'ENABLE_CELERY', False):
+        return {'ok': False, 'message': 'Celery is disabled (ENABLE_CELERY=False).', 'task_id': task_id}
+    try:
+        from topteens.celery import app as celery_app
+
+        celery_app.control.revoke(task_id, terminate=bool(terminate), signal=signal)
+        action = 'terminated' if terminate else 'revoked'
+        return {
+            'ok': True,
+            'message': f'Task {task_id} {action}. Refresh to confirm it left the list.',
+            'task_id': task_id,
+        }
+    except Exception as exc:
+        return {'ok': False, 'message': f'Could not revoke task: {exc}', 'task_id': task_id}
+
+
+def revoke_celery_tasks(task_ids, terminate=True, signal='SIGTERM'):
+    """Revoke multiple Celery task ids. Returns summary dict with results list."""
+    results = []
+    for tid in task_ids or []:
+        results.append(revoke_celery_task(tid, terminate=terminate, signal=signal))
+    ok_count = sum(1 for r in results if r.get('ok'))
+    fail_count = len(results) - ok_count
+    return {
+        'ok': fail_count == 0 and ok_count > 0,
+        'ok_count': ok_count,
+        'fail_count': fail_count,
+        'results': results,
+    }
+
+
 def get_runtime_service_status():
     celery_ok = _check_celery_ok()
     redis_ok = _check_redis_ok()

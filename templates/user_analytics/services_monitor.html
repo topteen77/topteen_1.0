@@ -170,9 +170,18 @@
           <div class="border rounded p-3">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
               <h6 class="mb-0">Running / queued tasks</h6>
-              <a class="btn btn-sm btn-outline-secondary" href="{{ request.path }}#service-celery">Refresh</a>
+              <div class="d-flex flex-wrap gap-2">
+                <a class="btn btn-sm btn-outline-secondary" href="{{ request.path }}#service-celery">Refresh</a>
+                {% if row.task_rows %}
+                <form method="post" action="{{ url('user_analytics:web_owner_revoke_all_celery_tasks') }}" class="d-inline"
+                      onsubmit="return confirm('Stop ALL open Celery tasks listed below? Active workers will be interrupted.');">
+                  {{ csrf_input_tag()|safe }}
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Stop all open</button>
+                </form>
+                {% endif %}
+              </div>
             </div>
-            <p class="small text-muted mb-2">Live snapshot from Celery inspect (active + reserved + scheduled). Refresh to update.</p>
+            <p class="small text-muted mb-2">Live snapshot from Celery inspect (active + reserved + scheduled). Use Stop to revoke/terminate a task. Periodic beat jobs may be re-queued later.</p>
             {% if row.task_rows %}
             <div class="table-responsive">
               <table class="table table-sm table-bordered mb-0 align-middle" style="font-size: 12px;">
@@ -184,6 +193,7 @@
                     <th>Worker</th>
                     <th>Started / ETA</th>
                     <th>Args</th>
+                    <th style="width: 90px;">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -204,6 +214,20 @@
                     <td class="text-nowrap small">{{ t.started or t.eta or '—' }}</td>
                     <td class="text-break small text-muted">
                       {{ t.args }}{% if t.kwargs and t.kwargs != '{}' %}<br>{{ t.kwargs }}{% endif %}
+                    </td>
+                    <td>
+                      {% if t.id %}
+                      <form method="post" action="{{ url('user_analytics:web_owner_revoke_celery_task') }}" class="d-inline"
+                            onsubmit="return confirm('Stop this Celery task?\n{{ t.name }}\n{{ t.id }}');">
+                        {{ csrf_input_tag()|safe }}
+                        <input type="hidden" name="task_id" value="{{ t.id }}">
+                        <input type="hidden" name="task_name" value="{{ t.name }}">
+                        <input type="hidden" name="state" value="{{ t.state }}">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Stop</button>
+                      </form>
+                      {% else %}
+                      <span class="text-muted">—</span>
+                      {% endif %}
                     </td>
                   </tr>
                   {% endfor %}

@@ -45,6 +45,69 @@
   {% endif %}
 </div>
 
+{# Live Celery tasks (same inspect as Service monitor) #}
+<div class="module" style="margin-bottom: 1.5em; padding: 1em; border-left: 4px solid #417690; background: #f8f9fa;">
+  <h2 style="margin-top: 0;">Celery running / queued tasks</h2>
+  <p style="margin: 0 0 0.75em 0; color: #555; font-size: 13px;">
+    Open tasks: <strong>{{ celery_open_tasks|default:0 }}</strong>.
+    Live snapshot from workers — use Stop to revoke/terminate. Periodic beat jobs may reappear later.
+    {% if not celery_inspect_ok and celery_inspect_error %}
+    <span style="color: #d9534f;"> Inspect error: {{ celery_inspect_error }}</span>
+    {% endif %}
+  </p>
+  {% if celery_task_rows %}
+  <p style="margin: 0 0 0.75em 0;">
+    <a href="{% url 'admin:demo_data_demodatasetconfig_changelist' %}" class="button">Refresh</a>
+    <form method="post" action="{% url 'admin:demo_data_celery_revoke_all' %}" style="display: inline; margin-left: 0.5em;"
+          onsubmit="return confirm('Stop ALL open Celery tasks listed below?');">
+      {% csrf_token %}
+      <button type="submit" class="button" style="background: #ba2121;">Stop all open</button>
+    </form>
+  </p>
+  <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+    <thead>
+      <tr style="background: #eee; text-align: left;">
+        <th style="padding: 0.4em; border: 1px solid #ddd;">State</th>
+        <th style="padding: 0.4em; border: 1px solid #ddd;">Task</th>
+        <th style="padding: 0.4em; border: 1px solid #ddd;">Task id</th>
+        <th style="padding: 0.4em; border: 1px solid #ddd;">Worker</th>
+        <th style="padding: 0.4em; border: 1px solid #ddd;">Started / ETA</th>
+        <th style="padding: 0.4em; border: 1px solid #ddd;">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in celery_task_rows %}
+      <tr{% if last_job_task_id and t.id == last_job_task_id %} style="background: #fff8e1;"{% endif %}>
+        <td style="padding: 0.4em; border: 1px solid #ddd;">
+          {% if t.state == 'active' %}<strong style="color: #2e7d32;">active</strong>{% else %}{{ t.state }}{% endif %}
+        </td>
+        <td style="padding: 0.4em; border: 1px solid #ddd;"><code>{{ t.name }}</code></td>
+        <td style="padding: 0.4em; border: 1px solid #ddd;"><code>{{ t.id|default:"—" }}</code></td>
+        <td style="padding: 0.4em; border: 1px solid #ddd;">{{ t.worker }}</td>
+        <td style="padding: 0.4em; border: 1px solid #ddd;">{% firstof t.started t.eta "—" %}</td>
+        <td style="padding: 0.4em; border: 1px solid #ddd;">
+          {% if t.id %}
+          <form method="post" action="{% url 'admin:demo_data_celery_revoke' %}" style="display: inline;"
+                onsubmit="return confirm('Stop this Celery task?\n{{ t.name }}\n{{ t.id }}');">
+            {% csrf_token %}
+            <input type="hidden" name="task_id" value="{{ t.id }}">
+            <input type="hidden" name="task_name" value="{{ t.name }}">
+            <input type="hidden" name="state" value="{{ t.state }}">
+            <button type="submit" class="button" style="background: #ba2121;">Stop</button>
+          </form>
+          {% else %}—{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="margin: 0; color: #666;">No active, reserved, or scheduled tasks right now.
+    <a href="{% url 'admin:demo_data_demodatasetconfig_changelist' %}">Refresh</a>
+  </p>
+  {% endif %}
+</div>
+
 {# Student demo: actions #}
 <div class="module" style="margin-bottom: 1.5em;">
   <h2 style="margin-top: 0;">Student / institute demo</h2>
