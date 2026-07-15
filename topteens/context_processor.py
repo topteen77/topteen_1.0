@@ -22,6 +22,7 @@ from operator import or_
 from django.conf import settings
 from django.urls import reverse
 from django.db import connection
+from django.core.cache import cache
 import json
 import logging
 import re
@@ -51,8 +52,22 @@ def _encrypt_student_data(data_dict):
         return None
 
 
+FOOTER_CAREER_CLUSTERS_CACHE_KEY = 'nav:footer_career_clusters:v1'
+FOOTER_CAREER_CLUSTERS_CACHE_TTL = 600  # 10 minutes; footer nav rarely changes
+
+
 def _footer_career_clusters():
-    """Same clusters as careers page grid: active, with at least one published career, ordered by name. Links use /careers/cluster/<slug>-<id>/."""
+    """Same clusters as careers page grid: active, with at least one published career, ordered by name. Links use /careers/cluster/<slug>-<id>/.
+
+    Cached (Redis in prod) because this runs on every page's footer and the data
+    changes rarely; TTL bounds staleness after clusters/careers are (un)published.
+    """
+    try:
+        cached = cache.get(FOOTER_CAREER_CLUSTERS_CACHE_KEY)
+    except Exception:
+        cached = None
+    if cached is not None:
+        return cached
     try:
         clusters_qs = CareerCluster.objects.filter(
             career_clusters__publish_status=1,
@@ -60,9 +75,14 @@ def _footer_career_clusters():
         ).distinct().annotate(
             career_count=Count('career_clusters', filter=DjangoQ(career_clusters__publish_status=1), distinct=True)
         ).filter(career_count__gt=0).order_by('name')
-        return [{'id': c.id, 'name': c.name or '', 'slug': c.slug or ''} for c in clusters_qs]
+        result = [{'id': c.id, 'name': c.name or '', 'slug': c.slug or ''} for c in clusters_qs]
     except Exception:
         return []
+    try:
+        cache.set(FOOTER_CAREER_CLUSTERS_CACHE_KEY, result, FOOTER_CAREER_CLUSTERS_CACHE_TTL)
+    except Exception:
+        pass
+    return result
 
 
 def _seo_organization_schema():

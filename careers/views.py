@@ -490,7 +490,10 @@ class CareerDetail(TemplateView):
 
     def get_context(self, request,career_id,slug, *args, **kwargs):
         ctx={}
-        career=get_object_or_404(Career,id=career_id,slug=slug)
+        career=get_object_or_404(
+            Career.objects.prefetch_related('profession', 'career_cluster'),
+            id=career_id, slug=slug,
+        )
         ctx['career']=career
         description_body, conclusion_paragraph_html = split_trailing_conclusion_from_description(
             career.description or ''
@@ -1869,7 +1872,7 @@ class CareerVideosView(TemplateView):
         if search_videos:
             ctx['search_videos']=search_videos
             ctx['heading']=f"Results for '{search_videos}'"
-            videos = Videos.objects.filter( Q(name__icontains=search_videos))
+            videos = Videos.objects.filter( Q(name__icontains=search_videos)).prefetch_related('category')
             ctx['videos'] = videos
             ctx['categories']=VideoCategory.objects.all()
             paginator = Paginator(videos, 5)
@@ -1879,7 +1882,7 @@ class CareerVideosView(TemplateView):
         else:
             ctx['search_videos']=""
             ctx['heading']="Explore Videos"
-            videos = Videos.objects.all()
+            videos = Videos.objects.all().prefetch_related('category')
             ctx['videos'] = videos
             ctx['categories']=VideoCategory.objects.all()
             paginator = Paginator(videos, 5)

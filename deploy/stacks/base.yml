@@ -1,0 +1,142 @@
+# =============================================================================
+# TopTeen BASE stack  (infrastructure - changes rarely)
+#   nginx load balancer + redis + elasticsearch* + mariadb* + certbot*
+#   (* enabled via BASE_PROFILES: local-db, search, ssl)
+#
+# Run through deploy.sh, e.g.:  ./deploy/deploy.sh production base up
+# Compose project name is set by deploy.sh -> topteen-<env>-base
+# Containers  -> topteen-<env>-base-nginx-1, topteen-<env>-base-redis-1 ...
+# =============================================================================
+
+x-base-labels: &base-labels
+  com.topteen.project: "${PROJECT_NAME:-topteen}"
+  com.topteen.environment: "${ENVIRONMENT:-production}"
+  com.topteen.stack: "base"
+
+services:
+
+  # ---- Load balancer / reverse proxy -------------------------------------
+  # Sits in front of the (separate) APP stack and round-robins across the
+  # scaled `web` replicas via Docker DNS. Because it resolves `web` at
+  # request time, redeploying/scaling the APP stack never restarts the LB.
+  nginx:
+    build:
+      context: ../..
+      dockerfile: deploy/images/nginx/Dockerfile
+    image: "${NGINX_IMAGE:-developertopteen/demotopteen-nginx}:${NGINX_IMAGE_TAG:-latest}"
+    restart: unless-stopped
+    environment:
+      - SERVER_NAMES=${SERVER_NAMES:-localhost}
+      - APP_UPSTREAM=web
+      - APP_UPSTREAM_PORT=8000
+      - CLIENT_MAX_BODY_SIZE=${CLIENT_MAX_BODY_SIZE:-25M}
+      - USE_HTTPS=${USE_HTTPS:-False}
+    ports:
+      - "${APP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - static:/var/www/html/static:ro
+      - media:/var/www/html/media:ro
+      - ${LOG_PATH:-../../logs}:/var/log/nginx
+      - ${SSL_CERT_PATH:-../../ssl}:/etc/nginx/ssl:ro
+      - ${CERTBOT_WEBROOT:-../../certbot-webroot}:/var/www/acme:ro
+    networks:
+      - shared
+    labels:
+      <<: *base-labels
+      com.topteen.service: "nginx-lb"
+
+  # ---- Redis (cache / sessions / celery broker) --------------------------
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    networks:
+      - shared
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    labels:
+      <<: *base-labels
+      com.topteen.service: "redis"
+
+  # ---- Elasticsearch (profile: search) -----------------------------------
+  elasticsearch:
+    profiles: ["search"]
+    image: elasticsearch:7.14.2
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=${ES_JAVA_OPTS:--Xms512m -Xmx512m}"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    networks:
+      - shared
+    labels:
+      <<: *base-labels
+      com.topteen.service: "elasticsearch"
+
+  # ---- MariaDB (profile: local-db) - only when DB is NOT remote ----------
+  mariadb:
+    profiles: ["local-db"]
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MARIADB_DATABASE: ${DB_NAME:-topteen}
+      MARIADB_USER: ${DB_USER:-topteen}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-topteen}
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - shared
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    labels:
+      <<: *base-labels
+      com.topteen.service: "mariadb"
+
+  # ---- Certbot (profile: ssl) - Let's Encrypt auto-renew -----------------
+  certbot:
+    profiles: ["ssl"]
+    image: certbot/certbot
+    restart: unless-stopped
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot; sleep 12h & wait $${!}; done;'"
+    volumes:
+      - ${CERTBOT_CONF_PATH:-../../certbot-conf}:/etc/letsencrypt
+      - ${CERTBOT_WEBROOT:-../../certbot-webroot}:/var/www/certbot
+    labels:
+      <<: *base-labels
+      com.topteen.service: "certbot"
+
+# Shared network + volumes are created once by `deploy.sh <env> init`
+# so the BASE and APP stacks (separate compose projects) can talk and
+# share the collected static / media files.
+networks:
+  shared:
+    external: true
+    name: "${PROJECT_NAME:-topteen}-${ENVIRONMENT:-production}-net"
+
+volumes:
+  static:
+    external: true
+    name: "${PROJECT_NAME:-topteen}-${ENVIRONMENT:-production}-static"
+  media:
+    external: true
+    name: "${PROJECT_NAME:-topteen}-${ENVIRONMENT:-production}-media"
+  redis_data:
+    external: true
+    name: "${PROJECT_NAME:-topteen}-${ENVIRONMENT:-production}-redis"
+  es_data:
+    external: true
+    name: "${PROJECT_NAME:-topteen}-${ENVIRONMENT:-production}-es"
+  db_data:
+    external: true
+    name: "${PROJECT_NAME:-topteen}-${ENVIRONMENT:-production}-db"

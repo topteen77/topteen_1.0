@@ -1,0 +1,101 @@
+# =============================================================================
+# TopTeen APP stack  (application code - redeployed on every code change)
+#   web (gunicorn, load-balanced N replicas) + celery + celery_beat
+#
+# Run through deploy.sh, e.g.:  ./deploy/deploy.sh production app deploy
+# Compose project name is set by deploy.sh -> topteen-<env>-app
+# Containers  -> topteen-<env>-app-web-1 ... web-N, -celery-1, -celery-beat-1
+# Image       -> ${APP_IMAGE}:${APP_IMAGE_TAG}   (e.g. developertopteen/demotopteen:production)
+# =============================================================================
+
+x-app-labels: &app-labels
+  com.topteen.project: "${PROJECT_NAME:-topteen}"
+  com.topteen.environment: "${ENVIRONMENT:-production}"
+  com.topteen.stack: "app"
+
+# Shared config for all three app services (same image + env + volumes + net)
+x-app-common: &app-common
+  image: "${APP_IMAGE:-developertopteen/demotopteen}:${APP_IMAGE_TAG:-latest}"
+  pull_policy: never
+  restart: unless-stopped
+  working_dir: /app
+  # Django config: full secrets file first, then env-specific overrides on top.
+  env_file:
+    - "${APP_ENV_FILE:-../../.env}"
+    - "../environments/${ENVIRONMENT:-production}.env"
+  environment:
+    - PYTHONUNBUFFERED=1
+    - LOG_PATH=/app/logs
+    - COMMON_BASE_PATH=/app
+    - REDIS_HOST=redis
+    - ELASTICSEARCH_HOST=elasticsearch
+    - GUNICORN_WORKERS=${GUNICORN_WORKERS:-3}
+    - GUNICORN_THREADS=${GUNICORN_THREADS:-4}
+    - CELERY_CONCURRENCY=${CELERY_CONCURRENCY:-4}
+  volumes:
+    - static:/app/staticfiles
+    - media:/app/media
+    - ${LOG_PATH:-../../logs}:/app/logs
+  networks:
+    - shared
+
+services:
+
+  # ---- Web (gunicorn) - scaled behind the base-stack load balancer -------
+  web:
+    <<: *app-common
+    build:
+      context: ../..
+      dockerfile: deploy/images/app/Dockerfile
+    # No command / container_name: uses image entrypoint (gunicorn) and lets
+    # compose name replicas topteen-<env>-app-web-1..N for the LB to round-robin.
+    expose:
+      - "8000"
+    deploy:
+      replicas: ${WEB_REPLICAS:-3}
+      restart_policy:
+        condition: on-failure
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket,sys; s=socket.socket(); s.settimeout(3); sys.exit(0 if s.connect_ex(('127.0.0.1',8000))==0 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    labels:
+      <<: *app-labels
+      com.topteen.service: "web"
+
+  # ---- Celery worker -----------------------------------------------------
+  celery:
+    <<: *app-common
+    command: celery -A topteens worker -l info --concurrency ${CELERY_CONCURRENCY:-4} -O default
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A topteens inspect ping -d celery@$$HOSTNAME || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    labels:
+      <<: *app-labels
+      com.topteen.service: "celery"
+
+  # ---- Celery beat (scheduler) - single instance -------------------------
+  celery_beat:
+    <<: *app-common
+    command: celery -A topteens beat -l info --schedule /app/logs/celerybeat-schedule
+    labels:
+      <<: *app-labels
+      com.topteen.service: "celery-beat"
+
+networks:
+  shared:
+    external: true
+    name: "${PROJECT_NAME:-topteen}-${ENVIRONMENT:-production}-net"
+
+volumes:
+  static:
+    external: true
+    name: "${PROJECT_NAME:-topteen}-${ENVIRONMENT:-production}-static"
+  media:
+    external: true
+    name: "${PROJECT_NAME:-topteen}-${ENVIRONMENT:-production}-media"

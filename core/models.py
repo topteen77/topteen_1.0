@@ -6,6 +6,7 @@ from django.db.models.query import QuerySet
 from core import choices
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
+from django.core.cache import cache
 from simple_history.models import HistoricalRecords
 from ckeditor.fields import RichTextField
 from django.utils.text import slugify
@@ -13,6 +14,7 @@ from django.core.validators import MaxLengthValidator
 from django.urls import reverse
 from django.conf import settings
 import datetime
+import time
 # Create your models here.
 
 def core_image_directory(instance, filename):
@@ -92,21 +94,86 @@ class BaseModel(models.Model):
     
     
 
+CONFIGURATION_CACHE_KEY = 'core:configuration:all:v1'
+CONFIGURATION_CACHE_TTL = 300  # shared cache (Redis in prod) TTL, seconds
+CONFIGURATION_LOCAL_TTL = 15   # process-local memo TTL; keeps DummyCache (dev) fast too
+
+
 class Configuration(BaseModel):
     key = models.CharField(max_length=120,unique=True)
     value = models.CharField(max_length=120)
     editable = models.BooleanField(default=True)
     history = HistoricalRecords()
 
+    # Process-local snapshot of all config values. Avoids per-key DB round-trips
+    # even when the Django cache is a no-op (DummyCache) in development.
+    _local_cache = {'data': None, 'ts': 0.0}
+
     def __str__(self):
         return "{}".format(self.key)
 
+    @classmethod
+    def _load_all_values(cls):
+        return {
+            row.key: row.value
+            for row in Configuration.objects.all().only('key', 'value')
+        }
+
+    @classmethod
+    def get_all_values(cls):
+        """Return ``{key: value}`` for all active configuration rows.
+
+        Reads a process-local memo first (works with DummyCache in dev), then the
+        shared cache (Redis in prod), and only falls back to a single DB query.
+        Invalidated on save/delete via signals; TTLs bound any staleness.
+        """
+        now = time.monotonic()
+        local = cls._local_cache
+        if local['data'] is not None and (now - local['ts']) <= CONFIGURATION_LOCAL_TTL:
+            return local['data']
+        data = None
+        try:
+            data = cache.get(CONFIGURATION_CACHE_KEY)
+        except Exception:
+            data = None
+        if data is None:
+            data = cls._load_all_values()
+            try:
+                cache.set(CONFIGURATION_CACHE_KEY, data, CONFIGURATION_CACHE_TTL)
+            except Exception:
+                pass
+        cls._local_cache = {'data': data, 'ts': now}
+        return data
+
+    @classmethod
+    def clear_cache(cls):
+        cls._local_cache = {'data': None, 'ts': 0.0}
+        try:
+            cache.delete(CONFIGURATION_CACHE_KEY)
+        except Exception:
+            pass
 
     @classmethod
     def get(cls, key, default=0, editable=True):
+        data = cls.get_all_values()
+        if key in data:
+            value = data[key]
+            return str(value) if value is not None else str(default)
+        # Key not in the cached snapshot: preserve the historical auto-provision
+        # behaviour (create the row on first access), then refresh the cache.
         defaults = {'value': str(default), 'editable': editable}
         c, created = Configuration.objects.get_or_create(key=key, defaults=defaults)
+        if created:
+            cls.clear_cache()
+        else:
+            data[key] = c.value
         return str(c.value) if c.value is not None else str(default)
+
+
+@receiver(post_save, sender=Configuration)
+@receiver(post_delete, sender=Configuration)
+def _invalidate_configuration_cache(sender, **kwargs):
+    Configuration.clear_cache()
 
 
 class TranslateLanguage(models.Model):

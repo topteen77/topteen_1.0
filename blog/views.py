@@ -138,12 +138,12 @@ class Blogs(TemplateView):
             ctx["heading"] ="All Articles"
             
         if search_blogs:
-            blogs=Blog.get_published_objects().filter( Q(title__icontains=search_blogs) | Q(content__icontains=search_blogs)).order_by('-modified') 
+            blogs=Blog.get_published_objects().select_related('author', 'category').filter( Q(title__icontains=search_blogs) | Q(content__icontains=search_blogs)).order_by('-modified') 
         else:
-            blogs=Blog.get_published_objects().order_by('-modified') 
+            blogs=Blog.get_published_objects().select_related('author', 'category').order_by('-modified') 
 
-        popular_blogs=Blog.get_published_objects().all().order_by('-views_count')[:6]
-        ctx['latest_blogs']=Blog.get_published_objects().order_by('-created')[:3]
+        popular_blogs=Blog.get_published_objects().select_related('author', 'category').order_by('-views_count')[:6]
+        ctx['latest_blogs']=Blog.get_published_objects().select_related('author', 'category').order_by('-created')[:3]
         ctx['categories']=BlogCategory.objects.all()
         ctx['breadcrumb'] = get_breadcrumb([{'text': 'Blog', 'url': ''}])
         # For search dropdown: title, slug, url for all published blogs
@@ -225,16 +225,16 @@ class BlogDetail(TemplateView):
         else:
             ctx['search_blogs']=""
 
-        blogs=Blog.get_published_objects()
+        blogs=Blog.get_published_objects().select_related('author', 'category')
         blog=get_object_or_404(blogs,slug=blog_slug)
-        latest_blogs=Blog.get_published_objects().exclude(id=blog.id).order_by('-created')
+        latest_blogs=Blog.get_published_objects().select_related('author', 'category').exclude(id=blog.id).order_by('-created')
         blog.views_count += 1
         blog.save()
         if blog.category:
             category = get_object_or_404(BlogCategory,slug=blog.category.slug)
-            ctx['related_blogs'] = Blog.get_published_objects().filter(category=category).exclude(id=blog.id)[:4]
+            ctx['related_blogs'] = Blog.get_published_objects().select_related('author', 'category').filter(category=category).exclude(id=blog.id)[:4]
         else:
-            ctx['related_blogs'] = Blog.get_published_objects().exclude(id=blog.id)[:4]
+            ctx['related_blogs'] = Blog.get_published_objects().select_related('author', 'category').exclude(id=blog.id)[:4]
         from django.urls import reverse
         ctx['categories']=BlogCategory.objects.all()
         ctx['blog']=blog    
@@ -323,13 +323,14 @@ class ToggleBlogBookmark(APIView):
 def category_filter(request,category_slug, *args, **kwargs):
     page_size = 6
     category = get_object_or_404(BlogCategory,slug=category_slug)
-    blog = Blog.get_published_objects().filter(category=category).order_by('-modified')
+    blog = Blog.get_published_objects().select_related('author', 'category').filter(category=category).order_by('-modified')
     categories = BlogCategory.objects.all()
     pages= Paginator(blog,page_size)
     page_numbers = request.GET.get('page')
-    latest_blogs=Blog.get_published_objects().order_by('-created')[:3]
+    latest_blogs=Blog.get_published_objects().select_related('author', 'category').order_by('-created')[:3]
     page_objs = pages.get_page(page_numbers)
-    remaining_count = blog.count()-page_size
+    # Reuse Paginator's cached count (get_page already computed it) to avoid a 2nd COUNT query.
+    remaining_count = pages.count - page_size
     remaining_count = remaining_count if remaining_count > 0 else None
     
     from django.urls import reverse
@@ -351,7 +352,7 @@ def category_filter(request,category_slug, *args, **kwargs):
             data={}
             data['html'] = render_to_string("topteenfrontend/includes/blog_item.html",ctx)
             data['page_number']=ctx['page_obj'].number
-            data['remaining']=blog.count() - page_objs.number*page_size
+            data['remaining']=pages.count - page_objs.number*page_size
             data['next_page']= ctx['page_obj'].next_page_number()  if ctx['page_obj'].has_next() else 0
             return JsonResponse(data)
     return render(request,"template20/blogs.html",ctx)
@@ -359,13 +360,14 @@ def category_filter(request,category_slug, *args, **kwargs):
 def blogtag_filter(request,tagslug, *args, **kwargs):
     page_size = 6
     blogtag=get_object_or_404(BlogTag,slug=tagslug)
-    blogs = Blog.get_published_objects().filter(tags=blogtag).order_by('-modified')
-    latest_blogs =Blog.get_published_objects().order_by('-created')[:3]
+    blogs = Blog.get_published_objects().select_related('author', 'category').filter(tags=blogtag).order_by('-modified')
+    latest_blogs =Blog.get_published_objects().select_related('author', 'category').order_by('-created')[:3]
     categories = BlogCategory.objects.all()
     page_numbers = request.GET.get('page')
     pages= Paginator(blogs,page_size)
     page_objs = pages.get_page(page_numbers)
-    remaining_count = blogs.count()-page_size
+    # Reuse Paginator's cached count (get_page already computed it) to avoid a 2nd COUNT query.
+    remaining_count = pages.count - page_size
     remaining_count = remaining_count if remaining_count > 0 else None
     from django.urls import reverse
     blog_search_list = [{'title': b.title, 'slug': b.slug, 'url': reverse('blog:blogdetail', args=[b.slug])} for b in Blog.get_published_objects().only('title', 'slug')]
@@ -384,7 +386,7 @@ def blogtag_filter(request,tagslug, *args, **kwargs):
             data={}
             data['html'] = render_to_string("topteenfrontend/includes/blog_item.html",ctx)
             data['page_number']=ctx['page_obj'].number
-            data['remaining']= blogs.count() - page_objs.number*page_size
+            data['remaining']= pages.count - page_objs.number*page_size
             data['next_page']= ctx['page_obj'].next_page_number()  if ctx['page_obj'].has_next() else 0
             return JsonResponse(data)
     return render(request,"template20/blogs.html",ctx)

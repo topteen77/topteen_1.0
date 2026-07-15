@@ -36,8 +36,10 @@ class CollegeDetails(TemplateView):
         ctx['college']=college
         country=Country.objects.all()
         ctx['countries']=country
-        courses=Course.objects.filter(college=college)
-        all_colleges = College.get_all_colleges()
+        courses=Course.objects.filter(college=college).select_related('stream')
+        # Related colleges: the template only renders colleges[:6]. get_all_colleges()
+        # already select_related's location FKs, so get_location() adds no extra queries.
+        all_colleges = College.get_all_colleges().exclude(id=college.id)[:12]
         if hasattr(all_colleges, '__iter__') and not isinstance(all_colleges, str):
             colleges_list = list(all_colleges)
         else:

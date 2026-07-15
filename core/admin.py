@@ -659,6 +659,7 @@ class ConfigurationAdmin(admin.ModelAdmin):
         from core.models import TranslateLanguage
         from core.translate_languages import (
             CATALOG_CODES,
+            clear_enabled_language_codes_cache,
             ensure_language_catalog,
             get_enabled_language_codes,
             get_language_choices_for_admin,
@@ -676,6 +677,7 @@ class ConfigurationAdmin(admin.ModelAdmin):
             TranslateLanguage.objects.update(enabled=False)
             TranslateLanguage.objects.filter(code__in=enabled_codes).update(enabled=True)
             TranslateLanguage.objects.filter(code='en').update(enabled=True)
+            clear_enabled_language_codes_cache()
             messages.success(
                 request,
                 f'Language bar updated ({len(get_enabled_language_codes())} languages enabled).',

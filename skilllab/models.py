@@ -162,7 +162,10 @@ class SkillLabCourse(SlugModel,BaseModel,BaseMoneyModel):
     def get_grade_numbers(self):
         """Class levels for this course from the Grades M2M (catalog class), not legacy category."""
         if self.pk:
-            nums = list(self.grades.values_list('grade_number', flat=True))
+            # Iterate the related manager (uses prefetch_related('grades') cache when
+            # present) instead of .values_list(), which would issue a fresh query per
+            # course and defeat prefetching on list pages.
+            nums = [g.grade_number for g in self.grades.all()]
             if nums:
                 return set(nums)
         import re

@@ -1,8 +1,7 @@
 import time
 from django.shortcuts import redirect, render
 from core.breadcrumbs import get_breadcrumb
-from core.utils import ensure_user_pdf_folder
-from core.utils import ensure_user_pdf_folder
+from core.utils import ensure_user_pdf_folder, save_user_pdf
 from django.http import HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 from .forms import UploadFileForm
@@ -1544,16 +1543,9 @@ def class10_report_download_pdf(request, user_id=None):
         response['Expires'] = '0'
         response.write(pdf_file)
         
-        # Save copy to user PDF folder (for production debugging and consistency)
-        user_directory = ensure_user_pdf_folder(target_user.id)
-        if user_directory:
-            try:
-                pdf_path = os.path.join(user_directory, filename)
-                with open(pdf_path, 'wb') as f:
-                    f.write(pdf_file)
-            except OSError as e:
-                logger.warning("class10_report_download_pdf: could not save PDF to user folder user_id=%s: %s", target_user.id, e)
-        
+        # Persist a copy to media storage (S3 when enabled) - best-effort, never blocks the download.
+        save_user_pdf(target_user.id, filename, pdf_file)
+
         return response
         
     except Exception as e:
@@ -2962,19 +2954,9 @@ def download_pdf(request,test_paper):
             else:
                 filename = f"{safe_name}-Final_Assessment_report.pdf"
 
-            # Ensure user PDF folder exists (works for all users including Gmail/Google login)
-            user_directory = ensure_user_pdf_folder(request.user.id)
-            if not user_directory:
-                import traceback
-                logger.warning("download_pdf: ensure_user_pdf_folder failed for user_id=%s", request.user.id)
-                traceback.print_exc()
-                messages.error(request, 'Error creating download folder')
-                return redirect('app:app_submit')
-
-            # Save the PDF file
-            pdf_path = os.path.join(user_directory, filename)
-            with open(pdf_path, 'wb') as pdf_file_handle:
-                pdf_file_handle.write(pdf_file)
+            # Persist the generated PDF to media storage (S3 when enabled).
+            if not save_user_pdf(request.user.id, filename, pdf_file):
+                logger.warning("download_pdf: could not persist PDF for user_id=%s", request.user.id)
 
             return redirect('app:app_submit')
             
@@ -3492,16 +3474,9 @@ def test1_report_pdf(request, user_id=None):
         filename = f"{safe_name}-Personality_Assessment_report.pdf"
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         
-        # Save copy to user PDF folder (production and debugging)
-        user_directory = ensure_user_pdf_folder(target_user.id)
-        if user_directory:
-            try:
-                pdf_path = os.path.join(user_directory, filename)
-                with open(pdf_path, 'wb') as f:
-                    f.write(pdf_file)
-            except OSError as err:
-                logger.warning("test1_report_pdf: could not save to user folder user_id=%s: %s", target_user.id, err)
-        
+        # Persist a copy to media storage (S3 when enabled) - best-effort.
+        save_user_pdf(target_user.id, filename, pdf_file)
+
         return response
         
     except Exception as e:
@@ -3631,13 +3606,8 @@ def test2_report_pdf(request, user_id=None):
         filename = f"{safe_name}-Interest_Assessment_report.pdf"
         response = HttpResponse(pdf_file, content_type='application/pdf')
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        user_directory = ensure_user_pdf_folder(target_user.id)
-        if user_directory:
-            try:
-                with open(os.path.join(user_directory, filename), 'wb') as f:
-                    f.write(pdf_file)
-            except OSError as err:
-                logger.warning("test2_report_pdf: could not save to user folder user_id=%s: %s", target_user.id, err)
+        # Persist a copy to media storage (S3 when enabled) - best-effort.
+        save_user_pdf(target_user.id, filename, pdf_file)
         return response
 
     except Exception as e:
@@ -3779,13 +3749,8 @@ def test3_report_pdf(request, user_id=None):
         filename = f"{safe_name}-Aptitude_Assessment_report.pdf"
         response = HttpResponse(pdf_file, content_type='application/pdf')
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        user_directory = ensure_user_pdf_folder(target_user.id)
-        if user_directory:
-            try:
-                with open(os.path.join(user_directory, filename), 'wb') as f:
-                    f.write(pdf_file)
-            except OSError as err:
-                logger.warning("test3_report_pdf: could not save to user folder user_id=%s: %s", target_user.id, err)
+        # Persist a copy to media storage (S3 when enabled) - best-effort.
+        save_user_pdf(target_user.id, filename, pdf_file)
         return response
 
     except Exception as e:

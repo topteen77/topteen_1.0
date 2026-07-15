@@ -1735,9 +1735,11 @@
         <div class="blog-card">
           <div class="blog-image">
             <div class="cat-header">
-              {% if related_career.career_cluster.all() %}
-                <a href="{{ url('careers:careerlibrary', args=[related_career.career_cluster.first().slug, related_career.career_cluster.first().id]) }}" class="blog-category category-parent">
-                  {{ related_career.career_cluster.first().name|title }}
+              {% set related_clusters = related_career.career_cluster.all() %}
+              {% set first_cluster = related_clusters[0] if related_clusters else None %}
+              {% if first_cluster %}
+                <a href="{{ url('careers:careerlibrary', args=[first_cluster.slug, first_cluster.id]) }}" class="blog-category category-parent">
+                  {{ first_cluster.name|title }}
                 </a>
               {% else %}
                 <span class="blog-category category-parent">Career</span>
@@ -1755,7 +1757,8 @@
             <h3 class="blog-title mt-0">
               <a href="{{ url('careers:careerdetail', args=[related_career.slug, related_career.id]) }}">{{ related_career.name }}</a>
             </h3>
-            {% set first_profession = related_career.profession.first() if related_career.profession.all() else None %}
+            {% set related_professions = related_career.profession.all() %}
+            {% set first_profession = related_professions[0] if related_professions else None %}
             {% if first_profession and first_profession.name|lower != related_career.name|lower %}
             <p class="text-gray fs-14 mb-2">{{ first_profession.name }}</p>
             {% endif %}

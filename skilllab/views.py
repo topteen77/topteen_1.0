@@ -248,13 +248,6 @@ class InternationalOnlineCourseList(TemplateView):
         if selected_course_name:
             courses = courses.filter(title__icontains=selected_course_name)
 
-        institute_qs = all_courses
-        if selected_subject:
-            institute_qs = institute_qs.filter(subject=selected_subject)
-        institutes = (
-            institute_qs.values_list('institute', flat=True).distinct().order_by('institute')
-        )
-
         subject_institutes_map = defaultdict(list)
         for subject, institute in all_courses.values_list('subject', 'institute').distinct():
             if institute not in subject_institutes_map[subject]:
@@ -265,6 +258,15 @@ class InternationalOnlineCourseList(TemplateView):
         all_institutes = list(
             all_courses.values_list('institute', flat=True).distinct().order_by('institute')
         )
+        # When no subject filter is applied the institute dropdown is identical to
+        # ``all_institutes`` -- reuse it instead of issuing the same DISTINCT query twice.
+        if selected_subject:
+            institutes = list(
+                all_courses.filter(subject=selected_subject)
+                .values_list('institute', flat=True).distinct().order_by('institute')
+            )
+        else:
+            institutes = all_institutes
 
         paginator = Paginator(courses, self.per_page)
         page_obj = paginator.get_page(request.GET.get('page'))

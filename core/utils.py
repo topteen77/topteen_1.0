@@ -3,6 +3,8 @@ import logging
 from django.db.models import Q
 from core import choices
 from django.conf import settings
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 
 from threading import local
 import time
@@ -74,6 +76,39 @@ def ensure_user_pdf_folder(user_id):
     except OSError as e:
         logger.warning("ensure_user_pdf_folder failed for user_id=%s (MEDIA_ROOT=%s): %s", user_id, getattr(settings, 'MEDIA_ROOT', None), e)
         return None
+
+
+def user_pdf_key(user_id, filename):
+    """Storage key (relative to the media location) for a user's report PDF."""
+    return f"users_pdfs/{user_id}/{filename}"
+
+
+def save_user_pdf(user_id, filename, content):
+    """
+    Persist a generated report PDF through the default media storage backend.
+
+    When USE_S3_FOR_MEDIA is on, this uploads to S3 (key: <media>/users_pdfs/<id>/<file>)
+    instead of the local disk, so hosts/containers don't accumulate PDF copies that
+    already live on S3. Overwrites any existing file with the same name.
+
+    Best-effort: never raises. `content` may be raw bytes or a file-like object.
+    Returns the stored key on success, or None on failure.
+    """
+    if not user_id or not filename:
+        return None
+    key = user_pdf_key(user_id, filename)
+    try:
+        if isinstance(content, (bytes, bytearray)):
+            content = ContentFile(bytes(content))
+        # Guarantee overwrite on regeneration. delete() is idempotent (a no-op for a
+        # missing key on both S3 and local storage), and we avoid default_storage.exists()
+        # which is unreliable with this S3 configuration.
+        default_storage.delete(key)
+        return default_storage.save(key, content)
+    except Exception as e:
+        logger.warning("save_user_pdf failed for user_id=%s file=%s: %s", user_id, filename, e)
+        return None
+
 
 def sort_colleges(colleges,request):
     return colleges

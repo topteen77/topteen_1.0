@@ -1,0 +1,8 @@
+# Real per-environment files hold secrets - never commit them.
+# (Root .gitignore also ignores *.env globally; this makes the intent explicit.)
+# Only the *.env.example templates are tracked.
+environments/*.env
+!environments/*.env.example
+
+# Generated output from media_s3_dedupe.py (file listings, can be large).
+scripts/media_dedupe_reports/

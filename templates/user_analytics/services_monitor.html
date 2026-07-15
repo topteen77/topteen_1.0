@@ -93,6 +93,49 @@
               {% if row.runtime_source.via %}
                 <div class="small text-muted">via: {{ row.runtime_source.via }}</div>
               {% endif %}
+              {% if row.runtime_source.compose_project %}
+                <div class="small mt-1">
+                  Project: <code>{{ row.runtime_source.compose_project }}</code>
+                  {% if row.runtime_source.celery_app and row.key == 'celery' %}
+                    · app: <code>celery -A {{ row.runtime_source.celery_app }}</code>
+                  {% endif %}
+                </div>
+              {% endif %}
+              {% if row.runtime_source.expected_containers %}
+                <div class="small text-muted">Expected containers:
+                  {% for c in row.runtime_source.expected_containers %}<code>{{ c }}</code>{% if not loop.last %}, {% endif %}{% endfor %}
+                </div>
+              {% endif %}
+              {% if row.runtime_source.matched_containers %}
+                <div class="small text-success">Matched:
+                  {% for c in row.runtime_source.matched_containers %}<code>{{ c }}</code>{% if not loop.last %}, {% endif %}{% endfor %}
+                </div>
+              {% elif row.runtime_source.expected_containers and row.runtime_source.type == 'docker' %}
+                <div class="small text-warning">No matching project containers running.</div>
+              {% endif %}
+              {% if row.runtime_source.supervisor_running %}
+                <div class="small text-success">Supervisor RUNNING:
+                  {% for p in row.runtime_source.supervisor_running %}<code>{{ p }}</code>{% if not loop.last %}, {% endif %}{% endfor %}
+                </div>
+              {% endif %}
+              {% if row.runtime_source.app_port %}
+                <div class="small">
+                  APP_PORT <code>{{ row.runtime_source.app_port }}</code>:
+                  {% if row.runtime_source.app_port_listening %}
+                    <span class="text-success">listening</span>
+                  {% else %}
+                    <span class="text-muted">not listening</span>
+                  {% endif %}
+                  {% if row.runtime_source.https_port %}
+                    · HTTPS <code>{{ row.runtime_source.https_port }}</code>:
+                    {% if row.runtime_source.https_port_listening %}
+                      <span class="text-success">listening</span>
+                    {% else %}
+                      <span class="text-muted">not listening</span>
+                    {% endif %}
+                  {% endif %}
+                </div>
+              {% endif %}
             {% endif %}
             {% if row.key == 'email' %}
             <div class="mt-3 pt-3 border-top">

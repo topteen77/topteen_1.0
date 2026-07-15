@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 import os
 from pathlib import Path
 from urllib.parse import quote
 
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 _GRAPH_TYPES = frozenset({'personality', 'interest', 'intelligence'})
 
@@ -17,9 +20,18 @@ def sanitize_graph_user_name(user_name: str) -> str:
 
 
 def graph_images_directory() -> Path:
-    """Directory under MEDIA_ROOT where matplotlib graphs are stored."""
+    """Directory under MEDIA_ROOT where matplotlib graphs are stored.
+
+    Creating the directory is best-effort: if MEDIA_ROOT is not writable (e.g. a
+    container path used on a local host), we log and still return the path so the
+    caller degrades gracefully (missing charts) instead of raising and 500-ing the
+    whole report page.
+    """
     directory = Path(settings.MEDIA_ROOT) / 'graph_images'
-    directory.mkdir(parents=True, exist_ok=True)
+    try:
+        directory.mkdir(parents=True, exist_ok=True)
+    except OSError as e:
+        logger.warning("graph_images_directory: cannot create %s: %s", directory, e)
     return directory
 
 

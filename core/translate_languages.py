@@ -2,9 +2,16 @@
 Site header Google Translate languages — catalog, defaults, and helpers.
 """
 
+from django.core.cache import cache
 from django.db.utils import OperationalError, ProgrammingError
 
 TRANSLATE_ENABLED_LANGUAGES_KEY = 'TRANSLATE_ENABLED_LANGUAGES'
+
+# Enabled language codes are read on every request (site header translate bar) via
+# a template context processor, so the result is cached to avoid hitting the DB
+# repeatedly. Cache is cleared when languages are toggled in the admin.
+ENABLED_LANGUAGE_CODES_CACHE_KEY = 'translate:enabled_language_codes:v1'
+ENABLED_LANGUAGE_CODES_CACHE_TTL = 600  # 10 minutes
 
 # All languages available in admin (code, display name). English is always enabled on the site.
 TRANSLATE_LANGUAGE_CATALOG = [
@@ -129,25 +136,54 @@ def ensure_language_catalog():
 
 
 def get_enabled_language_codes():
-    """Return enabled language codes with English always first."""
+    """Return enabled language codes with English always first.
+
+    Cached because this runs on every request via the template context processor.
+    Previously it called ensure_language_catalog() on every read, issuing one
+    query per catalog language (80+ DB queries on every page load).
+    """
     fallback = ','.join(
         ['en'] + sorted(DEFAULT_ENABLED_LANGUAGE_CODES - {'en'})
     ).split(',')
     try:
+        cached = cache.get(ENABLED_LANGUAGE_CODES_CACHE_KEY)
+    except Exception:
+        cached = None
+    if cached is not None:
+        return cached
+    try:
         from core.models import TranslateLanguage
-        ensure_language_catalog()
         codes = list(
             TranslateLanguage.objects.filter(enabled=True)
             .order_by('sort_order', 'name')
             .values_list('code', flat=True)
         )
         if not codes:
-            return _normalize_codes(fallback)
-        return _normalize_codes(codes)
+            # Table not yet populated (e.g. fresh DB): build the catalog once, then retry.
+            ensure_language_catalog()
+            codes = list(
+                TranslateLanguage.objects.filter(enabled=True)
+                .order_by('sort_order', 'name')
+                .values_list('code', flat=True)
+            )
+        result = _normalize_codes(codes) if codes else _normalize_codes(fallback)
     except (ProgrammingError, OperationalError):
         return _normalize_codes(fallback)
     except Exception:
         return _normalize_codes(fallback)
+    try:
+        cache.set(ENABLED_LANGUAGE_CODES_CACHE_KEY, result, ENABLED_LANGUAGE_CODES_CACHE_TTL)
+    except Exception:
+        pass
+    return result
+
+
+def clear_enabled_language_codes_cache():
+    """Invalidate the cached enabled-language codes (call after admin toggles languages)."""
+    try:
+        cache.delete(ENABLED_LANGUAGE_CODES_CACHE_KEY)
+    except Exception:
+        pass
 
 
 def _normalize_codes(codes):

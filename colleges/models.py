@@ -61,7 +61,9 @@ class College(BaseModel,SeoModel,SlugModel,PublishableModel):
 
     @classmethod
     def get_all_colleges(cls):
-        return College.objects.all()
+        # select_related the location FKs so get_location() (city/state/country)
+        # does not trigger N+1 queries when iterated in templates/views.
+        return College.objects.select_related('country', 'state', 'city')
 
     def save(self, *args, **kwargs):
         current_user=get_current_user()

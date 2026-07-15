@@ -287,7 +287,264 @@ def _running_inside_docker():
         return False
 
 
+# ---------------------------------------------------------------------------
+# Runtime identity: THIS TopTeen stack (compose project / image / ports / CLI app)
+# vs other apps on the same host (apravas, indo-israel, olympiad, …).
+# ---------------------------------------------------------------------------
+
+def _csv_setting(name, default=''):
+    raw = getattr(settings, name, default) or default
+    return [p.strip() for p in str(raw).split(',') if p.strip()]
+
+
+def _project_identity():
+    """Expected Docker/env fingerprints for this deployment (from settings /.env)."""
+    project = (getattr(settings, 'COMPOSE_PROJECT_NAME', None) or 'topteens').strip() or 'topteens'
+    celery_app = (getattr(settings, 'SERVICE_MONITOR_CELERY_APP', None) or 'topteens').strip() or 'topteens'
+    guni_mod = (getattr(settings, 'SERVICE_MONITOR_GUNICORN_MODULE', None) or 'topteens.wsgi').strip()
+    image = (getattr(settings, 'DOCKER_IMAGE', None) or 'developertopteen/demotopteen').strip()
+    image_nginx = (getattr(settings, 'DOCKER_IMAGE_NGINX', None) or f'{image}-nginx').strip()
+    app_port = str(getattr(settings, 'APP_PORT', None) or '80').strip()
+    https_port = str(getattr(settings, 'HTTPS_PORT', None) or '443').strip()
+    # Compose v2 names: {project}-{service}-1
+    expected = {
+        'web': f'{project}-web-1',
+        'nginx': f'{project}-nginx-1',
+        'celery': f'{project}-celery-1',
+        'celery_beat': f'{project}-celery_beat-1',
+        'redis': f'{project}-redis-1',
+    }
+    # Also accept underscore form from older compose
+    expected_alt = {k: v.replace('-', '_', 1) if '-' in v else v for k, v in expected.items()}
+    return {
+        'project': project,
+        'celery_app': celery_app,
+        'gunicorn_module': guni_mod,
+        'image': image,
+        'image_nginx': image_nginx,
+        'app_port': app_port,
+        'https_port': https_port,
+        'expected_containers': expected,
+        'expected_containers_alt': expected_alt,
+        'supervisor_celery': _csv_setting(
+            'SERVICE_MONITOR_SUPERVISOR_CELERY', 'celery_worker,celery_beat'
+        ),
+        'supervisor_gunicorn': _csv_setting(
+            'SERVICE_MONITOR_SUPERVISOR_GUNICORN', 'gunicorn,gunicorn_topteen,topteens_gunicorn'
+        ),
+    }
+
+
+def _port_is_listening(port):
+    """True if something is listening on TCP port (host)."""
+    try:
+        port = int(port)
+    except (TypeError, ValueError):
+        return False
+    ok, out, _ = _run_command(['ss', '-ltn'], timeout=2)
+    if ok and out:
+        needle = f':{port} '
+        # ss shows *:8005 or 0.0.0.0:8005 or [::]:8005
+        for line in out.splitlines():
+            if f':{port}' in line and 'LISTEN' in line.upper():
+                return True
+            if needle in line or line.rstrip().endswith(f':{port}'):
+                return True
+    ok2, out2, _ = _run_command(['netstat', '-ltn'], timeout=2)
+    if ok2 and out2:
+        for line in out2.splitlines():
+            if f':{port}' in line and 'LISTEN' in line.upper():
+                return True
+    return False
+
+
+def _supervisor_programs_running(program_names):
+    """Return list of program names reported RUNNING by supervisorctl."""
+    if not program_names:
+        return []
+    ok, out, _ = _run_command(['supervisorctl', 'status'], timeout=3)
+    if not ok or not out:
+        # try sudo-less failure; don't require sudo in web process
+        return []
+    running = []
+    wanted = {n.lower() for n in program_names}
+    for line in out.splitlines():
+        parts = line.split()
+        if len(parts) < 2:
+            continue
+        name, state = parts[0], parts[1]
+        if name.lower() in wanted and state.upper() == 'RUNNING':
+            running.append(name)
+    return running
+
+
+def _docker_ps_rows():
+    """
+    List running containers: name, image, ports, command, compose project, compose service.
+    """
+    fmt = (
+        '{{.Names}}\t{{.Image}}\t{{.Ports}}\t{{.Command}}\t'
+        '{{.Label "com.docker.compose.project"}}\t{{.Label "com.docker.compose.service"}}'
+    )
+    ok, out, _ = _run_command(['docker', 'ps', '--format', fmt], timeout=3)
+    if not ok or not out:
+        return []
+    rows = []
+    for line in out.splitlines():
+        parts = (line or '').split('\t')
+        while len(parts) < 6:
+            parts.append('')
+        rows.append(
+            {
+                'name': parts[0].strip(),
+                'image': parts[1].strip(),
+                'ports': parts[2].strip(),
+                'command': parts[3].strip(),
+                'compose_project': parts[4].strip(),
+                'compose_service': parts[5].strip(),
+            }
+        )
+    return rows
+
+
+def _container_matches_project(row, ident):
+    """True if this container belongs to THIS TopTeen compose stack."""
+    name = (row.get('name') or '').lower()
+    image = (row.get('image') or '').lower()
+    project = (ident['project'] or '').lower()
+    compose_project = (row.get('compose_project') or '').lower()
+    img_base = (ident['image'] or '').lower().split(':')[0]
+    img_nginx = (ident['image_nginx'] or '').lower().split(':')[0]
+
+    if compose_project and compose_project == project:
+        return True
+    if name.startswith(f'{project}-') or name.startswith(f'{project}_'):
+        return True
+    if img_base and img_base in image:
+        return True
+    if img_nginx and img_nginx in image:
+        return True
+    return False
+
+
+def _is_topteen_celery_cmdline(text, celery_app=None):
+    t = (text or '').lower()
+    app = (celery_app or _project_identity()['celery_app']).lower()
+    if 'celery' not in t:
+        return False
+    if 'app.tasks.celery_app' in t:
+        return False
+    return (
+        f'-a {app}' in t
+        or f'--app={app}' in t
+        or f'--app {app}' in t
+    )
+
+
+def _is_topteen_gunicorn_cmdline(text, guni_mod=None):
+    t = (text or '').lower()
+    mod = (guni_mod or _project_identity()['gunicorn_module']).lower()
+    if 'gunicorn' not in t:
+        return False
+    return mod in t or mod.split('.')[0] in t
+
+
+def _topteen_celery_on_host():
+    ident = _project_identity()
+    app = ident['celery_app']
+    if _is_process_running(rf'celery +(-A|--app[= ]) *{re.escape(app)}'):
+        return True
+    # Supervisor programs for this project
+    if _supervisor_programs_running(ident['supervisor_celery']):
+        return True
+    ok, out, _ = _run_command(['pgrep', '-af', 'celery'], timeout=2)
+    if not ok or not out:
+        return False
+    for line in out.splitlines():
+        if _is_topteen_celery_cmdline(line, app):
+            return True
+    return False
+
+
+def _topteen_gunicorn_on_host():
+    ident = _project_identity()
+    mod = ident['gunicorn_module']
+    if _is_process_running(rf'gunicorn.*{re.escape(mod)}'):
+        return True
+    if _supervisor_programs_running(ident['supervisor_gunicorn']):
+        return True
+    ok, out, _ = _run_command(['pgrep', '-af', 'gunicorn'], timeout=2)
+    if not ok or not out:
+        return False
+    for line in out.splitlines():
+        if _is_topteen_gunicorn_cmdline(line, mod):
+            return True
+    return False
+
+
+def _find_project_docker_services():
+    """
+    Map compose service -> container name for THIS project only.
+    Keys: web, nginx, celery, celery_beat, redis (and unknowns by service label).
+    """
+    ident = _project_identity()
+    found = {}
+    for row in _docker_ps_rows():
+        if not _container_matches_project(row, ident):
+            continue
+        svc = (row.get('compose_service') or '').strip().lower().replace('-', '_')
+        name = row['name']
+        cmd = row.get('command') or ''
+        name_l = name.lower()
+
+        if not svc:
+            if 'celery_beat' in name_l or 'celery-beat' in name_l or 'beat' in name_l and 'celery' in name_l:
+                svc = 'celery_beat'
+            elif 'celery' in name_l:
+                svc = 'celery'
+            elif 'nginx' in name_l:
+                svc = 'nginx'
+            elif 'redis' in name_l:
+                svc = 'redis'
+            elif 'web' in name_l or 'django' in name_l or 'gunicorn' in (cmd or '').lower():
+                svc = 'web'
+
+        # Celery must be topteens app if we can read the command
+        if svc in ('celery', 'celery_beat') and cmd and not _is_topteen_celery_cmdline(cmd, ident['celery_app']):
+            # Name/project matched but foreign celery cmdline — skip
+            if 'app.tasks' in cmd.lower():
+                continue
+
+        if svc and svc not in found:
+            found[svc] = {
+                'name': name,
+                'image': row.get('image') or '',
+                'ports': row.get('ports') or '',
+                'command': cmd,
+                'compose_project': row.get('compose_project') or '',
+                'compose_service': row.get('compose_service') or svc,
+            }
+    return found
+
+
+def _docker_container_for_topteen_service(service_key):
+    """Return running container name for a TopTeen service key (celery, web/gunicorn, redis, nginx)."""
+    found = _find_project_docker_services()
+    key = service_key
+    if key == 'gunicorn':
+        key = 'web'
+    if key == 'celery':
+        # Prefer worker over beat for "celery" label
+        if 'celery' in found:
+            return found['celery']['name']
+        if 'celery_beat' in found:
+            return found['celery_beat']['name']
+        return ''
+    return (found.get(key) or {}).get('name') or ''
+
+
 def _docker_container_for_pattern(pattern):
+    """Legacy name-substring match (prefer _docker_container_for_topteen_service)."""
     ok, out, _ = _run_command(['docker', 'ps', '--format', '{{.Names}}'], timeout=2)
     if not ok or not out:
         return ''
@@ -299,44 +556,167 @@ def _docker_container_for_pattern(pattern):
     return ''
 
 
+def _runtime_identity_payload(service_key):
+    """Extra fields for service monitor UI: expected names, ports, matched containers."""
+    ident = _project_identity()
+    found = _find_project_docker_services()
+    app_port = ident['app_port']
+    https_port = ident['https_port']
+    port_http_ok = _port_is_listening(app_port)
+    port_https_ok = _port_is_listening(https_port) if https_port and https_port != '0' else False
+
+    expected_for_key = []
+    if service_key == 'celery':
+        expected_for_key = [
+            ident['expected_containers']['celery'],
+            ident['expected_containers']['celery_beat'],
+        ]
+        matched = [found[k]['name'] for k in ('celery', 'celery_beat') if k in found]
+        host_ok = _topteen_celery_on_host()
+        supervisor = _supervisor_programs_running(ident['supervisor_celery'])
+    elif service_key == 'gunicorn':
+        expected_for_key = [ident['expected_containers']['web'], ident['expected_containers']['nginx']]
+        matched = [found[k]['name'] for k in ('web', 'nginx') if k in found]
+        host_ok = _topteen_gunicorn_on_host()
+        supervisor = _supervisor_programs_running(ident['supervisor_gunicorn'])
+    elif service_key == 'redis':
+        expected_for_key = [ident['expected_containers']['redis']]
+        matched = [found['redis']['name']] if 'redis' in found else []
+        host_ok = _is_process_running('redis-server')
+        supervisor = []
+    else:
+        expected_for_key = list(ident['expected_containers'].values())
+        matched = [v['name'] for v in found.values()]
+        host_ok = False
+        supervisor = []
+
+    return {
+        'compose_project': ident['project'],
+        'docker_image': ident['image'],
+        'expected_containers': expected_for_key,
+        'matched_containers': matched,
+        'app_port': app_port,
+        'https_port': https_port,
+        'app_port_listening': port_http_ok,
+        'https_port_listening': port_https_ok,
+        'host_process_ok': host_ok,
+        'supervisor_running': supervisor,
+        'celery_app': ident['celery_app'],
+        'all_project_containers': {k: v['name'] for k, v in found.items()},
+    }
+
+
 def _resolve_runtime_source(service_key):
+    ident = _project_identity()
+    payload = _runtime_identity_payload(service_key)
+
     # Prefer explicit config endpoints when available.
     if service_key == 'redis':
         redis_url = (getattr(settings, 'CELERY_BROKER_URL', '') or getattr(settings, 'REDIS_URL', '') or '').strip()
         src, label = _source_from_url(redis_url)
+        docker_redis = _docker_container_for_topteen_service('redis')
+        if docker_redis:
+            return {
+                'type': 'docker',
+                'label': f'Docker ({docker_redis})',
+                'via': redis_url or docker_redis,
+                **{k: payload[k] for k in payload},
+            }
         if src != 'unknown':
-            return {'type': src, 'label': label, 'via': redis_url}
-    elif service_key == 'email':
+            return {'type': src, 'label': label, 'via': redis_url, **payload}
+        return {'type': 'local', 'label': 'Local host', 'via': redis_url, **payload}
+
+    if service_key == 'email':
         email_host = (getattr(settings, 'EMAIL_HOST', '') or '').strip()
         src, label = _source_from_host(email_host)
         if src != 'unknown':
             return {'type': src, 'label': label, 'via': email_host}
-    elif service_key == 'db':
+        return {'type': 'unknown', 'label': 'Unknown', 'via': email_host}
+
+    if service_key == 'db':
         db_host = (settings.DATABASES.get('default', {}).get('HOST', '') or '').strip() if hasattr(settings, 'DATABASES') else ''
         src, label = _source_from_host(db_host)
         return {'type': src, 'label': label, 'via': db_host}
 
-    # For process-based services detect docker host/container first.
-    docker_name = ''
+    # Celery: host env/supervisor first, else this project's Docker celery
     if service_key == 'celery':
-        docker_name = _docker_container_for_pattern('celery')
-    elif service_key == 'gunicorn':
-        docker_name = _docker_container_for_pattern('gunicorn')
+        if _topteen_celery_on_host():
+            via = 'celery -A %s' % ident['celery_app']
+            if payload['supervisor_running']:
+                via = 'supervisor: ' + ', '.join(payload['supervisor_running'])
+            return {
+                'type': 'local',
+                'label': 'Local host (env / supervisor)',
+                'via': via,
+                **payload,
+            }
+        docker_name = _docker_container_for_topteen_service('celery')
+        if docker_name:
+            return {
+                'type': 'docker',
+                'label': f'Docker ({docker_name})',
+                'via': docker_name,
+                **payload,
+            }
+        if _running_inside_docker():
+            return {'type': 'docker', 'label': 'Docker container', 'via': '', **payload}
+        return {
+            'type': 'local',
+            'label': 'Local host (not detected)',
+            'via': f"expected {', '.join(payload['expected_containers'])}",
+            **payload,
+        }
 
-    if docker_name:
-        return {'type': 'docker', 'label': f'Docker ({docker_name})', 'via': docker_name}
+    if service_key == 'gunicorn':
+        if _topteen_gunicorn_on_host():
+            via = 'gunicorn %s' % ident['gunicorn_module']
+            if payload['supervisor_running']:
+                via = 'supervisor: ' + ', '.join(payload['supervisor_running'])
+            elif payload['app_port_listening']:
+                via = f"{via}; APP_PORT={payload['app_port']} listening"
+            return {
+                'type': 'local',
+                'label': 'Local host (env / supervisor)',
+                'via': via,
+                **payload,
+            }
+        docker_name = _docker_container_for_topteen_service('gunicorn')
+        if docker_name:
+            port_note = ''
+            if payload['app_port_listening']:
+                port_note = f" APP_PORT={payload['app_port']} OK"
+            return {
+                'type': 'docker',
+                'label': f'Docker ({docker_name})',
+                'via': f'{docker_name}{port_note}',
+                **payload,
+            }
+        if _running_inside_docker():
+            return {'type': 'docker', 'label': 'Docker container', 'via': '', **payload}
+        return {
+            'type': 'local',
+            'label': 'Local host (not detected)',
+            'via': f"expected {', '.join(payload['expected_containers'])}; APP_PORT={payload['app_port']}",
+            **payload,
+        }
+
     if _running_inside_docker():
         return {'type': 'docker', 'label': 'Docker container', 'via': ''}
     return {'type': 'local', 'label': 'Local host', 'via': ''}
 
 
-def _get_process_details(pattern, limit=4):
+def _get_process_details(pattern, limit=4, cmdline_filter=None):
+    """
+    List matching processes. Optional cmdline_filter(str)->bool keeps only this app's rows.
+    """
     ok, out, _err = _run_command(['pgrep', '-f', pattern], timeout=1)
     if not ok or not out:
         return []
-    pids = [pid.strip() for pid in out.splitlines() if pid.strip()][:limit]
+    pids = [pid.strip() for pid in out.splitlines() if pid.strip()]
     details = []
     for pid in pids:
+        if len(details) >= limit:
+            break
         ps_ok, ps_out, _ = _run_command(
             ['ps', '-p', pid, '-o', 'pid,ppid,%cpu,%mem,rss,etime,comm,args'],
             timeout=1,
@@ -346,7 +726,10 @@ def _get_process_details(pattern, limit=4):
         lines = [line for line in ps_out.splitlines() if line.strip()]
         if len(lines) < 2:
             continue
-        details.append(lines[-1].strip())
+        row = lines[-1].strip()
+        if cmdline_filter and not cmdline_filter(row):
+            continue
+        details.append(row)
     return details
 
 
@@ -591,14 +974,14 @@ def get_runtime_service_status():
     celery_ok = _check_celery_ok()
     redis_ok = _check_redis_ok()
     email_ok = _check_email_ok()
-    gunicorn_ok = _is_process_running('gunicorn')
-    celery_proc_ok = _is_process_running('celery')
+    gunicorn_ok = _topteen_gunicorn_on_host() or _is_process_running('gunicorn')
+    celery_proc_ok = _topteen_celery_on_host()
     celery_diag = _get_celery_runtime_diagnostics()
 
     service_rows = [
         {'key': 'db', 'label': 'Database', 'ok': True, 'detail': 'Django DB is reachable through request flow.', 'required': True, 'enabled': True},
         {'key': 'redis', 'label': 'Redis', 'ok': redis_ok, 'detail': 'Used by Celery broker/cache when enabled.', 'required': bool(getattr(settings, 'ENABLE_REDIS', False)), 'enabled': bool(getattr(settings, 'ENABLE_REDIS', False))},
-        {'key': 'celery', 'label': 'Celery Worker', 'ok': celery_ok and celery_proc_ok, 'detail': 'Worker heartbeat and process check.', 'required': bool(getattr(settings, 'ENABLE_CELERY', False)), 'enabled': bool(getattr(settings, 'ENABLE_CELERY', False))},
+        {'key': 'celery', 'label': 'Celery Worker', 'ok': celery_ok and (celery_proc_ok or bool(celery_diag.get('workers_up'))), 'detail': 'Worker heartbeat and process check (celery -A topteens).', 'required': bool(getattr(settings, 'ENABLE_CELERY', False)), 'enabled': bool(getattr(settings, 'ENABLE_CELERY', False))},
         {'key': 'gunicorn', 'label': 'Gunicorn', 'ok': gunicorn_ok, 'detail': 'OS process availability check.', 'required': True, 'enabled': True},
         {'key': 'email', 'label': 'Email config', 'ok': email_ok, 'detail': 'SMTP host/from-email present.', 'required': True, 'enabled': True},
     ]
@@ -623,7 +1006,11 @@ def get_runtime_service_status():
     service_map['redis']['runtime_source'] = _resolve_runtime_source('redis')
 
     service_map['celery']['anchor'] = 'service-celery'
-    service_map['celery']['process_details'] = _get_process_details('celery')
+    service_map['celery']['process_details'] = _get_process_details(
+        'celery',
+        limit=8,
+        cmdline_filter=lambda row: _is_topteen_celery_cmdline(row),
+    )
     service_map['celery']['clickable'] = True
     service_map['celery']['log_key'] = 'celery'
     service_map['celery']['runtime_source'] = _resolve_runtime_source('celery')
@@ -637,7 +1024,14 @@ def get_runtime_service_status():
     service_map['celery']['inspect_error'] = celery_diag['inspect_error']
 
     service_map['gunicorn']['anchor'] = 'service-gunicorn'
-    service_map['gunicorn']['process_details'] = _get_process_details('gunicorn')
+    guni_details = _get_process_details(
+        'gunicorn',
+        limit=6,
+        cmdline_filter=lambda row: _is_topteen_gunicorn_cmdline(row),
+    )
+    if not guni_details:
+        guni_details = _get_process_details('gunicorn', limit=4)
+    service_map['gunicorn']['process_details'] = guni_details
     service_map['gunicorn']['clickable'] = True
     service_map['gunicorn']['log_key'] = 'gunicorn'
     service_map['gunicorn']['runtime_source'] = _resolve_runtime_source('gunicorn')

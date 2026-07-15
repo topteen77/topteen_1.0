@@ -90,6 +90,28 @@ INSTALLED_APPS = [
 ENABLE_REDIS = config('ENABLE_REDIS', default=True, cast=bool)
 ENABLE_CELERY = config('ENABLE_CELERY', default=True, cast=bool)
 
+# Service monitor identity: match THIS project's Docker compose / host env (ignore other apps on same host).
+# Compose names default to {COMPOSE_PROJECT_NAME}-{service}-1 e.g. topteens-celery-1
+COMPOSE_PROJECT_NAME = (config('COMPOSE_PROJECT_NAME', default='topteens') or 'topteens').strip()
+DOCKER_IMAGE = (config('DOCKER_IMAGE', default='developertopteen/demotopteen') or 'developertopteen/demotopteen').strip()
+DOCKER_IMAGE_NGINX = (
+    config('DOCKER_IMAGE_NGINX', default='developertopteen/demotopteen-nginx') or 'developertopteen/demotopteen-nginx'
+).strip()
+APP_PORT = config('APP_PORT', default='80')
+HTTPS_PORT = config('HTTPS_PORT', default='443')
+# Celery Django app module used on CLI: celery -A topteens
+SERVICE_MONITOR_CELERY_APP = (config('SERVICE_MONITOR_CELERY_APP', default='topteens') or 'topteens').strip()
+SERVICE_MONITOR_GUNICORN_MODULE = (
+    config('SERVICE_MONITOR_GUNICORN_MODULE', default='topteens.wsgi') or 'topteens.wsgi'
+).strip()
+# Comma-separated supervisor program names for env mode (sudo supervisorctl status)
+SERVICE_MONITOR_SUPERVISOR_CELERY = config(
+    'SERVICE_MONITOR_SUPERVISOR_CELERY', default='celery_worker,celery_beat'
+)
+SERVICE_MONITOR_SUPERVISOR_GUNICORN = config(
+    'SERVICE_MONITOR_SUPERVISOR_GUNICORN', default='gunicorn,gunicorn_topteen,topteens_gunicorn'
+)
+
 # User analytics: set False in .env to disable all tracking (debugging / manual data clean)
 ENABLE_USER_ANALYTICS_TRACKING = config('ENABLE_USER_ANALYTICS_TRACKING', default=True, cast=bool)
 # Optional comma-separated URL path prefixes to skip for page/journey tracking (middleware), e.g. "/internal/,/status/"
