@@ -541,13 +541,16 @@ class VocationalCoursesView(TemplateView):
                     out.append({"sub": sub, "display_name": sub.name})
             return out
 
-        # Load both levels
+        # Load both levels in a single query (with a shared child -> course
+        # prefetch) instead of one query per tab, to avoid duplicate
+        # category/course queries.
         levels_data = {}
         subcategories_display = {}
-        for level_slug in ['after-10', 'after-12']:
-            try:
-                level = VocationalCourseCategory.objects.filter(
-                    slug=level_slug,
+        try:
+            levels_by_slug = {
+                cat.slug: cat
+                for cat in VocationalCourseCategory.objects.filter(
+                    slug__in=['after-10', 'after-12'],
                     parent__isnull=True,
                     object_status=choices.ObjectStatus.ACTIVE,
                 ).prefetch_related(
@@ -564,14 +567,17 @@ class VocationalCoursesView(TemplateView):
                             )
                         ),
                     )
-                ).first()
-                
-                if level:
-                    levels_data[level_slug] = level
-                    subcategories_display[level_slug] = ordered_children_with_display(level.children.all())
-                else:
-                    subcategories_display[level_slug] = []
-            except Exception:
+                )
+            }
+        except Exception:
+            levels_by_slug = {}
+
+        for level_slug in ['after-10', 'after-12']:
+            level = levels_by_slug.get(level_slug)
+            if level:
+                levels_data[level_slug] = level
+                subcategories_display[level_slug] = ordered_children_with_display(level.children.all())
+            else:
                 levels_data[level_slug] = None
                 subcategories_display[level_slug] = []
 
