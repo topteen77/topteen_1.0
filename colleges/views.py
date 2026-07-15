@@ -32,7 +32,9 @@ class CollegeDetails(TemplateView):
 
     def get_context(self, request,slug, *args, **kwargs):
         ctx={}
-        college=get_object_or_404(College,slug=slug)
+        # select_related the location FKs so college.get_location() below does not
+        # trigger separate country/state/city queries.
+        college=get_object_or_404(College.objects.select_related('country', 'state', 'city'), slug=slug)
         ctx['college']=college
         country=Country.objects.all()
         ctx['countries']=country

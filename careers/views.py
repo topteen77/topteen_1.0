@@ -491,7 +491,7 @@ class CareerDetail(TemplateView):
     def get_context(self, request,career_id,slug, *args, **kwargs):
         ctx={}
         career=get_object_or_404(
-            Career.objects.prefetch_related('profession', 'career_cluster'),
+            Career.objects.prefetch_related('profession', 'career_cluster', 'videos'),
             id=career_id, slug=slug,
         )
         ctx['career']=career
@@ -674,13 +674,6 @@ class CareerDetail(TemplateView):
             
             parser = CareerDescriptionJSONParser(career)
             parser.parse_all_sections()
-            
-            # Debug: Print JSON to terminal
-            try:
-                parser.print_debug_json()
-            except Exception as debug_error:
-                logger.warning(f'Error printing debug JSON: {str(debug_error)}')
-            
             return parser
         except Exception as e:
             logger.error(f'Error parsing career JSON sections: {str(e)}', exc_info=True)

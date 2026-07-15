@@ -154,9 +154,10 @@ class Blogs(TemplateView):
         ctx['html_head'] = self.html_head()
         ctx["popular_blogs"] = popular_blogs
         ctx['site_url']= "https://topteen.in"
-        ctx['remaining_count']=max(0,blogs.count() - self.PAGE_SIZE)
         ctx['blogs']=blogs
         paginated_blogs =Paginator(blogs,self.PAGE_SIZE)
+        # Reuse the paginator's COUNT(*) instead of issuing a second blogs.count() query.
+        ctx['remaining_count']=max(0,paginated_blogs.count - self.PAGE_SIZE)
         page_number = request.GET.get('page')
         try:
             user_page_obj = paginated_blogs.get_page(page_number)
@@ -191,7 +192,7 @@ class Blogs(TemplateView):
             data={}
             data['html'] = render_to_string("topteenfrontend/includes/blog_item.html",ctx)
             data['page_number']=ctx['page_obj'].number
-            data['remaining']= ctx['blogs'].count() - ctx['page_obj'].number*self.PAGE_SIZE
+            data['remaining']= ctx['page_obj'].paginator.count - ctx['page_obj'].number*self.PAGE_SIZE
             data['next_page']= ctx['page_obj'].next_page_number()  if ctx['page_obj'].has_next() else 0
             return JsonResponse(data)
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))

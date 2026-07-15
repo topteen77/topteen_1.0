@@ -54,19 +54,29 @@ def _encrypt_student_data(data_dict):
 
 FOOTER_CAREER_CLUSTERS_CACHE_KEY = 'nav:footer_career_clusters:v1'
 FOOTER_CAREER_CLUSTERS_CACHE_TTL = 600  # 10 minutes; footer nav rarely changes
+FOOTER_CAREER_CLUSTERS_LOCAL_TTL = 30   # process-local memo so dev (DummyCache) is fast too
+_FOOTER_CAREER_CLUSTERS_LOCAL = {'value': None, 'ts': 0.0}
 
 
 def _footer_career_clusters():
     """Same clusters as careers page grid: active, with at least one published career, ordered by name. Links use /careers/cluster/<slug>-<id>/.
 
-    Cached (Redis in prod) because this runs on every page's footer and the data
-    changes rarely; TTL bounds staleness after clusters/careers are (un)published.
+    Runs on every page's footer, so read a process-local memo first (works even
+    with the no-op DummyCache in dev), then the shared cache (Redis in prod), and
+    only then query. TTLs bound staleness after clusters/careers are (un)published.
     """
+    import time
+    now = time.monotonic()
+    _local = _FOOTER_CAREER_CLUSTERS_LOCAL
+    if _local['value'] is not None and (now - _local['ts']) <= FOOTER_CAREER_CLUSTERS_LOCAL_TTL:
+        return _local['value']
     try:
         cached = cache.get(FOOTER_CAREER_CLUSTERS_CACHE_KEY)
     except Exception:
         cached = None
     if cached is not None:
+        _local['value'] = cached
+        _local['ts'] = now
         return cached
     try:
         clusters_qs = CareerCluster.objects.filter(
@@ -82,7 +92,46 @@ def _footer_career_clusters():
         cache.set(FOOTER_CAREER_CLUSTERS_CACHE_KEY, result, FOOTER_CAREER_CLUSTERS_CACHE_TTL)
     except Exception:
         pass
+    _local['value'] = result
+    _local['ts'] = now
     return result
+
+
+CAREERVIDEOS_COUNT_CACHE_KEY = 'nav:careervideos_count:v1'
+CAREERVIDEOS_COUNT_CACHE_TTL = 600  # 10 minutes; nav badge, changes rarely
+CAREERVIDEOS_COUNT_LOCAL_TTL = 30   # process-local memo so dev (DummyCache) is fast too
+_CAREERVIDEOS_COUNT_LOCAL = {'value': None, 'ts': 0.0}
+
+
+def _careervideos_count():
+    """Total career videos (nav/footer badge shown on every page).
+
+    Runs site-wide, so read a process-local memo first (works even with the
+    no-op DummyCache in dev), then the shared cache (Redis in prod), and only
+    fall back to a single COUNT(*). TTLs bound any staleness.
+    """
+    import time
+    now = time.monotonic()
+    local = _CAREERVIDEOS_COUNT_LOCAL
+    if local['value'] is not None and (now - local['ts']) <= CAREERVIDEOS_COUNT_LOCAL_TTL:
+        return local['value']
+    val = None
+    try:
+        val = cache.get(CAREERVIDEOS_COUNT_CACHE_KEY)
+    except Exception:
+        val = None
+    if val is None:
+        try:
+            val = Videos.objects.count()
+        except Exception:
+            return local['value'] or 0
+        try:
+            cache.set(CAREERVIDEOS_COUNT_CACHE_KEY, val, CAREERVIDEOS_COUNT_CACHE_TTL)
+        except Exception:
+            pass
+    local['value'] = val
+    local['ts'] = now
+    return val
 
 
 def _seo_organization_schema():
@@ -573,7 +622,7 @@ def globals(request):
         "most_searchcareers":Career.objects.filter(publish_status=choices.PublishStatus.PUBLISHED).order_by('?')[:8],
         'most_searchcolleges':College.objects.all().order_by('id')[:5],
         'tranding_content':Blog.objects.all(),
-        "careervideos_count":Videos.objects.count(),
+        "careervideos_count":_careervideos_count(),
         # Footer: top-level career clusters for "Trending Career Paths" (links to /careers/cluster/<slug>-<id>/)
         "footer_career_clusters": _footer_career_clusters(),
         # SEO: absolute site base URL for canonical/og:image when request is not available
