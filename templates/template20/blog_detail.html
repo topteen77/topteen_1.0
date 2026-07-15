@@ -271,7 +271,7 @@
                   <div class="col-4">
                     <a href="{{ url('blog:blogdetail', args=[latest_blog.slug]) }}">
                       {% if latest_blog.image %}
-                      <img src="{{ latest_blog.image.url }}" alt="{{ latest_blog.title }}" class="img-fluid w-100" style="height: 80px; object-fit: cover;">
+                      <img src="{{ latest_blog.image.url }}" alt="{{ latest_blog.title }}" class="img-fluid w-100" style="height: 80px; object-fit: cover;" loading="lazy" decoding="async">
                       {% else %}
                       <img src="{{ static('images_new/blogs/main-blog.png') }}" alt="{{ latest_blog.title }}" class="img-fluid w-100" style="height: 80px; object-fit: cover;">
                       {% endif %}
@@ -337,7 +337,7 @@
             {% endif %}
             <a href="{{ url('blog:blogdetail', args=[related_blog.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}">
               {% if related_blog.image %}
-              <img src="{{ related_blog.image.url }}" alt="{{ related_blog.title }}">
+              <img src="{{ related_blog.image.url }}" alt="{{ related_blog.title }}" loading="lazy" decoding="async">
               {% else %}
               <img src="{{ static('images_new/blogs/main-blog.png') }}" alt="{{ related_blog.title }}">
               {% endif %}

@@ -398,7 +398,7 @@
               <div class="ebook-card" data-id="{{ ebook.id }}">
                 <div class="ebook-card-image">
                   {% if ebook.cover %}
-                  <img src="{{ ebook.cover }}" alt="{{ ebook.title }}" onerror="this.src='{{ static('images_new/ebook/ebook-cover.jpg') }}'">
+                  <img src="{{ ebook.cover }}" alt="{{ ebook.title }}" loading="lazy" decoding="async" onerror="this.src='{{ static('images_new/ebook/ebook-cover.jpg') }}'">
                   {% else %}
                   <img src="{{ static('images_new/ebook/ebook-cover.jpg') }}" alt="{{ ebook.title }}">
                   {% endif %}

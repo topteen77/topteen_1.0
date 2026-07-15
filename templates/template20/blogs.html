@@ -151,7 +151,7 @@
             {% endif %}
             <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}">
               {% if blog.image %}
-              <img src="{{ blog.image.url }}" alt="{{ blog.title }}">
+              <img src="{{ blog.image.url }}" alt="{{ blog.title }}" loading="lazy" decoding="async">
               {% else %}
               <img src="{{ static('images_new/blogs/main-blog.png') }}" alt="{{ blog.title }}">
               {% endif %}
@@ -209,7 +209,7 @@
                     {% endif %}
                     <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}">
                     {% if blog.image %}
-                    <img src="{{ blog.image.url }}" alt="{{ blog.title }}" class="img-fluid">
+                    <img src="{{ blog.image.url }}" alt="{{ blog.title }}" class="img-fluid" loading="lazy" decoding="async">
                     {% else %}
                     <img src="{{ static('images_new/blogs/main-blog.png') }}" alt="{{ blog.title }}" class="img-fluid">
                     {% endif %}
@@ -329,7 +329,7 @@
                   <div class="col-4">
                     <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}">
                       {% if blog.image %}
-                      <img src="{{ blog.image.url }}" alt="{{ blog.title }}" class="img-fluid w-100" style="height: 80px; object-fit: cover;">
+                      <img src="{{ blog.image.url }}" alt="{{ blog.title }}" class="img-fluid w-100" style="height: 80px; object-fit: cover;" loading="lazy" decoding="async">
                       {% else %}
                       <img src="{{ static('images_new/blogs/main-blog.png') }}" alt="{{ blog.title }}" class="img-fluid w-100" style="height: 80px; object-fit: cover;">
                       {% endif %}

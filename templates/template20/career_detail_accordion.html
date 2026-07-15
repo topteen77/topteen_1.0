@@ -1492,7 +1492,7 @@
                 <div class="blog-card">
                   <div class="blog-image">
                     {% if course.logo %}
-                    <img src="{{ course.logo.url }}" alt="{{ course.name }}">
+                    <img src="{{ course.logo.url }}" alt="{{ course.name }}" loading="lazy" decoding="async">
                     {% else %}
                     <img src="{{ static('images/career-icon.png') }}" alt="{{ course.name }}">
                     {% endif %}
@@ -1558,7 +1558,7 @@
               {% for media in career.careermedia.all()[:6] %}
               <div class="col-md-4 mb-4">
                 {% if media.type == 1 %}
-                <img src="{{ media.media.url }}" alt="Career Media" class="img-fluid rounded">
+                <img src="{{ media.media.url }}" alt="Career Media" class="img-fluid rounded" loading="lazy" decoding="async">
                 {% elif media.type == 2 %}
                 <video class="w-100 rounded" controls>
                   <source src="{{ media.media.url }}" type="video/mp4">
@@ -1644,7 +1644,7 @@
                     <source src="{{ video.upload_video.url }}" type="video/mp4">
                   </video>
                   {% elif video.video_image %}
-                  <img src="{{ video.video_image.url }}" alt="{{ video.name }}" class="img-fluid">
+                  <img src="{{ video.video_image.url }}" alt="{{ video.name }}" class="img-fluid" loading="lazy" decoding="async">
                   {% else %}
                   <div class="bg-gray p-4 text-center">
                     <i class='bx bx-play-circle fs-48'></i>
@@ -1667,7 +1667,7 @@
             <div class="profession-card mb-3">
               <div class="prf-image">
                 {% if profession.image and profession.image.name %}
-                <img src="{{ profession.image.url }}" alt="{{ profession.name }}">
+                <img src="{{ profession.image.url }}" alt="{{ profession.name }}" loading="lazy" decoding="async">
                 {% else %}
                 <img src="{{ static('images/career-icon.png') }}" alt="{{ profession.name }}">
                 {% endif %}
@@ -1747,7 +1747,7 @@
             </div>
             <a href="{{ url('careers:careerdetail', args=[related_career.slug, related_career.id]) }}">
               {% if related_career.image and related_career.image.name %}
-                <img src="{{ related_career.image.url }}" alt="{{ related_career.name }}">
+                <img src="{{ related_career.image.url }}" alt="{{ related_career.name }}" loading="lazy" decoding="async">
               {% else %}
                 <img src="{{ static('images/career-icon.png') }}" alt="{{ related_career.name }}">
               {% endif %}

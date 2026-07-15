@@ -135,7 +135,7 @@
               <div class="card course-card h-100 shadow-sm border-0">
                 <a href="#">
                   {% if course.logo and course.logo.name %}
-                  <img src="{{ course.logo.url }}" alt="{{ course.name }}" class="card-img-top rounded-top" style="height: 180px; object-fit: cover;">
+                  <img src="{{ course.logo.url }}" alt="{{ course.name }}" class="card-img-top rounded-top" style="height: 180px; object-fit: cover;" loading="lazy" decoding="async">
                   {% else %}
                   <img src="{{ static('images_new/general/education-learncourse.png') }}" alt="{{ course.name }}" class="card-img-top rounded-top" style="height: 180px; object-fit: cover;">
                   {% endif %}
@@ -167,7 +167,7 @@
               {% if img.college_image and img.college_image.name %}
             <div class="col-md-4 col-sm-6 mb-3">
               <a href="{{ img.college_image.url }}" data-lightbox="college-gallery" data-title="{{ img.image_alt_text }}">
-                <img src="{{ img.college_image.url }}" alt="{{ img.image_alt_text }}" class="img-fluid w-100 rounded" style="height: 200px; object-fit: cover;">
+                <img src="{{ img.college_image.url }}" alt="{{ img.image_alt_text }}" class="img-fluid w-100 rounded" style="height: 200px; object-fit: cover;" loading="lazy" decoding="async">
               </a>
             </div>
               {% endif %}
@@ -185,7 +185,7 @@
             <div class="col-md-3 col-sm-4 col-6 mb-3">
               <div class="facility-item text-center">
                 {% if facility_rel.facility.logo and facility_rel.facility.logo.name %}
-                <img src="{{ facility_rel.facility.logo.url }}" alt="{{ facility_rel.facility.name }}" class="img-fluid mb-2" style="max-height: 60px; max-width: 60px;">
+                <img src="{{ facility_rel.facility.logo.url }}" alt="{{ facility_rel.facility.name }}" class="img-fluid mb-2" style="max-height: 60px; max-width: 60px;" loading="lazy" decoding="async">
                 {% endif %}
                 <p class="mb-0 fs-14">{{ facility_rel.facility.name }}</p>
               </div>
@@ -210,7 +210,7 @@
                 <div class="college-image">
                   <a href="{{ url('colleges:collegedetail', args=[related_college.slug]) }}">
                     {% if related_college.logo and related_college.logo.name %}
-                    <img src="{{ related_college.logo.url }}" alt="{{ related_college.name }}" class="img-fluid w-100 rounded" style="height: 200px; object-fit: cover;">
+                    <img src="{{ related_college.logo.url }}" alt="{{ related_college.name }}" class="img-fluid w-100 rounded" style="height: 200px; object-fit: cover;" loading="lazy" decoding="async">
                     {% else %}
                     <img src="{{ static('images_new/general/online-library.png') }}" alt="{{ related_college.name }}" class="img-fluid w-100 rounded" style="height: 200px; object-fit: cover;">
                     {% endif %}

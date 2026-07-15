@@ -183,7 +183,7 @@ Find the perfect college for your career goals. Explore colleges by country, sta
                   {% if college.logo %}
                     {% if college.logo.name %}
                       {# Django ORM result - ImageField object #}
-                      <img src="{{ college.logo.url }}" alt="{{ college.name }}" class="img-fluid" style="max-height: 170px; max-width: 100%; object-fit: contain;" onerror="this.onerror=null; this.src='{{ static('images_new/general/online-library.png') }}';">
+                      <img src="{{ college.logo.url }}" alt="{{ college.name }}" class="img-fluid" loading="lazy" decoding="async" style="max-height: 170px; max-width: 100%; object-fit: contain;" onerror="this.onerror=null; this.src='{{ static('images_new/general/online-library.png') }}';">
                     {% else %}
                       {# Elasticsearch result - string URL #}
                       <img src="{{ college.logo }}" alt="{{ college.name }}" class="img-fluid" style="max-height: 170px; max-width: 100%; object-fit: contain;" onerror="this.onerror=null; this.src='{{ static('images_new/general/online-library.png') }}';">

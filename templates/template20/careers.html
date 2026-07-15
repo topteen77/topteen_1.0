@@ -1029,7 +1029,7 @@ Explore our comprehensive collection of career paths organized by industry and i
               <div class="col-md-4 col-sm-6 mb-4">
                 <a href="{{ url('careers:career_cluster', args=[item.cluster.slug, item.cluster.id]) }}" class="text-decoration-none">
                   <div class="career-category-card{% if not is_active %} opacity-75{% endif %}">
-                    <img src="{{ item.cluster.get_image_url() }}" alt="{{ item.cluster.name|title }}" class="career-category-image"
+                    <img src="{{ item.cluster.get_image_url() }}" alt="{{ item.cluster.name|title }}" class="career-category-image" loading="lazy" decoding="async"
                          onerror="this.src='{{ static('images/career-cluster-default.png') }}'">
                     <div class="career-category-overlay{% if not is_active %} opacity-75{% endif %}">
                       <h3 class="career-category-title">{{ item.cluster.name|title }}</h3>
@@ -1067,7 +1067,7 @@ Explore our comprehensive collection of career paths organized by industry and i
               <div class="col-md-4 col-sm-6 mb-4">
                 <a href="{{ url('careers:career_cluster', args=[cluster.slug, cluster.id]) }}" class="text-decoration-none">
                   <div class="career-category-card">
-                    <img src="{{ cluster.get_image_url() }}" alt="{{ cluster.name|title }}" class="career-category-image"
+                    <img src="{{ cluster.get_image_url() }}" alt="{{ cluster.name|title }}" class="career-category-image" loading="lazy" decoding="async"
                          onerror="this.src='{{ static('images/career-cluster-default.png') }}'">
                     <div class="career-category-overlay">
                       <h3 class="career-category-title">{{ cluster.name|title }}</h3>
@@ -1180,23 +1180,23 @@ Explore our comprehensive collection of career paths organized by industry and i
                     <a href="{{ url('careers:careerdetail', args=[career.slug, career.id]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}">
                       {% if career._image_url and career._image_url != 'None' %}
                         {# Enriched image URL from document filter #}
-                        <img src="{{ career._image_url }}" alt="{{ career.name }}" onerror="this.src='{{ static('images/career-icon.png') }}'">
+                        <img src="{{ career._image_url }}" alt="{{ career.name }}" loading="lazy" decoding="async" onerror="this.src='{{ static('images/career-icon.png') }}'">
                       {% elif career.get_image_url is defined and career.get_image_url is callable %}
                         {# Django ORM object with get_image_url method #}
-                        <img src="{{ career.get_image_url() }}" alt="{{ career.name }}" onerror="this.src='{{ static('images/career-icon.png') }}'">
+                        <img src="{{ career.get_image_url() }}" alt="{{ career.name }}" loading="lazy" decoding="async" onerror="this.src='{{ static('images/career-icon.png') }}'">
                       {% elif career.image and career.image.name is defined %}
                         {# Django ORM object with image field #}
-                        <img src="{{ career.image.url }}" alt="{{ career.name }}" onerror="this.src='{{ static('images/career-icon.png') }}'">
+                        <img src="{{ career.image.url }}" alt="{{ career.name }}" loading="lazy" decoding="async" onerror="this.src='{{ static('images/career-icon.png') }}'">
                       {% elif career.image %}
                         {# Elasticsearch document - handle image as string path #}
                         {% set image_url = career.image|string|trim %}
                         {% if image_url and image_url|length > 0 and image_url != 'None' %}
                           {% if image_url[:4] == 'http' or image_url[:1] == '/' %}
                             {# Full URL or absolute path #}
-                            <img src="{{ image_url }}" alt="{{ career.name }}" onerror="this.src='{{ static('images/career-icon.png') }}'">
+                            <img src="{{ image_url }}" alt="{{ career.name }}" loading="lazy" decoding="async" onerror="this.src='{{ static('images/career-icon.png') }}'">
                           {% else %}
                             {# Relative path - prepend media URL #}
-                            <img src="/media/{{ image_url }}" alt="{{ career.name }}" onerror="this.src='{{ static('images/career-icon.png') }}'">
+                            <img src="/media/{{ image_url }}" alt="{{ career.name }}" loading="lazy" decoding="async" onerror="this.src='{{ static('images/career-icon.png') }}'">
                           {% endif %}
                         {% else %}
                           {# Empty or None image #}

@@ -248,7 +248,7 @@
                     {% else %}
                       {# For YouTube/external videos: Use existing thumbnail logic #}
                       {% if video_thumbnails and video.id in video_thumbnails and video_thumbnails[video.id] %}
-                        <img src="{{ video_thumbnails[video.id] }}" alt="{{ video.name }}" class="img-fluid w-100" style="height: 200px; object-fit: cover; width: 100%;" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <img src="{{ video_thumbnails[video.id] }}" alt="{{ video.name }}" class="img-fluid w-100" loading="lazy" decoding="async" style="height: 200px; object-fit: cover; width: 100%;" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
                         <div class="bg-light d-flex align-items-center justify-content-center position-absolute top-0 start-0 w-100 h-100" style="display: none;">
                           <i class='bx bx-play-circle' style="font-size: 53px; opacity: 0.85;"></i>
                         </div>
