@@ -44,3 +44,28 @@ class CoreConfig(AppConfig):
             register_admin_hub_urls()
         except Exception as e:
             logger.exception('Failed to register admin hub URLs: %s', e)
+
+        # Invalidate cached dashboard config when the admin edits the rule tables.
+        try:
+            from django.db.models.signals import post_delete, post_save
+
+            from core.dashboard_cache import invalidate_dashboard_config_cache
+            from core.models import (
+                DashboardLevelBand,
+                DashboardPointRule,
+                DashboardTrophyDefinition,
+            )
+
+            for model in (DashboardPointRule, DashboardTrophyDefinition, DashboardLevelBand):
+                post_save.connect(
+                    invalidate_dashboard_config_cache,
+                    sender=model,
+                    dispatch_uid=f'dashcfg_invalidate_save_{model.__name__}',
+                )
+                post_delete.connect(
+                    invalidate_dashboard_config_cache,
+                    sender=model,
+                    dispatch_uid=f'dashcfg_invalidate_delete_{model.__name__}',
+                )
+        except Exception as e:
+            logger.debug('Dashboard config cache invalidation not wired: %s', e)

@@ -10,6 +10,7 @@ from django.db.models import Count
 from core.psychometric_grade import (
     CLASS10_TRACK,
     POST_MATRIC_TRACK,
+    get_active_point_rule_rows,
     get_excluded_rule_keys_for_track,
     get_point_rules_with_applies_to,
     get_student_psychometric_track,
@@ -84,6 +85,32 @@ RULE_LABELS = {
 }
 
 
+def _active_trophy_rows():
+    """Cached active DashboardTrophyDefinition rows (admin config, tiny table)."""
+    from core.dashboard_cache import cached_config
+
+    def build():
+        from core.models import DashboardTrophyDefinition
+        return list(
+            DashboardTrophyDefinition.objects.filter(active=True)
+            .values('rule_key', 'label', 'applies_to')
+        )
+    return cached_config('trophy_rows', build)
+
+
+def _cached_level_bands():
+    """Cached DashboardLevelBand rows (admin config, tiny table)."""
+    from core.dashboard_cache import cached_config
+
+    def build():
+        from core.models import DashboardLevelBand
+        return list(
+            DashboardLevelBand.objects.order_by('order', 'min_points')
+            .values('name', 'min_points', 'order')
+        )
+    return cached_config('level_bands', build)
+
+
 def _load_point_map():
     return {
         rule['rule_key']: rule['points']
@@ -102,15 +129,15 @@ def _get_applicable_point_map(user):
 
 def _filter_trophy_keys_for_user(user, keys):
     track = get_student_psychometric_track(user)
+    # Trophy applies_to comes from the (cached) active trophy rows; when blank it
+    # falls back to the point-rule applies_to (also cached) — no per-key query.
+    trophy_applies_to_map = {
+        row['rule_key']: (row.get('applies_to') or '')
+        for row in _active_trophy_rows()
+    }
     kept = []
     for key in keys:
-        from core.models import DashboardTrophyDefinition
-        trophy_applies_to = (
-            DashboardTrophyDefinition.objects.filter(rule_key=key, active=True)
-            .values_list('applies_to', flat=True)
-            .first()
-        ) or ''
-        applies_to = resolve_rule_applies_to(key, trophy_applies_to)
+        applies_to = resolve_rule_applies_to(key, trophy_applies_to_map.get(key, ''))
         if rule_applies_to_user(applies_to, track):
             kept.append(key)
     return kept
@@ -140,10 +167,7 @@ def _bands_from_milestones(milestones):
 
 
 def _load_db_level_bands():
-    from core.models import DashboardLevelBand
-    bands = list(
-        DashboardLevelBand.objects.order_by('order', 'min_points').values('name', 'min_points', 'order')
-    )
+    bands = _cached_level_bands()
     if bands:
         return bands
     return DEFAULT_LEVEL_BANDS
@@ -151,16 +175,13 @@ def _load_db_level_bands():
 
 def _get_level_bands_for_user(user):
     from core.dashboard_points import get_cumulative_point_milestones
-    from core.models import DashboardLevelBand
 
     if get_student_psychometric_track(user) == CLASS10_TRACK:
         excluded = get_excluded_rule_keys_for_track(CLASS10_TRACK)
         milestones = get_cumulative_point_milestones(excluded_rule_keys=excluded)
         return _bands_from_milestones(milestones)
 
-    bands = list(
-        DashboardLevelBand.objects.order_by('order', 'min_points').values('name', 'min_points', 'order')
-    )
+    bands = _cached_level_bands()
     if bands:
         return bands
 
@@ -288,8 +309,7 @@ def _evaluate_rule_condition(user, rule_key):
 
 def _get_trophy_count(user):
     """Count trophies from DashboardTrophyDefinition or default keys."""
-    from core.models import DashboardTrophyDefinition
-    rows = list(DashboardTrophyDefinition.objects.filter(active=True).values_list('rule_key', flat=True))
+    rows = [row['rule_key'] for row in _active_trophy_rows()]
     if not rows:
         keys = DEFAULT_TROPHY_KEYS
     else:
@@ -376,10 +396,10 @@ def _get_streak_days(user):
 
 
 def _get_trophy_details(user):
-    from core.models import DashboardTrophyDefinition
-    rows = list(
-        DashboardTrophyDefinition.objects.filter(active=True).values('rule_key', 'label')
-    )
+    rows = [
+        {'rule_key': row['rule_key'], 'label': row.get('label') or ''}
+        for row in _active_trophy_rows()
+    ]
     if not rows:
         items = [{'rule_key': k, 'label': ''} for k in DEFAULT_TROPHY_KEYS]
     else:
@@ -403,11 +423,8 @@ def _get_trophy_details(user):
 
 
 def _get_points_details(user):
-    from core.models import DashboardPointRule
     from user_analytics.models import UserEvent
-    rule_rows = list(
-        DashboardPointRule.objects.filter(active=True).values('rule_key', 'points', 'order', 'applies_to')
-    )
+    rule_rows = get_active_point_rule_rows()
     point_map = _get_applicable_point_map(user)
     if not rule_rows:
         rule_order = {k: i for i, k in enumerate(point_map.keys())}

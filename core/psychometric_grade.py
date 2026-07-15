@@ -103,40 +103,68 @@ def _default_point_rules_with_applies_to() -> List[Dict]:
     ]
 
 
+def _load_active_point_rules() -> List[Dict]:
+    from core.models import DashboardPointRule
+
+    return list(
+        DashboardPointRule.objects.filter(active=True)
+        .order_by('order', 'rule_key')
+        .values('rule_key', 'points', 'order', 'applies_to')
+    )
+
+
+def get_active_point_rule_rows() -> List[Dict]:
+    """Cached raw active point-rule rows (no defaults fallback)."""
+    from core.dashboard_cache import cached_config
+
+    return cached_config('point_rules_active', _load_active_point_rules)
+
+
 def get_point_rules_with_applies_to(active_only: bool = True) -> List[Dict]:
     """Load active dashboard point rules including applies_to from admin."""
     from core.models import DashboardPointRule
 
-    qs = DashboardPointRule.objects.all()
     if active_only:
-        qs = qs.filter(active=True)
-    rows = list(qs.order_by('order', 'rule_key').values('rule_key', 'points', 'order', 'applies_to'))
+        # Small admin-config table read many times per dashboard render; cache it.
+        from core.dashboard_cache import cached_config
+        rows = cached_config('point_rules_active', _load_active_point_rules)
+    else:
+        rows = list(
+            DashboardPointRule.objects.all()
+            .order_by('order', 'rule_key')
+            .values('rule_key', 'points', 'order', 'applies_to')
+        )
     if rows:
         return rows
 
-    defaults = _default_point_rules_with_applies_to()
-    if active_only:
-        return defaults
-    return defaults
+    return _default_point_rules_with_applies_to()
+
+
+def _build_point_rule_applies_to_map() -> Dict[str, Dict[str, str]]:
+    from core.models import DashboardPointRule
+
+    active_map: Dict[str, str] = {}
+    any_map: Dict[str, str] = {}
+    for row in DashboardPointRule.objects.all().values('rule_key', 'applies_to', 'active'):
+        applies_to = row['applies_to']
+        if not applies_to:
+            continue
+        if row['active']:
+            active_map.setdefault(row['rule_key'], applies_to)
+        any_map.setdefault(row['rule_key'], applies_to)
+    return {'active': active_map, 'any': any_map}
 
 
 def get_point_rule_applies_to(rule_key: str) -> str:
-    from core.models import DashboardPointRule
+    # Cache the whole {rule_key: applies_to} map so per-key resolution during
+    # dashboard rendering does not issue a query each time.
+    from core.dashboard_cache import cached_config
 
-    applies_to = (
-        DashboardPointRule.objects.filter(rule_key=rule_key, active=True)
-        .values_list('applies_to', flat=True)
-        .first()
-    )
-    if applies_to:
-        return applies_to
-    applies_to = (
-        DashboardPointRule.objects.filter(rule_key=rule_key)
-        .values_list('applies_to', flat=True)
-        .first()
-    )
-    if applies_to:
-        return applies_to
+    resolved = cached_config('point_rule_applies_to', _build_point_rule_applies_to_map)
+    if rule_key in resolved['active']:
+        return resolved['active'][rule_key]
+    if rule_key in resolved['any']:
+        return resolved['any'][rule_key]
     return DEFAULT_RULE_APPLIES_TO.get(rule_key, DashboardRuleAppliesTo.ALL)
 
 
