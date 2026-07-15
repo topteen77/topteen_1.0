@@ -69,13 +69,9 @@ def get_student_psychometric_track(user) -> str:
 
     if class_number is None:
         try:
-            from institute.models import StudentManagement
+            from institute.models import get_cached_student_management
 
-            student_management = (
-                StudentManagement.objects.filter(student=user)
-                .select_related('class_and_section')
-                .first()
-            )
+            student_management = get_cached_student_management(user)
             if student_management and student_management.class_and_section:
                 class_name = student_management.class_and_section.class_and_section
                 class_number = _parse_class_number(class_name)

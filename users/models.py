@@ -329,8 +329,8 @@ class User(BaseModel,AbstractBaseUser, PermissionsMixin):
             out = None
             is_school = False
         else:
-            from institute.models import StudentManagement
-            sm = StudentManagement.objects.filter(student=self).first()
+            from institute.models import get_cached_student_management
+            sm = get_cached_student_management(self)
             is_school = sm is not None
             if is_school:
                 out = sm.get_school_student_id()

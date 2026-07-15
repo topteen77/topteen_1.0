@@ -367,6 +367,36 @@ class StudentManagement(BaseModel):
     def __str__(self):
         return f"Student: {self.student}"
 
+
+_STUDENT_MANAGEMENT_SENTINEL = object()
+
+
+def get_cached_student_management(user):
+    """Return the user's StudentManagement (with class_and_section prefetched),
+    memoized on the user instance.
+
+    The student dashboard, context processor and several helpers each look this
+    record up per request; caching it avoids the repeated identical query.
+    Mirrors ``StudentManagement.objects.filter(student=user).first()`` (callers
+    that only need existence should check ``is not None``).
+    """
+    if not user or getattr(user, 'pk', None) is None:
+        return None
+    cached = getattr(user, '_student_management_cache', _STUDENT_MANAGEMENT_SENTINEL)
+    if cached is not _STUDENT_MANAGEMENT_SENTINEL:
+        return cached
+    sm = (
+        StudentManagement.objects.filter(student=user)
+        .select_related('class_and_section')
+        .first()
+    )
+    try:
+        user._student_management_cache = sm
+    except Exception:
+        pass
+    return sm
+
+
 class InstituteAccountDeletion(BaseModel):
     institute=models.ForeignKey(Institute,null=True,on_delete=models.SET_NULL,related_name="account_deletion")
     reason=models.CharField(max_length=500,null=True,blank=True)

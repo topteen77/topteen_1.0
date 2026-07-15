@@ -214,7 +214,7 @@ def _student_localstorage_data(request):
         return None
     try:
         from app.models import Results
-        from institute.models import StudentManagement
+        from institute.models import get_cached_student_management
         from psychometric_tests.models import CandidateTest
         import re
         user = request.user
@@ -223,7 +223,7 @@ def _student_localstorage_data(request):
             student_class = str(user.user_profile.grade).strip() or "10"
         else:
             try:
-                sm = StudentManagement.objects.filter(student=user).first()
+                sm = get_cached_student_management(user)
                 if sm and sm.class_and_section and getattr(sm.class_and_section, 'class_and_section', None):
                     class_name = sm.class_and_section.class_and_section
                     nums = re.findall(r'\d+', class_name)

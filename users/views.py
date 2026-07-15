@@ -3574,7 +3574,7 @@ class UserDashboard(TemplateView):
         ctx['exams']=EntranceTestPrepExam.objects.filter(object_status=choices.ObjectStatus.ACTIVE).order_by('?')[:3]
         
         # Determine user's class (10 or 12)
-        from institute.models import StudentManagement
+        from institute.models import get_cached_student_management
         user_grade = None
         try:
             user_profile = profile_user.user_profile
@@ -3596,7 +3596,7 @@ class UserDashboard(TemplateView):
         # If no grade from UserProfile, check StudentManagement
         if not user_grade:
             try:
-                student_management = StudentManagement.objects.filter(student=profile_user).first()
+                student_management = get_cached_student_management(profile_user)
                 if student_management and student_management.class_and_section:
                     class_name = student_management.class_and_section.class_and_section
                     if class_name:
@@ -3631,7 +3631,7 @@ class UserDashboard(TemplateView):
         # Institute students are exempt from payment: allow access to test dashboard even if
         # no payment record exists yet. (Class 10 -> app:test_buttons, Class 12 -> post_matric:tests)
         try:
-            is_institute_student = StudentManagement.objects.filter(student=profile_user).exists()
+            is_institute_student = get_cached_student_management(profile_user) is not None
         except Exception:
             is_institute_student = False
         if is_institute_student:
