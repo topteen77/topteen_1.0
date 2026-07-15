@@ -53,6 +53,12 @@ def get_student_psychometric_track(user) -> str:
     if not user:
         return CLASS10_TRACK
 
+    # Memoize on the user instance: this is called many times per dashboard
+    # render and resolves to the same value for a user within one request.
+    cached = getattr(user, '_psychometric_track_cache', None)
+    if cached is not None:
+        return cached
+
     class_number = None
     try:
         profile = getattr(user, 'user_profile', None)
@@ -76,9 +82,12 @@ def get_student_psychometric_track(user) -> str:
         except Exception:
             pass
 
-    if class_number is not None and class_number >= 11:
-        return POST_MATRIC_TRACK
-    return CLASS10_TRACK
+    result = POST_MATRIC_TRACK if (class_number is not None and class_number >= 11) else CLASS10_TRACK
+    try:
+        user._psychometric_track_cache = result
+    except Exception:
+        pass
+    return result
 
 
 def _default_point_rules_with_applies_to() -> List[Dict]:

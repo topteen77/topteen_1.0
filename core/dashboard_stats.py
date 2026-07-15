@@ -168,19 +168,44 @@ def _get_level_bands_for_user(user):
     return _bands_from_milestones(milestones)
 
 
-def _class10_test_flag(user, field_name):
+def _user_dashboard_flags(user):
+    """Fetch per-user test flags once and memoize them on the user instance.
+
+    get_student_dashboard_stats evaluates the same conditions many times
+    (trophy count, total points, detail breakdowns). Without this cache each
+    check would re-run the same TestCompletion / TestSession queries.
+    """
+    cache = getattr(user, '_dashboard_flags_cache', None)
+    if cache is not None:
+        return cache
     from app.models import TestCompletion
-    tc = TestCompletion.objects.filter(user=user).first()
+    from app_post_matric.models import TestSession
+    cache = {
+        'test_completion': TestCompletion.objects.filter(user=user).first(),
+        # test_id set of completed post-matric sessions; membership matches the
+        # old .filter(test__id=..., is_completed=True).exists() semantics, and a
+        # non-empty set matches the "any completed session" check.
+        'completed_pm_test_ids': set(
+            TestSession.objects.filter(user=user, is_completed=True)
+            .values_list('test_id', flat=True)
+        ),
+    }
+    try:
+        user._dashboard_flags_cache = cache
+    except Exception:
+        pass
+    return cache
+
+
+def _class10_test_flag(user, field_name):
+    tc = _user_dashboard_flags(user)['test_completion']
     if not tc:
         return False
     return bool(getattr(tc, field_name, False))
 
 
 def _post_matric_test_completed(user, test_id):
-    from app_post_matric.models import TestSession
-    return TestSession.objects.filter(
-        user=user, test__id=test_id, is_completed=True,
-    ).exists()
+    return test_id in _user_dashboard_flags(user)['completed_pm_test_ids']
 
 
 def _user_event_exists(user, event_type):
@@ -195,6 +220,21 @@ def _rule_label(rule_key, admin_label=None):
 
 
 def _rule_condition_met(user, rule_key):
+    """Memoized wrapper: the same one-off conditions are evaluated repeatedly
+    across trophy/points aggregation within a single dashboard render."""
+    cache = getattr(user, '_dash_rule_cache', None)
+    if cache is None:
+        cache = {}
+        try:
+            user._dash_rule_cache = cache
+        except Exception:
+            pass
+    if rule_key not in cache:
+        cache[rule_key] = _evaluate_rule_condition(user, rule_key)
+    return cache[rule_key]
+
+
+def _evaluate_rule_condition(user, rule_key):
     """Return True if the one-off rule_key condition is met for user."""
     try:
         if rule_key == 'profile_complete':
@@ -232,8 +272,7 @@ def _rule_condition_met(user, rule_key):
             return _class10_test_flag(user, rule_key)
 
         if rule_key == 'career_direction_complete':
-            from app_post_matric.models import TestSession
-            return TestSession.objects.filter(user=user, is_completed=True).exists()
+            return bool(_user_dashboard_flags(user)['completed_pm_test_ids'])
 
         if rule_key == 'payment_success':
             from psychometric_tests.models import PsychometricTestPayment

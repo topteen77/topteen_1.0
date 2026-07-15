@@ -350,6 +350,11 @@ class User(BaseModel,AbstractBaseUser, PermissionsMixin):
         Return 0–100 based on how much of the user profile is filled.
         Used for the "Complete your profile" progress bar in the sidebar.
         """
+        # Memoize per instance: the dashboard checks this several times per
+        # render, and each run issues 3 M2M .exists() queries.
+        cached = getattr(self, '_profile_completion_pct_cache', None)
+        if cached is not None:
+            return cached
         score = 0
         # User fields (40% total)
         if (self.name or '').strip() and (self.name or '').strip() != 'Student':
@@ -364,7 +369,12 @@ class User(BaseModel,AbstractBaseUser, PermissionsMixin):
         try:
             profile = getattr(self, 'user_profile', None)
             if profile is None:
-                return min(score, 100)
+                result = min(score, 100)
+                try:
+                    self._profile_completion_pct_cache = result
+                except Exception:
+                    pass
+                return result
             if (getattr(profile, 'schoolname', None) or '').strip():
                 score += 15
             if (getattr(profile, 'grade', None) or '').strip():
@@ -379,7 +389,12 @@ class User(BaseModel,AbstractBaseUser, PermissionsMixin):
                 score += 5
         except Exception:
             pass
-        return min(score, 100)
+        result = min(score, 100)
+        try:
+            self._profile_completion_pct_cache = result
+        except Exception:
+            pass
+        return result
 
 class UserSearchHistory(BaseModel):
     user=models.ForeignKey(User,blank=True,null=True,on_delete=models.SET_NULL)
