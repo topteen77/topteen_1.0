@@ -4,17 +4,22 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Offline | Top Teen</title>
-  <meta name="theme-color" content="#1a237e">
+  <meta name="theme-color" content="#3f37c9">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #eef2ff;
       --card-bg: #ffffff;
-      --title: #1f2a78;
+      --title: #1a237e;
       --text: #5b6483;
+      --muted: #7b86a8;
       --primary: #3f37c9;
       --primary-dark: #2f2997;
-      --ring: rgba(63, 55, 201, 0.18);
+      --ring: rgba(63, 55, 201, 0.2);
       --border: #e5e9fb;
+      --glow: rgba(63, 55, 201, 0.12);
     }
 
     * {
@@ -29,99 +34,290 @@
       justify-content: center;
       font-family: "Space Grotesk", system-ui, sans-serif;
       background:
-        radial-gradient(80% 60% at 10% 0%, #dde4ff 0%, rgba(221, 228, 255, 0) 70%),
-        radial-gradient(70% 55% at 90% 100%, #d8f0ff 0%, rgba(216, 240, 255, 0) 72%),
+        radial-gradient(ellipse 80% 60% at 15% 0%, #dde4ff 0%, transparent 70%),
+        radial-gradient(ellipse 70% 55% at 85% 100%, #e0d8ff 0%, transparent 72%),
+        radial-gradient(ellipse 50% 40% at 50% 50%, #f5f3ff 0%, transparent 80%),
         var(--bg);
       color: var(--title);
-      padding: 20px;
+      padding: 24px;
       text-align: center;
+      overflow: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::before {
+      width: 280px;
+      height: 280px;
+      top: -80px;
+      right: -60px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+    }
+
+    body::after {
+      width: 220px;
+      height: 220px;
+      bottom: -50px;
+      left: -40px;
+      background: radial-gradient(circle, rgba(63, 55, 201, 0.06) 0%, transparent 70%);
     }
 
     .card {
-      width: min(100%, 460px);
+      position: relative;
+      z-index: 1;
+      width: min(100%, 440px);
       background: var(--card-bg);
       border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 28px 24px 24px;
-      box-shadow: 0 18px 42px rgba(26, 35, 126, 0.14);
+      border-radius: 24px;
+      padding: 32px 28px 28px;
+      box-shadow:
+        0 4px 6px rgba(26, 35, 126, 0.04),
+        0 20px 48px rgba(26, 35, 126, 0.12);
+      animation: card-in 0.5s ease-out both;
     }
 
-    .card img {
-      width: min(100%, 220px);
+    @keyframes card-in {
+      from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.98);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0 0 20px;
+      padding: 5px 14px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #f0f2ff 0%, #ede9ff 100%);
+      border: 1px solid #e0e4fb;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #f87171;
+      box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.25);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(0.9); }
+    }
+
+    .illustration-wrap {
+      position: relative;
+      margin: 0 auto 22px;
+      width: min(100%, 280px);
+      padding: 18px 16px 10px;
+      border-radius: 20px;
+      background: linear-gradient(145deg, #2b2780 0%, #1a237e 45%, #3f37c9 100%);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        0 10px 28px rgba(26, 35, 126, 0.18);
+      overflow: hidden;
+    }
+
+    .illustration-wrap::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.14) 0%, transparent 45%),
+        radial-gradient(circle at 85% 90%, rgba(129, 140, 248, 0.25) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .illustration-wrap img {
+      position: relative;
+      width: 100%;
       height: auto;
-      margin: 0 auto 14px;
       display: block;
-      filter: drop-shadow(0 8px 18px rgba(63, 55, 201, 0.14));
+      filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.25));
+    }
+
+    .illustration-fallback {
+      display: none;
+      margin: 0 auto;
+      padding: 24px 0 16px;
+      color: var(--primary);
+    }
+
+    .illustration-fallback svg {
+      width: 88px;
+      height: 88px;
+    }
+
+    .illustration-wrap.is-fallback img {
+      display: none;
+    }
+
+    .illustration-wrap.is-fallback .illustration-fallback {
+      display: block;
     }
 
     h1 {
-      margin: 0 0 10px;
-      font-size: clamp(1.4rem, 3.8vw, 1.8rem);
+      margin: 0 0 12px;
+      font-size: clamp(1.5rem, 4vw, 1.85rem);
+      font-weight: 700;
       line-height: 1.15;
-      letter-spacing: -0.02em;
+      letter-spacing: -0.03em;
       color: var(--title);
     }
 
     p {
-      margin: 0 auto 20px;
-      max-width: 34ch;
+      margin: 0 auto 26px;
+      max-width: 36ch;
       color: var(--text);
-      line-height: 1.55;
-      font-size: 0.98rem;
+      line-height: 1.6;
+      font-size: 0.95rem;
     }
 
-    a {
+    .retry-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-width: 118px;
-      padding: 11px 20px;
+      gap: 8px;
+      min-width: 130px;
+      padding: 12px 28px;
+      border: none;
       border-radius: 999px;
       background: linear-gradient(135deg, #4b42dc 0%, var(--primary) 100%);
       color: #fff;
       text-decoration: none;
+      font-family: inherit;
       font-weight: 700;
       font-size: 0.95rem;
-      box-shadow: 0 10px 22px rgba(63, 55, 201, 0.3);
+      cursor: pointer;
+      box-shadow:
+        0 4px 14px rgba(63, 55, 201, 0.35),
+        0 1px 3px rgba(63, 55, 201, 0.2);
       transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
       outline: none;
     }
 
-    a:hover {
-      transform: translateY(-1px);
+    .retry-btn:hover {
+      transform: translateY(-2px);
       background: linear-gradient(135deg, #453bd6 0%, var(--primary-dark) 100%);
-      box-shadow: 0 12px 24px rgba(63, 55, 201, 0.34);
+      box-shadow:
+        0 8px 22px rgba(63, 55, 201, 0.4),
+        0 2px 6px rgba(63, 55, 201, 0.25);
     }
 
-    a:focus-visible {
+    .retry-btn:active {
+      transform: translateY(0);
+    }
+
+    .retry-btn:focus-visible {
       box-shadow:
         0 0 0 4px var(--ring),
-        0 10px 22px rgba(63, 55, 201, 0.3);
+        0 4px 14px rgba(63, 55, 201, 0.35);
+    }
+
+    .retry-btn svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
     }
 
     @media (max-width: 480px) {
       body {
-        padding: 14px;
+        padding: 16px;
       }
 
       .card {
-        border-radius: 16px;
-        padding: 22px 16px 18px;
+        border-radius: 20px;
+        padding: 26px 20px 22px;
       }
 
-      .card img {
-        width: min(100%, 190px);
-        margin-bottom: 12px;
+      .illustration-wrap {
+        width: min(100%, 220px);
+        margin-bottom: 16px;
       }
     }
   </style>
 </head>
 <body>
   <div class="card">
-    <img class="img-fluid" src="{{ static('images_new/general/offline-mode.png') }}" alt="Offline Mode" />
+    <div class="eyebrow">
+      <span class="eyebrow-dot" aria-hidden="true"></span>
+      Offline Mode
+    </div>
+
+    <div class="illustration-wrap" id="illustration-wrap">
+      <img
+        id="offline-illustration"
+        src="{{ static('images_new/general/offline-mode.png') }}"
+        alt=""
+        width="260"
+        height="200"
+        decoding="async"
+      />
+      <div class="illustration-fallback" aria-hidden="true">
+        <svg viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="44" cy="44" r="40" fill="rgba(255,255,255,0.12)"/>
+          <path d="M44 58v4" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+          <path d="M28 52c6-8 16-12 16-12s10 4 16 12" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+          <path d="M20 44c10-14 24-20 24-20s14 6 24 20" stroke="rgba(255,255,255,0.75)" stroke-width="3" stroke-linecap="round"/>
+          <path d="M12 36c14-20 32-28 32-28s18 8 32 28" stroke="rgba(255,255,255,0.45)" stroke-width="3" stroke-linecap="round"/>
+          <line x1="18" y1="18" x2="70" y2="70" stroke="#f87171" stroke-width="3.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+
     <h1>You are offline</h1>
     <p>TopTeen needs an internet connection for most pages. Check your connection and try again.</p>
-    <a href="/">Retry</a>
+
+    <button type="button" class="retry-btn" id="retry-btn">
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M13.65 2.35A7 7 0 1 0 14 8h-2a5 5 0 1 1-1.45-3.54L8 6h6V0l-2.35 2.35z" fill="currentColor"/>
+      </svg>
+      Retry
+    </button>
   </div>
+
+  <script>
+    (function () {
+      var img = document.getElementById('offline-illustration');
+      var wrap = document.getElementById('illustration-wrap');
+      var btn = document.getElementById('retry-btn');
+
+      if (img) {
+        img.addEventListener('error', function () {
+          wrap.classList.add('is-fallback');
+        });
+        if (img.complete && img.naturalWidth === 0) {
+          wrap.classList.add('is-fallback');
+        }
+      }
+
+      if (btn) {
+        btn.addEventListener('click', function () {
+          btn.disabled = true;
+          btn.style.opacity = '0.7';
+          window.location.reload();
+        });
+      }
+    })();
+  </script>
 </body>
 </html>
