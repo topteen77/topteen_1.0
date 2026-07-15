@@ -2,6 +2,10 @@
 const CACHE_VERSION = '__PWA_CACHE_VERSION__';
 const STATIC_CACHE = 'topteen-static-' + CACHE_VERSION;
 const OFFLINE_URL = '/offline/';
+const OFFLINE_ASSETS = [
+  OFFLINE_URL,
+  '/static/images_new/general/offline-mode.png',
+];
 
 const SKIP_PREFIXES = [
   '/admin',
@@ -14,7 +18,11 @@ const SKIP_PREFIXES = [
 self.addEventListener('install', function (event) {
   event.waitUntil(
     caches.open(STATIC_CACHE).then(function (cache) {
-      return cache.add(OFFLINE_URL).catch(function () {});
+      return Promise.all(
+        OFFLINE_ASSETS.map(function (url) {
+          return cache.add(url).catch(function () {});
+        })
+      );
     })
   );
   self.skipWaiting();
