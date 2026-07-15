@@ -229,11 +229,38 @@ def skilllab_dashboard_courses_for_user(user):
     return SkillLabCourse.objects.filter(id__in=active_ids).order_by("-modified")
 
 
-def build_skilllab_dashboard_item(user, course) -> Dict[str, Any]:
-    """Card payload for student dashboard «My courses & tests»."""
-    enrolled = skilllab_course_enrolled(user, course)
-    progress_pct = skilllab_course_progress_pct(user, course)
-    cta = skilllab_course_cta(user, course, enrolled=enrolled)
+def build_skilllab_dashboard_item(
+    user,
+    course,
+    *,
+    enrolled: Optional[bool] = None,
+    progress_pct: Optional[int] = None,
+    completed: Optional[bool] = None,
+    started: Optional[bool] = None,
+) -> Dict[str, Any]:
+    """Card payload for student dashboard «My courses & tests».
+
+    enrolled/progress_pct/completed/started may be supplied by the bulk builder
+    to avoid per-course queries; when omitted they are computed individually.
+    """
+    if enrolled is None:
+        enrolled = skilllab_course_enrolled(user, course)
+    if progress_pct is None:
+        progress_pct = skilllab_course_progress_pct(user, course)
+    if completed is None:
+        completed = skilllab_course_completed(user, course)
+    if started is None:
+        started = course.user_has_started(user)
+
+    # cta mirrors skilllab_course_cta() using the (possibly precomputed) flags.
+    if not enrolled:
+        cta = "Enroll"
+    elif completed:
+        cta = "Completed"
+    elif started:
+        cta = "Resume"
+    else:
+        cta = "Start"
     is_complete = cta == "Completed"
 
     if is_complete:
@@ -265,11 +292,120 @@ def build_skilllab_dashboard_item(user, course) -> Dict[str, Any]:
     }
 
 
+def _bulk_skilllab_status(user, courses) -> Dict[str, Dict[int, Any]]:
+    """Compute enrolled/progress/completed/started for many courses in a fixed
+    number of queries (instead of ~10 per course). Semantics match the
+    per-course helpers (skilllab_course_enrolled/_progress_pct/_completed and
+    course.user_has_started)."""
+    from skilllab.models import (
+        SkillLabCertification,
+        SkillLabCourseChapter,
+        SkillLabCourseProgress,
+        SkillLabCourseProgressSummary,
+        SkillLabCourseResume,
+        SkilllabCoursePayment,
+    )
+
+    ids = [c.id for c in courses]
+    paid = set(
+        SkilllabCoursePayment.objects.filter(
+            user=user, skilllab_course_id__in=ids, is_success=choices.YesNoChoices.YES
+        ).values_list("skilllab_course_id", flat=True)
+    )
+    resume = set(
+        SkillLabCourseResume.objects.filter(
+            user=user, skilllab_course_id__in=ids
+        ).values_list("skilllab_course_id", flat=True)
+    )
+    cert = set(
+        SkillLabCertification.objects.filter(
+            user=user, skilllab_course_id__in=ids
+        ).values_list("skilllab_course_id", flat=True)
+    )
+    summary = {
+        cid: pct
+        for cid, pct in SkillLabCourseProgressSummary.objects.filter(
+            user=user, skilllab_course_id__in=ids
+        ).values_list("skilllab_course_id", "progress_percentage")
+    }
+
+    progress_course_ids: Set[int] = set()
+    done_chapters_by_course: Dict[int, Set[int]] = {}
+    for cid, chid, comp in SkillLabCourseProgress.objects.filter(
+        user=user, skilllab_course_id__in=ids
+    ).values_list("skilllab_course_id", "chapter_id", "completed"):
+        progress_course_ids.add(cid)
+        if comp:
+            done_chapters_by_course.setdefault(cid, set()).add(chid)
+
+    # SkillLabCourseChapter's FK to the course is named `skilllab` (skilllab_id).
+    chapters_by_course: Dict[int, Set[int]] = {}
+    for cid, chid in SkillLabCourseChapter.objects.filter(
+        skilllab_id__in=ids
+    ).values_list("skilllab_id", "id"):
+        chapters_by_course.setdefault(cid, set()).add(chid)
+
+    enrolled: Dict[int, bool] = {}
+    progress_pct: Dict[int, int] = {}
+    completed: Dict[int, bool] = {}
+    started: Dict[int, bool] = {}
+    for course in courses:
+        cid = course.id
+        is_started = (
+            cid in resume or (summary.get(cid) or 0) > 0 or cid in progress_course_ids
+        )
+        started[cid] = is_started
+        try:
+            amount = float(course.amount or 0)
+        except (TypeError, ValueError):
+            amount = 0
+        is_free = amount <= 0
+        enrolled[cid] = (cid in paid) or (is_free and is_started)
+
+        chapters = chapters_by_course.get(cid, set())
+        done_ch = done_chapters_by_course.get(cid, set())
+
+        if cid in cert:
+            completed[cid] = True
+        elif not chapters:
+            completed[cid] = (summary.get(cid) or 0) >= 100
+        else:
+            completed[cid] = len(done_ch & chapters) >= len(chapters)
+
+        if cid in cert:
+            progress_pct[cid] = 100
+        elif cid in summary and summary.get(cid) is not None:
+            progress_pct[cid] = int(summary.get(cid) or 0)
+        elif not chapters:
+            progress_pct[cid] = 0
+        else:
+            progress_pct[cid] = int((len(done_ch & chapters) / len(chapters)) * 100)
+
+    return {
+        "enrolled": enrolled,
+        "progress_pct": progress_pct,
+        "completed": completed,
+        "started": started,
+    }
+
+
 def build_student_skilllab_dashboard_items(user) -> List[Dict[str, Any]]:
-    items = [
-        build_skilllab_dashboard_item(user, course)
-        for course in skilllab_dashboard_courses_for_user(user)
-    ]
+    courses = list(skilllab_dashboard_courses_for_user(user))
+    if courses:
+        status = _bulk_skilllab_status(user, courses)
+        items = [
+            build_skilllab_dashboard_item(
+                user,
+                course,
+                enrolled=status["enrolled"].get(course.id, False),
+                progress_pct=status["progress_pct"].get(course.id, 0),
+                completed=status["completed"].get(course.id, False),
+                started=status["started"].get(course.id, False),
+            )
+            for course in courses
+        ]
+    else:
+        items = []
     if items or not skilllab_is_career_readiness_grade_student(user):
         return items
 
