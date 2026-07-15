@@ -94,7 +94,13 @@ class College(BaseModel,SeoModel,SlugModel,PublishableModel):
 
     
     def _get_flat_text(self,text_type,value_only=True):
-        text=self.flat_texts.filter(type=text_type).last()
+        # Iterate the related manager (uses the prefetch_related('flat_texts')
+        # cache when present) so callers reading several types don't issue a
+        # query per type. Mirrors .filter(type=...).last(): the highest-pk match.
+        text = None
+        for ft in self.flat_texts.all():
+            if ft.type == text_type and (text is None or ft.pk > text.pk):
+                text = ft
         if value_only:
             return text.value if text else ''
         return text

@@ -33,8 +33,12 @@ class CollegeDetails(TemplateView):
     def get_context(self, request,slug, *args, **kwargs):
         ctx={}
         # select_related the location FKs so college.get_location() below does not
-        # trigger separate country/state/city queries.
-        college=get_object_or_404(College.objects.select_related('country', 'state', 'city'), slug=slug)
+        # trigger separate country/state/city queries; prefetch flat_texts so the
+        # email/mobile/website getters share one query instead of three.
+        college=get_object_or_404(
+            College.objects.select_related('country', 'state', 'city').prefetch_related('flat_texts'),
+            slug=slug,
+        )
         ctx['college']=college
         country=Country.objects.all()
         ctx['countries']=country
