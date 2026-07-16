@@ -791,6 +791,9 @@
 
 {% block additionaljs %}
 {{ super() }}
+{# Questions + answers + test meta embedded at page load — Begin shows Q1 with no network wait for data #}
+<script type="application/json" id="preloaded-questions">{{ questions_data|default([])|tojson_for_script }}</script>
+<script type="application/json" id="preloaded-test">{{ test_data|default({})|tojson_for_script }}</script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 {# Test Features JavaScript - instruction (internet) + test (answer quality) #}
 {% with page_type='instruction' %}{% include 'template20/includes/test_features_js.html' %}{% endwith %}
@@ -806,27 +809,53 @@ $(document).ready(function() {
   let answers = {};
   let timerInterval = null;
   let timeRemaining = 0;
-  
+
   // Answer Quality Tracking (used by test_features component)
   let answerTimes = [];
   let questionStartTime = null;
   window.answerTimes = answerTimes;
   window.MIN_TIME_PER_QUESTION = 3;
-  
+
+  function readPreloadedJson(elementId, fallback) {
+    const el = document.getElementById(elementId);
+    if (!el) return fallback;
+    try {
+      return JSON.parse(el.textContent || 'null') || fallback;
+    } catch (e) {
+      console.warn('Could not parse', elementId, e);
+      return fallback;
+    }
+  }
+
+  const preloadedQuestions = (function () {
+    const raw = readPreloadedJson('preloaded-questions', []);
+    if (!Array.isArray(raw)) return [];
+    return raw.map(function (q) {
+      if (!Array.isArray(q.answers)) q.answers = [];
+      return q;
+    }).sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+  })();
+  const preloadedTest = readPreloadedJson('preloaded-test', null);
+
   // Initialize
   init();
-  
+
   function init() {
     // Show instructions section on page load
     $('#instructionsSection').show();
     $('#testContent').hide();
     $('#loadingState').hide();
-    
+
+    // Prefill title from embedded test meta when available
+    if (preloadedTest) {
+      $('#testTitle').text(preloadedTest.display_title || preloadedTest.title || '');
+    }
+
     // Handle start test button
     $('#startTestBtn').on('click', function() {
       startTest();
     });
-    
+
     // Handle submit button - beautiful SweetAlert2 confirmation
     $('#submitTestBtn').on('click', function() {
       Swal.fire({
@@ -843,7 +872,7 @@ $(document).ready(function() {
         if (result.isConfirmed) submitTest();
       });
     });
-    
+
     // Next button (when ENABLE_AUTO_FORWARD is false)
     $('#nextQuestionBtn').on('click', function() {
       if (currentQuestionIndex < questions.length - 1) {
@@ -921,9 +950,9 @@ $(document).ready(function() {
     }
     $('#instructionsSection').hide();
     $('#loadingState').show();
-    
+
     try {
-      // Start or get test session
+      // Only the session create needs the network when questions are preloaded.
       const sessionResponse = await fetch(`/api/tests/${testId}/start/`, {
         method: 'POST',
         headers: {
@@ -932,56 +961,54 @@ $(document).ready(function() {
         },
         credentials: 'same-origin'
       });
-      
+
       if (!sessionResponse.ok) {
-        const errorData = await sessionResponse.json();
+        const errorData = await sessionResponse.json().catch(function () { return {}; });
         throw new Error(errorData.detail || 'Failed to start test');
       }
-      
-      const sessionData = await sessionResponse.json();
-      currentSession = sessionData;
-      
-      // Load test details
-      const testResponse = await fetch(`/api/tests/${testId}/`, {
-        headers: {
-          'Accept': 'application/json'
-        },
-        credentials: 'same-origin'
-      });
-      
-      const testData = await testResponse.json();
-      $('#testTitle').text(testData.display_title || testData.title);
-      
-      // Load questions
-      const questionsResponse = await fetch(`/api/questions/?test=${testId}`, {
-        headers: {
-          'Accept': 'application/json'
-        },
-        credentials: 'same-origin'
-      });
-      
-      const questionsData = await questionsResponse.json();
-      questions = Array.isArray(questionsData) ? questionsData : (questionsData.results || []);
-      
+
+      currentSession = await sessionResponse.json();
+
+      let testData = preloadedTest;
+      if (!testData) {
+        const testResponse = await fetch(`/api/tests/${testId}/`, {
+          headers: { 'Accept': 'application/json' },
+          credentials: 'same-origin'
+        });
+        testData = await testResponse.json();
+      }
+      $('#testTitle').text(testData.display_title || testData.title || '');
+
+      if (preloadedQuestions.length > 0) {
+        questions = preloadedQuestions.slice();
+      } else {
+        const questionsResponse = await fetch(`/api/questions/?test=${testId}`, {
+          headers: { 'Accept': 'application/json' },
+          credentials: 'same-origin'
+        });
+        const questionsData = await questionsResponse.json();
+        questions = Array.isArray(questionsData) ? questionsData : (questionsData.results || []);
+        questions.forEach(function (q) {
+          if (!Array.isArray(q.answers)) q.answers = [];
+        });
+        questions.sort(function (a, b) { return (a.order || 0) - (b.order || 0); });
+      }
+
       if (questions.length === 0) {
         throw new Error('No questions found for this test');
       }
-      
+
       $('#totalQuestions').text(questions.length);
-      
-      // Start timer if time limit exists
+
       if (testData.time_limit) {
-        timeRemaining = testData.time_limit * 60; // Convert to seconds
+        timeRemaining = testData.time_limit * 60;
         startTimer();
       }
-      
-      // Show test content
+
       $('#loadingState').hide();
       $('#testContent').show();
-      
-      // Render first question
       renderQuestion(0);
-      
+
     } catch (error) {
       console.error('Error starting test:', error);
       alert('Failed to start test: ' + error.message);
@@ -989,141 +1016,121 @@ $(document).ready(function() {
       $('#instructionsSection').show();
     }
   }
-  
+
   function renderQuestion(index) {
     if (index < 0 || index >= questions.length) return;
-    
+
     currentQuestionIndex = index;
     const question = questions[index];
-    
+    const answersData = Array.isArray(question.answers) ? question.answers : [];
+
     // Track question start time for answer quality
     questionStartTime = Date.now();
-    
+
     // Update progress
     const progress = ((index + 1) / questions.length) * 100;
     $('#progressText').text(Math.round(progress) + '%');
     $('#progressFill').css('width', progress + '%');
     $('#currentQuestionNum').text(index + 1);
-    
-    // Load answers for this question
-    loadAnswers(question.id).then(answersData => {
-      const questionHtml = `
+
+    const questionHtml = `
         <div class="question-container question active" data-question-id="${question.id}">
           <div class="question-number">Question ${index + 1} of ${questions.length}</div>
           <div class="question-text">${question.text || question.question_text || ''}</div>
-          ${question.image ? `<img src="${question.image}" alt="Question Image" class="question-image">` : ''}
+          ${question.image_url || question.image ? `<img src="${question.image_url || question.image}" alt="Question Image" class="question-image">` : ''}
               <div class="options-container">
-                ${answersData.map((answer, idx) => `
+                ${answersData.map(function (answer) {
+                  return `
                   <label class="custom-radio" for="answer_${question.id}_${answer.id}">
-                    <input type="${question.input_type === 'checkbox' ? 'checkbox' : 'radio'}" 
-                           name="question_${question.id}" 
-                           value="${answer.id}" 
+                    <input type="${question.input_type === 'checkbox' ? 'checkbox' : 'radio'}"
+                           name="question_${question.id}"
+                           value="${answer.id}"
                            id="answer_${question.id}_${answer.id}">
                     <span class="radio-checkmark"></span>
                     <span class="radio-btn">
                       ${answer.text || answer.answer_text || ''}
-                      ${answer.image ? `<img src="${answer.image}" alt="Answer" class="option-image" style="max-width:40px; max-height: 40px; margin-left: 8px; border-radius: 4px;">` : ''}
+                      ${answer.image_url || answer.image ? `<img src="${answer.image_url || answer.image}" alt="Answer" class="option-image" style="max-width:40px; max-height: 40px; margin-left: 8px; border-radius: 4px;">` : ''}
                     </span>
-                  </label>
-                `).join('')}
+                  </label>`;
+                }).join('')}
               </div>
         </div>
       `;
-      
-      $('#questionsContainer').html(questionHtml);
-      
-      // Set selected answer if already answered
-      if (answers[question.id]) {
-        const selectedAnswers = Array.isArray(answers[question.id]) ? answers[question.id] : [answers[question.id]];
-        selectedAnswers.forEach(answerId => {
-          $(`input[value="${answerId}"]`).prop('checked', true);
-        });
+
+    $('#questionsContainer').html(questionHtml);
+
+    // Set selected answer if already answered
+    if (answers[question.id]) {
+      const selectedAnswers = Array.isArray(answers[question.id]) ? answers[question.id] : [answers[question.id]];
+      selectedAnswers.forEach(function (answerId) {
+        $(`input[value="${answerId}"]`).prop('checked', true);
+      });
+    }
+
+    // Auto-advance on answer selection
+    $('input[type="radio"], input[type="checkbox"]').on('change', function() {
+      const answerId = $(this).val();
+      const questionId = question.id;
+
+      // Track answer time (seconds for test_features component)
+      if (questionStartTime) {
+        const timeSpentSec = (Date.now() - questionStartTime) / 1000;
+        answerTimes.push(timeSpentSec);
+        window.answerTimes = answerTimes;
+        if (typeof window.updateAnswerQualityWidget === 'function') window.updateAnswerQualityWidget();
       }
-      
-      // Auto-advance on answer selection
-      $('input[type="radio"], input[type="checkbox"]').on('change', function() {
-        const answerId = $(this).val();
-        const questionId = question.id;
-        
-        // Track answer time (seconds for test_features component)
-        if (questionStartTime) {
-          const timeSpentSec = (Date.now() - questionStartTime) / 1000;
-          answerTimes.push(timeSpentSec);
-          window.answerTimes = answerTimes;
-          if (typeof window.updateAnswerQualityWidget === 'function') window.updateAnswerQualityWidget();
-        }
-        
-        // Save answer
-        if (question.input_type === 'checkbox') {
-          if (!answers[questionId]) answers[questionId] = [];
-          if ($(this).is(':checked')) {
-            if (!answers[questionId].includes(answerId)) {
-              answers[questionId].push(answerId);
-            }
-          } else {
-            answers[questionId] = answers[questionId].filter(id => id !== answerId);
+
+      // Save answer
+      if (question.input_type === 'checkbox') {
+        if (!answers[questionId]) answers[questionId] = [];
+        if ($(this).is(':checked')) {
+          if (!answers[questionId].includes(answerId)) {
+            answers[questionId].push(answerId);
           }
         } else {
-          answers[questionId] = answerId;
+          answers[questionId] = answers[questionId].filter(function (id) { return id !== answerId; });
         }
-        
-        // UI update is handled by CSS :checked selector
-        
-        // Auto-advance after 300ms (controlled by ENABLE_AUTO_FORWARD in .env)
-        if (ENABLE_AUTO_FORWARD) {
-          setTimeout(() => {
-            if (currentQuestionIndex < questions.length - 1) {
-              if (typeof window.showQuestionChangedToast === 'function') window.showQuestionChangedToast();
-              renderQuestion(currentQuestionIndex + 1);
-            } else {
-              // Last question - enable submit button
-              $('#submitTestBtn').prop('disabled', false);
-            }
-          }, 300);
-        } else if (currentQuestionIndex === questions.length - 1) {
-          $('#submitTestBtn').prop('disabled', false);
-        }
-        updateMissingAnswersPaletteIfVisible();
-      });
-      
-      // Enable submit if all questions answered
-      if (Object.keys(answers).length === questions.length) {
+      } else {
+        answers[questionId] = answerId;
+      }
+
+      // Auto-advance after 300ms (controlled by ENABLE_AUTO_FORWARD in .env)
+      if (ENABLE_AUTO_FORWARD) {
+        setTimeout(function () {
+          if (currentQuestionIndex < questions.length - 1) {
+            if (typeof window.showQuestionChangedToast === 'function') window.showQuestionChangedToast();
+            renderQuestion(currentQuestionIndex + 1);
+          } else {
+            $('#submitTestBtn').prop('disabled', false);
+          }
+        }, 300);
+      } else if (currentQuestionIndex === questions.length - 1) {
         $('#submitTestBtn').prop('disabled', false);
       }
-      
-      // Left: Previous (show when not first question)
-      const $prevBtn = $('#prevQuestionBtn');
-      if ($prevBtn.length) {
-        $prevBtn.toggle(currentQuestionIndex > 0);
-      }
-      
-      // Right: Next when not last question, Submit only on last question (same for auto-advance on or off)
-      const $nextBtn = $('#nextQuestionBtn');
-      const $submitBtn = $('#submitTestBtn');
-      const isLastQuestion = currentQuestionIndex === questions.length - 1;
-      $nextBtn.toggle(!isLastQuestion).prop('disabled', false);
-      $submitBtn.toggle(isLastQuestion);
-      if (isLastQuestion) $submitBtn.prop('disabled', false).html('<i class="fas fa-check me-2"></i>Submit Test');
-      updatePaletteCurrent();
+      updateMissingAnswersPaletteIfVisible();
     });
-  }
-  
-  async function loadAnswers(questionId) {
-    try {
-      const response = await fetch(`/api/answers/?question=${questionId}`, {
-        headers: {
-          'Accept': 'application/json'
-        },
-        credentials: 'same-origin'
-      });
-      const data = await response.json();
-      return Array.isArray(data) ? data : (data.results || []);
-    } catch (error) {
-      console.error('Error loading answers:', error);
-      return [];
+
+    // Enable submit if all questions answered
+    if (Object.keys(answers).length === questions.length) {
+      $('#submitTestBtn').prop('disabled', false);
     }
+
+    // Left: Previous (show when not first question)
+    const $prevBtn = $('#prevQuestionBtn');
+    if ($prevBtn.length) {
+      $prevBtn.toggle(currentQuestionIndex > 0);
+    }
+
+    // Right: Next when not last question, Submit only on last question
+    const $nextBtn = $('#nextQuestionBtn');
+    const $submitBtn = $('#submitTestBtn');
+    const isLastQuestion = currentQuestionIndex === questions.length - 1;
+    $nextBtn.toggle(!isLastQuestion).prop('disabled', false);
+    $submitBtn.toggle(isLastQuestion);
+    if (isLastQuestion) $submitBtn.prop('disabled', false).html('<i class="fas fa-check me-2"></i>Submit Test');
+    updatePaletteCurrent();
   }
-  
+
   function startTimer() {
     updateTimerDisplay();
     timerInterval = setInterval(() => {

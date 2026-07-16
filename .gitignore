@@ -336,6 +336,10 @@ media/users_pdfs/*
 #hide old docker files
 old-docker/*
 
+# Deploy control panel + tuner - keep out of git until production/staging is proven.
+# Remove this line to start tracking it (see docker-setup/PRODUCTION_SETUP.md section 6).
+docker-setup/
+
 #career import scripts and commands from topteen12 to topteen2-old
 career_import_backups/*
 careers/management/commands/backup_career_cluster.py

@@ -332,7 +332,15 @@
 </section>
 <main class="container">
 
-    <section id="introduction-test-4" class="introduction mt-10">
+    <!-- Loading state: shown until we know whether to display the intro or jump straight to the sections list (prevents the intro flashing after every section submit) -->
+    <div id="sections-loading" style="text-align:center; padding:80px 20px;">
+        <div class="spinner-border text-primary" role="status" style="width:3rem;height:3rem;">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3 text-muted">Loading your test...</p>
+    </div>
+
+    <section id="introduction-test-4" class="introduction mt-10" style="display: none;">
 
         <div class="row">
             <div class="col-md-4 d-flex align-items-center bg-light">
@@ -506,6 +514,9 @@
     </template>
 
 </main>
+<script type="application/json" id="preloaded-test">{{ test_data|default({})|tojson_for_script }}</script>
+<script type="application/json" id="preloaded-sections">{{ sections_data|default([])|tojson_for_script }}</script>
+<script type="application/json" id="preloaded-section-sessions">{{ section_sessions_data|default([])|tojson_for_script }}</script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const sectionsContainer = document.getElementById('sections-container');
@@ -514,8 +525,24 @@
         const heroGradient = document.getElementById('hero-gradient');
         const sectionsListSection = document.getElementById('sections-list');
         const startBtn = document.getElementById('startBtn');
+        const loadingEl = document.getElementById('sections-loading');
 
         console.log("testId", testId);
+
+        function readPreloadedJson(elementId, fallback) {
+            const el = document.getElementById(elementId);
+            if (!el) return fallback;
+            try {
+                return JSON.parse(el.textContent || 'null') || fallback;
+            } catch (e) {
+                console.warn('Could not parse', elementId, e);
+                return fallback;
+            }
+        }
+
+        const preloadedTest = readPreloadedJson('preloaded-test', null);
+        const preloadedSections = readPreloadedJson('preloaded-sections', []);
+        const preloadedSectionSessions = readPreloadedJson('preloaded-section-sessions', []);
 
         // Add event listener for the Begin button
         startBtn.addEventListener('click', function () {
@@ -609,7 +636,7 @@
             return completedSessions.length === totalSections;
         }
 
-        // Function to get section sessions for the current test
+        // Function to get section sessions for the current test (API fallback only)
         async function getSectionSessions() {
             try {
                 const response = await fetch(`/api/section-sessions/?test=${testId}`, {
@@ -621,7 +648,7 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    return data.results || [];
+                    return data.results || data || [];
                 }
                 return [];
             } catch (error) {
@@ -666,6 +693,9 @@
                 startButton.textContent = 'Start Section';
 
                 startButton.addEventListener('click', async () => {
+                    // Give immediate feedback while the session is created and the page redirects
+                    startButton.disabled = true;
+                    startButton.textContent = 'Starting...';
                     try {
                         // Create or get test session
                         const sessionRes = await fetch('/api/sessions/', {
@@ -704,6 +734,8 @@
 
                     } catch (err) {
                         console.error('Error starting section:', err);
+                        startButton.disabled = false;
+                        startButton.textContent = 'Start Section';
                         alert('Could not start section. Try again.');
                     }
                 });
@@ -714,47 +746,62 @@
 
         async function loadTestAndSections() {
             try {
-                // Get test details
-                const testRes = await fetch(`/api/tests/${testId}/`);
-                const test = await testRes.json();
-                document.getElementById('test-title').textContent = test.display_title || test.title;
-                document.getElementById('test-description').textContent = test.description;
+                let test = preloadedTest;
+                let sectionSessions = Array.isArray(preloadedSectionSessions) ? preloadedSectionSessions : [];
+                let sectionList = Array.isArray(preloadedSections) ? preloadedSections.slice() : [];
 
-                // Get section sessions to check completion status
-                const sectionSessions = await getSectionSessions();
+                // Fallback to API only if server embed is missing
+                if (!test || !sectionList.length) {
+                    const [testRes, fetchedSessions, sectionRes] = await Promise.all([
+                        fetch(`/api/tests/${testId}/`),
+                        getSectionSessions(),
+                        fetch(`/api/sections/?test=${testId}&page_size=100`)
+                    ]);
+                    if (!test) test = await testRes.json();
+                    sectionSessions = fetchedSessions;
+                    if (!sectionList.length) {
+                        const sectionData = await sectionRes.json();
+                        sectionList = sectionData.results || [];
+                    }
+                }
+
                 console.log("Section sessions:", sectionSessions);
+                console.log("sectionData", sectionList);
 
-                // Get sections
-                const sectionRes = await fetch(`/api/sections/?test=${testId}&page_size=100`);
-                const sectionData = await sectionRes.json();
-                console.log("sectionData", sectionData);
+                document.getElementById('test-title').textContent = test.display_title || test.title;
+                document.getElementById('test-description').textContent = test.description || '';
 
-                const totalSections = sectionData.count;
+                const totalSections = sectionList.length;
 
                 // Load sections into container
                 sectionsContainer.innerHTML = '';
-                for (const section of sectionData.results.sort((a, b) => a.order - b.order)) {
+                sectionList.sort((a, b) => a.order - b.order);
+                for (const section of sectionList) {
                     const card = await createSectionCard(section, sectionSessions);
                     sectionsContainer.appendChild(card);
                 }
 
-                // Check if all sections are completed and show popup
-                if (checkAllSectionsCompleted(sectionSessions, totalSections)) {
-                    // Add a small delay to ensure the page is fully loaded
-                    setTimeout(() => {
-                        createCompletionPopup();
-                    }, 500);
-                }
-
-                // Check if user has any completed sections
                 const hasCompletedSections = sectionSessions.some(session => session.is_completed);
                 console.log("Has completed sections:", hasCompletedSections);
 
-                // If user has completed sections, skip introduction
+                // Reveal the correct view. Hide the loader first so the intro never flashes
+                // when a returning user comes back after submitting a section.
+                if (loadingEl) loadingEl.style.display = 'none';
                 if (hasCompletedSections) {
+                    // Returning after a section submit: jump straight to the sections list.
                     introductionSection.style.display = 'none';
                     heroGradient.style.display = 'block';
                     sectionsListSection.style.display = 'block';
+                } else {
+                    // First visit: show the introduction.
+                    introductionSection.style.display = 'block';
+                }
+
+                // Show completion popup once every section is done.
+                if (checkAllSectionsCompleted(sectionSessions, totalSections)) {
+                    setTimeout(() => {
+                        createCompletionPopup();
+                    }, 300);
                 }
 
                 // Show footer after content loads
@@ -764,8 +811,11 @@
 
             } catch (err) {
                 console.error('Error loading data:', err);
+                if (loadingEl) loadingEl.style.display = 'none';
+                // Fall back to showing the introduction so the user can retry.
+                introductionSection.style.display = 'block';
                 sectionsContainer.innerHTML = '<div class="error">Failed to load test data.</div>';
-                
+
                 // Show footer even on error
                 if (typeof window.showFooterAfterContent === 'function') {
                     window.showFooterAfterContent();

@@ -46,6 +46,34 @@ except ImportError:
 MANUAL_CASH_PAYMENT_DEFAULT_REMARK = 'Manual payment cash'
 
 
+class StudentClassFilter(admin.SimpleListFilter):
+    """Filter users by ClassAndSection label (via StudentManagement)."""
+
+    title = 'Class'
+    parameter_name = 'student_class'
+
+    def lookups(self, request, model_admin):
+        from institute.models import ClassAndSection
+
+        values = (
+            ClassAndSection.objects
+            .exclude(class_and_section__isnull=True)
+            .exclude(class_and_section='')
+            .values_list('class_and_section', flat=True)
+            .distinct()
+            .order_by('class_and_section')
+        )
+        return [(v, v) for v in values]
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if not value:
+            return queryset
+        return queryset.filter(
+            student_management__class_and_section__class_and_section=value,
+        ).distinct()
+
+
 def _record_manual_cash_skilllab_payment(user, course, amount=None, remark=None, staff_user=None):
     """
     Record an offline cash payment and activate Skill Lab course access.
@@ -600,6 +628,40 @@ class UserAdmin(admin.ModelAdmin):
     ]
     change_list_template = 'admin/users/user/change_list.html'
 
+    def _is_student_filter_active(self, request):
+        """True when the changelist is filtered to Student (user_type=1)."""
+        return request.GET.get('user_type__exact') == str(choices.UserType.STUDENT)
+
+    def get_list_display(self, request):
+        display = list(self.list_display)
+        if self._is_student_filter_active(request) and 'student_class' not in display:
+            try:
+                idx = display.index('mobile') + 1
+            except ValueError:
+                idx = 3
+            display.insert(idx, 'student_class')
+        return display
+
+    def get_list_filter(self, request):
+        filters = list(self.list_filter)
+        if self._is_student_filter_active(request) and StudentClassFilter not in filters:
+            filters.append(StudentClassFilter)
+        return filters
+
+    @admin.display(description='Class')
+    def student_class(self, obj):
+        sms = getattr(obj, '_prefetched_objects_cache', {}).get('student_management')
+        if sms is None:
+            sms = obj.student_management.all()
+        for sm in sms:
+            cas = getattr(sm, 'class_and_section', None)
+            if cas and cas.class_and_section:
+                label = cas.class_and_section
+                if cas.stream:
+                    return '%s (%s)' % (label, cas.stream)
+                return label
+        return '—'
+
     def admin_password_reset(self, obj):
         if not obj or not obj.pk:
             return format_html(
@@ -901,6 +963,16 @@ class UserAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         # Show all users including soft-deleted ones
         qs = User.objects.complete()
+        if self._is_student_filter_active(request):
+            from django.db.models import Prefetch
+            from institute.models import StudentManagement
+
+            qs = qs.prefetch_related(
+                Prefetch(
+                    'student_management',
+                    queryset=StudentManagement.objects.select_related('class_and_section'),
+                )
+            )
         return qs
     
     

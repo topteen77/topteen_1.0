@@ -434,12 +434,15 @@
           </div>
 
           <div id="questions-container" class="questions-container">
+            {# No spinner when questions are preloaded server-side — first question renders instantly on Begin #}
+            {% if not questions_data %}
             <div class="loading text-center py-5">
               <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
               </div>
               <p class="mt-3">Loading questions...</p>
             </div>
+            {% endif %}
           </div>
 
           <div class="navigation-buttons d-flex justify-content-end gap-3 mt-4">
@@ -495,6 +498,8 @@
 
 {% block additionaljs %}
 {{ super() }}
+{# Questions + answers embedded at page load — Begin shows Q1 with no network wait #}
+<script type="application/json" id="preloaded-questions">{{ questions_data|default([])|tojson_for_script }}</script>
 <!-- jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <!-- SweetAlert2 -->
@@ -591,16 +596,36 @@ $(document).ready(function() {
   }
 
 
-  // Load questions
+  // Load questions — prefer server-embedded payload (instant); API is fallback only
   async function loadQuestions() {
     try {
+      const preloadedEl = document.getElementById('preloaded-questions');
+      let preloaded = [];
+      if (preloadedEl) {
+        try {
+          preloaded = JSON.parse(preloadedEl.textContent || '[]');
+        } catch (e) {
+          console.warn('Could not parse preloaded questions:', e);
+        }
+      }
+
+      if (Array.isArray(preloaded) && preloaded.length > 0) {
+        questions = preloaded.map(function (q) {
+          if (!Array.isArray(q.answers)) q.answers = [];
+          return q;
+        });
+        questions.sort(function (a, b) { return a.order - b.order; });
+        finishQuestionsReady();
+        return;
+      }
+
+      // Fallback: fetch once (answers already nested; no per-question calls)
       const headers = {
         'Content-Type': 'application/json',
         'X-CSRFToken': getCookie('csrftoken'),
         'Accept': 'application/json'
       };
 
-      // Load questions
       const questionsUrl = `/api/questions/?section=${sectionId}`;
       const questionsRes = await fetch(questionsUrl, {
         headers: headers,
@@ -613,23 +638,28 @@ $(document).ready(function() {
 
       const data = await questionsRes.json();
       questions = Array.isArray(data) ? data : (data.results || []);
-
-      // Fetch answers for each question
-      for (let question of questions) {
-        const answersUrl = `/api/answers/?question=${question.id}`;
-        const answersRes = await fetch(answersUrl, {
-          headers: headers,
-          credentials: 'same-origin'
-        });
-
-        if (answersRes.ok) {
-          const answersData = await answersRes.json();
-          question.answers = answersData.results || answersData;
+      questions.forEach(function (question) {
+        if (!Array.isArray(question.answers)) {
+          question.answers = [];
         }
-      }
+      });
+      questions.sort(function (a, b) { return a.order - b.order; });
+      finishQuestionsReady();
 
-      questions.sort((a, b) => a.order - b.order);
-      
+    } catch (error) {
+      console.error('Error loading questions:', error);
+      $('#questions-container').html('<div class="alert alert-danger">Failed to load questions. Please try refreshing the page.</div>');
+
+      if (typeof window.showFooterAfterContent === 'function') {
+        window.showFooterAfterContent();
+      }
+      if (typeof window.showFooterCTA === 'function') {
+        window.showFooterCTA();
+      }
+    }
+  }
+
+  function finishQuestionsReady() {
       if (questions.length === 0) {
         $('#questions-container').html('<div class="alert alert-info">No questions available for this section.</div>');
         return;
@@ -649,7 +679,7 @@ $(document).ready(function() {
 
       renderCurrentQuestion();
       updateProgress();
-      
+
       // Start timer if time limit is set
       if (timeLimit > 0) {
         startTimer(timeLimit);
@@ -658,7 +688,7 @@ $(document).ready(function() {
       // Initialize timing for first question
       questionStartTimes[0] = Date.now();
       window.questionStartTimes = questionStartTimes;
-      
+
       // Initialize auto-advance after questions are loaded
       if (typeof window.initAutoAdvance === 'function') {
         window.initAutoAdvance();
@@ -668,26 +698,11 @@ $(document).ready(function() {
       if (typeof window.showFooterAfterContent === 'function') {
         window.showFooterAfterContent();
       }
-      
+
       // Show footer CTA if available
       if (typeof window.showFooterCTA === 'function') {
         window.showFooterCTA();
       }
-
-    } catch (error) {
-      console.error('Error loading questions:', error);
-      $('#questions-container').html('<div class="alert alert-danger">Failed to load questions. Please try refreshing the page.</div>');
-      
-      // Show footer even on error
-      if (typeof window.showFooterAfterContent === 'function') {
-        window.showFooterAfterContent();
-      }
-      
-      // Show footer CTA even on error
-      if (typeof window.showFooterCTA === 'function') {
-        window.showFooterCTA();
-      }
-    }
   }
 
   // Render current question

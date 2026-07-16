@@ -3190,10 +3190,34 @@ def Results_details(request):
 
 def Take_test(request, id):
     from core.assessment_access import redirect_if_no_post_matric_test_access
+    from .models import Test, Question
+    from .serializers import QuestionSerializer, TestSerializer
+    import json
+    from rest_framework.renderers import JSONRenderer
+
     denied = redirect_if_no_post_matric_test_access(request, id)
     if denied:
         return denied
-    return render(request, "template20/app_post_matric/take_test.html", {"test_id": id})
+
+    test = get_object_or_404(Test, id=id)
+    questions_qs = (
+        Question.objects
+        .filter(test_id=id)
+        .prefetch_related('answers')
+        .order_by('order')
+    )
+    questions_payload = QuestionSerializer(
+        questions_qs, many=True, context={'request': request}
+    ).data
+    questions_data = json.loads(JSONRenderer().render(questions_payload))
+    test_payload = TestSerializer(test, context={'request': request}).data
+    test_data = json.loads(JSONRenderer().render(test_payload))
+
+    return render(request, "template20/app_post_matric/take_test.html", {
+        "test_id": id,
+        "questions_data": questions_data,
+        "test_data": test_data,
+    })
 
 def Test_details(request, id):
     return render(request, "template20/app_post_matric/test_details.html", {
@@ -3799,8 +3823,36 @@ def download_test_results_pdf(request, id):
 
 
 def test_sections(request, test_id):
+    from .models import Test, Sections, SectionSession
+    from .serializers import TestSerializer, SectionsSerializer, SectionSessionSerializer
+    import json
+    from rest_framework.renderers import JSONRenderer
+
+    test_obj = get_object_or_404(Test, id=test_id)
+    test_payload = TestSerializer(test_obj, context={'request': request}).data
+    test_data = json.loads(JSONRenderer().render(test_payload))
+
+    sections_qs = Sections.objects.filter(test_id=test_id).order_by('order')
+    sections_payload = SectionsSerializer(sections_qs, many=True, context={'request': request}).data
+    sections_data = json.loads(JSONRenderer().render(sections_payload))
+
+    section_sessions_data = []
+    if getattr(request.user, 'is_authenticated', False):
+        sessions_qs = (
+            SectionSession.objects
+            .filter(session__user=request.user, session__test_id=test_id)
+            .select_related('section', 'session')
+        )
+        sessions_payload = SectionSessionSerializer(
+            sessions_qs, many=True, context={'request': request}
+        ).data
+        section_sessions_data = json.loads(JSONRenderer().render(sessions_payload))
+
     return render(request, 'template20/app_post_matric/test_sections.html', {
         'test': test_id,
+        'test_data': test_data,
+        'sections_data': sections_data,
+        'section_sessions_data': section_sessions_data,
         'breadcrumb': get_breadcrumb([
             {'text': 'Tests', 'url': reverse('post_matric:tests')},
             {'text': 'Aptitude Assessment', 'url': ''},
@@ -3809,12 +3861,14 @@ def test_sections(request, test_id):
 
 @login_required
 def section_details(request,testId, section_id, session_id):
-    from .models import Sections, TestSession, SectionSession
-    from django.urls import reverse
-    
+    from .models import Sections, TestSession, SectionSession, Question
+    from .serializers import QuestionSerializer
+    import json
+    from rest_framework.renderers import JSONRenderer
+
     section = get_object_or_404(Sections, id=section_id)
     test_session = get_object_or_404(TestSession, id=session_id, user=request.user)
-    
+
     # Get or create section session
     try:
         section_session = SectionSession.objects.get(
@@ -3828,7 +3882,20 @@ def section_details(request,testId, section_id, session_id):
             start_time=timezone.now(),
             is_completed=False
         )
-    
+
+    # Prefetch questions + answers once so the page can show them instantly
+    # (no client round-trip after Begin).
+    questions_qs = (
+        Question.objects
+        .filter(section_id=section_id)
+        .prefetch_related('answers')
+        .order_by('order')
+    )
+    questions_payload = QuestionSerializer(
+        questions_qs, many=True, context={'request': request}
+    ).data
+    questions_data = json.loads(JSONRenderer().render(questions_payload))
+
     context = {
         'section': section,
         'section_id': section_id,
@@ -3837,8 +3904,9 @@ def section_details(request,testId, section_id, session_id):
         'test_session': test_session,
         'section_session': section_session,
         'time_limit': section.time_limit or 20,  # Default 20 minutes if not set
+        'questions_data': questions_data,
     }
-    
+
     return render(request, 'template20/app_post_matric/section_details.html', context)
     # return render(request, 'section_details.html', context)
 
@@ -3927,12 +3995,23 @@ class SectionsViewSet(viewsets.ModelViewSet):
     queryset = Sections.objects.all()
     serializer_class = SectionsSerializer
 
+    def get_queryset(self):
+        queryset = Sections.objects.all().order_by('order')
+        test_id = self.request.query_params.get('test', None)
+        if test_id is not None:
+            queryset = queryset.filter(test_id=test_id)
+        return queryset
+
 class SectionSessionViewSet(viewsets.ModelViewSet):
     serializer_class = SectionSessionSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return SectionSession.objects.filter(session__user=self.request.user)
+        queryset = SectionSession.objects.filter(session__user=self.request.user)
+        test_id = self.request.query_params.get('test', None)
+        if test_id is not None:
+            queryset = queryset.filter(session__test_id=test_id)
+        return queryset
 
     def create(self, request, *args, **kwargs):
         session_id = request.data.get('session')
@@ -4048,7 +4127,8 @@ class QuestionViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = QuestionSerializer
 
     def get_queryset(self):
-        queryset = Question.objects.all()
+        # Prefetch answers so QuestionSerializer.get_answers() does not N+1
+        queryset = Question.objects.prefetch_related('answers').all()
         test_id = self.request.query_params.get('test', None)
         section_id = self.request.query_params.get('section', None)
         question_dimension = self.request.query_params.get('dimension', None)
@@ -4063,7 +4143,14 @@ class QuestionViewSet(viewsets.ReadOnlyModelViewSet):
         if question_level:
             queryset = queryset.filter(question_level=question_level)
 
-        return queryset
+        return queryset.order_by('order')
+
+    def paginate_queryset(self, queryset):
+        # When loading a full test/section for taking a test, return every question
+        # (default PAGE_SIZE=60 would truncate longer sections).
+        if self.request.query_params.get('section') or self.request.query_params.get('test'):
+            return None
+        return super().paginate_queryset(queryset)
 
 class TestSessionViewSet(viewsets.ModelViewSet):
     """
