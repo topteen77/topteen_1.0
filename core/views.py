@@ -133,21 +133,60 @@ class Home(TemplateView):
         return build_html_head(title=name, description=name)
 
     def _skilllab_featured_courses(self):
-        """One query for after-10 / after-12 / after-college cards (BOTH as fallback)."""
+        """One query for after-10 / after-12 / after-college cards (BOTH as fallback).
+
+        After-college courses are rare in the catalog (legacy category often unset).
+        Fall back to the Career Planning course by slug/name so the third homepage
+        card opens a real course detail page instead of the listing.
+        """
         cat_10 = choices.SkillLabCourseTypeChoice.after_10_class
         cat_12 = choices.SkillLabCourseTypeChoice.after_12_class
         cat_college = choices.SkillLabCourseTypeChoice.after_college
         cat_both = choices.SkillLabCourseTypeChoice.BOTH
+        qs = (
+            SkillLabCourse.objects.all()
+            .select_related('topic_category')
+            .prefetch_related('grades')
+            .order_by('id')
+        )
         by_cat = {}
-        for course in SkillLabCourse.objects.filter(
-            category__in=[cat_10, cat_12, cat_college, cat_both]
-        ).select_related('topic_category').prefetch_related('grades').order_by('id'):
+        by_slug = {}
+        career_planning = None
+        for course in qs.filter(category__in=[cat_10, cat_12, cat_college, cat_both]):
             by_cat.setdefault(course.category, course)
+            if course.slug:
+                by_slug[course.slug] = course
+            name_l = (course.name or '').lower()
+            if career_planning is None and 'career planning' in name_l:
+                career_planning = course
+
+        # Also resolve Career Planning if it was tagged outside the audience set above.
+        if career_planning is None:
+            career_planning = (
+                qs.filter(slug='career-planning').first()
+                or qs.filter(name__icontains='career planning').first()
+            )
+
         both = by_cat.get(cat_both)
+        after_10 = by_cat.get(cat_10) or both
+        after_12 = by_cat.get(cat_12) or both
+        after_college = by_cat.get(cat_college)
+        if after_college is None:
+            # Prefer dedicated Career Planning course for the After College card.
+            after_college = by_slug.get('career-planning') or career_planning
+        # Avoid showing the same course on two cards when possible.
+        used_ids = {c.id for c in (after_10, after_12) if c is not None}
+        if after_college is not None and after_college.id in used_ids:
+            after_college = (
+                qs.exclude(id__in=used_ids)
+                .filter(name__icontains='career planning')
+                .first()
+                or after_college
+            )
         return {
-            'after_10_course': by_cat.get(cat_10) or both,
-            'after_12_course': by_cat.get(cat_12) or both,
-            'after_college_course': by_cat.get(cat_college),
+            'after_10_course': after_10,
+            'after_12_course': after_12,
+            'after_college_course': after_college,
         }
 
     def _career_track_cards(self):
