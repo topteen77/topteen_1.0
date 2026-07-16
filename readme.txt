@@ -821,4 +821,106 @@ Django Admin → user_analytics → User Activity:
   • Filter to e.g. Local, select rows, Action → Delete to clean test data. Or set ENABLE_USER_ANALYTICS_TRACKING=False, then clean, then set back to True.
 ---------- END ENQUIRY SOURCE PRODUCTION CHECK ----------
 
-. 
+.
+===================================================
+--- White-Label Hybrid App (PWA + Android + iOS + Desktop) ---
+# Student/parent/institute/counselor portal as web, installable PWA, and native shells.
+# Project path (sibling repo folder):
+#   ../topteen-whitelabled/topteen-whitelabled/frontend/
+# Web dev URL: http://localhost:5173/app/student
+# Stack: React (Vite + TypeScript) + Capacitor + vite-plugin-pwa + Electron (desktop)
+# Full guide: ../topteen-whitelabled/topteen-whitelabled/frontend/MOBILE.md
+
+---------- TARGETS ----------
+# Web browser     -> npm run dev  (http://localhost:5173)
+# PWA install     -> npm run build && npm run preview  (Add to Home Screen / Install app)
+# Android app     -> Capacitor  (app id: in.topteen.portal)
+# iOS app         -> Capacitor  (requires macOS + Xcode + CocoaPods)
+# Desktop app     -> Capacitor Electron  (Windows / Mac / Linux)
+
+---------- PREREQUISITES ----------
+# Node.js 18+
+# Android: Android Studio + SDK
+# iOS: macOS, Xcode, CocoaPods (sudo gem install cocoapods)
+# Desktop: electron/ deps install on first cap add (already scaffolded)
+
+---------- ENV (.env in frontend/) ----------
+# Web / local:
+VITE_API_BASE_URL=http://localhost:8000/api
+VITE_DEFAULT_TENANT=demo-institute
+
+# Mobile / desktop on a real device — localhost points to the phone, not your PC.
+# Use your machine LAN IP and rebuild:
+# VITE_API_BASE_URL=http://192.168.1.42:8000/api
+# VITE_DEFAULT_TENANT=demo-institute
+
+---------- COMPLETE COMMANDS STEP BY STEP ----------
+
+Step 1. Start FastAPI backend (from white-label backend folder):
+   cd ../topteen-whitelabled/topteen-whitelabled/backend
+   source .venv/bin/activate
+   uvicorn app.main:app --reload --port 8000
+
+Step 2. Web dev (student dashboard):
+   cd ../topteen-whitelabled/topteen-whitelabled/frontend
+   npm install
+   npm run dev
+   # Open http://localhost:5173/app/student
+
+Step 3. Production web build (includes PWA service worker + manifest):
+   npm run build
+   npm run preview
+   # Use browser "Install app" / "Add to Home Screen"
+
+Step 4. Sync web build to native projects (run after every build or .env change):
+   npm run cap:sync
+
+Step 5. Android (opens Android Studio):
+   npm run cap:android
+   # Or run on device/emulator:
+   npm run cap:run:android
+
+Step 6. iOS (macOS only — opens Xcode):
+   npm run cap:ios
+   npm run cap:run:ios
+
+Step 7. Desktop app (dev):
+   npm run electron:dev
+
+Step 8. Desktop installer (.deb / .AppImage / .exe):
+   npm run electron:build
+
+---------- NPM SCRIPTS (frontend/package.json) ----------
+npm run dev              # Vite dev server (port 5173)
+npm run build            # Production build + PWA assets
+npm run cap:sync         # build + npx cap sync
+npm run cap:android      # sync + open Android Studio
+npm run cap:ios          # sync + open Xcode
+npm run cap:run:android  # sync + run on Android device/emulator
+npm run cap:run:ios      # sync + run on iOS simulator/device
+npm run electron:dev     # sync + Electron live dev
+npm run electron:build   # sync + desktop installer
+
+---------- ROUTING ----------
+# Web (browser):     /app/student
+# Native shells:   /#/app/student  (HashRouter on Capacitor — deep links without server fallback)
+
+---------- KEY FILES ----------
+# capacitor.config.ts          — app id in.topteen.portal, webDir dist
+# vite.config.ts               — vite-plugin-pwa manifest + service worker
+# src/components/AppRouter.tsx — BrowserRouter (web) vs HashRouter (native)
+# src/lib/native.ts            — splash, status bar, Android back button
+# public/pwa-icon-192.png      — PWA / apple-touch icon
+# public/pwa-icon-512.png      — PWA maskable icon
+# android/                     — Capacitor Android project
+# ios/                         — Capacitor iOS project
+# electron/                    — Capacitor Electron desktop shell
+
+---------- STORE RELEASE CHECKLIST ----------
+# [ ] Set production VITE_API_BASE_URL (HTTPS only)
+# [ ] Replace launcher icons in android/ and ios/
+# [ ] Privacy policy URL for Play Store / App Store
+# [ ] Sign Android release keystore
+# [ ] Apple Developer account + provisioning profiles
+
+---------- END WHITE-LABEL HYBRID APP ----------

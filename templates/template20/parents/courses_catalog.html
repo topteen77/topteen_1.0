@@ -186,7 +186,7 @@
     overflow: hidden;
   }
   .catalog-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-  .catalog-class-badge, .catalog-price-badge {
+  .catalog-class-badge, .catalog-price-badge, .catalog-category-badge {
     display: inline-flex;
     align-items: center;
     padding: 4px 10px;
@@ -196,9 +196,14 @@
     line-height: 1;
   }
   .catalog-class-badge {
-    color: #403fa6;
-    background: #f3f0ff;
-    border: 1px solid #e4ddfc;
+    color: #fff;
+    background: linear-gradient(90deg, #7c5aad, #5249df);
+    border: none;
+  }
+  .catalog-category-badge {
+    color: #4338ca;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.6);
   }
   .catalog-price-badge {
     color: #0f766e;
@@ -558,6 +563,9 @@
                     <div class="catalog-meta">
                       {% if item.class_label %}
                       <span class="catalog-class-badge">{{ item.class_label }}</span>
+                      {% endif %}
+                      {% if item.category_label %}
+                      <span class="catalog-category-badge">{{ item.category_label }}</span>
                       {% endif %}
                       <span class="catalog-price-badge{% if item.is_free %} is-free{% endif %}">{{ item.price_label }}</span>
                     </div>

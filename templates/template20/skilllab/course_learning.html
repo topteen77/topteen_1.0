@@ -1363,6 +1363,7 @@
   .skilllab-section-tabs .lesson-content-tabs .nav-link { padding: 10px 12px; font-size: 0.78rem; }
 }
 </style>
+{% include 'template20/skilllab/includes/course_context_meta_styles.html' %}
 
 <!-- Saved notification (top right) -->
 <div id="skilllab-saved-toast" class="skilllab-saved-toast" role="status" aria-live="polite">
@@ -1401,6 +1402,11 @@
 </div>
 
 <main class="py-test-page skill-page">
+  <div class="skilllab-context-meta-bar">
+    <div class="container-fluid">
+      {% with course_only=True %}{% include 'template20/skilllab/includes/course_context_meta.html' %}{% endwith %}
+    </div>
+  </div>
   <section class="full-course-section pt-3 pb-5">
     <div class="container-fluid">
       <div class="mobile-overlay" onclick="toggleMobileSidebar()"></div>

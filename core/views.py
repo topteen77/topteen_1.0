@@ -141,7 +141,7 @@ class Home(TemplateView):
         by_cat = {}
         for course in SkillLabCourse.objects.filter(
             category__in=[cat_10, cat_12, cat_college, cat_both]
-        ).order_by('id'):
+        ).select_related('topic_category').prefetch_related('grades').order_by('id'):
             by_cat.setdefault(course.category, course)
         both = by_cat.get(cat_both)
         return {

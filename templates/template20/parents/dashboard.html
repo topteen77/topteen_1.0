@@ -529,9 +529,15 @@ text-align: left !important;
   }
 
   .parent-course-suggest-badge--class {
-    background: #eef2ff;
-    color: #3c3bb1;
-    border-color: #d1d9ff;
+    background: linear-gradient(90deg, #7c5aad, #5249df);
+    color: #fff;
+    border-color: transparent;
+  }
+
+  .parent-course-suggest-badge--category {
+    background: rgba(255, 255, 255, 0.92);
+    color: #4338ca;
+    border-color: rgba(255, 255, 255, 0.6);
   }
 
   .parent-course-suggest-badge--price {
@@ -1083,6 +1089,7 @@ text-align: left !important;
           '<div class="min-w-0"><p class="parent-course-suggest-title">' + course.title + '</p>' +
           '<div class="parent-course-suggest-meta">' +
           '<span class="parent-course-suggest-badge parent-course-suggest-badge--class">' + (course.class_label || '') + '</span>' +
+          (course.category_label ? '<span class="parent-course-suggest-badge parent-course-suggest-badge--category">' + course.category_label + '</span>' : '') +
           '<span class="parent-course-suggest-badge parent-course-suggest-badge--price">' + (course.price_label || '') + '</span>' +
           progress + '</div></div></div>' +
           '<div class="parent-course-suggest-actions">' +

@@ -7,6 +7,7 @@ from django.templatetags.static import static
 from django.urls import reverse
 
 from core import choices
+from skilllab.learner_header import skilllab_course_card_labels
 from users.parent_student_insights import _extract_grade_number, resolve_student_grade
 
 
@@ -226,7 +227,9 @@ def skilllab_dashboard_courses_for_user(user):
     active_ids = skilllab_active_course_ids_for_user(user)
     if not active_ids:
         return SkillLabCourse.objects.none()
-    return SkillLabCourse.objects.filter(id__in=active_ids).order_by("-modified")
+    return SkillLabCourse.objects.filter(id__in=active_ids).select_related(
+        "topic_category"
+    ).prefetch_related("grades").order_by("-modified")
 
 
 def build_skilllab_dashboard_item(
@@ -273,11 +276,19 @@ def build_skilllab_dashboard_item(
         action_url = skilllab_course_resume_url(course) if cta == "Resume" else skilllab_course_start_url(course)
         action_variant = "start"
 
+    card_labels = skilllab_course_card_labels(course)
+    class_label = card_labels["class_label"]
+    category_label = card_labels["category_label"]
+    subtitle_parts = [p for p in (class_label, category_label) if p]
+    card_subtitle = " · ".join(subtitle_parts) if subtitle_parts else SKILLLAB_SECTION_SUBTITLE
+
     return {
         "kind": "skilllab",
-        "kind_badge": "CAREER",
+        "kind_badge": category_label or "CAREER",
+        "class_label": class_label,
+        "category_label": category_label,
         "title": course.name,
-        "subtitle": f"{SKILLLAB_SECTION_TITLE} · {SKILLLAB_SECTION_SUBTITLE}",
+        "subtitle": card_subtitle,
         "start_url": action_url,
         "action_label": cta,
         "action_variant": action_variant,

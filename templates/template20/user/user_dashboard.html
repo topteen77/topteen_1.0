@@ -699,6 +699,18 @@
     margin-top: 2px;
   }
 
+  .user-dashboard .dashboard-enrolled-badge-class {
+    background: linear-gradient(90deg, #7c5aad, #5249df) !important;
+    color: #fff !important;
+    border: none;
+  }
+
+  .user-dashboard .dashboard-enrolled-badge-category {
+    background: rgba(255, 255, 255, 0.92) !important;
+    color: #4338ca !important;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+  }
+
   .user-dashboard .dashboard-enrolled-content {
     min-width: 0;
     flex: 1 1 0%;
@@ -1249,6 +1261,16 @@
                       {% endif %}
                     </div>
                     <p class="text-gray fs-11 mb-0 lh-sm dashboard-enrolled-subtitle" title="{{ item.subtitle }}">{{ item.subtitle }}</p>
+                    {% if item.kind == 'skilllab' and (item.class_label or item.category_label) %}
+                    <div class="dashboard-enrolled-meta d-flex flex-wrap gap-1 mt-1">
+                      {% if item.class_label %}
+                      <span class="badge rounded-pill dashboard-enrolled-kind-badge dashboard-enrolled-badge-class">{{ item.class_label }}</span>
+                      {% endif %}
+                      {% if item.category_label %}
+                      <span class="badge rounded-pill dashboard-enrolled-kind-badge dashboard-enrolled-badge-category">{{ item.category_label }}</span>
+                      {% endif %}
+                    </div>
+                    {% endif %}
                     {% if item.result_preview %}
                     <p class="fs-12 fw-semibold mb-0 mt-2 text-dark dashboard-enrolled-result-line" style="line-height:1.4;" title="{{ item.result_preview }}">{{ item.result_preview }}</p>
                     {% endif %}

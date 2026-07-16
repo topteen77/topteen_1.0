@@ -44,10 +44,20 @@ def build_skilllab_learner_context(user) -> Dict[str, Any]:
     }
 
 
-def build_skilllab_course_meta_context(course) -> Dict[str, str]:
+def skilllab_course_card_labels(course) -> Dict[str, str]:
+    """Class + topic labels matching the public Skill Lab listing cards."""
     return {
-        "course_topic_category": course.get_topic_category_display(),
-        "course_grade_label": course.get_grade_label(),
+        "class_label": course.get_grade_label(),
+        "category_label": course.get_topic_category_display(),
+    }
+
+
+def build_skilllab_course_meta_context(course) -> Dict[str, str]:
+    labels = skilllab_course_card_labels(course)
+    return {
+        "course_topic_category": labels["category_label"],
+        "course_grade_label": labels["class_label"],
+        **labels,
     }
 
 

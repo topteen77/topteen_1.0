@@ -12,6 +12,47 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
 
 {% block additionalcss %}
 <link rel="stylesheet" href="{{ static('css_new/career-battle-popup.css') }}?v=6">
+<link rel="stylesheet" href="{{ static('css_new/skilllab-course-finder.css') }}">
+<style>
+  /* College Readiness cards — match Skill Lab listing badge layout */
+  .readiness .home-readiness-badges {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    z-index: 2;
+    margin: 0 0 auto;
+    padding: 0;
+  }
+  .readiness .text-in {
+    justify-content: space-between;
+  }
+  /* custom-min.css `.text-in span` overrides listing badges — reset here */
+  .readiness .text-in .sl-finder-card__badge {
+    display: inline-flex;
+    align-items: center;
+    width: auto;
+    justify-content: center;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    padding: 0.28rem 0.55rem;
+    border-radius: 6px;
+    line-height: 1.2;
+  }
+  .readiness .text-in .sl-finder-card__badge--class {
+    background: linear-gradient(90deg, #7c5aad, #5249df);
+    color: #fff;
+    border: none;
+  }
+  .readiness .text-in .sl-finder-card__badge--category {
+    background: rgba(255, 255, 255, 0.92);
+    color: #4338ca;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(4px);
+  }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -319,7 +360,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
               {% endif %}
 
               <div class="text-in">
-                <span> After 10th </span>
+                {% with course=after_10_course, fallback_label='After 10th' %}{% include 'template20/includes/skilllab_readiness_badges.html' %}{% endwith %}
                 <div class="text-explore">
                   <p>{% if after_10_course %}{{ after_10_course.name }}{% else %}Are your Career Ready?{% endif %}</p>
                   {% if after_10_course %}
@@ -340,7 +381,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
               <img src="{{ static('images_new/short-courses/soft-skills.jpg') }}" alt="img" />
               {% endif %}
               <div class="text-in">
-                <span> After 12th </span>
+                {% with course=after_12_course, fallback_label='After 12th' %}{% include 'template20/includes/skilllab_readiness_badges.html' %}{% endwith %}
                 <div class="text-explore">
                   <p>{% if after_12_course %}{{ after_12_course.name }}{% else %}Soft Skills{% endif %}</p>
                   {% if after_12_course %}
@@ -362,7 +403,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
               {% endif %}
 
               <div class="text-in">
-                <span> After College </span>
+                {% with course=after_college_course, fallback_label='After College' %}{% include 'template20/includes/skilllab_readiness_badges.html' %}{% endwith %}
                 <div class="text-explore">
                   <p>{% if after_college_course %}{{ after_college_course.name }}{% else %}Career Planning after College{% endif %}</p>
                   {% if after_college_course %}

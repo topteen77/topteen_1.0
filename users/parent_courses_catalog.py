@@ -263,6 +263,7 @@ def _skilllab_items(
 
     courses = (
         SkillLabCourse.objects.all()
+        .select_related("topic_category")
         .prefetch_related("grades")
         .order_by("-modified")
     )
@@ -275,8 +276,9 @@ def _skilllab_items(
         started_ids = _skilllab_started_ids(list(owned_ids), course) if owned_ids else set()
         completed_ids = _skilllab_completed_ids(list(owned_ids), course) if owned_ids else set()
 
-        # Catalog class from Grades M2M (e.g. Class 11–12), not legacy category.
+        # Catalog class + topic from Grades M2M / topic_category (same as listing cards).
         class_label = course.get_grade_label()
+        category_label = course.get_topic_category_display()
 
         student_data: Dict[str, Any] = {}
         for s in students:
@@ -317,6 +319,7 @@ def _skilllab_items(
                 "title": course.name,
                 "subtitle": f"{SKILLLAB_SECTION_TITLE} · {SKILLLAB_SECTION_SUBTITLE}",
                 "class_label": class_label,
+                "category_label": category_label,
                 "price_label": price_label,
                 "is_free": is_free,
                 "icon_src": None,
@@ -359,6 +362,7 @@ def build_parent_skilllab_suggestions(
                     "subtitle": item.get("subtitle", ""),
                     "detail_url": item["detail_url"],
                     "class_label": item.get("class_label", ""),
+                    "category_label": item.get("category_label", ""),
                     "price_label": item.get("price_label", ""),
                     "is_free": item.get("is_free", False),
                     "image_url": item.get("image_url", ""),

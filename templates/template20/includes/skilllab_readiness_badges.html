@@ -1,0 +1,10 @@
+{% if course %}
+<div class="sl-finder-card__badges home-readiness-badges">
+  <span class="sl-finder-card__badge sl-finder-card__badge--class">{{ course.get_grade_label() }}</span>
+  <span class="sl-finder-card__badge sl-finder-card__badge--category">{{ course.get_topic_category_display() }}</span>
+</div>
+{% elif fallback_label %}
+<div class="sl-finder-card__badges home-readiness-badges">
+  <span class="sl-finder-card__badge sl-finder-card__badge--class">{{ fallback_label }}</span>
+</div>
+{% endif %}
