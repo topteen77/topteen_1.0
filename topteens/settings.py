@@ -111,6 +111,21 @@ SERVICE_MONITOR_SUPERVISOR_CELERY = config(
 SERVICE_MONITOR_SUPERVISOR_GUNICORN = config(
     'SERVICE_MONITOR_SUPERVISOR_GUNICORN', default='gunicorn,gunicorn_topteen,topteens_gunicorn'
 )
+# Installed-mode (systemd) unit names — first loaded unit wins. Production www uses topteen-in-prod-website.
+SERVICE_MONITOR_SYSTEMD_GUNICORN = config(
+    'SERVICE_MONITOR_SYSTEMD_GUNICORN',
+    default='topteen-in-prod-website,topteen-new-website,gunicorn-topteens',
+)
+SERVICE_MONITOR_SYSTEMD_CELERY = config(
+    'SERVICE_MONITOR_SYSTEMD_CELERY',
+    default='celery,celery-worker,topteen-celery,celery_worker',
+)
+SERVICE_MONITOR_SYSTEMD_REDIS = config(
+    'SERVICE_MONITOR_SYSTEMD_REDIS',
+    default='redis-server,redis',
+)
+# Prefix control commands with `sudo -n` (passwordless). Set False if the app user can restart directly.
+SERVICE_MONITOR_CONTROL_USE_SUDO = config('SERVICE_MONITOR_CONTROL_USE_SUDO', default=True, cast=bool)
 
 # User analytics: set False in .env to disable all tracking (debugging / manual data clean)
 ENABLE_USER_ANALYTICS_TRACKING = config('ENABLE_USER_ANALYTICS_TRACKING', default=True, cast=bool)

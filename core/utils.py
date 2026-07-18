@@ -110,6 +110,38 @@ def save_user_pdf(user_id, filename, content):
         return None
 
 
+def class10_assessment_pdf_filename(user, test_paper):
+    """Stable PDF filename used by Class 10 download_pdf / Celery generation."""
+    raw_name = getattr(user, 'name', None) or getattr(user, 'email', None) or str(user)
+    safe_name = re.sub(r'[^\w\s-]', '', str(raw_name)).strip()[:50] or 'user'
+    if test_paper == 'test1':
+        return f"{safe_name}-Personality_Assessment_report.pdf"
+    if test_paper == 'test2':
+        return f"{safe_name}-Interest_Assessment_report.pdf"
+    if test_paper == 'test3':
+        return f"{safe_name}-Aptitude_Assessment_report.pdf"
+    return f"{safe_name}-Final_Assessment_report.pdf"
+
+
+def user_pdf_exists(user_id, filename):
+    """
+    True if a previously generated report PDF is already in media storage.
+    Best-effort: returns False on any storage error.
+    """
+    if not user_id or not filename:
+        return False
+    key = user_pdf_key(user_id, filename)
+    try:
+        return default_storage.exists(key)
+    except Exception as e:
+        logger.warning("user_pdf_exists failed for user_id=%s file=%s: %s", user_id, filename, e)
+        return False
+
+
+def class10_pdf_lock_key(user_id, test_paper):
+    return f"class10_pdf_gen:{user_id}:{test_paper}"
+
+
 def sort_colleges(colleges,request):
     return colleges
 

@@ -49,6 +49,20 @@
       </ul>
       {% endif %}
     </li>
+
+    <li class="tt-sidebar-nav__item{% if '/user-analytics/web-owner/services/' in request.path %} is-active{% endif %}">
+      <a href="{% url 'user_analytics:web_owner_services_monitor' %}" data-sidebar-nav="services">
+        <span class="tt-sidebar-nav__icon" aria-hidden="true">⏻</span>
+        {% translate 'Service monitor' %}
+      </a>
+    </li>
+
+    <li class="tt-sidebar-nav__item{% if '/seo-dashboard/' in request.path %} is-active{% endif %}">
+      <a href="{% url 'seo_dashboard:dashboard' %}" data-sidebar-nav="clear-cache">
+        <span class="tt-sidebar-nav__icon" aria-hidden="true">⟳</span>
+        {% translate 'Clear cache' %}
+      </a>
+    </li>
   </ul>
 
   {% if sidebar_you_are_here %}

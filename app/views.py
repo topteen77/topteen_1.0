@@ -1,7 +1,12 @@
 import time
 from django.shortcuts import redirect, render
 from core.breadcrumbs import get_breadcrumb
-from core.utils import ensure_user_pdf_folder, save_user_pdf
+from core.utils import (
+    class10_assessment_pdf_filename,
+    ensure_user_pdf_folder,
+    save_user_pdf,
+    user_pdf_exists,
+)
 from django.http import HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 from .forms import UploadFileForm
@@ -2450,6 +2455,20 @@ def submit_clicks(request):
             test_completion, _ = TestCompletion.objects.get_or_create(user=request.user)
             test_completion.test2_complete = True
             test_completion.save(update_fields=['test2_complete'])
+
+            # Generate Interest Assessment PDF in background (avoids blocking under load).
+            try:
+                from app.task import enqueue_class10_assessment_pdf
+                enqueue_class10_assessment_pdf(
+                    request.user.id,
+                    'test2',
+                    request.build_absolute_uri('/'),
+                )
+            except Exception:
+                logger.exception(
+                    "submit_clicks: failed to enqueue test2 PDF for user_id=%s",
+                    getattr(request.user, 'id', None),
+                )
             
             return JsonResponse({'message': 'Success'}, status=200)
         except json.JSONDecodeError:
@@ -2767,18 +2786,54 @@ def gernate_graph(request):
     return below, avg, above_avg, personality, min_length, max_length
      
 
-def download_pdf(request,test_paper):
+def download_pdf(request, test_paper, _sync_generate=False):
+    """
+    Class 10 assessment PDF entrypoint.
+
+    Under normal web/Locust traffic WeasyPrint runs in Celery. Pass
+    ``_sync_generate=True`` only from the Celery worker (or Celery-disabled fallback).
+    """
     if request.method == 'POST':
-        test_paper = request.POST.get('test_paper')
-        questions = Question.objects.filter(test_paper=test_paper)      
+        test_paper = request.POST.get('test_paper') or test_paper
+        questions = Question.objects.filter(test_paper=test_paper)
 
         if not questions:
             return HttpResponse("No questions found for this test.", status=404)
-        
+
+    # Fast path: PDF already stored — do not regenerate on the web worker.
+    try:
+        existing_name = class10_assessment_pdf_filename(request.user, test_paper)
+        if user_pdf_exists(request.user.id, existing_name):
+            return redirect('app:app_submit')
+    except Exception:
+        logger.exception(
+            "download_pdf: exists-check failed user_id=%s test_paper=%s",
+            getattr(request.user, 'id', None),
+            test_paper,
+        )
+
+    # Prefer background generation so concurrent downloads do not saturate Gunicorn.
+    if not _sync_generate:
+        try:
+            from app.task import enqueue_class10_assessment_pdf
+            if enqueue_class10_assessment_pdf(
+                request.user.id,
+                test_paper,
+                request.build_absolute_uri('/'),
+            ):
+                return redirect('app:app_submit')
+        except Exception:
+            logger.exception(
+                "download_pdf: enqueue failed user_id=%s test_paper=%s; falling back to sync",
+                getattr(request.user, 'id', None),
+                test_paper,
+            )
+
     top_3_categories = ""
     top_categories = []
     questions= Question.objects.all()
-    
+    score = 0
+
     if questions is not None:
         test1_result = Results.objects.get(user = request.user, test_paper='test1')
         sorted_results = sorted(test1_result.results.items(), key=lambda x: x[1], reverse=True)
@@ -2941,18 +2996,7 @@ def download_pdf(request,test_paper):
                 # Restore original SSL context
                 ssl._create_default_https_context = original_ssl_context
             response = HttpResponse(content_type='application/pdf')
-            # Safe filename for Gmail/email usernames (no @, . or other chars that break on some filesystems)
-            raw_name = getattr(request.user, 'name', None) or getattr(request.user, 'email', None) or str(request.user)
-            safe_name = re.sub(r'[^\w\s-]', '', str(raw_name)).strip()[:50] or 'user'
-            # Define the filename based on the test_paper value
-            if test_paper == 'test1':
-                filename = f"{safe_name}-Personality_Assessment_report.pdf"
-            elif test_paper == 'test2':
-                filename = f"{safe_name}-Interest_Assessment_report.pdf"
-            elif test_paper == 'test3':
-                filename = f"{safe_name}-Aptitude_Assessment_report.pdf"
-            else:
-                filename = f"{safe_name}-Final_Assessment_report.pdf"
+            filename = class10_assessment_pdf_filename(request.user, test_paper)
 
             # Persist the generated PDF to media storage (S3 when enabled).
             if not save_user_pdf(request.user.id, filename, pdf_file):

@@ -28,6 +28,11 @@ urlpatterns = [
     # Web Owner Dashboard
     path('web-owner/', views.web_owner_dashboard, name='web_owner_dashboard'),
     path('web-owner/services/', views.web_owner_services_monitor, name='web_owner_services_monitor'),
+    path(
+        'web-owner/services/<slug:service_key>/<slug:action>/',
+        views.web_owner_service_action,
+        name='web_owner_service_action',
+    ),
     path('web-owner/services/test-email/', views.web_owner_service_test_email, name='web_owner_service_test_email'),
     path(
         'web-owner/services/send-daily-new-user-report/',
