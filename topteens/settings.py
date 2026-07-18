@@ -1024,13 +1024,13 @@ DEFAULT_DIRECT_INSTITUTE_MARKETING_ADMIN_USER_ID = config(
 )
 
 # Production indexing. Override with ALLOW_SEARCH_ENGINE_INDEX=true in .env when needed.
-ALLOW_SEARCH_ENGINE_INDEX = config(
-    'ALLOW_SEARCH_ENGINE_INDEX',
-    default=(ENVIRONMENT == 'production'),
-    cast=bool,
-)
+# ALLOW_SEARCH_ENGINE_INDEX = config(
+#     'ALLOW_SEARCH_ENGINE_INDEX',
+#     default=(ENVIRONMENT == 'production'),
+#     cast=bool,
+# )
 # demo.topteen.in / localhost: allow index for Lighthouse QA (robots.txt + meta robots).
-ALLOW_DEMO_SEARCH_INDEX = config('ALLOW_DEMO_SEARCH_INDEX', default=True, cast=bool)
+ALLOW_DEMO_SEARCH_INDEX = config('ALLOW_DEMO_SEARCH_INDEX', default=False, cast=bool)
 WEBADMINEMAIL = config('WEBADMINEMAIL', default='')
 # Daily new user report schedule: core.Configuration key DAILY_USER_REPORT_TIME (HH:MM, 24h, IST).
 # Celery Beat uses CELERY_TIMEZONE (default Asia/Kolkata). Edit in Service monitor or Admin → Configuration.

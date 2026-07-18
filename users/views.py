@@ -583,7 +583,7 @@ class LoginView(TemplateView):
         else:
             ctx['login_embed_heading'] = None
             ctx['login_embed_subtitle'] = None
-        # Demo accounts for all roles; pass URL and CSRF so template works with Jinja2 and Django
+        # Demo accounts: never on ENVIRONMENT=production; gated elsewhere via Configuration.
         from .demo_accounts import get_demo_login_context
         ctx.update(get_demo_login_context(request))
         ctx['show_demo_credentials'] = False
@@ -669,8 +669,17 @@ class DemoLoginView(View):
         return redirect(redirect_url)
 
     def post(self, request):
+        from .demo_accounts import should_show_demo_accounts
+
         token = (request.POST.get('token') or '').strip()
         fallback = self._login_fallback_path(request)
+        if not should_show_demo_accounts():
+            return self._ajax_or_redirect(
+                request,
+                fallback,
+                success=False,
+                message='Demo login is disabled in this environment.',
+            )
         if not token:
             return self._ajax_or_redirect(
                 request, fallback, success=False, message='Invalid demo login request.'
@@ -721,24 +730,12 @@ class StudentLoginView(LoginView):
 
     def get_context(self, request, enc_id=None, *args, **kwargs):
         ctx = super().get_context(request, enc_id, *args, **kwargs)
-        # Demo accounts toggle (controlled by existing Core Configuration keys)
-        try:
-            from core.models import Configuration
-            from django.conf import settings
-            env = str(getattr(settings, "ENVIRONMENT", "") or "").strip().lower()
-            is_production = (env == "production") if env else (not bool(getattr(settings, "DEBUG", False)))
-            key = "SHOW_DEMO_ACCOUNT_ON_PRODUCTION" if is_production else "SHOW_DEMO_ACCOUNT_ON_DEVELOPMENT"
-            show_demo = str(Configuration.get(key, default="false", editable=True)).lower() in ("true", "1", "yes", "on")
-        except Exception:
-            show_demo = False
+        from .demo_accounts import get_demo_login_context, empty_demo_login_context, should_show_demo_accounts
 
-        if show_demo:
-            from .demo_accounts import get_demo_login_context
+        if should_show_demo_accounts():
             ctx.update(get_demo_login_context(request, user_types=[choices.UserType.STUDENT]))
         else:
-            ctx["demo_accounts"] = []
-            ctx["demo_login_url"] = ""
-            ctx["demo_csrf_token"] = ""
+            ctx.update(empty_demo_login_context())
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -775,24 +772,12 @@ class ParentsLoginView(LoginView):
 
     def get_context(self, request, enc_id=None, *args, **kwargs):
         ctx = super().get_context(request, enc_id, *args, **kwargs)
-        # Demo accounts toggle (controlled by existing Core Configuration keys)
-        try:
-            from core.models import Configuration
-            from django.conf import settings
-            env = str(getattr(settings, "ENVIRONMENT", "") or "").strip().lower()
-            is_production = (env == "production") if env else (not bool(getattr(settings, "DEBUG", False)))
-            key = "SHOW_DEMO_ACCOUNT_ON_PRODUCTION" if is_production else "SHOW_DEMO_ACCOUNT_ON_DEVELOPMENT"
-            show_demo = str(Configuration.get(key, default="false", editable=True)).lower() in ("true", "1", "yes", "on")
-        except Exception:
-            show_demo = False
+        from .demo_accounts import get_demo_login_context, empty_demo_login_context, should_show_demo_accounts
 
-        if show_demo:
-            from .demo_accounts import get_demo_login_context
+        if should_show_demo_accounts():
             ctx.update(get_demo_login_context(request, user_types=[choices.UserType.PARENT]))
         else:
-            ctx["demo_accounts"] = []
-            ctx["demo_login_url"] = ""
-            ctx["demo_csrf_token"] = ""
+            ctx.update(empty_demo_login_context())
         return ctx
 
     def get(self, request, *args, **kwargs):
