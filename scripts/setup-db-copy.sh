@@ -16,4 +16,4 @@ mysqldump -h 127.0.0.1 -P 3306 -u root12 -proot12 \
 
 echo "[setup] Deploy with DB_MODE=local and MYSQL_DATA_PATH=dbdata_topteens"
 echo "[setup] After deploy, restore: docker exec -i topteens-mysql-1 mysql -u root12 -proot12 topteen12-dev < topteen_dump.sql"
-echo "[setup] Done. Run: ./deploy.sh deploy"
+echo "[setup] Done. Run: ./docker_files/deploy.sh up"

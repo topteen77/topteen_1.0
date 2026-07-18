@@ -73,6 +73,6 @@ chmod 644 "$SSL_CERT_PATH/cert.pem"
 chmod 600 "$SSL_CERT_PATH/key.pem"
 
 echo "[letsencrypt] Certificate installed to $SSL_CERT_PATH (cert.pem, key.pem)"
-echo "[letsencrypt] Reload nginx to enable HTTPS: cd docker && docker compose -f docker-compose.yml exec nginx nginx -s reload"
-echo "             Or restart stack: ./deploy.sh stop && ./deploy.sh deploy"
+echo "[letsencrypt] Reload nginx to enable HTTPS: ./docker_files/deploy.sh restart"
+echo "             Or restart stack: ./docker_files/deploy.sh down && ./docker_files/deploy.sh up"
 echo "[letsencrypt] Renew before expiry: run this script again, or add certbot renew to cron."

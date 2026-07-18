@@ -209,7 +209,9 @@ CORS_ALLOW_CREDENTIALS = True # If needed for cookies or auth
 ENVIRONMENT = config('ENVIRONMENT', default='production')
 TOPTEEN_SITE_URL = config('TOPTEEN_SITE_URL', default='https://www.topteen.in')
 USE_HTTPS = config('USE_HTTPS', default=False, cast=bool)
-SECURE_SSL_REDIRECT = USE_HTTPS
+# Allow HTTP+HTTPS dual access on custom ports (e.g. :8005 and :8443) without
+# redirecting http://IP:8005 -> https://IP/ (missing port = blank page).
+SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=USE_HTTPS, cast=bool)
 SESSION_COOKIE_SECURE = USE_HTTPS
 CSRF_COOKIE_SECURE = USE_HTTPS
 # Keep users signed in during normal browsing (avoid mobile browser clearing session cookies).

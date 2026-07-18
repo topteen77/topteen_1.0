@@ -2,7 +2,7 @@
 # Test a reverted version (previous git commit or Docker image)
 # Usage:
 #   ./scripts/test-reverted-version.sh git [commit]   - checkout commit, rebuild, run
-#   ./scripts/test-reverted-version.sh docker         - rollback to :previous image
+#   ./scripts/test-reverted-version.sh docker         - restart stack with current images
 
 set -e
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -16,19 +16,18 @@ case "${1:-}" in
     echo "[test-revert] Checking out $COMMIT..."
     git checkout "$COMMIT" -- .
     echo "[test-revert] Rebuilding Docker images..."
-    docker compose -f docker-compose.yml -f docker-compose.db-external.yml build --no-cache web 2>/dev/null || \
-    docker compose -f docker-compose.yml build --no-cache web 2>/dev/null || true
-    echo "[test-revert] Run: ./deploy.sh deploy  (or docker compose up -d)"
+    ./docker_files/deploy.sh build
+    echo "[test-revert] Run: ./docker_files/deploy.sh up"
     echo "[test-revert] To restore: git checkout master -- . && git stash pop"
     ;;
   docker)
-    echo "[test-revert] Rolling back to :previous image..."
-    ./deploy.sh rollback
+    echo "[test-revert] Restarting stack with current images..."
+    ./docker_files/deploy.sh restart
     ;;
   *)
     echo "Usage: $0 {git [commit]|docker}"
     echo "  git [commit]  - Revert code to commit (default: HEAD~1), rebuild"
-    echo "  docker        - Rollback to topteens-web:previous image"
+    echo "  docker        - Restart docker_files stack"
     exit 1
     ;;
 esac
