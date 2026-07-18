@@ -28,11 +28,6 @@ urlpatterns = [
     # Web Owner Dashboard
     path('web-owner/', views.web_owner_dashboard, name='web_owner_dashboard'),
     path('web-owner/services/', views.web_owner_services_monitor, name='web_owner_services_monitor'),
-    path(
-        'web-owner/services/<slug:service_key>/<slug:action>/',
-        views.web_owner_service_action,
-        name='web_owner_service_action',
-    ),
     path('web-owner/services/test-email/', views.web_owner_service_test_email, name='web_owner_service_test_email'),
     path(
         'web-owner/services/send-daily-new-user-report/',
@@ -58,6 +53,17 @@ urlpatterns = [
         'web-owner/services/celery/revoke-all/',
         views.web_owner_revoke_all_celery_tasks,
         name='web_owner_revoke_all_celery_tasks',
+    ),
+    path(
+        'web-owner/services/<slug:service_key>/process/',
+        views.web_owner_service_process_action,
+        name='web_owner_service_process_action',
+    ),
+    # After fixed routes: per-service restart / list / error / log (docker | systemd | supervisor)
+    path(
+        'web-owner/services/<slug:service_key>/<slug:action>/',
+        views.web_owner_service_action,
+        name='web_owner_service_action',
     ),
     path('web-owner/email-logs/', views.web_owner_email_logs, name='web_owner_email_logs'),
     

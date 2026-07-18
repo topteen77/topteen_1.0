@@ -33,6 +33,7 @@ from notifications.services import (
     revoke_celery_task,
     revoke_celery_tasks,
     run_service_monitor_action,
+    run_service_process_action,
 )
 from topteens.email_logging import format_ts_for_display, get_email_send_log_path, load_email_log_entries_newest_first
 
@@ -1444,6 +1445,38 @@ def web_owner_service_action(request, service_key, action):
         'service_key': service_key,
         'action': action,
         'control_label': (result.get('control') or {}).get('label') or '',
+    }
+    if result.get('ok'):
+        messages.success(request, result.get('message') or f'{action} ok')
+    else:
+        messages.warning(request, result.get('message') or f'{action} failed')
+    return redirect(redirect_url)
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+@require_POST
+def web_owner_service_process_action(request, service_key):
+    """Stop or restart a single PID or Docker container from the process tables."""
+    service_key = (service_key or '').strip().lower()
+    action = (request.POST.get('action') or '').strip().lower()
+    kind = (request.POST.get('kind') or '').strip().lower()
+    target = (request.POST.get('target') or '').strip()
+    anchor = f'#service-{service_key}'
+    redirect_url = reverse('user_analytics:web_owner_services_monitor') + anchor
+
+    if service_key not in SERVICE_MONITOR_CONTROLLABLE_KEYS:
+        messages.error(request, 'Unknown service.')
+        return redirect('user_analytics:web_owner_services_monitor')
+
+    result = run_service_process_action(service_key, action, kind, target)
+    request.session['service_monitor_action_result'] = {
+        'ok': bool(result.get('ok')),
+        'message': result.get('message') or '',
+        'output': result.get('output') or '',
+        'service_key': service_key,
+        'action': action,
+        'control_label': f'{kind}:{target}',
     }
     if result.get('ok'):
         messages.success(request, result.get('message') or f'{action} ok')
