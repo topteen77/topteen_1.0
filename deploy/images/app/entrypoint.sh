@@ -21,10 +21,10 @@ if [ "$#" -gt 0 ]; then
   exec "$@"
 fi
 
-echo "[entrypoint] Starting gunicorn (workers=${GUNICORN_WORKERS:-3} threads=${GUNICORN_THREADS:-4})..."
+echo "[entrypoint] Starting gunicorn (workers=${GUNICORN_WORKERS:-8} threads=${GUNICORN_THREADS:-4})..."
 exec gunicorn topteens.wsgi:application \
   --bind 0.0.0.0:8000 \
-  --workers "${GUNICORN_WORKERS:-3}" \
+  --workers "${GUNICORN_WORKERS:-8}" \
   --worker-class gthread \
   --threads "${GUNICORN_THREADS:-4}" \
   --max-requests 2000 \

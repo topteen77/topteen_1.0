@@ -3699,11 +3699,14 @@ class UserDashboard(TemplateView):
         if ctx.get('test_name') == 'Career Direction' and ctx.get('test_dashboard_url'):
             try:
                 from app_post_matric.models import TestSession
-                test1_completed = TestSession.objects.filter(user=profile_user, test__id=1, is_completed=True).exists()
-                test2_completed = TestSession.objects.filter(user=profile_user, test__id=2, is_completed=True).exists()
-                test3_completed = TestSession.objects.filter(user=profile_user, test__id=3, is_completed=True).exists()
-                test4_completed = TestSession.objects.filter(user=profile_user, test__id=4, is_completed=True).exists()
-                if test1_completed and test2_completed and test3_completed and test4_completed:
+                done_ids = set(
+                    TestSession.objects.filter(
+                        user=profile_user,
+                        is_completed=True,
+                        test_id__in=[1, 2, 3, 4],
+                    ).values_list('test_id', flat=True).distinct()
+                )
+                if {1, 2, 3, 4}.issubset(done_ids):
                     combined_report_url = reverse('post_matric:combined_report', kwargs={'user_id': profile_user.id})
                     ctx['combined_report_url'] = combined_report_url
                     ctx['test_dashboard_url'] = combined_report_url
