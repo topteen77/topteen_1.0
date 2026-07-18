@@ -331,21 +331,29 @@
         </div>
         {% if row.key == 'celery' %}
         <div class="col-12 mt-2">
-          <div class="border rounded p-3">
+          <div class="border rounded p-3" id="celery-tasks-panel"
+               data-open-tasks="{{ row.open_tasks or 0 }}"
+               data-tasks-url="{{ url('user_analytics:web_owner_celery_tasks_json') }}"
+               data-revoke-url="{{ url('user_analytics:web_owner_revoke_celery_task') }}">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
               <h6 class="mb-0">Running / queued tasks</h6>
-              <div class="d-flex flex-wrap gap-2">
-                <a class="btn btn-sm btn-outline-secondary" href="{{ request.path }}#service-celery">Refresh</a>
-                {% if row.task_rows %}
-                <form method="post" action="{{ url('user_analytics:web_owner_revoke_all_celery_tasks') }}" class="d-inline"
+              <div class="d-flex flex-wrap gap-2 align-items-center">
+                <span id="celery-tasks-auto-badge" class="small text-muted{% if not row.open_tasks %} d-none{% endif %}">Auto-refresh on</span>
+                <a class="btn btn-sm btn-outline-secondary" href="{{ request.path }}#service-celery" id="celery-tasks-refresh-btn">Refresh</a>
+                <form method="post" action="{{ url('user_analytics:web_owner_revoke_all_celery_tasks') }}" class="d-inline{% if not row.task_rows %} d-none{% endif %}" id="celery-tasks-stop-all-form"
                       onsubmit="return confirm('Stop ALL open Celery tasks listed below? Active workers will be interrupted.');">
                   {{ csrf_input_tag()|safe }}
                   <button type="submit" class="btn btn-sm btn-outline-danger">Stop all open</button>
                 </form>
-                {% endif %}
               </div>
             </div>
-            <p class="small text-muted mb-2">Live snapshot from Celery inspect (active + reserved + scheduled). Use Stop to revoke/terminate a task. Periodic beat jobs may be re-queued later.</p>
+            <p class="small text-muted mb-2">
+              Live snapshot from Celery inspect (active + reserved + scheduled).
+              Workers up: <strong id="celery-tasks-workers">{{ row.workers_up or 0 }}</strong> ·
+              Open: <strong id="celery-tasks-open">{{ row.open_tasks or 0 }}</strong>.
+              Use Stop to revoke/terminate a task. Periodic beat jobs may be re-queued later.
+            </p>
+            <div id="celery-tasks-body">
             {% if row.task_rows %}
             <div class="table-responsive">
               <table class="table table-sm table-bordered mb-0 align-middle" style="font-size: 12px;">
@@ -360,7 +368,7 @@
                     <th style="width: 90px;">Action</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody id="celery-tasks-tbody">
                   {% for t in row.task_rows %}
                   <tr>
                     <td>
@@ -399,8 +407,9 @@
               </table>
             </div>
             {% else %}
-            <p class="text-muted small mb-0">No active, reserved, or scheduled tasks right now.</p>
+            <p class="text-muted small mb-0" id="celery-tasks-empty">No active, reserved, or scheduled tasks right now.</p>
             {% endif %}
+            </div>
           </div>
         </div>
         {% endif %}
@@ -508,6 +517,119 @@
         setFilter(btn.getAttribute('data-source'));
       });
     });
+  })();
+
+  (function () {
+    var panel = document.getElementById('celery-tasks-panel');
+    if (!panel) return;
+    var tasksUrl = panel.getAttribute('data-tasks-url');
+    var revokeUrl = panel.getAttribute('data-revoke-url');
+    var csrfInput = document.querySelector('input[name=csrfmiddlewaretoken]');
+    var csrf = csrfInput ? csrfInput.value : '';
+    var POLL_MS = 3500;
+    var timer = null;
+    var inFlight = false;
+    var hadOpen = parseInt(panel.getAttribute('data-open-tasks') || '0', 10) > 0;
+
+    function esc(s) {
+      var d = document.createElement('div');
+      d.textContent = s == null ? '' : String(s);
+      return d.innerHTML;
+    }
+
+    function stateBadge(state) {
+      if (state === 'active') {
+        return '<span class="badge bg-success-subtle text-success-emphasis">active</span>';
+      }
+      if (state === 'reserved') {
+        return '<span class="badge bg-warning-subtle text-warning-emphasis">reserved</span>';
+      }
+      return '<span class="badge bg-secondary-subtle">' + esc(state || '') + '</span>';
+    }
+
+    function render(data) {
+      var open = data.open_tasks || 0;
+      var workersEl = document.getElementById('celery-tasks-workers');
+      var openEl = document.getElementById('celery-tasks-open');
+      var badge = document.getElementById('celery-tasks-auto-badge');
+      var stopAll = document.getElementById('celery-tasks-stop-all-form');
+      var body = document.getElementById('celery-tasks-body');
+      if (workersEl) workersEl.textContent = String(data.workers_up || 0);
+      if (openEl) openEl.textContent = String(open);
+      panel.setAttribute('data-open-tasks', String(open));
+      if (badge) badge.classList.toggle('d-none', open <= 0);
+      if (stopAll) stopAll.classList.toggle('d-none', !(data.task_rows && data.task_rows.length));
+
+      if (!body) return;
+      var rows = data.task_rows || [];
+      if (!rows.length) {
+        body.innerHTML = '<p class="text-muted small mb-0" id="celery-tasks-empty">No active, reserved, or scheduled tasks right now.</p>';
+        scheduleNext(false);
+        return;
+      }
+      var html = '<div class="table-responsive"><table class="table table-sm table-bordered mb-0 align-middle" style="font-size: 12px;">' +
+        '<thead class="table-light"><tr>' +
+        '<th>State</th><th>Task</th><th>Task id</th><th>Worker</th><th>Started / ETA</th><th>Args</th><th style="width: 90px;">Action</th>' +
+        '</tr></thead><tbody id="celery-tasks-tbody">';
+      rows.forEach(function (t) {
+        var id = t.id || '';
+        var name = t.name || '';
+        var state = t.state || '';
+        var args = esc(t.args || '');
+        if (t.kwargs && t.kwargs !== '{}') {
+          args += '<br>' + esc(t.kwargs);
+        }
+        var action = '—';
+        if (id) {
+          action = '<form method="post" action="' + esc(revokeUrl) + '" class="d-inline"' +
+            ' onsubmit="return confirm(' + JSON.stringify('Stop this Celery task?\n' + name + '\n' + id) + ');">' +
+            '<input type="hidden" name="csrfmiddlewaretoken" value="' + esc(csrf) + '">' +
+            '<input type="hidden" name="task_id" value="' + esc(id) + '">' +
+            '<input type="hidden" name="task_name" value="' + esc(name) + '">' +
+            '<input type="hidden" name="state" value="' + esc(state) + '">' +
+            '<button type="submit" class="btn btn-sm btn-outline-danger">Stop</button></form>';
+        }
+        html += '<tr><td>' + stateBadge(state) + '</td>' +
+          '<td class="text-break"><code>' + esc(name) + '</code></td>' +
+          '<td class="text-break"><code>' + esc(id || '—') + '</code></td>' +
+          '<td class="text-break small">' + esc(t.worker || '') + '</td>' +
+          '<td class="text-nowrap small">' + esc(t.started || t.eta || '—') + '</td>' +
+          '<td class="text-break small text-muted">' + args + '</td>' +
+          '<td>' + action + '</td></tr>';
+      });
+      html += '</tbody></table></div>';
+      body.innerHTML = html;
+      scheduleNext(true);
+    }
+
+    function scheduleNext(keepGoing) {
+      if (timer) clearTimeout(timer);
+      timer = null;
+      if (keepGoing) timer = setTimeout(poll, POLL_MS);
+    }
+
+    function poll() {
+      if (inFlight || !tasksUrl) return;
+      inFlight = true;
+      fetch(tasksUrl, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+        .then(function (r) { if (!r.ok) throw new Error('status ' + r.status); return r.json(); })
+        .then(render)
+        .catch(function () { scheduleNext(true); })
+        .finally(function () { inFlight = false; });
+    }
+
+    var refreshBtn = document.getElementById('celery-tasks-refresh-btn');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        poll();
+      });
+    }
+
+    // Auto-poll while tasks are open; also poll once on load if hash is celery.
+    if (hadOpen || (window.location.hash || '') === '#service-celery') {
+      scheduleNext(true);
+    }
   })();
 </script>
 {% endblock %}

@@ -325,8 +325,59 @@ class DemoDatasetConfigAdmin(admin.ModelAdmin):
                 self.admin_site.admin_view(self.revoke_all_celery_tasks_view),
                 name="demo_data_celery_revoke_all",
             ),
+            path(
+                "status_json/",
+                self.admin_site.admin_view(self.job_status_json_view),
+                name="demo_data_status_json",
+            ),
         ]
         return custom + urls
+
+    def job_status_json_view(self, request):
+        """JSON snapshot for auto-refresh of job status + Celery open tasks."""
+        from django.http import JsonResponse
+
+        if not request.user.is_staff:
+            from django.core.exceptions import PermissionDenied
+
+            raise PermissionDenied
+
+        # Keep orphaned Queued/Running markers in sync while polling.
+        reconcile_stale_demo_job()
+        config = DemoDatasetConfig.get_singleton()
+        celery_diag = get_celery_open_tasks()
+        return JsonResponse(
+            {
+                "job_in_progress": config.job_in_progress(),
+                "last_job_status": config.last_job_status or "",
+                "last_job_status_label": dict(DemoJobStatus.CHOICES).get(
+                    config.last_job_status, config.last_job_status or "Idle"
+                ),
+                "last_job_action_label": DemoJobAction.LABELS.get(
+                    config.last_job_action, config.last_job_action or "—"
+                ),
+                "last_job_message": config.last_job_message or "",
+                "last_job_task_id": config.last_job_task_id or "",
+                "last_job_started_at": (
+                    config.last_job_started_at.isoformat(sep=" ", timespec="seconds")
+                    if config.last_job_started_at
+                    else ""
+                ),
+                "last_job_finished_at": (
+                    config.last_job_finished_at.isoformat(sep=" ", timespec="seconds")
+                    if config.last_job_finished_at
+                    else ""
+                ),
+                "live_demo_student_count": len(
+                    list(getattr(config, "student_user_ids", []) or [])
+                ),
+                "celery_workers_up": celery_diag.get("workers_up") or 0,
+                "celery_open_tasks": celery_diag.get("open_tasks") or 0,
+                "celery_inspect_ok": bool(celery_diag.get("inspect_ok")),
+                "celery_inspect_error": celery_diag.get("inspect_error") or "",
+                "celery_task_rows": celery_diag.get("task_rows") or [],
+            }
+        )
 
     def _maybe_mark_demo_job_cancelled(self, task_id, reason="Cancelled from admin."):
         """If the revoked id matches the tracked demo job, clear the in-progress marker."""

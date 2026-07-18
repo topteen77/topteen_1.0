@@ -55,6 +55,11 @@ urlpatterns = [
         name='web_owner_revoke_all_celery_tasks',
     ),
     path(
+        'web-owner/services/celery/tasks/',
+        views.web_owner_celery_tasks_json,
+        name='web_owner_celery_tasks_json',
+    ),
+    path(
         'web-owner/services/<slug:service_key>/process/',
         views.web_owner_service_process_action,
         name='web_owner_service_process_action',

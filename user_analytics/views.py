@@ -29,6 +29,7 @@ from notifications.services import (
     SERVICE_MONITOR_ACTIONS,
     SERVICE_MONITOR_CONTROLLABLE_KEYS,
     clear_service_monitor_tail_logs,
+    get_celery_open_tasks,
     get_runtime_service_status,
     revoke_celery_task,
     revoke_celery_tasks,
@@ -1604,6 +1605,26 @@ def web_owner_daily_report_schedule(request):
         'Restart the Celery beat process for the change to apply.',
     )
     return redirect('user_analytics:web_owner_services_monitor')
+
+
+@login_required
+@user_passes_test(is_staff_or_superuser)
+@require_GET
+def web_owner_celery_tasks_json(request):
+    """JSON snapshot of Celery open tasks for Service monitor auto-refresh."""
+    diag = get_celery_open_tasks()
+    return JsonResponse(
+        {
+            'workers_up': diag.get('workers_up') or 0,
+            'open_tasks': diag.get('open_tasks') or 0,
+            'active_tasks': diag.get('active_tasks') or 0,
+            'reserved_tasks': diag.get('reserved_tasks') or 0,
+            'scheduled_tasks': diag.get('scheduled_tasks') or 0,
+            'inspect_ok': bool(diag.get('inspect_ok')),
+            'inspect_error': diag.get('inspect_error') or '',
+            'task_rows': diag.get('task_rows') or [],
+        }
+    )
 
 
 @login_required
