@@ -187,6 +187,8 @@ MIDDLEWARE = [
     'core.indexing_middleware.URLIndexingMiddleware',  # Add X-Robots-Tag for admin-blocked URL patterns
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # AJAX: return 401 JSON instead of redirecting XHR to login page HTML (v2 dashboards)
+    'core.ajax_auth_middleware.AjaxAuthRedirectMiddleware',
     # After auth: slide session expiry for logged-in users when SAVE_EVERY_REQUEST is False
     'topteens.custome_middleware.SlideSessionForAuthenticatedMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',

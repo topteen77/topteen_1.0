@@ -269,6 +269,7 @@
       popup.setAttribute('aria-hidden', 'true');
     }
     if (typeof window.studentPopupReset === 'function') window.studentPopupReset();
+    if (typeof window.ttv2ClearLoginPromptFlag === 'function') window.ttv2ClearLoginPromptFlag();
   };
 
   var urls = STUDENT_POPUP_URLS;
@@ -337,6 +338,10 @@
     closeLoginRequiredPopup();
     var url = (redirectUrl && String(redirectUrl).trim()) || window.studentLoginNextUrl || '';
     window.studentLoginNextUrl = '';
+    if (document.body && document.body.classList.contains('ttv2-shell')) {
+      window.location.reload();
+      return;
+    }
     if (url) {
       window.location.href = url;
     } else {

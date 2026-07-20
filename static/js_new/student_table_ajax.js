@@ -101,18 +101,30 @@ function loadStudentsTable(url, options = {}) {
 
   console.log('Loading students from:', ajaxUrl);
 
-  fetch(ajaxUrl, {
-    headers: {
-      'X-Requested-With': 'XMLHttpRequest',
-    }
-  })
+  const fetchOpts = (typeof window.ttv2AjaxFetchOptions === 'function')
+    ? window.ttv2AjaxFetchOptions()
+    : { headers: { 'X-Requested-With': 'XMLHttpRequest' }, redirect: 'manual', credentials: 'same-origin' };
+
+  fetch(ajaxUrl, fetchOpts)
     .then(response => {
+      if (typeof window.ttv2HandleAuthResponse === 'function' && window.ttv2HandleAuthResponse(response)) {
+        if (loader) loader.style.display = 'none';
+        if (config.onError) config.onError('session_expired');
+        return null;
+      }
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       return response.text();
     })
     .then(html => {
+      if (!html) return;
+      if (typeof window.ttv2IsLoginPageHtml === 'function' && window.ttv2IsLoginPageHtml(html)) {
+        if (loader) loader.style.display = 'none';
+        if (typeof window.ttv2PromptLogin === 'function') window.ttv2PromptLogin();
+        if (config.onError) config.onError('session_expired');
+        return;
+      }
       // Hide loader
       if (loader) loader.style.display = 'none';
 

@@ -624,6 +624,7 @@ body.ttv2-shell .ttv2-topbar-pay-now {
   })();
 </script>
 
+<script src="{{ staticv('js_new/ttv2_auth.js') }}"></script>
 <script>
   // Shared: AJAX page navigation into #ttv2AjaxContent (PJAX-style).
   // - Sidebar links are real URLs (so refresh/deeplink works)
@@ -846,9 +847,26 @@ body.ttv2-shell .ttv2-topbar-pay-now {
         }, 400);
       }
 
-      fetch(u.toString(), {headers: {'X-Requested-With': 'XMLHttpRequest'}})
-        .then(function(r){ return r.text(); })
+      fetch(u.toString(), (typeof window.ttv2AjaxFetchOptions === 'function' ? window.ttv2AjaxFetchOptions() : {headers: {'X-Requested-With': 'XMLHttpRequest'}, redirect: 'manual', credentials: 'same-origin'}))
+        .then(function(r){
+          if (typeof window.ttv2HandleAuthResponse === 'function' && window.ttv2HandleAuthResponse(r)) {
+            clearTimers();
+            removeOverlay();
+            setBusy(host, false);
+            return null;
+          }
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.text();
+        })
         .then(function(html){
+          if (!html) return;
+          if (typeof window.ttv2IsLoginPageHtml === 'function' && window.ttv2IsLoginPageHtml(html)) {
+            clearTimers();
+            removeOverlay();
+            setBusy(host, false);
+            if (typeof window.ttv2PromptLogin === 'function') window.ttv2PromptLogin();
+            return;
+          }
           clearTimers();
           removeOverlay();
           host.innerHTML = html;
