@@ -126,9 +126,10 @@ jobs:
           upsert_env TEST_HTTP_PORT 8085
           upsert_env USE_HTTPS True
           upsert_env SECURE_SSL_REDIRECT True
+          upsert_env WEB_REPLICAS 1
           upsert_env COMPOSE_PROFILES ""
-          echo "[CI] Option A env: SSL_MODE=off APP_PORT=8090 (host TLS; not 8080)"
-          grep -E '^(SSL_MODE|APP_PORT|HTTPS_PORT|USE_HTTPS)=' docker_files/.env || true
+          echo "[CI] Option A env: SSL_MODE=off APP_PORT=8090 WEB_REPLICAS=1 (host TLS; not 8080)"
+          grep -E '^(SSL_MODE|APP_PORT|HTTPS_PORT|USE_HTTPS|WEB_REPLICAS)=' docker_files/.env || true
 
           export BUILD_PULL=1
           export PUSH_ON_SUCCESS=1
