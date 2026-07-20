@@ -929,17 +929,24 @@ npm run electron:build   # sync + desktop installer
 --- Git Version Release (v1.0) ---
 # How to create, tag, verify, and ship a versioned release from master.
 # Run all commands from the project root (git repo root).
-# Reference build notes: BUILD_NOTES_v1.0.txt
+# Reference build notes: BUILD_NOTES_v1.0.txt , BUILD_NOTES_v1.1.txt
 ===================================================
 
 ---------- OVERVIEW ----------
+# IMPORTANT: A git TAG is not the same as a GitHub RELEASE.
+#   - git tag / git push origin v1.0  -> appears under repo "Tags"
+#   - gh release create v1.0 ...      -> appears under repo "Releases"
+#   The Releases page stays empty until you run `gh release create` (or use
+#   the green "Create a new release" button on GitHub).
+#
 # Release model used for TopTeen 1.0:
 #   1. Stabilize code on master
 #   2. Add / update BUILD_NOTES_vX.Y.txt
 #   3. Commit release notes on master
 #   4. Create an annotated git tag (vX.Y)
 #   5. Push master + tags to origin
-#   6. Deploy from the tag (or from master at that commit)
+#   6. Create the GitHub Release from that tag (required for /releases page)
+#   7. Deploy from the tag (or from master at that commit)
 
 ---------- COMPLETE COMMANDS STEP BY STEP (v1.0) ----------
 
@@ -987,14 +994,24 @@ Step 7. Push master and the tag to origin:
    # Or push all tags:
    # git push origin --tags
 
-Step 8. Checkout / deploy from the release tag:
+Step 8. Create the GitHub Release (this is what fills the Releases page):
+   gh release create v1.0 \
+     --repo topteen77/topteen_1.0 \
+     --title "TopTeen v1.0" \
+     --notes-file BUILD_NOTES_v1.0.txt \
+     --target master
+   # Verify:
+   gh release view v1.0 --repo topteen77/topteen_1.0
+   # Browser: https://github.com/topteen77/topteen_1.0/releases/tag/v1.0
+
+Step 9. Checkout / deploy from the release tag:
    git fetch --tags
    git checkout v1.0
    # Deploy using your usual path, e.g.:
    # ./deploy/deploy.sh production status
    # ./deploy/deploy.sh production deploy
 
-Step 9. Return to development branch when done:
+Step 10. Return to development branch when done:
    git checkout master
    # or: git checkout institutedashboard
 
@@ -1021,7 +1038,21 @@ git tag -a v1.1 -m "TopTeen v1.1 release — see BUILD_NOTES_v1.1.txt"
 git push origin master
 git push origin v1.1
 
+# 5) GitHub Release (required for Releases tab)
+gh release create v1.1 \
+  --repo topteen77/topteen_1.0 \
+  --title "TopTeen v1.1" \
+  --notes-file BUILD_NOTES_v1.1.txt \
+  --target master
+
 ---------- USEFUL RELEASE COMMANDS (REFERENCE) ----------
+# List GitHub releases
+gh release list --repo topteen77/topteen_1.0
+
+# View / edit a release
+gh release view v1.0 --repo topteen77/topteen_1.0
+# gh release edit v1.0 --notes-file BUILD_NOTES_v1.0.txt
+
 # List all version tags
 git tag -l 'v*'
 
@@ -1056,6 +1087,7 @@ git tag -d v1.0
 # [ ] BUILD_NOTES_vX.Y.txt updated
 # [ ] Annotated tag created (git tag -a ...)
 # [ ] Tag and master pushed to origin
+# [ ] GitHub Release created (gh release create ...) — Releases page is not empty
 # [ ] Deploy / smoke-test from the tag
 # [ ] Announce release + point to BUILD_NOTES_vX.Y.txt
 

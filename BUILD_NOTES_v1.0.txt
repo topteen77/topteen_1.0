@@ -99,8 +99,8 @@ handover.
 ---------------------------------------------------
 10. KNOWN FOLLOW-UPS (NOT BLOCKING v1.0 TAG)
 ---------------------------------------------------
-- institutedashboard branch may contain commits ahead of this tag
-  (e.g. demo-account and extra speed fixes). Merge separately if needed.
+- Speed fixes + demo-account production gate shipped in v1.1
+  (see BUILD_NOTES_v1.1.txt).
 - Student import command (topteen12 → topteen12-old) still pending; see
   validation commands already documented in readme.txt.
 
