@@ -85,6 +85,7 @@ Usage: ./docker_files/deploy.sh <command> [args]
   reload-nginx    Reload nginx after editing ${DATA_ROOT}/nginx/conf
   reseed-nginx    Rewrite nginx conf from templates (SERVER_NAMES) + reload
   debug           Curl/nginx/web diagnostics (no host Python needed)
+  preflight       Check env, Docker, ports, Option A settings (no deploy)
 
   ssl status      Show cert paths / expiry
   ssl self-signed [domain]   Generate self-signed cert into ${DATA_ROOT}/nginx/ssl
@@ -249,6 +250,7 @@ prepare() {
   CERTBOT_EMAIL="$(read_env CERTBOT_EMAIL)"
   USE_HTTPS="$(read_env USE_HTTPS)"; USE_HTTPS="${USE_HTTPS:-False}"
   SECURE_SSL_REDIRECT="$(read_env SECURE_SSL_REDIRECT)"; SECURE_SSL_REDIRECT="${SECURE_SSL_REDIRECT:-$USE_HTTPS}"
+  WEB_REPLICAS="$(read_env WEB_REPLICAS)"; WEB_REPLICAS="${WEB_REPLICAS:-1}"
   # Prefer docker_files/.env, else repo-root .env
   if [ -z "$CERTBOT_EMAIL" ] && [ -f "$ROOT_ENV" ]; then
     CERTBOT_EMAIL="$(grep -E '^CERTBOT_EMAIL=' "$ROOT_ENV" 2>/dev/null | head -1 | cut -d= -f2- | sed 's/[[:space:]]*$//' || true)"
@@ -495,8 +497,157 @@ ensure_ssl_on_up() {
   esac
 }
 
+# Port is free OR already bound by our project nginx container
+_port_ok_for_us() {
+  local port="$1"
+  local listeners
+  if ! command -v ss >/dev/null 2>&1; then
+    return 0
+  fi
+  listeners="$(ss -ltnH "sport = :${port}" 2>/dev/null || true)"
+  if [ -z "$listeners" ]; then
+    return 0
+  fi
+  if $DOCKER ps --format '{{.Names}} {{.Ports}}' 2>/dev/null | grep -q "topteen-topteen10-nginx.*:${port}->"; then
+    return 0
+  fi
+  return 1
+}
+
+do_preflight() {
+  local fails=0 warns=0
+  local root_keys key p
+
+  log "============================================================"
+  log "  Preflight checks (Option A / production Docker)"
+  log "============================================================"
+
+  if [ -f "$ENV_FILE" ]; then
+    log "OK  docker_files/.env present"
+  else
+    err "FAIL docker_files/.env missing (cp docker_files/env.example docker_files/.env)"
+    fails=$((fails + 1))
+  fi
+  if [ -f "$ROOT_ENV" ]; then
+    log "OK  repo-root .env present ($ROOT_ENV)"
+  else
+    err "FAIL repo-root .env missing (Django DB/secrets)"
+    fails=$((fails + 1))
+  fi
+
+  if $DOCKER info >/dev/null 2>&1; then
+    log "OK  Docker daemon reachable"
+  else
+    err "FAIL cannot talk to Docker daemon"
+    fails=$((fails + 1))
+  fi
+  if [ -n "${COMPOSE:-}" ]; then
+    log "OK  compose: $COMPOSE"
+  else
+    err "FAIL docker compose not found"
+    fails=$((fails + 1))
+  fi
+
+  log "    SSL_MODE=${SSL_MODE:-?} APP_PORT=${APP_PORT:-?} WEB_REPLICAS=${WEB_REPLICAS:-?} USE_HTTPS=${USE_HTTPS:-?}"
+  case "${SSL_MODE:-off}" in
+    off|false|no|"")
+      log "OK  SSL_MODE=off (host nginx terminates TLS)"
+      ;;
+    letsencrypt|le|certbot)
+      if [ "${APP_PORT}" != "80" ]; then
+        err "FAIL SSL_MODE=letsencrypt with APP_PORT=${APP_PORT} — use SSL_MODE=off for Option A"
+        fails=$((fails + 1))
+      else
+        log "WARN SSL_MODE=letsencrypt + APP_PORT=80 (Option B — host nginx must be stopped)"
+        warns=$((warns + 1))
+      fi
+      ;;
+    *)
+      log "WARN unusual SSL_MODE=${SSL_MODE}"
+      warns=$((warns + 1))
+      ;;
+  esac
+
+  if [ "${APP_PORT}" = "8080" ]; then
+    err "FAIL APP_PORT=8080 conflicts with indo-israel-nginx on this host — use 8090"
+    fails=$((fails + 1))
+  elif [ "${APP_PORT}" = "80" ] || [ "${APP_PORT}" = "443" ]; then
+    case "${SSL_MODE:-off}" in
+      off|false|no|"")
+        err "FAIL APP_PORT=${APP_PORT} with SSL_MODE=off — host nginx owns 80/443; use APP_PORT=8090"
+        fails=$((fails + 1))
+        ;;
+      *)
+        log "OK  APP_PORT=${APP_PORT} (Option B)"
+        ;;
+    esac
+  else
+    log "OK  APP_PORT=${APP_PORT}"
+  fi
+
+  if [ "${APP_PORT}" = "8005" ] || [ "${TEST_HTTP_PORT}" = "8005" ]; then
+    log "WARN port 8005 may be used by /counsel-engine/ — prefer TEST_HTTP_PORT=8085"
+    warns=$((warns + 1))
+  fi
+
+  for key in APP_PORT HTTPS_PORT TEST_HTTP_PORT TEST_HTTPS_PORT; do
+    p="$(eval echo "\${$key:-}")"
+    [ -z "$p" ] && continue
+    if _port_ok_for_us "$p"; then
+      log "OK  host port :$p free or owned by topteen nginx"
+    else
+      err "FAIL host port :$p already in use by another process"
+      if command -v ss >/dev/null 2>&1; then
+        ss -ltnp "sport = :${p}" 2>/dev/null | sed 's/^/[docker_files]      /' || true
+      fi
+      fails=$((fails + 1))
+    fi
+  done
+
+  if [ -d "${DATA_ROOT}" ]; then
+    if [ -w "${DATA_ROOT}" ]; then
+      log "OK  DATA_ROOT writable: ${DATA_ROOT}"
+    else
+      log "WARN DATA_ROOT not writable by $(id -un): ${DATA_ROOT} (deploy may use sudo)"
+      warns=$((warns + 1))
+    fi
+  else
+    log "WARN DATA_ROOT missing (will be created): ${DATA_ROOT}"
+    warns=$((warns + 1))
+  fi
+
+  if dc config >/dev/null 2>&1; then
+    log "OK  docker compose config validates"
+  else
+    err "FAIL docker compose config invalid"
+    dc config 2>&1 | sed 's/^/[docker_files]      /' | head -40 || true
+    fails=$((fails + 1))
+  fi
+
+  if [ -f "$ROOT_ENV" ]; then
+    root_keys="SECRET_KEY DB_NAME DB_USER DB_PASSWORD DB_HOST"
+    for key in $root_keys; do
+      if grep -qE "^${key}=" "$ROOT_ENV" 2>/dev/null; then
+        log "OK  root .env has ${key}"
+      else
+        log "WARN root .env missing ${key} (may be optional depending on setup)"
+        warns=$((warns + 1))
+      fi
+    done
+  fi
+
+  log "============================================================"
+  if [ "$fails" -gt 0 ]; then
+    err "Preflight FAILED ($fails error(s), $warns warning(s)). Fix above before deploy."
+    exit 1
+  fi
+  log "Preflight PASSED ($warns warning(s)). Safe to deploy."
+  log "============================================================"
+}
+
 do_up() {
   banner
+  do_preflight
   # Clean restart: remove old project containers, rebuild images, recreate
   log "Stopping existing project containers (if any)..."
   dc down --remove-orphans 2>/dev/null || true
@@ -826,6 +977,7 @@ do_rollback() {
 
 do_deploy() {
   banner
+  do_preflight
   tag_images_previous
   log "Stopping existing project containers (if any)..."
   dc down --remove-orphans 2>/dev/null || true
@@ -928,6 +1080,7 @@ prepare
 case "$CMD" in
   up)            do_up ;;
   deploy)        do_deploy ;;
+  preflight|check) do_preflight ;;
   rollback)      do_rollback ;;
   build)         do_build ;;
   down)          do_down ;;
