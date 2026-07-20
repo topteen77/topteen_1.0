@@ -93,13 +93,19 @@ Usage: ./docker_files/deploy.sh <command> [args]
   ssl sync        Copy certbot live certs -> nginx/ssl and reload
 
 SSL env (docker_files/.env):
-  SSL_MODE=off|self-signed|letsencrypt   (auto on 'up')
-  SSL_CERT_PATH is always ${DATA_ROOT}/nginx/ssl
+  Option A (host nginx TLS — production www.topteen.in):
+    APP_PORT=8080 HTTPS_PORT=8444 SSL_MODE=off USE_HTTPS=True
+    Host nginx proxies to 127.0.0.1:8080 with X-Forwarded-Proto https
+    Sample: docker_files/nginx/production.conf
+    (separate from /etc/nginx/sites-enabled/topteens — do not overwrite live site)
+  Option B (Docker owns TLS):
+    APP_PORT=80 HTTPS_PORT=443 SSL_MODE=letsencrypt|self-signed
+  SSL_CERT_PATH is always ${DATA_ROOT}/nginx/ssl (Option B only)
   CERTBOT_EMAIL=you@example.com
-  COMPOSE_PROFILES=ssl                   (background renew every 12h)
-  SERVER_NAMES=test.topteen.in
-  APP_PORT=80  HTTPS_PORT=443            (domain, no port in URL)
+  COMPOSE_PROFILES=ssl                   (Option B background renew)
   TEST_HTTP_PORT=8005 TEST_HTTPS_PORT=8443  (IP testing only)
+  Docker Hub push (DOCKER_PUSH_REGISTRY blank):
+    docker push developertopteen/demotopteen:<APP_IMAGE_TAG>
 
 Cron renew example:
   0 4 * * * /home/ubuntu/topteen_1.0/docker_files/deploy.sh ssl renew >> /data/topteens/logs/ssl-renew.log 2>&1
@@ -290,6 +296,17 @@ ssl_enable_https_conf() {
   fi
 }
 
+# Option A: host terminates TLS — keep Docker nginx HTTP-only even if old certs exist
+ssl_disable_https_conf() {
+  local https_conf="$DATA_ROOT/nginx/conf/10-https.conf"
+  local disabled="$DATA_ROOT/nginx/conf/10-https.conf.disabled"
+  if [ -f "$https_conf" ]; then
+    mv "$https_conf" "$disabled" 2>/dev/null \
+      || { cp -f "$https_conf" "$disabled" 2>/dev/null || true; rm -f "$https_conf"; }
+    log "Disabled Docker HTTPS conf (SSL_MODE=off / host TLS termination)"
+  fi
+}
+
 ssl_primary_domain() {
   local d
   for d in $SERVER_NAMES; do
@@ -457,10 +474,10 @@ ensure_ssl_on_up() {
       fi
       ;;
     off|false|no|"")
-      log "SSL_MODE=off (HTTP only unless certs already exist)"
-      if ssl_has_certs; then
-        ssl_enable_https_conf
-      fi
+      # Option A: host nginx owns :443 — never enable Docker HTTPS (avoids port clash)
+      log "SSL_MODE=off — Docker HTTP only (host nginx TLS termination)"
+      log "  Expect host proxy → http://127.0.0.1:${APP_PORT} with X-Forwarded-Proto https"
+      ssl_disable_https_conf
       ;;
     *)
       log "Unknown SSL_MODE=$SSL_MODE (use off|self-signed|letsencrypt)"
@@ -501,10 +518,20 @@ do_up() {
 print_deploy_urls() {
   local primary http_base https_base data
   local test_http test_https local_http local_https
+  local host_tls=0
   primary="$(ssl_primary_domain)"
   [ -z "$primary" ] && primary="$(echo "$SERVER_NAMES" | awk '{print $1}')"
   [ -z "$primary" ] && primary="localhost"
   data="${DATA_ROOT:-/data/topteens}"
+
+  # Option A: SSL_MODE=off + USE_HTTPS → public URL is https://domain (host nginx)
+  case "${SSL_MODE}" in
+    off|false|no|"")
+      if [ "${USE_HTTPS}" = "True" ] || [ "${USE_HTTPS}" = "true" ] || [ "${USE_HTTPS}" = "1" ]; then
+        host_tls=1
+      fi
+      ;;
+  esac
 
   # Domain URLs never include a port when APP_PORT=80 / HTTPS_PORT=443
   if [ "${APP_PORT}" = "80" ]; then
@@ -517,42 +544,58 @@ print_deploy_urls() {
   else
     https_base="https://${primary}:${HTTPS_PORT}"
   fi
+  # Public browser URL when host terminates TLS
+  if [ "$host_tls" = "1" ]; then
+    https_base="https://${primary}"
+    http_base="http://${primary}"
+  fi
 
   # IP testing uses TEST_* ports only (not domain ports)
   if [ -n "${PUBLIC_IP:-}" ]; then
     test_http="http://${PUBLIC_IP}:${TEST_HTTP_PORT:-8005}"
     test_https="https://${PUBLIC_IP}:${TEST_HTTPS_PORT:-8443}"
   fi
-  local_http="http://127.0.0.1:${TEST_HTTP_PORT:-8005}"
+  local_http="http://127.0.0.1:${APP_PORT}"
   local_https="https://127.0.0.1:${TEST_HTTPS_PORT:-8443}"
 
   echo ""
   log "============================================================"
-  log "  Website URLs (domain — no port)"
-  log "============================================================"
-  if ssl_has_certs; then
+  if [ "$host_tls" = "1" ]; then
+    log "  Website URLs (Option A — host nginx TLS)"
+    log "============================================================"
+    log "  Main site     : ${https_base}/"
+    log "  Django admin  : ${https_base}/admin/"
+    log "  TopTeen admin : ${https_base}/topteenadmin/"
+    log "  HTTP (host)   : ${http_base}/  (should redirect to HTTPS)"
+    log "  Docker backend: http://127.0.0.1:${APP_PORT}/  (host nginx proxies here)"
+    log "  Host sample   : docker_files/nginx/production.conf (do not overwrite sites-enabled/topteens)"
+  elif ssl_has_certs; then
+    log "  Website URLs (domain — Docker TLS)"
+    log "============================================================"
     log "  Main site     : ${https_base}/"
     log "  Django admin  : ${https_base}/admin/"
     log "  TopTeen admin : ${https_base}/topteenadmin/"
     log "  HTTP (redir)  : ${http_base}/"
   else
+    log "  Website URLs (HTTP)"
+    log "============================================================"
     log "  Main site     : ${http_base}/"
     log "  Django admin  : ${http_base}/admin/"
     log "  TopTeen admin : ${http_base}/topteenadmin/"
   fi
   log "============================================================"
-  log "  IP testing only (ports)"
+  log "  Direct Docker / IP testing"
   log "============================================================"
+  log "  Local Docker  : ${local_http}/"
   if [ -n "${PUBLIC_IP:-}" ]; then
     log "  IP HTTP       : ${test_http}/"
-    if ssl_has_certs; then
+    if ssl_has_certs && [ "$host_tls" != "1" ]; then
       log "  IP HTTPS      : ${test_https}/   (self-signed → browser warning OK)"
     fi
   else
     log "  (set PUBLIC_IP in docker_files/.env to print IP test URLs)"
   fi
-  log "  Local HTTP    : ${local_http}/"
-  if ssl_has_certs; then
+  if ssl_has_certs && [ "$host_tls" != "1" ]; then
     log "  Local HTTPS   : ${local_https}/"
   fi
   log "============================================================"
@@ -574,9 +617,16 @@ print_deploy_urls() {
 do_reseed_nginx() {
   log "Rewriting nginx conf from templates (SERVER_NAMES=${SERVER_NAMES})..."
   reseed_nginx_from_templates 1
-  if ssl_has_certs; then
-    ssl_enable_https_conf
-  fi
+  case "${SSL_MODE}" in
+    off|false|no|"")
+      ssl_disable_https_conf
+      ;;
+    *)
+      if ssl_has_certs; then
+        ssl_enable_https_conf
+      fi
+      ;;
+  esac
   log "Reloading nginx..."
   dc exec nginx nginx -s reload 2>/dev/null && log "nginx reloaded." || log "nginx not running yet (ok on first boot)"
 }
