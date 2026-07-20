@@ -1,0 +1,122 @@
+===================================================
+TopTeen 1.0 — Build / Release Notes
+===================================================
+Release tag:     v1.0
+Branch:          master
+Commit:          see `git rev-list -n 1 v1.0` (release notes commit on master)
+Release date:    2026-07-20
+Platform:        Django (topteen_1.0) — career guidance & student platform
+
+This document summarizes the feature set included in the v1.0 release of the
+current master branch. Use it as a checklist for deploy, QA, and stakeholder
+handover.
+
+---------------------------------------------------
+1. CORE PRODUCT
+---------------------------------------------------
+- Student accounts, login, profile, and package / payment flows
+- Institute management and student enrollment (StudentManagement)
+- Counselor workflows and counseling tools
+- Parent dashboard (progress, Skill Lab visibility, language UI)
+- Multi-language support (language bar / language tool + admin design)
+- Demo accounts and demo data reset tooling for demos / staging
+
+---------------------------------------------------
+2. PSYCHOMETRIC TESTS & REPORTS
+---------------------------------------------------
+- Class 9–10 Stream Sorter / RIASEC (Test 1) with PDF report support
+- Class 12 aptitude / combined report with cached report context
+- Psychometric test assignment (including single-test assign to institute)
+- Report generation and PDF upload to S3 (local media cleaned after upload)
+- Class 10 report fixes included in this release cut
+
+---------------------------------------------------
+3. SKILL LAB & LEARNING
+---------------------------------------------------
+- Skill Lab courses (browse, filters, related courses by class)
+- Course certificates
+- Mindmap widget for Skill Lab courses
+- Admin: course upload, user counts, related-course controls
+- Skill Lab status shown on student and parent dashboards
+
+---------------------------------------------------
+4. CAREERS, COLLEGES & CONTENT
+---------------------------------------------------
+- Career search and career pages (including homepage career-after-college fixes)
+- College listings and college detail (query-optimized)
+- Vocational courses and four-pillars content (optimized image loading)
+- Admission institutes listing
+- Entrance exams / test-prep content modules
+- Blog and SEO dashboard support
+
+---------------------------------------------------
+5. RESUME BUILDER
+---------------------------------------------------
+- Resume Builder v2 (templates, UI, PDF export)
+- Resume delete / confirm flows
+- Template and layout improvements from resumedesign merge
+
+---------------------------------------------------
+6. ENGAGEMENT & AI
+---------------------------------------------------
+- Gamification point system
+- AI counselor / “chat this page” bot (header/footer template fixes)
+- PWA support (service worker / cache versioning, splash screen)
+- Forum, notifications, and communication modules
+
+---------------------------------------------------
+7. ADMIN & OPERATIONS
+---------------------------------------------------
+- Admin service monitor (list, errors, logs, reset, clear cache)
+- Celery task visibility / autorefresh for service monitor
+- Manual payment and session handling through admin
+- Analytics dashboard and user-journey tracking helpers
+- Safe schema migrations (idempotent ensure-schema for partial DBs)
+
+---------------------------------------------------
+8. PERFORMANCE (v1.0 focus)
+---------------------------------------------------
+- Student dashboard query optimizations:
+  - Memoized StudentManagement lookup
+  - Bulk-load Skill Lab statuses
+  - Cached admin dashboard-config tables
+  - Memoized per-user stat flags
+- Class 12 dashboard and combined-report context caching
+- Public listing pages: fewer N+1 queries, lazy-load thumbnails
+- Homepage and open-page query optimizations
+- College detail: folded flat-text getters into fewer queries
+- Production homepage speed fixes
+
+---------------------------------------------------
+9. DEPLOYMENT & INFRASTRUCTURE
+---------------------------------------------------
+- Docker deployment under deploy/ (BASE + APP stacks, nginx LB, Celery)
+- docker_files/ and docker-setup helpers for local / legacy flows
+- S3 for PDF report storage; media cleanup after successful upload
+- deploy.sh environment-aware deploy (staging / production)
+- Redis / Celery / optional Elasticsearch and MariaDB profiles
+
+---------------------------------------------------
+10. KNOWN FOLLOW-UPS (NOT BLOCKING v1.0 TAG)
+---------------------------------------------------
+- institutedashboard branch may contain commits ahead of this tag
+  (e.g. demo-account and extra speed fixes). Merge separately if needed.
+- Student import command (topteen12 → topteen12-old) still pending; see
+  validation commands already documented in readme.txt.
+
+---------------------------------------------------
+11. HOW TO CHECK OUT THIS RELEASE
+---------------------------------------------------
+  git fetch --tags
+  git checkout v1.0
+
+  # or pin master to the tagged commit
+  git checkout master
+  git reset --hard v1.0
+
+Full git version / release command reference:
+  see section "Git Version Release (v1.0)" in readme.txt
+
+===================================================
+END BUILD NOTES — TopTeen v1.0
+===================================================
