@@ -158,26 +158,95 @@ def delete_user_pdf(user_id, filename):
         return False
 
 
-def serve_user_pdf_response(user_id, filename, download_name=None):
-    """
-    Stream a previously stored PDF as an attachment.
+def _user_pdf_s3_object_key(storage_relative_key: str) -> str:
+    """Full S3 object key including the media location prefix."""
+    from storages.utils import clean_name
 
-    Returns an HttpResponse/FileResponse, or None if the file cannot be opened.
+    relative = clean_name(storage_relative_key)
+    normalize = getattr(default_storage, "_normalize_name", None)
+    if callable(normalize):
+        return normalize(relative).lstrip("/")
+    location = (getattr(settings, "S3_MEDIA_LOCATION", None) or getattr(default_storage, "location", "") or "").strip("/")
+    if location:
+        return f"{location}/{relative.lstrip('/')}"
+    return relative.lstrip("/")
+
+
+def user_pdf_presigned_download_url(user_id, filename, download_name=None, expires_in=600):
+    """
+    Short-lived S3 GET URL with attachment disposition.
+
+    Works even when S3_MEDIA_ACCESS_MODE=proxy (which would otherwise stream
+    via Django). Returns None when not on S3 or signing fails.
     """
     if not user_id or not filename:
         return None
+    if not getattr(settings, "USE_S3_FOR_MEDIA", False):
+        return None
+    if not getattr(default_storage, "bucket_name", None):
+        return None
+
+    name = download_name or filename
+    safe_name = re.sub(r"[^\w.\- ]+", "", str(name)).strip()[:120] or "report.pdf"
+    if not safe_name.lower().endswith(".pdf"):
+        safe_name = f"{safe_name}.pdf"
+
+    try:
+        s3_key = _user_pdf_s3_object_key(user_pdf_key(user_id, filename))
+        client = default_storage.connection.meta.client
+        return client.generate_presigned_url(
+            "get_object",
+            Params={
+                "Bucket": default_storage.bucket_name,
+                "Key": s3_key,
+                "ResponseContentType": "application/pdf",
+                "ResponseContentDisposition": f'attachment; filename="{safe_name}"',
+            },
+            ExpiresIn=int(expires_in),
+        )
+    except Exception as e:
+        logger.warning(
+            "user_pdf_presigned_download_url failed user_id=%s file=%s: %s",
+            user_id,
+            filename,
+            e,
+        )
+        return None
+
+
+def serve_user_pdf_response(user_id, filename, download_name=None):
+    """
+    Deliver a stored report PDF without streaming bytes through Gunicorn.
+
+    Prefer a 302 redirect to a short-lived S3 signed URL. Fall back to
+    FileResponse only for local (non-S3) storage.
+    """
+    if not user_id or not filename:
+        return None
+
+    name = download_name or filename
+    signed = user_pdf_presigned_download_url(user_id, filename, download_name=name)
+    if signed:
+        from django.http import HttpResponseRedirect
+
+        response = HttpResponseRedirect(signed)
+        response["Cache-Control"] = "no-store"
+        return response
+
+    # Local filesystem / non-S3 fallback
     key = user_pdf_key(user_id, filename)
     try:
         from django.http import FileResponse
 
-        handle = default_storage.open(key, 'rb')
-        response = FileResponse(handle, content_type='application/pdf')
-        name = download_name or filename
-        response['Content-Disposition'] = f'attachment; filename="{name}"'
-        response['Cache-Control'] = 'private, max-age=300'
+        handle = default_storage.open(key, "rb")
+        response = FileResponse(handle, content_type="application/pdf")
+        safe_name = re.sub(r"[^\w.\- ]+", "", str(name)).strip()[:120] or "report.pdf"
+        response["Content-Disposition"] = f'attachment; filename="{safe_name}"'
+        response["Cache-Control"] = "private, max-age=300"
         return response
     except Exception as e:
         logger.warning("serve_user_pdf_response failed for user_id=%s file=%s: %s", user_id, filename, e)
+        mark_user_pdf_ready(user_id, filename, False)
         return None
 
 
@@ -201,24 +270,15 @@ def user_pdf_exists(user_id, filename):
     """
     True if a previously generated report PDF is already in media storage.
 
-    Prefer Redis ready-flag, then try opening the object. Avoid storage.exists()
-    alone — it is unreliable with the project's S3 backend.
+    Prefer Redis ready-flag only on the hot path. Do NOT probe S3 with open()/exists()
+    when the flag is missing — missing-key probes are slow and block Gunicorn under load.
     """
     if not user_id or not filename:
         return False
     try:
         from django.core.cache import cache
 
-        if cache.get(f"user_pdf_ready:v1:{user_id}:{filename}"):
-            return True
-    except Exception:
-        pass
-    key = user_pdf_key(user_id, filename)
-    try:
-        with default_storage.open(key, "rb") as handle:
-            handle.read(1)
-        mark_user_pdf_ready(user_id, filename, True)
-        return True
+        return bool(cache.get(f"user_pdf_ready:v1:{user_id}:{filename}"))
     except Exception:
         return False
 
