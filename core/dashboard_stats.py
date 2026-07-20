@@ -575,12 +575,24 @@ def get_student_dashboard_stats(profile_user):
     Return dict: trophies_unlocked, total_points, streak_days, current_level,
     next_level_min_points, level_progress_percent, and detail breakdowns for popups.
     """
+    from django.core.cache import cache
+
+    uid = int(getattr(profile_user, "id", 0) or 0)
+    cache_key = f"dash:stats:v1:{uid}" if uid else None
+    if cache_key:
+        try:
+            cached = cache.get(cache_key)
+            if isinstance(cached, dict) and "trophies_unlocked" in cached:
+                return cached
+        except Exception:
+            pass
+
     trophies = _get_trophy_count(profile_user)
     points = _get_total_points(profile_user)
     streak = _get_streak_days(profile_user)
     level_name, next_min, progress = _get_level_band(points, user=profile_user)
     points_details, _ = _get_points_details(profile_user)
-    return {
+    data = {
         'trophies_unlocked': trophies,
         'total_points': points,
         'streak_days': streak,
@@ -593,3 +605,18 @@ def get_student_dashboard_stats(profile_user):
         'level_details': _get_level_details(points, user=profile_user),
         'psychometric_track': get_student_psychometric_track(profile_user),
     }
+    if cache_key:
+        try:
+            cache.set(cache_key, data, 90)
+        except Exception:
+            pass
+    return data
+
+
+def invalidate_student_dashboard_stats_cache(user_id: int) -> None:
+    try:
+        from django.core.cache import cache
+
+        cache.delete(f"dash:stats:v1:{int(user_id)}")
+    except Exception:
+        pass

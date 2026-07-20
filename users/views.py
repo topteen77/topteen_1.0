@@ -3542,21 +3542,12 @@ class UserDashboard(TemplateView):
     def get_context(self,request, profile_user=None, is_parent_view: bool = False, *args,**kwargs):
         from psychometric_tests.models import PsychometricTestPayment
         profile_user = profile_user or request.user
-        
-        tags=CareerTags.objects.all().order_by('priority')[:5]
-        country=Country.objects.all().order_by('priority')
+
+        # Catalog dumps (blogs/colleges/careers/videos/courses/tags/countries/exams)
+        # stay on feeds/list pages (UserFeeds, college/career/blog lists) — unused here.
         ctx={}
         ctx['profile_user'] = profile_user
         ctx['is_parent_view'] = is_parent_view
-        ctx['blogs'] = Blog.get_published_objects().all()
-        ctx['colleges'] = College.get_all_colleges()
-        ctx['careers'] = Career.get_all_careers()
-        ctx['careers_video']=Career.objects.filter(publish_status=choices.PublishStatus.PUBLISHED).exclude(Q(video_url=""))
-        ctx['videos'] = Videos.objects.all()
-        ctx['courses'] = Course.get_all_courses()
-        ctx['tags']=tags
-        ctx['countries']=country
-        ctx['exams']=EntranceTestPrepExam.objects.filter(object_status=choices.ObjectStatus.ACTIVE).order_by('?')[:3]
         
         # Determine user's class (10 or 12)
         from institute.models import get_cached_student_management
@@ -3600,25 +3591,36 @@ class UserDashboard(TemplateView):
             user_grade = "10"
         
         ctx['user_grade'] = user_grade
-        
-        # Check for successful psychometric test payments
-        successful_test_payment = PsychometricTestPayment.objects.filter(
-            user=profile_user,
-            is_success=choices.YesNoChoices.YES
-        ).order_by('-created').first()
-        
-        ctx['psychometric_test_payment'] = successful_test_payment
+
         ctx['test_dashboard_url'] = None
         ctx['test_name'] = None
         ctx['has_test_payment'] = False
         ctx['combined_report_url'] = None
 
-        # Institute students are exempt from payment: allow access to test dashboard even if
-        # no payment record exists yet. (Class 10 -> app:test_buttons, Class 12 -> post_matric:tests)
+        # One StudentManagement lookup (memoized on user) for institute + grade fallback.
         try:
-            is_institute_student = get_cached_student_management(profile_user) is not None
+            student_management = get_cached_student_management(profile_user)
+            is_institute_student = student_management is not None
         except Exception:
             is_institute_student = False
+
+        # Single payment fetch covers class-specific + legacy fallback (was 2–3 queries).
+        successful_payments = list(
+            PsychometricTestPayment.objects.filter(
+                user=profile_user,
+                is_success=choices.YesNoChoices.YES,
+            ).order_by('-created')[:8]
+        )
+        successful_test_payment = successful_payments[0] if successful_payments else None
+        basic_paid = any(
+            p.test_type == choices.PsychometricTestType.BASIC for p in successful_payments
+        )
+        advanced_paid = any(
+            p.test_type == choices.PsychometricTestType.ADVANCED for p in successful_payments
+        )
+
+        # Institute students are exempt from payment: allow access to test dashboard even if
+        # no payment record exists yet. (Class 10 -> app:test_buttons, Class 12 -> post_matric:tests)
         if is_institute_student:
             ctx['has_test_payment'] = True
             if user_grade == "12":
@@ -3627,39 +3629,26 @@ class UserDashboard(TemplateView):
             else:
                 ctx['test_dashboard_url'] = reverse('app:test_buttons')
                 ctx['test_name'] = 'Stream Sorter'
-        
-        # Check if user has purchased test for their class
-        if user_grade == "10":
-            # Class 10 should have BASIC test (Stream Sorter)
-            class_test_payment = PsychometricTestPayment.objects.filter(
-                user=profile_user,
-                test_type=choices.PsychometricTestType.BASIC,
-                is_success=choices.YesNoChoices.YES
-            ).first()
-            if class_test_payment:
-                ctx['has_test_payment'] = True
-                ctx['test_dashboard_url'] = reverse('app:test_buttons')
-                ctx['test_name'] = 'Stream Sorter'
-        elif user_grade == "12":
-            # Class 12 should have ADVANCED test (Career Direction)
-            class_test_payment = PsychometricTestPayment.objects.filter(
-                user=profile_user,
-                test_type=choices.PsychometricTestType.ADVANCED,
-                is_success=choices.YesNoChoices.YES
-            ).first()
-            if class_test_payment:
-                ctx['has_test_payment'] = True
-                ctx['test_dashboard_url'] = reverse('post_matric:tests')
-                ctx['test_name'] = 'Career Direction'
-        
-        # Also check for any successful payment (for backward compatibility)
+
+        if user_grade == "10" and basic_paid:
+            ctx['has_test_payment'] = True
+            ctx['test_dashboard_url'] = reverse('app:test_buttons')
+            ctx['test_name'] = 'Stream Sorter'
+        elif user_grade == "12" and advanced_paid:
+            ctx['has_test_payment'] = True
+            ctx['test_dashboard_url'] = reverse('post_matric:tests')
+            ctx['test_name'] = 'Career Direction'
+
+        # Legacy: any successful payment if class-specific row missing
         if successful_test_payment and not ctx['has_test_payment']:
             if successful_test_payment.test_type == choices.PsychometricTestType.BASIC:
                 ctx['test_dashboard_url'] = reverse('app:test_buttons')
                 ctx['test_name'] = 'Stream Sorter'
+                ctx['has_test_payment'] = True
             elif successful_test_payment.test_type == choices.PsychometricTestType.ADVANCED:
                 ctx['test_dashboard_url'] = reverse('post_matric:tests')
                 ctx['test_name'] = 'Career Direction'
+                ctx['has_test_payment'] = True
         ctx['test_buy_url_class10'] = reverse('psychometrictests:psychometrictest')
         # Class 12 students should redirect to post_matric tests dashboard
         ctx['test_buy_url_class12'] = reverse('post_matric:tests')
@@ -3698,33 +3687,32 @@ class UserDashboard(TemplateView):
             except Exception:
                 pass
 
+        # Report URLs only (has_* flags unused on template; resolve_* checks presence).
         from users.parent_student_insights import (
             resolve_career_direction_report_url,
             resolve_stream_sorter_report_url,
-            student_has_class10_assessment,
-            student_has_class12_assessment,
         )
-        ctx['has_stream_sorter_reports'] = student_has_class10_assessment(profile_user)
-        ctx['has_career_direction_reports'] = student_has_class12_assessment(profile_user)
         ctx['stream_sorter_report_url'] = resolve_stream_sorter_report_url(profile_user, for_self=True)
         ctx['career_direction_report_url'] = resolve_career_direction_report_url(profile_user, for_self=True)
 
-        # User's invoices (for dashboard download)
-        try:
-            from invoices.models import Invoice
-            ctx['user_invoices'] = Invoice.objects.filter(payment__user=profile_user).order_by('-created')[:15]
-        except Exception:
-            ctx['user_invoices'] = []
-        
-        # ctc=CentralTestCandidate.objects.filter(user=request.user).last()
-        ctc=CentralTestCandidate.objects.filter(user=profile_user).last()
-        try:
-            ctc.last_test_is_success()
-            ctx['central_test_candidate']=ctc
-        except:
-            ctx['central_test_candidate']=False
+        # Invoices: Payment History view, not dashboard.
+
+        ctc = CentralTestCandidate.objects.filter(user=profile_user).last()
+        ctx['central_test_candidate'] = False
+        ctx['central_test_is_success'] = False
+        ctx['central_test_link'] = '#'
+        if ctc:
+            try:
+                # Evaluate once — template used to call last_test_is_success() repeatedly
+                # (and that method can write/update on miss).
+                ctx['central_test_is_success'] = bool(ctc.last_test_is_success())
+                ctx['central_test_link'] = ctc.get_test_report_or_test_link() or '#'
+                ctx['central_test_candidate'] = ctc
+            except Exception:
+                ctx['central_test_candidate'] = False
         ctx["html_head"] = self.html_head()
-        ctx["notes"] = _meaningful_user_notes_qs(profile_user)[:3]
+        notes_list = _meaningful_user_notes_qs(profile_user)
+        ctx["notes"] = notes_list[:3]
 
         # Dashboard statistics (trophies, points, streak, level) - for student dashboard
         try:
@@ -3752,24 +3740,8 @@ class UserDashboard(TemplateView):
             ctx['streak_details'] = {}
             ctx['level_details'] = {}
 
-        # Parent suggestions (show parent bookmarks/shortlists as suggestions to STUDENTS)
-        ctx["show_parent_suggestions"] = False
-        ctx["suggested_by_parents"] = []
-        ctx["parent_suggested_careers"] = []
-        ctx["parent_suggested_videos"] = []
-        ctx["parent_suggested_colleges"] = []
-        ctx["parent_suggested_blogs"] = []
-        try:
-            if (
-                request.user.is_authenticated
-                and request.user.user_type == choices.UserType.STUDENT
-                and not is_parent_view
-                and profile_user.id == request.user.id
-            ):
-                from users.parent_suggestions import load_all_parent_suggestions_for_student
-                ctx.update(load_all_parent_suggestions_for_student(request.user))
-        except Exception:
-            pass
+        # Parent suggestions: college/career/blog/video lists via
+        # apply_student_parent_suggestions_context (dashboard include is commented out).
 
         # Dashboard: College & Career Readiness (Skill Lab) + psychometric + MI/EQ
         ctx["dashboard_enrolled_items"] = []
@@ -3858,7 +3830,7 @@ class UserDashboard(TemplateView):
             pass
 
         # Applications & resume hub (AdmitCV-inspired KPIs + planner widgets)
-        ctx.update(_hub_nav_counts(profile_user))
+        ctx.update(_hub_nav_counts(profile_user, notes_list=notes_list))
         try:
             hub_pc = int(profile_user.get_profile_completion_percentage() or 0)
         except Exception:
@@ -3900,7 +3872,39 @@ class UserDashboard(TemplateView):
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
 
     def get(self, request, *args, **kwargs):
-        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+        # Short per-user HTML cache: dashboard is read-heavy (~232KB Jinja).
+        # Skip when querystring present or registration welcome popup is pending.
+        cache_key = None
+        try:
+            from django.core.cache import cache
+
+            uid = int(getattr(request.user, "id", 0) or 0)
+            if (
+                uid
+                and not request.GET
+                and not request.session.get("show_registration_welcome_popup")
+            ):
+                cache_key = f"dash:html:v1:{uid}"
+                cached = cache.get(cache_key)
+                if cached:
+                    return HttpResponse(cached, content_type="text/html; charset=utf-8")
+        except Exception:
+            cache_key = None
+
+        ctx = self.get_context(request, *args, **kwargs)
+        response = render(request, self.template_name, ctx)
+        if (
+            cache_key
+            and response.status_code == 200
+            and not ctx.get("show_registration_welcome_popup")
+        ):
+            try:
+                from django.core.cache import cache
+
+                cache.set(cache_key, response.content, 45)
+            except Exception:
+                pass
+        return response
         
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
@@ -4247,7 +4251,7 @@ def _meaningful_user_notes_qs(user):
     return [note for note in candidates if _note_has_meaningful_content(note.title, note.content)]
 
 
-def _hub_nav_counts(user):
+def _hub_nav_counts(user, notes_list=None):
     """Sidebar badge counts (mirrors UserDashboard resume/shortlist/notes slice)."""
     ctx = {
         "hub_shortlist_count": 0,
@@ -4270,17 +4274,30 @@ def _hub_nav_counts(user):
     except Exception:
         pass
     try:
-        ctx["hub_notes_count"] = len(_meaningful_user_notes_qs(user))
+        if notes_list is not None:
+            ctx["hub_notes_count"] = len(notes_list)
+        else:
+            ctx["hub_notes_count"] = len(_meaningful_user_notes_qs(user))
     except Exception:
         pass
     try:
+        from django.core.cache import cache
+
         from users.parent_suggestions import (
             ensure_parent_suggestion_notifications,
             get_scrapbook_unread_total,
         )
 
+        # Notification backfill is write-heavy; do it at most once per few minutes.
         if getattr(user, "user_type", None) == choices.UserType.STUDENT:
-            ensure_parent_suggestion_notifications(user)
+            uid = int(getattr(user, "id", 0) or 0)
+            gate_key = f"hub:parent_sugg_ensured:v1:{uid}" if uid else None
+            if gate_key and not cache.get(gate_key):
+                ensure_parent_suggestion_notifications(user)
+                try:
+                    cache.set(gate_key, 1, 300)
+                except Exception:
+                    pass
         ctx["hub_scrapbook_unread_count"] = get_scrapbook_unread_total(user)
     except Exception:
         pass

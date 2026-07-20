@@ -1367,9 +1367,9 @@
               </div>
 
               {% elif central_test_candidate %}
-              <div class="quick-link-card" {% if central_test_candidate.last_test_is_success()
-                %}onclick="window.location='{{ central_test_candidate.get_test_report_or_test_link() }}'" {% else
-                %}onclick="window.open('{{ central_test_candidate.get_test_report_or_test_link() }}','_blank')" {% endif
+              <div class="quick-link-card" {% if central_test_is_success
+                %}onclick="window.location='{{ central_test_link }}'" {% else
+                %}onclick="window.open('{{ central_test_link }}','_blank')" {% endif
                 %}>
                 <div class="d-flex align-items-center gap-3">
                   <div class="dashboard-quicklinks-icon" style="background: #9D98F4;">
@@ -1377,7 +1377,7 @@
                       alt="Dashboard" />
                   </div>
                   <div>
-                    {% if central_test_candidate.last_test_is_success() %}
+                    {% if central_test_is_success %}
                     <p class="fs-13 fw-semibold text-success mb-1">Psychometric Test Reports</p>
                     <p class="text-success text-opacity-70 fs-10 mb-0">Access past reports</p>
                     {% else %}

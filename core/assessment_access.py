@@ -18,13 +18,9 @@ def _get_institute_for_user(user):
     if not user or not getattr(user, 'is_authenticated', False):
         return None
     try:
-        from institute.models import StudentManagement
+        from institute.models import get_cached_student_management
 
-        sm = (
-            StudentManagement.objects.filter(student=user)
-            .select_related('institute')
-            .first()
-        )
+        sm = get_cached_student_management(user)
         return sm.institute if sm else None
     except Exception:
         return None
@@ -396,7 +392,29 @@ def get_student_psychometric_dashboard_cta(user) -> dict:
     CTA for the student dashboard "My courses & tests" psychometric card.
 
     Returns action_label, action_variant ('start' | 'report'), and url.
+    Cached briefly — progress changes infrequently relative to dashboard refresh.
     """
+    from django.core.cache import cache
+
+    uid = int(getattr(user, "id", 0) or 0)
+    cache_key = f"psych:dash_cta:v1:{uid}" if uid else None
+    if cache_key:
+        try:
+            cached = cache.get(cache_key)
+            if isinstance(cached, dict) and "url" in cached:
+                return cached
+        except Exception:
+            pass
+    result = _compute_student_psychometric_dashboard_cta(user)
+    if cache_key and isinstance(result, dict):
+        try:
+            cache.set(cache_key, result, 90)
+        except Exception:
+            pass
+    return result
+
+
+def _compute_student_psychometric_dashboard_cta(user) -> dict:
     from django.urls import reverse
 
     track = get_student_psychometric_track(user)

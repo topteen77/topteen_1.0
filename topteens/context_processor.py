@@ -201,6 +201,12 @@ def _should_show_chatbot(request):
     return False
 
 
+_STUDENT_LS_CACHE_TTL = 90
+_STUDENT_LS_CACHE_PREFIX = "ctx:student_ls:v1:"
+_NAV_EXPLORE_CACHE_KEY = "ctx:nav_explore:v2"
+_NAV_EXPLORE_CACHE_TTL = 300
+
+
 def _student_localstorage_data(request):
     """
     For students only: return dict to store in localStorage (student_id, student_class,
@@ -212,12 +218,21 @@ def _student_localstorage_data(request):
         return None
     if getattr(request.user, 'user_type', None) != choices.UserType.STUDENT:
         return None
+    user = request.user
+    uid = int(getattr(user, "id", 0) or 0)
+    cache_key = f"{_STUDENT_LS_CACHE_PREFIX}{uid}" if uid else None
+    if cache_key:
+        try:
+            cached = cache.get(cache_key)
+            if isinstance(cached, dict) and "student_id" in cached:
+                return cached
+        except Exception:
+            pass
     try:
         from app.models import Results
         from institute.models import get_cached_student_management
         from psychometric_tests.models import CandidateTest
         import re
-        user = request.user
         student_class = "10"
         if hasattr(user, 'user_profile') and user.user_profile and getattr(user.user_profile, 'grade', None):
             student_class = str(user.user_profile.grade).strip() or "10"
@@ -250,14 +265,72 @@ def _student_localstorage_data(request):
             psychometric_class12_status = "completed"
         else:
             psychometric_class12_status = "inprocess"
-        return {
+        data = {
             "student_id": user.id,
             "student_class": student_class,
             "psychometric_class10_status": psychometric_class10_status,
             "psychometric_class12_status": psychometric_class12_status,
         }
+        if cache_key:
+            try:
+                cache.set(cache_key, data, _STUDENT_LS_CACHE_TTL)
+            except Exception:
+                pass
+        return data
     except Exception:
         return None
+
+
+def _nav_explore_context():
+    """Cached lists used by legacy nav/search UIs (avoid order_by('?') and full blog dumps)."""
+    try:
+        cached = cache.get(_NAV_EXPLORE_CACHE_KEY)
+        if isinstance(cached, dict) and "popular_category_ids" in cached:
+            return cached
+    except Exception:
+        cached = None
+
+    popular_category_ids = list(
+        Blog.objects.values("category")
+        .annotate(count=Count("category"))
+        .order_by("-count")
+        .values_list("category", flat=True)[:20]
+    )
+    popular_tag_ids = list(
+        Career.objects.values("career_tags")
+        .annotate(count=Count("career_tags"))
+        .order_by("-count")
+        .values_list("career_tags", flat=True)[:20]
+    )
+    # Deterministic “featured” set (no RAND()) — enough for sidebar/footer samples.
+    most_search_career_ids = list(
+        Career.objects.filter(publish_status=choices.PublishStatus.PUBLISHED)
+        .order_by("-modified")
+        .values_list("id", flat=True)[:8]
+    )
+    most_search_college_ids = list(
+        College.objects.order_by("id").values_list("id", flat=True)[:5]
+    )
+    try:
+        blog_ids = list(
+            Blog.get_published_objects().order_by("-modified").values_list("id", flat=True)[:12]
+        )
+    except Exception:
+        blog_ids = list(Blog.objects.order_by("-id").values_list("id", flat=True)[:12])
+
+    payload = {
+        "popular_category_ids": [i for i in popular_category_ids if i],
+        "popular_tag_ids": [i for i in popular_tag_ids if i],
+        "most_search_career_ids": most_search_career_ids,
+        "most_search_college_ids": most_search_college_ids,
+        "blog_ids": blog_ids,
+        "trending_blog_ids": blog_ids,
+    }
+    try:
+        cache.set(_NAV_EXPLORE_CACHE_KEY, payload, _NAV_EXPLORE_CACHE_TTL)
+    except Exception:
+        pass
+    return payload
 
 
 def _student_localstorage_context(request):
@@ -487,16 +560,18 @@ def globals(request):
     career_list=[]
     college_list=[]
     exam_list=[] 
-    input=request.GET.get('search')
+    search_input = (request.GET.get('search') or '').strip()
     login_user=request.user
-    if login_user.is_authenticated:
+    # Only touch search history when the user actually searched — dashboard/nav
+    # hits previously did get_or_create(search=None) on every authenticated page.
+    if login_user.is_authenticated and search_input:
         try:
-            usersearch,_=UserSearchHistory.objects.get_or_create(user=login_user,search=input)
+            usersearch,_=UserSearchHistory.objects.get_or_create(user=login_user,search=search_input)
         except UserSearchHistory.MultipleObjectsReturned:
             # If multiple objects exist, get the first one
-            usersearch = UserSearchHistory.objects.filter(user=login_user,search=input).first()
+            usersearch = UserSearchHistory.objects.filter(user=login_user,search=search_input).first()
             if not usersearch:
-                usersearch = UserSearchHistory.objects.create(user=login_user,search=input)
+                usersearch = UserSearchHistory.objects.create(user=login_user,search=search_input)
 
         user_search_hisotry=UserSearchHistory.objects.filter(user=login_user.id,search__isnull=False).order_by('-modified').values_list('search',flat=True)
         if user_search_hisotry.exists():
@@ -530,11 +605,7 @@ def globals(request):
                 logger.warning("Context processor exam_list raw SQL failed: %s", e)
                 exam_list = []
 
-        
-    popular_categories = Blog.objects.values("category").annotate(count=Count('category')).order_by("-count").values_list('category')
-    popular_tags = Career.objects.values("career_tags").annotate(count=Count('career_tags')).order_by("-count").values_list('career_tags')
-    # for p in popular_tags:
-        # popular_tag_count=Career.objects.filter(career_tags=p).count()
+    nav = _nav_explore_context()
     # Freetrail: seconds guest can view gated content before login popup (used by ebook/vocational/extracurricular detail and any freetrail-gated page)
     legacy_chatbot_enabled = _config_bool('legacy_chatbot_engine', False)
     page_chat_enabled = _config_bool('chat_this_page_engine', True)
@@ -612,16 +683,16 @@ def globals(request):
         "translate_complexity_enabled": translation_complexity_available(),
         "translate_complexity_default": DEFAULT_TRANSLATION_COMPLEXITY,
         "translate_complexity_api_url": reverse("api_translate_complexity"),
-        "popular_categories":BlogCategory.objects.filter(id__in=popular_categories),
-        "popular_tags":CareerTags.objects.filter(id__in=popular_tags),
-        "blogs":Blog.get_published_objects().all(),
+        "popular_categories": BlogCategory.objects.filter(id__in=nav["popular_category_ids"]),
+        "popular_tags": CareerTags.objects.filter(id__in=nav["popular_tag_ids"]),
+        "blogs": Blog.get_published_objects().filter(id__in=nav["blog_ids"]),
         "seo_year":"2025",
         "recentcareer":career_list,
         "recentcollege":college_list,
         "recentexam":exam_list,
-        "most_searchcareers":Career.objects.filter(publish_status=choices.PublishStatus.PUBLISHED).order_by('?')[:8],
-        'most_searchcolleges':College.objects.all().order_by('id')[:5],
-        'tranding_content':Blog.objects.all(),
+        "most_searchcareers": Career.objects.filter(id__in=nav["most_search_career_ids"]),
+        "most_searchcolleges": College.objects.filter(id__in=nav["most_search_college_ids"]),
+        "tranding_content": Blog.objects.filter(id__in=nav["trending_blog_ids"]),
         "careervideos_count":_careervideos_count(),
         # Footer: top-level career clusters for "Trending Career Paths" (links to /careers/cluster/<slug>-<id>/)
         "footer_career_clusters": _footer_career_clusters(),
