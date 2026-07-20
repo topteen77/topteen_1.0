@@ -121,6 +121,9 @@ celerybeat.pid
 .env.staging
 .env.test
 *.env
+# Exception: docker_files deploy config only (no DB/payment secrets — those stay in repo-root .env)
+!docker_files/.env
+!docker_files/env.example
 env.local
 env.production
 env.development
