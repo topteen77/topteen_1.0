@@ -129,7 +129,8 @@ jobs:
           fi
 
       - name: Send failure email
-        if: steps.remote_deploy.outcome != 'success' && secrets.SMTP_SERVER != ''
+        # Note: `secrets` cannot be used in `if:` expressions — skip via continue-on-error if SMTP unset
+        if: steps.remote_deploy.outcome != 'success'
         continue-on-error: true
         uses: dawidd6/action-send-mail@v3
         with:
