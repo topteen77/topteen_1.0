@@ -86,6 +86,7 @@ Usage: ./docker_files/deploy.sh <command> [args]
   reseed-nginx    Rewrite nginx conf from templates (SERVER_NAMES) + reload
   debug           Curl/nginx/web diagnostics (no host Python needed)
   preflight       Check env, Docker, ports, Option A settings (no deploy)
+  notify-failure  Email deploy fail via site SES (EMAIL_* in repo-root .env)
 
   ssl status      Show cert paths / expiry
   ssl self-signed [domain]   Generate self-signed cert into ${DATA_ROOT}/nginx/ssl
@@ -1008,7 +1009,50 @@ do_deploy() {
   else
     err "Rollback failed or no :previous image. Stack may be unhealthy."
   fi
+  do_notify_failure "${DEPLOY_FAIL_LOG:-}"
   exit 1
+}
+
+# Email deploy failure using website AWS SES (Django EMAIL_* from repo-root .env)
+do_notify_failure() {
+  local log_file="${1:-}"
+  local script="$SCRIPT_DIR/scripts/notify_deploy_failure.py"
+  local arg="-"
+
+  if [ ! -f "$script" ]; then
+    log "notify-failure: script missing ($script)"
+    return 1
+  fi
+  if [ -n "$log_file" ] && [ -f "$log_file" ]; then
+    arg="$log_file"
+  elif [ -f /tmp/topteen-deploy.log ]; then
+    arg=/tmp/topteen-deploy.log
+  fi
+
+  log "Sending deploy-failure email via site SES (EMAIL_* in repo-root .env)..."
+  # Prefer web container (has Django + same env as the site)
+  if dc ps 2>/dev/null | grep -E 'web(-[0-9]+)?[[:space:]].*Up' >/dev/null; then
+    if [ "$arg" != "-" ] && [ -f "$arg" ]; then
+      dc cp "$arg" "web:/tmp/topteen-deploy.log" 2>/dev/null \
+        && dc exec -T web python docker_files/scripts/notify_deploy_failure.py /tmp/topteen-deploy.log \
+        && return 0
+    fi
+    if [ "$arg" = "-" ] || [ ! -f "$arg" ]; then
+      dc exec -T web python docker_files/scripts/notify_deploy_failure.py - \
+        && return 0
+    else
+      # Feed log via stdin if cp unavailable
+      dc exec -T web python docker_files/scripts/notify_deploy_failure.py - <"$arg" \
+        && return 0
+    fi
+  fi
+
+  # Host fallback (loads .env + Django or SES SMTP)
+  if command -v python3 >/dev/null 2>&1; then
+    (cd "$REPO_ROOT" && python3 "$script" "$arg") && return 0
+  fi
+  log "notify-failure: could not send email (no running web container / python3)"
+  return 1
 }
 
 health_check() {
@@ -1081,6 +1125,7 @@ case "$CMD" in
   up)            do_up ;;
   deploy)        do_deploy ;;
   preflight|check) do_preflight ;;
+  notify-failure|notify_failure) do_notify_failure "${1:-}" ;;
   rollback)      do_rollback ;;
   build)         do_build ;;
   down)          do_down ;;

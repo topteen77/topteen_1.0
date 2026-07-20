@@ -13,13 +13,10 @@
 #   DOCKERHUB_USERNAME       Docker Hub user (push on successful deploy)
 #   DOCKERHUB_TOKEN          Docker Hub access token
 #
-# Email on failure (subject: deploy fail):
-#   SMTP_SERVER            e.g. email-smtp.ap-south-1.amazonaws.com
-#   SMTP_PORT              e.g. 587
-#   SMTP_USERNAME          SMTP user
-#   SMTP_PASSWORD          SMTP password
-#   SMTP_FROM              From address (default: noreply@topteen.in if unset)
-#   DEPLOY_NOTIFY_TO       Override recipient (default: it@canamgroup.com)
+# Failure email uses the website AWS SES settings from repo-root .env on the
+# server (EMAIL_HOST / EMAIL_HOST_USER / EMAIL_HOST_PASSWORD / DEFAULT_FROM_EMAIL).
+# Optional on server .env: DEPLOY_NOTIFY_TO (default it@canamgroup.com)
+# No GitHub SMTP secrets required.
 name: Deploy Production (Docker)
 
 on:
@@ -56,7 +53,6 @@ jobs:
       - name: Resolve deploy path
         id: paths
         run: |
-          # Prefer secret; fall back to DEFAULT_DEPLOY_PATH (empty secret counts as unset)
           SECRET_PATH='${{ secrets.DEPLOY_PATH_PRODUCTION }}'
           if [ -n "$SECRET_PATH" ]; then
             echo "DEPLOY_PATH=$SECRET_PATH" >> "$GITHUB_ENV"
@@ -65,7 +61,7 @@ jobs:
             echo "DEPLOY_PATH=${{ env.DEFAULT_DEPLOY_PATH }}" >> "$GITHUB_ENV"
             echo "path=${{ env.DEFAULT_DEPLOY_PATH }}" >> "$GITHUB_OUTPUT"
           fi
-          echo "Using DEPLOY_PATH (masked if it contains secrets): ${SECRET_PATH:-${{ env.DEFAULT_DEPLOY_PATH }}}"
+          echo "Using DEPLOY_PATH: ${SECRET_PATH:-${{ env.DEFAULT_DEPLOY_PATH }}}"
 
       - name: Production Docker deploy
         id: remote_deploy
@@ -89,7 +85,6 @@ jobs:
           if [ ! -d "$DEPLOY_PATH" ]; then
             echo "Deploy path not found: $DEPLOY_PATH"
             echo "Hint: set GitHub secret DEPLOY_PATH_PRODUCTION to the real repo path on the server."
-            echo "Looking for candidates under /home ..."
             ls -la /home/*/git-project/topteen_1.0 2>/dev/null || true
             ls -la /home/*/topteen_1.0 2>/dev/null || true
             exit 1
@@ -105,9 +100,6 @@ jobs:
             echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
           fi
 
-          # Option A: host nginx owns TLS. Force safe keys even if an old .env exists.
-          # (Server previously had SSL_MODE=letsencrypt → certbot 404; APP_PORT=8080 clashes
-          #  with indo-israel-nginx on this host.)
           if [ ! -f docker_files/.env ]; then
             echo "[CI] Creating docker_files/.env from env.example"
             cp docker_files/env.example docker_files/.env
@@ -128,17 +120,28 @@ jobs:
           upsert_env SECURE_SSL_REDIRECT True
           upsert_env WEB_REPLICAS 1
           upsert_env COMPOSE_PROFILES ""
-          echo "[CI] Option A env: SSL_MODE=off APP_PORT=8090 WEB_REPLICAS=1 (host TLS; not 8080)"
+          echo "[CI] Option A env: SSL_MODE=off APP_PORT=8090 WEB_REPLICAS=1"
           grep -E '^(SSL_MODE|APP_PORT|HTTPS_PORT|USE_HTTPS|WEB_REPLICAS)=' docker_files/.env || true
 
           export BUILD_PULL=1
           export PUSH_ON_SUCCESS=1
-          chmod +x docker_files/deploy.sh
+          export GITHUB_SHA GITHUB_REF_NAME
+          chmod +x docker_files/deploy.sh docker_files/scripts/notify_deploy_failure.py
 
           echo "[CI] Running preflight..."
           ./docker_files/deploy.sh preflight
 
-          ./docker_files/deploy.sh deploy
+          set +e
+          ./docker_files/deploy.sh deploy 2>&1 | tee /tmp/topteen-deploy.log
+          DEPLOY_RC=${PIPESTATUS[0]}
+          set -e
+
+          if [ "$DEPLOY_RC" -ne 0 ]; then
+            echo "[CI] Deploy failed (rc=$DEPLOY_RC) — emailing via site SES..."
+            export DEPLOY_FAIL_LOG=/tmp/topteen-deploy.log
+            ./docker_files/deploy.sh notify-failure /tmp/topteen-deploy.log || true
+            exit "$DEPLOY_RC"
+          fi
 
           echo "[CI] Smoke: curl Docker nginx on :8090"
           curl -sS -o /dev/null -w "HTTP %{http_code}\n" -H "Host: www.topteen.in" \
@@ -147,48 +150,10 @@ jobs:
           echo "[CI] Production Docker deploy finished successfully."
           REMOTE
 
-      - name: Capture deploy outcome
-        if: always()
-        run: |
-          if [ "${{ steps.remote_deploy.outcome }}" = "success" ]; then
-            echo "DEPLOY_STATUS=success" >> "$GITHUB_ENV"
-          else
-            echo "DEPLOY_STATUS=failed" >> "$GITHUB_ENV"
-          fi
-
-      - name: Send failure email
-        # Note: `secrets` cannot be used in `if:` expressions — skip via continue-on-error if SMTP unset
-        if: steps.remote_deploy.outcome != 'success'
-        continue-on-error: true
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: ${{ secrets.SMTP_SERVER }}
-          server_port: ${{ secrets.SMTP_PORT || 587 }}
-          secure: false
-          username: ${{ secrets.SMTP_USERNAME }}
-          password: ${{ secrets.SMTP_PASSWORD }}
-          subject: deploy fail
-          to: ${{ secrets.DEPLOY_NOTIFY_TO || 'it@canamgroup.com' }}
-          from: ${{ secrets.SMTP_FROM || 'noreply@topteen.in' }}
-          body: |
-            TopTeen production Docker deploy failed.
-
-            Repository : ${{ github.repository }}
-            Branch     : ${{ github.ref_name }}
-            Commit     : ${{ github.sha }}
-            Actor      : ${{ github.actor }}
-            Workflow   : ${{ github.workflow }}
-            Run URL    : ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-            See deploy-production.log attachment for full output.
-            If rollback ran on the server, the previous Docker images should still be serving traffic.
-
-            Server deploy path: ${{ steps.paths.outputs.path }}
-          attachments: deploy-production.log
-
       - name: Fail job if deploy failed
         if: steps.remote_deploy.outcome != 'success'
         run: |
           echo "Deploy failed. Check log above."
+          echo "Failure email (if sent) used server repo-root .env EMAIL_* (AWS SES)."
           echo "Common fix: set secret DEPLOY_PATH_PRODUCTION=/home/ubuntu/git-project/topteen_1.0"
           exit 1
