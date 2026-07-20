@@ -6,6 +6,8 @@
 #
 # Usage:
 #   ./docker_files/deploy.sh up              # build + start + migrate + health-check
+#   ./docker_files/deploy.sh deploy          # production: tag :previous, rebuild, health-check, push on success, rollback on fail
+#   ./docker_files/deploy.sh rollback        # restore :previous images and recreate containers
 #   ./docker_files/deploy.sh build           # build images only
 #   ./docker_files/deploy.sh down            # stop containers (volumes kept)
 #   ./docker_files/deploy.sh restart         # recreate app services
@@ -67,6 +69,9 @@ usage() {
 Usage: ./docker_files/deploy.sh <command> [args]
 
   up              Rebuild images, recreate containers, migrate, health-check, print URLs
+  deploy          Production deploy: tag :previous, rebuild (BUILD_PULL=1), health-check,
+                  push images on success, auto-rollback on failure
+  rollback        Restore app+nginx images from :<tag>-previous and recreate containers
   build           Build app + nginx images only
   down            Stop and remove containers (images + data kept)
   destroy         Remove containers AND project images (data under DATA_ROOT kept)
@@ -692,9 +697,106 @@ do_destroy() {
 
 do_build() {
   banner
+  local build_args=()
+  [ "${BUILD_PULL:-0}" = "1" ] && build_args+=(--pull)
+  [ "${BUILD_NO_CACHE:-0}" = "1" ] && build_args+=(--no-cache)
   log "Building app + nginx images (rebuild)..."
-  dc build web nginx
+  if [ "${#build_args[@]}" -gt 0 ]; then
+    dc build "${build_args[@]}" web nginx
+  else
+    dc build web nginx
+  fi
   log "Build complete."
+}
+
+tag_images_previous() {
+  for pair in "${APP_IMAGE}:${APP_IMAGE_TAG}" "${NGINX_IMAGE}:${NGINX_IMAGE_TAG}"; do
+    if $DOCKER image inspect "$pair" >/dev/null 2>&1; then
+      $DOCKER tag "$pair" "${pair}-previous"
+      log "Rollback point tagged: ${pair}-previous"
+    else
+      log "No existing image to tag: $pair (first deploy?)"
+    fi
+  done
+}
+
+docker_login_if_configured() {
+  if [ -n "${DOCKERHUB_TOKEN:-}" ] && [ -n "${DOCKERHUB_USERNAME:-}" ]; then
+    log "Logging in to Docker Hub as ${DOCKERHUB_USERNAME}..."
+    echo "$DOCKERHUB_TOKEN" | $DOCKER login -u "$DOCKERHUB_USERNAME" --password-stdin
+  fi
+}
+
+do_rollback_internal() {
+  local rolled=0
+  for pair in "${APP_IMAGE}:${APP_IMAGE_TAG}" "${NGINX_IMAGE}:${NGINX_IMAGE_TAG}"; do
+    local prev="${pair}-previous"
+    if $DOCKER image inspect "$prev" >/dev/null 2>&1; then
+      $DOCKER tag "$prev" "$pair"
+      log "Restored $pair from $prev"
+      rolled=1
+    else
+      err "Missing rollback image: $prev"
+    fi
+  done
+  [ "$rolled" = "1" ] || return 1
+  ensure_ssl_on_up
+  log "Recreating containers with previous images..."
+  dc up -d --force-recreate --remove-orphans
+  sleep 8
+  if health_check "http://127.0.0.1:${APP_PORT}/" 12 5; then
+    log "Rollback health check OK."
+    return 0
+  fi
+  err "Rollback completed but health check still failing."
+  return 1
+}
+
+do_rollback() {
+  banner
+  if do_rollback_internal; then
+    log "Rollback finished."
+    dc ps
+    print_deploy_urls
+  else
+    err "Rollback failed."
+    exit 1
+  fi
+}
+
+do_deploy() {
+  banner
+  tag_images_previous
+  log "Stopping existing project containers (if any)..."
+  dc down --remove-orphans 2>/dev/null || true
+  reseed_nginx_from_templates 1
+  BUILD_PULL="${BUILD_PULL:-1}" do_build
+  ensure_ssl_on_up
+  reseed_nginx_from_templates 1
+  log "Starting stack (force recreate)..."
+  dc up -d --force-recreate --remove-orphans
+  sleep 8
+  release_tasks
+  if health_check "http://127.0.0.1:${APP_PORT}/"; then
+    log "Deploy finished successfully."
+    docker_login_if_configured
+    if [ -n "${DOCKER_PUSH_REGISTRY:-}" ] || [ "${PUSH_ON_SUCCESS:-1}" = "1" ]; then
+      do_push || log "Image push failed (deploy itself succeeded)."
+    fi
+    banner
+    dc ps
+    print_deploy_urls
+    return 0
+  fi
+  err "Health check failed. Recent web logs:"
+  dc logs --tail=80 web 2>&1 | sed 's/^/[docker_files]   /' >&2 || true
+  err "Attempting rollback to previous images..."
+  if do_rollback_internal; then
+    err "Rolled back to previous working version."
+  else
+    err "Rollback failed or no :previous image. Stack may be unhealthy."
+  fi
+  exit 1
 }
 
 health_check() {
@@ -723,15 +825,18 @@ release_tasks() {
 }
 
 do_push() {
-  local reg="${DOCKER_PUSH_REGISTRY}"
-  [ -z "$reg" ] && { err "DOCKER_PUSH_REGISTRY not set in docker_files/.env"; exit 1; }
+  docker_login_if_configured
   for pair in "${APP_IMAGE}:${APP_IMAGE_TAG}" "${NGINX_IMAGE}:${NGINX_IMAGE_TAG}"; do
     if ! $DOCKER image inspect "$pair" >/dev/null 2>&1; then
-      log "skip $pair (not built)"; continue
+      log "skip $pair (not built)"
+      continue
     fi
-    local dst="${reg%/}/$pair"
+    local dst="$pair"
+    if [ -n "${DOCKER_PUSH_REGISTRY:-}" ]; then
+      dst="${DOCKER_PUSH_REGISTRY%/}/$pair"
+      $DOCKER tag "$pair" "$dst"
+    fi
     log "Pushing $dst ..."
-    $DOCKER tag "$pair" "$dst"
     $DOCKER push "$dst" || err "push failed for $dst (docker login?)"
   done
 }
@@ -762,6 +867,8 @@ prepare
 
 case "$CMD" in
   up)            do_up ;;
+  deploy)        do_deploy ;;
+  rollback)      do_rollback ;;
   build)         do_build ;;
   down)          do_down ;;
   destroy|purge|clean) do_destroy ;;

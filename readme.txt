@@ -924,3 +924,203 @@ npm run electron:build   # sync + desktop installer
 # [ ] Apple Developer account + provisioning profiles
 
 ---------- END WHITE-LABEL HYBRID APP ----------
+
+===================================================
+--- Git Version & Release Management ---
+# Create tags, GitHub Releases, and production deploy cuts.
+# Run all commands from project root (where manage.py is).
+# Repo: github.com/topteen77/topteen_1.0
+===================================================
+
+---------- PUBLISHED RELEASES (current) ----------
+# Tag              | GitHub Release title     | Branch     | Notes file
+# -----------------|--------------------------|------------|---------------------------
+# v1.0             | TopTeen v1.0             | master     | BUILD_NOTES_v1.0.txt
+# v1.1             | TopTeen v1.1             | master     | BUILD_NOTES_v1.1.txt
+# production-1.0   | TopTeen Production 1.0   | production | BUILD_NOTES_PRODUCTION_1.0.txt
+#
+# Releases page: https://github.com/topteen77/topteen_1.0/releases
+#
+# Product tags (v1.0, v1.1)       = version history on master (dev/staging reference)
+# Production tags (production-1.0) = approved LIVE baseline for topteen.in deploy
+
+---------- OVERVIEW ----------
+# IMPORTANT: git TAG ≠ GitHub RELEASE
+#   git tag + git push origin <tag>  -> repo "Tags" tab only
+#   gh release create <tag> ...      -> repo "Releases" page (what users see)
+#
+# Product release workflow (master):
+#   1. Stabilize code on master
+#   2. Write BUILD_NOTES_vX.Y.txt
+#   3. Commit notes on master
+#   4. Annotated tag: vX.Y
+#   5. Push master + tag
+#   6. gh release create (required for Releases page)
+#
+# Production release workflow (live deploy):
+#   1. Write BUILD_NOTES_PRODUCTION_X.Y.txt on master
+#   2. Commit + tag production-X.Y
+#   3. Fast-forward branch production to that commit
+#   4. Push master, production, tag
+#   5. gh release create --target production
+#   6. Deploy from production-X.Y tag
+
+---------- PRODUCT RELEASE — STEP BY STEP (example v1.2) ----------
+
+Step 1. Sync master:
+   git checkout master
+   git pull origin master
+   git status
+   git log -1 --oneline
+
+Step 2. Write build notes:
+   cp BUILD_NOTES_v1.1.txt BUILD_NOTES_v1.2.txt
+   # Edit BUILD_NOTES_v1.2.txt — list what changed since v1.1
+
+Step 3. Commit:
+   git add BUILD_NOTES_v1.2.txt readme.txt
+   git commit -m "$(cat <<'EOM'
+Release v1.2: add build notes.
+
+EOM
+)"
+
+Step 4. Annotated tag:
+   git tag -a v1.2 -m "$(cat <<'EOM'
+TopTeen v1.2 release
+
+See BUILD_NOTES_v1.2.txt for changelog.
+EOM
+)"
+
+Step 5. Push:
+   git push origin master
+   git push origin v1.2
+
+Step 6. GitHub Release (fills Releases page):
+   gh release create v1.2 \
+     --repo topteen77/topteen_1.0 \
+     --title "TopTeen v1.2" \
+     --notes-file BUILD_NOTES_v1.2.txt \
+     --target master
+
+Step 7. Verify:
+   git tag -l 'v*'
+   gh release view v1.2 --repo topteen77/topteen_1.0
+   # https://github.com/topteen77/topteen_1.0/releases/tag/v1.2
+
+---------- PRODUCTION RELEASE — STEP BY STEP (example production-1.1) ----------
+
+Step 1. On master, write production notes and commit:
+   git checkout master
+   git pull origin master
+   cp BUILD_NOTES_PRODUCTION_1.0.txt BUILD_NOTES_PRODUCTION_1.1.txt
+   # Edit: env checklist, deploy steps, go-live smoke tests
+   git add BUILD_NOTES_PRODUCTION_1.1.txt readme.txt
+   git commit -m "$(cat <<'EOM'
+Release production-1.1: production cut notes and checklist.
+
+EOM
+)"
+
+Step 2. Annotated production tag:
+   git tag -a production-1.1 -m "TopTeen Production 1.1 — see BUILD_NOTES_PRODUCTION_1.1.txt"
+
+Step 3. Align production branch (fast-forward only):
+   git checkout production
+   git merge --ff-only master
+   git push origin master
+   git push origin production
+   git push origin production-1.1
+
+Step 4. GitHub Release:
+   gh release create production-1.1 \
+     --repo topteen77/topteen_1.0 \
+     --title "TopTeen Production 1.1" \
+     --notes-file BUILD_NOTES_PRODUCTION_1.1.txt \
+     --target production
+
+Step 5. Deploy from tag (on server):
+   git fetch --tags
+   git checkout production-1.1
+   ./deploy/deploy.sh production status
+   ./deploy/deploy.sh production app deploy
+   # first-time full bring-up:
+   # ./deploy/deploy.sh production up
+
+Step 6. Verify:
+   gh release view production-1.1 --repo topteen77/topteen_1.0
+   git show production-1.1 --no-patch
+
+---------- CHECKOUT / PIN A RELEASE ----------
+
+# Product (master track):
+git fetch --tags
+git checkout v1.1
+
+# Production (live deploy — use this on topteen.in server):
+git fetch --tags
+git checkout production-1.0
+
+# Return to dev branch:
+git checkout institutedashboard
+
+---------- USEFUL COMMANDS (reference) ----------
+
+# List tags and GitHub releases
+git tag -l
+git tag -l 'v*'
+git tag -l 'production*'
+gh release list --repo topteen77/topteen_1.0
+
+# Show commit for a tag
+git rev-list -n 1 v1.1
+git log -1 --oneline production-1.0
+
+# Compare releases
+git log --oneline v1.0..v1.1
+git log --oneline v1.1..production-1.0
+git diff v1.0..v1.1 --stat
+
+# View / edit a GitHub release
+gh release view v1.1 --repo topteen77/topteen_1.0
+gh release view production-1.0 --repo topteen77/topteen_1.0
+# gh release edit v1.1 --notes-file BUILD_NOTES_v1.1.txt
+
+# Hotfix branch from a release tag
+git checkout -b hotfix/session-fix production-1.0
+
+# Rollback deploy (on server, after checkout tag)
+./deploy/deploy.sh production app rollback
+
+# Delete local tag (mistake only — do not delete published tags casually)
+git tag -d v1.2
+
+# Delete remote tag (dangerous — team coordination required)
+# git push origin --delete v1.2
+
+---------- RELEASE CHECKLIST ----------
+
+Product (vX.Y)
+# [ ] Features merged into master
+# [ ] BUILD_NOTES_vX.Y.txt written
+# [ ] Committed on master
+# [ ] Annotated tag vX.Y created
+# [ ] master + tag pushed
+# [ ] gh release create done (Releases page not empty)
+
+Production (production-X.Y)
+# [ ] BUILD_NOTES_PRODUCTION_X.Y.txt written (env, deploy, smoke tests)
+# [ ] Committed on master
+# [ ] Tag production-X.Y created
+# [ ] production branch fast-forwarded and pushed
+# [ ] gh release create --target production done
+# [ ] Deploy from tag on server
+# [ ] Smoke test: login, reports, payments, no demo cards on live
+
+---------- BUILD NOTES FILES ----------
+# BUILD_NOTES_v1.0.txt              — product v1.0 feature list
+# BUILD_NOTES_v1.1.txt              — product v1.1 changelog (speed, reports, demo safety)
+# BUILD_NOTES_PRODUCTION_1.0.txt    — production 1.0 deploy checklist for topteen.in
+
+---------- END GIT VERSION & RELEASE ----------
