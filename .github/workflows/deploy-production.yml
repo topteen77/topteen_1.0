@@ -8,7 +8,8 @@
 #   AWS_USER             SSH user (e.g. ubuntu)
 #
 # Optional secrets:
-#   DEPLOY_PATH_PRODUCTION   Repo path on server (default: /home/ubuntu/topteen_1.0)
+#   DEPLOY_PATH_PRODUCTION   Repo path on server
+#                            Default: /home/ubuntu/git-project/topteen_1.0
 #   DOCKERHUB_USERNAME       Docker Hub user (push on successful deploy)
 #   DOCKERHUB_TOKEN          Docker Hub access token
 #
@@ -17,7 +18,7 @@
 #   SMTP_PORT              e.g. 587
 #   SMTP_USERNAME          SMTP user
 #   SMTP_PASSWORD          SMTP password
-#   SMTP_FROM              From address (e.g. noreply@topteen.in)
+#   SMTP_FROM              From address (default: noreply@topteen.in if unset)
 #   DEPLOY_NOTIFY_TO       Override recipient (default: it@canamgroup.com)
 name: Deploy Production (Docker)
 
@@ -26,6 +27,10 @@ on:
     branches:
       - production
   workflow_dispatch:
+
+env:
+  # Must match the real clone on the EC2 host (override with secret DEPLOY_PATH_PRODUCTION)
+  DEFAULT_DEPLOY_PATH: /home/ubuntu/git-project/topteen_1.0
 
 jobs:
   deploy:
@@ -48,11 +53,24 @@ jobs:
             exit 1
           fi
 
+      - name: Resolve deploy path
+        id: paths
+        run: |
+          # Prefer secret; fall back to DEFAULT_DEPLOY_PATH (empty secret counts as unset)
+          SECRET_PATH='${{ secrets.DEPLOY_PATH_PRODUCTION }}'
+          if [ -n "$SECRET_PATH" ]; then
+            echo "DEPLOY_PATH=$SECRET_PATH" >> "$GITHUB_ENV"
+            echo "path=$SECRET_PATH" >> "$GITHUB_OUTPUT"
+          else
+            echo "DEPLOY_PATH=${{ env.DEFAULT_DEPLOY_PATH }}" >> "$GITHUB_ENV"
+            echo "path=${{ env.DEFAULT_DEPLOY_PATH }}" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Using DEPLOY_PATH (masked if it contains secrets): ${SECRET_PATH:-${{ env.DEFAULT_DEPLOY_PATH }}}"
+
       - name: Production Docker deploy
         id: remote_deploy
         continue-on-error: true
         env:
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH_PRODUCTION || '/home/ubuntu/topteen_1.0' }}
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
@@ -60,15 +78,23 @@ jobs:
           ssh -i ~/.ssh/id_ed25519_github_devtopteen \
             -o StrictHostKeyChecking=no \
             "${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }}" \
-            "DEPLOY_PATH='${DEPLOY_PATH}' \
+            "DEPLOY_PATH='${{ env.DEPLOY_PATH }}' \
              DOCKERHUB_USERNAME='${DOCKERHUB_USERNAME}' \
              DOCKERHUB_TOKEN='${DOCKERHUB_TOKEN}' \
              GITHUB_SHA='${{ github.sha }}' \
              GITHUB_REF_NAME='${{ github.ref_name }}' \
              bash -s" << 'REMOTE' 2>&1 | tee deploy-production.log
           set -euo pipefail
-          DEPLOY_PATH="${DEPLOY_PATH:-/home/ubuntu/topteen_1.0}"
-          cd "$DEPLOY_PATH" || { echo "Deploy path not found: $DEPLOY_PATH"; exit 1; }
+          DEPLOY_PATH="${DEPLOY_PATH:-/home/ubuntu/git-project/topteen_1.0}"
+          if [ ! -d "$DEPLOY_PATH" ]; then
+            echo "Deploy path not found: $DEPLOY_PATH"
+            echo "Hint: set GitHub secret DEPLOY_PATH_PRODUCTION to the real repo path on the server."
+            echo "Looking for candidates under /home ..."
+            ls -la /home/*/git-project/topteen_1.0 2>/dev/null || true
+            ls -la /home/*/topteen_1.0 2>/dev/null || true
+            exit 1
+          fi
+          cd "$DEPLOY_PATH"
 
           echo "[CI] Repo: $DEPLOY_PATH"
           git fetch origin production
@@ -77,6 +103,12 @@ jobs:
 
           if [ -n "${DOCKERHUB_TOKEN:-}" ] && [ -n "${DOCKERHUB_USERNAME:-}" ]; then
             echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+          fi
+
+          # Ensure Option A env exists (do not overwrite an existing docker_files/.env)
+          if [ ! -f docker_files/.env ]; then
+            echo "[CI] Creating docker_files/.env from env.example (Option A defaults)"
+            cp docker_files/env.example docker_files/.env
           fi
 
           export BUILD_PULL=1
@@ -97,17 +129,18 @@ jobs:
           fi
 
       - name: Send failure email
-        if: steps.remote_deploy.outcome != 'success'
+        if: steps.remote_deploy.outcome != 'success' && secrets.SMTP_SERVER != ''
+        continue-on-error: true
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: ${{ secrets.SMTP_SERVER }}
-          server_port: ${{ secrets.SMTP_PORT }}
+          server_port: ${{ secrets.SMTP_PORT || 587 }}
           secure: false
           username: ${{ secrets.SMTP_USERNAME }}
           password: ${{ secrets.SMTP_PASSWORD }}
           subject: deploy fail
           to: ${{ secrets.DEPLOY_NOTIFY_TO || 'it@canamgroup.com' }}
-          from: ${{ secrets.SMTP_FROM }}
+          from: ${{ secrets.SMTP_FROM || 'noreply@topteen.in' }}
           body: |
             TopTeen production Docker deploy failed.
 
@@ -121,9 +154,12 @@ jobs:
             See deploy-production.log attachment for full output.
             If rollback ran on the server, the previous Docker images should still be serving traffic.
 
-            Server deploy path: ${{ secrets.DEPLOY_PATH_PRODUCTION || '/home/ubuntu/topteen_1.0' }}
+            Server deploy path: ${{ steps.paths.outputs.path }}
           attachments: deploy-production.log
 
       - name: Fail job if deploy failed
         if: steps.remote_deploy.outcome != 'success'
-        run: exit 1
+        run: |
+          echo "Deploy failed. Check log above."
+          echo "Common fix: set secret DEPLOY_PATH_PRODUCTION=/home/ubuntu/git-project/topteen_1.0"
+          exit 1
