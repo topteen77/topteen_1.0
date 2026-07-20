@@ -105,16 +105,39 @@ jobs:
             echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
           fi
 
-          # Ensure Option A env exists (do not overwrite an existing docker_files/.env)
+          # Option A: host nginx owns TLS. Force safe keys even if an old .env exists.
+          # (Server previously had SSL_MODE=letsencrypt → certbot 404; APP_PORT=8080 clashes
+          #  with indo-israel-nginx on this host.)
           if [ ! -f docker_files/.env ]; then
-            echo "[CI] Creating docker_files/.env from env.example (Option A defaults)"
+            echo "[CI] Creating docker_files/.env from env.example"
             cp docker_files/env.example docker_files/.env
           fi
+          upsert_env() {
+            local key="$1" val="$2" file="docker_files/.env"
+            if grep -qE "^${key}=" "$file" 2>/dev/null; then
+              sed -i "s|^${key}=.*|${key}=${val}|" "$file"
+            else
+              echo "${key}=${val}" >> "$file"
+            fi
+          }
+          upsert_env SSL_MODE off
+          upsert_env APP_PORT 8090
+          upsert_env HTTPS_PORT 8444
+          upsert_env TEST_HTTP_PORT 8085
+          upsert_env USE_HTTPS True
+          upsert_env SECURE_SSL_REDIRECT True
+          upsert_env COMPOSE_PROFILES ""
+          echo "[CI] Option A env: SSL_MODE=off APP_PORT=8090 (host TLS; not 8080)"
+          grep -E '^(SSL_MODE|APP_PORT|HTTPS_PORT|USE_HTTPS)=' docker_files/.env || true
 
           export BUILD_PULL=1
           export PUSH_ON_SUCCESS=1
           chmod +x docker_files/deploy.sh
           ./docker_files/deploy.sh deploy
+
+          echo "[CI] Smoke: curl Docker nginx on :8090"
+          curl -sS -o /dev/null -w "HTTP %{http_code}\n" -H "Host: www.topteen.in" \
+            http://127.0.0.1:8090/ || true
 
           echo "[CI] Production Docker deploy finished successfully."
           REMOTE
