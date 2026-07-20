@@ -94,10 +94,11 @@ Usage: ./docker_files/deploy.sh <command> [args]
 
 SSL env (docker_files/.env):
   Option A (host nginx TLS — production www.topteen.in):
-    APP_PORT=8080 HTTPS_PORT=8444 SSL_MODE=off USE_HTTPS=True
-    Host nginx proxies to 127.0.0.1:8080 with X-Forwarded-Proto https
+    APP_PORT=8090 HTTPS_PORT=8444 SSL_MODE=off USE_HTTPS=True
+    Host nginx proxies to 127.0.0.1:8090 with X-Forwarded-Proto https
     Sample: docker_files/nginx/production.conf
     (separate from /etc/nginx/sites-enabled/topteens — do not overwrite live site)
+    Note: do NOT use 8080 on this host — indo-israel-nginx already binds :8080
   Option B (Docker owns TLS):
     APP_PORT=80 HTTPS_PORT=443 SSL_MODE=letsencrypt|self-signed
   SSL_CERT_PATH is always ${DATA_ROOT}/nginx/ssl (Option B only)
@@ -465,7 +466,14 @@ ensure_ssl_on_up() {
       fi
       ;;
     letsencrypt|le|certbot)
-      if ! ssl_has_certs; then
+      # Option A safety: host already terminates TLS on :80/:443 — never run certbot
+      # unless Docker actually owns port 80 (Option B).
+      if [ "${APP_PORT}" != "80" ]; then
+        log "WARN: SSL_MODE=letsencrypt but APP_PORT=${APP_PORT} (not 80)."
+        log "      Host nginx owns public TLS — skipping certbot (use SSL_MODE=off)."
+        log "      Expect host proxy → http://127.0.0.1:${APP_PORT}"
+        ssl_disable_https_conf
+      elif ! ssl_has_certs; then
         log "SSL_MODE=letsencrypt and no certs — obtaining (needs DNS + port 80)..."
         do_ssl_obtain
       else
