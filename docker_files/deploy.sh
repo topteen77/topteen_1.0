@@ -247,6 +247,8 @@ prepare() {
   COMPOSE_PROFILES="$(read_env COMPOSE_PROFILES)"
   SSL_MODE="$(read_env SSL_MODE)"; SSL_MODE="${SSL_MODE:-off}"   # off | self-signed | letsencrypt
   CERTBOT_EMAIL="$(read_env CERTBOT_EMAIL)"
+  USE_HTTPS="$(read_env USE_HTTPS)"; USE_HTTPS="${USE_HTTPS:-False}"
+  SECURE_SSL_REDIRECT="$(read_env SECURE_SSL_REDIRECT)"; SECURE_SSL_REDIRECT="${SECURE_SSL_REDIRECT:-$USE_HTTPS}"
   # Prefer docker_files/.env, else repo-root .env
   if [ -z "$CERTBOT_EMAIL" ] && [ -f "$ROOT_ENV" ]; then
     CERTBOT_EMAIL="$(grep -E '^CERTBOT_EMAIL=' "$ROOT_ENV" 2>/dev/null | head -1 | cut -d= -f2- | sed 's/[[:space:]]*$//' || true)"
@@ -533,11 +535,11 @@ print_deploy_urls() {
   data="${DATA_ROOT:-/data/topteens}"
 
   # Option A: SSL_MODE=off + USE_HTTPS → public URL is https://domain (host nginx)
-  case "${SSL_MODE}" in
+  case "${SSL_MODE:-off}" in
     off|false|no|"")
-      if [ "${USE_HTTPS}" = "True" ] || [ "${USE_HTTPS}" = "true" ] || [ "${USE_HTTPS}" = "1" ]; then
-        host_tls=1
-      fi
+      case "${USE_HTTPS:-False}" in
+        True|true|1|yes|YES|on|ON) host_tls=1 ;;
+      esac
       ;;
   esac
 
