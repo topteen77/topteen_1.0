@@ -1,3 +1,5 @@
+import json
+
 from django.test import RequestFactory, TestCase
 
 from core import choices
@@ -50,3 +52,36 @@ class TestTtv2PageLoaderConfig(TestCase):
         req = RequestFactory().get("/institute/demo-institute/")
         ctx = ttv2_role_ctx(req)
         self.assertFalse(ctx["ttv2_role_ctx"]["page_loader_enabled"])
+
+
+class TestAjaxAuthRedirectMiddleware(TestCase):
+    def test_ajax_login_redirect_becomes_401_json(self):
+        from core.ajax_auth_middleware import AjaxAuthRedirectMiddleware
+
+        def view(_request):
+            from django.http import HttpResponseRedirect
+
+            return HttpResponseRedirect("/user/login/?next=/institute/demo/students/")
+
+        middleware = AjaxAuthRedirectMiddleware(view)
+        request = RequestFactory().get(
+            "/institute/demo-institute/students/",
+            HTTP_X_REQUESTED_WITH="XMLHttpRequest",
+        )
+        response = middleware(request)
+        self.assertEqual(response.status_code, 401)
+        payload = json.loads(response.content.decode())
+        self.assertTrue(payload.get("session_expired"))
+
+    def test_full_page_login_redirect_unchanged(self):
+        from core.ajax_auth_middleware import AjaxAuthRedirectMiddleware
+
+        def view(_request):
+            from django.http import HttpResponseRedirect
+
+            return HttpResponseRedirect("/user/login/")
+
+        middleware = AjaxAuthRedirectMiddleware(view)
+        request = RequestFactory().get("/institute/demo-institute/students/")
+        response = middleware(request)
+        self.assertEqual(response.status_code, 302)
