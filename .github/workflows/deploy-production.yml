@@ -134,6 +134,10 @@ jobs:
           export BUILD_PULL=1
           export PUSH_ON_SUCCESS=1
           chmod +x docker_files/deploy.sh
+
+          echo "[CI] Running preflight..."
+          ./docker_files/deploy.sh preflight
+
           ./docker_files/deploy.sh deploy
 
           echo "[CI] Smoke: curl Docker nginx on :8090"
