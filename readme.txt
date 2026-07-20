@@ -1124,5 +1124,3 @@ Production (production-X.Y)
 # BUILD_NOTES_PRODUCTION_1.0.txt    — production 1.0 deploy checklist for topteen.in
 
 ---------- END GIT VERSION & RELEASE ----------
-
-
