@@ -145,7 +145,10 @@ def _studio_activity_counts(resume) -> tuple[int, int]:
 
     projects = 0
     achievements = 0
-    for a in UserResumeActivity.objects.filter(resume=resume).order_by("id"):
+    # Prefer prefetched relation when present (dashboard cards).
+    activities = list(resume.userresumeactivity_set.all())
+    activities.sort(key=lambda a: a.id or 0)
+    for a in activities:
         title = (a.title or "").strip()
         if _is_resume_meta_activity_title(title):
             continue
@@ -614,7 +617,10 @@ class ResumeV2Metrics:
 
     @staticmethod
     def _item_counts(resume) -> dict:
-        """Counts from DB — source of truth for V2 studio (not stale wizard JSON)."""
+        """Counts from DB — source of truth for V2 studio (not stale wizard JSON).
+
+        Uses prefetched child relations when available (``.count()`` would bypass prefetch).
+        """
         if not resume:
             return {
                 "skills": 0,
@@ -626,16 +632,22 @@ class ResumeV2Metrics:
             }
         projects, achievements = _studio_activity_counts(resume)
         return {
-            "skills": UserResumeSkill.objects.filter(resume=resume).count(),
+            "skills": len(resume.userresumeskill_set.all()),
             "projects": projects,
-            "certificates": UserResumeCertificate.objects.filter(resume=resume).count(),
+            "certificates": len(resume.userresumecertificate_set.all()),
             "activities": projects + achievements,
             "achievements": achievements,
-            "internships": UserResumeInternship.objects.filter(resume=resume).count(),
+            "internships": len(resume.userresumeinternship_set.all()),
         }
 
     @staticmethod
-    def section_completion(resume, sections: list | None = None) -> dict:
+    def section_completion(
+        resume,
+        sections: list | None = None,
+        *,
+        payload: dict | None = None,
+        counts: dict | None = None,
+    ) -> dict:
         sections = sections or STUDENT_SECTIONS
         if not resume:
             result = {
@@ -643,11 +655,14 @@ class ResumeV2Metrics:
                 for sec in sections
             }
             return {"sections": result, "overall": 0}
-        payload = resume_studio_prototype_payload(resume)
+        if payload is None:
+            payload = resume_studio_prototype_payload(resume)
+        if counts is None:
+            counts = ResumeV2Metrics._item_counts(resume)
         result = {}
 
         for sec in sections:
-            pct, status = ResumeV2Metrics._section_status(sec, resume, payload)
+            pct, status = ResumeV2Metrics._section_status(sec, resume, payload, counts)
             result[sec] = {"percent": pct, "status": status, "label": SECTION_LABELS.get(sec, sec.title())}
 
         values = [v["percent"] for v in result.values()]
@@ -655,8 +670,9 @@ class ResumeV2Metrics:
         return {"sections": result, "overall": overall}
 
     @staticmethod
-    def _section_status(section: str, resume, payload: dict) -> tuple:
-        counts = ResumeV2Metrics._item_counts(resume)
+    def _section_status(section: str, resume, payload: dict, counts: dict | None = None) -> tuple:
+        if counts is None:
+            counts = ResumeV2Metrics._item_counts(resume)
         if section == "personal":
             has_name = bool((payload.get("fullName") or "").strip())
             has_email = bool((payload.get("email") or "").strip())
@@ -720,7 +736,10 @@ class ResumeV2Metrics:
             }
         payload = resume_studio_prototype_payload(resume, request)
         ats = ATSScoringService.score(payload)
-        sections = ResumeV2Metrics.section_completion(resume)
+        counts = ResumeV2Metrics._item_counts(resume)
+        sections = ResumeV2Metrics.section_completion(
+            resume, payload=payload, counts=counts
+        )
         score = round((ats["ats_score"] + sections["overall"] + ats["completeness"]) / 3)
         level = "Beginner"
         if score >= 91:
@@ -806,8 +825,29 @@ def _normalize_template_key(template_id: str) -> str:
     return LEGACY_V2_TEMPLATE_IDS.get(tid, tid)
 
 
+_V2_TEMPLATES_CATALOG_CACHE: list[dict] | None = None
+_V2_TEMPLATES_CATALOG_TS: float = 0.0
+_V2_TEMPLATES_CATALOG_TTL = 120.0  # seconds; admin template edits pick up shortly
+
+
+def invalidate_v2_templates_catalog_cache() -> None:
+    global _V2_TEMPLATES_CATALOG_CACHE, _V2_TEMPLATES_CATALOG_TS
+    _V2_TEMPLATES_CATALOG_CACHE = None
+    _V2_TEMPLATES_CATALOG_TS = 0.0
+
+
 def v2_templates_catalog() -> list[dict]:
     """All studio HTML templates (DB catalog or static fallback) for V2 picker."""
+    import time
+
+    global _V2_TEMPLATES_CATALOG_CACHE, _V2_TEMPLATES_CATALOG_TS
+    now = time.time()
+    if (
+        _V2_TEMPLATES_CATALOG_CACHE is not None
+        and (now - _V2_TEMPLATES_CATALOG_TS) < _V2_TEMPLATES_CATALOG_TTL
+    ):
+        return _V2_TEMPLATES_CATALOG_CACHE
+
     from users.resume_studio_html import (
         ALLOWED_STUDIO_HTML_TEMPLATE_KEYS,
         studio_html_template_catalog_rows,
@@ -836,6 +876,8 @@ def v2_templates_catalog() -> list[dict]:
                 "mock_class": v2_template_mock_class(key, catalog_mock),
             }
         )
+    _V2_TEMPLATES_CATALOG_CACHE = out
+    _V2_TEMPLATES_CATALOG_TS = now
     return out
 
 

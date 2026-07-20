@@ -131,7 +131,20 @@ class ResumeV2DashboardView(TemplateView):
         ctx["breadcrumb"] = _v2_breadcrumb([{"title": "Dashboard", "text": "Dashboard", "url": ""}])
 
         user = request.user
-        resumes = list(UserResume.objects.filter(user=user).order_by("-modified"))
+        # Prefetch children once — resume_card_context / metrics otherwise N+1 per section.
+        resumes = list(
+            UserResume.objects.filter(user=user)
+            .select_related("user", "user__user_profile")
+            .prefetch_related(
+                "userresumeskill_set",
+                "userresumecertificate_set",
+                "userresumeactivity_set",
+                "userresumeinternship_set",
+                "userresumevolunteerinvolvement_set",
+                "user__user_profile__hobbies",
+            )
+            .order_by("-modified")
+        )
         profile_pct = user.get_profile_completion_percentage()
         autofill = ProfileAutofillDetector.detect(user)
         suggestions = ResumeSuggestionService.suggestions(user, resumes[0] if resumes else None)

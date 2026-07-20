@@ -161,8 +161,37 @@ def skilllab_is_career_readiness_grade_student(user) -> bool:
     return bucket in ("10", "12")
 
 
+def skilllab_eligible_course_count(user) -> int:
+    """Fast count for dashboard browse CTA (M2M + rare ungraded name fallback)."""
+    from django.db.models import Count
+
+    from skilllab.models import SkillLabCourse
+
+    grade_num = _extract_grade_number(user)
+    if grade_num is None:
+        return 0
+    count = (
+        SkillLabCourse.objects.filter(grades__grade_number=grade_num)
+        .distinct()
+        .count()
+    )
+    ungraded = SkillLabCourse.objects.annotate(_gc=Count("grades")).filter(_gc=0)
+    if not ungraded.exists():
+        return count
+    for course in ungraded.iterator(chunk_size=100):
+        if course.matches_skilllab_filters(grade=grade_num):
+            count += 1
+    return count
+
+
 def skilllab_eligible_courses_queryset(user):
-    """Courses whose Grades M2M includes the student's class number."""
+    """Courses whose Grades M2M includes the student's class number.
+
+    Avoids iterating the full course catalog on every dashboard hit. Name-based
+    grade fallback only runs for courses with no Grades M2M (usually none).
+    """
+    from django.db.models import Count
+
     from skilllab.models import SkillLabCourse
 
     grade_num = _extract_grade_number(user)
@@ -172,11 +201,24 @@ def skilllab_eligible_courses_queryset(user):
     matched_ids = set(
         base.filter(grades__grade_number=grade_num).values_list("id", flat=True)
     )
-    # Include courses with unset grades M2M that still resolve to this class via name.
-    for course in base.exclude(id__in=matched_ids).prefetch_related("grades").iterator():
-        if course.matches_skilllab_filters(grade=grade_num):
-            matched_ids.add(course.id)
+    ungraded = base.annotate(_grade_count=Count("grades")).filter(_grade_count=0)
+    if ungraded.exists():
+        for course in ungraded.iterator(chunk_size=100):
+            if course.matches_skilllab_filters(grade=grade_num):
+                matched_ids.add(course.id)
     return base.filter(id__in=matched_ids)
+
+_SKILLLAB_DASH_CACHE_TTL = 90
+_SKILLLAB_DASH_CACHE_PREFIX = "skilllab:dash:items:v2:"
+
+
+def invalidate_skilllab_dashboard_items_cache(user_id: int) -> None:
+    try:
+        from django.core.cache import cache
+
+        cache.delete(f"{_SKILLLAB_DASH_CACHE_PREFIX}{int(user_id)}")
+    except Exception:
+        pass
 
 
 def skilllab_active_course_ids_for_user(user) -> Set[int]:
@@ -401,6 +443,18 @@ def _bulk_skilllab_status(user, courses) -> Dict[str, Dict[int, Any]]:
 
 
 def build_student_skilllab_dashboard_items(user) -> List[Dict[str, Any]]:
+    from django.core.cache import cache
+
+    uid = int(getattr(user, "id", 0) or 0)
+    cache_key = f"{_SKILLLAB_DASH_CACHE_PREFIX}{uid}" if uid else None
+    if cache_key:
+        try:
+            cached = cache.get(cache_key)
+            if cached is not None:
+                return cached
+        except Exception:
+            pass
+
     courses = list(skilllab_dashboard_courses_for_user(user))
     if courses:
         status = _bulk_skilllab_status(user, courses)
@@ -418,13 +472,23 @@ def build_student_skilllab_dashboard_items(user) -> List[Dict[str, Any]]:
     else:
         items = []
     if items or not skilllab_is_career_readiness_grade_student(user):
+        if cache_key:
+            try:
+                cache.set(cache_key, items, _SKILLLAB_DASH_CACHE_TTL)
+            except Exception:
+                pass
         return items
 
-    eligible_count = skilllab_eligible_courses_queryset(user).count()
+    eligible_count = skilllab_eligible_course_count(user)
     if eligible_count <= 0:
+        if cache_key:
+            try:
+                cache.set(cache_key, items, _SKILLLAB_DASH_CACHE_TTL)
+            except Exception:
+                pass
         return items
 
-    return [
+    items = [
         {
             "kind": "skilllab",
             "kind_badge": "CAREER",
@@ -438,6 +502,12 @@ def build_student_skilllab_dashboard_items(user) -> List[Dict[str, Any]]:
             "icon_bg": "#eef6ff",
         }
     ]
+    if cache_key:
+        try:
+            cache.set(cache_key, items, _SKILLLAB_DASH_CACHE_TTL)
+        except Exception:
+            pass
+    return items
 
 
 def skilllab_student_status(user, course) -> Dict[str, Any]:

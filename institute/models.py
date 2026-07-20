@@ -387,7 +387,7 @@ def get_cached_student_management(user):
         return cached
     sm = (
         StudentManagement.objects.filter(student=user)
-        .select_related('class_and_section')
+        .select_related('class_and_section', 'institute')
         .first()
     )
     try:

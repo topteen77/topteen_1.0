@@ -1290,11 +1290,14 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
     if user is None:
         return {}
 
-    profile = UserProfile.objects.filter(user=user).first()
+    try:
+        profile = user.user_profile
+    except Exception:
+        profile = UserProfile.objects.filter(user=user).first()
     wiz = _wizard_draft_dict(resume)
 
     skills_out = []
-    for s in UserResumeSkill.objects.filter(resume=resume).order_by("id"):
+    for s in sorted(resume.userresumeskill_set.all(), key=lambda x: x.id or 0):
         title = (s.title or "").strip()
         if not title:
             continue
@@ -1303,7 +1306,7 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
     projects_out: list[dict] = []
     achievements_out: list[dict] = []
     work_experience_out: list[dict] = []
-    for it in UserResumeInternship.objects.filter(resume=resume).order_by("id"):
+    for it in sorted(resume.userresumeinternship_set.all(), key=lambda x: x.id or 0):
         role = (it.role or "").strip() or "Internship"
         provider = (it.provider or "").strip()
         dates = _iso_range(it.start_date, it.end_date)
@@ -1321,7 +1324,7 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
         )
 
     profile_interest_hobbies: list[str] = []
-    for a in UserResumeActivity.objects.filter(resume=resume).order_by("id"):
+    for a in sorted(resume.userresumeactivity_set.all(), key=lambda x: x.id or 0):
         title = (a.title or "").strip()
         if not title or _is_resume_meta_activity_title(title):
             continue
@@ -1333,7 +1336,7 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
         else:
             achievements_out.append(_activity_to_job_block(a, as_project=False))
 
-    for v in UserResumeVolunteerInvolvement.objects.filter(resume=resume).order_by("id"):
+    for v in sorted(resume.userresumevolunteerinvolvement_set.all(), key=lambda x: x.id or 0):
         title = (v.title or "").strip() or "Volunteer"
         role = (v.role or "").strip()
         dates = _iso_range(v.start_date, v.end_date)
@@ -1366,7 +1369,7 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
             )
 
     certs_out = []
-    for c in UserResumeCertificate.objects.filter(resume=resume).order_by("id"):
+    for c in sorted(resume.userresumecertificate_set.all(), key=lambda x: x.id or 0):
         title = (c.title or "").strip()
         if not title:
             continue
