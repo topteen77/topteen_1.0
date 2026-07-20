@@ -104,7 +104,9 @@ def save_user_pdf(user_id, filename, content):
         # missing key on both S3 and local storage), and we avoid default_storage.exists()
         # which is unreliable with this S3 configuration.
         default_storage.delete(key)
-        return default_storage.save(key, content)
+        saved = default_storage.save(key, content)
+        mark_user_pdf_ready(user_id, filename, True)
+        return saved
     except Exception as e:
         logger.warning("save_user_pdf failed for user_id=%s file=%s: %s", user_id, filename, e)
         return None
@@ -123,18 +125,101 @@ def class10_assessment_pdf_filename(user, test_paper):
     return f"{safe_name}-Final_Assessment_report.pdf"
 
 
-def user_pdf_exists(user_id, filename):
+def class10_combined_report_pdf_filename(user):
+    """Stable filename for Stream Sorter combined report PDF downloads."""
+    raw_name = getattr(user, 'name', None) or getattr(user, 'email', None) or str(user)
+    safe_name = re.sub(r'[^\w\s-]', '', str(raw_name)).strip()[:50] or 'user'
+    return f"{safe_name}-Stream_Sorter_Combined_Report.pdf"
+
+
+def class10_web_report_pdf_filename(user, report_kind):
     """
-    True if a previously generated report PDF is already in media storage.
-    Best-effort: returns False on any storage error.
+    Filename for web report PDF buttons.
+
+    report_kind: 'combined' | 'test1' | 'test2' | 'test3'
     """
+    kind = (report_kind or '').strip().lower()
+    if kind == 'combined':
+        return class10_combined_report_pdf_filename(user)
+    return class10_assessment_pdf_filename(user, kind)
+
+
+def delete_user_pdf(user_id, filename):
+    """Best-effort delete of a stored user PDF (local or S3)."""
     if not user_id or not filename:
         return False
     key = user_pdf_key(user_id, filename)
     try:
-        return default_storage.exists(key)
+        default_storage.delete(key)
+        mark_user_pdf_ready(user_id, filename, False)
+        return True
     except Exception as e:
-        logger.warning("user_pdf_exists failed for user_id=%s file=%s: %s", user_id, filename, e)
+        logger.warning("delete_user_pdf failed for user_id=%s file=%s: %s", user_id, filename, e)
+        return False
+
+
+def serve_user_pdf_response(user_id, filename, download_name=None):
+    """
+    Stream a previously stored PDF as an attachment.
+
+    Returns an HttpResponse/FileResponse, or None if the file cannot be opened.
+    """
+    if not user_id or not filename:
+        return None
+    key = user_pdf_key(user_id, filename)
+    try:
+        from django.http import FileResponse
+
+        handle = default_storage.open(key, 'rb')
+        response = FileResponse(handle, content_type='application/pdf')
+        name = download_name or filename
+        response['Content-Disposition'] = f'attachment; filename="{name}"'
+        response['Cache-Control'] = 'private, max-age=300'
+        return response
+    except Exception as e:
+        logger.warning("serve_user_pdf_response failed for user_id=%s file=%s: %s", user_id, filename, e)
+        return None
+
+
+def mark_user_pdf_ready(user_id, filename, ready=True):
+    """Redis flag — S3 exists() is unreliable in this project's storage config."""
+    if not user_id or not filename:
+        return
+    try:
+        from django.core.cache import cache
+
+        key = f"user_pdf_ready:v1:{user_id}:{filename}"
+        if ready:
+            cache.set(key, 1, 60 * 60 * 24 * 14)
+        else:
+            cache.delete(key)
+    except Exception:
+        pass
+
+
+def user_pdf_exists(user_id, filename):
+    """
+    True if a previously generated report PDF is already in media storage.
+
+    Prefer Redis ready-flag, then try opening the object. Avoid storage.exists()
+    alone — it is unreliable with the project's S3 backend.
+    """
+    if not user_id or not filename:
+        return False
+    try:
+        from django.core.cache import cache
+
+        if cache.get(f"user_pdf_ready:v1:{user_id}:{filename}"):
+            return True
+    except Exception:
+        pass
+    key = user_pdf_key(user_id, filename)
+    try:
+        with default_storage.open(key, "rb") as handle:
+            handle.read(1)
+        mark_user_pdf_ready(user_id, filename, True)
+        return True
+    except Exception:
         return False
 
 
