@@ -1,0 +1,173 @@
+===================================================
+TopTeen — PRODUCTION RELEASE 1.0
+===================================================
+Release tag:     production-1.0
+Track:           PRODUCTION (separate from master tags v1.0 / v1.1)
+Branch:          production (aligned with master at this cut)
+Code base:       master @ same commit as this tag
+Includes:        Product features from v1.0 + stability/speed from v1.1
+Release date:    2026-07-20
+Domains:         topteen.in , www.topteen.in
+Deploy path:     ./deploy/deploy.sh production ...
+
+This is the first formal PRODUCTION cut. Use this tag to build and
+deploy live. Do not confuse with GitHub tags v1.0 / v1.1 (product
+version history on master). Production ops should pin to:
+  production-1.0
+
+---------------------------------------------------
+1. WHY A SEPARATE PRODUCTION RELEASE
+---------------------------------------------------
+- v1.0 / v1.1 document product increments on master
+- production-1.0 is the approved LIVE baseline for topteen.in
+- Includes production safety (demo accounts off, DEBUG off, live payments)
+- Single tag to checkout / build Docker images / roll back to
+
+---------------------------------------------------
+2. WHAT IS INCLUDED (code)
+---------------------------------------------------
+Everything from product v1.0, plus v1.1 hardening:
+
+Core product
+  - Student / institute / counselor / parent flows
+  - Psychometric tests (Class 10 RIASEC + Class 12 reports)
+  - Skill Lab courses + certificates
+  - Resume Builder v2
+  - Careers, colleges, entrance content
+  - PWA, gamification, AI counselor chat
+  - Admin service monitor + Celery visibility
+  - Docker deploy stacks (BASE + APP)
+
+Production-critical updates from v1.1
+  - Demo accounts NEVER shown when ENVIRONMENT=production
+  - Class 10 combined report Redis cache + async web PDF (Celery)
+  - Faster PDF delivery (S3 / ready-cache; less Gunicorn streaming)
+  - Student dashboard / Skill Lab / resume / nav speed caches
+  - ALLOW_DEMO_SEARCH_INDEX default False
+
+See also: BUILD_NOTES_v1.0.txt , BUILD_NOTES_v1.1.txt
+
+---------------------------------------------------
+3. PRODUCTION ENVIRONMENT REQUIREMENTS
+---------------------------------------------------
+File: deploy/environments/production.env
+(copy from production.env.example — never commit secrets)
+
+Required / expected:
+  ENVIRONMENT=production          # or DJANGO_ENVIRONMENT=production
+  DEBUG=False
+  USE_HTTPS=True
+  ALLOWED_HOSTS=topteen.in,www.topteen.in
+  SERVER_NAMES=topteen.in www.topteen.in
+  ENABLE_REDIS=True
+  ENABLE_CELERY=True
+  RAZORPAY_ENVIRONMENT=production
+  ICICI_EAZYPAY_ENVIRONMENT=production
+  DB_HOST=<managed production DB>   # not localhost
+  APP_IMAGE_TAG=production
+  WEB_REPLICAS=3 (or as sized for load)
+  BASE_PROFILES=ssl                 # certbot; omit local-db if remote DB
+
+Secrets live in APP_ENV_FILE (e.g. ../../.env on server):
+  SECRET_KEY, DB_*, EMAIL_*, payment keys, AWS/S3, etc.
+
+Demo accounts:
+  - Automatically hidden when ENVIRONMENT=production
+  - Do NOT set SHOW_DEMO_ACCOUNT_ON_DEVELOPMENT=true on live
+
+---------------------------------------------------
+4. DEPLOY STEPS (from this release tag)
+---------------------------------------------------
+On the build/deploy host (from project root):
+
+  git fetch --tags origin
+  git checkout production-1.0
+
+  # Optional: confirm tag
+  git describe --tags --exact-match
+  git rev-parse HEAD
+
+  # Full bring-up (first time) OR app roll:
+  ./deploy/deploy.sh production status
+  ./deploy/deploy.sh production up
+  # Or app-only roll after base is already up:
+  # ./deploy/deploy.sh production app deploy
+
+  # After deploy
+  ./deploy/deploy.sh production status
+  # Inside web container / via manage.py as needed:
+  #   python manage.py migrate --noinput
+  #   python manage.py collectstatic --noinput
+  # (deploy.sh app deploy usually runs migrate/health-check)
+
+Rollback (if needed):
+  ./deploy/deploy.sh production app rollback
+  # or redeploy a previous tag after checkout
+
+---------------------------------------------------
+5. PRODUCTION GO-LIVE CHECKLIST
+---------------------------------------------------
+Pre-deploy
+  [ ] production.env filled; secrets only in server .env (not git)
+  [ ] DEBUG=False , ENVIRONMENT=production
+  [ ] DB backups taken
+  [ ] Redis + Celery enabled
+  [ ] S3 credentials valid for report PDFs
+  [ ] SSL / certbot paths correct (BASE_PROFILES=ssl)
+  [ ] Payment gateways set to production keys
+  [ ] DNS for topteen.in / www.topteen.in points to LB
+
+Post-deploy smoke
+  [ ] https://www.topteen.in loads (HTTPS)
+  [ ] Student login works; NO demo-account cards on login
+  [ ] Institute / counselor login works
+  [ ] Class 10 / Class 12 report open; PDF download works
+  [ ] Skill Lab course list loads
+  [ ] Payment sandbox paths disabled; live checkout OK (test small txn)
+  [ ] Celery workers running; service monitor healthy
+  [ ] Admin can clear cache / view task list
+  [ ] robots / indexing policy matches production intent
+
+---------------------------------------------------
+6. GIT: CREATE / USE THIS PRODUCTION RELEASE
+---------------------------------------------------
+# Already done for production-1.0. For a future production-1.1:
+
+  git checkout master
+  git pull origin master
+  # write BUILD_NOTES_PRODUCTION_1.1.txt
+
+  git add BUILD_NOTES_PRODUCTION_1.1.txt readme.txt
+  git commit -m "Release production-1.1: production cut notes."
+
+  git tag -a production-1.1 -m "TopTeen Production 1.1 — see BUILD_NOTES_PRODUCTION_1.1.txt"
+
+  git checkout production
+  git merge --ff-only master
+  git push origin master production
+  git push origin production-1.1
+
+  gh release create production-1.1 \
+    --repo topteen77/topteen_1.0 \
+    --title "TopTeen Production 1.1" \
+    --notes-file BUILD_NOTES_PRODUCTION_1.1.txt \
+    --target production
+
+Checkout / pin deploy:
+  git fetch --tags
+  git checkout production-1.0
+
+Diff product tags vs production cut:
+  git log --oneline v1.0..production-1.0
+  git log --oneline v1.1..production-1.0
+
+---------------------------------------------------
+7. SUPPORT / KNOWN NOTES
+---------------------------------------------------
+- Student bulk import (topteen12 → topteen12-old) still pending; not required for go-live
+- Prefer deploy from tag production-1.0, not floating master tip
+- Hotfixes: branch from production-1.0 → PR → new production-1.0.1 tag
+
+===================================================
+END — TopTeen PRODUCTION RELEASE 1.0
+===================================================

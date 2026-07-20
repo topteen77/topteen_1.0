@@ -1092,3 +1092,59 @@ git tag -d v1.0
 # [ ] Announce release + point to BUILD_NOTES_vX.Y.txt
 
 ---------- END GIT VERSION RELEASE ----------
+
+===================================================
+--- Git Production Release (production-1.0) ---
+# Separate from product tags v1.0 / v1.1.
+# Production cut for live topteen.in — tag production-X.Y + GitHub Release.
+# Notes file: BUILD_NOTES_PRODUCTION_1.0.txt
+===================================================
+
+---------- OVERVIEW ----------
+# Product tags (v1.0, v1.1)     = version history on master
+# Production tags (production-1.0) = approved LIVE deploy baseline
+# Always:
+#   1) commit BUILD_NOTES_PRODUCTION_X.Y.txt
+#   2) annotated tag production-X.Y
+#   3) fast-forward branch "production" to that commit
+#   4) push branch + tag
+#   5) gh release create (Releases page)
+
+---------- COMPLETE COMMANDS (production-1.0) ----------
+
+Step 1. On master, add production notes and commit:
+   git checkout master
+   git pull origin master
+   git add BUILD_NOTES_PRODUCTION_1.0.txt readme.txt
+   git commit -m "Release production-1.0: production cut notes and checklist."
+
+Step 2. Annotated production tag:
+   git tag -a production-1.0 -m "TopTeen Production 1.0 — see BUILD_NOTES_PRODUCTION_1.0.txt"
+
+Step 3. Align production branch (fast-forward only):
+   git checkout production
+   git merge --ff-only master
+   git push origin master
+   git push origin production
+   git push origin production-1.0
+
+Step 4. GitHub Release (shows under Releases):
+   gh release create production-1.0 \
+     --repo topteen77/topteen_1.0 \
+     --title "TopTeen Production 1.0" \
+     --notes-file BUILD_NOTES_PRODUCTION_1.0.txt \
+     --target production
+
+Step 5. Deploy from the production tag:
+   git fetch --tags
+   git checkout production-1.0
+   ./deploy/deploy.sh production status
+   ./deploy/deploy.sh production app deploy
+   # or full: ./deploy/deploy.sh production up
+
+---------- VERIFY ----------
+gh release view production-1.0 --repo topteen77/topteen_1.0
+git show production-1.0 --no-patch
+# Browser: https://github.com/topteen77/topteen_1.0/releases/tag/production-1.0
+
+---------- END PRODUCTION RELEASE ----------
