@@ -6,6 +6,8 @@
 #
 # Usage:
 #   ./docker_files/deploy.sh up              # build + start + migrate + health-check
+#   ./docker_files/deploy.sh deploy          # production: tag :previous, rebuild, health-check, push on success, rollback on fail
+#   ./docker_files/deploy.sh rollback        # restore :previous images and recreate containers
 #   ./docker_files/deploy.sh build           # build images only
 #   ./docker_files/deploy.sh down            # stop containers (volumes kept)
 #   ./docker_files/deploy.sh restart         # recreate app services
@@ -67,6 +69,9 @@ usage() {
 Usage: ./docker_files/deploy.sh <command> [args]
 
   up              Rebuild images, recreate containers, migrate, health-check, print URLs
+  deploy          Production deploy: tag :previous, rebuild (BUILD_PULL=1), health-check,
+                  push images on success, auto-rollback on failure
+  rollback        Restore app+nginx images from :<tag>-previous and recreate containers
   build           Build app + nginx images only
   down            Stop and remove containers (images + data kept)
   destroy         Remove containers AND project images (data under DATA_ROOT kept)
@@ -88,13 +93,19 @@ Usage: ./docker_files/deploy.sh <command> [args]
   ssl sync        Copy certbot live certs -> nginx/ssl and reload
 
 SSL env (docker_files/.env):
-  SSL_MODE=off|self-signed|letsencrypt   (auto on 'up')
-  SSL_CERT_PATH is always ${DATA_ROOT}/nginx/ssl
+  Option A (host nginx TLS — production www.topteen.in):
+    APP_PORT=8080 HTTPS_PORT=8444 SSL_MODE=off USE_HTTPS=True
+    Host nginx proxies to 127.0.0.1:8080 with X-Forwarded-Proto https
+    Sample: docker_files/nginx/production.conf
+    (separate from /etc/nginx/sites-enabled/topteens — do not overwrite live site)
+  Option B (Docker owns TLS):
+    APP_PORT=80 HTTPS_PORT=443 SSL_MODE=letsencrypt|self-signed
+  SSL_CERT_PATH is always ${DATA_ROOT}/nginx/ssl (Option B only)
   CERTBOT_EMAIL=you@example.com
-  COMPOSE_PROFILES=ssl                   (background renew every 12h)
-  SERVER_NAMES=test.topteen.in
-  APP_PORT=80  HTTPS_PORT=443            (domain, no port in URL)
+  COMPOSE_PROFILES=ssl                   (Option B background renew)
   TEST_HTTP_PORT=8005 TEST_HTTPS_PORT=8443  (IP testing only)
+  Docker Hub push (DOCKER_PUSH_REGISTRY blank):
+    docker push developertopteen/demotopteen:<APP_IMAGE_TAG>
 
 Cron renew example:
   0 4 * * * /home/ubuntu/topteen_1.0/docker_files/deploy.sh ssl renew >> /data/topteens/logs/ssl-renew.log 2>&1
@@ -285,6 +296,17 @@ ssl_enable_https_conf() {
   fi
 }
 
+# Option A: host terminates TLS — keep Docker nginx HTTP-only even if old certs exist
+ssl_disable_https_conf() {
+  local https_conf="$DATA_ROOT/nginx/conf/10-https.conf"
+  local disabled="$DATA_ROOT/nginx/conf/10-https.conf.disabled"
+  if [ -f "$https_conf" ]; then
+    mv "$https_conf" "$disabled" 2>/dev/null \
+      || { cp -f "$https_conf" "$disabled" 2>/dev/null || true; rm -f "$https_conf"; }
+    log "Disabled Docker HTTPS conf (SSL_MODE=off / host TLS termination)"
+  fi
+}
+
 ssl_primary_domain() {
   local d
   for d in $SERVER_NAMES; do
@@ -452,10 +474,10 @@ ensure_ssl_on_up() {
       fi
       ;;
     off|false|no|"")
-      log "SSL_MODE=off (HTTP only unless certs already exist)"
-      if ssl_has_certs; then
-        ssl_enable_https_conf
-      fi
+      # Option A: host nginx owns :443 — never enable Docker HTTPS (avoids port clash)
+      log "SSL_MODE=off — Docker HTTP only (host nginx TLS termination)"
+      log "  Expect host proxy → http://127.0.0.1:${APP_PORT} with X-Forwarded-Proto https"
+      ssl_disable_https_conf
       ;;
     *)
       log "Unknown SSL_MODE=$SSL_MODE (use off|self-signed|letsencrypt)"
@@ -496,10 +518,20 @@ do_up() {
 print_deploy_urls() {
   local primary http_base https_base data
   local test_http test_https local_http local_https
+  local host_tls=0
   primary="$(ssl_primary_domain)"
   [ -z "$primary" ] && primary="$(echo "$SERVER_NAMES" | awk '{print $1}')"
   [ -z "$primary" ] && primary="localhost"
   data="${DATA_ROOT:-/data/topteens}"
+
+  # Option A: SSL_MODE=off + USE_HTTPS → public URL is https://domain (host nginx)
+  case "${SSL_MODE}" in
+    off|false|no|"")
+      if [ "${USE_HTTPS}" = "True" ] || [ "${USE_HTTPS}" = "true" ] || [ "${USE_HTTPS}" = "1" ]; then
+        host_tls=1
+      fi
+      ;;
+  esac
 
   # Domain URLs never include a port when APP_PORT=80 / HTTPS_PORT=443
   if [ "${APP_PORT}" = "80" ]; then
@@ -512,42 +544,58 @@ print_deploy_urls() {
   else
     https_base="https://${primary}:${HTTPS_PORT}"
   fi
+  # Public browser URL when host terminates TLS
+  if [ "$host_tls" = "1" ]; then
+    https_base="https://${primary}"
+    http_base="http://${primary}"
+  fi
 
   # IP testing uses TEST_* ports only (not domain ports)
   if [ -n "${PUBLIC_IP:-}" ]; then
     test_http="http://${PUBLIC_IP}:${TEST_HTTP_PORT:-8005}"
     test_https="https://${PUBLIC_IP}:${TEST_HTTPS_PORT:-8443}"
   fi
-  local_http="http://127.0.0.1:${TEST_HTTP_PORT:-8005}"
+  local_http="http://127.0.0.1:${APP_PORT}"
   local_https="https://127.0.0.1:${TEST_HTTPS_PORT:-8443}"
 
   echo ""
   log "============================================================"
-  log "  Website URLs (domain — no port)"
-  log "============================================================"
-  if ssl_has_certs; then
+  if [ "$host_tls" = "1" ]; then
+    log "  Website URLs (Option A — host nginx TLS)"
+    log "============================================================"
+    log "  Main site     : ${https_base}/"
+    log "  Django admin  : ${https_base}/admin/"
+    log "  TopTeen admin : ${https_base}/topteenadmin/"
+    log "  HTTP (host)   : ${http_base}/  (should redirect to HTTPS)"
+    log "  Docker backend: http://127.0.0.1:${APP_PORT}/  (host nginx proxies here)"
+    log "  Host sample   : docker_files/nginx/production.conf (do not overwrite sites-enabled/topteens)"
+  elif ssl_has_certs; then
+    log "  Website URLs (domain — Docker TLS)"
+    log "============================================================"
     log "  Main site     : ${https_base}/"
     log "  Django admin  : ${https_base}/admin/"
     log "  TopTeen admin : ${https_base}/topteenadmin/"
     log "  HTTP (redir)  : ${http_base}/"
   else
+    log "  Website URLs (HTTP)"
+    log "============================================================"
     log "  Main site     : ${http_base}/"
     log "  Django admin  : ${http_base}/admin/"
     log "  TopTeen admin : ${http_base}/topteenadmin/"
   fi
   log "============================================================"
-  log "  IP testing only (ports)"
+  log "  Direct Docker / IP testing"
   log "============================================================"
+  log "  Local Docker  : ${local_http}/"
   if [ -n "${PUBLIC_IP:-}" ]; then
     log "  IP HTTP       : ${test_http}/"
-    if ssl_has_certs; then
+    if ssl_has_certs && [ "$host_tls" != "1" ]; then
       log "  IP HTTPS      : ${test_https}/   (self-signed → browser warning OK)"
     fi
   else
     log "  (set PUBLIC_IP in docker_files/.env to print IP test URLs)"
   fi
-  log "  Local HTTP    : ${local_http}/"
-  if ssl_has_certs; then
+  if ssl_has_certs && [ "$host_tls" != "1" ]; then
     log "  Local HTTPS   : ${local_https}/"
   fi
   log "============================================================"
@@ -569,9 +617,16 @@ print_deploy_urls() {
 do_reseed_nginx() {
   log "Rewriting nginx conf from templates (SERVER_NAMES=${SERVER_NAMES})..."
   reseed_nginx_from_templates 1
-  if ssl_has_certs; then
-    ssl_enable_https_conf
-  fi
+  case "${SSL_MODE}" in
+    off|false|no|"")
+      ssl_disable_https_conf
+      ;;
+    *)
+      if ssl_has_certs; then
+        ssl_enable_https_conf
+      fi
+      ;;
+  esac
   log "Reloading nginx..."
   dc exec nginx nginx -s reload 2>/dev/null && log "nginx reloaded." || log "nginx not running yet (ok on first boot)"
 }
@@ -692,9 +747,106 @@ do_destroy() {
 
 do_build() {
   banner
+  local build_args=()
+  [ "${BUILD_PULL:-0}" = "1" ] && build_args+=(--pull)
+  [ "${BUILD_NO_CACHE:-0}" = "1" ] && build_args+=(--no-cache)
   log "Building app + nginx images (rebuild)..."
-  dc build web nginx
+  if [ "${#build_args[@]}" -gt 0 ]; then
+    dc build "${build_args[@]}" web nginx
+  else
+    dc build web nginx
+  fi
   log "Build complete."
+}
+
+tag_images_previous() {
+  for pair in "${APP_IMAGE}:${APP_IMAGE_TAG}" "${NGINX_IMAGE}:${NGINX_IMAGE_TAG}"; do
+    if $DOCKER image inspect "$pair" >/dev/null 2>&1; then
+      $DOCKER tag "$pair" "${pair}-previous"
+      log "Rollback point tagged: ${pair}-previous"
+    else
+      log "No existing image to tag: $pair (first deploy?)"
+    fi
+  done
+}
+
+docker_login_if_configured() {
+  if [ -n "${DOCKERHUB_TOKEN:-}" ] && [ -n "${DOCKERHUB_USERNAME:-}" ]; then
+    log "Logging in to Docker Hub as ${DOCKERHUB_USERNAME}..."
+    echo "$DOCKERHUB_TOKEN" | $DOCKER login -u "$DOCKERHUB_USERNAME" --password-stdin
+  fi
+}
+
+do_rollback_internal() {
+  local rolled=0
+  for pair in "${APP_IMAGE}:${APP_IMAGE_TAG}" "${NGINX_IMAGE}:${NGINX_IMAGE_TAG}"; do
+    local prev="${pair}-previous"
+    if $DOCKER image inspect "$prev" >/dev/null 2>&1; then
+      $DOCKER tag "$prev" "$pair"
+      log "Restored $pair from $prev"
+      rolled=1
+    else
+      err "Missing rollback image: $prev"
+    fi
+  done
+  [ "$rolled" = "1" ] || return 1
+  ensure_ssl_on_up
+  log "Recreating containers with previous images..."
+  dc up -d --force-recreate --remove-orphans
+  sleep 8
+  if health_check "http://127.0.0.1:${APP_PORT}/" 12 5; then
+    log "Rollback health check OK."
+    return 0
+  fi
+  err "Rollback completed but health check still failing."
+  return 1
+}
+
+do_rollback() {
+  banner
+  if do_rollback_internal; then
+    log "Rollback finished."
+    dc ps
+    print_deploy_urls
+  else
+    err "Rollback failed."
+    exit 1
+  fi
+}
+
+do_deploy() {
+  banner
+  tag_images_previous
+  log "Stopping existing project containers (if any)..."
+  dc down --remove-orphans 2>/dev/null || true
+  reseed_nginx_from_templates 1
+  BUILD_PULL="${BUILD_PULL:-1}" do_build
+  ensure_ssl_on_up
+  reseed_nginx_from_templates 1
+  log "Starting stack (force recreate)..."
+  dc up -d --force-recreate --remove-orphans
+  sleep 8
+  release_tasks
+  if health_check "http://127.0.0.1:${APP_PORT}/"; then
+    log "Deploy finished successfully."
+    docker_login_if_configured
+    if [ -n "${DOCKER_PUSH_REGISTRY:-}" ] || [ "${PUSH_ON_SUCCESS:-1}" = "1" ]; then
+      do_push || log "Image push failed (deploy itself succeeded)."
+    fi
+    banner
+    dc ps
+    print_deploy_urls
+    return 0
+  fi
+  err "Health check failed. Recent web logs:"
+  dc logs --tail=80 web 2>&1 | sed 's/^/[docker_files]   /' >&2 || true
+  err "Attempting rollback to previous images..."
+  if do_rollback_internal; then
+    err "Rolled back to previous working version."
+  else
+    err "Rollback failed or no :previous image. Stack may be unhealthy."
+  fi
+  exit 1
 }
 
 health_check() {
@@ -723,15 +875,18 @@ release_tasks() {
 }
 
 do_push() {
-  local reg="${DOCKER_PUSH_REGISTRY}"
-  [ -z "$reg" ] && { err "DOCKER_PUSH_REGISTRY not set in docker_files/.env"; exit 1; }
+  docker_login_if_configured
   for pair in "${APP_IMAGE}:${APP_IMAGE_TAG}" "${NGINX_IMAGE}:${NGINX_IMAGE_TAG}"; do
     if ! $DOCKER image inspect "$pair" >/dev/null 2>&1; then
-      log "skip $pair (not built)"; continue
+      log "skip $pair (not built)"
+      continue
     fi
-    local dst="${reg%/}/$pair"
+    local dst="$pair"
+    if [ -n "${DOCKER_PUSH_REGISTRY:-}" ]; then
+      dst="${DOCKER_PUSH_REGISTRY%/}/$pair"
+      $DOCKER tag "$pair" "$dst"
+    fi
     log "Pushing $dst ..."
-    $DOCKER tag "$pair" "$dst"
     $DOCKER push "$dst" || err "push failed for $dst (docker login?)"
   done
 }
@@ -762,6 +917,8 @@ prepare
 
 case "$CMD" in
   up)            do_up ;;
+  deploy)        do_deploy ;;
+  rollback)      do_rollback ;;
   build)         do_build ;;
   down)          do_down ;;
   destroy|purge|clean) do_destroy ;;
