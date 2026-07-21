@@ -338,6 +338,64 @@ python manage.py collectstatic --noinput
 # Worker tuning: GUNICORN_WORKERS, GUNICORN_THREADS, CELERY_CONCURRENCY, DB_CONN_MAX_AGE in .env (see docker/.env.example).
 
 
+===================================================
+--- Docker vs installed (production check) ---
+# Full doc: docker-vs-installed.md (project root).
+# Goal: tell whether www.topteen.in is served by Docker (Option A) or legacy systemd/gunicorn.
+# Run on the production host from project root (e.g. ~/git-project/topteen_1.0).
+
+---------- QUICK COMPARISON ----------
+# Docker:  sites-enabled has topteens-docker; proxy_pass → 127.0.0.1:8090; port 8090 up; containers Up; systemd unit inactive
+# Installed: sites-enabled has topteens (not .off); proxy_pass → unix gunicorn sock; topteen-in-prod-website active
+
+---------- 1. WHICH NGINX SITE ----------
+ls -l /etc/nginx/sites-enabled/ | grep -E 'topteen|topteens'
+grep -E 'proxy_pass|server_name' /etc/nginx/sites-enabled/topteens-docker 2>/dev/null
+grep -E 'proxy_pass|server_name' /etc/nginx/sites-enabled/topteens 2>/dev/null
+# topteens-docker + proxy_pass http://127.0.0.1:8090  → Docker
+# topteens + unix socket proxy                         → installed
+# Repo template: docker_files/nginx/production.conf → /etc/nginx/sites-available/topteens-docker
+
+---------- 2. DOCKER UP ON 8090? ----------
+./docker_files/deploy.sh status
+# or: docker compose -f docker_files/docker-compose.yml --env-file docker_files/.env ps
+ss -ltnp | grep -E ':8090|:8000'
+curl -sI http://127.0.0.1:8090/ | head -5
+# Containers Up + :8090 listening + curl headers → Docker serving
+# Nothing on 8090 → nginx may point at Docker but stack is down (./docker_files/deploy.sh up)
+# Option A: APP_PORT=8090, SSL_MODE=off (host nginx TLS). Do not use 8080 on this host.
+
+---------- 3. OLD SYSTEMD SERVICE ----------
+systemctl is-active topteen-in-prod-website.service topteen-in-prod-website.socket
+systemctl is-enabled topteen-in-prod-website.service topteen-in-prod-website.socket
+# inactive/disabled → installed stack off; active → still running
+# Stop when fully on Docker:
+#   sudo systemctl stop topteen-in-prod-website.socket topteen-in-prod-website.service
+#   sudo systemctl disable topteen-in-prod-website.socket topteen-in-prod-website.service
+
+---------- 4. ONE-LINER VERDICT ----------
+echo "=== nginx site ==="; ls /etc/nginx/sites-enabled/ | grep -E 'topteen'
+echo "=== proxy ==="; grep -h proxy_pass /etc/nginx/sites-enabled/topteens* 2>/dev/null | head -5
+echo "=== port 8090 ==="; ss -ltn | grep 8090 || echo "8090 not listening"
+echo "=== systemd ==="; systemctl is-active topteen-in-prod-website.service 2>/dev/null
+echo "=== docker ==="; docker ps --format '{{.Names}} {{.Status}}' | grep -i topteen || echo "no topteen containers"
+
+---------- SWITCH / ROLLBACK (SUMMARY) ----------
+# Point traffic at Docker (stack already up on 8090):
+#   sudo cp docker_files/nginx/production.conf /etc/nginx/sites-available/topteens-docker
+#   sudo ln -sf /etc/nginx/sites-available/topteens-docker /etc/nginx/sites-enabled/topteens-docker
+#   sudo mv /etc/nginx/sites-enabled/topteens /etc/nginx/sites-enabled/topteens.off
+#   sudo nginx -t && sudo systemctl reload nginx
+#   then stop/disable topteen-in-prod-website.socket + .service
+# Rollback to installed:
+#   sudo mv /etc/nginx/sites-enabled/topteens.off /etc/nginx/sites-enabled/topteens
+#   sudo rm -f /etc/nginx/sites-enabled/topteens-docker
+#   sudo nginx -t && sudo systemctl reload nginx
+#   sudo systemctl enable --now topteen-in-prod-website.socket topteen-in-prod-website.service
+# Conflicting server_name warnings for other canamacademy sites are unrelated if nginx -t succeeds.
+===================================================
+
+
 --- Entrance Exam (Test Prep) commands ---
 # Data lives under core: EntranceTestPrepCategory (levels: After 10 / After 12 / After Graduation), EntranceTestPrepExam, EntranceTestPrepExamSection.
 # Workflow: (1) Convert .docx → HTML .txt, (2) Import .txt into DB, (3) Optionally upload category images.
