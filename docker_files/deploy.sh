@@ -1,27 +1,25 @@
 #!/usr/bin/env bash
 # =============================================================================
-# TopTeen docker_files - single independent container deploy
+# TopTeen docker_files - independent container deploy
 #
-# Builds and runs the full project in Docker. App path: /app/topteen1.0
+# Builds and runs the project in Docker. App path: /app/topteen1.0
 #
-# Usage:
-#   ./docker_files/deploy.sh up              # build + start + migrate + health-check
-#   ./docker_files/deploy.sh deploy          # production: tag :previous, rebuild, health-check, push on success, rollback on fail
-#   ./docker_files/deploy.sh rollback        # restore :previous images and recreate containers
-#   ./docker_files/deploy.sh build           # build images only
-#   ./docker_files/deploy.sh down            # stop containers (volumes kept)
-#   ./docker_files/deploy.sh restart         # recreate app services
-#   ./docker_files/deploy.sh status          # show containers
-#   ./docker_files/deploy.sh logs [svc]      # follow logs
-#   ./docker_files/deploy.sh migrate         # run migrations once
-#   ./docker_files/deploy.sh collectstatic   # collect static once
-#   ./docker_files/deploy.sh shell           # bash in a web container
-#   ./docker_files/deploy.sh push            # push images (if registry set)
+# Update categories:
+#   ENVIRONMENT  — redis (+ optional mariadb/elasticsearch/certbot)
+#                  ./docker_files/deploy.sh up-env | deploy-env
+#   CODEBASE     — web, celery, celery_beat, nginx (frequent)
+#                  ./docker_files/deploy.sh deploy | deploy-code | up-code
+#   FULL STACK   — everything (rare)
+#                  ./docker_files/deploy.sh up | deploy-all
+#
+# Other:
+#   ./docker_files/deploy.sh rollback | build | down | restart | status | logs
+#   ./docker_files/deploy.sh migrate | collectstatic | shell | push
 #
 # First time:
 #   cp docker_files/env.example docker_files/.env
 #   # ensure repo-root .env has Django secrets / DB credentials
-#   ./docker_files/deploy.sh up
+#   ./docker_files/deploy.sh up-env && ./docker_files/deploy.sh deploy-code
 # =============================================================================
 set -euo pipefail
 
@@ -68,51 +66,102 @@ usage() {
   cat <<'EOF'
 Usage: ./docker_files/deploy.sh <command> [args]
 
-  up              Rebuild images, recreate containers, migrate, health-check, print URLs
-  deploy          Production deploy: tag :previous, rebuild (BUILD_PULL=1), health-check,
-                  push images on success, auto-rollback on failure
-  rollback        Restore app+nginx images from :<tag>-previous and recreate containers
+Two update categories (update only what you need):
+
+  ENVIRONMENT (infra — rarely changes): redis (+ mariadb/elasticsearch/certbot if profiles)
+    up-env / deploy-env     Start or recreate ENV services only (no app rebuild)
+
+  CODEBASE (app — frequent deploys): web, celery, celery_beat, nginx
+    up-code / deploy-code   Build app images, recreate CODE services only (redis untouched)
+    deploy                  Alias for deploy-code (CI / normal production deploys)
+
+  FULL STACK (rare):
+    up / deploy-all         Stop all, rebuild, recreate everything
+
+Other:
+  rollback        Restore app+nginx :previous images; recreate CODE services only
   build           Build app + nginx images only
   down            Stop and remove containers (images + data kept)
   destroy         Remove containers AND project images (data under DATA_ROOT kept)
-  restart         Force-recreate web/celery/celery_beat/nginx
+  restart         Force-recreate CODE services only
   status          List project containers + SSL status
   logs [service]  Follow logs (optional service name)
-  migrate         Run Django migrate once
-  collectstatic   Run collectstatic once
+  migrate         Run Django migrate once (always; ignores SKIP_MIGRATE)
+  collectstatic   Run collectstatic once (set COLLECTSTATIC_CLEAR=1 to wipe first)
   shell           Open a shell in a web container
-  push            Push app + nginx images to DOCKER_PUSH_REGISTRY
+  push            Push app + nginx images to Docker Hub
   reload-nginx    Reload nginx after editing ${DATA_ROOT}/nginx/conf
   reseed-nginx    Rewrite nginx conf from templates (SERVER_NAMES) + reload
   debug           Curl/nginx/web diagnostics (no host Python needed)
   preflight       Check env, Docker, ports, Option A settings (no deploy)
   notify-failure  Email deploy fail via site SES (EMAIL_* in repo-root .env)
 
-  ssl status      Show cert paths / expiry
-  ssl self-signed [domain]   Generate self-signed cert into ${DATA_ROOT}/nginx/ssl
-  ssl obtain      Let's Encrypt obtain (needs DNS + APP_PORT=80 + CERTBOT_EMAIL)
-  ssl renew       Renew LE certs, sync to nginx/ssl, reload nginx
-  ssl sync        Copy certbot live certs -> nginx/ssl and reload
+  ssl status | self-signed | obtain | renew | sync
 
-SSL env (docker_files/.env):
-  Option A (host nginx TLS — production www.topteen.in):
-    APP_PORT=8090 HTTPS_PORT=8444 SSL_MODE=off USE_HTTPS=True
-    Host nginx proxies to 127.0.0.1:8090 with X-Forwarded-Proto https
-    Sample: docker_files/nginx/production.conf
-    (separate from /etc/nginx/sites-enabled/topteens — do not overwrite live site)
-    Note: do NOT use 8080 on this host — indo-israel-nginx already binds :8080
-  Option B (Docker owns TLS):
-    APP_PORT=80 HTTPS_PORT=443 SSL_MODE=letsencrypt|self-signed
-  SSL_CERT_PATH is always ${DATA_ROOT}/nginx/ssl (Option B only)
-  CERTBOT_EMAIL=you@example.com
-  COMPOSE_PROFILES=ssl                   (Option B background renew)
-  TEST_HTTP_PORT=8005 TEST_HTTPS_PORT=8443  (IP testing only)
-  Docker Hub push (DOCKER_PUSH_REGISTRY blank):
-    docker push developertopteen/demotopteen:<APP_IMAGE_TAG>
+Why deploy logs show "Deleting '...'" :
+  That is Django collectstatic --clear emptying staticfiles before copy.
+  Default is now WITHOUT --clear (incremental). Use COLLECTSTATIC_CLEAR=1 only when needed.
 
-Cron renew example:
-  0 4 * * * /home/ubuntu/topteen_1.0/docker_files/deploy.sh ssl renew >> /data/topteens/logs/ssl-renew.log 2>&1
+Migrations on deploy:
+  Default runs migrate only if pending (django migrate --check).
+  SKIP_MIGRATE=1 to never auto-migrate; FORCE_MIGRATE=1 to always migrate.
+  Manual: ./docker_files/deploy.sh migrate
+
+SSL / Option A: APP_PORT=8090 HTTPS_PORT=8444 SSL_MODE=off USE_HTTPS=True
+  Host nginx → 127.0.0.1:8090  (docker_files/nginx/production.conf)
 EOF
+}
+
+# Service groups — CODE changes often; ENV stays up across code deploys
+CODE_SERVICES="web celery celery_beat nginx"
+
+env_service_list() {
+  # Always redis. Optional profile services only if enabled in COMPOSE_PROFILES.
+  local list="redis"
+  local profiles=",${COMPOSE_PROFILES:-},"
+  case "$profiles" in *,local-db,*) list="$list mariadb" ;; esac
+  case "$profiles" in *,search,*) list="$list elasticsearch" ;; esac
+  case "$profiles" in *,ssl,*) list="$list certbot" ;; esac
+  # shellcheck disable=SC2086
+  echo $list
+}
+
+run_collectstatic() {
+  # Default: no --clear (avoids deleting thousands of static files every deploy).
+  # Set COLLECTSTATIC_CLEAR=1 for a full wipe+recollect.
+  local clear_flag=()
+  if [ "${COLLECTSTATIC_CLEAR:-0}" = "1" ]; then
+    clear_flag=(--clear)
+    log "collectstatic with --clear (COLLECTSTATIC_CLEAR=1)"
+  fi
+  dc exec -T web python manage.py collectstatic --noinput "${clear_flag[@]}" \
+    || log "collectstatic failed (continuing)"
+}
+
+run_migrate() {
+  # Default: only migrate when Django reports unapplied migrations.
+  # SKIP_MIGRATE=1  — never migrate on deploy
+  # FORCE_MIGRATE=1 — always migrate (ignore --check)
+  case "${SKIP_MIGRATE:-0}" in
+    1|true|True|yes|YES|on|ON)
+      log "migrate skipped (SKIP_MIGRATE=1)"
+      return 0
+      ;;
+  esac
+  case "${FORCE_MIGRATE:-0}" in
+    1|true|True|yes|YES|on|ON)
+      log "Running migrations (FORCE_MIGRATE=1)..."
+      dc exec -T web python manage.py migrate --noinput || log "migrate failed/skipped (continuing)"
+      return 0
+      ;;
+  esac
+  # migrate --check exits 0 when DB is up to date; non-zero when pending
+  if dc exec -T web python manage.py migrate --check >/dev/null 2>&1; then
+    log "No pending migrations — skip migrate"
+    return 0
+  fi
+  log "Pending migrations detected — applying..."
+  dc exec -T web python manage.py migrate --noinput || log "migrate failed/skipped (continuing)"
 }
 
 ensure_env() {
@@ -646,19 +695,59 @@ do_preflight() {
   log "============================================================"
 }
 
-do_up() {
+do_up_env() {
+  banner
+  local services
+  # shellcheck disable=SC2046
+  services="$(env_service_list)"
+  log "ENVIRONMENT update — services only: $services (no app rebuild)"
+  # shellcheck disable=SC2086
+  dc up -d --remove-orphans $services
+  sleep 3
+  dc ps
+  log "ENV stack ready. Code unchanged. Use deploy-code to update the app."
+}
+
+do_up_code() {
   banner
   do_preflight
-  # Clean restart: remove old project containers, rebuild images, recreate
-  log "Stopping existing project containers (if any)..."
-  dc down --remove-orphans 2>/dev/null || true
-  # Refresh nginx conf so IP default_server / SERVER_NAMES updates apply
+  # Keep ENV running; only rebuild/recreate CODE
+  log "Ensuring ENVIRONMENT services are up..."
+  # shellcheck disable=SC2046,SC2086
+  dc up -d --remove-orphans $(env_service_list)
   reseed_nginx_from_templates 1
   do_build
   ensure_ssl_on_up
-  # HTTPS template may need seed after certs appear
   reseed_nginx_from_templates 1
-  log "Starting stack (force recreate)..."
+  log "CODEBASE update — recreating: $CODE_SERVICES (ENV left running)"
+  # shellcheck disable=SC2086
+  dc up -d --no-deps --force-recreate --remove-orphans $CODE_SERVICES
+  sleep 8
+  release_tasks
+  if health_check "http://127.0.0.1:${APP_PORT}/"; then
+    log "CODE deploy finished successfully."
+    banner
+    dc ps
+    print_deploy_urls
+    return 0
+  fi
+  err "Health check failed. Recent web logs:"
+  dc logs --tail=80 web 2>&1 | sed 's/^/[docker_files]   /' >&2 || true
+  err "Run: ./docker_files/deploy.sh debug"
+  exit 1
+}
+
+do_up() {
+  banner
+  do_preflight
+  # Full stack: remove old project containers, rebuild images, recreate all
+  log "FULL STACK — stopping all project containers..."
+  dc down --remove-orphans 2>/dev/null || true
+  reseed_nginx_from_templates 1
+  do_build
+  ensure_ssl_on_up
+  reseed_nginx_from_templates 1
+  log "Starting full stack (force recreate)..."
   dc up -d --force-recreate --remove-orphans
   sleep 8
   release_tasks
@@ -953,8 +1042,9 @@ do_rollback_internal() {
   done
   [ "$rolled" = "1" ] || return 1
   ensure_ssl_on_up
-  log "Recreating containers with previous images..."
-  dc up -d --force-recreate --remove-orphans
+  log "Recreating CODE containers with previous images (ENV untouched)..."
+  # shellcheck disable=SC2086
+  dc up -d --no-deps --force-recreate --remove-orphans $CODE_SERVICES
   sleep 8
   if health_check "http://127.0.0.1:${APP_PORT}/" 12 5; then
     log "Rollback health check OK."
@@ -976,22 +1066,25 @@ do_rollback() {
   fi
 }
 
-do_deploy() {
+# Production CODE deploy (default): rebuild app images, recreate CODE only, push on success
+do_deploy_code() {
   banner
   do_preflight
   tag_images_previous
-  log "Stopping existing project containers (if any)..."
-  dc down --remove-orphans 2>/dev/null || true
+  log "Ensuring ENVIRONMENT services are up (no recreate if already healthy)..."
+  # shellcheck disable=SC2046,SC2086
+  dc up -d --remove-orphans $(env_service_list)
   reseed_nginx_from_templates 1
   BUILD_PULL="${BUILD_PULL:-1}" do_build
   ensure_ssl_on_up
   reseed_nginx_from_templates 1
-  log "Starting stack (force recreate)..."
-  dc up -d --force-recreate --remove-orphans
+  log "CODEBASE deploy — recreating: $CODE_SERVICES"
+  # shellcheck disable=SC2086
+  dc up -d --no-deps --force-recreate --remove-orphans $CODE_SERVICES
   sleep 8
   release_tasks
   if health_check "http://127.0.0.1:${APP_PORT}/"; then
-    log "Deploy finished successfully."
+    log "CODE deploy finished successfully."
     docker_login_if_configured
     if [ -n "${DOCKER_PUSH_REGISTRY:-}" ] || [ "${PUSH_ON_SUCCESS:-1}" = "1" ]; then
       do_push || log "Image push failed (deploy itself succeeded)."
@@ -1011,6 +1104,54 @@ do_deploy() {
   fi
   do_notify_failure "${DEPLOY_FAIL_LOG:-}"
   exit 1
+}
+
+do_deploy_env() {
+  banner
+  do_up_env
+}
+
+# Full stack deploy (rare) — downs everything including redis
+do_deploy_all() {
+  banner
+  do_preflight
+  tag_images_previous
+  log "FULL STACK deploy — stopping all project containers..."
+  dc down --remove-orphans 2>/dev/null || true
+  reseed_nginx_from_templates 1
+  BUILD_PULL="${BUILD_PULL:-1}" do_build
+  ensure_ssl_on_up
+  reseed_nginx_from_templates 1
+  log "Starting full stack (force recreate)..."
+  dc up -d --force-recreate --remove-orphans
+  sleep 8
+  release_tasks
+  if health_check "http://127.0.0.1:${APP_PORT}/"; then
+    log "Full deploy finished successfully."
+    docker_login_if_configured
+    if [ -n "${DOCKER_PUSH_REGISTRY:-}" ] || [ "${PUSH_ON_SUCCESS:-1}" = "1" ]; then
+      do_push || log "Image push failed (deploy itself succeeded)."
+    fi
+    banner
+    dc ps
+    print_deploy_urls
+    return 0
+  fi
+  err "Health check failed. Recent web logs:"
+  dc logs --tail=80 web 2>&1 | sed 's/^/[docker_files]   /' >&2 || true
+  err "Attempting rollback to previous images..."
+  if do_rollback_internal; then
+    err "Rolled back to previous working version."
+  else
+    err "Rollback failed or no :previous image. Stack may be unhealthy."
+  fi
+  do_notify_failure "${DEPLOY_FAIL_LOG:-}"
+  exit 1
+}
+
+# Default production deploy = CODE only
+do_deploy() {
+  do_deploy_code
 }
 
 # Email deploy failure using website AWS SES (Django EMAIL_* from repo-root .env)
@@ -1074,10 +1215,9 @@ health_check() {
 }
 
 release_tasks() {
-  log "Running migrations (single web container)..."
-  dc exec -T web python manage.py migrate --noinput || log "migrate failed/skipped (continuing)"
-  log "Collecting static (single web container)..."
-  dc exec -T web python manage.py collectstatic --noinput --clear || log "collectstatic failed (continuing)"
+  log "Post-start tasks (migrate only if needed; collectstatic incremental)..."
+  run_migrate
+  run_collectstatic
 }
 
 do_push() {
@@ -1123,7 +1263,10 @@ prepare
 
 case "$CMD" in
   up)            do_up ;;
+  up-env|deploy-env) do_deploy_env ;;
+  up-code|deploy-code) do_deploy_code ;;
   deploy)        do_deploy ;;
+  deploy-all)    do_deploy_all ;;
   preflight|check) do_preflight ;;
   notify-failure|notify_failure) do_notify_failure "${1:-}" ;;
   rollback)      do_rollback ;;
@@ -1133,7 +1276,9 @@ case "$CMD" in
   restart)
     banner
     ensure_ssl_on_up
-    dc up -d --force-recreate --remove-orphans web celery celery_beat nginx
+    log "Restart CODE services only: $CODE_SERVICES"
+    # shellcheck disable=SC2086
+    dc up -d --no-deps --force-recreate --remove-orphans $CODE_SERVICES
     sleep 5
     release_tasks
     if health_check "http://127.0.0.1:${APP_PORT}/"; then
@@ -1146,7 +1291,7 @@ case "$CMD" in
   status|ps)     banner; do_ssl_status; dc ps -a; print_deploy_urls ;;
   logs)          dc logs -f --tail=200 "$@" ;;
   migrate)       dc exec -T web python manage.py migrate --noinput ;;
-  collectstatic) dc exec -T web python manage.py collectstatic --noinput --clear ;;
+  collectstatic) run_collectstatic ;;
   shell)         dc exec web bash || dc exec web sh ;;
   push)          do_push ;;
   ssl)           do_ssl_cmd "$@" ;;

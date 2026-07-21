@@ -12,7 +12,11 @@ cd "$APP_HOME"
 
 if [ "${RUN_COLLECTSTATIC:-0}" = "1" ]; then
   echo "[entrypoint] collectstatic (RUN_COLLECTSTATIC=1)..."
-  python manage.py collectstatic --noinput --clear || echo "[entrypoint] collectstatic failed (continuing)"
+  if [ "${COLLECTSTATIC_CLEAR:-0}" = "1" ]; then
+    python manage.py collectstatic --noinput --clear || echo "[entrypoint] collectstatic failed (continuing)"
+  else
+    python manage.py collectstatic --noinput || echo "[entrypoint] collectstatic failed (continuing)"
+  fi
 fi
 
 if [ "${RUN_MIGRATE:-0}" = "1" ]; then

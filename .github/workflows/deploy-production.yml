@@ -132,7 +132,8 @@ jobs:
           ./docker_files/deploy.sh preflight
 
           set +e
-          ./docker_files/deploy.sh deploy 2>&1 | tee /tmp/topteen-deploy.log
+          # CODE deploy only — leaves redis/ENV running; rebuilds web/celery/nginx
+          ./docker_files/deploy.sh deploy-code 2>&1 | tee /tmp/topteen-deploy.log
           DEPLOY_RC=${PIPESTATUS[0]}
           set -e
 
