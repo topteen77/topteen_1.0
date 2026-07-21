@@ -1,10 +1,35 @@
-# Deploy staging: push to master -> /home/ubuntu/topteens_new/topteen_1.0
+# Deploy staging: push to master -> host venv + systemd
+#
+# Optional env (set on the server shell or export before workflow via secrets later):
+#   COLLECTSTATIC_CLEAR=1  — wipe staticfiles before collect (noisy; default off)
+#   CLEAR_CACHE=1          — clear Django cache after deploy (when required)
+#   SKIP_MIGRATE=1         — never migrate
+#   FORCE_MIGRATE=1        — always migrate
+#
+# Default: migrate only if pending; collectstatic without --clear; no cache clear.
 name: Deploy Staging
 
 on:
   push:
     branches:
       - master
+  workflow_dispatch:
+    inputs:
+      clear_cache:
+        description: "Clear Django cache after deploy (CLEAR_CACHE=1)"
+        required: false
+        default: "false"
+        type: boolean
+      collectstatic_clear:
+        description: "collectstatic --clear (wipe static first)"
+        required: false
+        default: "false"
+        type: boolean
+      force_migrate:
+        description: "Always run migrate (FORCE_MIGRATE=1)"
+        required: false
+        default: "false"
+        type: boolean
 
 jobs:
   deploy:
@@ -32,21 +57,60 @@ jobs:
           ssh -i ~/.ssh/id_ed25519_github_devtopteen -v ${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }} true
 
       - name: Deploy to AWS
+        env:
+          INPUT_CLEAR_CACHE: ${{ github.event.inputs.clear_cache || 'false' }}
+          INPUT_COLLECTSTATIC_CLEAR: ${{ github.event.inputs.collectstatic_clear || 'false' }}
+          INPUT_FORCE_MIGRATE: ${{ github.event.inputs.force_migrate || 'false' }}
         run: |
-          ssh -i ~/.ssh/id_ed25519_github_devtopteen ${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }} << 'EOF'
-            set -e
+          ssh -i ~/.ssh/id_ed25519_github_devtopteen ${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }} \
+            CLEAR_CACHE='${{ env.INPUT_CLEAR_CACHE }}' \
+            COLLECTSTATIC_CLEAR='${{ env.INPUT_COLLECTSTATIC_CLEAR }}' \
+            FORCE_MIGRATE='${{ env.INPUT_FORCE_MIGRATE }}' \
+            bash -s << 'EOF'
+            set -euo pipefail
             cd /home/ubuntu/topteens_new/topteen_1.0/
             git fetch origin
             git reset --hard origin/master
             echo "Deployed commit: $(git rev-parse HEAD) $(git log -1 --oneline)"
+
             source /home/ubuntu/topteens_new/env1.0/bin/activate
-            pip install -r requirements.txt
-            python3 manage.py collectstatic --noinput --clear
+
+            # --- migrate only when required (same policy as production docker_files) ---
+            if [ "${SKIP_MIGRATE:-0}" = "1" ]; then
+              echo "[staging] migrate skipped (SKIP_MIGRATE=1)"
+            elif [ "${FORCE_MIGRATE:-false}" = "true" ] || [ "${FORCE_MIGRATE:-0}" = "1" ]; then
+              echo "[staging] Running migrations (FORCE_MIGRATE)..."
+              python3 manage.py migrate --noinput
+            elif python3 manage.py migrate --check >/dev/null 2>&1; then
+              echo "[staging] No pending migrations — skip migrate"
+            else
+              echo "[staging] Pending migrations detected — applying..."
+              python3 manage.py migrate --noinput
+            fi
+
+            # --- collectstatic: default incremental; --clear only when requested ---
+            if [ "${COLLECTSTATIC_CLEAR:-false}" = "true" ] || [ "${COLLECTSTATIC_CLEAR:-0}" = "1" ]; then
+              echo "[staging] collectstatic --clear (COLLECTSTATIC_CLEAR)"
+              python3 manage.py collectstatic --noinput --clear
+            else
+              echo "[staging] collectstatic (incremental, no --clear)"
+              python3 manage.py collectstatic --noinput
+            fi
+
+            # --- cache clear when required ---
+            if [ "${CLEAR_CACHE:-false}" = "true" ] || [ "${CLEAR_CACHE:-0}" = "1" ]; then
+              echo "[staging] Clearing Django cache (CLEAR_CACHE)..."
+              python3 manage.py clear_django_cache --yes || echo "[staging] clear cache failed (continuing)"
+            else
+              echo "[staging] cache clear skipped (set CLEAR_CACHE=1 / workflow input when required)"
+            fi
+
             deactivate
-            sudo systemctl stop topteen-new-website.socket
-            sudo systemctl disable topteen-new-website.socket
-            sudo systemctl stop topteen-new-website.service
-            sudo systemctl disable topteen-new-website.service
+
+            sudo systemctl stop topteen-new-website.socket || true
+            sudo systemctl disable topteen-new-website.socket || true
+            sudo systemctl stop topteen-new-website.service || true
+            sudo systemctl disable topteen-new-website.service || true
             sudo systemctl enable topteen-new-website.socket
             sudo systemctl start topteen-new-website.socket
             sudo systemctl enable topteen-new-website.service

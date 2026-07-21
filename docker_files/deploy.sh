@@ -88,6 +88,7 @@ Other:
   logs [service]  Follow logs (optional service name)
   migrate         Run Django migrate once (always; ignores SKIP_MIGRATE)
   collectstatic   Run collectstatic once (set COLLECTSTATIC_CLEAR=1 to wipe first)
+  clear-cache     Clear Django/Redis cache (same as CLEAR_CACHE=1)
   shell           Open a shell in a web container
   push            Push app + nginx images to Docker Hub
   reload-nginx    Reload nginx after editing ${DATA_ROOT}/nginx/conf
@@ -106,6 +107,10 @@ Migrations on deploy:
   Default runs migrate only if pending (django migrate --check).
   SKIP_MIGRATE=1 to never auto-migrate; FORCE_MIGRATE=1 to always migrate.
   Manual: ./docker_files/deploy.sh migrate
+
+Cache clear on deploy:
+  CLEAR_CACHE=1 runs: python manage.py clear_django_cache --yes
+  Default is off (set when templates/config need a hard refresh).
 
 SSL / Option A: APP_PORT=8090 HTTPS_PORT=8444 SSL_MODE=off USE_HTTPS=True
   Host nginx → 127.0.0.1:8090  (docker_files/nginx/production.conf)
@@ -162,6 +167,20 @@ run_migrate() {
   fi
   log "Pending migrations detected — applying..."
   dc exec -T web python manage.py migrate --noinput || log "migrate failed/skipped (continuing)"
+}
+
+run_clear_cache() {
+  # Opt-in: CLEAR_CACHE=1 clears Django/Redis cache after deploy.
+  case "${CLEAR_CACHE:-0}" in
+    1|true|True|yes|YES|on|ON|all)
+      log "Clearing Django cache (CLEAR_CACHE=${CLEAR_CACHE})..."
+      dc exec -T web python manage.py clear_django_cache --yes \
+        || log "clear_django_cache failed (continuing)"
+      ;;
+    *)
+      log "cache clear skipped (set CLEAR_CACHE=1 when required)"
+      ;;
+  esac
 }
 
 ensure_env() {
@@ -1215,8 +1234,9 @@ health_check() {
 }
 
 release_tasks() {
-  log "Post-start tasks (migrate only if needed; collectstatic incremental)..."
+  log "Post-start tasks (migrate/cache/static as required)..."
   run_migrate
+  run_clear_cache
   run_collectstatic
 }
 
@@ -1292,6 +1312,7 @@ case "$CMD" in
   logs)          dc logs -f --tail=200 "$@" ;;
   migrate)       dc exec -T web python manage.py migrate --noinput ;;
   collectstatic) run_collectstatic ;;
+  clear-cache|clearcache) CLEAR_CACHE=1 run_clear_cache ;;
   shell)         dc exec web bash || dc exec web sh ;;
   push)          do_push ;;
   ssl)           do_ssl_cmd "$@" ;;

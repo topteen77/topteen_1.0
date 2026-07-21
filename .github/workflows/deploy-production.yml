@@ -13,6 +13,11 @@
 #   DOCKERHUB_USERNAME       Docker Hub user (push on successful deploy)
 #   DOCKERHUB_TOKEN          Docker Hub access token
 #
+# Optional on server docker_files/.env or export in CI:
+#   CLEAR_CACHE=1          clear Django cache after deploy
+#   COLLECTSTATIC_CLEAR=1  wipe staticfiles before collectstatic
+#   SKIP_MIGRATE=1 / FORCE_MIGRATE=1
+#
 # Failure email uses the website AWS SES settings from repo-root .env on the
 # server (EMAIL_HOST / EMAIL_HOST_USER / EMAIL_HOST_PASSWORD / DEFAULT_FROM_EMAIL).
 # Optional on server .env: DEPLOY_NOTIFY_TO (default it@canamgroup.com)
@@ -24,6 +29,22 @@ on:
     branches:
       - production
   workflow_dispatch:
+    inputs:
+      clear_cache:
+        description: "Clear Django cache after deploy (CLEAR_CACHE=1)"
+        required: false
+        default: "false"
+        type: boolean
+      collectstatic_clear:
+        description: "collectstatic --clear (wipe static first)"
+        required: false
+        default: "false"
+        type: boolean
+      force_migrate:
+        description: "Always run migrate (FORCE_MIGRATE=1)"
+        required: false
+        default: "false"
+        type: boolean
 
 env:
   # Must match the real clone on the EC2 host (override with secret DEPLOY_PATH_PRODUCTION)
@@ -69,6 +90,9 @@ jobs:
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          INPUT_CLEAR_CACHE: ${{ github.event.inputs.clear_cache || 'false' }}
+          INPUT_COLLECTSTATIC_CLEAR: ${{ github.event.inputs.collectstatic_clear || 'false' }}
+          INPUT_FORCE_MIGRATE: ${{ github.event.inputs.force_migrate || 'false' }}
         run: |
           set -o pipefail
           ssh -i ~/.ssh/id_ed25519_github_devtopteen \
@@ -77,6 +101,9 @@ jobs:
             "DEPLOY_PATH='${{ env.DEPLOY_PATH }}' \
              DOCKERHUB_USERNAME='${DOCKERHUB_USERNAME}' \
              DOCKERHUB_TOKEN='${DOCKERHUB_TOKEN}' \
+             CLEAR_CACHE='${{ env.INPUT_CLEAR_CACHE }}' \
+             COLLECTSTATIC_CLEAR='${{ env.INPUT_COLLECTSTATIC_CLEAR }}' \
+             FORCE_MIGRATE='${{ env.INPUT_FORCE_MIGRATE }}' \
              GITHUB_SHA='${{ github.sha }}' \
              GITHUB_REF_NAME='${{ github.ref_name }}' \
              bash -s" << 'REMOTE' 2>&1 | tee deploy-production.log
@@ -122,6 +149,12 @@ jobs:
           upsert_env COMPOSE_PROFILES ""
           echo "[CI] Option A env: SSL_MODE=off APP_PORT=8090 WEB_REPLICAS=1"
           grep -E '^(SSL_MODE|APP_PORT|HTTPS_PORT|USE_HTTPS|WEB_REPLICAS)=' docker_files/.env || true
+
+          # Map workflow_dispatch booleans → deploy.sh env (true/1)
+          case "${CLEAR_CACHE:-false}" in true|True|1|yes|YES) export CLEAR_CACHE=1 ;; *) export CLEAR_CACHE=0 ;; esac
+          case "${COLLECTSTATIC_CLEAR:-false}" in true|True|1|yes|YES) export COLLECTSTATIC_CLEAR=1 ;; *) export COLLECTSTATIC_CLEAR=0 ;; esac
+          case "${FORCE_MIGRATE:-false}" in true|True|1|yes|YES) export FORCE_MIGRATE=1 ;; *) export FORCE_MIGRATE=0 ;; esac
+          echo "[CI] CLEAR_CACHE=$CLEAR_CACHE COLLECTSTATIC_CLEAR=$COLLECTSTATIC_CLEAR FORCE_MIGRATE=$FORCE_MIGRATE"
 
           export BUILD_PULL=1
           export PUSH_ON_SUCCESS=1
