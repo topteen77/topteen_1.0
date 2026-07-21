@@ -1073,22 +1073,21 @@ def _add_no_cache_headers(response):
 
 
 def _pdf_preparing_response():
-    """Auto-refresh page while Celery finishes WeasyPrint."""
+    """Quiet wait tab while Celery finishes; refresh replaces this with the PDF viewer."""
     return HttpResponse(
         """<!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8"/>
-<meta http-equiv="refresh" content="2"/>
-<title>Preparing PDF…</title>
+<meta http-equiv="refresh" content="1"/>
+<title>Opening report…</title>
 <style>
- body{font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;
-  min-height:100vh;margin:0;background:#f7f7fb;color:#222}
- .box{text-align:center;padding:2rem;max-width:28rem}
-</style></head>
-<body><div class="box">
-<h1 style="font-size:1.25rem">Preparing your PDF…</h1>
-<p>This usually takes a few seconds. This page will refresh automatically.</p>
-</div></body></html>""",
+ body{margin:0;min-height:100vh;background:#fff;display:flex;align-items:center;justify-content:center;
+  font-family:system-ui,sans-serif;color:#666;font-size:0.95rem}
+</style>
+</head>
+<body><p>Opening your report…</p>
+<script>setTimeout(function(){location.reload()},1000)</script>
+</body></html>""",
         content_type="text/html; charset=utf-8",
     )
 
@@ -1104,7 +1103,9 @@ def _try_serve_or_enqueue_web_report_pdf(request, target_user, report_kind, *, _
     filename = class10_web_report_pdf_filename(target_user, report_kind)
     try:
         if user_pdf_exists(target_user.id, filename):
-            served = serve_user_pdf_response(target_user.id, filename, download_name=filename)
+            served = serve_user_pdf_response(
+                target_user.id, filename, download_name=filename, inline=True
+            )
             if served is not None:
                 return served
     except Exception:
@@ -1419,10 +1420,10 @@ def class10_report_download_pdf(request, user_id=None, _sync_generate=False):
                 status=500
             )
         
-        # Create response (prevent any caching of PDF)
+        # Open in browser tab (inline) so the wait tab becomes the PDF viewer
         response = HttpResponse(content_type='application/pdf')
         filename = class10_combined_report_pdf_filename(target_user)
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response['Content-Disposition'] = f'inline; filename="{filename}"'
         response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
         response['Pragma'] = 'no-cache'
         response['Expires'] = '0'
@@ -3415,7 +3416,7 @@ def test1_report_pdf(request, user_id=None, _sync_generate=False):
         # Create response (safe filename for Gmail/email users)
         response = HttpResponse(pdf_file, content_type='application/pdf')
         filename = class10_assessment_pdf_filename(target_user, 'test1')
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response['Content-Disposition'] = f'inline; filename="{filename}"'
         
         # Persist a copy to media storage (S3 when enabled) - best-effort.
         save_user_pdf(target_user.id, filename, pdf_file)
@@ -3552,7 +3553,7 @@ def test2_report_pdf(request, user_id=None, _sync_generate=False):
         # Create response (safe filename for Gmail/email users)
         filename = class10_assessment_pdf_filename(target_user, 'test2')
         response = HttpResponse(pdf_file, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response['Content-Disposition'] = f'inline; filename="{filename}"'
         # Persist a copy to media storage (S3 when enabled) - best-effort.
         save_user_pdf(target_user.id, filename, pdf_file)
         return response
@@ -3699,7 +3700,7 @@ def test3_report_pdf(request, user_id=None, _sync_generate=False):
         # Create response (safe filename for Gmail/email users)
         filename = class10_assessment_pdf_filename(target_user, 'test3')
         response = HttpResponse(pdf_file, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response['Content-Disposition'] = f'inline; filename="{filename}"'
         # Persist a copy to media storage (S3 when enabled) - best-effort.
         save_user_pdf(target_user.id, filename, pdf_file)
         return response
