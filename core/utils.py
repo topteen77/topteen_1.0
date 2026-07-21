@@ -172,12 +172,12 @@ def _user_pdf_s3_object_key(storage_relative_key: str) -> str:
     return relative.lstrip("/")
 
 
-def user_pdf_presigned_download_url(user_id, filename, download_name=None, expires_in=600):
+def user_pdf_presigned_download_url(user_id, filename, download_name=None, expires_in=600, inline=True):
     """
-    Short-lived S3 GET URL with attachment disposition.
+    Short-lived S3 GET URL for a stored report PDF.
 
-    Works even when S3_MEDIA_ACCESS_MODE=proxy (which would otherwise stream
-    via Django). Returns None when not on S3 or signing fails.
+    ``inline=True`` (default) opens in the browser tab; ``False`` forces download.
+    Works even when S3_MEDIA_ACCESS_MODE=proxy. Returns None when not on S3 or signing fails.
     """
     if not user_id or not filename:
         return None
@@ -190,6 +190,7 @@ def user_pdf_presigned_download_url(user_id, filename, download_name=None, expir
     safe_name = re.sub(r"[^\w.\- ]+", "", str(name)).strip()[:120] or "report.pdf"
     if not safe_name.lower().endswith(".pdf"):
         safe_name = f"{safe_name}.pdf"
+    disposition = "inline" if inline else "attachment"
 
     try:
         s3_key = _user_pdf_s3_object_key(user_pdf_key(user_id, filename))
@@ -200,7 +201,7 @@ def user_pdf_presigned_download_url(user_id, filename, download_name=None, expir
                 "Bucket": default_storage.bucket_name,
                 "Key": s3_key,
                 "ResponseContentType": "application/pdf",
-                "ResponseContentDisposition": f'attachment; filename="{safe_name}"',
+                "ResponseContentDisposition": f'{disposition}; filename="{safe_name}"',
             },
             ExpiresIn=int(expires_in),
         )
@@ -214,18 +215,23 @@ def user_pdf_presigned_download_url(user_id, filename, download_name=None, expir
         return None
 
 
-def serve_user_pdf_response(user_id, filename, download_name=None):
+def serve_user_pdf_response(user_id, filename, download_name=None, inline=True):
     """
     Deliver a stored report PDF without streaming bytes through Gunicorn.
 
     Prefer a 302 redirect to a short-lived S3 signed URL. Fall back to
     FileResponse only for local (non-S3) storage.
+
+    ``inline=True`` (default) opens the PDF in the browser tab so a
+    "Preparing…" wait page is replaced by the viewer instead of a download.
     """
     if not user_id or not filename:
         return None
 
     name = download_name or filename
-    signed = user_pdf_presigned_download_url(user_id, filename, download_name=name)
+    signed = user_pdf_presigned_download_url(
+        user_id, filename, download_name=name, inline=inline
+    )
     if signed:
         from django.http import HttpResponseRedirect
 
@@ -241,7 +247,8 @@ def serve_user_pdf_response(user_id, filename, download_name=None):
         handle = default_storage.open(key, "rb")
         response = FileResponse(handle, content_type="application/pdf")
         safe_name = re.sub(r"[^\w.\- ]+", "", str(name)).strip()[:120] or "report.pdf"
-        response["Content-Disposition"] = f'attachment; filename="{safe_name}"'
+        disposition = "inline" if inline else "attachment"
+        response["Content-Disposition"] = f'{disposition}; filename="{safe_name}"'
         response["Cache-Control"] = "private, max-age=300"
         return response
     except Exception as e:
