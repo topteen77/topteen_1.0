@@ -220,6 +220,7 @@ CONFIGURATION_SECTIONS: list[HubSection] = [
         description="Email templates, OTP logs, and in-app notification setup.",
         instruction="Edit templates here; view Communication logs to audit what was sent.",
         links=[
+            _model("SMS & WhatsApp settings", "communication", "MessagingSettings", "Providers, API keys, and OTP templates (production only)."),
             _model("Email message templates", "communication", "EmailMessageTemplate", "Transactional email content."),
             _model("Notification type config", "notifications", "NotificationTypeConfig", "Which notifications are enabled."),
             _model("Notification templates", "notifications", "NotificationMessageTemplate", "In-app notification copy."),

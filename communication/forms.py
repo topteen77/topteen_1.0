@@ -2,7 +2,8 @@ from django import forms
 from ckeditor.widgets import CKEditorWidget
 
 from communication.email_template_registry import get_email_template_meta
-from .models import EmailMessageTemplate
+from communication.models import EmailMessageTemplate, MessagingSettings
+from communication.providers import sms_provider_choices, whatsapp_provider_choices
 
 
 class EmailMessageTemplateAdminForm(forms.ModelForm):
@@ -33,3 +34,31 @@ class EmailMessageTemplateAdminForm(forms.ModelForm):
             self.fields['subject_template'].widget.attrs.update({
                 'style': 'background:#ffffff;color:#111111;',
             })
+
+
+class MessagingSettingsAdminForm(forms.ModelForm):
+    class Meta:
+        model = MessagingSettings
+        fields = '__all__'
+        widgets = {
+            'active_channel':         forms.RadioSelect,
+            'smartping_password': forms.PasswordInput(render_value=True, attrs={'autocomplete': 'new-password'}),
+            'plivo_auth_token': forms.PasswordInput(render_value=True, attrs={'autocomplete': 'new-password'}),
+            'sms_message_template': forms.Textarea(attrs={'rows': 3, 'cols': 80}),
+            'sender_mode': forms.RadioSelect,
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        sms_help = self.fields['sms_provider'].help_text
+        wa_help = self.fields['whatsapp_provider'].help_text
+        self.fields['sms_provider'] = forms.ChoiceField(
+            choices=sms_provider_choices() or [('smartping', 'SmartPing'), ('plivo', 'Plivo')],
+            initial=getattr(self.instance, 'sms_provider', None) or 'smartping',
+            help_text=sms_help,
+        )
+        self.fields['whatsapp_provider'] = forms.ChoiceField(
+            choices=whatsapp_provider_choices() or [('plivo', 'Plivo')],
+            initial=getattr(self.instance, 'whatsapp_provider', None) or 'plivo',
+            help_text=wa_help,
+        )
