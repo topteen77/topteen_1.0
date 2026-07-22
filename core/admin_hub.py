@@ -102,7 +102,10 @@ def section_slug(title: str) -> str:
 def _user_can_access_model(request: HttpRequest, app_label: str, model_name: str) -> bool:
     if request.user.is_superuser:
         return True
-    model = apps.get_model(app_label, model_name)
+    try:
+        model = apps.get_model(app_label, model_name)
+    except LookupError:
+        return False
     if model is None:
         return False
     opts = model._meta
@@ -129,6 +132,28 @@ def _external(label: str, url: str, description: str = "", **kwargs) -> HubLink:
 
 
 CONFIGURATION_SECTIONS: list[HubSection] = [
+    HubSection(
+        title="AI tokens & freemium",
+        description="Sellable AI packs, USD→INR pricing, role free quotas, wallets, and billing.",
+        instruction=(
+            "1) Set USD→INR rate in LLM pricing settings. "
+            "2) Edit LLM token packages (use-case lines buyers see). "
+            "3) Set monthly free tokens per role. "
+            "4) Use admin grants / wallets for one-off top-ups. "
+            "5) Open AI Cost / LLM Billing for spend vs pack sales."
+        ),
+        links=[
+            _named("AI Cost / LLM Billing", "admin:core_configuration_llm_billing", "Token usage and estimated provider spend vs pack sales."),
+            _model("LLM token packages", "core", "LLMTokenPackage", "Spark/Boost/Power packs — buyer use cases + USD price."),
+            _model("LLM pricing settings", "core", "LLMPricingSettings", "USD-INR rate and show/hide INR, USD, rate, conversion note."),
+            _model("LLM role quotas", "core", "LLMRoleQuotaDefault", "Default monthly free tokens per role (student, staff, …)."),
+            _model("LLM admin grants", "core", "LLMAdminGrant", "Manually grant AI tokens to any user."),
+            _model("User LLM wallets", "core", "UserLLMWallet", "Per-user AI token balances."),
+            _model("LLM package payments", "core", "LLMTokenPackagePayment", "Token pack purchase records."),
+            _model("LLM usage logs", "core", "LLMUsageLog", "Per-call token and cost ledger."),
+            _model("LLM wallet ledger", "core", "LLMWalletLedger", "Credits and debits for every wallet change."),
+        ],
+    ),
     HubSection(
         title="Website & branding",
         description="Global switches, language bar, and public-facing site content settings.",
@@ -207,14 +232,11 @@ CONFIGURATION_SECTIONS: list[HubSection] = [
             _model("Demo dataset config", "demo_data", "DemoDatasetConfig", "Demo account seeding options."),
             _model("Resume HTML templates", "users", "ResumeStudioHtmlTemplate", "Resume studio layout templates."),
             _model("Forum AI features", "forum", "AIFeature", "Forum AI capability toggles."),
-            _named("AI Cost / LLM Billing", "admin:core_configuration_llm_billing", "Token usage and estimated provider spend."),
-            _model("LLM usage logs", "core", "LLMUsageLog", "Per-call token and cost ledger."),
-            _model("LLM token packages", "core", "LLMTokenPackage", "Sellable AI token packs for freemium recharge."),
-            _model("LLM pricing settings", "core", "LLMPricingSettings", "USD-INR rate and display toggles (note/USD/INR)."),
-            _model("LLM role quotas", "core", "LLMRoleQuotaDefault", "Default monthly free tokens per role."),
-            _model("LLM admin grants", "core", "LLMAdminGrant", "Manually grant AI tokens to any user."),
-            _model("User LLM wallets", "core", "UserLLMWallet", "Per-user AI token balances."),
-            _model("LLM package payments", "core", "LLMTokenPackagePayment", "Token pack purchase records."),
+            _external(
+                "AI tokens & freemium (all tools)",
+                "/admin/hub/configuration/#ai-tokens-freemium",
+                "Packages, quotas, wallets, FX rate, and AI billing.",
+            ),
         ],
     ),
     HubSection(

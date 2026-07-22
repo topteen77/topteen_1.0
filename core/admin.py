@@ -1178,6 +1178,21 @@ class LLMUsageLogAdmin(admin.ModelAdmin):
         return False
 
 
+def _seed_llm_admin_defaults():
+    """Ensure packages, role quotas, and FX settings exist for admin screens."""
+    try:
+        from core.llm_payment_views import _seed_default_packages
+        from core.llm_quota import seed_role_defaults
+        from core.models import LLMPricingSettings
+
+        LLMPricingSettings.load()
+        seed_role_defaults()
+        _seed_default_packages()
+    except Exception:
+        # Tables may not exist yet until migrate; admin still loads.
+        pass
+
+
 @admin.register(LLMTokenPackage)
 class LLMTokenPackageAdmin(admin.ModelAdmin):
     list_display = (
@@ -1194,6 +1209,11 @@ class LLMTokenPackageAdmin(admin.ModelAdmin):
         'inr_preview', 'amount', 'currency', 'badge_label', 'sort_order',
         'is_featured', 'is_active',
     )
+    change_list_template = 'admin/core/llmtokenpackage/change_list.html'
+
+    def changelist_view(self, request, extra_context=None):
+        _seed_llm_admin_defaults()
+        return super().changelist_view(request, extra_context=extra_context)
 
     @admin.display(description='INR at current rate')
     def inr_preview(self, obj):
@@ -1228,8 +1248,15 @@ class LLMPricingSettingsAdmin(admin.ModelAdmin):
     )
     readonly_fields = ('updated_at',)
 
+    def changelist_view(self, request, extra_context=None):
+        _seed_llm_admin_defaults()
+        return super().changelist_view(request, extra_context=extra_context)
+
     def has_add_permission(self, request):
-        return not LLMPricingSettings.objects.exists()
+        try:
+            return not LLMPricingSettings.objects.exists()
+        except Exception:
+            return False
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -1242,6 +1269,10 @@ class LLMRoleQuotaDefaultAdmin(admin.ModelAdmin):
     )
     list_editable = ('monthly_free_tokens', 'estimated_call_tokens', 'is_enabled')
     search_fields = ('role_key', 'marketing_headline')
+
+    def changelist_view(self, request, extra_context=None):
+        _seed_llm_admin_defaults()
+        return super().changelist_view(request, extra_context=extra_context)
 
 
 @admin.register(UserLLMWallet)
