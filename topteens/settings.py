@@ -748,6 +748,7 @@ else:
 _redis_host = config('REDIS_HOST', default='127.0.0.1') or '127.0.0.1'
 _redis_port = config('REDIS_PORT', default='6379') or '6379'
 SESSION_REDIS_DB = config('SESSION_REDIS_DB', default=2, cast=int)
+TRANSLATION_REDIS_DB = config('TRANSLATION_REDIS_DB', default=3, cast=int)
 SESSION_CACHE_ALIAS = 'sessions'
 SESSION_USE_SIGNED_COOKIES = config('SESSION_USE_SIGNED_COOKIES', default=False, cast=bool)
 
@@ -760,6 +761,21 @@ if ENABLE_REDIS:
         },
         'KEY_PREFIX': 'topteen_sess',
         'TIMEOUT': SESSION_COOKIE_AGE,
+    }
+    # LLM translation complexity cache — always Redis when enabled (even if default is DummyCache in DEBUG).
+    CACHES['translations'] = {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': f"redis://{_redis_host}:{_redis_port}/{TRANSLATION_REDIS_DB}",
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'KEY_PREFIX': 'topteen_tr',
+        'TIMEOUT': 60 * 60 * 24 * 30,  # 30 days
+    }
+else:
+    CACHES['translations'] = {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'topteen-translations',
     }
 
 SESSION_ENGINE = (config('SESSION_ENGINE', default='') or '').strip()

@@ -1394,7 +1394,9 @@ class DashboardPointRule(models.Model):
         help_text=(
             "e.g. registration, profile_complete, payment_success, "
             "personality_test_complete, motivation_test_complete, "
-            "interest_test_complete, aptitude_test_complete, report_reading"
+            "interest_test_complete, aptitude_test_complete, report_reading, "
+            "emotional_complete, Multiple Intelligence, Decision Making, "
+            "Refer a Friend, Skill Lab Course Payment, Skill Lab Course Completion"
         ),
     )
     label = models.CharField(
