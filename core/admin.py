@@ -897,22 +897,76 @@ class DashboardLevelBandAdmin(admin.ModelAdmin):
 
 
 class DashboardPointRuleAdmin(admin.ModelAdmin):
-    list_display = ('order', 'label_display', 'rule_key', 'points', 'applies_to', 'active', 'modified')
-    list_editable = ('order', 'points', 'applies_to', 'active')
-    list_display_links = ('label_display', 'rule_key')
+    list_display = ('drag_handle', 'label', 'rule_key', 'points', 'applies_to', 'active', 'modified')
+    list_editable = ('label', 'points', 'applies_to', 'active')
+    list_display_links = ('rule_key',)
     list_filter = ('active', 'applies_to')
     ordering = ('order', 'rule_key')
-    search_fields = ('rule_key',)
+    search_fields = ('rule_key', 'label')
     change_list_template = 'admin/core/dashboardpointrule/change_list.html'
+    fields = ('rule_key', 'label', 'points', 'applies_to', 'active', 'created', 'modified')
     readonly_fields = ('created', 'modified')
 
-    @admin.display(description='Rule')
-    def label_display(self, obj):
-        from core.dashboard_stats import RULE_LABELS
-        return RULE_LABELS.get(obj.rule_key, obj.rule_key.replace('_', ' ').title())
+    class Media:
+        css = {'all': ('admin/css/dashboard_point_rule_reorder.css',)}
+        js = ('admin/js/dashboard_point_rule_reorder.js',)
+
+    @admin.display(description='')
+    def drag_handle(self, obj):
+        return format_html(
+            '<span class="dpr-drag-handle" title="Drag to reorder" aria-label="Drag to reorder" data-rule-id="{}">⠿</span>',
+            obj.pk,
+        )
+
+    def get_urls(self):
+        info = self.model._meta.app_label, self.model._meta.model_name
+        urls = super().get_urls()
+        custom = [
+            path(
+                'reorder/',
+                self.admin_site.admin_view(self.reorder_view),
+                name='%s_%s_reorder' % info,
+            ),
+        ]
+        return custom + urls
+
+    def reorder_view(self, request):
+        import json
+        if request.method != 'POST':
+            return JsonResponse({'ok': False, 'error': 'POST required'}, status=405)
+        try:
+            payload = json.loads(request.body.decode('utf-8') or '{}')
+            ids = payload.get('ids') or []
+            ids = [int(x) for x in ids]
+        except (TypeError, ValueError, json.JSONDecodeError):
+            return JsonResponse({'ok': False, 'error': 'Invalid payload'}, status=400)
+        if not ids:
+            return JsonResponse({'ok': False, 'error': 'No ids'}, status=400)
+
+        qs = self.get_queryset(request).filter(pk__in=ids)
+        by_id = {obj.pk: obj for obj in qs}
+        if len(by_id) != len(ids):
+            return JsonResponse({'ok': False, 'error': 'One or more rules not found'}, status=400)
+
+        # Renumber in drop order (table is small; 1..N is the display sequence).
+        for index, pk in enumerate(ids, start=1):
+            obj = by_id[pk]
+            if obj.order != index:
+                obj.order = index
+                obj.save(update_fields=['order', 'modified'])
+
+        from core.dashboard_cache import invalidate_dashboard_config_cache
+        invalidate_dashboard_config_cache()
+        return JsonResponse({'ok': True, 'count': len(ids)})
+
+    def save_model(self, request, obj, form, change):
+        if not (obj.label or '').strip():
+            from core.dashboard_stats import RULE_LABELS
+            obj.label = RULE_LABELS.get(obj.rule_key, obj.rule_key.replace('_', ' ').title())
+        super().save_model(request, obj, form, change)
 
     def changelist_view(self, request, extra_context=None):
-        from core.dashboard_points import get_active_point_rules_total, get_max_achievable_points_by_track
+        from core.dashboard_points import get_max_achievable_points_by_track
         from django.db.models import Sum
         extra_context = extra_context or {}
         qs = self.get_queryset(request)
@@ -926,6 +980,7 @@ class DashboardPointRuleAdmin(admin.ModelAdmin):
         caps = get_max_achievable_points_by_track()
         extra_context['max_achievable_points'] = caps['post_matric']
         extra_context['max_achievable_points_class10'] = caps['class10']
+        extra_context['reorder_url'] = reverse('admin:gamification_dashboardpointrule_reorder')
         return super().changelist_view(request, extra_context=extra_context)
 
 

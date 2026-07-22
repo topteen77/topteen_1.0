@@ -66,7 +66,7 @@ def get_cumulative_point_milestones(excluded_rule_keys=None, track=None):
     Cumulative point totals after each active rule in order.
     Level band min_points must match one of these values (starting at registration).
     """
-    from core.dashboard_stats import RULE_LABELS
+    from core.dashboard_stats import _rule_label
 
     milestones = []
     total = 0
@@ -75,7 +75,7 @@ def get_cumulative_point_milestones(excluded_rule_keys=None, track=None):
         applies_to = resolve_rule_applies_to(rule['rule_key'], rule.get('applies_to') or '')
         milestones.append({
             'rule_key': rule['rule_key'],
-            'label': RULE_LABELS.get(rule['rule_key'], rule['rule_key'].replace('_', ' ').title()),
+            'label': _rule_label(rule['rule_key'], (rule.get('label') or '').strip() or None),
             'step_points': int(rule['points']),
             'cumulative': total,
             'applies_to': get_applies_to_display_label(applies_to),
