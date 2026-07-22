@@ -1,0 +1,102 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+
+{% block content %}
+<div class="messaging-settings-banners" style="max-width:960px;margin:0 0 20px;">
+  <div style="border:2px solid #b45309;background:#fffbeb;color:#78350f;padding:14px 16px;border-radius:8px;margin-bottom:12px;">
+    <strong style="display:block;margin-bottom:6px;font-size:1.05em;">Production only</strong>
+    <p style="margin:0 0 8px;line-height:1.45;">
+      Real SMS / WhatsApp sends run only when
+      <code>ENVIRONMENT=production</code> and <code>DEBUG=False</code>
+      (from server <code>.env</code> — not editable here).
+      OTP is still generated in other environments; messages are not sent unless
+      “Force send non-production” is enabled for a short test.
+    </p>
+    <p style="margin:0;line-height:1.45;">
+      <strong>Current env (read-only):</strong>
+      ENVIRONMENT=<code>{{ messaging_environment }}</code>
+      · DEBUG=<code>{{ messaging_debug }}</code>
+      · Production messaging:
+      {% if messaging_is_production %}
+        <span style="color:#166534;font-weight:700;">YES — sends allowed when channel + keys ready</span>
+      {% else %}
+        <span style="color:#9a3412;font-weight:700;">NO — sends blocked</span>
+      {% endif %}
+    </p>
+  </div>
+
+  <div style="border:2px solid #1d4ed8;background:#eff6ff;color:#1e3a8a;padding:14px 16px;border-radius:8px;margin-bottom:12px;">
+    <strong style="display:block;margin-bottom:6px;font-size:1.05em;">SMS or WhatsApp — only one</strong>
+    <p style="margin:0;line-height:1.45;">
+      Choose <em>SMS only</em> or <em>WhatsApp only</em> (or Disabled). Both cannot be active together.
+      Switch providers (SmartPing / Plivo) with the dropdowns — plug-and-play.
+    </p>
+  </div>
+
+  <div style="border:2px solid #7f1d1d;background:#fef2f2;color:#7f1d1d;padding:14px 16px;border-radius:8px;margin-bottom:12px;">
+    <strong style="display:block;margin-bottom:6px;font-size:1.05em;">Testing numbers ≠ production</strong>
+    <p style="margin:0;line-height:1.45;">
+      If Plivo (or other) numbers are trial/sandbox/testing, set
+      <strong>Sender mode → Testing</strong>.
+      Those numbers <strong>cannot send when the app is in production</strong>
+      (<code>ENVIRONMENT=production</code> + <code>DEBUG=False</code>).
+      Use live/upgraded numbers and set Sender mode to <strong>Production</strong> for customer traffic.
+    </p>
+    {% if original %}
+    <p style="margin:8px 0 0;line-height:1.45;">
+      Current sender mode:
+      <strong>{{ original.get_sender_mode_display }}</strong>
+      {% if original.sender_mode == 'testing' and messaging_is_production %}
+        — <span style="font-weight:700;">BLOCKED on this production env</span>
+      {% endif %}
+    </p>
+    {% endif %}
+  </div>
+
+  <div style="border:2px solid #6b7280;background:#f9fafb;color:#111827;padding:14px 16px;border-radius:8px;margin-bottom:12px;">
+    <strong style="display:block;margin-bottom:6px;font-size:1.05em;">API keys required</strong>
+    <p style="margin:0 0 10px;line-height:1.45;">
+      Add provider keys below. <strong>If keys are missing, that service stays disabled</strong>
+      even when the channel is selected.
+    </p>
+    <ul style="margin:0;padding-left:1.2em;line-height:1.55;">
+      <li>
+        <strong>SMS status:</strong>
+        {% if messaging_sms_ready %}
+          <span style="color:#166534;font-weight:700;">READY</span>
+          (provider {{ original.sms_provider }})
+        {% else %}
+          <span style="color:#9a3412;font-weight:700;">DISABLED</span>
+          — {{ messaging_sms_status }}
+        {% endif %}
+      </li>
+      <li>
+        <strong>WhatsApp status:</strong>
+        {% if messaging_wa_ready %}
+          <span style="color:#166534;font-weight:700;">READY</span>
+          (provider {{ original.whatsapp_provider }})
+        {% else %}
+          <span style="color:#9a3412;font-weight:700;">DISABLED</span>
+          — {{ messaging_wa_status }}
+        {% endif %}
+      </li>
+    </ul>
+  </div>
+  <div style="border:1px solid #d1d5db;background:#fff;padding:12px 16px;border-radius:8px;margin-bottom:16px;">
+    <strong>Plivo sender numbers</strong>
+    <p style="margin:8px 0;line-height:1.45;color:#374151;">
+      <strong>SMS From</strong> can be fetched from your Plivo account (Phone Numbers with SMS).
+      Save Auth ID + Auth Token first, then click the button.
+      <strong>WhatsApp From</strong> is your WABA-linked number — copy it from
+      Plivo Console → WhatsApp (not auto-listed by API).
+    </p>
+    {% if original and original.pk %}
+    <form method="post" action="{% url 'admin:communication_messagingsettings_fetch_plivo_sms' original.pk %}" style="margin:0;">
+      {% csrf_token %}
+      <button type="submit" class="button" style="padding:8px 14px;">Fetch SMS numbers from Plivo</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{{ block.super }}
+{% endblock %}

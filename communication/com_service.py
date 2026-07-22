@@ -179,92 +179,38 @@ class ComService:
         )
         return self.send_mail(subject,to,text_content,html_content)
 
-    def _should_send_mobile_message(self, log_key):
-        """Respect DEBUG + force-send flags and 30s duplicate guard."""
-        provider = getattr(settings, 'SMS_PROVIDER', 'smartping')
-        if provider == 'plivo':
-            force_send = getattr(settings, 'PLIVO_FORCE_SEND', False)
-        else:
-            force_send = getattr(settings, 'SMARTPING_SMS_FORCE_SEND', False)
-        return (not settings.DEBUG or force_send) and (not self.check_duplicate_sms(log_key))
+    def _messaging_cfg(self):
+        from communication.messaging_config import get_messaging_settings
+        return get_messaging_settings()
 
-    def _send_mobile_otp_smartping(self, user, otp, formatted_phone):
-        message_template = getattr(
-            settings,
-            'SMARTPING_SMS_MESSAGE_TEMPLATE',
-            '{otp} is your verification code for TestprepGPT AI',
+    def _is_production_messaging_env(self):
+        from communication.messaging_config import is_production_messaging_env
+        return is_production_messaging_env()
+
+    def _channel_enabled(self, channel='sms'):
+        from communication.messaging_config import channel_enabled
+        return channel_enabled(channel)
+
+    def _should_send_mobile_message(self, log_key, channel='sms'):
+        from communication.messaging_config import should_send_mobile_message
+        return should_send_mobile_message(
+            log_key,
+            channel=channel,
+            check_duplicate=self.check_duplicate_sms,
         )
-        message = message_template.format(otp=otp)
-        params = {
-            'username': getattr(settings, 'SMARTPING_SMS_USERNAME', 'Testprepgpt.trans'),
-            'password': getattr(settings, 'SMARTPING_SMS_PASSWORD', 'sW2gV'),
-            'unicode': getattr(settings, 'SMARTPING_SMS_UNICODE', 'false'),
-            'from': getattr(settings, 'SMARTPING_SMS_FROM', 'TSTGPT'),
-            'to': formatted_phone,
-            'dltContentId': getattr(settings, 'SMARTPING_SMS_DLT_CONTENT_ID', '1707175152949044040'),
-            'dltPrincipalEntityId': getattr(settings, 'SMARTPING_SMS_DLT_PRINCIPAL_ENTITY_ID', '1701172845816093698'),
-            'text': message,
-        }
-        api_url = getattr(settings, 'SMARTPING_SMS_API_URL', 'https://pgapi.smartping.ai/fe/api/v1/send')
-        url = f"{api_url}?{urlencode(params)}"
-        response_text = 'DEBUG'
-        response_status = False
 
-        if self._should_send_mobile_message(url):
-            try:
-                response = requests.get(url, timeout=10)
-                if hasattr(response, 'content') and response.content:
-                    try:
-                        response_text = response.content.decode('utf-8')
-                    except (UnicodeDecodeError, AttributeError):
-                        response_text = str(response.content)
-                else:
-                    response_text = f"Status: {response.status_code}" if hasattr(response, 'status_code') else 'No content'
-                response_status = getattr(response, 'status_code', None) == 200
-                print(f"SmartPing SMS API Response: {response_text} (Status: {getattr(response, 'status_code', None)})")
-            except requests.exceptions.RequestException as e:
-                print(f"Error sending SMS via SmartPing API: {str(e)}")
-                response_text = f"Error: {str(e)}"
-                response_status = False
-            except Exception as e:
-                print(f"Unexpected error sending SMS via SmartPing API: {str(e)}")
-                import traceback
-                traceback.print_exc()
-                response_text = f"Unexpected Error: {str(e)}"
-                response_status = False
-        else:
-            print(f"DEBUG mode or duplicate SMS detected. URL: {url}")
-            response_status = True
-
-        self.make_log_entry(user, url, choices.CommunicationTypeChooices.SMS, response_text)
-        return response_status
-
-    def _send_mobile_otp_plivo(self, user, otp, formatted_phone):
-        from communication.providers import plivo as plivo_provider
-
-        message_template = getattr(
-            settings,
-            'PLIVO_SMS_MESSAGE_TEMPLATE',
-            '{otp} is your verification code for TopTeen',
+    def _skip_send_reason(self, log_key, channel='sms'):
+        from communication.messaging_config import skip_send_reason
+        return skip_send_reason(
+            log_key,
+            channel=channel,
+            check_duplicate=self.check_duplicate_sms,
         )
-        message = message_template.format(otp=otp)
-        log_key = f"plivo:sms:{formatted_phone}:{message}"
-        response_text = 'DEBUG'
-        response_status = False
-
-        if self._should_send_mobile_message(log_key):
-            result = plivo_provider.send_sms(formatted_phone, message)
-            response_text = result.get('response') or result.get('error') or ''
-            response_status = bool(result.get('success'))
-            print(f"Plivo SMS API Response: {response_text} (success={response_status})")
-        else:
-            print(f"DEBUG mode or duplicate Plivo SMS detected. key: {log_key}")
-            response_status = True
-
-        self.make_log_entry(user, log_key, choices.CommunicationTypeChooices.SMS, response_text)
-        return response_status
 
     def send_mobile_otp(self, user):
+        """Send OTP via the admin-selected SMS provider (keys required or service stays off)."""
+        from communication.providers import get_provider
+
         try:
             user = int(user)
             otp = self.get_otp(user, choices.CommunicationTypeChooices.SMS)
@@ -273,10 +219,39 @@ class ComService:
             formatted_phone = self.format_phone_number_with_country_code(user)
             print(f"Formatted phone number: {formatted_phone} (original: {user})")
 
-            provider = getattr(settings, 'SMS_PROVIDER', 'smartping')
-            if provider == 'plivo':
-                return self._send_mobile_otp_plivo(user, otp, formatted_phone)
-            return self._send_mobile_otp_smartping(user, otp, formatted_phone)
+            cfg = self._messaging_cfg()
+            provider_key = (cfg.sms_provider or 'smartping').strip().lower()
+            provider = get_provider(provider_key)
+            message_template = cfg.sms_message_template or '{otp} is your verification code for TopTeen'
+            message = message_template.format(otp=otp)
+            log_key = f"{provider_key}:sms:{formatted_phone}:{message}"
+            response_text = 'DEBUG'
+            response_status = False
+
+            if not provider or not provider.supports_sms:
+                reason = f'SMS provider {provider_key!r} not available'
+                print(f"SMS skipped ({reason}). OTP={otp}")
+                self.make_log_entry(user, log_key, choices.CommunicationTypeChooices.SMS, f'SKIPPED: {reason}')
+                return True
+
+            if self._should_send_mobile_message(log_key, channel='sms'):
+                result = provider.send_sms(
+                    formatted_phone,
+                    message,
+                    config=cfg.provider_config_for(provider_key),
+                )
+                response_text = result.get('response') or result.get('error') or ''
+                log_key = result.get('log_key') or log_key
+                response_status = bool(result.get('success'))
+                print(f"{provider_key} SMS Response: {response_text} (success={response_status})")
+            else:
+                reason = self._skip_send_reason(log_key, channel='sms')
+                print(f"SMS send skipped ({reason}). OTP={otp} phone={formatted_phone}")
+                response_text = f"SKIPPED: {reason}"
+                response_status = True
+
+            self.make_log_entry(user, log_key, choices.CommunicationTypeChooices.SMS, response_text)
+            return response_status
 
         except Exception as e:
             print(f"Invalid mobile_number {user}: {str(e)}")
@@ -286,15 +261,14 @@ class ComService:
 
     def send_whatsapp_otp(self, user, otp_type=None):
         """
-        Send OTP via Plivo WhatsApp template (requires approved template + WABA number).
-
-        otp_type controls which OTP record is stored/verified. When mobile OTP is routed
-        through WhatsApp via OTP_MOBILE_CHANNEL=whatsapp, pass SMS so verify_otp still works.
+        Send OTP via the admin-selected WhatsApp provider.
+        Missing keys → service disabled (OTP still created when channel selected).
         """
-        from communication.providers import plivo as plivo_provider
+        from communication.providers import get_provider
 
-        if not getattr(settings, 'WHATSAPP_ENABLED', False):
-            logger.warning('WhatsApp OTP skipped: WHATSAPP_ENABLED is False')
+        cfg = self._messaging_cfg()
+        if not cfg.whatsapp_enabled:
+            logger.warning('WhatsApp OTP skipped: active_channel is not whatsapp')
             return False
 
         if otp_type is None:
@@ -304,22 +278,35 @@ class ComService:
             user = int(user)
             otp = self.get_otp(user, otp_type)
             formatted_phone = self.format_phone_number_with_country_code(user)
-            log_key = f"plivo:whatsapp-otp:{formatted_phone}:{otp}"
+            provider_key = (cfg.whatsapp_provider or 'plivo').strip().lower()
+            provider = get_provider(provider_key)
+            log_key = f"{provider_key}:whatsapp-otp:{formatted_phone}:{otp}"
             response_text = 'DEBUG'
             response_status = False
 
-            force_send = getattr(settings, 'PLIVO_FORCE_SEND', False)
-            should_send = (not settings.DEBUG or force_send) and (not self.check_duplicate_sms(log_key))
-            if should_send:
-                result = plivo_provider.send_whatsapp_template(
+            if not provider or not provider.supports_whatsapp:
+                reason = f'WhatsApp provider {provider_key!r} not available'
+                print(f"WhatsApp OTP skipped ({reason}). OTP={otp}")
+                self.make_log_entry(user, log_key, choices.CommunicationTypeChooices.WHATSAPP, f'SKIPPED: {reason}')
+                return True
+
+            if self._should_send_mobile_message(log_key, channel='whatsapp'):
+                result = provider.send_whatsapp_template(
                     formatted_phone,
+                    template_name=cfg.whatsapp_otp_template,
+                    language=cfg.whatsapp_otp_template_lang or 'en',
                     body_params=[str(otp)],
+                    auth_copy_code=True,
+                    config=cfg.provider_config_for(provider_key),
                 )
                 response_text = result.get('response') or result.get('error') or ''
+                log_key = result.get('log_key') or log_key
                 response_status = bool(result.get('success'))
-                print(f"Plivo WhatsApp OTP Response: {response_text} (success={response_status})")
+                print(f"{provider_key} WhatsApp OTP Response: {response_text} (success={response_status})")
             else:
-                print(f"DEBUG mode or duplicate WhatsApp OTP detected. key: {log_key}")
+                reason = self._skip_send_reason(log_key, channel='whatsapp')
+                print(f"WhatsApp OTP skipped ({reason}). OTP={otp} phone={formatted_phone}")
+                response_text = f"SKIPPED: {reason}"
                 response_status = True
 
             self.make_log_entry(user, log_key, choices.CommunicationTypeChooices.WHATSAPP, response_text)
@@ -329,26 +316,41 @@ class ComService:
             return False
 
     def send_whatsapp_message(self, to_number, text=None, *, template_name=None, body_params=None):
-        """
-        Send a WhatsApp message via Plivo.
-        Pass template_name and/or body_params for an approved template;
-        otherwise pass text for free-form (only inside an open session window).
-        """
-        from communication.providers import plivo as plivo_provider
+        """Send WhatsApp via admin-selected provider; disabled if keys missing."""
+        from communication.providers import get_provider
+        from communication.messaging_config import env_allows_send
 
-        if not getattr(settings, 'WHATSAPP_ENABLED', False):
-            logger.warning('WhatsApp message skipped: WHATSAPP_ENABLED is False')
+        cfg = self._messaging_cfg()
+        if not cfg.is_whatsapp_ready():
+            logger.warning(
+                'WhatsApp message skipped: %s',
+                self._skip_send_reason('whatsapp-msg', channel='whatsapp'),
+            )
+            return False
+        if not env_allows_send(cfg):
+            logger.warning(
+                'WhatsApp message skipped: %s',
+                cfg.sender_mode_block_reason() or 'environment/sender mode mismatch',
+            )
+            return False
+
+        provider_key = (cfg.whatsapp_provider or 'plivo').strip().lower()
+        provider = get_provider(provider_key)
+        if not provider or not provider.supports_whatsapp:
             return False
 
         formatted_phone = self.format_phone_number_with_country_code(to_number)
+        pconfig = cfg.provider_config_for(provider_key)
         if template_name is not None or body_params is not None:
-            result = plivo_provider.send_whatsapp_template(
+            result = provider.send_whatsapp_template(
                 formatted_phone,
-                template_name=template_name,
+                template_name=template_name or cfg.whatsapp_otp_template,
+                language=cfg.whatsapp_otp_template_lang or 'en',
                 body_params=body_params,
+                config=pconfig,
             )
         elif text:
-            result = plivo_provider.send_whatsapp_text(formatted_phone, text)
+            result = provider.send_whatsapp_text(formatted_phone, text, config=pconfig)
         else:
             logger.warning('WhatsApp send requires text or template_name/body_params')
             return False
@@ -368,11 +370,9 @@ class ComService:
         if otp_type == choices.CommunicationTypeChooices.WHATSAPP:
             return self.send_whatsapp_otp(user)
         if otp_type == choices.CommunicationTypeChooices.SMS:
-            # Optional: deliver SMS-typed OTP over WhatsApp (verify still uses SMS type)
-            if (
-                getattr(settings, 'OTP_MOBILE_CHANNEL', 'sms') == 'whatsapp'
-                and getattr(settings, 'WHATSAPP_ENABLED', False)
-            ):
+            cfg = self._messaging_cfg()
+            # Mutual exclusivity: if WhatsApp channel is active (and keys ready), deliver there
+            if cfg.whatsapp_enabled:
                 return self.send_whatsapp_otp(user, otp_type=choices.CommunicationTypeChooices.SMS)
             return self.send_mobile_otp(user)
         return None

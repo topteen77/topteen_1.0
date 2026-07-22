@@ -811,10 +811,16 @@ _TOPTEEN_FROM_EMAIL = config('TOPTEEN_FROM_EMAIL', default='support@topteen.care
 TOPTEEN_FROM_EMAIL = _TOPTEEN_FROM_EMAIL
 MOBILE_SMS_SERVICE = ''
 
-# SMS / WhatsApp provider: smartping (default) | plivo
+# SMS / WhatsApp — real sends only when ENVIRONMENT=production, DEBUG=False,
+# and the channel flag is True. Non-prod: OTP is still generated/logged, not sent
+# unless *_FORCE_SEND=True (explicit local test).
 # https://www.plivo.com/ — Auth ID/Token from https://manage.plivo.com/dashboard/
-SMS_PROVIDER = config('SMS_PROVIDER', default='smartping').strip().lower()
+SMS_ENABLED = config('SMS_ENABLED', default=False, cast=bool)
+WHATSAPP_ENABLED = config('WHATSAPP_ENABLED', default=False, cast=bool)
+SMS_PROVIDER = config('SMS_PROVIDER', default='smartping').strip().lower()  # smartping | plivo
 OTP_MOBILE_CHANNEL = config('OTP_MOBILE_CHANNEL', default='sms').strip().lower()  # sms | whatsapp
+SMS_FORCE_SEND = config('SMS_FORCE_SEND', default=False, cast=bool)
+WHATSAPP_FORCE_SEND = config('WHATSAPP_FORCE_SEND', default=False, cast=bool)
 
 # SmartPing SMS API Configuration
 SMARTPING_SMS_API_URL = config('SMARTPING_SMS_API_URL', default='https://pgapi.smartping.ai/fe/api/v1/send')
@@ -825,6 +831,7 @@ SMARTPING_SMS_DLT_CONTENT_ID = config('SMARTPING_SMS_DLT_CONTENT_ID', default='1
 SMARTPING_SMS_DLT_PRINCIPAL_ENTITY_ID = config('SMARTPING_SMS_DLT_PRINCIPAL_ENTITY_ID', default='1701172845816093698')
 SMARTPING_SMS_UNICODE = config('SMARTPING_SMS_UNICODE', default='false')
 SMARTPING_SMS_MESSAGE_TEMPLATE = config('SMARTPING_SMS_MESSAGE_TEMPLATE', default='{otp} is your verification code for TestprepGPT AI')
+# Legacy alias — prefer SMS_FORCE_SEND
 SMARTPING_SMS_FORCE_SEND = config('SMARTPING_SMS_FORCE_SEND', default=False, cast=bool)
 
 # Plivo SMS + WhatsApp
@@ -838,8 +845,8 @@ PLIVO_SMS_MESSAGE_TEMPLATE = config(
 )
 PLIVO_WHATSAPP_OTP_TEMPLATE = config('PLIVO_WHATSAPP_OTP_TEMPLATE', default='')  # approved template name
 PLIVO_WHATSAPP_OTP_TEMPLATE_LANG = config('PLIVO_WHATSAPP_OTP_TEMPLATE_LANG', default='en_US')
+# Legacy alias — prefer SMS_FORCE_SEND / WHATSAPP_FORCE_SEND
 PLIVO_FORCE_SEND = config('PLIVO_FORCE_SEND', default=False, cast=bool)
-WHATSAPP_ENABLED = config('WHATSAPP_ENABLED', default=False, cast=bool)
 
 # Email / AWS SES – all from .env; no credentials in code
 EMAIL_HOST = config('EMAIL_HOST', default='email-smtp.ap-south-1.amazonaws.com')
