@@ -52,7 +52,7 @@ from pathlib import Path
 
 # Anonymous homepage HTML is shared across all visitors (cookie-independent).
 # Django's cache_page keys on Vary: Cookie, so Locust/session cookies bust it under load.
-HOME_ANON_HTML_CACHE_KEY = 'home:anon:html:v1'
+HOME_ANON_HTML_CACHE_KEY = 'home:anon:html:v2'
 HOME_ANON_HTML_CACHE_TTL = 900  # 15 minutes
 HOME_ANON_HTML_LOCK_KEY = 'home:anon:html:lock'
 HOME_ANON_HTML_LOCK_TTL = 45
@@ -2949,7 +2949,7 @@ def translate_complexity_api(request):
         return JsonResponse({'ok': False, 'error': 'Translation complexity is not configured'}, status=503)
 
     try:
-        adjusted = adjust_text_complexity(texts, target_lang, level)
+        adjusted, stats = adjust_text_complexity(texts, target_lang, level)
     except Exception as exc:
         # Never return HTML or opaque 500 bodies — frontend expects JSON.
         # Fall back to original Google Translate text so the page stays usable.
@@ -2959,6 +2959,18 @@ def translate_complexity_api(request):
             'texts': [str(t or '') for t in texts],
             'level': level,
             'fallback': True,
+            'cache': {
+                'cache_hits': 0,
+                'cache_misses': len(texts) if isinstance(texts, list) else 0,
+                'llm_calls': 0,
+                'stored': 0,
+                'from_cache': False,
+            },
         })
 
-    return JsonResponse({'ok': True, 'texts': adjusted, 'level': level})
+    return JsonResponse({
+        'ok': True,
+        'texts': adjusted,
+        'level': level,
+        'cache': stats,
+    })

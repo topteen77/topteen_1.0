@@ -4,6 +4,8 @@ Reads from admin-configurable models (DashboardLevelBand, DashboardPointRule,
 DashboardTrophyDefinition, DashboardStreakConfig) and existing user/test data.
 """
 
+import re
+
 from django.utils import timezone
 from django.db.models import Count
 
@@ -20,17 +22,66 @@ from core.psychometric_grade import (
 )
 
 
-# Rule keys that are evaluated as one-off conditions (not event counts)
+# Canonical one-off rule keys (evaluated as conditions, not UserEvent counts)
 ONE_OFF_RULE_KEYS = frozenset({
     'profile_complete', 'payment_success',
     'personality_test_complete', 'motivation_test_complete',
     'interest_test_complete', 'aptitude_test_complete', 'report_reading',
+    # Standalone assessments / engagement
+    'emotional_complete',
+    'multiple_intelligence_complete',
+    'decision_making_complete',
+    'refer_a_friend',
+    'skilllab_course_payment',
+    'skilllab_course_completion',
+    'four_pillars_complete',
     # Legacy keys kept for backward compatibility if still active in admin
     'test1_complete', 'test2_complete', 'test3_complete',
-    'numerical_complete', 'verbal_complete', 'logical_complete', 'emotional_complete',
+    'numerical_complete', 'verbal_complete', 'logical_complete',
     'machanical_complete', 'language_complete', 'spatial_complete',
     'career_direction_complete',
 })
+
+# Admin rule_key variants (spaces / labels) → canonical evaluator keys
+_RULE_KEY_ALIASES = {
+    'emotional_intelligence': 'emotional_complete',
+    'emotional_intelligences': 'emotional_complete',
+    'complete_emotional_intelligence_assessment': 'emotional_complete',
+    'eq_assessment_complete': 'emotional_complete',
+    'eq_complete': 'emotional_complete',
+    'multiple_intelligence': 'multiple_intelligence_complete',
+    'multiple_intelligences': 'multiple_intelligence_complete',
+    'complete_multiple_intelligence_assessment': 'multiple_intelligence_complete',
+    'mi_assessment_complete': 'multiple_intelligence_complete',
+    'mi_complete': 'multiple_intelligence_complete',
+    'decision_making': 'decision_making_complete',
+    'complete_decision_making_assessment': 'decision_making_complete',
+    'stream_decision': 'decision_making_complete',
+    'stream_decision_questionnaire': 'decision_making_complete',
+    'refer_a_friend': 'refer_a_friend',
+    'referral': 'refer_a_friend',
+    'skill_lab_course_payment': 'skilllab_course_payment',
+    'skill_lab_course_enrollment': 'skilllab_course_payment',
+    'skilllab_course_enrollment': 'skilllab_course_payment',
+    'skill_lab_course_completion': 'skilllab_course_completion',
+    'complete_skill_lab_course': 'skilllab_course_completion',
+    'four_pillars': 'four_pillars_complete',
+    'four_pillars_of_learning': 'four_pillars_complete',
+}
+
+
+def normalize_rule_key(rule_key):
+    """Normalize admin rule_key (spaces/case/aliases) to a canonical evaluator key."""
+    raw = (rule_key or '').strip().lower()
+    if not raw:
+        return ''
+    collapsed = re.sub(r'[\s\-]+', '_', raw)
+    collapsed = re.sub(r'_+', '_', collapsed).strip('_')
+    return _RULE_KEY_ALIASES.get(collapsed, collapsed)
+
+
+def _is_one_off_rule(rule_key):
+    return normalize_rule_key(rule_key) in ONE_OFF_RULE_KEYS
 
 # Default level bands if none in DB
 DEFAULT_LEVEL_BANDS = [
@@ -69,6 +120,13 @@ RULE_LABELS = {
     'interest_test_complete': 'Interest test completion',
     'aptitude_test_complete': 'Aptitude test completion',
     'report_reading': 'Report reading',
+    'emotional_complete': 'Emotional intelligence',
+    'multiple_intelligence_complete': 'Multiple intelligence',
+    'decision_making_complete': 'Decision making',
+    'refer_a_friend': 'Refer a friend',
+    'skilllab_course_payment': 'Skill Lab course enrollment',
+    'skilllab_course_completion': 'Skill Lab course completion',
+    'four_pillars_complete': 'Four Pillars assessment',
     # Legacy labels
     'test1_complete': 'Personality test (Part 1)',
     'test2_complete': 'Interest test (Part 2)',
@@ -76,7 +134,6 @@ RULE_LABELS = {
     'numerical_complete': 'Numerical reasoning',
     'verbal_complete': 'Verbal reasoning',
     'logical_complete': 'Logical reasoning',
-    'emotional_complete': 'Emotional intelligence',
     'machanical_complete': 'Mechanical reasoning',
     'language_complete': 'Language & spelling',
     'spatial_complete': 'Spatial reasoning',
@@ -237,7 +294,8 @@ def _user_event_exists(user, event_type):
 def _rule_label(rule_key, admin_label=None):
     if admin_label:
         return admin_label
-    return RULE_LABELS.get(rule_key, rule_key.replace('_', ' ').title())
+    canonical = normalize_rule_key(rule_key)
+    return RULE_LABELS.get(canonical) or RULE_LABELS.get(rule_key) or rule_key.replace('_', ' ').title()
 
 
 def _rule_condition_met(user, rule_key):
@@ -250,52 +308,90 @@ def _rule_condition_met(user, rule_key):
             user._dash_rule_cache = cache
         except Exception:
             pass
-    if rule_key not in cache:
-        cache[rule_key] = _evaluate_rule_condition(user, rule_key)
-    return cache[rule_key]
+    cache_key = normalize_rule_key(rule_key) or rule_key
+    if cache_key not in cache:
+        cache[cache_key] = _evaluate_rule_condition(user, rule_key)
+    return cache[cache_key]
 
 
 def _evaluate_rule_condition(user, rule_key):
     """Return True if the one-off rule_key condition is met for user."""
+    key = normalize_rule_key(rule_key)
     try:
-        if rule_key == 'profile_complete':
+        if key == 'profile_complete':
             return user.get_profile_completion_percentage() == 100
 
-        if rule_key == 'personality_test_complete':
+        if key == 'personality_test_complete':
             return (
                 _class10_test_flag(user, 'test1_complete')
                 or _post_matric_test_completed(user, 1)
             )
 
-        if rule_key == 'motivation_test_complete':
+        if key == 'motivation_test_complete':
             if not rule_applies_to_user_track(user, rule_key):
                 return False
             return _post_matric_test_completed(user, 2)
 
-        if rule_key == 'interest_test_complete':
+        if key == 'interest_test_complete':
             return (
                 _class10_test_flag(user, 'test2_complete')
                 or _post_matric_test_completed(user, 3)
             )
 
-        if rule_key == 'aptitude_test_complete':
+        if key == 'aptitude_test_complete':
             return (
                 _class10_test_flag(user, 'test3_complete')
                 or _post_matric_test_completed(user, 4)
             )
 
-        if rule_key == 'report_reading':
+        if key == 'report_reading':
             return _user_event_exists(user, 'result_generated')
 
-        if rule_key in ('test1_complete', 'test2_complete', 'test3_complete',
-                        'numerical_complete', 'verbal_complete', 'logical_complete',
-                        'emotional_complete', 'machanical_complete', 'language_complete', 'spatial_complete'):
-            return _class10_test_flag(user, rule_key)
+        if key == 'emotional_complete':
+            # Standalone EI assessment OR legacy Class-10 aptitude subsection flag.
+            from core.models import EQAssessmentResult
+            if EQAssessmentResult.objects.filter(user=user).exists():
+                return True
+            return _class10_test_flag(user, 'emotional_complete')
 
-        if rule_key == 'career_direction_complete':
+        if key == 'multiple_intelligence_complete':
+            from core.models import MIAssessmentResult
+            return MIAssessmentResult.objects.filter(user=user).exists()
+
+        if key == 'decision_making_complete':
+            from app.stream_decision import user_has_completed_questionnaire
+            return bool(user_has_completed_questionnaire(user))
+
+        if key == 'refer_a_friend':
+            from users.models import User
+            return User.objects.filter(referral=str(user.id)).exists()
+
+        if key == 'skilllab_course_payment':
+            from skilllab.models import SkilllabCoursePayment
+            from core import choices
+            return SkilllabCoursePayment.objects.filter(
+                user=user, is_success=choices.YesNoChoices.YES
+            ).exists()
+
+        if key == 'skilllab_course_completion':
+            from skilllab.models import SkillLabCourseProgressSummary
+            return SkillLabCourseProgressSummary.objects.filter(
+                user=user, progress_percentage__gte=100
+            ).exists()
+
+        if key == 'four_pillars_complete':
+            from core.models import FourPillarsAssessmentResult
+            return FourPillarsAssessmentResult.objects.filter(user=user).exists()
+
+        if key in ('test1_complete', 'test2_complete', 'test3_complete',
+                   'numerical_complete', 'verbal_complete', 'logical_complete',
+                   'machanical_complete', 'language_complete', 'spatial_complete'):
+            return _class10_test_flag(user, key)
+
+        if key == 'career_direction_complete':
             return bool(_user_dashboard_flags(user)['completed_pm_test_ids'])
 
-        if rule_key == 'payment_success':
+        if key == 'payment_success':
             from psychometric_tests.models import PsychometricTestPayment
             from core import choices
             return PsychometricTestPayment.objects.filter(
@@ -324,19 +420,23 @@ def _get_total_points(user):
     point_map = _get_applicable_point_map(user)
 
     total = 0
-    for rule_key in ONE_OFF_RULE_KEYS:
-        if rule_key in point_map and _rule_condition_met(user, rule_key):
-            total += point_map[rule_key]
+    event_points_keys = []
+    for rule_key, pts in point_map.items():
+        if _is_one_off_rule(rule_key):
+            if _rule_condition_met(user, rule_key):
+                total += int(pts)
+        else:
+            event_points_keys.append(rule_key)
 
-    # Event-based: count UserEvent by event_type and add points (e.g. psychometric_test_completed)
-    event_points_keys = [k for k in point_map if k not in ONE_OFF_RULE_KEYS]
+    # Event-based: count UserEvent by event_type and add points (e.g. registration)
     if event_points_keys:
-        event_types = list(event_points_keys)
-        counts = UserEvent.objects.filter(user=user).values('event_type').annotate(c=Count('id'))
+        counts = UserEvent.objects.filter(
+            user=user, event_type__in=event_points_keys
+        ).values('event_type').annotate(c=Count('id'))
         for row in counts:
             et = row['event_type']
             if et in point_map:
-                total += point_map[et] * row['c']
+                total += int(point_map[et]) * int(row['c'])
 
     return total
 
@@ -412,7 +512,11 @@ def _get_trophy_details(user):
         unlocked = _rule_condition_met(user, rule_key)
         admin_label = (row.get('label') or '').strip()
         # Prefer friendly labels for known rule keys (avoids typos like "Machanical")
-        label = RULE_LABELS.get(rule_key) or _rule_label(rule_key, admin_label or None)
+        label = (
+            RULE_LABELS.get(normalize_rule_key(rule_key))
+            or RULE_LABELS.get(rule_key)
+            or _rule_label(rule_key, admin_label or None)
+        )
         details.append({
             'rule_key': rule_key,
             'label': label,
@@ -447,7 +551,7 @@ def _get_points_details(user):
 
     def _append_rule(rule_key, pts, earned, count=1):
         nonlocal earned_total
-        if rule_key in ONE_OFF_RULE_KEYS:
+        if _is_one_off_rule(rule_key):
             row_pts = pts if earned else 0
             row_count = 1 if earned else 0
         else:
@@ -464,14 +568,16 @@ def _get_points_details(user):
         })
 
     counts = {}
-    event_points_keys = [k for k in point_map if k not in ONE_OFF_RULE_KEYS]
+    event_points_keys = [k for k in point_map if not _is_one_off_rule(k)]
     if event_points_keys:
-        event_counts = UserEvent.objects.filter(user=user).values('event_type').annotate(c=Count('id'))
+        event_counts = UserEvent.objects.filter(
+            user=user, event_type__in=event_points_keys
+        ).values('event_type').annotate(c=Count('id'))
         counts = {row['event_type']: row['c'] for row in event_counts}
 
     for rule_key in sorted(point_map.keys(), key=lambda k: (rule_order.get(k, 9999), k)):
         pts = point_map[rule_key]
-        if rule_key in ONE_OFF_RULE_KEYS:
+        if _is_one_off_rule(rule_key):
             earned = _rule_condition_met(user, rule_key)
             _append_rule(rule_key, pts, earned)
         else:

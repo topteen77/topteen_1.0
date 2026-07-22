@@ -1164,6 +1164,10 @@ function applyTranslateComplexity(langCode, level) {
   var chain = Promise.resolve();
   var appliedAny = false;
   var softFail = false;
+  var cacheHitsTotal = 0;
+  var cacheMissesTotal = 0;
+  var llmCallsTotal = 0;
+  var storedTotal = 0;
 
   batches.forEach(function (batch) {
     chain = chain.then(function () {
@@ -1194,6 +1198,41 @@ function applyTranslateComplexity(langCode, level) {
             softFail = true;
             return;
           }
+          var cacheInfo = payload.cache || {};
+          cacheHitsTotal += Number(cacheInfo.cache_hits || 0);
+          cacheMissesTotal += Number(cacheInfo.cache_misses || 0);
+          llmCallsTotal += Number(cacheInfo.llm_calls || 0);
+          storedTotal += Number(cacheInfo.stored || 0);
+
+          if (cacheInfo.from_cache || (cacheInfo.cache_hits > 0 && !cacheInfo.cache_misses)) {
+            console.log(
+              '[TopTeen translate] read from cache — hits:',
+              cacheInfo.cache_hits,
+              'lang:',
+              langCode,
+              'level:',
+              level
+            );
+          } else if (cacheInfo.cache_hits > 0) {
+            console.log(
+              '[TopTeen translate] partial cache — hits:',
+              cacheInfo.cache_hits,
+              'misses:',
+              cacheInfo.cache_misses,
+              'llm_calls:',
+              cacheInfo.llm_calls,
+              'stored:',
+              cacheInfo.stored
+            );
+          } else if (cacheInfo.llm_calls > 0) {
+            console.log(
+              '[TopTeen translate] LLM call — misses:',
+              cacheInfo.cache_misses,
+              'stored to Redis:',
+              cacheInfo.stored
+            );
+          }
+
           payload.texts.forEach(function (value, index) {
             if (value && batch[index] && batch[index].el) {
               batch[index].el.textContent = value;
@@ -1211,9 +1250,25 @@ function applyTranslateComplexity(langCode, level) {
     if (requestToken !== ttComplexityRequestToken) {
       return;
     }
+    if (cacheHitsTotal || cacheMissesTotal || llmCallsTotal) {
+      console.log(
+        '[TopTeen translate] summary — from cache:',
+        cacheHitsTotal,
+        '| LLM misses:',
+        cacheMissesTotal,
+        '| llm_calls:',
+        llmCallsTotal,
+        '| stored:',
+        storedTotal
+      );
+    }
     if (appliedAny) {
       var label = level.charAt(0).toUpperCase() + level.slice(1);
-      showTranslateComplexityStatus(label + ' reading level applied', false);
+      var statusMsg = label + ' reading level applied';
+      if (cacheHitsTotal > 0 && cacheMissesTotal === 0) {
+        statusMsg += ' (from cache)';
+      }
+      showTranslateComplexityStatus(statusMsg, false);
     } else if (softFail) {
       // Silent: language translation still works via Google Translate.
       showTranslateComplexityStatus('Using standard translation', false);
@@ -1343,8 +1398,17 @@ function initCustomLanguageSelector() {
     currentComplexity = level;
     setTranslateComplexity(level);
     updateComplexityUi();
-    var activeBtn = grid && grid.querySelector('.tt-lang-option.is-active');
-    var langName = activeBtn ? activeBtn.textContent.trim() : 'English';
+    var combo = getTranslateCombo();
+    var langName = 'English';
+    if (combo) {
+      Array.from(combo.options).some(function (option) {
+        if (option.value === currentLanguage) {
+          langName = currentLanguage === 'en' ? 'English' : option.textContent.trim();
+          return true;
+        }
+        return false;
+      });
+    }
     updateTriggerLabels(currentLanguage, langName);
     if (rerun && currentLanguage !== 'en') {
       scheduleTranslateComplexity(currentLanguage, currentComplexity, 300);
@@ -1352,18 +1416,32 @@ function initCustomLanguageSelector() {
   }
 
   function selectLanguage(langCode, langName) {
-    var combo = getTranslateCombo();
-    if (!combo || !grid) {
+    if (!grid) {
       return;
     }
+    var combo = getTranslateCombo();
     currentLanguage = langCode;
-    combo.value = langCode;
-    combo.dispatchEvent(new Event('change'));
+    if (combo) {
+      // Prefer Google combo when the language is supported there.
+      var hasOption = Array.from(combo.options).some(function (option) {
+        return option.value === langCode;
+      });
+      if (hasOption) {
+        combo.value = langCode;
+        combo.dispatchEvent(new Event('change'));
+      } else {
+        // Fallback for catalog languages Google omits from the combo.
+        var hostname = window.location.hostname;
+        document.cookie = 'googtrans=/en/' + langCode + '; path=/';
+        document.cookie = 'googtrans=/en/' + langCode + '; path=/; domain=.' + hostname;
+        window.location.reload();
+        return;
+      }
+    }
     updateTriggerLabels(langCode, langName);
     updateComplexityUi();
-    grid.querySelectorAll('.tt-lang-option').forEach(function (btn) {
-      btn.classList.toggle('is-active', btn.getAttribute('data-lang') === langCode);
-    });
+    // Rebuild so the newly selected language is hidden and the previous one reappears.
+    buildLanguageOptions(combo);
     setWidgetOpen(false);
     if (langCode !== 'en') {
       scheduleTranslateComplexity(langCode, currentComplexity, 1800);
@@ -1390,16 +1468,46 @@ function initCustomLanguageSelector() {
     selectLanguage('en', 'English');
   }
 
-  function sortLanguageOptions(options) {
-    return options.slice().sort(function (a, b) {
-      if (a.value === 'en') {
+  function sortLanguageEntries(entries) {
+    return entries.slice().sort(function (a, b) {
+      if (a.code === 'en') {
         return -1;
       }
-      if (b.value === 'en') {
+      if (b.code === 'en') {
         return 1;
       }
-      return a.textContent.trim().localeCompare(b.textContent.trim());
+      return String(a.name || '').localeCompare(String(b.name || ''));
     });
+  }
+
+  function getEnabledLanguageEntries() {
+    if (Array.isArray(window.TT_ENABLED_LANGUAGES) && window.TT_ENABLED_LANGUAGES.length) {
+      return window.TT_ENABLED_LANGUAGES.map(function (entry) {
+        return {
+          code: entry.code,
+          name: entry.name || entry.code
+        };
+      }).filter(function (entry) {
+        return !!entry.code;
+      });
+    }
+    // Fallback: codes from CSV + labels from Google combo when available.
+    var combo = getTranslateCombo();
+    var nameByCode = {};
+    if (combo) {
+      Array.from(combo.options).forEach(function (option) {
+        if (option.value) {
+          nameByCode[option.value] = option.value === 'en' ? 'English' : option.textContent.trim();
+        }
+      });
+    }
+    return String(getIncludedLanguages())
+      .split(',')
+      .map(function (code) { return code.trim(); })
+      .filter(Boolean)
+      .map(function (code) {
+        return { code: code, name: nameByCode[code] || code };
+      });
   }
 
   function buildLanguageOptions(combo) {
@@ -1407,28 +1515,43 @@ function initCustomLanguageSelector() {
       return;
     }
     grid.innerHTML = '';
-    var options = sortLanguageOptions(
-      Array.from(combo.options).filter(function (option) {
-        return option.value;
+    var selected = currentLanguage || 'en';
+    var entries = sortLanguageEntries(
+      getEnabledLanguageEntries().filter(function (entry) {
+        // Show every enabled language except the currently selected one.
+        return entry.code !== selected;
       })
     );
-    options.forEach(function (option) {
-      var langName = option.value === 'en' ? 'English' : option.textContent.trim();
+    entries.forEach(function (entry) {
+      var langName = entry.code === 'en' ? 'English' : entry.name;
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'tt-lang-option';
-      btn.setAttribute('data-lang', option.value);
+      btn.setAttribute('data-lang', entry.code);
       btn.setAttribute('role', 'option');
       btn.textContent = langName;
-      if (option.value === currentLanguage) {
-        btn.classList.add('is-active');
-      }
       btn.addEventListener('click', function () {
-        selectLanguage(option.value, langName);
+        selectLanguage(entry.code, langName);
       });
       grid.appendChild(btn);
     });
-    updateTriggerLabels(currentLanguage, 'English');
+    var selectedName = 'English';
+    getEnabledLanguageEntries().some(function (entry) {
+      if (entry.code === selected) {
+        selectedName = selected === 'en' ? 'English' : entry.name;
+        return true;
+      }
+      return false;
+    });
+    updateTriggerLabels(selected, selectedName);
+    // Keep Google combo in sync when present (used to apply translation).
+    if (combo && selected) {
+      try {
+        combo.value = selected;
+      } catch (e) {
+        /* ignore */
+      }
+    }
   }
 
   function bindWidgetShell() {
@@ -1532,20 +1655,41 @@ function initCustomLanguageSelector() {
       return;
     }
     var combo = getTranslateCombo();
-    if (combo && combo.options.length > 1) {
+    var hasEnabledList = Array.isArray(window.TT_ENABLED_LANGUAGES) && window.TT_ENABLED_LANGUAGES.length > 0;
+    var comboReady = combo && combo.options.length > 1;
+    // Build from our enabled catalog as soon as possible; don't wait only on Google's combo
+    // (Google often omits several enabled codes, which previously showed ~42 instead of 48).
+    if (hasEnabledList || comboReady) {
+      var cookieLang = readCookieLanguage();
+      if (cookieLang) {
+        currentLanguage = cookieLang;
+      }
       buildLanguageOptions(combo);
       bindControls();
       if (window.ttLanguageSelector && window.ttLanguageSelector.refreshTriggers) {
         window.ttLanguageSelector.refreshTriggers();
       }
-      var cookieLang = readCookieLanguage();
       if (cookieLang && cookieLang !== 'en') {
-        currentLanguage = cookieLang;
-        var activeBtn = grid.querySelector('[data-lang="' + cookieLang + '"]');
-        var langName = activeBtn ? activeBtn.textContent.trim() : cookieLang;
-        updateTriggerLabels(cookieLang, langName);
         updateComplexityUi();
         scheduleTranslateComplexity(cookieLang, currentComplexity, 2200);
+      } else {
+        updateComplexityUi();
+      }
+      // If Google combo is still loading, keep polling so translation apply works later.
+      if (!comboReady) {
+        (function pollCombo(tryCount) {
+          if (tryCount >= 100) {
+            return;
+          }
+          window.setTimeout(function () {
+            var later = getTranslateCombo();
+            if (later && later.options.length > 1) {
+              buildLanguageOptions(later);
+              return;
+            }
+            pollCombo(tryCount + 1);
+          }, 100);
+        })(attempts || 0);
       }
       return;
     }

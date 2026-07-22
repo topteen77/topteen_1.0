@@ -903,6 +903,7 @@ class DashboardPointRuleAdmin(admin.ModelAdmin):
     list_filter = ('active', 'applies_to')
     ordering = ('order', 'rule_key')
     search_fields = ('rule_key', 'label')
+    list_per_page = 200
     change_list_template = 'admin/core/dashboardpointrule/change_list.html'
     fields = ('rule_key', 'label', 'points', 'applies_to', 'active', 'created', 'modified')
     readonly_fields = ('created', 'modified')
@@ -914,7 +915,8 @@ class DashboardPointRuleAdmin(admin.ModelAdmin):
     @admin.display(description='')
     def drag_handle(self, obj):
         return format_html(
-            '<span class="dpr-drag-handle" title="Drag to reorder" aria-label="Drag to reorder" data-rule-id="{}">⠿</span>',
+            '<span class="dpr-drag-handle" title="Drag to reorder" aria-label="Drag to reorder" '
+            'data-rule-id="{}" draggable="true">⠿</span>',
             obj.pk,
         )
 
@@ -932,6 +934,8 @@ class DashboardPointRuleAdmin(admin.ModelAdmin):
 
     def reorder_view(self, request):
         import json
+        from django.db import transaction
+
         if request.method != 'POST':
             return JsonResponse({'ok': False, 'error': 'POST required'}, status=405)
         try:
@@ -942,27 +946,37 @@ class DashboardPointRuleAdmin(admin.ModelAdmin):
             return JsonResponse({'ok': False, 'error': 'Invalid payload'}, status=400)
         if not ids:
             return JsonResponse({'ok': False, 'error': 'No ids'}, status=400)
+        if len(ids) != len(set(ids)):
+            return JsonResponse({'ok': False, 'error': 'Duplicate ids'}, status=400)
 
-        qs = self.get_queryset(request).filter(pk__in=ids)
+        qs = list(self.get_queryset(request).filter(pk__in=ids))
         by_id = {obj.pk: obj for obj in qs}
         if len(by_id) != len(ids):
             return JsonResponse({'ok': False, 'error': 'One or more rules not found'}, status=400)
 
         # Renumber in drop order (table is small; 1..N is the display sequence).
-        for index, pk in enumerate(ids, start=1):
-            obj = by_id[pk]
-            if obj.order != index:
-                obj.order = index
-                obj.save(update_fields=['order', 'modified'])
+        updated = 0
+        with transaction.atomic():
+            for index, pk in enumerate(ids, start=1):
+                obj = by_id[pk]
+                if obj.order != index:
+                    type(obj).objects.filter(pk=pk).update(order=index)
+                    updated += 1
 
         from core.dashboard_cache import invalidate_dashboard_config_cache
         invalidate_dashboard_config_cache()
-        return JsonResponse({'ok': True, 'count': len(ids)})
+        return JsonResponse({'ok': True, 'count': len(ids), 'updated': updated})
 
     def save_model(self, request, obj, form, change):
         if not (obj.label or '').strip():
             from core.dashboard_stats import RULE_LABELS
             obj.label = RULE_LABELS.get(obj.rule_key, obj.rule_key.replace('_', ' ').title())
+        # Never let change-form save wipe display order (field is intentionally hidden).
+        if change and 'order' not in form.cleaned_data:
+            try:
+                obj.order = type(obj).objects.only('order').get(pk=obj.pk).order
+            except type(obj).DoesNotExist:
+                pass
         super().save_model(request, obj, form, change)
 
     def changelist_view(self, request, extra_context=None):

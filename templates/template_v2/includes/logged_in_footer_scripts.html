@@ -54,6 +54,7 @@
 {% if show_chatbot %}<script src="{{ static('js_new/chatbot-widget.js') }}"></script>{% endif %}
 <script>
   window.TT_INCLUDED_LANGUAGES = {{ translate_enabled_languages_csv | tojson }};
+    window.TT_ENABLED_LANGUAGES = {{ translate_enabled_languages | default([]) | tojson }};
   window.TT_TRANSLATE_COMPLEXITY_ENABLED = {{ translate_complexity_enabled | tojson }};
   window.TT_TRANSLATE_COMPLEXITY_API = {{ translate_complexity_api_url | tojson }};
 </script>

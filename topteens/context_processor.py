@@ -1,7 +1,7 @@
 from careers.models import Career, CareerTags, Videos, CareerCluster
 from core.models import Configuration
 from core.pwa_version import get_pwa_cache_version
-from core.translate_languages import get_enabled_languages_csv
+from core.translate_languages import get_enabled_languages_csv, get_enabled_language_entries
 from core.translation_service import translation_complexity_available
 from core.translation_complexity import DEFAULT_TRANSLATION_COMPLEXITY
 from core.seo_schema import get_organization_schema, get_website_schema
@@ -680,6 +680,7 @@ def globals(request):
         "mindmap_type_choices": MINDMAP_TYPE_CHOICES,
         "counselor_mindmap_map_type": get_counselor_mindmap_map_type(),
         "translate_enabled_languages_csv": get_enabled_languages_csv(),
+        "translate_enabled_languages": get_enabled_language_entries(),
         "translate_complexity_enabled": translation_complexity_available(),
         "translate_complexity_default": DEFAULT_TRANSLATION_COMPLEXITY,
         "translate_complexity_api_url": reverse("api_translate_complexity"),
