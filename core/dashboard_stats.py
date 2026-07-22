@@ -426,6 +426,7 @@ def _get_points_details(user):
     from user_analytics.models import UserEvent
     rule_rows = get_active_point_rule_rows()
     point_map = _get_applicable_point_map(user)
+    admin_labels = {}
     if not rule_rows:
         rule_order = {k: i for i, k in enumerate(point_map.keys())}
     else:
@@ -434,6 +435,11 @@ def _get_points_details(user):
             r['rule_key']: r['order']
             for r in rule_rows
             if r['rule_key'] in applicable_keys
+        }
+        admin_labels = {
+            r['rule_key']: (r.get('label') or '').strip()
+            for r in rule_rows
+            if r['rule_key'] in applicable_keys and (r.get('label') or '').strip()
         }
 
     details = []
@@ -450,7 +456,7 @@ def _get_points_details(user):
         earned_total += row_pts
         details.append({
             'rule_key': rule_key,
-            'label': _rule_label(rule_key),
+            'label': _rule_label(rule_key, admin_labels.get(rule_key)),
             'points': pts,
             'earned_points': row_pts,
             'earned': earned,

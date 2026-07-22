@@ -1397,10 +1397,15 @@ class DashboardPointRule(models.Model):
             "interest_test_complete, aptitude_test_complete, report_reading"
         ),
     )
+    label = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text="Display label shown in admin and student Points Breakdown.",
+    )
     points = models.PositiveIntegerField(default=0)
     order = models.PositiveSmallIntegerField(
         default=0,
-        help_text="Display order in admin and dashboard (lower = first)",
+        help_text="Display order in admin and dashboard (lower = first). Drag rows on the list to reorder.",
     )
     applies_to = models.CharField(
         max_length=20,
@@ -1418,7 +1423,8 @@ class DashboardPointRule(models.Model):
         verbose_name_plural = 'Dashboard Point Rules'
 
     def __str__(self):
-        return f"{self.rule_key}: {self.points} pts"
+        name = (self.label or '').strip() or self.rule_key
+        return f"{name}: {self.points} pts"
 
 
 class DashboardTrophyDefinition(models.Model):
