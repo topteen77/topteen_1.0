@@ -1189,7 +1189,23 @@ Format your response in clean HTML with proper headings, lists, and strategic em
 Your role is to assist with career choices, helping students explore options in their home country (like India) and abroad. Always explain things in simple, easy-to-understand language, like you're chatting with a friend. Use short sentences, avoid big words, and give examples to make it clear. Be professional (like a teacher or counselor) and polite—start with a friendly greeting, encourage the student, and end positively.
 
 Only answer questions related to career choices, education for careers, or skills for jobs. If a query is not about careers, politely redirect. Respond step by step: 1. Understand the question. 2. Give clear info with examples. 3. Suggest next steps. 4. Ask if they have more questions. Keep answers helpful, encouraging, and fun!"""
-        
+
+        from core.llm_quota import LLMQuotaExceeded, ensure_can_use_llm
+
+        try:
+            ensure_can_use_llm(user, feature="forum")
+        except LLMQuotaExceeded as exc:
+            # Surface as a friendly HTML answer so existing forum UI can show it
+            pay = exc.payload or {}
+            cta = pay.get("cta_url") or "/ai-tokens/"
+            label = pay.get("cta_label") or "Recharge AI tokens"
+            return (
+                f"<h4>{pay.get('headline') or 'AI token limit reached'}</h4>"
+                f"<p>{pay.get('body') or pay.get('detail') or ''}</p>"
+                f"<p><a href=\"{cta}\">{label}</a></p>",
+                0.0,
+            )
+
         response = client.chat.completions.create(
             model=model,
             messages=[
@@ -1227,6 +1243,20 @@ Only answer questions related to career choices, education for careers, or skill
         input_tokens = response.usage.prompt_tokens
         output_tokens = response.usage.completion_tokens
         cost = (input_tokens * 0.15 / 1_000_000) + (output_tokens * 0.60 / 1_000_000)
+
+        try:
+            from core.llm_billing import log_openai_response
+            log_openai_response(
+                feature='forum',
+                response=response,
+                model=model,
+                call_type='chat',
+                user=user,
+                consume=True,
+                metadata={'source': 'forum.generate_ai_response'},
+            )
+        except Exception:
+            pass
         
         # Cache response for 24 hours (save money on similar queries)
         cache.set(cache_key, (ai_response, cost), 86400)

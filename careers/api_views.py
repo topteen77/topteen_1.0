@@ -991,7 +991,9 @@ def ai_query_api(request):
                 try:
                     res = processor.process_query(
                         query,
-                        progress_callback=lambda msg: progress_queue.put(('progress', msg))
+                        progress_callback=lambda msg: progress_queue.put(('progress', msg)),
+                        user=getattr(request, 'user', None),
+                        request=request,
                     )
                     progress_queue.put(('result', res))
                 except Exception as e:

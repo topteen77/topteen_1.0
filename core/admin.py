@@ -54,6 +54,14 @@ from .models import (
     DashboardPointRule,
     DashboardTrophyDefinition,
     DashboardStreakConfig,
+    LLMUsageLog,
+    LLMTokenPackage,
+    LLMRoleQuotaDefault,
+    UserLLMWallet,
+    LLMWalletLedger,
+    LLMAdminGrant,
+    LLMTokenPackagePayment,
+    LLMPricingSettings,
     StaticPage,
     StaticPageSection,
     PageSEO,
@@ -389,6 +397,7 @@ class ConfigurationAdmin(admin.ModelAdmin):
             path('website-settings/', self.admin_site.admin_view(self.website_settings_view), name='core_configuration_website_settings'),
             path('language-bar-settings/', self.admin_site.admin_view(self.language_bar_settings_view), name='core_configuration_language_bar_settings'),
             path('dashboard-statistics/', self.admin_site.admin_view(self.dashboard_statistics_view), name='core_configuration_dashboard_statistics'),
+            path('llm-billing/', self.admin_site.admin_view(self.llm_billing_view), name='core_configuration_llm_billing'),
         ]
         return custom + urls
 
@@ -733,6 +742,27 @@ class ConfigurationAdmin(admin.ModelAdmin):
             context['max_achievable_points'] = None
             context['max_achievable_points_class10'] = None
         return render(request, 'admin/core/configuration/dashboard_statistics.html', context)
+
+    def llm_billing_view(self, request):
+        """Staff dashboard: OpenAI actual costs vs amount collected + local logs."""
+        from core.llm_billing import get_billing_summary
+
+        try:
+            days = int(request.GET.get('days') or 30)
+        except (TypeError, ValueError):
+            days = 30
+        force_refresh = str(request.GET.get('refresh') or '').strip() in ('1', 'true', 'yes')
+        summary = get_billing_summary(days=days, force_refresh=force_refresh)
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'AI Cost / LLM Billing',
+            'opts': self.model._meta,
+            'summary': summary,
+            'usage_log_url': reverse('admin:core_llmusagelog_changelist'),
+            'forum_metrics_url': reverse('admin:forum_performancemetrics_changelist'),
+            'days_options': [7, 14, 30, 90, 180],
+        }
+        return render(request, 'admin/core/configuration/llm_billing.html', context)
 
 
 class CityAdmin(admin.ModelAdmin):
@@ -1123,6 +1153,173 @@ class CommonFAQAdmin(admin.ModelAdmin):
 admin.site.register(APILog)
 admin.site.register(Stories)
 admin.site.register(Contact,ContactAdmin)
+
+
+@admin.register(LLMUsageLog)
+class LLMUsageLogAdmin(admin.ModelAdmin):
+    list_display = (
+        'created_at', 'feature', 'provider', 'model', 'call_type',
+        'prompt_tokens', 'completion_tokens', 'total_tokens', 'cost_usd', 'success', 'user',
+    )
+    list_filter = ('feature', 'provider', 'call_type', 'success', 'created_at')
+    search_fields = ('model', 'request_id', 'error_message', 'feature', 'user__email')
+    readonly_fields = (
+        'feature', 'provider', 'model', 'call_type',
+        'prompt_tokens', 'completion_tokens', 'total_tokens', 'cost_usd',
+        'success', 'error_message', 'user', 'request_id', 'metadata', 'created_at',
+    )
+    ordering = ('-created_at',)
+    raw_id_fields = ('user',)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(LLMTokenPackage)
+class LLMTokenPackageAdmin(admin.ModelAdmin):
+    list_display = (
+        'name', 'code', 'tokens', 'price_usd', 'inr_preview', 'badge_label',
+        'is_featured', 'is_active', 'sort_order',
+    )
+    list_filter = ('is_active', 'is_featured')
+    search_fields = ('name', 'code', 'tagline', 'usage_examples')
+    prepopulated_fields = {'code': ('name',)}
+    ordering = ('sort_order', 'price_usd')
+    readonly_fields = ('amount', 'currency', 'inr_preview')
+    fields = (
+        'code', 'name', 'tagline', 'description', 'usage_examples', 'tokens', 'price_usd',
+        'inr_preview', 'amount', 'currency', 'badge_label', 'sort_order',
+        'is_featured', 'is_active',
+    )
+
+    @admin.display(description='INR at current rate')
+    def inr_preview(self, obj):
+        if not obj:
+            return '—'
+        try:
+            from core.llm_fx import format_rate, get_usd_to_inr_rate
+
+            return f"₹ {obj.get_inr_amount()} ({format_rate(get_usd_to_inr_rate())})"
+        except Exception:
+            return '—'
+
+
+@admin.register(LLMPricingSettings)
+class LLMPricingSettingsAdmin(admin.ModelAdmin):
+    list_display = (
+        'usd_to_inr_rate',
+        'show_price_inr',
+        'show_price_usd',
+        'show_exchange_rate',
+        'show_conversion_note',
+        'updated_at',
+    )
+    fields = (
+        'usd_to_inr_rate',
+        'show_price_inr',
+        'show_price_usd',
+        'show_exchange_rate',
+        'show_conversion_note',
+        'conversion_note',
+        'updated_at',
+    )
+    readonly_fields = ('updated_at',)
+
+    def has_add_permission(self, request):
+        return not LLMPricingSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(LLMRoleQuotaDefault)
+class LLMRoleQuotaDefaultAdmin(admin.ModelAdmin):
+    list_display = (
+        'role_key', 'monthly_free_tokens', 'estimated_call_tokens', 'is_enabled', 'updated_at',
+    )
+    list_editable = ('monthly_free_tokens', 'estimated_call_tokens', 'is_enabled')
+    search_fields = ('role_key', 'marketing_headline')
+
+
+@admin.register(UserLLMWallet)
+class UserLLMWalletAdmin(admin.ModelAdmin):
+    list_display = (
+        'user', 'balance_tokens', 'lifetime_credited', 'lifetime_consumed',
+        'free_period_key', 'updated_at',
+    )
+    search_fields = ('user__email', 'user__name')
+    readonly_fields = (
+        'user', 'balance_tokens', 'lifetime_credited', 'lifetime_consumed',
+        'free_period_key', 'created_at', 'updated_at',
+    )
+    raw_id_fields = ('user',)
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.register(LLMWalletLedger)
+class LLMWalletLedgerAdmin(admin.ModelAdmin):
+    list_display = (
+        'created_at', 'wallet', 'entry_type', 'source', 'tokens',
+        'balance_after', 'feature', 'reference',
+    )
+    list_filter = ('entry_type', 'source', 'created_at')
+    search_fields = ('reference', 'note', 'wallet__user__email', 'feature')
+    readonly_fields = (
+        'wallet', 'entry_type', 'source', 'tokens', 'balance_after', 'feature',
+        'note', 'reference', 'created_by', 'metadata', 'created_at',
+    )
+    raw_id_fields = ('wallet', 'created_by')
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(LLMAdminGrant)
+class LLMAdminGrantAdmin(admin.ModelAdmin):
+    list_display = ('created_at', 'user', 'tokens', 'reason', 'granted_by', 'applied')
+    list_filter = ('applied', 'created_at')
+    search_fields = ('user__email', 'reason')
+    raw_id_fields = ('user', 'granted_by')
+    readonly_fields = ('applied', 'created_at')
+
+    def save_model(self, request, obj, form, change):
+        if not obj.granted_by_id:
+            obj.granted_by = request.user
+        super().save_model(request, obj, form, change)
+        if not obj.applied:
+            from core.llm_quota import apply_admin_grant
+
+            apply_admin_grant(obj)
+
+
+@admin.register(LLMTokenPackagePayment)
+class LLMTokenPackagePaymentAdmin(admin.ModelAdmin):
+    list_display = (
+        'id', 'user', 'package', 'tokens_granted',
+        'price_usd', 'usd_to_inr_rate', 'amount', 'price_breakdown',
+        'is_success', 'tokens_credited', 'created',
+    )
+    list_filter = ('is_success', 'tokens_credited', 'created')
+    search_fields = ('user__email', 'gateway_receipt', 'package__code')
+    raw_id_fields = ('user', 'package')
+    readonly_fields = (
+        'tokens_credited', 'price_usd', 'usd_to_inr_rate', 'amount', 'currency',
+        'price_breakdown', 'created', 'modified',
+    )
+
+    @admin.display(description='USD → INR breakdown')
+    def price_breakdown(self, obj):
+        if not obj:
+            return '—'
+        return obj.get_price_breakdown_display()
 
 
 @admin.register(CareerBattleFight)

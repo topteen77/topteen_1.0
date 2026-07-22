@@ -1,0 +1,206 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}Payment - {{ package.name }} | Top Teen{% endblock %}
+{% block description_content %}Complete payment for {{ package.name }} AI tokens{% endblock %}
+
+{% block bodyclass %}{{ super() }} llm-payment-page{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .llm-payment-page {
+    padding-top: 88px;
+    min-height: calc(100vh - 88px);
+    background: radial-gradient(1200px 600px at 10% -10%, #e9f2ff 0%, #f7faff 55%, #ffffff 100%);
+  }
+  .payment-shell {
+    border: 0; border-radius: 18px; overflow: hidden;
+    box-shadow: 0 18px 50px rgba(20, 46, 84, 0.12);
+  }
+  .payment-header {
+    padding: 26px 28px; color: #fff;
+    background: linear-gradient(135deg, #1c4ed8 0%, #2460e0 100%);
+  }
+  .payment-title { margin: 0 0 4px 0; font-weight: 700; font-size: 1.3rem; }
+  .payment-subtitle { margin: 0; opacity: 0.92; font-size: 0.95rem; }
+  .payment-body { padding: 28px; background: #fff; }
+  .payment-loading { text-align: center; padding: 14px 8px 10px; }
+  .payment-state-title { margin-bottom: 10px; font-size: 1.2rem; font-weight: 700; color: #173156; }
+  .payment-state-desc { max-width: 480px; margin: 0 auto 18px; color: #5a6c86; }
+  .payment-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 14px; }
+  .payment-badge {
+    border: 1px solid #d8e3f6; background: #f5f9ff; color: #35527a;
+    border-radius: 999px; padding: 7px 12px; font-size: 12px; font-weight: 600;
+  }
+  .payment-note { margin: 0; color: #6f819b; font-size: 13px; }
+  .payment-error-box {
+    display: none; margin: 12px auto 0; max-width: 540px;
+    background: #fff3f3; border: 1px solid #ffd2d2; color: #b42323;
+    border-radius: 10px; padding: 10px 12px; font-size: 13px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="llm-payment-page pb-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card payment-shell">
+          <div class="payment-header">
+            <h1 class="payment-title">Secure Checkout</h1>
+            <p class="payment-subtitle">
+              {{ package.name }}
+              {% set uses = package.get_usage_examples_list() %}
+              {% if uses %}
+              <br><span style="opacity:0.95;font-size:0.9em">{{ uses|join(' · ') }}</span>
+              {% else %}
+              · {{ "{:,}".format(package.tokens) }} AI tokens
+              {% endif %}
+              {% if show_price_inr and amount_inr_display %}
+              <br>{{ amount_inr_display }}
+              {% endif %}
+              {% if show_price_usd or show_exchange_rate %}
+              <br><span style="opacity:0.9;font-size:0.9em">
+                {% if show_price_usd and price_usd_display %}{{ price_usd_display }}{% endif %}
+                {% if show_price_usd and show_exchange_rate and price_usd_display and rate_display %} · {% endif %}
+                {% if show_exchange_rate and rate_display %}{{ rate_display }}{% endif %}
+              </span>
+              {% endif %}
+            </p>
+          </div>
+          <div class="payment-body">
+            <div class="payment-loading">
+              <div class="spinner-border text-primary mb-3" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <h4 id="paymentStateTitle" class="payment-state-title">Preparing Your Payment</h4>
+              <p id="paymentStateDesc" class="payment-state-desc">
+                Please wait while we connect you to the payment gateway.
+              </p>
+              <div class="payment-badges">
+                <span class="payment-badge">Encrypted Checkout</span>
+                <span class="payment-badge">Trusted Gateway</span>
+                <span class="payment-badge">Tokens credited instantly</span>
+              </div>
+              <p class="payment-note">Do not refresh or close this page until payment completes.</p>
+              <div id="paymentErrorBox" class="payment-error-box"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+<script>
+  {% if payment_info_json %}
+  const paymentInfo = {{ payment_info_json|safe }};
+  {% else %}
+  const paymentInfo = {};
+  {% endif %}
+  const successUrl = "{{ success_url }}";
+  const failUrl = "{{ fail_url }}";
+  const paymentId = {{ payment_id }};
+  const paymentStateTitleEl = document.getElementById('paymentStateTitle');
+  const paymentStateDescEl = document.getElementById('paymentStateDesc');
+  const paymentErrorBoxEl = document.getElementById('paymentErrorBox');
+
+  function setPaymentState(title, description) {
+    if (paymentStateTitleEl) paymentStateTitleEl.textContent = title;
+    if (paymentStateDescEl) paymentStateDescEl.textContent = description;
+  }
+  function showPaymentError(message) {
+    if (!paymentErrorBoxEl) return;
+    paymentErrorBoxEl.textContent = message;
+    paymentErrorBoxEl.style.display = 'block';
+  }
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  function updatePayment(response) {
+    fetch('{{ url("core:llm_package_payment_update") }}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      body: JSON.stringify({
+        gateway_order_id: response.razorpay_order_id,
+        gateway_payment_id: response.razorpay_payment_id,
+        gateway_signature: response.razorpay_signature,
+        payment_id: paymentId
+      }),
+      credentials: 'same-origin'
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      window.location.href = data.redirect_url || successUrl;
+    })
+    .catch(function () {
+      window.location.href = failUrl;
+    });
+  }
+  function openRazorpay() {
+    if (typeof Razorpay === 'undefined') return;
+    const rzpOptions = Object.assign({}, paymentInfo);
+    rzpOptions.handler = function (response) { updatePayment(response); };
+    rzpOptions.modal = {
+      ondismiss: function () { window.location.href = failUrl; }
+    };
+    try {
+      var rzp1 = new Razorpay(rzpOptions);
+      rzp1.on('payment.failed', function () {
+        window.location.href = failUrl;
+      });
+      rzp1.open();
+    } catch (error) {
+      setPaymentState('Unable to Open Payment Gateway', 'Please retry after refreshing this page.');
+      showPaymentError('Error opening payment gateway: ' + error.message);
+    }
+  }
+  function initRazorpay() {
+    if (!paymentInfo || !paymentInfo.key || !paymentInfo.amount) {
+      setPaymentState('Payment Details Missing', 'Required payment information was not received.');
+      showPaymentError('Payment information is missing. Please try again.');
+      return;
+    }
+    if (typeof Razorpay !== 'undefined') {
+      openRazorpay();
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = function () {
+      setPaymentState('Opening Secure Checkout', 'Your payment gateway is ready. Launching now...');
+      setTimeout(function () {
+        if (typeof Razorpay !== 'undefined') openRazorpay();
+        else {
+          setPaymentState('Payment Gateway Unavailable', 'Please refresh and try again.');
+          showPaymentError('Payment gateway failed to load.');
+        }
+      }, 100);
+    };
+    script.onerror = function () {
+      setPaymentState('Network Issue Detected', 'Please check your internet connection and try again.');
+      showPaymentError('Failed to load payment gateway.');
+    };
+    document.body.appendChild(script);
+  }
+  document.addEventListener('DOMContentLoaded', initRazorpay);
+</script>
+{% endblock %}

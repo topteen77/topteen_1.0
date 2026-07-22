@@ -117,7 +117,7 @@ def _parse_adjusted_texts(raw, expected_len):
     return _coerce_texts_list(_extract_json_blob(raw), expected_len)
 
 
-def _call_gemini(prompt):
+def _call_gemini(prompt, user=None, request=None):
     import google.generativeai as genai
 
     api_key = getattr(settings, 'GOOGLE_API_KEY', '')
@@ -135,10 +135,24 @@ def _call_gemini(prompt):
         logger.warning('Gemini JSON mime type unavailable, retrying plain: %s', exc)
         generation_config.pop('response_mime_type', None)
         response = model.generate_content(prompt, generation_config=generation_config)
+    try:
+        from core.llm_billing import log_gemini_response
+        log_gemini_response(
+            feature='translation',
+            response=response,
+            model=model_name,
+            call_type='chat',
+            user=user,
+            consume=True,
+            request=request,
+            metadata={'source': 'core.translation_service._call_gemini'},
+        )
+    except Exception:
+        pass
     return (response.text or '').strip()
 
 
-def _call_openai(prompt):
+def _call_openai(prompt, user=None, request=None):
     import openai
 
     client = openai.OpenAI(api_key=getattr(settings, 'OPENAI_API_KEY', ''))
@@ -166,17 +180,31 @@ def _call_openai(prompt):
     except Exception as exc:
         logger.warning('OpenAI json_object mode unavailable, retrying plain: %s', exc)
         response = client.chat.completions.create(**kwargs)
+    try:
+        from core.llm_billing import log_openai_response
+        log_openai_response(
+            feature='translation',
+            response=response,
+            model=model_name,
+            call_type='chat',
+            user=user,
+            consume=True,
+            request=request,
+            metadata={'source': 'core.translation_service._call_openai'},
+        )
+    except Exception:
+        pass
     return (response.choices[0].message.content or '').strip()
 
 
-def _call_model(prompt):
+def _call_model(prompt, user=None, request=None):
     provider = getattr(settings, 'AI_PROVIDER', 'none')
     if provider == 'openai' and getattr(settings, 'OPENAI_API_KEY', ''):
-        return _call_openai(prompt)
+        return _call_openai(prompt, user=user, request=request)
     if getattr(settings, 'GOOGLE_API_KEY', ''):
-        return _call_gemini(prompt)
+        return _call_gemini(prompt, user=user, request=request)
     if getattr(settings, 'OPENAI_API_KEY', ''):
-        return _call_openai(prompt)
+        return _call_openai(prompt, user=user, request=request)
     raise RuntimeError('No AI provider configured for translation complexity')
 
 
@@ -205,7 +233,7 @@ def _batch_indices(items):
     return batches
 
 
-def _adjust_batch_with_retry(batch_texts, target_lang, level):
+def _adjust_batch_with_retry(batch_texts, target_lang, level, user=None, request=None):
     """
     Call the model (retry once).
     Returns (texts, from_llm) where from_llm is True only on a successful parse.
@@ -215,7 +243,7 @@ def _adjust_batch_with_retry(batch_texts, target_lang, level):
     last_error = None
     for attempt in range(2):
         try:
-            raw = _call_model(prompt)
+            raw = _call_model(prompt, user=user, request=request)
             return _parse_adjusted_texts(raw, len(batch_texts)), True
         except Exception as exc:
             last_error = exc
@@ -231,7 +259,7 @@ def _adjust_batch_with_retry(batch_texts, target_lang, level):
     return list(batch_texts), False
 
 
-def adjust_text_complexity(texts, target_lang, level):
+def adjust_text_complexity(texts, target_lang, level, user=None, request=None):
     """
     Return (adjusted_texts, stats) for the given complexity level.
     Medium returns inputs unchanged. Model/parse failures keep originals.
@@ -299,10 +327,16 @@ def adjust_text_complexity(texts, target_lang, level):
             'from_cache': cache_hits > 0,
         }
 
+    from core.llm_quota import ensure_can_use_llm
+
+    ensure_can_use_llm(user, feature='translation', request=request)
+
     for batch in _batch_indices([(i, t) for i, t, _ in uncached]):
         batch_texts = [text for _, text in batch]
         llm_calls += 1
-        adjusted, from_llm = _adjust_batch_with_retry(batch_texts, target_lang, level)
+        adjusted, from_llm = _adjust_batch_with_retry(
+            batch_texts, target_lang, level, user=user, request=request
+        )
 
         for (index, _original), value in zip(batch, adjusted):
             results[index] = value

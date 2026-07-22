@@ -110,4 +110,12 @@ def _eazypay_redirect_url(payment, payment_status, user_id):
         url = tieup_payment_result_url(payment)
         if url:
             return url
+    if payment.obj_type == choices.PaymentObjectType.LLM_TOKEN_PACKAGE:
+        from core.models import LLMTokenPackagePayment
+
+        sp = get_object_or_404(LLMTokenPackagePayment, id=payment.obj_id, user_id=user_id)
+        urls = sp.get_payment_success_fail_url()
+        if payment_status == choices.YesNoChoices.YES:
+            return urls.get('success_url')
+        return urls.get('fail_url')
     return None

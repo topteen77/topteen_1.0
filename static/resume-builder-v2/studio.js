@@ -2303,6 +2303,34 @@
     return msg;
   }
 
+  function handleAiError(err, fallbackTitle) {
+    var payload = (err && err.payload) || {};
+    var msgs = window.RB2Messages;
+    if (payload.quota_exceeded && msgs && typeof msgs.confirm === "function") {
+      var headline = payload.headline || payload.message || "Your free AI boost just ran out";
+      var body =
+        payload.body ||
+        payload.detail ||
+        "Recharge a small token pack to keep polishing your resume with AI.";
+      msgs
+        .confirm({
+          title: headline,
+          message: body,
+          confirmLabel: payload.cta_label || "Recharge AI tokens",
+          cancelLabel: "Not now",
+        })
+        .then(function (ok) {
+          if (ok) {
+            window.location.href = payload.cta_url || payload.shop_url || "/ai-tokens/";
+          }
+        });
+      return;
+    }
+    if (msgs) {
+      msgs.toast(formatAiError(err), { type: "error", title: fallbackTitle || "AI writing" });
+    }
+  }
+
   function hideAiPendingBanner() {
     var banner = $("#rb2AiPendingBanner");
     if (banner) banner.hidden = true;
@@ -2371,11 +2399,7 @@
           btn.disabled = false;
           btn.innerHTML = defaultHtml;
           if (err && err.message === "validation") return;
-          msgs.toast(
-            formatAiError(err) ||
-              "AI generation failed. Check admin AI settings and try again.",
-            { type: "error", title: "AI generation" }
-          );
+          handleAiError(err, "AI generation");
         });
     }
 
@@ -2604,8 +2628,7 @@
       }).catch(function (err) {
         btn.disabled = false;
         btn.innerHTML = defaultHtml;
-        var msgs = window.RB2Messages;
-        if (msgs) msgs.toast(formatAiError(err), { type: "error", title: "AI writing" });
+        handleAiError(err, "AI writing");
       });
     });
   }
@@ -2715,8 +2738,7 @@
       }).catch(function (err) {
         genProjBtn.disabled = false;
         genProjBtn.innerHTML = genProjDefaultHtml;
-        var msgs = window.RB2Messages;
-        if (msgs) msgs.toast(formatAiError(err), { type: "error", title: "AI writing" });
+        handleAiError(err, "AI writing");
       });
     });
   }

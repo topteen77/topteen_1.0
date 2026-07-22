@@ -57,6 +57,7 @@ def generate_seo_with_ai(
     current_description="",
     current_keywords="",
     page_content=None,
+    user=None,
 ):
     """
     Call AI to generate SEO title (≤70 chars), description (≤160 chars), keywords.
@@ -67,6 +68,19 @@ def generate_seo_with_ai(
     api_key = (getattr(settings, "OPENAI_API_KEY", None) or "").strip()
     if not api_key:
         return {"error": "AI is not configured. Set OPENAI_API_KEY in environment."}
+
+    try:
+        from core.llm_quota import LLMQuotaExceeded, ensure_can_use_llm
+
+        ensure_can_use_llm(user, feature="seo")
+    except LLMQuotaExceeded as exc:
+        pay = exc.payload or {}
+        return {
+            "error": pay.get("message") or "AI token limit reached",
+            "quota_exceeded": True,
+            "cta_url": pay.get("cta_url"),
+            "shop_url": pay.get("shop_url"),
+        }
 
     model = getattr(settings, "OPENAI_MODEL", None) or getattr(settings, "AI_MODEL", "gpt-4o-mini")
 
@@ -115,6 +129,19 @@ Line 3: Comma-separated keywords.
             temperature=0.6,
             max_tokens=400,
         )
+        try:
+            from core.llm_billing import log_openai_response
+            log_openai_response(
+                feature="seo",
+                response=response,
+                model=model,
+                call_type="chat",
+                user=user,
+                consume=True,
+                metadata={"source": "seo_dashboard.generate_seo_with_ai"},
+            )
+        except Exception:
+            pass
         raw = (response.choices[0].message.content or "").strip()
         lines = [ln.strip() for ln in raw.split("\n") if ln.strip()]
         title = (lines[0] if len(lines) > 0 else "")[:70]

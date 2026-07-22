@@ -620,9 +620,11 @@ class AISEOGenerateView(LoginRequiredMixin, View):
             current_description=current_description,
             current_keywords=current_keywords,
             page_content=page_content,
+            user=request.user,
         )
         if result.get("error"):
-            return JsonResponse({"error": result["error"]}, status=400)
+            status = 402 if result.get("quota_exceeded") else 400
+            return JsonResponse(result, status=status)
         return JsonResponse({
             "title": result.get("title", ""),
             "description": result.get("description", ""),

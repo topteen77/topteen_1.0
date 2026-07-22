@@ -50,4 +50,12 @@ def finalize_side_effects_after_gateway_success(payment):
         from institute.tieup_billing import finalize_tieup_payment
 
         finalize_tieup_payment(payment)
+    elif payment.obj_type == choices.PaymentObjectType.LLM_TOKEN_PACKAGE:
+        from core.llm_quota import fulfill_package_payment
+        from core.models import LLMTokenPackagePayment
+
+        sp = LLMTokenPackagePayment.objects.filter(id=payment.obj_id).first()
+        if sp:
+            # Beneficiary is domain payment user (may differ if we later allow parent pay)
+            fulfill_package_payment(sp)
     # COUNSELOR: invoice + analytics from Payment signals only.
