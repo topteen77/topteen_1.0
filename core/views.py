@@ -2949,8 +2949,14 @@ def translate_complexity_api(request):
         return JsonResponse({'ok': False, 'error': 'Translation complexity is not configured'}, status=503)
 
     try:
-        adjusted, stats = adjust_text_complexity(texts, target_lang, level)
+        adjusted, stats = adjust_text_complexity(
+            texts, target_lang, level, user=request.user, request=request
+        )
     except Exception as exc:
+        from core.llm_quota import LLMQuotaExceeded, quota_error_response
+
+        if isinstance(exc, LLMQuotaExceeded):
+            return quota_error_response(exc)
         # Never return HTML or opaque 500 bodies — frontend expects JSON.
         # Fall back to original Google Translate text so the page stays usable.
         logger.exception('translate_complexity_api failed: %s', exc)

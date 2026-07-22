@@ -4697,8 +4697,33 @@ class ResumeGuidedGenerateView(View):
         if studio_tid and studio_tid not in ALLOWED_STUDIO_HTML_TEMPLATE_KEYS:
             studio_tid = ""
 
-        raw, err = generate_resume_raw(draft, studio_template_id=studio_tid or None)
+        raw, err = generate_resume_raw(
+            draft,
+            studio_template_id=studio_tid or None,
+            user=request.user,
+            request=request,
+        )
         if err:
+            if str(err).startswith("QUOTA:"):
+                from core.llm_quota import (
+                    LLMQuotaExceeded,
+                    build_paywall,
+                    get_balance,
+                    quota_error_response,
+                    resolve_role_key,
+                )
+
+                role_key = resolve_role_key(request.user)
+                return quota_error_response(
+                    LLMQuotaExceeded(
+                        build_paywall(
+                            role_key=role_key,
+                            balance=get_balance(request.user, request=request),
+                            estimated_cost=6000,
+                            feature="resume_guided",
+                        )
+                    )
+                )
             logger.warning("resume_guided_generate failed: %s", err[:500])
             return JsonResponse({"error": err}, status=503)
 

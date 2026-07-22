@@ -31,6 +31,8 @@ class QueryProcessor:
         self.ai_client = None
         self.ai_provider = None
         self.embedding_model = None
+        self._quota_user = None
+        self._quota_request = None
         
         if self.use_ai or self.use_semantic_search:
             self._init_ai_client()
@@ -93,12 +95,17 @@ class QueryProcessor:
             except Exception:
                 pass
 
-    def process_query(self, query, progress_callback=None):
+    def process_query(self, query, progress_callback=None, user=None, request=None):
         """
         Process query - uses semantic search, AI, or rule-based parsing
         Returns: dict with 'criteria', 'careers', 'method'
         progress_callback(message): optional, called with actual progress messages (no repeat).
         """
+        self._quota_user = user
+        self._quota_request = request
+
+        from core.llm_quota import LLMQuotaExceeded
+
         # Try semantic search ONLY if explicitly enabled in env
         if self.use_semantic_search:
             has_cache = self.has_cached_embeddings()
@@ -106,6 +113,12 @@ class QueryProcessor:
                 try:
                     logger.info("Using semantic search (ENABLE_SEMANTIC_SEARCH=True)")
                     result = self._process_with_semantic_search(query, progress_callback)
+                    return result
+                except LLMQuotaExceeded as e:
+                    logger.info("Semantic search blocked by LLM quota; falling back to rule-based")
+                    result = self._process_rule_based(query, progress_callback)
+                    result['quota_exceeded'] = True
+                    result['quota'] = e.payload
                     return result
                 except Exception as e:
                     logger.error(f"Semantic search failed: {e}, falling back to AI/rule-based")
@@ -118,6 +131,12 @@ class QueryProcessor:
                 try:
                     logger.info("Using AI-enhanced search (ENABLE_AI_FEATURES=True)")
                     return self._process_with_ai(query, progress_callback)
+                except LLMQuotaExceeded as e:
+                    logger.info("AI search blocked by LLM quota; falling back to rule-based")
+                    result = self._process_rule_based(query, progress_callback)
+                    result['quota_exceeded'] = True
+                    result['quota'] = e.payload
+                    return result
                 except Exception as e:
                     logger.error(f"AI processing failed: {e}, falling back to rule-based")
                     return self._process_rule_based(query, progress_callback)
@@ -251,6 +270,15 @@ class QueryProcessor:
         Falls back to rule-based if AI fails
         """
         try:
+            from core.llm_quota import ensure_can_use_llm
+
+            # Skip quota for management/internal jobs (no request and no authenticated user).
+            if self._quota_request is not None or getattr(self._quota_user, 'is_authenticated', False):
+                ensure_can_use_llm(
+                    self._quota_user,
+                    feature='careers_search',
+                    request=self._quota_request,
+                )
             self._progress(progress_callback, "Retrieving from AI...")
             # Use AI to extract search criteria from natural language query
             system_prompt = """You are a career search assistant. Extract search criteria from user queries about careers.
@@ -266,8 +294,9 @@ Only return valid JSON, no other text."""
             user_prompt = f"Extract search criteria from this career query: {query}"
             
             if self.ai_provider == 'openai':
+                model_name = getattr(settings, 'AI_MODEL', 'gpt-3.5-turbo')
                 response = self.ai_client.chat.completions.create(
-                    model=getattr(settings, 'AI_MODEL', 'gpt-3.5-turbo'),
+                    model=model_name,
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_prompt}
@@ -275,6 +304,20 @@ Only return valid JSON, no other text."""
                     temperature=0.3,
                     max_tokens=200
                 )
+                try:
+                    from core.llm_billing import log_openai_response
+                    log_openai_response(
+                        feature='careers_search',
+                        response=response,
+                        model=model_name,
+                        call_type='chat',
+                        user=self._quota_user,
+                        consume=True,
+                        request=self._quota_request,
+                        metadata={'source': 'careers.ai_query_processor'},
+                    )
+                except Exception:
+                    pass
                 ai_response = response.choices[0].message.content.strip()
                 
             elif self.ai_provider == 'gemini':
@@ -287,6 +330,20 @@ Only return valid JSON, no other text."""
                         "max_output_tokens": 200,
                     }
                 )
+                try:
+                    from core.llm_billing import log_gemini_response
+                    log_gemini_response(
+                        feature='careers_search',
+                        response=response,
+                        model=model_name,
+                        call_type='chat',
+                        user=self._quota_user,
+                        consume=True,
+                        request=self._quota_request,
+                        metadata={'source': 'careers.ai_query_processor'},
+                    )
+                except Exception:
+                    pass
                 ai_response = response.text.strip()
             else:
                 return self._process_rule_based(query)
@@ -360,6 +417,9 @@ Only return valid JSON, no other text."""
             logger.error(f"Failed to parse AI response: {e}, falling back to rule-based")
             return self._process_rule_based(query, progress_callback)
         except Exception as e:
+            from core.llm_quota import LLMQuotaExceeded
+            if isinstance(e, LLMQuotaExceeded):
+                raise
             logger.error(f"AI processing error: {e}, falling back to rule-based")
             return self._process_rule_based(query, progress_callback)
     
@@ -458,6 +518,15 @@ Only return valid JSON, no other text."""
         # If no API client, raise error (can't generate new embeddings)
         if not self.ai_client:
             raise ValueError("AI client not initialized and embedding not in cache. Pre-generate embeddings or add API key.")
+
+        # Gate paid embedding generation on request paths only.
+        if self._quota_request is not None or getattr(self._quota_user, 'is_authenticated', False):
+            from core.llm_quota import ensure_can_use_llm
+            ensure_can_use_llm(
+                self._quota_user,
+                feature='careers_embedding',
+                request=self._quota_request,
+            )
         
         # Generate embedding based on provider
         if self.ai_provider == 'openai':
@@ -466,6 +535,20 @@ Only return valid JSON, no other text."""
                 input=text[:8000]
             )
             embedding = response.data[0].embedding
+            try:
+                from core.llm_billing import log_openai_response
+                log_openai_response(
+                    feature='careers_embedding',
+                    response=response,
+                    model=self.embedding_model,
+                    call_type='embedding',
+                    user=self._quota_user,
+                    consume=True,
+                    request=self._quota_request,
+                    metadata={'source': 'careers.get_embedding'},
+                )
+            except Exception:
+                pass
             
         elif self.ai_provider == 'gemini':
             # Gemini uses different API structure
@@ -476,6 +559,23 @@ Only return valid JSON, no other text."""
                 task_type="RETRIEVAL_DOCUMENT" if not is_query else "RETRIEVAL_QUERY"
             )
             embedding = result['embedding']
+            try:
+                from core.llm_billing import log_llm_usage
+                # Gemini embed_content often omits usage; log call with zero tokens if unknown
+                token_count = 0
+                if isinstance(result, dict):
+                    token_count = int(result.get('token_count') or 0)
+                log_llm_usage(
+                    feature='careers_embedding',
+                    provider='gemini',
+                    model=self.embedding_model,
+                    prompt_tokens=token_count,
+                    total_tokens=token_count,
+                    call_type='embedding',
+                    metadata={'source': 'careers.get_embedding'},
+                )
+            except Exception:
+                pass
         else:
             raise ValueError(f"Unsupported AI provider: {self.ai_provider}")
         

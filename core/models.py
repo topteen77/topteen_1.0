@@ -1480,6 +1480,444 @@ class DashboardStreakConfig(models.Model):
         return f"Streak: {self.activity_source}"
 
 
+class LLMUsageLog(models.Model):
+    """Per-call ledger for LLM token usage and estimated provider spend."""
+
+    FEATURE_CHOICES = [
+        ('forum', 'Forum Q&A'),
+        ('resume_v2', 'Resume V2'),
+        ('resume_guided', 'Resume Guided'),
+        ('seo', 'SEO AI meta'),
+        ('careers_search', 'Careers semantic search'),
+        ('careers_embedding', 'Careers embeddings'),
+        ('translation', 'Reading-level translation'),
+        ('other', 'Other'),
+    ]
+
+    feature = models.CharField(max_length=64, choices=FEATURE_CHOICES, db_index=True)
+    provider = models.CharField(max_length=32, db_index=True, help_text='openai, gemini, anthropic, …')
+    model = models.CharField(max_length=128, blank=True, default='')
+    call_type = models.CharField(
+        max_length=32,
+        default='chat',
+        help_text='chat, embedding, or other',
+    )
+    prompt_tokens = models.PositiveIntegerField(default=0)
+    completion_tokens = models.PositiveIntegerField(default=0)
+    total_tokens = models.PositiveIntegerField(default=0)
+    cost_usd = models.DecimalField(max_digits=12, decimal_places=8, default=0)
+    success = models.BooleanField(default=True)
+    error_message = models.CharField(max_length=500, blank=True, default='')
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='llm_usage_logs',
+    )
+    request_id = models.CharField(max_length=64, blank=True, default='')
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'LLM usage log'
+        verbose_name_plural = 'LLM usage logs'
+        indexes = [
+            models.Index(fields=['-created_at', 'feature']),
+            models.Index(fields=['provider', 'model']),
+        ]
+
+    def __str__(self):
+        return f"{self.feature}/{self.provider} {self.total_tokens} tok ${self.cost_usd}"
+
+
+class LLMTokenPackage(BaseModel, BaseMoneyModel):
+    """Admin-managed sellable AI token packs (freemium recharge).
+
+    Catalog price is set in USD (``price_usd``). Checkout charges INR using the
+    current admin USD→INR rate; ``amount`` is the computed INR charged.
+    """
+
+    code = models.SlugField(max_length=80, unique=True)
+    name = models.CharField(max_length=120)
+    tagline = models.CharField(
+        max_length=200,
+        blank=True,
+        default='',
+        help_text='Short marketing line shown on the paywall (e.g. "Unlock 5 more polished resumes").',
+    )
+    description = models.TextField(blank=True, default='')
+    usage_examples = models.TextField(
+        blank=True,
+        default='',
+        help_text=(
+            'Buyer-friendly use cases, one per line. Shown on the shop instead of raw tech jargon. '
+            'Example:\nBuild 1 AI resume\nAsk ~10 AI tutor / career chat questions\nTry reading-level simplify a few times'
+        ),
+    )
+    tokens = models.PositiveIntegerField(
+        help_text='Number of AI tokens credited on successful purchase (internal wallet credit).',
+    )
+    price_usd = models.DecimalField(
+        max_digits=10,
+        decimal_places=4,
+        default=0,
+        help_text='List price in USD. INR charged at checkout = price_usd × current USD→INR rate.',
+    )
+    badge_label = models.CharField(
+        max_length=40,
+        blank=True,
+        default='',
+        help_text='Optional badge, e.g. Most popular / Best value.',
+    )
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    is_featured = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ('sort_order', 'price_usd', 'id')
+        verbose_name = 'LLM token package'
+        verbose_name_plural = 'LLM token packages'
+
+    def __str__(self):
+        return f"{self.name} ({self.tokens:,} tokens)"
+
+    def get_inr_amount(self, rate=None):
+        from core.llm_fx import usd_to_inr_amount
+
+        return usd_to_inr_amount(self.price_usd, rate=rate)
+
+    def get_display_price(self):
+        """INR price for storefront (converted from USD at current rate)."""
+        return '₹ {}'.format(self.get_inr_amount())
+
+    def get_display_price_usd(self):
+        from core.llm_fx import format_usd
+
+        return format_usd(self.price_usd)
+
+    def get_usage_examples_list(self):
+        """Parsed buyer use-case lines for shop/paywall."""
+        lines = []
+        for raw in (self.usage_examples or '').splitlines():
+            line = raw.strip().lstrip('•-*').strip()
+            if line:
+                lines.append(line)
+        return lines
+
+
+class LLMPricingSettings(models.Model):
+    """Singleton: USD→INR rate and storefront display toggles for AI token purchases."""
+
+    usd_to_inr_rate = models.DecimalField(
+        max_digits=10,
+        decimal_places=4,
+        default=83,
+        help_text='Current USD to INR rate used when converting package USD prices for payment.',
+    )
+    show_price_inr = models.BooleanField(
+        default=True,
+        help_text='Show INR price on the AI token shop, paywall, and checkout.',
+    )
+    show_price_usd = models.BooleanField(
+        default=True,
+        help_text='Show USD price on the AI token shop, paywall, and checkout.',
+    )
+    show_exchange_rate = models.BooleanField(
+        default=True,
+        help_text='Show the current 1 USD = ₹ rate on the shop and receipts.',
+    )
+    show_conversion_note = models.BooleanField(
+        default=True,
+        help_text='Show the LLM USD-INR conversion note on the AI token shop and receipts.',
+    )
+    conversion_note = models.TextField(
+        blank=True,
+        default=(
+            'AI model usage is billed by providers in US Dollars (USD). '
+            'Token packs are sold in Indian Rupees (INR) using the current USD→INR rate '
+            'set by TopTeen at the time of purchase. The rate used is saved on your receipt.'
+        ),
+        help_text='Shown to users when "show conversion note" is enabled.',
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'LLM pricing settings (USD-INR)'
+        verbose_name_plural = 'LLM pricing settings (USD-INR)'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    def __str__(self):
+        return f"USD→INR {self.usd_to_inr_rate}"
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(
+            pk=1,
+            defaults={
+                'usd_to_inr_rate': 83,
+                'show_price_inr': True,
+                'show_price_usd': True,
+                'show_exchange_rate': True,
+                'show_conversion_note': True,
+            },
+        )
+        return obj
+
+
+class LLMRoleQuotaDefault(models.Model):
+    """
+    Default monthly free AI tokens for a role.
+    Staff users use role_key='staff' when is_staff (overrides user_type).
+    """
+
+    ROLE_KEY_CHOICES = [
+        ('staff', 'Staff / SEO (is_staff)'),
+        ('student', 'Student'),
+        ('institute', 'Institute'),
+        ('institute_group_admin', 'Institute group admin'),
+        ('counselor', 'Counselor'),
+        ('marketing_group_admin', 'Marketing group admin'),
+        ('parent', 'Parent'),
+        ('anonymous', 'Anonymous (not logged in)'),
+    ]
+
+    role_key = models.CharField(max_length=40, unique=True, choices=ROLE_KEY_CHOICES)
+    monthly_free_tokens = models.PositiveIntegerField(
+        default=0,
+        help_text='Free tokens granted each calendar month for this role. Admin can also grant extra.',
+    )
+    estimated_call_tokens = models.PositiveIntegerField(
+        default=2000,
+        help_text='Pre-check reserve per LLM call when exact size is unknown.',
+    )
+    is_enabled = models.BooleanField(
+        default=True,
+        help_text='If disabled, this role cannot use paid LLM features until admin enables + grants.',
+    )
+    marketing_headline = models.CharField(max_length=160, blank=True, default='')
+    marketing_body = models.TextField(blank=True, default='')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ('role_key',)
+        verbose_name = 'LLM role quota default'
+        verbose_name_plural = 'LLM role quota defaults'
+
+    def __str__(self):
+        return f"{self.get_role_key_display()}: {self.monthly_free_tokens:,} free / month"
+
+
+class UserLLMWallet(models.Model):
+    """Per-user AI token balance (free + purchased + admin grants)."""
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='llm_wallet',
+    )
+    balance_tokens = models.BigIntegerField(default=0)
+    lifetime_credited = models.BigIntegerField(default=0)
+    lifetime_consumed = models.BigIntegerField(default=0)
+    free_period_key = models.CharField(
+        max_length=16,
+        blank=True,
+        default='',
+        help_text='YYYY-MM of last monthly free credit.',
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'User LLM wallet'
+        verbose_name_plural = 'User LLM wallets'
+
+    def __str__(self):
+        return f"{self.user_id}: {self.balance_tokens:,} tokens"
+
+
+class LLMWalletLedger(models.Model):
+    """Immutable credit/debit history for AI tokens."""
+
+    ENTRY_CREDIT = 'credit'
+    ENTRY_DEBIT = 'debit'
+    ENTRY_CHOICES = [
+        (ENTRY_CREDIT, 'Credit'),
+        (ENTRY_DEBIT, 'Debit'),
+    ]
+
+    SOURCE_FREE_MONTHLY = 'free_monthly'
+    SOURCE_PURCHASE = 'purchase'
+    SOURCE_ADMIN_GRANT = 'admin_grant'
+    SOURCE_USAGE = 'usage'
+    SOURCE_ADJUSTMENT = 'adjustment'
+    SOURCE_CHOICES = [
+        (SOURCE_FREE_MONTHLY, 'Monthly free allowance'),
+        (SOURCE_PURCHASE, 'Package purchase'),
+        (SOURCE_ADMIN_GRANT, 'Admin grant'),
+        (SOURCE_USAGE, 'LLM usage'),
+        (SOURCE_ADJUSTMENT, 'Manual adjustment'),
+    ]
+
+    wallet = models.ForeignKey(
+        UserLLMWallet,
+        on_delete=models.CASCADE,
+        related_name='ledger_entries',
+    )
+    entry_type = models.CharField(max_length=16, choices=ENTRY_CHOICES)
+    source = models.CharField(max_length=32, choices=SOURCE_CHOICES)
+    tokens = models.BigIntegerField(help_text='Absolute token amount (always positive).')
+    balance_after = models.BigIntegerField()
+    feature = models.CharField(max_length=64, blank=True, default='')
+    note = models.CharField(max_length=255, blank=True, default='')
+    reference = models.CharField(
+        max_length=64,
+        blank=True,
+        default='',
+        db_index=True,
+        help_text='Idempotency key (payment id, grant id, usage log id).',
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='llm_ledger_actions',
+    )
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ('-created_at',)
+        indexes = [
+            models.Index(fields=['wallet', '-created_at']),
+            models.Index(fields=['source', 'reference']),
+        ]
+        verbose_name = 'LLM wallet ledger'
+        verbose_name_plural = 'LLM wallet ledger'
+
+    def __str__(self):
+        sign = '+' if self.entry_type == self.ENTRY_CREDIT else '-'
+        return f"{sign}{self.tokens} ({self.source})"
+
+
+class LLMAdminGrant(models.Model):
+    """Admin-issued token grant to a specific user."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='llm_admin_grants',
+    )
+    tokens = models.PositiveIntegerField()
+    reason = models.CharField(max_length=255, blank=True, default='')
+    granted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='llm_grants_issued',
+    )
+    applied = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ('-created_at',)
+        verbose_name = 'LLM admin grant'
+        verbose_name_plural = 'LLM admin grants'
+
+    def __str__(self):
+        return f"Grant {self.tokens:,} → user {self.user_id}"
+
+
+class LLMTokenPackagePayment(BaseModel, BaseMoneyModel):
+    """Domain payment row for an AI token package purchase."""
+
+    package = models.ForeignKey(
+        LLMTokenPackage,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name='payments',
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='llm_package_payments',
+        db_index=True,
+    )
+    tokens_granted = models.PositiveIntegerField(
+        default=0,
+        help_text='Snapshot of package tokens at purchase time.',
+    )
+    price_usd = models.DecimalField(
+        max_digits=10,
+        decimal_places=4,
+        default=0,
+        help_text='Package USD list price snapshot at purchase.',
+    )
+    usd_to_inr_rate = models.DecimalField(
+        max_digits=10,
+        decimal_places=4,
+        default=0,
+        help_text='USD→INR rate used to compute INR charge at purchase.',
+    )
+    gateway_receipt = models.CharField(max_length=120, blank=True, null=True)
+    is_success = models.SmallIntegerField(
+        choices=choices.YesNoChoices.CHOICES,
+        default=choices.YesNoChoices.NO,
+        db_index=True,
+    )
+    tokens_credited = models.BooleanField(
+        default=False,
+        help_text='True after wallet credit (idempotent fulfillment).',
+    )
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'is_success']),
+        ]
+        verbose_name = 'LLM package payment'
+        verbose_name_plural = 'LLM package payments'
+
+    def get_payment_success_fail_url(self):
+        from django.core.signing import Signer
+        from django.urls import reverse
+
+        sign = Signer()
+        enc_id = sign.sign_object({"enc_id": self.id})
+        return {
+            "success_url": reverse('core:llm_package_payment_success', kwargs={'enc_id': enc_id}),
+            "fail_url": reverse('core:llm_package_payment_fail', kwargs={'enc_id': enc_id}),
+        }
+
+    def get_rate_display(self):
+        if not self.usd_to_inr_rate:
+            return ''
+        return f"1 USD = ₹ {self.usd_to_inr_rate}"
+
+    def get_price_breakdown_display(self):
+        """Human-readable USD + rate + INR for receipts/admin."""
+        from core.llm_fx import format_usd
+
+        parts = []
+        if self.price_usd:
+            parts.append(format_usd(self.price_usd))
+        if self.usd_to_inr_rate:
+            parts.append(f"@ {self.get_rate_display()}")
+        parts.append(f"= ₹ {self.amount}")
+        return ' '.join(parts)
+
+    def __str__(self):
+        return f"LLM pay #{self.id} user={self.user_id} tokens={self.tokens_granted}"
+
+
 # --- Invalidate stored accordion validation when inline DB sections change ---
 @receiver(post_save, sender=EntranceTestPrepExamSection)
 @receiver(post_delete, sender=EntranceTestPrepExamSection)

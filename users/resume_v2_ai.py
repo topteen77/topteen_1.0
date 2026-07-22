@@ -24,13 +24,27 @@ def _resolve_openai_model() -> str:
 
 
 def _openai_chat(
-    prompt: str, *, max_tokens: int = 600, temperature: float = 0.45, system: str = ""
+    prompt: str,
+    *,
+    max_tokens: int = 600,
+    temperature: float = 0.45,
+    system: str = "",
+    user=None,
+    request=None,
 ) -> Tuple[Optional[str], Optional[str]]:
     from django.conf import settings
 
     api_key = (getattr(settings, "OPENAI_API_KEY", None) or "").strip()
     if not api_key:
         return None, None
+
+    try:
+        from core.llm_quota import LLMQuotaExceeded, ensure_can_use_llm
+
+        ensure_can_use_llm(user, feature="resume_v2", request=request)
+    except LLMQuotaExceeded as exc:
+        return None, f"QUOTA:{exc.payload.get('message') or 'AI token limit reached'}"
+
     model = _resolve_openai_model()
     messages: list[dict[str, str]] = []
     if (system or "").strip():
@@ -46,6 +60,20 @@ def _openai_chat(
             temperature=temperature,
             max_tokens=max_tokens,
         )
+        try:
+            from core.llm_billing import log_openai_response
+            log_openai_response(
+                feature="resume_v2",
+                response=response,
+                model=model,
+                call_type="chat",
+                user=user,
+                consume=True,
+                request=request,
+                metadata={"source": "users.resume_v2_ai"},
+            )
+        except Exception:
+            pass
         text = (response.choices[0].message.content or "").strip()
         return text or None, None
     except Exception as exc:
@@ -56,6 +84,8 @@ def friendly_openai_error(err: str | None) -> str:
     """User-facing message for OpenAI/API failures."""
     if not err:
         return "AI request failed. Please try again."
+    if err.startswith("QUOTA:"):
+        return err[6:].strip() or "You've used your free AI tokens. Recharge to continue."
     low = err.lower()
     if "insufficient_quota" in low or "exceeded your current quota" in low:
         return (
@@ -187,13 +217,40 @@ def ai_generate_full_resume(
             "Return improved resume as JSON with keys: headline, summary, skills, education, "
             "projects, certificates, achievements, experience, languages, hobbies."
         )
-    raw, err = _openai_chat(prompt, max_tokens=2500, temperature=0.5)
+    raw, err = _openai_chat(prompt, max_tokens=2500, temperature=0.5, user=user)
+    if err and str(err).startswith("QUOTA:"):
+        from core.llm_quota import LLMQuotaExceeded, build_paywall, get_balance, resolve_role_key
+
+        role_key = resolve_role_key(user)
+        raise LLMQuotaExceeded(
+            build_paywall(
+                role_key=role_key,
+                balance=get_balance(user),
+                estimated_cost=4000,
+                feature="resume_v2",
+            )
+        )
     if not raw:
         return None, False, friendly_openai_error(err) if err else "AI is not configured (missing OPENAI_API_KEY)."
     parsed = _parse_json_object(raw)
     if not parsed:
         return None, False, "AI returned an invalid response. Try again."
     return parsed, True, None
+
+
+def _raise_if_quota(err, user, feature="resume_v2"):
+    if err and str(err).startswith("QUOTA:"):
+        from core.llm_quota import LLMQuotaExceeded, build_paywall, get_balance, resolve_role_key
+
+        role_key = resolve_role_key(user)
+        raise LLMQuotaExceeded(
+            build_paywall(
+                role_key=role_key,
+                balance=get_balance(user),
+                estimated_cost=2500,
+                feature=feature,
+            )
+        )
 
 
 def ai_generate_summary(user, resume: UserResume, career_goal: str = "") -> Tuple[str, bool]:
@@ -208,7 +265,8 @@ def ai_generate_summary(user, resume: UserResume, career_goal: str = "") -> Tupl
         "Use third person. Be specific, positive, and ATS-friendly. "
         "Return ONLY the summary text, no headings or quotes."
     )
-    text, _err = _openai_chat(prompt, max_tokens=200)
+    text, err = _openai_chat(prompt, max_tokens=200, user=user)
+    _raise_if_quota(err, user)
     if text:
         return text.strip()[:2000], True
     return _template_summary(user, resume, career_goal), False
@@ -230,7 +288,8 @@ def ai_improve_summary(
         f"Improve this student resume summary. {mode_instr}\n\n"
         f"Original:\n{t}\n\nReturn ONLY the improved summary, no headings."
     )
-    improved, _err = _openai_chat(prompt, max_tokens=250)
+    improved, err = _openai_chat(prompt, max_tokens=250, user=user)
+    _raise_if_quota(err, user)
     if improved:
         return improved.strip()[:2000], True
     return _template_improve(t, mode=mode), False
@@ -247,7 +306,8 @@ def ai_generate_achievement_description(
         f"Student: {ctx['name']}, {ctx['grade']} at {ctx['school'] or 'school'}\n"
         "Highlight impact, role, and skills shown. Return ONLY the description text."
     )
-    text, _err = _openai_chat(prompt, max_tokens=300)
+    text, err = _openai_chat(prompt, max_tokens=300, user=user)
+    _raise_if_quota(err, user)
     if text:
         return text.strip()[:2000], True
     return (
@@ -275,7 +335,8 @@ def ai_improve_achievement_description(
         f"Student: {ctx['name']}, {ctx['grade']} at {ctx['school'] or 'school'}\n\n"
         f"Original:\n{t}\n\nReturn ONLY the improved description, no headings."
     )
-    improved, _err = _openai_chat(prompt, max_tokens=300)
+    improved, err = _openai_chat(prompt, max_tokens=300, user=user)
+    _raise_if_quota(err, user)
     if improved:
         return improved.strip()[:2000], True
     return _template_improve(t, mode=mode), False
@@ -294,7 +355,8 @@ def ai_generate_project_bullets(
         "Each bullet should start with a strong verb and show skills learned. "
         "Return ONLY a JSON array of 4 strings, no markdown."
     )
-    raw, _err = _openai_chat(prompt, max_tokens=400)
+    raw, err = _openai_chat(prompt, max_tokens=400, user=user)
+    _raise_if_quota(err, user)
     if raw:
         bullets = _parse_bullet_list(raw)[:6]
         if bullets:

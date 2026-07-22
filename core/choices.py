@@ -301,11 +301,13 @@ class PaymentObjectType(object):
     SKILLLABCOURSE=20
     COUNSELOR=30
     INSTITUTE_TIEUP=40
+    LLM_TOKEN_PACKAGE=50
     CHOICES=(
         (PYSCHOMETRICTESTDETAIL,"PsychometricTestDetail"),
         (SKILLLABCOURSE,"Skilllabcourse"),
         (COUNSELOR,"Counselor"),
         (INSTITUTE_TIEUP,"Institute Tie-Up"),
+        (LLM_TOKEN_PACKAGE,"LLM Token Package"),
     )
 
 

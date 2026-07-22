@@ -386,6 +386,14 @@ class ResumeV2AIView(View):
     http_method_names = ["post"]
 
     def post(self, request, resume_id, *args, **kwargs):
+        from core.llm_quota import LLMQuotaExceeded, quota_error_response
+
+        try:
+            return self._handle_ai_post(request, resume_id, *args, **kwargs)
+        except LLMQuotaExceeded as exc:
+            return quota_error_response(exc)
+
+    def _handle_ai_post(self, request, resume_id, *args, **kwargs):
         resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
         try:
             body = json.loads(request.body.decode("utf-8") or "{}")

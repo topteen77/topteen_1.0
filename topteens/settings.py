@@ -155,6 +155,8 @@ GOOGLE_CSE_ID = config('GOOGLE_CSE_ID', default='')  # Programmable Search Engin
 ANTHROPIC_API_KEY = config('ANTHROPIC_API_KEY', default='')
 AI_MODEL = config('AI_MODEL', default='gpt-3.5-turbo')  # or gemini-1.5-flash, claude-3-haiku, etc.
 GEMINI_MODEL = config('GEMINI_MODEL', default='gemini-1.5-flash')
+# INR per 1 USD — compare provider spend vs amount collected on the LLM billing admin page.
+USD_TO_INR_RATE = config('USD_TO_INR_RATE', default=84.0, cast=float)
 
 # Forum AI Configuration
 OPENAI_MODEL = config('OPENAI_MODEL', default='gpt-4o-mini')  # Default to cost-effective model for forum
