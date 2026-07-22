@@ -1,0 +1,76 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:hub_configuration' %}">Website &amp; platform configuration</a>
+&rsaquo; <a href="{% url 'admin:hub_configuration' %}#ai-tokens-freemium">AI tokens &amp; freemium</a>
+&rsaquo; Shop display (rate &amp; notes)
+</div>
+{% endblock %}
+
+{% block content %}
+<p style="margin-bottom: 16px; color: #555; max-width: 720px; line-height: 1.45;">
+  Controls what buyers see on <a href="{{ shop_url }}" target="_blank" rel="noopener"><code>{{ shop_url }}</code></a>
+  (and checkout / receipts). Uncheck the rate and notes options to hide
+  <strong>Current rate: 1 USD = ₹ …</strong> and the grey conversion notes box.
+</p>
+
+<form method="post" id="llm-shop-display-form">
+  {% csrf_token %}
+  <fieldset class="module aligned">
+    <h2>Rate &amp; prices</h2>
+    {% for field in form %}
+      {% if field.name == 'usd_to_inr_rate' or field.name == 'show_price_inr' or field.name == 'show_price_usd' %}
+      <div class="form-row">
+        <div>
+          {% if field.name == 'usd_to_inr_rate' %}
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+          {% else %}
+            {{ field }}
+            <label for="{{ field.id_for_label }}" style="font-weight: normal; margin-left: 8px;">{{ field.label }}</label>
+          {% endif %}
+          {% if field.errors %}<ul class="errorlist">{{ field.errors }}</ul>{% endif %}
+          {% if field.help_text %}
+          <p class="help" style="margin: 5px 0 0 {% if field.name != 'usd_to_inr_rate' %}24px{% else %}0{% endif %}; font-size: 12px;">{{ field.help_text }}</p>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    {% endfor %}
+  </fieldset>
+
+  <fieldset class="module aligned">
+    <h2>Hide on buyer shop</h2>
+    {% for field in form %}
+      {% if field.name == 'show_exchange_rate' or field.name == 'show_conversion_note' or field.name == 'conversion_note' %}
+      <div class="form-row">
+        <div>
+          {% if field.name == 'conversion_note' %}
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+          {% else %}
+            {{ field }}
+            <label for="{{ field.id_for_label }}" style="font-weight: normal; margin-left: 8px;">{{ field.label }}</label>
+          {% endif %}
+          {% if field.errors %}<ul class="errorlist">{{ field.errors }}</ul>{% endif %}
+          {% if field.help_text %}
+          <p class="help" style="margin: 5px 0 0 {% if field.name != 'conversion_note' %}24px{% else %}0{% endif %}; font-size: 12px;">{{ field.help_text }}</p>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    {% endfor %}
+  </fieldset>
+
+  <div class="submit-row" style="margin-top: 20px;">
+    <input type="submit" value="Save shop display" class="default">
+    <a href="{% url 'admin:hub_configuration' %}#ai-tokens-freemium" class="button cancel-link">Back to hub</a>
+    <a href="{{ packages_url }}" class="button">LLM packages</a>
+  </div>
+</form>
+{% endblock %}
