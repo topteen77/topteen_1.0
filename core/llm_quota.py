@@ -31,6 +31,21 @@ FEATURE_ESTIMATE_TOKENS = {
     "other": 2000,
 }
 
+FEATURE_LABELS = {
+    "forum": "AI tutor / career chat",
+    "resume_v2": "resume AI",
+    "resume_guided": "guided resume AI",
+    "seo": "SEO AI",
+    "careers_search": "career search AI",
+    "careers_embedding": "career search AI",
+    "translation": "reading-level AI",
+    "other": "AI",
+}
+
+# Recharge reminder: at most once per rolling 24 hours per user.
+RECHARGE_NOTIFY_CACHE_TTL = 24 * 60 * 60
+RECHARGE_NOTIFY_EVENT = "llm.recharge_reminder"
+
 USER_TYPE_TO_ROLE_KEY = {
     1: "student",
     2: "institute",
@@ -255,6 +270,8 @@ def build_paywall(
         "feature": feature,
         "balance_tokens": max(0, int(balance)),
         "estimated_cost": int(estimated_cost),
+        "needs_recharge": True,
+        "is_low": True,
         "require_login": require_login,
         "cta_label": "Sign in free" if require_login else "Recharge AI tokens",
         "cta_url": login_url() if require_login else shop_url(),
@@ -263,6 +280,146 @@ def build_paywall(
         "headline": headline,
         "body": body,
     }
+
+
+def feature_label(feature: str) -> str:
+    return FEATURE_LABELS.get((feature or "").strip(), FEATURE_LABELS["other"])
+
+
+def _recharge_notify_cache_key(user_id: int) -> str:
+    return f"llm_recharge_notif:{int(user_id)}"
+
+
+def maybe_notify_recharge(
+    user,
+    *,
+    balance: int,
+    estimated_cost: int,
+    feature: str = "",
+    reason: str = "insufficient",
+) -> bool:
+    """
+    In-app notification to recharge when balance cannot cover the next AI call.
+
+    At most once per rolling 24 hours per user (cache + recent Notification check).
+    """
+    if user is None or not getattr(user, "is_authenticated", False):
+        return False
+    if int(balance) >= int(estimated_cost):
+        return False
+
+    user_id = getattr(user, "id", None)
+    if not user_id:
+        return False
+
+    cache_key = _recharge_notify_cache_key(user_id)
+    try:
+        if cache.get(cache_key):
+            return False
+    except Exception:
+        pass
+
+    try:
+        from datetime import timedelta
+
+        from notifications.models import Notification
+
+        cutoff = timezone.now() - timedelta(seconds=RECHARGE_NOTIFY_CACHE_TTL)
+        if Notification.objects.filter(
+            recipient_id=user_id,
+            event_type=RECHARGE_NOTIFY_EVENT,
+            created__gte=cutoff,
+        ).exists():
+            try:
+                cache.set(cache_key, 1, RECHARGE_NOTIFY_CACHE_TTL)
+            except Exception:
+                pass
+            return False
+    except Exception:
+        logger.exception("LLM recharge notify: failed recent-notification check")
+
+    try:
+        if not cache.add(cache_key, 1, RECHARGE_NOTIFY_CACHE_TTL):
+            return False
+    except Exception:
+        # If cache is down, still try DB-only throttle via emit dedupe bucket.
+        pass
+
+    try:
+        from notifications.models import NotificationCategory
+        from notifications.services import emit_notification, format_notification_message
+
+        label = feature_label(feature)
+        feature_clause = f" ({label})" if feature else ""
+        balance_display = f"{max(0, int(balance)):,}"
+        context = {
+            "balance_display": balance_display,
+            "balance_tokens": max(0, int(balance)),
+            "estimated_cost": int(estimated_cost),
+            "feature": feature or "",
+            "feature_label": label,
+            "feature_clause": feature_clause,
+            "shop_url": shop_url(),
+            "reason": reason,
+        }
+        title, body = format_notification_message(
+            RECHARGE_NOTIFY_EVENT,
+            context,
+            default_title="Recharge AI tokens",
+            default_body=(
+                f"Your AI token balance ({balance_display}) is too low for your next AI action"
+                f"{feature_clause}. Recharge a small pack to continue."
+            ),
+        )
+        # Bucketed dedupe as a second guard (rolling day); primary throttle is 24h cache/DB.
+        day_bucket = int(timezone.now().timestamp() // RECHARGE_NOTIFY_CACHE_TTL)
+        emit_notification(
+            event_type=RECHARGE_NOTIFY_EVENT,
+            title=title,
+            body=body,
+            recipients=[user],
+            category=NotificationCategory.SYSTEM,
+            payload={
+                "balance_tokens": max(0, int(balance)),
+                "estimated_cost": int(estimated_cost),
+                "feature": feature or "",
+                "shop_url": shop_url(),
+                "reason": reason,
+                "cta_url": shop_url(),
+                "cta_label": "Recharge AI tokens",
+            },
+            dedupe_key=f"llm_recharge:{user_id}:{day_bucket}",
+        )
+        return True
+    except Exception:
+        logger.exception("Failed to emit LLM recharge reminder for user=%s", user_id)
+        return False
+
+
+def check_and_notify_if_cannot_afford_next(
+    user,
+    *,
+    balance: Optional[int] = None,
+    feature: str = "other",
+    request=None,
+) -> bool:
+    """True when balance is below the next-call estimate; may emit 24h recharge notification."""
+    if user is None or not getattr(user, "is_authenticated", False):
+        return False
+    role_key = resolve_role_key(user)
+    cost = estimate_tokens_for_feature(feature or "other", role_key)
+    if balance is None:
+        balance = get_balance(user, request=request)
+    if int(balance) >= int(cost):
+        return False
+    maybe_notify_recharge(
+        user,
+        balance=int(balance),
+        estimated_cost=int(cost),
+        feature=feature or "other",
+        reason="below_next_call",
+    )
+    return True
 
 
 def _anonymous_cache_key(request) -> str:
@@ -437,7 +594,18 @@ def consume_llm_tokens(
             reference=(reference or "")[:64],
             metadata=metadata or {},
         )
-        return int(wallet.balance_tokens)
+        remaining = int(wallet.balance_tokens)
+        # After a successful call, warn once/24h if remaining balance cannot cover the next one.
+        try:
+            check_and_notify_if_cannot_afford_next(
+                user,
+                balance=remaining,
+                feature=feature or "other",
+                request=request,
+            )
+        except Exception:
+            logger.exception("Post-consume low-balance notify failed")
+        return remaining
     except Exception:
         logger.exception("Failed to consume LLM tokens for feature=%s", feature)
         return 0
@@ -460,6 +628,8 @@ def ensure_can_use_llm(
 ) -> QuotaStatus:
     """
     Pre-flight quota check. Raises LLMQuotaExceeded when raise_exception=True.
+    When balance is below the next-call estimate, emits a recharge notification
+    at most once every 24 hours.
     """
     role_key = resolve_role_key(user)
     role = get_role_default(role_key)
@@ -478,6 +648,14 @@ def ensure_can_use_llm(
             "An administrator has not enabled AI tokens for your account type yet. "
             "Please contact TopTeen support or ask an admin to grant tokens."
         )
+        if user is not None and getattr(user, "is_authenticated", False):
+            maybe_notify_recharge(
+                user,
+                balance=0,
+                estimated_cost=cost,
+                feature=feature,
+                reason="role_disabled",
+            )
         status = QuotaStatus(False, 0, role_key, cost, paywall)
         if raise_exception:
             raise LLMQuotaExceeded(paywall)
@@ -508,6 +686,13 @@ def ensure_can_use_llm(
             estimated_cost=cost,
             feature=feature,
             require_login=False,
+        )
+        maybe_notify_recharge(
+            user,
+            balance=balance,
+            estimated_cost=cost,
+            feature=feature,
+            reason="insufficient_for_next_call",
         )
         status = QuotaStatus(False, balance, role_key, cost, paywall)
         if raise_exception:
@@ -575,12 +760,21 @@ def wallet_summary_for_user(user, request=None) -> dict[str, Any]:
     role_key = resolve_role_key(user)
     role = get_role_default(role_key)
     balance = get_balance(user, request=request)
+    next_cost = estimate_tokens_for_feature("other", role_key)
+    # Prefer role default so admin-tuned estimated_call_tokens drives soft low.
+    next_cost = max(int(next_cost), int(role.estimated_call_tokens or 0) or next_cost)
+    needs_recharge = balance < next_cost
+    is_low = needs_recharge or balance < max(next_cost * 2, next_cost)
     return {
         "balance_tokens": balance,
         "role_key": role_key,
         "monthly_free_tokens": int(role.monthly_free_tokens or 0),
+        "estimated_next_call_tokens": int(next_cost),
+        "needs_recharge": needs_recharge,
+        "is_low": is_low,
         "shop_url": shop_url(),
-        "is_low": balance < max(5000, int(role.estimated_call_tokens or 2000) * 2),
+        "cta_label": "Recharge AI tokens" if needs_recharge or is_low else "",
+        "cta_url": shop_url() if needs_recharge or is_low else "",
     }
 
 

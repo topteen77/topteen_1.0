@@ -81,6 +81,12 @@ DEFAULT_TYPE_CONFIGS = {
         requires_celery=False,
         requires_email=False,
     ),
+    'llm.recharge_reminder': dict(
+        category=NotificationCategory.SYSTEM,
+        description='AI token wallet low / insufficient for next AI call — recharge reminder (max once per 24h)',
+        requires_celery=False,
+        requires_email=False,
+    ),
 }
 
 
@@ -142,6 +148,13 @@ DEFAULT_NOTIFICATION_MESSAGE_TEMPLATES = {
     'parent.suggestion_liked': {
         'title': '{student_name} liked your career suggestion',
         'body': '{student_name} is interested in "{career_name}" that you recommended.',
+    },
+    'llm.recharge_reminder': {
+        'title': 'Recharge AI tokens',
+        'body': (
+            'Your AI token balance ({balance_display}) is too low for your next AI action'
+            '{feature_clause}. Recharge a small pack to keep using resume AI, tutor chat, and more.'
+        ),
     },
 }
 

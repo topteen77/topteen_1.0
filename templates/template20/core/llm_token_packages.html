@@ -65,6 +65,15 @@
       <p>Choose a pack by what you want to do — build a resume, ask the AI tutor, or both. No subscription lock-in.</p>
       {% if wallet %}
       <div class="llm-balance">Balance: {{ "{:,}".format(wallet.balance_tokens) }} tokens</div>
+      {% if wallet.needs_recharge %}
+      <p class="llm-low-warn" style="margin-top:12px;color:#9a3412;font-weight:600;font-size:0.95rem">
+        Balance is too low for your next AI action. Recharge a pack below to continue.
+      </p>
+      {% elif wallet.is_low %}
+      <p class="llm-low-warn" style="margin-top:12px;color:#9a6700;font-weight:600;font-size:0.95rem">
+        Running low on AI tokens — recharge soon so your next AI call isn’t blocked.
+      </p>
+      {% endif %}
       {% endif %}
       {% if show_exchange_rate and rate_display %}
       <div class="llm-fx-rate">Current rate: {{ rate_display }}</div>
