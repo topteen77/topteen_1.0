@@ -2951,7 +2951,14 @@ def translate_complexity_api(request):
     try:
         adjusted = adjust_text_complexity(texts, target_lang, level)
     except Exception as exc:
-        logger.exception('translate_complexity_api failed')
-        return JsonResponse({'ok': False, 'error': str(exc)}, status=500)
+        # Never return HTML or opaque 500 bodies — frontend expects JSON.
+        # Fall back to original Google Translate text so the page stays usable.
+        logger.exception('translate_complexity_api failed: %s', exc)
+        return JsonResponse({
+            'ok': True,
+            'texts': [str(t or '') for t in texts],
+            'level': level,
+            'fallback': True,
+        })
 
     return JsonResponse({'ok': True, 'texts': adjusted, 'level': level})
