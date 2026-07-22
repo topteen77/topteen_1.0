@@ -811,6 +811,11 @@ _TOPTEEN_FROM_EMAIL = config('TOPTEEN_FROM_EMAIL', default='support@topteen.care
 TOPTEEN_FROM_EMAIL = _TOPTEEN_FROM_EMAIL
 MOBILE_SMS_SERVICE = ''
 
+# SMS / WhatsApp provider: smartping (default) | plivo
+# https://www.plivo.com/ — Auth ID/Token from https://manage.plivo.com/dashboard/
+SMS_PROVIDER = config('SMS_PROVIDER', default='smartping').strip().lower()
+OTP_MOBILE_CHANNEL = config('OTP_MOBILE_CHANNEL', default='sms').strip().lower()  # sms | whatsapp
+
 # SmartPing SMS API Configuration
 SMARTPING_SMS_API_URL = config('SMARTPING_SMS_API_URL', default='https://pgapi.smartping.ai/fe/api/v1/send')
 SMARTPING_SMS_USERNAME = config('SMARTPING_SMS_USERNAME', default='Testprepgpt.trans')
@@ -820,6 +825,21 @@ SMARTPING_SMS_DLT_CONTENT_ID = config('SMARTPING_SMS_DLT_CONTENT_ID', default='1
 SMARTPING_SMS_DLT_PRINCIPAL_ENTITY_ID = config('SMARTPING_SMS_DLT_PRINCIPAL_ENTITY_ID', default='1701172845816093698')
 SMARTPING_SMS_UNICODE = config('SMARTPING_SMS_UNICODE', default='false')
 SMARTPING_SMS_MESSAGE_TEMPLATE = config('SMARTPING_SMS_MESSAGE_TEMPLATE', default='{otp} is your verification code for TestprepGPT AI')
+SMARTPING_SMS_FORCE_SEND = config('SMARTPING_SMS_FORCE_SEND', default=False, cast=bool)
+
+# Plivo SMS + WhatsApp
+PLIVO_AUTH_ID = config('PLIVO_AUTH_ID', default='')
+PLIVO_AUTH_TOKEN = config('PLIVO_AUTH_TOKEN', default='')
+PLIVO_SMS_FROM = config('PLIVO_SMS_FROM', default='')  # E.164 number or alphanumeric sender ID
+PLIVO_WHATSAPP_FROM = config('PLIVO_WHATSAPP_FROM', default='')  # WABA-linked number in E.164
+PLIVO_SMS_MESSAGE_TEMPLATE = config(
+    'PLIVO_SMS_MESSAGE_TEMPLATE',
+    default='{otp} is your verification code for TopTeen',
+)
+PLIVO_WHATSAPP_OTP_TEMPLATE = config('PLIVO_WHATSAPP_OTP_TEMPLATE', default='')  # approved template name
+PLIVO_WHATSAPP_OTP_TEMPLATE_LANG = config('PLIVO_WHATSAPP_OTP_TEMPLATE_LANG', default='en_US')
+PLIVO_FORCE_SEND = config('PLIVO_FORCE_SEND', default=False, cast=bool)
+WHATSAPP_ENABLED = config('WHATSAPP_ENABLED', default=False, cast=bool)
 
 # Email / AWS SES – all from .env; no credentials in code
 EMAIL_HOST = config('EMAIL_HOST', default='email-smtp.ap-south-1.amazonaws.com')
