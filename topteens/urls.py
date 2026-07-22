@@ -21,7 +21,7 @@ from django.conf.urls import handler404
 from users import views as users_views
 from user_analytics import views as user_analytics_views
 from core import views as core_views
-from core.seo_views import robots_txt, sitemap_xml
+from core.seo_views import robots_txt, sitemap_xml, facebook_domain_verification
 from core.pwa_views import manifest_json, service_worker_js
 from core.sitemaps import (
     BlogSitemap,
@@ -59,6 +59,11 @@ urlpatterns = [
     ),
     path("sitemap.xml", sitemap_xml, {"sitemaps": sitemaps}, name="sitemap"),
     path("robots.txt", robots_txt, name="robots_txt"),
+    path(
+        "80fczxf7zf2ysu54gokd497v0b09zu.html",
+        facebook_domain_verification,
+        name="facebook_domain_verification",
+    ),
     # S3 media proxy: serve S3 files through Django when S3_MEDIA_ACCESS_MODE=proxy (only your site can show media)
     path('media/s3/<path:path>', core_views.s3_media_proxy, name='s3_media_proxy'),
     path('admin/', admin.site.urls),
