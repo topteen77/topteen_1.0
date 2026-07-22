@@ -989,13 +989,112 @@
     margin-bottom: 0;
   }
 
+  .profile-alert-btn-wrap {
+    --pap-border-base: #4338ca;
+    --pap-border-shine: #ffffff;
+    --pap-border-glow: #a5b4fc;
+    --pap-glow: rgba(72, 61, 255, 0.32);
+
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+    padding: 2px;
+    border-radius: 999px;
+    overflow: hidden;
+    isolation: isolate;
+    background: var(--pap-border-base);
+    box-shadow: 0 6px 14px var(--pap-glow);
+    animation: profileAlertBtnPulse 3.6s ease-in-out infinite;
+  }
+
+  .profile-alert-btn-wrap::before {
+    content: "";
+    position: absolute;
+    inset: -120%;
+    background: conic-gradient(
+      from 0deg,
+      var(--pap-border-base) 0deg,
+      var(--pap-border-base) 200deg,
+      #6366f1 230deg,
+      var(--pap-border-glow) 255deg,
+      var(--pap-border-shine) 275deg,
+      var(--pap-border-glow) 295deg,
+      #6366f1 320deg,
+      var(--pap-border-base) 345deg,
+      var(--pap-border-base) 360deg
+    );
+    animation: profileAlertBorderRotate 4.5s linear infinite;
+    will-change: transform;
+    backface-visibility: hidden;
+    z-index: 0;
+    pointer-events: none;
+  }
+
   .profile-alert-btn {
+    position: relative;
+    z-index: 1;
+    border: none !important;
     border-radius: 999px;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
     padding: 7px 14px !important;
-    box-shadow: 0 6px 12px rgba(72, 61, 255, 0.24);
     white-space: nowrap;
+    color: #fff !important;
+    background: linear-gradient(145deg, #6366f1 0%, #3f37c9 55%, #312e81 100%) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  }
+
+  .profile-alert-btn:hover,
+  .profile-alert-btn:focus {
+    color: #fff !important;
+    background: linear-gradient(145deg, #818cf8 0%, #5249df 55%, #3730a3 100%) !important;
+  }
+
+  .profile-alert-btn-wrap.profile-alert-btn-shake .profile-alert-btn {
+    animation: profileAlertBtnShake 0.75s ease-in-out;
+  }
+
+  @keyframes profileAlertBorderRotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes profileAlertBtnPulse {
+    0%, 100% {
+      box-shadow: 0 6px 14px rgba(72, 61, 255, 0.28);
+    }
+    50% {
+      box-shadow:
+        0 10px 22px rgba(72, 61, 255, 0.42),
+        0 0 14px rgba(165, 180, 252, 0.28);
+    }
+  }
+
+  @keyframes profileAlertBtnShake {
+    0%, 100% { transform: translateX(0) rotate(0deg); }
+    10% { transform: translateX(-8px) rotate(-3deg); }
+    20% { transform: translateX(8px) rotate(3deg); }
+    30% { transform: translateX(-6px) rotate(-2deg); }
+    40% { transform: translateX(6px) rotate(2deg); }
+    50% { transform: translateX(-4px) rotate(-1.5deg); }
+    60% { transform: translateX(4px) rotate(1.5deg); }
+    70% { transform: translateX(-3px) rotate(-1deg); }
+    80% { transform: translateX(3px) rotate(1deg); }
+    90% { transform: translateX(-1px) rotate(0deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .profile-alert-btn-wrap::before {
+      animation-duration: 8s;
+    }
+
+    .profile-alert-btn-wrap {
+      animation: none;
+    }
+
+    .profile-alert-btn-wrap.profile-alert-btn-shake .profile-alert-btn {
+      animation: none;
+    }
   }
 
   @media (max-width: 575px) {
@@ -1117,9 +1216,11 @@
               <p class="profile-alert-subtitle">Your profile is {{ hub_profile_completion|default(0) }}% complete. Finish it to get better recommendations and matches.</p>
             </div>
           </div>
-          <a href="{{ url('users:profiledetails') }}" class="btn btn-sm custom-button purple-button profile-alert-btn">
-            Update Profile
-          </a>
+          <span class="profile-alert-btn-wrap" id="profileAlertBtnWrap">
+            <a href="{{ url('users:profiledetails') }}" class="btn btn-sm custom-button purple-button profile-alert-btn" id="profileAlertBtn">
+              Update Profile
+            </a>
+          </span>
         </div>
         {% endif %}
 
@@ -2029,6 +2130,65 @@
         }).catch(() => setErr('Unable to verify OTP'));
       });
     }
+
+    (function initProfileAlertBtnShake() {
+      var wrap = document.getElementById('profileAlertBtnWrap');
+      var btn = document.getElementById('profileAlertBtn');
+      if (!wrap || !btn) return;
+
+      var shakeDelayMs = 20000;
+      var shakeTimer = null;
+      var prefersReducedMotion =
+        window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function clearShakeTimer() {
+        if (shakeTimer) {
+          clearTimeout(shakeTimer);
+          shakeTimer = null;
+        }
+      }
+
+      function isShakeAnimation(name) {
+        return name === 'profileAlertBtnShake' ||
+          (name && name.indexOf('profileAlertBtnShake') !== -1);
+      }
+
+      function triggerShake() {
+        if (prefersReducedMotion) return;
+        var finished = false;
+
+        function finishShake() {
+          if (finished) return;
+          finished = true;
+          wrap.classList.remove('profile-alert-btn-shake');
+          btn.removeEventListener('animationend', onShakeEnd);
+        }
+
+        function onShakeEnd(event) {
+          if (event.target !== btn || !isShakeAnimation(event.animationName)) return;
+          finishShake();
+        }
+
+        wrap.classList.remove('profile-alert-btn-shake');
+        void btn.offsetWidth;
+        wrap.classList.add('profile-alert-btn-shake');
+        btn.addEventListener('animationend', onShakeEnd);
+        setTimeout(finishShake, 900);
+      }
+
+      function scheduleShake() {
+        clearShakeTimer();
+        if (prefersReducedMotion) return;
+        shakeTimer = setTimeout(function () {
+          shakeTimer = null;
+          triggerShake();
+          scheduleShake();
+        }, shakeDelayMs);
+      }
+
+      scheduleShake();
+    })();
   });
 </script>
 
