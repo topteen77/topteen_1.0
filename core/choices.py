@@ -202,10 +202,11 @@ class UniversityType(object):
 class CommunicationTypeChooices(object):
     EMAIL=1
     SMS=2
+    WHATSAPP=3
     CHOICES = (
         (EMAIL, 'Email'),
-        (SMS, 'SMS')
-
+        (SMS, 'SMS'),
+        (WHATSAPP, 'WhatsApp'),
     )
 
 class SalaryType(object):

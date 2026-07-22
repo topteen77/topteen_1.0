@@ -179,92 +179,201 @@ class ComService:
         )
         return self.send_mail(subject,to,text_content,html_content)
 
-    def send_mobile_otp(self,user):
+    def _should_send_mobile_message(self, log_key):
+        """Respect DEBUG + force-send flags and 30s duplicate guard."""
+        provider = getattr(settings, 'SMS_PROVIDER', 'smartping')
+        if provider == 'plivo':
+            force_send = getattr(settings, 'PLIVO_FORCE_SEND', False)
+        else:
+            force_send = getattr(settings, 'SMARTPING_SMS_FORCE_SEND', False)
+        return (not settings.DEBUG or force_send) and (not self.check_duplicate_sms(log_key))
+
+    def _send_mobile_otp_smartping(self, user, otp, formatted_phone):
+        message_template = getattr(
+            settings,
+            'SMARTPING_SMS_MESSAGE_TEMPLATE',
+            '{otp} is your verification code for TestprepGPT AI',
+        )
+        message = message_template.format(otp=otp)
+        params = {
+            'username': getattr(settings, 'SMARTPING_SMS_USERNAME', 'Testprepgpt.trans'),
+            'password': getattr(settings, 'SMARTPING_SMS_PASSWORD', 'sW2gV'),
+            'unicode': getattr(settings, 'SMARTPING_SMS_UNICODE', 'false'),
+            'from': getattr(settings, 'SMARTPING_SMS_FROM', 'TSTGPT'),
+            'to': formatted_phone,
+            'dltContentId': getattr(settings, 'SMARTPING_SMS_DLT_CONTENT_ID', '1707175152949044040'),
+            'dltPrincipalEntityId': getattr(settings, 'SMARTPING_SMS_DLT_PRINCIPAL_ENTITY_ID', '1701172845816093698'),
+            'text': message,
+        }
+        api_url = getattr(settings, 'SMARTPING_SMS_API_URL', 'https://pgapi.smartping.ai/fe/api/v1/send')
+        url = f"{api_url}?{urlencode(params)}"
+        response_text = 'DEBUG'
+        response_status = False
+
+        if self._should_send_mobile_message(url):
+            try:
+                response = requests.get(url, timeout=10)
+                if hasattr(response, 'content') and response.content:
+                    try:
+                        response_text = response.content.decode('utf-8')
+                    except (UnicodeDecodeError, AttributeError):
+                        response_text = str(response.content)
+                else:
+                    response_text = f"Status: {response.status_code}" if hasattr(response, 'status_code') else 'No content'
+                response_status = getattr(response, 'status_code', None) == 200
+                print(f"SmartPing SMS API Response: {response_text} (Status: {getattr(response, 'status_code', None)})")
+            except requests.exceptions.RequestException as e:
+                print(f"Error sending SMS via SmartPing API: {str(e)}")
+                response_text = f"Error: {str(e)}"
+                response_status = False
+            except Exception as e:
+                print(f"Unexpected error sending SMS via SmartPing API: {str(e)}")
+                import traceback
+                traceback.print_exc()
+                response_text = f"Unexpected Error: {str(e)}"
+                response_status = False
+        else:
+            print(f"DEBUG mode or duplicate SMS detected. URL: {url}")
+            response_status = True
+
+        self.make_log_entry(user, url, choices.CommunicationTypeChooices.SMS, response_text)
+        return response_status
+
+    def _send_mobile_otp_plivo(self, user, otp, formatted_phone):
+        from communication.providers import plivo as plivo_provider
+
+        message_template = getattr(
+            settings,
+            'PLIVO_SMS_MESSAGE_TEMPLATE',
+            '{otp} is your verification code for TopTeen',
+        )
+        message = message_template.format(otp=otp)
+        log_key = f"plivo:sms:{formatted_phone}:{message}"
+        response_text = 'DEBUG'
+        response_status = False
+
+        if self._should_send_mobile_message(log_key):
+            result = plivo_provider.send_sms(formatted_phone, message)
+            response_text = result.get('response') or result.get('error') or ''
+            response_status = bool(result.get('success'))
+            print(f"Plivo SMS API Response: {response_text} (success={response_status})")
+        else:
+            print(f"DEBUG mode or duplicate Plivo SMS detected. key: {log_key}")
+            response_status = True
+
+        self.make_log_entry(user, log_key, choices.CommunicationTypeChooices.SMS, response_text)
+        return response_status
+
+    def send_mobile_otp(self, user):
         try:
             user = int(user)
             otp = self.get_otp(user, choices.CommunicationTypeChooices.SMS)
             print("sending mobile otp for {} is {}".format(user, otp))
-            
-            # Format phone number with country code (default 91 for Indian numbers)
+
             formatted_phone = self.format_phone_number_with_country_code(user)
             print(f"Formatted phone number: {formatted_phone} (original: {user})")
-            
-            # SmartPing SMS API implementation
-            # Format message using template from settings
-            message_template = getattr(settings, 'SMARTPING_SMS_MESSAGE_TEMPLATE', '{otp} is your verification code for TestprepGPT AI')
-            message = message_template.format(otp=otp)
-            
-            # Prepare API parameters
-            # formatted_phone already has country code without + sign
-            params = {
-                'username': getattr(settings, 'SMARTPING_SMS_USERNAME', 'Testprepgpt.trans'),
-                'password': getattr(settings, 'SMARTPING_SMS_PASSWORD', 'sW2gV'),
-                'unicode': getattr(settings, 'SMARTPING_SMS_UNICODE', 'false'),
-                'from': getattr(settings, 'SMARTPING_SMS_FROM', 'TSTGPT'),
-                'to': formatted_phone,
-                'dltContentId': getattr(settings, 'SMARTPING_SMS_DLT_CONTENT_ID', '1707175152949044040'),
-                'dltPrincipalEntityId': getattr(settings, 'SMARTPING_SMS_DLT_PRINCIPAL_ENTITY_ID', '1701172845816093698'),
-                'text': message
-            }
-            
-            # Build the API URL
-            api_url = getattr(settings, 'SMARTPING_SMS_API_URL', 'https://pgapi.smartping.ai/fe/api/v1/send')
-            url = f"{api_url}?{urlencode(params)}"
-            
-            # Send SMS
-            response_text = "DEBUG"
-            response_status = False
-            
-            # Allow forcing SMS send in DEBUG via SMARTPING_SMS_FORCE_SEND env var (default: False).
-            force_send_in_debug = getattr(settings, 'SMARTPING_SMS_FORCE_SEND', False)
-            should_send = (not settings.DEBUG or force_send_in_debug) and (not self.check_duplicate_sms(url))
-            if should_send:
-                try:
-                    response = requests.get(url, timeout=10)
-                    # Safely extract response content
-                    if hasattr(response, 'content') and response.content:
-                        try:
-                            response_text = response.content.decode('utf-8')
-                        except (UnicodeDecodeError, AttributeError):
-                            response_text = str(response.content)
-                    else:
-                        response_text = f"Status: {response.status_code}" if hasattr(response, 'status_code') else "No content"
-                    
-                    # Check response status
-                    if hasattr(response, 'status_code'):
-                        response_status = response.status_code == 200
-                        print(f"SmartPing SMS API Response: {response_text} (Status: {response.status_code})")
-                    else:
-                        response_status = False
-                        print(f"SmartPing SMS API Response: {response_text} (No status code)")
-                except requests.exceptions.RequestException as e:
-                    print(f"Error sending SMS via SmartPing API: {str(e)}")
-                    response_text = f"Error: {str(e)}"
-                    response_status = False
-                except Exception as e:
-                    print(f"Unexpected error sending SMS via SmartPing API: {str(e)}")
-                    import traceback
-                    traceback.print_exc()
-                    response_text = f"Unexpected Error: {str(e)}"
-                    response_status = False
-            else:
-                print(f"DEBUG mode or duplicate SMS detected. URL: {url}")
-                response_status = True  # Return True in DEBUG mode or when duplicate detected
-            
-            # Log the communication
-            self.make_log_entry(user, url, choices.CommunicationTypeChooices.SMS, response_text)
-            return response_status
-            
+
+            provider = getattr(settings, 'SMS_PROVIDER', 'smartping')
+            if provider == 'plivo':
+                return self._send_mobile_otp_plivo(user, otp, formatted_phone)
+            return self._send_mobile_otp_smartping(user, otp, formatted_phone)
+
         except Exception as e:
             print(f"Invalid mobile_number {user}: {str(e)}")
             import traceback
             traceback.print_exc()
             return False
 
-    def send_otp(self,user,otp_type):
+    def send_whatsapp_otp(self, user, otp_type=None):
+        """
+        Send OTP via Plivo WhatsApp template (requires approved template + WABA number).
+
+        otp_type controls which OTP record is stored/verified. When mobile OTP is routed
+        through WhatsApp via OTP_MOBILE_CHANNEL=whatsapp, pass SMS so verify_otp still works.
+        """
+        from communication.providers import plivo as plivo_provider
+
+        if not getattr(settings, 'WHATSAPP_ENABLED', False):
+            logger.warning('WhatsApp OTP skipped: WHATSAPP_ENABLED is False')
+            return False
+
+        if otp_type is None:
+            otp_type = choices.CommunicationTypeChooices.WHATSAPP
+
+        try:
+            user = int(user)
+            otp = self.get_otp(user, otp_type)
+            formatted_phone = self.format_phone_number_with_country_code(user)
+            log_key = f"plivo:whatsapp-otp:{formatted_phone}:{otp}"
+            response_text = 'DEBUG'
+            response_status = False
+
+            force_send = getattr(settings, 'PLIVO_FORCE_SEND', False)
+            should_send = (not settings.DEBUG or force_send) and (not self.check_duplicate_sms(log_key))
+            if should_send:
+                result = plivo_provider.send_whatsapp_template(
+                    formatted_phone,
+                    body_params=[str(otp)],
+                )
+                response_text = result.get('response') or result.get('error') or ''
+                response_status = bool(result.get('success'))
+                print(f"Plivo WhatsApp OTP Response: {response_text} (success={response_status})")
+            else:
+                print(f"DEBUG mode or duplicate WhatsApp OTP detected. key: {log_key}")
+                response_status = True
+
+            self.make_log_entry(user, log_key, choices.CommunicationTypeChooices.WHATSAPP, response_text)
+            return response_status
+        except Exception as e:
+            logger.exception('WhatsApp OTP failed for %s: %s', user, e)
+            return False
+
+    def send_whatsapp_message(self, to_number, text=None, *, template_name=None, body_params=None):
+        """
+        Send a WhatsApp message via Plivo.
+        Pass template_name and/or body_params for an approved template;
+        otherwise pass text for free-form (only inside an open session window).
+        """
+        from communication.providers import plivo as plivo_provider
+
+        if not getattr(settings, 'WHATSAPP_ENABLED', False):
+            logger.warning('WhatsApp message skipped: WHATSAPP_ENABLED is False')
+            return False
+
+        formatted_phone = self.format_phone_number_with_country_code(to_number)
+        if template_name is not None or body_params is not None:
+            result = plivo_provider.send_whatsapp_template(
+                formatted_phone,
+                template_name=template_name,
+                body_params=body_params,
+            )
+        elif text:
+            result = plivo_provider.send_whatsapp_text(formatted_phone, text)
+        else:
+            logger.warning('WhatsApp send requires text or template_name/body_params')
+            return False
+
+        response_text = result.get('response') or result.get('error') or ''
+        self.make_log_entry(
+            to_number,
+            response_text or text or template_name or 'whatsapp',
+            choices.CommunicationTypeChooices.WHATSAPP,
+            response_text,
+        )
+        return bool(result.get('success'))
+
+    def send_otp(self, user, otp_type):
         if otp_type == choices.CommunicationTypeChooices.EMAIL:
             return self.send_email_otp(user)
-        elif otp_type == choices.CommunicationTypeChooices.SMS:
+        if otp_type == choices.CommunicationTypeChooices.WHATSAPP:
+            return self.send_whatsapp_otp(user)
+        if otp_type == choices.CommunicationTypeChooices.SMS:
+            # Optional: deliver SMS-typed OTP over WhatsApp (verify still uses SMS type)
+            if (
+                getattr(settings, 'OTP_MOBILE_CHANNEL', 'sms') == 'whatsapp'
+                and getattr(settings, 'WHATSAPP_ENABLED', False)
+            ):
+                return self.send_whatsapp_otp(user, otp_type=choices.CommunicationTypeChooices.SMS)
             return self.send_mobile_otp(user)
         return None
         
