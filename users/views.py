@@ -38,6 +38,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from users.decorators import institute_dashboard_roles_only
 from users.session_utils import login_user_with_session
+from users.welcome_popup import set_registration_welcome_popup
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from careers.models import Videos,Career,CareerTags
 from core.models import EntranceTestPrepExam
@@ -1941,15 +1942,6 @@ def _apply_institute_student_mobile_gate(request, user, desired_redirect):
     return desired_redirect
 
 
-def _set_registration_welcome_popup(request, user):
-    """Show gamification welcome popup on the student's first dashboard visit after signup."""
-    try:
-        if user and getattr(user, 'user_type', None) == choices.UserType.STUDENT:
-            request.session['show_registration_welcome_popup'] = True
-    except Exception:
-        pass
-
-
 def _normalize_mobile_digits(value: str) -> str:
     return re.sub(r"\D+", "", str(value or "")).strip()
 
@@ -2360,7 +2352,7 @@ class SignUpPassword(APIView):
                         print(f"Warning: Error updating user profile: {str(profile_error)}")
                         print(traceback.format_exc())
 
-                    _set_registration_welcome_popup(request, user)
+                    set_registration_welcome_popup(request, user)
                     
                     try:
                         # Auto-login the user
