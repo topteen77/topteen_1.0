@@ -441,17 +441,25 @@ class S3UploadService:
 
     def s3_key_from_url(self, url):
         """
-        Extract S3 object key from a full S3 URL.
+        Extract S3 object key from a full S3 or CloudFront URL.
         E.g. https://bucket.s3.region.amazonaws.com/path/to/file.pdf -> path/to/file.pdf
+             https://dxxxx.cloudfront.net/path/to/file.pdf -> path/to/file.pdf
         """
         if not url:
             return None
         from urllib.parse import urlparse, unquote
+        candidates = []
         base = getattr(settings, 'S3_BUCKET_BASE_URL', '').rstrip('/') + '/'
-        if url.startswith(base):
-            key = url[len(base):].lstrip('/')
-            return unquote(key) if key else None
-        # Try parsing generic S3 URL format (path is the key)
+        if base and base != '/':
+            candidates.append(base)
+        cf = getattr(settings, 'CLOUDFRONT_DOMAIN', '') or ''
+        if cf:
+            candidates.append(f'https://{cf}/')
+        for prefix in candidates:
+            if url.startswith(prefix):
+                key = url[len(prefix):].lstrip('/')
+                return unquote(key) if key else None
+        # Try parsing generic S3/CloudFront URL format (path is the key)
         parsed = urlparse(url)
         path = parsed.path.lstrip('/')
         return unquote(path) if path else None

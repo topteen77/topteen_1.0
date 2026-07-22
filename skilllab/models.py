@@ -223,7 +223,8 @@ class SkillLabCourse(SlugModel,BaseModel,BaseMoneyModel):
             from django.conf import settings
 
             backend = (settings.STORAGES.get("default") or {}).get("BACKEND", "")
-            if "S3MediaStorage" in backend or getattr(settings, "S3_MEDIA_ACCESS_MODE", "") == "proxy":
+            mode = getattr(settings, "S3_MEDIA_ACCESS_MODE", "")
+            if "S3MediaStorage" in backend or mode in ("proxy", "cloudfront"):
                 from core.storage_backends import S3MediaStorage
 
                 return S3MediaStorage().url(self.image.name)

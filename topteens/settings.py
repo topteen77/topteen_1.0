@@ -209,6 +209,7 @@ CORS_ALLOWED_ORIGINS = [
     'https://demo.topteen.in',
     'https://topteenc.s3.ap-northeast-1.amazonaws.com',
 ]
+# CloudFront domain is appended after CLOUDFRONT_DOMAIN is resolved (see S3 block below).
 
 CSRF_TRUSTED_ORIGINS = [
     'https://www.topteen.in',
@@ -562,7 +563,6 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240  # Increase if needed
 
 # S3 Bucket Configuration
 S3_BUCKET_PREFIX = config('S3_BUCKET_PREFIX', default='s3://topteenc/')
-S3_BUCKET_BASE_URL = config('S3_BUCKET_BASE_URL', default='https://topteenc.s3.ap-northeast-1.amazonaws.com/')
 S3_EBOOK_FOLDER = 'ebook'  # Folder path for ebooks in S3
 S3_FOUR_PILLARS_FOLDER = config('S3_FOUR_PILLARS_FOLDER', default='four_pillars')  # Folder for Four Pillars of Learning images in S3
 # Multiple Intelligences (MI) page: full base URL for MI images in S3 (e.g. https://bucket.s3.region.amazonaws.com/mi/). If unset, uses static/images_new/mi/
@@ -580,6 +580,25 @@ AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default='')
 AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default='')
 AWS_REGION = config('AWS_REGION', default='ap-northeast-1')
 AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default='topteenc')
+
+# CloudFront CDN in front of the S3 bucket (optional).
+# Set CLOUDFRONT_DOMAIN (or AWS_S3_CUSTOM_DOMAIN) to dxxxx.cloudfront.net or a custom alias (no scheme).
+# Then set S3_MEDIA_ACCESS_MODE=cloudfront so FileField/.url and S3_BUCKET_BASE_URL use the CDN.
+def _normalize_cdn_domain(raw):
+    value = (raw or '').strip()
+    for prefix in ('https://', 'http://'):
+        if value.lower().startswith(prefix):
+            value = value[len(prefix):]
+    return value.strip().strip('/')
+
+
+CLOUDFRONT_DOMAIN = _normalize_cdn_domain(
+    config('CLOUDFRONT_DOMAIN', default='') or config('AWS_S3_CUSTOM_DOMAIN', default='')
+)
+if CLOUDFRONT_DOMAIN:
+    _cf_origin = f'https://{CLOUDFRONT_DOMAIN}'
+    if _cf_origin not in CORS_ALLOWED_ORIGINS:
+        CORS_ALLOWED_ORIGINS.append(_cf_origin)
 
 # S3 File Upload Size Limit (in MB)
 S3_MAX_FILE_SIZE_MB = config('S3_MAX_FILE_SIZE_MB', default=2, cast=int)
@@ -599,7 +618,8 @@ _USE_S3 = USE_S3_FOR_MEDIA and bool(AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY)
 
 # S3 media access: how your website serves S3 media (applies to all media on the bucket).
 # - presigned: .url returns signed URLs (private bucket; only your app generates valid links; URLs expire in 1h).
-# - public: .url returns plain S3 URLs (bucket/objects must allow public GetObject).
+# - public: .url returns plain S3 URLs (or CloudFront if CLOUDFRONT_DOMAIN is set).
+# - cloudfront: .url returns https://{CLOUDFRONT_DOMAIN}/... (requires CLOUDFRONT_DOMAIN; use OAI/OAC or public origin).
 # - proxy: .url returns /media/s3/...; Django streams from S3 (bucket fully private; only your site can show files).
 S3_MEDIA_ACCESS_MODE = config('S3_MEDIA_ACCESS_MODE', default='presigned')
 # For proxy mode, S3 key prefix (must match storage "location"); used by s3_media_proxy view.
@@ -608,20 +628,38 @@ S3_MEDIA_LOCATION = config('S3_MEDIA_LOCATION', default='media')
 # Legacy: when S3_MEDIA_ACCESS_MODE is presigned/public, this controls querystring_auth.
 AWS_QUERYSTRING_AUTH = config('AWS_QUERYSTRING_AUTH', default=True, cast=bool)
 
+_S3_DIRECT_BASE_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/"
+_S3_BUCKET_BASE_URL_ENV = config('S3_BUCKET_BASE_URL', default='')
+_use_cloudfront = bool(CLOUDFRONT_DOMAIN) and S3_MEDIA_ACCESS_MODE in ('cloudfront', 'public')
+if _use_cloudfront:
+    S3_BUCKET_BASE_URL = f"https://{CLOUDFRONT_DOMAIN}/"
+elif _S3_BUCKET_BASE_URL_ENV:
+    S3_BUCKET_BASE_URL = _S3_BUCKET_BASE_URL_ENV if _S3_BUCKET_BASE_URL_ENV.endswith('/') else f"{_S3_BUCKET_BASE_URL_ENV}/"
+else:
+    S3_BUCKET_BASE_URL = _S3_DIRECT_BASE_URL
+
 if _USE_S3:
     _use_proxy = (S3_MEDIA_ACCESS_MODE == 'proxy')
-    _querystring_auth = False if _use_proxy else AWS_QUERYSTRING_AUTH
+    # CloudFront / public URLs must not append S3 signature query strings.
+    if _use_proxy or _use_cloudfront or S3_MEDIA_ACCESS_MODE == 'public':
+        _querystring_auth = False
+    else:
+        _querystring_auth = AWS_QUERYSTRING_AUTH
+    _storage_options = {
+        "bucket_name": AWS_STORAGE_BUCKET_NAME,
+        "region_name": AWS_REGION,
+        "location": S3_MEDIA_LOCATION,
+        "default_acl": "public-read",
+        "querystring_auth": _querystring_auth,
+        "querystring_expire": 3600,
+    }
+    if _use_cloudfront:
+        _storage_options["custom_domain"] = CLOUDFRONT_DOMAIN
+        AWS_S3_CUSTOM_DOMAIN = CLOUDFRONT_DOMAIN
     STORAGES = {
         "default": {
-            "BACKEND": "core.storage_backends.S3MediaStorage" if _use_proxy else "storages.backends.s3.S3Storage",
-            "OPTIONS": {
-                "bucket_name": AWS_STORAGE_BUCKET_NAME,
-                "region_name": AWS_REGION,
-                "location": S3_MEDIA_LOCATION,
-                "default_acl": "public-read",
-                "querystring_auth": _querystring_auth,
-                "querystring_expire": 3600,
-            },
+            "BACKEND": "core.storage_backends.S3MediaStorage" if (_use_proxy or _use_cloudfront) else "storages.backends.s3.S3Storage",
+            "OPTIONS": _storage_options,
         },
         "staticfiles": {
             "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
@@ -629,8 +667,10 @@ if _USE_S3:
     }
     if _use_proxy:
         MEDIA_URL = "/media/"
+    elif _use_cloudfront:
+        MEDIA_URL = f"https://{CLOUDFRONT_DOMAIN}/{S3_MEDIA_LOCATION}/"
     else:
-        MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/{S3_MEDIA_LOCATION}/"
+        MEDIA_URL = f"{_S3_DIRECT_BASE_URL}{S3_MEDIA_LOCATION}/"
     AWS_S3_REGION_NAME = AWS_REGION
     AWS_LOCATION = S3_MEDIA_LOCATION
     AWS_DEFAULT_ACL = "public-read"
