@@ -1,34 +1,37 @@
-from django.contrib import admin
-from django.http import JsonResponse
+from django.contrib import admin, messages
+from django.http import HttpResponseRedirect, JsonResponse
 from django.urls import path, reverse
 from django.utils.html import escape, format_html
 from django.utils.safestring import mark_safe
+from django.conf import settings as django_settings
 import html as html_module
 
 from communication.email_preview import render_admin_email_preview
 from communication.email_template_registry import get_email_template_meta
-from communication.forms import EmailMessageTemplateAdminForm
-from .models import CommunicationLog, EmailMessageTemplate, OTP
+from communication.forms import EmailMessageTemplateAdminForm, MessagingSettingsAdminForm
+from communication.messaging_config import (
+    is_production_messaging_env,
+    seed_messaging_settings_from_env,
+)
+from .models import CommunicationLog, EmailMessageTemplate, MessagingSettings, OTP
 from core import choices
 
 
-# Register your models here.
 class CommunicationLogAdmin(admin.ModelAdmin):
-    readonly_fields = ('created','id')
-    fields = ['created','to','body','type']
+    readonly_fields = ('created', 'id')
+    fields = ['created', 'to', 'body', 'type']
     date_hierarchy = 'created'
-    list_display = ['id', 'created','to','type','response']
-    sortable_by=['id', 'to','created']
+    list_display = ['id', 'created', 'to', 'type', 'response']
+    sortable_by = ['id', 'to', 'created']
     ordering = ['-id']
-    # list_editable=['name','email']
-    list_filter = ('created','type')
-    search_fields=['to','body']
-    list_display_links=['id','to']
+    list_filter = ('created', 'type')
+    search_fields = ['to', 'body']
+    list_display_links = ['id', 'to']
 
     def has_delete_permission(self, request, obj=None):
         return False
 
-    def has_add_permission(self, request, obj=None):
+    def has_add_permission(self, request):
         return False
 
     def get_queryset(self, request):
@@ -42,6 +45,230 @@ def _admin_pre_block(content):
         'style="color:#111111 !important;background:#ffffff !important;">{}</pre>',
         escape(content),
     )
+
+
+@admin.register(MessagingSettings)
+class MessagingSettingsAdmin(admin.ModelAdmin):
+    """Single page: SMS + WhatsApp channel, providers, templates, and API keys."""
+
+    form = MessagingSettingsAdminForm
+    change_form_template = 'admin/communication/messagingsettings/change_form.html'
+    list_display = ('active_channel', 'sms_provider', 'whatsapp_provider', 'updated_at')
+    readonly_fields = ('updated_at', 'runtime_status')
+
+    fieldsets = (
+        ('Active channel (only one)', {
+            'fields': (
+                'active_channel',
+                'sender_mode',
+                'force_send_non_production',
+                'runtime_status',
+            ),
+            'description': (
+                'Pick SMS only, WhatsApp only, or Disabled. '
+                'Without API keys the selected service stays disabled. '
+                'Testing/sandbox numbers are blocked when the app is in production.'
+            ),
+        }),
+        ('Providers (plug-and-play)', {
+            'fields': ('sms_provider', 'whatsapp_provider'),
+        }),
+        ('Message templates', {
+            'fields': (
+                'sms_message_template',
+                'whatsapp_otp_template',
+                'whatsapp_otp_template_lang',
+            ),
+            'description': (
+                'SMS text uses {otp}. WhatsApp uses a Meta-approved template name '
+                '(create/approve in Plivo console).'
+            ),
+        }),
+        ('SmartPing keys (SMS)', {
+            'fields': (
+                'smartping_api_url',
+                'smartping_username',
+                'smartping_password',
+                'smartping_from',
+                'smartping_dlt_content_id',
+                'smartping_dlt_principal_entity_id',
+                'smartping_unicode',
+            ),
+            'classes': ('collapse',),
+            'description': 'Required when SMS provider = SmartPing. Empty keys = SmartPing disabled.',
+        }),
+        ('Plivo keys (SMS + WhatsApp)', {
+            'fields': (
+                'plivo_auth_id',
+                'plivo_auth_token',
+                'plivo_sms_from',
+                'plivo_whatsapp_from',
+            ),
+            'description': (
+                'Required when provider = Plivo. Empty Auth ID/Token = Plivo disabled. '
+                'After saving Auth ID/Token, use “Fetch SMS numbers from Plivo” below. '
+                'WhatsApp From must be pasted from Plivo Console → WhatsApp (WABA number).'
+            ),
+        }),
+        ('Timestamps', {
+            'fields': ('updated_at',),
+        }),
+    )
+
+    def has_add_permission(self, request):
+        return not MessagingSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path(
+                '<path:object_id>/fetch-plivo-sms-from/',
+                self.admin_site.admin_view(self.fetch_plivo_sms_from_view),
+                name='communication_messagingsettings_fetch_plivo_sms',
+            ),
+        ]
+        return custom + urls
+
+    def fetch_plivo_sms_from_view(self, request, object_id):
+        from communication.providers import plivo as plivo_provider
+
+        obj = self.get_object(request, object_id) or MessagingSettings.load()
+        # Prefer posted/saved credentials from DB
+        if request.method == 'POST':
+            # Allow using freshly typed keys from the change form if posted
+            auth_id = (request.POST.get('plivo_auth_id') or obj.plivo_auth_id or '').strip()
+            auth_token = (request.POST.get('plivo_auth_token') or obj.plivo_auth_token or '').strip()
+            if auth_id:
+                obj.plivo_auth_id = auth_id
+            if auth_token:
+                obj.plivo_auth_token = auth_token
+
+        result = plivo_provider.list_account_numbers(
+            config=obj.provider_config_for('plivo'),
+            services='sms',
+        )
+        change_url = reverse('admin:communication_messagingsettings_change', args=[obj.pk])
+
+        if not result.get('success'):
+            messages.error(request, f"Could not fetch Plivo numbers: {result.get('error') or 'unknown error'}")
+            return HttpResponseRedirect(change_url)
+
+        numbers = result.get('numbers') or []
+        if not numbers:
+            messages.warning(
+                request,
+                'No SMS-capable numbers found on this Plivo account. '
+                'Buy/enable a number in Plivo Console → Phone Numbers, or enter an alphanumeric sender ID manually.',
+            )
+            return HttpResponseRedirect(change_url)
+
+        # Prefer filling empty field; if already set, still report options
+        chosen = numbers[0]['number']
+        listing = ', '.join(
+            f"{n['number']}" + (f" ({n['alias']})" if n.get('alias') else '')
+            for n in numbers[:10]
+        )
+        if not obj.plivo_sms_from.strip():
+            obj.plivo_sms_from = chosen
+            obj.save(update_fields=['plivo_sms_from', 'updated_at'])
+            messages.success(
+                request,
+                f'Plivo SMS From set to {chosen}. Account SMS numbers: {listing}',
+            )
+        else:
+            messages.info(
+                request,
+                f'Plivo SMS From is already “{obj.plivo_sms_from}”. '
+                f'Account SMS numbers (copy one if needed): {listing}',
+            )
+        if len(numbers) > 1:
+            messages.warning(
+                request,
+                'Multiple SMS numbers found — confirm the correct sender is selected.',
+            )
+        return HttpResponseRedirect(change_url)
+
+    def changelist_view(self, request, extra_context=None):
+        obj = MessagingSettings.load()
+        seed_messaging_settings_from_env(obj)
+        return HttpResponseRedirect(
+            reverse('admin:communication_messagingsettings_change', args=[obj.pk])
+        )
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        obj = self.get_object(request, object_id) or MessagingSettings.load()
+        extra_context.update(self._banner_context(obj))
+        return super().change_view(request, object_id, form_url, extra_context=extra_context)
+
+    def _banner_context(self, obj):
+        if not obj.sms_enabled:
+            sms_status = f'channel is {obj.get_active_channel_display()}'
+        elif not obj.provider_keys_ok(obj.sms_provider, for_whatsapp=False):
+            sms_status = obj.missing_keys_message(obj.sms_provider, for_whatsapp=False)
+        else:
+            sms_status = 'ready'
+        if not obj.whatsapp_enabled:
+            wa_status = f'channel is {obj.get_active_channel_display()}'
+        elif not obj.provider_keys_ok(obj.whatsapp_provider, for_whatsapp=True):
+            wa_status = obj.missing_keys_message(obj.whatsapp_provider, for_whatsapp=True)
+        else:
+            wa_status = 'ready'
+        return {
+            'messaging_environment': getattr(django_settings, 'ENVIRONMENT', ''),
+            'messaging_debug': django_settings.DEBUG,
+            'messaging_is_production': is_production_messaging_env(),
+            'messaging_sms_ready': obj.is_sms_ready(),
+            'messaging_wa_ready': obj.is_whatsapp_ready(),
+            'messaging_sms_status': sms_status,
+            'messaging_wa_status': wa_status,
+        }
+
+    @admin.display(description='Runtime status')
+    def runtime_status(self, obj):
+        if not obj:
+            return '—'
+        lines = [
+            f"Env: ENVIRONMENT={getattr(django_settings, 'ENVIRONMENT', '')} DEBUG={django_settings.DEBUG}",
+            f"Production messaging: {'yes' if is_production_messaging_env() else 'no'}",
+            f"Sender mode: {obj.get_sender_mode_display()}",
+            f"SMS ready: {'yes' if obj.is_sms_ready() else 'no'}",
+            f"WhatsApp ready: {'yes' if obj.is_whatsapp_ready() else 'no'}",
+        ]
+        block = obj.sender_mode_block_reason()
+        if block:
+            lines.append(f"Block: {block}")
+        return _admin_pre_block('\n'.join(lines))
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        if obj.sms_enabled and not obj.provider_keys_ok(obj.sms_provider, for_whatsapp=False):
+            messages.warning(
+                request,
+                'SMS channel selected but keys incomplete — SMS stays DISABLED until keys are added. '
+                + obj.missing_keys_message(obj.sms_provider, for_whatsapp=False),
+            )
+        if obj.whatsapp_enabled and not obj.provider_keys_ok(obj.whatsapp_provider, for_whatsapp=True):
+            messages.warning(
+                request,
+                'WhatsApp channel selected but keys incomplete — WhatsApp stays DISABLED until keys are added. '
+                + obj.missing_keys_message(obj.whatsapp_provider, for_whatsapp=True),
+            )
+        if (obj.is_sms_ready() or obj.is_whatsapp_ready()) and not is_production_messaging_env() and not obj.force_send_non_production and obj.sender_mode != MessagingSettings.SENDER_MODE_TESTING:
+            messages.info(
+                request,
+                'Keys look OK, but this is not production — real sends with production '
+                'numbers stay blocked (unless Force send non-production is on, or Sender mode is Testing).',
+            )
+        if obj.sender_mode == MessagingSettings.SENDER_MODE_TESTING and is_production_messaging_env():
+            messages.error(
+                request,
+                'Sender mode is Testing — SMS/WhatsApp will NOT send on this production environment. '
+                'Upgrade to live Plivo numbers and set Sender mode to Production.',
+            )
 
 
 @admin.register(EmailMessageTemplate)

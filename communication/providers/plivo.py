@@ -3,6 +3,8 @@ Plivo SMS + WhatsApp client (REST API via requests).
 
 Docs: https://www.plivo.com/docs/
 Console: https://manage.plivo.com/dashboard/
+
+Credentials come from ``config`` (admin MessagingSettings) with Django settings fallback.
 """
 from __future__ import annotations
 
@@ -13,20 +15,11 @@ from typing import Any, Dict, List, Optional
 import requests
 from django.conf import settings
 
+from communication.providers.base import BaseMessagingProvider, register_provider
+
 logger = logging.getLogger(__name__)
 
 PLIVO_API_BASE = 'https://api.plivo.com/v1/Account'
-
-
-def _auth_credentials() -> tuple[str, str]:
-    auth_id = (getattr(settings, 'PLIVO_AUTH_ID', None) or '').strip()
-    auth_token = (getattr(settings, 'PLIVO_AUTH_TOKEN', None) or '').strip()
-    return auth_id, auth_token
-
-
-def is_configured() -> bool:
-    auth_id, auth_token = _auth_credentials()
-    return bool(auth_id and auth_token)
 
 
 def to_e164(phone_number: str) -> str:
@@ -49,16 +42,28 @@ def to_e164(phone_number: str) -> str:
     return f'+{digits}'
 
 
+def _auth_credentials(config: Optional[Dict[str, Any]] = None) -> tuple[str, str]:
+    cfg = config or {}
+    auth_id = (cfg.get('auth_id') or getattr(settings, 'PLIVO_AUTH_ID', '') or '').strip()
+    auth_token = (cfg.get('auth_token') or getattr(settings, 'PLIVO_AUTH_TOKEN', '') or '').strip()
+    return auth_id, auth_token
+
+
+def is_configured(config: Optional[Dict[str, Any]] = None) -> bool:
+    auth_id, auth_token = _auth_credentials(config)
+    return bool(auth_id and auth_token)
+
+
 def _message_url(auth_id: str) -> str:
     return f'{PLIVO_API_BASE}/{auth_id}/Message/'
 
 
-def _post_message(payload: Dict[str, Any], timeout: int = 15) -> Dict[str, Any]:
-    auth_id, auth_token = _auth_credentials()
+def _post_message(payload: Dict[str, Any], config: Optional[Dict[str, Any]] = None, timeout: int = 15) -> Dict[str, Any]:
+    auth_id, auth_token = _auth_credentials(config)
     if not auth_id or not auth_token:
         return {
             'success': False,
-            'error': 'Plivo is not configured (set PLIVO_AUTH_ID and PLIVO_AUTH_TOKEN)',
+            'error': 'Plivo is not configured (set Auth ID and Auth Token in Messaging settings)',
             'response': '',
             'status_code': None,
             'message_uuid': None,
@@ -85,7 +90,6 @@ def _post_message(payload: Dict[str, Any], timeout: int = 15) -> Dict[str, Any]:
             elif isinstance(uuids, str):
                 message_uuid = uuids
 
-        # Plivo returns 202 Accepted on successful queue
         success = response.status_code in (200, 202) and not (
             isinstance(body, dict) and body.get('error')
         )
@@ -114,19 +118,89 @@ def _post_message(payload: Dict[str, Any], timeout: int = 15) -> Dict[str, Any]:
         }
 
 
+def list_account_numbers(
+    *,
+    config: Optional[Dict[str, Any]] = None,
+    services: str = 'sms',
+    limit: int = 20,
+    timeout: int = 15,
+) -> Dict[str, Any]:
+    """
+    List Plivo account phone numbers (SMS-capable by default).
+
+    GET /v1/Account/{auth_id}/Number/?services=sms
+    WhatsApp WABA numbers are in Plivo Console → WhatsApp (not this endpoint).
+    """
+    auth_id, auth_token = _auth_credentials(config)
+    if not auth_id or not auth_token:
+        return {
+            'success': False,
+            'error': 'Plivo Auth ID and Auth Token are required',
+            'numbers': [],
+        }
+
+    url = f'{PLIVO_API_BASE}/{auth_id}/Number/'
+    params = {'limit': limit, 'offset': 0}
+    if services:
+        params['services'] = services
+
+    try:
+        response = requests.get(
+            url,
+            params=params,
+            auth=(auth_id, auth_token),
+            timeout=timeout,
+        )
+        try:
+            body = response.json()
+        except ValueError:
+            body = {'raw': response.text}
+
+        if response.status_code != 200:
+            return {
+                'success': False,
+                'error': (body.get('error') if isinstance(body, dict) else None) or response.text,
+                'numbers': [],
+                'status_code': response.status_code,
+            }
+
+        objects = body.get('objects') if isinstance(body, dict) else None
+        numbers = []
+        for item in objects or []:
+            num = str(item.get('number') or '').strip()
+            if not num:
+                continue
+            numbers.append({
+                'number': to_e164(num),
+                'alias': item.get('alias') or '',
+                'type': item.get('type') or '',
+                'raw': item,
+            })
+        return {
+            'success': True,
+            'numbers': numbers,
+            'status_code': response.status_code,
+            'error': None,
+        }
+    except requests.RequestException as exc:
+        logger.exception('Plivo list numbers failed')
+        return {'success': False, 'error': str(exc), 'numbers': []}
+
+
 def send_sms(
     to_number: str,
     text: str,
     *,
     src: Optional[str] = None,
+    config: Optional[Dict[str, Any]] = None,
     timeout: int = 15,
 ) -> Dict[str, Any]:
-    """Send a transactional SMS via Plivo."""
-    src = (src or getattr(settings, 'PLIVO_SMS_FROM', '') or '').strip()
+    cfg = config or {}
+    src = (src or cfg.get('sms_from') or getattr(settings, 'PLIVO_SMS_FROM', '') or '').strip()
     if not src:
         return {
             'success': False,
-            'error': 'PLIVO_SMS_FROM is not set',
+            'error': 'Plivo SMS From is not set',
             'response': '',
             'status_code': None,
             'message_uuid': None,
@@ -137,11 +211,12 @@ def send_sms(
         'dst': to_e164(to_number),
         'text': text,
     }
-    # Alphanumeric sender IDs (India etc.) must stay as-is, not E.164
     if not src.startswith('+') and not src.isdigit():
         payload['src'] = src
 
-    return _post_message(payload, timeout=timeout)
+    result = _post_message(payload, config=cfg, timeout=timeout)
+    result['log_key'] = f"plivo:sms:{payload['dst']}:{text}"
+    return result
 
 
 def send_whatsapp_text(
@@ -149,17 +224,15 @@ def send_whatsapp_text(
     text: str,
     *,
     src: Optional[str] = None,
+    config: Optional[Dict[str, Any]] = None,
     timeout: int = 15,
 ) -> Dict[str, Any]:
-    """
-    Send a free-form WhatsApp message (only valid inside an open customer-care window).
-    Prefer send_whatsapp_template for outbound OTPs / first contact.
-    """
-    src = (src or getattr(settings, 'PLIVO_WHATSAPP_FROM', '') or '').strip()
+    cfg = config or {}
+    src = (src or cfg.get('whatsapp_from') or getattr(settings, 'PLIVO_WHATSAPP_FROM', '') or '').strip()
     if not src:
         return {
             'success': False,
-            'error': 'PLIVO_WHATSAPP_FROM is not set',
+            'error': 'Plivo WhatsApp From is not set',
             'response': '',
             'status_code': None,
             'message_uuid': None,
@@ -171,7 +244,9 @@ def send_whatsapp_text(
         'type': 'whatsapp',
         'text': text,
     }
-    return _post_message(payload, timeout=timeout)
+    result = _post_message(payload, config=cfg, timeout=timeout)
+    result['log_key'] = f"plivo:whatsapp-text:{payload['dst']}"
+    return result
 
 
 def send_whatsapp_template(
@@ -181,29 +256,29 @@ def send_whatsapp_template(
     language: Optional[str] = None,
     body_params: Optional[List[str]] = None,
     src: Optional[str] = None,
+    auth_copy_code: bool = False,
+    config: Optional[Dict[str, Any]] = None,
     timeout: int = 15,
 ) -> Dict[str, Any]:
-    """
-    Send an approved WhatsApp template message (required to start a conversation).
-
-    body_params are mapped to sequential body text placeholders in the template.
-    """
-    src = (src or getattr(settings, 'PLIVO_WHATSAPP_FROM', '') or '').strip()
+    cfg = config or {}
+    src = (src or cfg.get('whatsapp_from') or getattr(settings, 'PLIVO_WHATSAPP_FROM', '') or '').strip()
     template_name = (
         template_name
+        or cfg.get('whatsapp_otp_template')
         or getattr(settings, 'PLIVO_WHATSAPP_OTP_TEMPLATE', '')
         or ''
     ).strip()
     language = (
         language
-        or getattr(settings, 'PLIVO_WHATSAPP_OTP_TEMPLATE_LANG', 'en_US')
-        or 'en_US'
+        or cfg.get('whatsapp_otp_template_lang')
+        or getattr(settings, 'PLIVO_WHATSAPP_OTP_TEMPLATE_LANG', 'en')
+        or 'en'
     ).strip()
 
     if not src:
         return {
             'success': False,
-            'error': 'PLIVO_WHATSAPP_FROM is not set',
+            'error': 'Plivo WhatsApp From is not set',
             'response': '',
             'status_code': None,
             'message_uuid': None,
@@ -211,7 +286,7 @@ def send_whatsapp_template(
     if not template_name:
         return {
             'success': False,
-            'error': 'PLIVO_WHATSAPP_OTP_TEMPLATE is not set (approved template name required)',
+            'error': 'WhatsApp OTP template name is not set',
             'response': '',
             'status_code': None,
             'message_uuid': None,
@@ -223,6 +298,14 @@ def send_whatsapp_template(
             'type': 'body',
             'parameters': [{'type': 'text', 'text': str(p)} for p in body_params],
         })
+        if auth_copy_code:
+            otp_code = str(body_params[0])
+            components.append({
+                'type': 'button',
+                'sub_type': 'url',
+                'index': '0',
+                'parameters': [{'type': 'text', 'text': otp_code}],
+            })
 
     template: Dict[str, Any] = {
         'name': template_name,
@@ -237,4 +320,43 @@ def send_whatsapp_template(
         'type': 'whatsapp',
         'template': template,
     }
-    return _post_message(payload, timeout=timeout)
+    result = _post_message(payload, config=cfg, timeout=timeout)
+    result['log_key'] = f"plivo:whatsapp-tpl:{payload['dst']}:{template_name}"
+    return result
+
+
+class PlivoProvider(BaseMessagingProvider):
+    key = 'plivo'
+    label = 'Plivo'
+    supports_sms = True
+    supports_whatsapp = True
+
+    def send_sms(self, to_number, text, *, config=None, timeout=15):
+        return send_sms(to_number, text, config=config, timeout=timeout)
+
+    def send_whatsapp_template(
+        self,
+        to_number,
+        *,
+        template_name,
+        language='en',
+        body_params=None,
+        auth_copy_code=False,
+        config=None,
+        timeout=15,
+    ):
+        return send_whatsapp_template(
+            to_number,
+            template_name=template_name,
+            language=language,
+            body_params=body_params,
+            auth_copy_code=auth_copy_code,
+            config=config,
+            timeout=timeout,
+        )
+
+    def send_whatsapp_text(self, to_number, text, *, config=None, timeout=15):
+        return send_whatsapp_text(to_number, text, config=config, timeout=timeout)
+
+
+register_provider(PlivoProvider())
