@@ -15,11 +15,19 @@ def _ensure_indexable(request):
 
 def robots_txt(request):
     if not resolve_allow_search_engine_index(request):
+        # Keep search engines out, but allow Meta crawlers so Facebook Login /
+        # Sharing Debugger can fetch og:* tags and validate the website URL.
         lines = [
+            "User-agent: facebookexternalhit",
+            "Allow: /",
+            "",
+            "User-agent: Facebot",
+            "Allow: /",
+            "",
             "User-agent: *",
             "Disallow: /",
         ]
-        return HttpResponse("\n".join(lines), content_type="text/plain")
+        return HttpResponse("\n".join(lines) + "\n", content_type="text/plain")
 
     sitemap_url = request.build_absolute_uri(reverse("sitemap"))
     try:
