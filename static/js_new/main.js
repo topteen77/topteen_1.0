@@ -1117,6 +1117,32 @@ function showTranslateComplexityStatus(message, isError) {
 
 var ttComplexityRequestToken = 0;
 
+function parseTranslateComplexityResponse(response) {
+  return response.text().then(function (raw) {
+    var text = (raw || '').trim();
+    if (!text) {
+      return { ok: false, error: 'Empty response from reading-level service' };
+    }
+    // HTML login/error pages start with "<" — never pass them to JSON.parse.
+    if (text.charAt(0) === '<') {
+      return {
+        ok: false,
+        error: response.status === 401 || response.status === 403
+          ? 'Session expired — refresh and try again'
+          : 'Reading-level service returned an HTML error page'
+      };
+    }
+    try {
+      return JSON.parse(text);
+    } catch (err) {
+      return {
+        ok: false,
+        error: 'Reading-level service returned invalid JSON'
+      };
+    }
+  });
+}
+
 function applyTranslateComplexity(langCode, level) {
   if (!window.TT_TRANSLATE_COMPLEXITY_ENABLED || !langCode || langCode === 'en') {
     return Promise.resolve();
@@ -1136,6 +1162,8 @@ function applyTranslateComplexity(langCode, level) {
 
   var batches = chunkArray(items, 20);
   var chain = Promise.resolve();
+  var appliedAny = false;
+  var softFail = false;
 
   batches.forEach(function (batch) {
     chain = chain.then(function () {
@@ -1147,6 +1175,8 @@ function applyTranslateComplexity(langCode, level) {
         credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
           'X-CSRFToken': getCsrfToken()
         },
         body: JSON.stringify({
@@ -1155,19 +1185,24 @@ function applyTranslateComplexity(langCode, level) {
           level: level
         })
       }).then(function (response) {
-        return response.json().then(function (payload) {
+        return parseTranslateComplexityResponse(response).then(function (payload) {
           if (requestToken !== ttComplexityRequestToken) {
             return;
           }
-          if (!response.ok || !payload.ok) {
-            throw new Error((payload && payload.error) || 'Adjustment failed');
+          if (!response.ok || !payload || !payload.ok || !Array.isArray(payload.texts)) {
+            // Keep Google Translate text; do not surface raw JSON.parse errors.
+            softFail = true;
+            return;
           }
           payload.texts.forEach(function (value, index) {
             if (value && batch[index] && batch[index].el) {
               batch[index].el.textContent = value;
+              appliedAny = true;
             }
           });
         });
+      }).catch(function () {
+        softFail = true;
       });
     });
   });
@@ -1176,13 +1211,13 @@ function applyTranslateComplexity(langCode, level) {
     if (requestToken !== ttComplexityRequestToken) {
       return;
     }
-    var label = level.charAt(0).toUpperCase() + level.slice(1);
-    showTranslateComplexityStatus(label + ' reading level applied', false);
-  }).catch(function (error) {
-    if (requestToken !== ttComplexityRequestToken) {
-      return;
+    if (appliedAny) {
+      var label = level.charAt(0).toUpperCase() + level.slice(1);
+      showTranslateComplexityStatus(label + ' reading level applied', false);
+    } else if (softFail) {
+      // Silent: language translation still works via Google Translate.
+      showTranslateComplexityStatus('Using standard translation', false);
     }
-    showTranslateComplexityStatus(error.message || 'Could not adjust reading level', true);
   });
 }
 

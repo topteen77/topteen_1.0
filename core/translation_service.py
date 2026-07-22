@@ -37,15 +37,55 @@ def _cache_key(text, target_lang, level):
     return f'tt_translate_complexity:{digest}'
 
 
-def _parse_json_array(raw):
+def _strip_code_fences(raw):
     raw = (raw or '').strip()
     if raw.startswith('```'):
-        raw = re.sub(r'^```(?:json)?\s*', '', raw)
+        raw = re.sub(r'^```(?:json)?\s*', '', raw, flags=re.IGNORECASE)
         raw = re.sub(r'\s*```$', '', raw)
-    data = json.loads(raw)
+    return raw.strip()
+
+
+def _extract_json_blob(raw):
+    """Pull the first JSON object or array from messy model output."""
+    raw = _strip_code_fences(raw)
+    if not raw:
+        raise ValueError('Empty model response')
+
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        pass
+
+    for opener, closer in (('{', '}'), ('[', ']')):
+        start = raw.find(opener)
+        end = raw.rfind(closer)
+        if start == -1 or end <= start:
+            continue
+        candidate = raw[start : end + 1]
+        try:
+            return json.loads(candidate)
+        except json.JSONDecodeError:
+            continue
+
+    raise ValueError('Model response was not valid JSON')
+
+
+def _coerce_texts_list(data, expected_len):
+    if isinstance(data, dict):
+        if isinstance(data.get('texts'), list):
+            data = data['texts']
+        else:
+            raise ValueError('Expected JSON object with a "texts" array')
     if not isinstance(data, list):
-        raise ValueError('Expected JSON array')
-    return [str(item) if item is not None else '' for item in data]
+        raise ValueError('Expected JSON array of strings')
+    items = [str(item) if item is not None else '' for item in data]
+    if len(items) != expected_len:
+        raise ValueError(f'Expected {expected_len} segments, got {len(items)}')
+    return items
+
+
+def _parse_adjusted_texts(raw, expected_len):
+    return _coerce_texts_list(_extract_json_blob(raw), expected_len)
 
 
 def _call_gemini(prompt):
@@ -55,13 +95,17 @@ def _call_gemini(prompt):
     genai.configure(api_key=api_key)
     model_name = getattr(settings, 'GEMINI_MODEL', 'gemini-1.5-flash')
     model = genai.GenerativeModel(model_name)
-    response = model.generate_content(
-        prompt,
-        generation_config={
-            'temperature': 0.2,
-            'max_output_tokens': 4096,
-        },
-    )
+    generation_config = {
+        'temperature': 0.2,
+        'max_output_tokens': 4096,
+        'response_mime_type': 'application/json',
+    }
+    try:
+        response = model.generate_content(prompt, generation_config=generation_config)
+    except Exception as exc:
+        logger.warning('Gemini JSON mime type unavailable, retrying plain: %s', exc)
+        generation_config.pop('response_mime_type', None)
+        response = model.generate_content(prompt, generation_config=generation_config)
     return (response.text or '').strip()
 
 
@@ -70,17 +114,29 @@ def _call_openai(prompt):
 
     client = openai.OpenAI(api_key=getattr(settings, 'OPENAI_API_KEY', ''))
     model_name = getattr(settings, 'OPENAI_MODEL', 'gpt-4o-mini')
-    response = client.chat.completions.create(
-        model=model_name,
-        temperature=0.2,
-        messages=[
+    kwargs = {
+        'model': model_name,
+        'temperature': 0.2,
+        'messages': [
             {
                 'role': 'system',
-                'content': 'You return only valid JSON arrays of strings.',
+                'content': (
+                    'You return only valid JSON objects shaped like '
+                    '{"texts": ["...", "..."]} with no markdown or commentary.'
+                ),
             },
             {'role': 'user', 'content': prompt},
         ],
-    )
+    }
+    # Prefer JSON object mode when the model supports it; fall back if not.
+    try:
+        response = client.chat.completions.create(
+            response_format={'type': 'json_object'},
+            **kwargs,
+        )
+    except Exception as exc:
+        logger.warning('OpenAI json_object mode unavailable, retrying plain: %s', exc)
+        response = client.chat.completions.create(**kwargs)
     return (response.choices[0].message.content or '').strip()
 
 
@@ -120,10 +176,35 @@ def _batch_indices(items):
     return batches
 
 
+def _adjust_batch_with_retry(batch_texts, target_lang, level):
+    """
+    Call the model (retry once). On persistent failure return originals so the
+    page keeps Google Translate output instead of surfacing a JSON error.
+    """
+    prompt = build_adjustment_prompt(batch_texts, target_lang, level)
+    last_error = None
+    for attempt in range(2):
+        try:
+            raw = _call_model(prompt)
+            return _parse_adjusted_texts(raw, len(batch_texts))
+        except Exception as exc:
+            last_error = exc
+            logger.warning(
+                'Translation complexity attempt %s failed: %s',
+                attempt + 1,
+                exc,
+            )
+    logger.exception(
+        'Translation complexity adjustment failed after retries; keeping originals: %s',
+        last_error,
+    )
+    return list(batch_texts)
+
+
 def adjust_text_complexity(texts, target_lang, level):
     """
     Return adjusted text segments for the given complexity level.
-    Medium returns inputs unchanged.
+    Medium returns inputs unchanged. Model/parse failures keep originals.
     """
     if not texts:
         return []
@@ -151,22 +232,13 @@ def adjust_text_complexity(texts, target_lang, level):
 
     for batch in _batch_indices([(i, t) for i, t, _ in uncached]):
         batch_texts = [text for _, text in batch]
-        prompt = build_adjustment_prompt(batch_texts, target_lang, level)
-        try:
-            raw = _call_model(prompt)
-            adjusted = _parse_json_array(raw)
-        except Exception as exc:
-            logger.exception('Translation complexity adjustment failed: %s', exc)
-            raise
+        adjusted = _adjust_batch_with_retry(batch_texts, target_lang, level)
 
-        if len(adjusted) != len(batch_texts):
-            raise ValueError(
-                f'Expected {len(batch_texts)} segments, got {len(adjusted)}'
-            )
-
-        for (index, _), value in zip(batch, adjusted):
+        for (index, original), value in zip(batch, adjusted):
             results[index] = value
-            cache_key = _cache_key(normalized[index], target_lang, level)
-            cache.set(cache_key, value, _CACHE_TTL)
+            # Only cache successful rewrites (not silent fallbacks).
+            if value and value != original:
+                cache_key = _cache_key(normalized[index], target_lang, level)
+                cache.set(cache_key, value, _CACHE_TTL)
 
     return results
