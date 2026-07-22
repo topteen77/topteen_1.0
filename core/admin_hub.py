@@ -136,16 +136,22 @@ CONFIGURATION_SECTIONS: list[HubSection] = [
         title="AI tokens & freemium",
         description="Sellable AI packs, USD→INR pricing, role free quotas, wallets, and billing.",
         instruction=(
-            "1) Set USD→INR rate in LLM pricing settings. "
+            "1) Open “Shop display (rate & notes)” to set USD→INR and hide "
+            "“Current rate” / conversion notes on /ai-tokens/. "
             "2) Edit LLM token packages (use-case lines buyers see). "
             "3) Set monthly free tokens per role. "
             "4) Use admin grants / wallets for one-off top-ups. "
             "5) Open AI Cost / LLM Billing for spend vs pack sales."
         ),
         links=[
+            _named(
+                "Shop display (rate & notes)",
+                "admin:core_configuration_llm_shop_display",
+                "Hide Current rate / conversion notes on /ai-tokens/; set USD→INR and price visibility.",
+            ),
             _named("AI Cost / LLM Billing", "admin:core_configuration_llm_billing", "Token usage and estimated provider spend vs pack sales."),
             _model("LLM token packages", "core", "LLMTokenPackage", "Spark/Boost/Power packs — buyer use cases + USD price."),
-            _model("LLM pricing settings", "core", "LLMPricingSettings", "USD-INR rate and show/hide INR, USD, rate, conversion note."),
+            _model("LLM pricing settings", "core", "LLMPricingSettings", "Same FX + show/hide toggles (model record)."),
             _model("LLM role quotas", "core", "LLMRoleQuotaDefault", "Default monthly free tokens per role (student, staff, …)."),
             _model("LLM admin grants", "core", "LLMAdminGrant", "Manually grant AI tokens to any user."),
             _model("User LLM wallets", "core", "UserLLMWallet", "Per-user AI token balances."),

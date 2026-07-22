@@ -140,6 +140,44 @@ class Class12AptitudeReportSettingsForm(forms.Form):
     )
 
 
+class LLMShopDisplaySettingsForm(forms.Form):
+    """Show/hide FX rate and conversion note on the buyer /ai-tokens/ shop."""
+
+    usd_to_inr_rate = forms.DecimalField(
+        max_digits=10,
+        decimal_places=4,
+        min_value=0.0001,
+        label='USD → INR rate',
+        help_text='Used to convert package USD list prices into INR at checkout.',
+    )
+    show_price_inr = forms.BooleanField(
+        required=False,
+        label='Show INR price on shop',
+        help_text='Buyer-facing ₹ amount on /ai-tokens/ and checkout.',
+    )
+    show_price_usd = forms.BooleanField(
+        required=False,
+        label='Show USD price on shop',
+        help_text='Buyer-facing $ amount under each pack (e.g. $0.59).',
+    )
+    show_exchange_rate = forms.BooleanField(
+        required=False,
+        label='Show “Current rate: 1 USD = ₹ …” on shop',
+        help_text='Uncheck to hide the exchange rate under the balance and on each pack card.',
+    )
+    show_conversion_note = forms.BooleanField(
+        required=False,
+        label='Show conversion notes box on shop',
+        help_text='Uncheck to hide the grey USD→INR explanation box at the bottom of /ai-tokens/.',
+    )
+    conversion_note = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'rows': 4}),
+        label='Conversion note text',
+        help_text='Only shown when “Show conversion notes box” is checked.',
+    )
+
+
 class WebsiteSettingsForm(forms.Form):
     """Form for core website settings (Admin-managed)."""
     ENABLE_CAREER_MINDMAP = forms.BooleanField(
@@ -398,6 +436,11 @@ class ConfigurationAdmin(admin.ModelAdmin):
             path('language-bar-settings/', self.admin_site.admin_view(self.language_bar_settings_view), name='core_configuration_language_bar_settings'),
             path('dashboard-statistics/', self.admin_site.admin_view(self.dashboard_statistics_view), name='core_configuration_dashboard_statistics'),
             path('llm-billing/', self.admin_site.admin_view(self.llm_billing_view), name='core_configuration_llm_billing'),
+            path(
+                'llm-shop-display/',
+                self.admin_site.admin_view(self.llm_shop_display_settings_view),
+                name='core_configuration_llm_shop_display',
+            ),
         ]
         return custom + urls
 
@@ -763,6 +806,48 @@ class ConfigurationAdmin(admin.ModelAdmin):
             'days_options': [7, 14, 30, 90, 180],
         }
         return render(request, 'admin/core/configuration/llm_billing.html', context)
+
+    def llm_shop_display_settings_view(self, request):
+        """Toggle buyer-facing rate / notes on /ai-tokens/ (and related checkout UI)."""
+        from core.models import LLMPricingSettings
+
+        settings_row = LLMPricingSettings.load()
+        if request.method == 'POST':
+            form = LLMShopDisplaySettingsForm(request.POST)
+            if form.is_valid():
+                settings_row.usd_to_inr_rate = form.cleaned_data['usd_to_inr_rate']
+                settings_row.show_price_inr = bool(form.cleaned_data.get('show_price_inr'))
+                settings_row.show_price_usd = bool(form.cleaned_data.get('show_price_usd'))
+                settings_row.show_exchange_rate = bool(form.cleaned_data.get('show_exchange_rate'))
+                settings_row.show_conversion_note = bool(form.cleaned_data.get('show_conversion_note'))
+                settings_row.conversion_note = (form.cleaned_data.get('conversion_note') or '').strip()
+                settings_row.save()
+                messages.success(
+                    request,
+                    'AI token shop display settings saved. Refresh /ai-tokens/ to verify.',
+                )
+                return redirect('admin:core_configuration_llm_shop_display')
+        else:
+            form = LLMShopDisplaySettingsForm(
+                initial={
+                    'usd_to_inr_rate': settings_row.usd_to_inr_rate,
+                    'show_price_inr': settings_row.show_price_inr,
+                    'show_price_usd': settings_row.show_price_usd,
+                    'show_exchange_rate': settings_row.show_exchange_rate,
+                    'show_conversion_note': settings_row.show_conversion_note,
+                    'conversion_note': settings_row.conversion_note,
+                }
+            )
+
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'AI token shop display (rate & notes)',
+            'form': form,
+            'opts': self.model._meta,
+            'shop_url': '/ai-tokens/',
+            'packages_url': reverse('admin:core_llmtokenpackage_changelist'),
+        }
+        return render(request, 'admin/core/configuration/llm_shop_display_settings.html', context)
 
 
 class CityAdmin(admin.ModelAdmin):
