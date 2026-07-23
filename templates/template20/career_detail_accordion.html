@@ -81,29 +81,103 @@
   .cat-main-content th,
   .cat-main-content thead,
   .cat-main-content tr {
-    border-color: inherit;
+    border-color: #e4e7fb;
     border-style: solid;
-    border-width: 1px;
+    border-width: 0;
     font-weight: 400;
+    font-size: 15px;
+  }
+
+  .cat-main-content table,
+  .blogDetail.careerDetail table,
+  .cat-accordion .accordion-body table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 1.25rem 0;
+    background: #fff;
+    border: 1px solid #e4e7fb;
+    border-radius: 12px;
+    overflow: hidden;
+    table-layout: fixed;
+  }
+
+  .cat-main-content table th,
+  .cat-main-content table td,
+  .blogDetail.careerDetail table th,
+  .blogDetail.careerDetail table td,
+  .cat-accordion .accordion-body table th,
+  .cat-accordion .accordion-body table td {
+    padding: 14px 18px;
+    line-height: 1.6;
+    vertical-align: top;
+    border: 1px solid #e8eaf6;
+    color: #2d2a4a;
+    word-break: break-word;
+    hyphens: auto;
+  }
+
+  .cat-main-content table tr:first-child th,
+  .cat-main-content table tr:first-child td,
+  .blogDetail.careerDetail table tr:first-child th,
+  .blogDetail.careerDetail table tr:first-child td,
+  .cat-accordion .accordion-body table tr:first-child th,
+  .cat-accordion .accordion-body table tr:first-child td {
+    background: #f2f0ff;
+    font-weight: 600;
+    color: #3f37c9;
+    text-align: center;
     font-size: 16px;
+    padding: 16px 18px;
+  }
+
+  .cat-main-content table tbody tr:nth-child(even) td,
+  .blogDetail.careerDetail table tbody tr:nth-child(even) td,
+  .cat-accordion .accordion-body table tbody tr:nth-child(even) td {
+    background: #fafbff;
   }
 
   .cat-main-content .table tr:first-child {
-    background: #F2F0FF;
+    background: #f2f0ff;
   }
 
   .cat-main-content .table tr th,
   .cat-main-content .table tr td {
-    padding: 8px;
+    padding: 14px 18px;
   }
 
-  .cat-main-content .table tr td p {
-    margin: 0px;
+  .cat-main-content .table tr td p,
+  .blogDetail.careerDetail table td p,
+  .cat-accordion .accordion-body table td p {
+    margin: 0;
+    line-height: 1.6;
   }
 
-  .cat-main-content .table tr td a {
+  .cat-main-content .table tr td a,
+  .blogDetail.careerDetail table td a {
     color: #5046E5;
     text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    .cat-main-content table,
+    .blogDetail.careerDetail table,
+    .cat-accordion .accordion-body table {
+      display: block;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .cat-main-content table th,
+    .cat-main-content table td,
+    .blogDetail.careerDetail table th,
+    .blogDetail.careerDetail table td,
+    .cat-accordion .accordion-body table th,
+    .cat-accordion .accordion-body table td {
+      padding: 12px 14px;
+      font-size: 14px;
+      min-width: 140px;
+    }
   }
 
   .cat-main-content ol li {
@@ -1601,7 +1675,7 @@
       <div class="col-lg-4">
         <!-- Knowledge & Skills You Will Learn Sidebar -->
         {% if (infographics.skills_industry_trends and infographics.skills_industry_trends.skills) or career.skills.all() %}
-        <div class="skills-sidebar-card mb-4">
+        <div class="skills-sidebar-card mb-4 d-none">
           <div class="skills-sidebar-header">
             <div class="skills-icon-wrapper">
               <i class='bx bx-brain'></i>
