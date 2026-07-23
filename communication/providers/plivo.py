@@ -187,6 +187,116 @@ def list_account_numbers(
         return {'success': False, 'error': str(exc), 'numbers': []}
 
 
+<<<<<<< HEAD
+=======
+def list_whatsapp_templates(
+    *,
+    waba_id: str,
+    config: Optional[Dict[str, Any]] = None,
+    name: Optional[str] = None,
+    limit: int = 20,
+    timeout: int = 20,
+) -> Dict[str, Any]:
+    """List WhatsApp templates for a WABA (Plivo Templates API)."""
+    auth_id, auth_token = _auth_credentials(config)
+    waba_id = (waba_id or '').strip()
+    if not auth_id or not auth_token:
+        return {'success': False, 'error': 'Plivo Auth ID and Auth Token are required', 'templates': []}
+    if not waba_id:
+        return {
+            'success': False,
+            'error': 'Plivo WABA ID is required (Plivo Console → WhatsApp Business Account)',
+            'templates': [],
+        }
+
+    url = f'{PLIVO_API_BASE}/{auth_id}/WhatsApp/Template/{waba_id}/'
+    params = {'limit': limit, 'offset': 0}
+    if name:
+        params['name'] = name
+
+    try:
+        response = requests.get(url, params=params, auth=(auth_id, auth_token), timeout=timeout)
+        try:
+            body = response.json()
+        except ValueError:
+            body = {'raw': response.text}
+        if response.status_code != 200:
+            return {
+                'success': False,
+                'error': (body.get('error') if isinstance(body, dict) else None) or response.text,
+                'templates': [],
+                'status_code': response.status_code,
+            }
+        templates = []
+        for item in (body.get('objects') if isinstance(body, dict) else None) or []:
+            templates.append({
+                'template_id': str(item.get('template_id') or ''),
+                'name': item.get('name') or '',
+                'language': item.get('language') or '',
+                'category': (item.get('category') or '').upper(),
+                'status': (item.get('status') or '').upper(),
+                'raw': item,
+            })
+        return {'success': True, 'templates': templates, 'error': None, 'status_code': response.status_code}
+    except requests.RequestException as exc:
+        logger.exception('Plivo list WhatsApp templates failed')
+        return {'success': False, 'error': str(exc), 'templates': []}
+
+
+def get_whatsapp_template(
+    *,
+    waba_id: str,
+    template_id: str,
+    config: Optional[Dict[str, Any]] = None,
+    timeout: int = 20,
+) -> Dict[str, Any]:
+    """Fetch one template including BODY preview text."""
+    auth_id, auth_token = _auth_credentials(config)
+    waba_id = (waba_id or '').strip()
+    template_id = (template_id or '').strip()
+    if not auth_id or not auth_token:
+        return {'success': False, 'error': 'Plivo Auth ID and Auth Token are required'}
+    if not waba_id or not template_id:
+        return {'success': False, 'error': 'WABA ID and template_id are required'}
+
+    url = f'{PLIVO_API_BASE}/{auth_id}/WhatsApp/Template/{waba_id}/{template_id}/'
+    try:
+        response = requests.get(url, auth=(auth_id, auth_token), timeout=timeout)
+        try:
+            body = response.json()
+        except ValueError:
+            body = {'raw': response.text}
+        if response.status_code != 200:
+            return {
+                'success': False,
+                'error': (body.get('error') if isinstance(body, dict) else None) or response.text,
+                'status_code': response.status_code,
+            }
+        preview = ''
+        for comp in body.get('components') or []:
+            if (comp.get('type') or '').upper() == 'BODY' and comp.get('text'):
+                preview = comp.get('text')
+                break
+        if not preview and (body.get('category') or '').upper() == 'AUTHENTICATION':
+            preview = (
+                '{{1}} is your verification code. For your security, do not share this code.'
+            )
+        return {
+            'success': True,
+            'template': body,
+            'preview': preview,
+            'name': body.get('name') or '',
+            'language': body.get('language') or '',
+            'status': (body.get('status') or '').upper(),
+            'category': (body.get('category') or '').upper(),
+            'error': None,
+        }
+    except requests.RequestException as exc:
+        logger.exception('Plivo get WhatsApp template failed')
+        return {'success': False, 'error': str(exc)}
+
+
+>>>>>>> institutedashboard
 def send_sms(
     to_number: str,
     text: str,

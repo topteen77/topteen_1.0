@@ -851,11 +851,14 @@ class Videos(BaseModel,SlugModel):
     
     
     def get_video_or_url(self):
+        from core.s3_utils import rewrite_s3_url_to_cdn
+
         if self.link:
-            return self.link
+            # Legacy rows store absolute S3 URLs; rewrite to CloudFront when enabled.
+            return rewrite_s3_url_to_cdn(self.link)
         if self.upload_video:
-            return self.upload_video.url
-            
+            return rewrite_s3_url_to_cdn(self.upload_video.url)
+
         raise Exception('No video found')
 
     def get_caption_vtt_url(self):

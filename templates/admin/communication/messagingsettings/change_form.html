@@ -2,6 +2,7 @@
 {% load i18n %}
 
 {% block content %}
+<<<<<<< HEAD
 <div class="messaging-settings-banners" style="max-width:960px;margin:0 0 20px;">
   <div style="border:2px solid #b45309;background:#fffbeb;color:#78350f;padding:14px 16px;border-radius:8px;margin-bottom:12px;">
     <strong style="display:block;margin-bottom:6px;font-size:1.05em;">Production only</strong>
@@ -97,6 +98,106 @@
     </form>
     {% endif %}
   </div>
+=======
+<div class="messaging-flow" style="max-width:960px;margin:0 0 24px;font-family:system-ui,sans-serif;">
+  <div style="border:1px solid #d1d5db;background:#f8fafc;padding:16px 18px;border-radius:10px;margin-bottom:14px;">
+    <strong style="display:block;margin-bottom:8px;font-size:1.1em;">Setup flow</strong>
+    <ol style="margin:0;padding-left:1.3em;line-height:1.55;color:#111;">
+      <li>Select service — WhatsApp or SMS</li>
+      <li>Select provider + enter API keys</li>
+      <li>Fetch / confirm approved template</li>
+      <li style="list-style-type:none;margin-left:-1.3em;padding-left:1.3em;">
+        <strong>3a.</strong> Choose Production or Sandbox —
+        Production → Save + Test button; Sandbox → test button only
+      </li>
+      <li>Fetch From numbers (if available)</li>
+      <li>No number → Sandbox testing; number present → Production sends</li>
+    </ol>
+    <p style="margin:10px 0 0;font-size:0.92em;color:#374151;">
+      App env (read-only): ENVIRONMENT=<code>{{ messaging_environment }}</code>
+      · DEBUG=<code>{{ messaging_debug }}</code>
+      · Production messaging:
+      {% if messaging_is_production %}<strong style="color:#166534;">YES</strong>
+      {% else %}<strong style="color:#9a3412;">NO</strong>{% endif %}
+    </p>
+  </div>
+
+  {% if messaging_flow_steps %}
+  <div style="display:grid;gap:8px;margin-bottom:14px;">
+    {% for step in messaging_flow_steps %}
+    <div style="display:flex;gap:12px;align-items:flex-start;border:1px solid {% if step.done %}#86efac{% else %}#e5e7eb{% endif %};background:{% if step.done %}#f0fdf4{% else %}#fff{% endif %};padding:10px 12px;border-radius:8px;">
+      <span style="min-width:2.2em;font-weight:700;color:{% if step.done %}#166534{% else %}#6b7280{% endif %};">
+        {% if step.done %}✓{% else %}○{% endif %} {{ step.id }}
+      </span>
+      <div>
+        <strong>{{ step.title }}</strong>
+        <div style="color:#4b5563;font-size:0.92em;margin-top:2px;">{{ step.detail }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div style="border:1px solid #d1d5db;background:#fff;padding:12px 16px;border-radius:8px;margin-bottom:12px;">
+    <strong>Status</strong>
+    <ul style="margin:8px 0 0;padding-left:1.2em;line-height:1.5;">
+      <li>SMS: {% if messaging_sms_ready %}<span style="color:#166534;font-weight:700;">READY</span>{% else %}<span style="color:#9a3412;font-weight:700;">OFF</span> — {{ messaging_sms_status }}{% endif %}</li>
+      <li>WhatsApp: {% if messaging_wa_ready %}<span style="color:#166534;font-weight:700;">READY</span>{% else %}<span style="color:#9a3412;font-weight:700;">OFF</span> — {{ messaging_wa_status }}{% endif %}</li>
+      <li>From number: {% if messaging_has_from %}<span style="color:#166534;font-weight:700;">YES → production path</span>{% else %}<span style="color:#9a3412;font-weight:700;">NO → sandbox path</span>{% endif %}</li>
+    </ul>
+  </div>
+
+  {% if original and original.pk %}
+  <div style="border:1px solid #93c5fd;background:#eff6ff;padding:14px 16px;border-radius:8px;margin-bottom:16px;">
+    <strong>Actions (after saving keys)</strong>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;">
+      <form method="post" action="{% url 'admin:communication_messagingsettings_fetch_plivo_wa' original.pk %}" style="margin:0;">
+        {% csrf_token %}
+        <button type="submit" class="button default" style="padding:8px 14px;">Step 3 — Fetch approved WhatsApp templates</button>
+      </form>
+      <form method="post" action="{% url 'admin:communication_messagingsettings_fetch_plivo_sms' original.pk %}" style="margin:0;">
+        {% csrf_token %}
+        <button type="submit" class="button" style="padding:8px 14px;">Step 4 — Fetch SMS From numbers</button>
+      </form>
+    </div>
+
+    {% if original.whatsapp_otp_template_preview %}
+    <p style="margin:12px 0 0;line-height:1.45;color:#111;">
+      <strong>WhatsApp template preview:</strong><br>
+      <code style="white-space:pre-wrap;">{{ original.whatsapp_otp_template_preview }}</code><br>
+      <span class="help">Status: <strong>{{ original.whatsapp_otp_template_status|default:"(fetch)" }}</strong>
+        · lang {{ original.whatsapp_otp_template_lang }}</span>
+    </p>
+    {% endif %}
+
+    {% if messaging_show_production_test or messaging_show_sandbox_test_only %}
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid #bfdbfe;">
+      {% if messaging_show_production_test %}
+      <p style="margin:0 0 8px;color:#1e3a8a;">
+        <strong>Step 3a = Production:</strong> Save settings below, then send a Test (uses live From).
+      </p>
+      <form method="post" action="{% url 'admin:communication_messagingsettings_send_test' original.pk %}" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0;">
+        {% csrf_token %}
+        <input type="text" name="test_destination" value="{{ original.test_destination }}" placeholder="+91…" style="padding:6px 8px;min-width:180px;">
+        <button type="submit" class="button default" style="padding:8px 14px;">Send Test (production path)</button>
+      </form>
+      {% endif %}
+      {% if messaging_show_sandbox_test_only %}
+      <p style="margin:0 0 8px;color:#9a3412;">
+        <strong>Step 3a / 5 = Sandbox only:</strong> No production customer traffic. Test button only.
+        {% if messaging_is_production %}<br><em>Blocked while this app is in production env.</em>{% endif %}
+      </p>
+      <form method="post" action="{% url 'admin:communication_messagingsettings_send_test' original.pk %}" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0;">
+        {% csrf_token %}
+        <input type="text" name="test_destination" value="{{ original.test_destination }}" placeholder="+91…" style="padding:6px 8px;min-width:180px;" {% if messaging_is_production %}disabled{% endif %}>
+        <button type="submit" class="button" style="padding:8px 14px;" {% if messaging_is_production %}disabled{% endif %}>Send Sandbox test</button>
+      </form>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+>>>>>>> institutedashboard
 </div>
 {{ block.super }}
 {% endblock %}
