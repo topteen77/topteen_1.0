@@ -46,6 +46,13 @@ class MessagingSettingsAdminForm(forms.ModelForm):
             'plivo_auth_token': forms.PasswordInput(render_value=True, attrs={'autocomplete': 'new-password'}),
             'sms_message_template': forms.Textarea(attrs={'rows': 3, 'cols': 80}),
             'sender_mode': forms.RadioSelect,
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+            'test_destination': forms.TextInput(attrs={'placeholder': '+9198XXXXXXXX', 'style': 'max-width:280px;'}),
+>>>>>>> institutedashboard
+>>>>>>> master
         }
 
     def __init__(self, *args, **kwargs):
