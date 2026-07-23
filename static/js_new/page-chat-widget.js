@@ -285,8 +285,15 @@
       inputRow.appendChild(this._sendBtn);
 
       const hint = el('div', { id: 'pc-input-hint', textContent: 'Enter to send · Shift+Enter for new line' });
+      this._quotaInfo = el('div', { id: 'pc-quota-info', className: 'ai-quota-info' });
+      this._quotaInfo.hidden = true;
+      this._quotaInfo.innerHTML =
+        '<a class="ai-quota-info__link" href="/ai-tokens/">' +
+        '<i class="bx bx-info-circle" aria-hidden="true"></i> ' +
+        '<span class="ai-quota-info__text">AI tokens need to recharge — Buy now.</span></a>';
       inputArea.appendChild(inputRow);
       inputArea.appendChild(hint);
+      inputArea.appendChild(this._quotaInfo);
 
       /* ---- Assemble window ---- */
       this._win.appendChild(hdr);
@@ -313,6 +320,40 @@
         this._input.style.height = '46px';
         this._input.style.height = Math.min(this._input.scrollHeight, 120) + 'px';
       });
+      this._refreshQuota();
+    }
+
+    _refreshQuota() {
+      const api = global.AIFeatureQuota;
+      if (!api || typeof api.fetchStatus !== 'function') return;
+      api.fetchStatus().then((payload) => {
+        this._quotaLocked = api.featureLocked(payload, 'page_chat');
+        this._applyQuotaLockUI(payload);
+      }).catch(() => {});
+    }
+
+    _applyQuotaLockUI(payload) {
+      const locked = !!this._quotaLocked;
+      const msg =
+        (payload && payload.message) ||
+        (global.AIFeatureQuota && global.AIFeatureQuota.RECHARGE_MESSAGE) ||
+        'AI tokens need to recharge — Buy now.';
+      const shop =
+        (payload && payload.shop_url) ||
+        (global.AIFeatureQuota && global.AIFeatureQuota.config && global.AIFeatureQuota.config.shopUrl) ||
+        '/ai-tokens/';
+      if (this._quotaInfo) {
+        this._quotaInfo.hidden = !locked;
+        const link = this._quotaInfo.querySelector('.ai-quota-info__link');
+        const text = this._quotaInfo.querySelector('.ai-quota-info__text');
+        if (link) link.href = shop;
+        if (text) text.textContent = msg;
+      }
+      if (locked) {
+        this._input.disabled = true;
+        this._sendBtn.disabled = true;
+        this._input.placeholder = msg;
+      }
     }
 
     /* ── Toggle window open / close ────────────────────────── */
@@ -443,19 +484,43 @@
     _send() {
       const text = this._input.value.trim();
       if (!text || !this._ws || this._ws.readyState !== WebSocket.OPEN || this._isStreaming) return;
+      if (this._quotaLocked) {
+        this._applyQuotaLockUI();
+        return;
+      }
 
-      // Remove suggestion chips before sending
-      this._msgArea.querySelectorAll('.pc-suggestions').forEach(s => s.remove());
+      const proceed = () => {
+        // Remove suggestion chips before sending
+        this._msgArea.querySelectorAll('.pc-suggestions').forEach(s => s.remove());
 
-      this._appendUserMsg(text);
-      this._input.value      = '';
-      this._input.style.height = '46px';
-      this._isStreaming      = true;
-      this._input.disabled   = true;
-      this._sendBtn.disabled = true;
-      this._scrollToBottom();
+        this._appendUserMsg(text);
+        this._input.value      = '';
+        this._input.style.height = '46px';
+        this._isStreaming      = true;
+        this._input.disabled   = true;
+        this._sendBtn.disabled = true;
+        this._scrollToBottom();
 
-      this._ws.send(JSON.stringify({ type: 'message', message: text }));
+        this._ws.send(JSON.stringify({ type: 'message', message: text }));
+      };
+
+      const api = global.AIFeatureQuota;
+      if (!api || typeof api.consume !== 'function') {
+        proceed();
+        return;
+      }
+      api.consume('page_chat').then((res) => {
+        if (!res.ok || (res.data && res.data.quota_exceeded)) {
+          this._quotaLocked = true;
+          this._applyQuotaLockUI(res.data || {});
+          return;
+        }
+        if (res.data && res.data.locked) {
+          this._quotaLocked = true;
+          this._applyQuotaLockUI(res.data);
+        }
+        proceed();
+      }).catch(() => proceed());
     }
 
     /* ── DOM: user message ──────────────────────────────────── */

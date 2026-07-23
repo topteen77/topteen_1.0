@@ -153,6 +153,13 @@ CONFIGURATION_SECTIONS: list[HubSection] = [
             _model("LLM token packages", "core", "LLMTokenPackage", "Spark/Boost/Power packs — buyer use cases + USD price."),
             _model("LLM pricing settings", "core", "LLMPricingSettings", "Same FX + show/hide toggles (model record)."),
             _model("LLM role quotas", "core", "LLMRoleQuotaDefault", "Default monthly free tokens per role (student, staff, …)."),
+            _model(
+                "AI feature quotas",
+                "core",
+                "AIFeatureQuotaSettings",
+                "Student/parent limits: resume free tier, AI Counselor & Chat-with-page caps.",
+            ),
+            _model("User AI feature usage", "core", "UserAIFeatureUsage", "Per-user feature counters and purchase bonuses."),
             _model("LLM admin grants", "core", "LLMAdminGrant", "Manually grant AI tokens to any user."),
             _model("User LLM wallets", "core", "UserLLMWallet", "Per-user AI token balances."),
             _model("LLM package payments", "core", "LLMTokenPackagePayment", "Token pack purchase records."),

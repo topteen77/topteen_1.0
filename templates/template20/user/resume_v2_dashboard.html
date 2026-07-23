@@ -265,10 +265,18 @@
     </div>
     {% endfor %}
 
+    {% if resume_create_locked %}
+    <a href="{{ ai_quota_shop_url|default('/ai-tokens/') }}" class="rb2-new-card rb2-new-card--locked" aria-label="Recharge to create a new resume">
+      <i class='bx bx-info-circle' style="font-size:2rem;margin-bottom:8px"></i>
+      <span>New Resume</span>
+      <small class="d-block mt-2 px-2" style="font-size:12px;line-height:1.35;opacity:.9">{{ ai_quota_recharge_message|default('AI tokens need to recharge — Buy now.') }}</small>
+    </a>
+    {% else %}
     <button type="button" class="rb2-new-card" data-bs-toggle="modal" data-bs-target="#rb2CreateModal" aria-label="Create new resume">
       <i class='bx bx-plus-circle' style="font-size:2rem;margin-bottom:8px"></i>
       <span>New Resume</span>
     </button>
+    {% endif %}
   </div>
 
   {% if not resume_cards %}

@@ -409,11 +409,15 @@ def generate_resume_raw(
         return None, "OPENAI_API_KEY is not configured on the server."
 
     try:
-        from core.llm_quota import LLMQuotaExceeded, ensure_can_use_llm
+        from core.ai_feature_quota import (
+            FEATURE_RESUME_AI,
+            AIFeatureQuotaExceeded,
+            ensure_can_use_feature,
+        )
 
-        ensure_can_use_llm(user, feature="resume_guided", request=request)
-    except LLMQuotaExceeded as exc:
-        return None, f"QUOTA:{exc.payload.get('message') or 'AI token limit reached'}"
+        ensure_can_use_feature(user, FEATURE_RESUME_AI, request=request)
+    except AIFeatureQuotaExceeded as exc:
+        return None, f"QUOTA:{(exc.payload or {}).get('message') or 'AI tokens need to recharge — Buy now.'}"
 
     model = (getattr(settings, "OPENAI_MODEL", None) or getattr(settings, "AI_MODEL", None) or "gpt-4o-mini").strip()
 
@@ -437,10 +441,16 @@ def generate_resume_raw(
                 model=model,
                 call_type="chat",
                 user=user,
-                consume=True,
+                consume=False,
                 request=request,
                 metadata={"source": "users.resume_guided_ai"},
             )
+        except Exception:
+            pass
+        try:
+            from core.ai_feature_quota import FEATURE_RESUME_AI, consume_feature
+
+            consume_feature(user, FEATURE_RESUME_AI, request=request)
         except Exception:
             pass
         raw = (response.choices[0].message.content or "").strip()

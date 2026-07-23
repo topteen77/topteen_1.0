@@ -2306,28 +2306,162 @@
   function handleAiError(err, fallbackTitle) {
     var payload = (err && err.payload) || {};
     var msgs = window.RB2Messages;
-    if (payload.quota_exceeded && msgs && typeof msgs.confirm === "function") {
-      var headline = payload.headline || payload.message || "Your free AI boost just ran out";
-      var body =
-        payload.body ||
-        payload.detail ||
-        "Recharge a small token pack to keep polishing your resume with AI.";
-      msgs
-        .confirm({
-          title: headline,
-          message: body,
-          confirmLabel: payload.cta_label || "Recharge AI tokens",
-          cancelLabel: "Not now",
-        })
-        .then(function (ok) {
-          if (ok) {
-            window.location.href = payload.cta_url || payload.shop_url || "/ai-tokens/";
-          }
-        });
+    if (payload.quota_exceeded) {
+      cfg.aiQuotaLocked = true;
+      applyAiQuotaLockUI();
+      var headline = payload.headline || payload.message || cfg.aiQuotaMessage || "AI tokens need to recharge — Buy now.";
+      var body = payload.body || payload.detail || headline;
+      if (msgs && typeof msgs.confirm === "function") {
+        msgs
+          .confirm({
+            title: headline,
+            message: body,
+            confirmLabel: payload.cta_label || "Buy now",
+            cancelLabel: "Not now",
+          })
+          .then(function (ok) {
+            if (ok) {
+              window.location.href = payload.cta_url || payload.shop_url || cfg.aiQuotaShopUrl || "/ai-tokens/";
+            }
+          });
+      } else if (window.confirm(headline)) {
+        window.location.href = payload.cta_url || payload.shop_url || cfg.aiQuotaShopUrl || "/ai-tokens/";
+      }
       return;
     }
     if (msgs) {
       msgs.toast(formatAiError(err), { type: "error", title: fallbackTitle || "AI writing" });
+    }
+  }
+
+  var AI_QUOTA_BTN_IDS = [
+    "rb2GenSummary",
+    "rb2ImproveSummary",
+    "rb2AtsSummary",
+    "rb2GenAchieve",
+    "rb2ImproveAchieve",
+    "rb2GenerateResumeAI",
+  ];
+
+  function updateAiBadgeUI() {
+    var badge = document.getElementById("rb2AiEditsBadge");
+    if (!badge) return;
+    var rem;
+    if (cfg.aiQuotaUnlimited) {
+      badge.textContent = "∞";
+      rem = null;
+    } else {
+      rem = cfg.aiQuotaRemaining;
+      if (rem === null || rem === undefined) rem = 0;
+      rem = Math.max(0, Number(rem) || 0);
+      badge.textContent = rem > 99 ? "99+" : String(rem);
+    }
+    badge.classList.toggle("is-empty", !cfg.aiQuotaUnlimited && rem === 0);
+    badge.classList.toggle("is-low", !cfg.aiQuotaUnlimited && rem > 0 && rem <= 1);
+    badge.setAttribute(
+      "aria-label",
+      cfg.aiQuotaUnlimited ? "Unlimited AI edits" : rem + " AI edits left"
+    );
+  }
+
+  function refreshAiQuotaStatus() {
+    if (!cfg.aiQuotaApplies || !cfg.aiQuotaStatusUrl) {
+      updateAiBadgeUI();
+      return Promise.resolve();
+    }
+    return fetch(cfg.aiQuotaStatusUrl, {
+      credentials: "same-origin",
+      headers: { Accept: "application/json" },
+    })
+      .then(function (r) {
+        if (!r.ok) throw new Error("status failed");
+        return r.json();
+      })
+      .then(function (payload) {
+        var feat = (payload && payload.features && payload.features.resume_ai) || {};
+        cfg.aiQuotaLocked = !!feat.locked;
+        cfg.aiQuotaUnlimited = !!feat.unlimited;
+        cfg.aiQuotaRemaining = feat.unlimited ? null : feat.remaining;
+        applyAiQuotaLockUI();
+      })
+      .catch(function () {
+        updateAiBadgeUI();
+      });
+  }
+
+  function applyAiQuotaLockUI() {
+    var locked = !!cfg.aiQuotaLocked;
+    var msg = cfg.aiQuotaMessage || "AI tokens need to recharge — Buy now.";
+    var shop = cfg.aiQuotaShopUrl || "/ai-tokens/";
+    AI_QUOTA_BTN_IDS.forEach(function (id) {
+      var btn = document.getElementById(id);
+      if (!btn) return;
+      // Keep Generate button hoverable when locked (native disabled blocks mouse events).
+      if (id === "rb2GenerateResumeAI") {
+        btn.disabled = false;
+        btn.classList.toggle("rb2-ai-locked", locked);
+        if (locked) {
+          btn.setAttribute("aria-disabled", "true");
+          btn.removeAttribute("title");
+        } else {
+          btn.removeAttribute("aria-disabled");
+          btn.setAttribute("title", "Enhance entire resume with AI for your goal");
+        }
+        return;
+      }
+      btn.disabled = locked;
+      btn.classList.toggle("rb2-ai-locked", locked);
+      if (locked) {
+        btn.setAttribute("aria-disabled", "true");
+        btn.setAttribute("title", msg);
+      } else {
+        btn.removeAttribute("aria-disabled");
+      }
+    });
+    var wrap = document.getElementById("rb2AiGenWrap");
+    if (wrap) {
+      wrap.classList.toggle("is-locked", locked);
+      if (!locked) wrap.classList.remove("is-open");
+    }
+    var infoIcon = document.getElementById("rb2AiQuotaInfoIcon");
+    if (infoIcon) infoIcon.hidden = !locked;
+    var msgEl = document.querySelector("#rb2AiQuotaInfoPop .rb2-ai-gen-info__msg");
+    if (msgEl) msgEl.textContent = msg;
+    var cta = document.getElementById("rb2AiQuotaInfoCta");
+    if (cta) cta.href = shop;
+    updateAiBadgeUI();
+  }
+
+  function bindAiQuotaInfoHover() {
+    var wrap = document.getElementById("rb2AiGenWrap");
+    if (!wrap || wrap.dataset.bound === "1") return;
+    wrap.dataset.bound = "1";
+    var genBtn = document.getElementById("rb2GenerateResumeAI");
+    var closeTimer = null;
+    function openPop() {
+      if (!wrap.classList.contains("is-locked")) return;
+      if (closeTimer) {
+        clearTimeout(closeTimer);
+        closeTimer = null;
+      }
+      wrap.classList.add("is-open");
+    }
+    function scheduleClose() {
+      if (closeTimer) clearTimeout(closeTimer);
+      closeTimer = setTimeout(function () {
+        wrap.classList.remove("is-open");
+      }, 140);
+    }
+    wrap.addEventListener("mouseenter", openPop);
+    wrap.addEventListener("mouseleave", scheduleClose);
+    if (genBtn) {
+      genBtn.addEventListener("focus", openPop);
+      genBtn.addEventListener("blur", scheduleClose);
+    }
+    var pop = document.getElementById("rb2AiQuotaInfoPop");
+    if (pop) {
+      pop.addEventListener("mouseenter", openPop);
+      pop.addEventListener("mouseleave", scheduleClose);
     }
   }
 
@@ -2375,6 +2509,11 @@
       console.error("RB2Messages failed to load");
       return;
     }
+    if (cfg.aiQuotaLocked) {
+      var wrapLocked = document.getElementById("rb2AiGenWrap");
+      if (wrapLocked) wrapLocked.classList.add("is-open");
+      return;
+    }
 
     function startGeneration() {
       var defaultHtml = btn.innerHTML;
@@ -2394,6 +2533,7 @@
           } else if (data.message) {
             msgs.toast(data.message, { type: "info", title: "AI generation" });
           }
+          refreshAiQuotaStatus();
         })
         .catch(function (err) {
           btn.disabled = false;
@@ -2614,6 +2754,10 @@
     if (!btn) return;
     var defaultHtml = btn.innerHTML;
     btn.addEventListener("click", function () {
+      if (cfg.aiQuotaLocked) {
+        handleAiError({ payload: { quota_exceeded: true, message: cfg.aiQuotaMessage } }, "AI writing");
+        return;
+      }
       btn.disabled = true;
       btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Writing…";
       var p = getPayload();
@@ -2625,6 +2769,7 @@
         scheduleLocalUiSync();
         btn.disabled = false;
         btn.innerHTML = defaultHtml;
+        refreshAiQuotaStatus();
       }).catch(function (err) {
         btn.disabled = false;
         btn.innerHTML = defaultHtml;
@@ -2632,6 +2777,10 @@
       });
     });
   }
+
+  applyAiQuotaLockUI();
+  bindAiQuotaInfoHover();
+  refreshAiQuotaStatus();
 
   bindAi("rb2GenSummary", "generate_summary", function () { return { career_goal: cfg.goal || "" }; });
   bindAi("rb2ImproveSummary", "improve_summary", function () {

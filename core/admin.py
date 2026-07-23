@@ -62,6 +62,8 @@ from .models import (
     LLMAdminGrant,
     LLMTokenPackagePayment,
     LLMPricingSettings,
+    AIFeatureQuotaSettings,
+    UserAIFeatureUsage,
     StaticPage,
     StaticPageSection,
     PageSEO,
@@ -1358,6 +1360,63 @@ class LLMRoleQuotaDefaultAdmin(admin.ModelAdmin):
     def changelist_view(self, request, extra_context=None):
         _seed_llm_admin_defaults()
         return super().changelist_view(request, extra_context=extra_context)
+
+
+@admin.register(AIFeatureQuotaSettings)
+class AIFeatureQuotaSettingsAdmin(admin.ModelAdmin):
+    list_display = (
+        'resume_free_creates',
+        'resume_free_ai_edits',
+        'counsellor_message_limit',
+        'page_chat_message_limit',
+        'updated_at',
+    )
+
+    def has_add_permission(self, request):
+        try:
+            return not AIFeatureQuotaSettings.objects.exists()
+        except Exception:
+            return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def changelist_view(self, request, extra_context=None):
+        AIFeatureQuotaSettings.load()
+        return super().changelist_view(request, extra_context=extra_context)
+
+
+@admin.register(UserAIFeatureUsage)
+class UserAIFeatureUsageAdmin(admin.ModelAdmin):
+    list_display = (
+        'user',
+        'resume_creates_used',
+        'resume_ai_edits_used',
+        'counsellor_messages_used',
+        'page_chat_messages_used',
+        'resume_ai_bonus',
+        'counsellor_bonus',
+        'page_chat_bonus',
+        'updated_at',
+    )
+    search_fields = ('user__email', 'user__name')
+    raw_id_fields = ('user',)
+    readonly_fields = (
+        'user',
+        'resume_creates_used',
+        'resume_ai_edits_used',
+        'counsellor_messages_used',
+        'page_chat_messages_used',
+        'resume_create_bonus',
+        'resume_ai_bonus',
+        'counsellor_bonus',
+        'page_chat_bonus',
+        'created_at',
+        'updated_at',
+    )
+
+    def has_add_permission(self, request):
+        return False
 
 
 @admin.register(UserLLMWallet)

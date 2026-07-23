@@ -31,6 +31,23 @@ def _seed_default_packages():
     # usage_examples = buyer-facing "what can I do" lines (admin-editable).
     defaults = [
         {
+            "code": "test-spark",
+            "name": "Test Spark",
+            "tagline": "Your free starter AI allowance",
+            "description": "Free student/parent starter: 1 AI resume and 2 AI edits.",
+            "usage_examples": (
+                "1 AI resume\n"
+                "2 AI edits\n"
+                "Included free for students & parents"
+            ),
+            "tokens": 0,
+            "price_usd": "0.0000",
+            "amount": 0,
+            "badge_label": "Free starter",
+            "sort_order": 0,
+            "is_featured": False,
+        },
+        {
             "code": "spark",
             "name": "AI Spark",
             "tagline": "Try AI once — see the difference",
@@ -93,18 +110,87 @@ def _seed_default_packages():
         )
         update_fields = []
         if not created:
-            if not obj.price_usd or obj.price_usd == 0:
-                obj.price_usd = row["price_usd"]
-                update_fields.append("price_usd")
-            if not (obj.usage_examples or "").strip():
-                obj.usage_examples = row["usage_examples"]
-                update_fields.append("usage_examples")
-            if not (obj.tagline or "").strip() and row.get("tagline"):
-                obj.tagline = row["tagline"]
-                update_fields.append("tagline")
+            if row["code"] == "test-spark":
+                # Keep free-starter copy aligned with student/parent feature quotas.
+                for field in (
+                    "name",
+                    "tagline",
+                    "description",
+                    "usage_examples",
+                    "badge_label",
+                    "sort_order",
+                    "tokens",
+                    "price_usd",
+                    "amount",
+                ):
+                    if getattr(obj, field) != row[field]:
+                        setattr(obj, field, row[field])
+                        update_fields.append(field)
+            else:
+                if not obj.price_usd or obj.price_usd == 0:
+                    obj.price_usd = row["price_usd"]
+                    update_fields.append("price_usd")
+                if not (obj.usage_examples or "").strip():
+                    obj.usage_examples = row["usage_examples"]
+                    update_fields.append("usage_examples")
+                if not (obj.tagline or "").strip() and row.get("tagline"):
+                    obj.tagline = row["tagline"]
+                    update_fields.append("tagline")
             if update_fields:
                 update_fields.append("modified")
-                obj.save(update_fields=update_fields)
+                obj.save(update_fields=list(dict.fromkeys(update_fields)))
+
+    # Backfill any legacy "Test Spark" row missing usage lines.
+    for legacy in LLMTokenPackage.objects.filter(name__iexact="Test Spark"):
+        if not (legacy.usage_examples or "").strip():
+            legacy.usage_examples = (
+                "1 AI resume\n"
+                "2 AI edits\n"
+                "Included free for students & parents"
+            )
+            if not (legacy.tagline or "").strip():
+                legacy.tagline = "Your free starter AI allowance"
+            if not (legacy.badge_label or "").strip():
+                legacy.badge_label = "Free starter"
+            legacy.save(update_fields=["usage_examples", "tagline", "badge_label", "modified"])
+
+
+def _resolve_active_package(user, packages):
+    """Mark free Test Spark active for students/parents on the free starter tier."""
+    from core.ai_feature_quota import (
+        FEATURE_RESUME_AI,
+        FEATURE_RESUME_CREATE,
+        feature_status,
+        quota_applies,
+    )
+
+    if not quota_applies(user):
+        return None
+
+    paid = LLMTokenPackagePayment.objects.filter(
+        user=user,
+        is_success=choices.YesNoChoices.YES,
+        tokens_credited=True,
+    ).exclude(package__code="test-spark").order_by("-modified").select_related("package").first()
+    if paid and paid.package_id:
+        return paid.package
+
+    # Still on free starter: prefer test-spark, else any package named Test Spark.
+    for pkg in packages:
+        if (pkg.code or "").lower() in ("test-spark", "testspark", "test_spark"):
+            return pkg
+    for pkg in packages:
+        if (pkg.name or "").strip().lower() == "test spark":
+            return pkg
+
+    # Fallback: free allowance still available.
+    create_st = feature_status(user, FEATURE_RESUME_CREATE)
+    ai_st = feature_status(user, FEATURE_RESUME_AI)
+    if not create_st.get("locked") or not ai_st.get("locked"):
+        for pkg in packages:
+            if (pkg.name or "").strip().lower() == "test spark" or (pkg.code or "").lower() == "test-spark":
+                return pkg
+    return None
 
 
 @method_decorator(login_required(login_url="/user/login/"), name="dispatch")
@@ -112,6 +198,13 @@ class LLMTokenPackagesView(TemplateView):
     template_name = "template20/core/llm_token_packages.html"
 
     def get_context_data(self, **kwargs):
+        from core.ai_feature_quota import (
+            FEATURE_RESUME_AI,
+            FEATURE_RESUME_CREATE,
+            feature_status,
+            get_settings,
+            quota_applies,
+        )
         from core.llm_fx import package_pricing_dict, storefront_display_flags
 
         seed_role_defaults()
@@ -122,10 +215,25 @@ class LLMTokenPackagesView(TemplateView):
         )
         pricing = {p.id: package_pricing_dict(p) for p in packages}
         flags = storefront_display_flags()
+        active_pkg = _resolve_active_package(self.request.user, packages)
+        feature_quota = None
+        if quota_applies(self.request.user):
+            settings_row = get_settings()
+            create_st = feature_status(self.request.user, FEATURE_RESUME_CREATE, request=self.request)
+            ai_st = feature_status(self.request.user, FEATURE_RESUME_AI, request=self.request)
+            feature_quota = {
+                "resume_creates_remaining": create_st.get("remaining"),
+                "resume_ai_remaining": ai_st.get("remaining"),
+                "resume_free_creates": settings_row.resume_free_creates,
+                "resume_free_ai_edits": settings_row.resume_free_ai_edits,
+            }
         ctx["packages"] = packages
         ctx["package_pricing"] = pricing
         ctx["wallet"] = wallet_summary_for_user(self.request.user, request=self.request)
         ctx["feature_hint"] = self.request.GET.get("feature") or ""
+        ctx["active_package_id"] = getattr(active_pkg, "id", None)
+        ctx["active_package"] = active_pkg
+        ctx["feature_quota"] = feature_quota
         ctx.update(flags)
         return ctx
 

@@ -4347,8 +4347,25 @@ class ResumeHubCreateView(View):
             from urllib.parse import urlencode
 
             return redirect(f"{reverse('users:resumebuilder_classic')}?{urlencode({'draft_title': title})}")
+        from core.ai_feature_quota import (
+            FEATURE_RESUME_CREATE,
+            AIFeatureQuotaExceeded,
+            consume_feature,
+            ensure_can_use_feature,
+            shop_url,
+        )
+
+        try:
+            ensure_can_use_feature(request.user, FEATURE_RESUME_CREATE, request=request)
+        except AIFeatureQuotaExceeded:
+            messages.error(request, "AI tokens need to recharge — Buy now.")
+            return redirect(shop_url())
         nxt = (request.POST.get("next") or "studio").strip().lower()
         resume = UserResume.objects.create(user=request.user, title=title)
+        try:
+            consume_feature(request.user, FEATURE_RESUME_CREATE, request=request)
+        except Exception:
+            pass
         from .resume_profile_store import bootstrap_user_resume_from_profile
 
         bootstrap_user_resume_from_profile(request.user, resume)
@@ -4420,6 +4437,19 @@ class ResumeHubDuplicateView(View):
         if not src:
             messages.error(request, "Resume not found.")
             return redirect("users:resume_v2_dashboard")
+        from core.ai_feature_quota import (
+            FEATURE_RESUME_CREATE,
+            AIFeatureQuotaExceeded,
+            consume_feature,
+            ensure_can_use_feature,
+            shop_url,
+        )
+
+        try:
+            ensure_can_use_feature(request.user, FEATURE_RESUME_CREATE, request=request)
+        except AIFeatureQuotaExceeded:
+            messages.error(request, "AI tokens need to recharge — Buy now.")
+            return redirect(shop_url())
         title = (request.POST.get("title") or "").strip()[:120]
         raw_snap = (request.POST.get("studio_snapshot_json") or "").strip()
         if raw_snap:
@@ -4452,6 +4482,10 @@ class ResumeHubDuplicateView(View):
                         wizard_draft_json=wiz_out,
                     )
                     apply_studio_resume_to_userresume_children(nr, rd)
+                try:
+                    consume_feature(request.user, FEATURE_RESUME_CREATE, request=request)
+                except Exception:
+                    pass
                 messages.success(
                     request,
                     "Saved a new copy with your studio layout and content.",
@@ -4471,6 +4505,10 @@ class ResumeHubDuplicateView(View):
                 wizard_draft_json=src.wizard_draft_json,
             )
             _duplicate_user_resume_children(src, nr)
+        try:
+            consume_feature(request.user, FEATURE_RESUME_CREATE, request=request)
+        except Exception:
+            pass
         messages.success(request, "Saved a fresh copy of your resume. You can edit it below.")
         return redirect("users:resume_v2_studio", resume_id=nr.pk)
 
@@ -4705,24 +4743,15 @@ class ResumeGuidedGenerateView(View):
         )
         if err:
             if str(err).startswith("QUOTA:"):
-                from core.llm_quota import (
-                    LLMQuotaExceeded,
-                    build_paywall,
-                    get_balance,
-                    quota_error_response,
-                    resolve_role_key,
+                from core.ai_feature_quota import (
+                    FEATURE_RESUME_AI,
+                    AIFeatureQuotaExceeded,
+                    build_locked_payload,
+                    feature_quota_error_response,
                 )
 
-                role_key = resolve_role_key(request.user)
-                return quota_error_response(
-                    LLMQuotaExceeded(
-                        build_paywall(
-                            role_key=role_key,
-                            balance=get_balance(request.user, request=request),
-                            estimated_cost=6000,
-                            feature="resume_guided",
-                        )
-                    )
+                return feature_quota_error_response(
+                    AIFeatureQuotaExceeded(build_locked_payload(FEATURE_RESUME_AI))
                 )
             logger.warning("resume_guided_generate failed: %s", err[:500])
             return JsonResponse({"error": err}, status=503)

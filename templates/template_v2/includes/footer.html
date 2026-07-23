@@ -48,6 +48,19 @@
   })();
 </script>
 
+{% if show_ai_counsellor_bot or show_page_chat_widget %}
+<script>
+  window.AIFeatureQuotaConfig = {
+    statusUrl: {{ url('core:ai_feature_quota_status')|tojson }},
+    consumeUrl: {{ url('core:ai_feature_quota_consume')|tojson }},
+    shopUrl: {{ url('core:llm_token_packages')|tojson }},
+    csrfToken: "{{ csrf_token }}",
+    message: "AI tokens need to recharge — Buy now.",
+    ctaLabel: "Buy now"
+  };
+</script>
+<script src="{{ static('js_new/ai-feature-quota.js') }}?v=1"></script>
+{% endif %}
 {% if show_page_chat_widget and show_ai_counsellor_bot %}
 <script src="{{ static('js_new/page-chat-widget.js') }}"></script>
 <script src="{{ static('js_new/chatbot-widget.js') }}"></script>

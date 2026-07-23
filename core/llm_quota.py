@@ -753,6 +753,18 @@ def fulfill_package_payment(package_payment) -> int:
     package_payment.save(
         update_fields=["tokens_credited", "is_success", "tokens_granted", "modified"]
     )
+    try:
+        from core.ai_feature_quota import grant_purchase_bonuses
+
+        grant_purchase_bonuses(
+            package_payment.user,
+            reference=f"purchase:{package_payment.id}",
+        )
+    except Exception:
+        logger.exception(
+            "Failed granting AI feature bonuses for payment=%s",
+            getattr(package_payment, "id", None),
+        )
     return balance
 
 

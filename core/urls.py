@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path
 from . import views
 from . import llm_payment_views
+from . import ai_feature_quota_views
 
 app_name = 'core'
 urlpatterns = [
@@ -81,5 +82,15 @@ urlpatterns = [
         "ai-tokens/payment-fail/<str:enc_id>/",
         llm_payment_views.LLMPackagePaymentFailView.as_view(),
         name="llm_package_payment_fail",
+    ),
+    path(
+        "ai-feature-quota/status/",
+        ai_feature_quota_views.AIFeatureQuotaStatusAPI.as_view(),
+        name="ai_feature_quota_status",
+    ),
+    path(
+        "ai-feature-quota/consume/",
+        ai_feature_quota_views.AIFeatureQuotaConsumeAPI.as_view(),
+        name="ai_feature_quota_consume",
     ),
 ]

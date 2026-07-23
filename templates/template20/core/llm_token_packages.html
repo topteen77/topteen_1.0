@@ -27,9 +27,30 @@
     display: flex; flex-direction: column;
   }
   .llm-card.is-featured { border-color: #1c4ed8; box-shadow: 0 14px 36px rgba(28, 78, 216, 0.14); }
+  .llm-card.is-active {
+    border-color: #059669;
+    box-shadow: 0 14px 36px rgba(5, 150, 105, 0.16);
+    background: linear-gradient(180deg, #f3fdf8 0%, #fff 48%);
+  }
   .llm-badge {
     position: absolute; top: 12px; right: 12px; font-size: 11px; font-weight: 700;
     background: #fff4df; color: #9a6700; border-radius: 999px; padding: 4px 10px;
+  }
+  .llm-badge.is-active-badge {
+    background: #d1fae5; color: #047857;
+  }
+  .llm-card .btn-active {
+    display: block; text-align: center; text-decoration: none; border-radius: 10px;
+    padding: 11px 14px; background: #059669; color: #fff; font-weight: 600; margin-top: auto;
+    pointer-events: none; cursor: default;
+  }
+  .llm-feature-quota {
+    display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 12px;
+  }
+  .llm-feature-quota span {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 999px; background: #ecfdf5; color: #047857;
+    font-size: 0.88rem; font-weight: 600;
   }
   .llm-card h2 { font-size: 1.2rem; margin: 0 0 6px; color: #173156; padding-right: 72px; }
   .llm-card .tagline { color: #5a6c86; font-size: 0.92rem; margin-bottom: 12px; }
@@ -63,17 +84,11 @@
     <div class="llm-hero">
       <h1>Pick AI help that matches your goal</h1>
       <p>Choose a pack by what you want to do — build a resume, ask the AI tutor, or both. No subscription lock-in.</p>
-      {% if wallet %}
-      <div class="llm-balance">Balance: {{ "{:,}".format(wallet.balance_tokens) }} tokens</div>
-      {% if wallet.needs_recharge %}
-      <p class="llm-low-warn" style="margin-top:12px;color:#9a3412;font-weight:600;font-size:0.95rem">
-        Balance is too low for your next AI action. Recharge a pack below to continue.
-      </p>
-      {% elif wallet.is_low %}
-      <p class="llm-low-warn" style="margin-top:12px;color:#9a6700;font-weight:600;font-size:0.95rem">
-        Running low on AI tokens — recharge soon so your next AI call isn’t blocked.
-      </p>
-      {% endif %}
+      {% if feature_quota %}
+      <div class="llm-feature-quota">
+        <span>AI resumes left: {{ feature_quota.resume_creates_remaining if feature_quota.resume_creates_remaining is not none else '—' }}</span>
+        <span>AI edits left: {{ feature_quota.resume_ai_remaining if feature_quota.resume_ai_remaining is not none else '—' }}</span>
+      </div>
       {% endif %}
       {% if show_exchange_rate and rate_display %}
       <div class="llm-fx-rate">Current rate: {{ rate_display }}</div>
@@ -85,8 +100,16 @@
       {% for pkg in packages %}
       {% set pricing = package_pricing.get(pkg.id) %}
       {% set uses = pkg.get_usage_examples_list() %}
-      <article class="llm-card{% if pkg.is_featured %} is-featured{% endif %}">
-        {% if pkg.badge_label %}<span class="llm-badge">{{ pkg.badge_label }}</span>{% endif %}
+      {% set is_active = active_package_id and pkg.id == active_package_id %}
+      {% set code_l = (pkg.code or '')|lower %}
+      {% set name_l = (pkg.name or '')|lower %}
+      {% set is_free_starter = code_l in ['test-spark', 'testspark', 'test_spark'] or name_l == 'test spark' %}
+      <article class="llm-card{% if is_active %} is-active{% elif pkg.is_featured %} is-featured{% endif %}">
+        {% if is_active %}
+        <span class="llm-badge is-active-badge">Active</span>
+        {% elif pkg.badge_label %}
+        <span class="llm-badge">{{ pkg.badge_label }}</span>
+        {% endif %}
         <h2>{{ pkg.name }}</h2>
         {% if pkg.tagline %}<p class="tagline">{{ pkg.tagline }}</p>{% endif %}
         {% if uses %}
@@ -95,9 +118,19 @@
           <li>{{ line }}</li>
           {% endfor %}
         </ul>
+        {% elif is_free_starter %}
+        <ul class="llm-uses">
+          <li>1 AI resume</li>
+          <li>2 AI edits</li>
+          <li>Included free for students &amp; parents</li>
+        </ul>
         {% elif pkg.description %}
         <p class="tagline">{{ pkg.description }}</p>
         {% endif %}
+        {% if is_free_starter %}
+        <div class="price">₹ 0</div>
+        <div class="price-usd">Free starter allowance</div>
+        {% else %}
         {% if pricing and pricing.show_price_inr and pricing.amount_inr_display %}
         <div class="price">{{ pricing.amount_inr_display }}</div>
         {% elif show_price_inr %}
@@ -110,7 +143,14 @@
           {% if pricing.show_exchange_rate and pricing.rate_display %}{{ pricing.rate_display }}{% endif %}
         </div>
         {% endif %}
+        {% endif %}
+        {% if is_active %}
+        <span class="btn-active">Active package</span>
+        {% elif is_free_starter %}
+        <span class="btn-active">Included free</span>
+        {% else %}
         <a class="btn-buy" href="{{ url('core:llm_package_checkout', kwargs={'code': pkg.code}) }}">Buy {{ pkg.name }}</a>
+        {% endif %}
       </article>
       {% endfor %}
     </div>

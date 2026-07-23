@@ -1924,6 +1924,92 @@ class LLMTokenPackagePayment(BaseModel, BaseMoneyModel):
         return f"LLM pay #{self.id} user={self.user_id} tokens={self.tokens_granted}"
 
 
+class AIFeatureQuotaSettings(models.Model):
+    """Singleton: per-feature free/admin limits for student/parent AI quotas."""
+
+    resume_free_creates = models.PositiveIntegerField(
+        default=1,
+        help_text='Free resume creates for students/parents.',
+    )
+    resume_free_ai_edits = models.PositiveIntegerField(
+        default=2,
+        help_text='Free AI generation/edit actions for students/parents.',
+    )
+    counsellor_message_limit = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text='Max AI Counselor messages for students/parents. Empty or 0 = unlimited.',
+    )
+    page_chat_message_limit = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text='Max Chat-with-page messages for students/parents. Empty or 0 = unlimited.',
+    )
+    purchase_bonus_resume_creates = models.PositiveIntegerField(
+        default=1,
+        help_text='Extra resume creates granted on each AI token pack purchase.',
+    )
+    purchase_bonus_resume_ai = models.PositiveIntegerField(
+        default=10,
+        help_text='Extra resume AI edits granted on each AI token pack purchase.',
+    )
+    purchase_bonus_counsellor = models.PositiveIntegerField(
+        default=100,
+        help_text='Extra AI Counselor messages granted on each AI token pack purchase.',
+    )
+    purchase_bonus_page_chat = models.PositiveIntegerField(
+        default=100,
+        help_text='Extra Chat-with-page messages granted on each AI token pack purchase.',
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'AI feature quota settings'
+        verbose_name_plural = 'AI feature quota settings'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    def __str__(self):
+        return 'AI feature quota settings'
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+
+class UserAIFeatureUsage(models.Model):
+    """Per-user counters and purchase bonus credits for AI feature quotas."""
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='ai_feature_usage',
+    )
+    resume_creates_used = models.PositiveIntegerField(default=0)
+    resume_ai_edits_used = models.PositiveIntegerField(default=0)
+    counsellor_messages_used = models.PositiveIntegerField(default=0)
+    page_chat_messages_used = models.PositiveIntegerField(default=0)
+    resume_create_bonus = models.PositiveIntegerField(default=0)
+    resume_ai_bonus = models.PositiveIntegerField(default=0)
+    counsellor_bonus = models.PositiveIntegerField(default=0)
+    page_chat_bonus = models.PositiveIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'User AI feature usage'
+        verbose_name_plural = 'User AI feature usage'
+
+    def __str__(self):
+        return f"AI feature usage user={self.user_id}"
+
+
 # --- Invalidate stored accordion validation when inline DB sections change ---
 @receiver(post_save, sender=EntranceTestPrepExamSection)
 @receiver(post_delete, sender=EntranceTestPrepExamSection)

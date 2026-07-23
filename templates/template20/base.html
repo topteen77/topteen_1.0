@@ -232,6 +232,19 @@
   <script src="{{ static('js_new/pwa-splash.js') }}?v=2"></script>
   <script src="{{ static('js_new/pwa-register.js') }}?v=1" defer></script>
 
+  {% if show_ai_counsellor_bot or show_page_chat_widget %}
+  <script>
+    window.AIFeatureQuotaConfig = {
+      statusUrl: {{ url('core:ai_feature_quota_status')|tojson }},
+      consumeUrl: {{ url('core:ai_feature_quota_consume')|tojson }},
+      shopUrl: {{ url('core:llm_token_packages')|tojson }},
+      csrfToken: "{{ csrf_token }}",
+      message: "AI tokens need to recharge — Buy now.",
+      ctaLabel: "Buy now"
+    };
+  </script>
+  <script src="{{ static('js_new/ai-feature-quota.js') }}?v=1" defer></script>
+  {% endif %}
   {# When both widgets load, page-chat must mount first so cb-root is later in DOM (same z-index stacking). #}
   {% if show_page_chat_widget and show_ai_counsellor_bot %}
   <script src="{{ static('js_new/page-chat-widget.js') }}" defer></script>

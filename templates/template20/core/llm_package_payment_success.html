@@ -51,9 +51,6 @@
       {% if show_conversion_note and conversion_note %}
       <p style="font-size:0.85rem;color:#6f819b;margin-top:10px">{{ conversion_note }}</p>
       {% endif %}
-      {% if wallet %}
-      <div class="bal">Current balance: {{ "{:,}".format(wallet.balance_tokens) }} tokens</div>
-      {% endif %}
       <a href="{{ url('users:resume_v2_dashboard') }}">Back to Resume Studio</a>
       <div style="margin-top:12px">
         <a href="{{ url('core:llm_token_packages') }}" style="background:#eef2ff;color:#1c4ed8">View packages</a>

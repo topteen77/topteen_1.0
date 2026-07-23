@@ -512,10 +512,17 @@
       this._sendBtn.innerHTML = IC.send;
 
       const hint = el('div', { id: 'cb-input-hint', textContent: 'Enter ↵ to send · Shift+Enter for new line' });
+      this._quotaInfo = el('div', { id: 'cb-quota-info', className: 'ai-quota-info' });
+      this._quotaInfo.hidden = true;
+      this._quotaInfo.innerHTML =
+        '<a class="ai-quota-info__link" href="/ai-tokens/">' +
+        '<i class="bx bx-info-circle" aria-hidden="true"></i> ' +
+        '<span class="ai-quota-info__text">AI tokens need to recharge — Buy now.</span></a>';
       inputRow.appendChild(this._input);
       inputRow.appendChild(this._sendBtn);
       inputArea.appendChild(inputRow);
       inputArea.appendChild(hint);
+      inputArea.appendChild(this._quotaInfo);
 
       /* ---- Assemble ---- */
       this._win.appendChild(hdr);
@@ -552,6 +559,40 @@
       });
 
       this._showFabTooltip();
+      this._refreshQuota();
+    }
+
+    _refreshQuota() {
+      const api = global.AIFeatureQuota;
+      if (!api || typeof api.fetchStatus !== 'function') return;
+      api.fetchStatus().then((payload) => {
+        this._quotaLocked = api.featureLocked(payload, 'counsellor');
+        this._applyQuotaLockUI(payload);
+      }).catch(() => {});
+    }
+
+    _applyQuotaLockUI(payload) {
+      const locked = !!this._quotaLocked;
+      const msg =
+        (payload && payload.message) ||
+        (global.AIFeatureQuota && global.AIFeatureQuota.RECHARGE_MESSAGE) ||
+        'AI tokens need to recharge — Buy now.';
+      const shop =
+        (payload && payload.shop_url) ||
+        (global.AIFeatureQuota && global.AIFeatureQuota.config && global.AIFeatureQuota.config.shopUrl) ||
+        '/ai-tokens/';
+      if (this._quotaInfo) {
+        this._quotaInfo.hidden = !locked;
+        const link = this._quotaInfo.querySelector('.ai-quota-info__link');
+        const text = this._quotaInfo.querySelector('.ai-quota-info__text');
+        if (link) link.href = shop;
+        if (text) text.textContent = msg;
+      }
+      if (locked) {
+        this._input.disabled = true;
+        this._sendBtn.disabled = true;
+        this._input.placeholder = msg;
+      }
     }
 
     _showFabTooltip() {
@@ -892,34 +933,58 @@
     _send() {
       const text = this._input.value.trim();
       if (!text || !this._ws || this._ws.readyState !== WebSocket.OPEN || this._isStreaming) return;
-
-      // Remove any visible suggestion chips before sending
-      this._msgArea.querySelectorAll('.cb-suggestions').forEach(s => s.remove());
-
-      let messageToSend = text;
-
-      // Check if this is the first message and student data exists in localStorage
-      if (!this._firstMessageSent) {
-        const studentId = localStorage.getItem('student_id');
-        const studentClass = localStorage.getItem('student_class');
-        const class10Status = localStorage.getItem('psychometric_class10_status');
-        const class12Status = localStorage.getItem('psychometric_class12_status');
-
-        // If all student fields exist, append the system message
-        if (studentId && studentClass && class10Status && class12Status) {
-          const systemMessage = `\n\n------ system message bellow ------\n\nhere is the student details to access his Psychometric Test\n\nstudent_id : ${studentId}\nstudent_class : ${studentClass}\npsychometric_class10_status : ${class10Status}\npsychometric_class12_status : ${class12Status}`;
-          messageToSend = text + systemMessage;
-        }
-
-        this._firstMessageSent = true;
+      if (this._quotaLocked) {
+        this._applyQuotaLockUI();
+        return;
       }
 
-      this._appendMessage('user', text);
-      this._input.value = '';
-      this._input.style.height = '46px';
-      this._scrollToBottom();
+      const proceed = () => {
+        // Remove any visible suggestion chips before sending
+        this._msgArea.querySelectorAll('.cb-suggestions').forEach(s => s.remove());
 
-      this._ws.send(JSON.stringify({ message: messageToSend }));
+        let messageToSend = text;
+
+        // Check if this is the first message and student data exists in localStorage
+        if (!this._firstMessageSent) {
+          const studentId = localStorage.getItem('student_id');
+          const studentClass = localStorage.getItem('student_class');
+          const class10Status = localStorage.getItem('psychometric_class10_status');
+          const class12Status = localStorage.getItem('psychometric_class12_status');
+
+          // If all student fields exist, append the system message
+          if (studentId && studentClass && class10Status && class12Status) {
+            const systemMessage = `\n\n------ system message bellow ------\n\nhere is the student details to access his Psychometric Test\n\nstudent_id : ${studentId}\nstudent_class : ${studentClass}\npsychometric_class10_status : ${class10Status}\npsychometric_class12_status : ${class12Status}`;
+            messageToSend = text + systemMessage;
+          }
+
+          this._firstMessageSent = true;
+        }
+
+        this._appendMessage('user', text);
+        this._input.value = '';
+        this._input.style.height = '46px';
+        this._scrollToBottom();
+
+        this._ws.send(JSON.stringify({ message: messageToSend }));
+      };
+
+      const api = global.AIFeatureQuota;
+      if (!api || typeof api.consume !== 'function') {
+        proceed();
+        return;
+      }
+      api.consume('counsellor').then((res) => {
+        if (!res.ok || (res.data && res.data.quota_exceeded)) {
+          this._quotaLocked = true;
+          this._applyQuotaLockUI(res.data || {});
+          return;
+        }
+        if (res.data && res.data.locked) {
+          this._quotaLocked = true;
+          this._applyQuotaLockUI(res.data);
+        }
+        proceed();
+      }).catch(() => proceed());
     }
 
     /* ── new conversation ───────────────────────────────────── */

@@ -6,7 +6,7 @@
 {% block additionalhead %}
 {{ super() }}
 <link rel="stylesheet" href="{{ static('resume-builder-prototype/styles.css') }}?v=56">
-<link rel="stylesheet" href="{{ static('resume-builder-v2/styles.css') }}?v=38">
+<link rel="stylesheet" href="{{ static('resume-builder-v2/styles.css') }}?v=43">
 <link rel="stylesheet" href="{{ static('resume-builder-v2/messages.css') }}?v=4">
 <link rel="stylesheet" href="{{ static('resume-builder-v2/ai-review.css') }}?v=2">
 <style>
@@ -76,10 +76,26 @@
       </p>
     </div>
     <div class="rb2-studio-topbar__actions">
-      <button type="button" class="rb2-btn rb2-btn--soft rb2-btn--sm" id="rb2GenerateResumeAI" title="Enhance entire resume with AI for your goal">
-        <svg class="rb2-ai-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M7.5 5.6 10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.9959.9959 0 0 0-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"></path></svg>
-        Generate with AI
-      </button>
+      <div class="rb2-ai-gen-wrap{% if resume_ai_locked %} is-locked{% endif %}" id="rb2AiGenWrap">
+        <button type="button" class="rb2-btn rb2-btn--soft rb2-btn--sm rb2-ai-gen-btn{% if resume_ai_locked %} rb2-ai-locked{% endif %}" id="rb2GenerateResumeAI" title="Enhance entire resume with AI for your goal"{% if resume_ai_locked %} aria-disabled="true"{% endif %} aria-describedby="rb2AiQuotaInfoPop">
+          <svg class="rb2-ai-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M7.5 5.6 10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.9959.9959 0 0 0-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"></path></svg>
+          Generate with AI
+          {% if resume_ai_quota_applies %}
+          <span class="rb2-ai-gen-badge{% if not resume_ai_unlimited and (resume_ai_remaining|default(0)|int) <= 0 %} is-empty{% elif not resume_ai_unlimited and (resume_ai_remaining|default(0)|int) <= 1 %} is-low{% endif %}" id="rb2AiEditsBadge" aria-label="AI edits left">
+            {% if resume_ai_unlimited %}∞{% else %}{{ resume_ai_remaining if resume_ai_remaining is not none else 0 }}{% endif %}
+          </span>
+          {% endif %}
+        </button>
+        {% if resume_ai_quota_applies %}
+        <span class="rb2-ai-gen-info-icon" id="rb2AiQuotaInfoIcon" {% if not resume_ai_locked %}hidden{% endif %} aria-hidden="true">
+          <i class='bx bx-info-circle'></i>
+        </span>
+        <div class="rb2-ai-gen-info__pop" id="rb2AiQuotaInfoPop" role="tooltip">
+          <p class="rb2-ai-gen-info__msg">{{ ai_quota_recharge_message|default('AI tokens need to recharge — Buy now.') }}</p>
+          <a class="rb2-ai-gen-info__cta" id="rb2AiQuotaInfoCta" href="{{ ai_quota_shop_url|default('/ai-tokens/') }}">Buy now</a>
+        </div>
+        {% endif %}
+      </div>
       <a href="{{ pdf_url }}" class="rb2-btn rb2-btn--primary rb2-btn--sm" id="rb2DownloadPdf" target="_blank" rel="noopener">
         <i class='bx bx-download'></i> Download PDF
       </a>
@@ -628,9 +644,16 @@ window.__RB2_STUDIO = {
   prototypePayload: {{ prototype_payload|tojson_for_script }},
   sectionMetrics: {{ section_metrics|tojson_for_script }},
   profileSchool: {{ personal_fields.school|default('', true)|tojson }},
+  aiQuotaLocked: {{ resume_ai_locked|default(false)|tojson }},
+  aiQuotaRemaining: {{ resume_ai_remaining|tojson }},
+  aiQuotaUnlimited: {{ resume_ai_unlimited|default(false)|tojson }},
+  aiQuotaApplies: {{ resume_ai_quota_applies|default(false)|tojson }},
+  aiQuotaShopUrl: {{ ai_quota_shop_url|default('/ai-tokens/')|tojson }},
+  aiQuotaStatusUrl: {{ ai_quota_status_url|default('/ai-feature-quota/status/')|tojson }},
+  aiQuotaMessage: {{ ai_quota_recharge_message|default('AI tokens need to recharge — Buy now.')|tojson }},
 };
 </script>
 <script src="{{ static('resume-builder-v2/messages.js') }}?v=3"></script>
 <script src="{{ static('resume-builder-v2/ai-review-modal.js') }}?v=3"></script>
-<script src="{{ static('resume-builder-v2/studio.js') }}?v=64"></script>
+<script src="{{ static('resume-builder-v2/studio.js') }}?v=70"></script>
 {% endblock %}

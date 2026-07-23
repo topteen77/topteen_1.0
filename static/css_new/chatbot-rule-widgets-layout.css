@@ -1,7 +1,25 @@
 /**
  * Shared layout for rule-driven chat widgets (page chat + career counsellor).
  * Body classes are set in topteens.context_processor.globals → chatbot_widget_body_class.
- *
+ */
+
+.ai-quota-info {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+.ai-quota-info__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #b45309;
+  text-decoration: none;
+}
+.ai-quota-info__link:hover {
+  text-decoration: underline;
+}
+
+/**
  * Position matrix (admin Chatbot Rules):
  *   Ask AI left + Career right  → (no extra classes; defaults)
  *   Ask AI right + Career right → cb-page-chat-right cb-bots-stack

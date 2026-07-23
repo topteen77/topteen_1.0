@@ -39,11 +39,15 @@ def _openai_chat(
         return None, None
 
     try:
-        from core.llm_quota import LLMQuotaExceeded, ensure_can_use_llm
+        from core.ai_feature_quota import (
+            FEATURE_RESUME_AI,
+            AIFeatureQuotaExceeded,
+            ensure_can_use_feature,
+        )
 
-        ensure_can_use_llm(user, feature="resume_v2", request=request)
-    except LLMQuotaExceeded as exc:
-        return None, f"QUOTA:{exc.payload.get('message') or 'AI token limit reached'}"
+        ensure_can_use_feature(user, FEATURE_RESUME_AI, request=request)
+    except AIFeatureQuotaExceeded as exc:
+        return None, f"QUOTA:{(exc.payload or {}).get('message') or 'AI tokens need to recharge — Buy now.'}"
 
     model = _resolve_openai_model()
     messages: list[dict[str, str]] = []
@@ -68,10 +72,16 @@ def _openai_chat(
                 model=model,
                 call_type="chat",
                 user=user,
-                consume=True,
+                consume=False,
                 request=request,
                 metadata={"source": "users.resume_v2_ai"},
             )
+        except Exception:
+            pass
+        try:
+            from core.ai_feature_quota import FEATURE_RESUME_AI, consume_feature
+
+            consume_feature(user, FEATURE_RESUME_AI, request=request)
         except Exception:
             pass
         text = (response.choices[0].message.content or "").strip()
@@ -85,7 +95,7 @@ def friendly_openai_error(err: str | None) -> str:
     if not err:
         return "AI request failed. Please try again."
     if err.startswith("QUOTA:"):
-        return err[6:].strip() or "You've used your free AI tokens. Recharge to continue."
+        return err[6:].strip() or "AI tokens need to recharge — Buy now."
     low = err.lower()
     if "insufficient_quota" in low or "exceeded your current quota" in low:
         return (
@@ -219,17 +229,9 @@ def ai_generate_full_resume(
         )
     raw, err = _openai_chat(prompt, max_tokens=2500, temperature=0.5, user=user)
     if err and str(err).startswith("QUOTA:"):
-        from core.llm_quota import LLMQuotaExceeded, build_paywall, get_balance, resolve_role_key
+        from core.ai_feature_quota import FEATURE_RESUME_AI, AIFeatureQuotaExceeded, build_locked_payload
 
-        role_key = resolve_role_key(user)
-        raise LLMQuotaExceeded(
-            build_paywall(
-                role_key=role_key,
-                balance=get_balance(user),
-                estimated_cost=4000,
-                feature="resume_v2",
-            )
-        )
+        raise AIFeatureQuotaExceeded(build_locked_payload(FEATURE_RESUME_AI))
     if not raw:
         return None, False, friendly_openai_error(err) if err else "AI is not configured (missing OPENAI_API_KEY)."
     parsed = _parse_json_object(raw)
@@ -238,19 +240,11 @@ def ai_generate_full_resume(
     return parsed, True, None
 
 
-def _raise_if_quota(err, user, feature="resume_v2"):
+def _raise_if_quota(err, user, feature="resume_ai"):
     if err and str(err).startswith("QUOTA:"):
-        from core.llm_quota import LLMQuotaExceeded, build_paywall, get_balance, resolve_role_key
+        from core.ai_feature_quota import FEATURE_RESUME_AI, AIFeatureQuotaExceeded, build_locked_payload
 
-        role_key = resolve_role_key(user)
-        raise LLMQuotaExceeded(
-            build_paywall(
-                role_key=role_key,
-                balance=get_balance(user),
-                estimated_cost=2500,
-                feature=feature,
-            )
-        )
+        raise AIFeatureQuotaExceeded(build_locked_payload(FEATURE_RESUME_AI))
 
 
 def ai_generate_summary(user, resume: UserResume, career_goal: str = "") -> Tuple[str, bool]:
