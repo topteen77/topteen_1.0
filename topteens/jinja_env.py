@@ -431,10 +431,14 @@ def environment(**options):
     except Exception:
         _master_classes_fn = lambda request=None: [{"value": v, "label": f"Class {v}"} for v in range(12, 5, -1)]
 
+    from core.s3_utils import rewrite_s3_url_to_cdn
+
+    env.filters['cdn_url'] = rewrite_s3_url_to_cdn
     env.globals.update({
         'master_classes': _master_classes_fn,
         'static': staticfiles_storage.url,
         'staticv': staticv,
+        'cdn_url': rewrite_s3_url_to_cdn,
         'url': jinja_url,
         'url_': custom_reverse,
         'img_tag':img_tag,

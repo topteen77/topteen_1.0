@@ -498,7 +498,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
         <div class="video-box">
 
           <a href="#" class="video-link" data-bs-toggle="modal" data-bs-target="#videoModal"
-            data-video="https://topteenc.s3.ap-northeast-1.amazonaws.com/Agriculture%2C+Food+and+Natural+Resources/Farmers_Ranchers_and_Other_Agricultural_Managers_Career_Video.mp4">
+            data-video="{{ cdn_url('https://topteenc.s3.ap-northeast-1.amazonaws.com/Agriculture%2C+Food+and+Natural+Resources/Farmers_Ranchers_and_Other_Agricultural_Managers_Career_Video.mp4') }}">
             <div class="text-in">
               <span class=" d-inline-block text-truncate bg-blue text-white fs-12 px-2 text-center">
                 Agriculture
@@ -513,7 +513,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
             <div class="video-thumb-auto">
               <video class="videoPlayer" controls preload="none">
                 <source
-                  src="https://topteenc.s3.ap-northeast-1.amazonaws.com/Agriculture%2C+Food+and+Natural+Resources/Farmers_Ranchers_and_Other_Agricultural_Managers_Career_Video.mp4"
+                  src="{{ cdn_url('https://topteenc.s3.ap-northeast-1.amazonaws.com/Agriculture%2C+Food+and+Natural+Resources/Farmers_Ranchers_and_Other_Agricultural_Managers_Career_Video.mp4') }}"
                   type="video/mp4">
               </video>
               <canvas class="thumbnailCanvas"></canvas>
@@ -524,7 +524,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
 
         <div class="video-box">
           <a href="#" class="video-link" data-bs-toggle="modal" data-bs-target="#videoModal"
-            data-video="https://topteenc.s3.ap-northeast-1.amazonaws.com/Information+Technology/Web_Administrators_Career_Video.mp4">
+            data-video="{{ cdn_url('https://topteenc.s3.ap-northeast-1.amazonaws.com/Information+Technology/Web_Administrators_Career_Video.mp4') }}">
             <div class="text-in">
               <span class=" d-inline-block text-truncate bg-blue text-white fs-12 px-2 text-center">
                 Information
@@ -538,7 +538,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
             <div class="video-thumb-auto">
               <video class="videoPlayer" controls preload="none">
                 <source
-                  src="https://topteenc.s3.ap-northeast-1.amazonaws.com/Information+Technology/Web_Administrators_Career_Video.mp4"
+                  src="{{ cdn_url('https://topteenc.s3.ap-northeast-1.amazonaws.com/Information+Technology/Web_Administrators_Career_Video.mp4') }}"
                   type="video/mp4">
               </video>
               <canvas class="thumbnailCanvas"></canvas>
@@ -548,7 +548,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
 
         <div class="video-box">
           <a href="#" class="video-link" data-bs-toggle="modal" data-bs-target="#videoModal"
-            data-video="https://topteenc.s3.ap-northeast-1.amazonaws.com/Business+Management+and+Administration/Customer_Service_Representatives_Career_Video.mp4">
+            data-video="{{ cdn_url('https://topteenc.s3.ap-northeast-1.amazonaws.com/Business+Management+and+Administration/Customer_Service_Representatives_Career_Video.mp4') }}">
             <div class="text-in">
               <span class=" d-inline-block text-truncate bg-blue text-white fs-12 px-2 text-center">
                 Business
@@ -561,7 +561,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
             <div class="video-thumb-auto">
               <video class="videoPlayer" controls preload="none">
                 <source
-                  src="https://topteenc.s3.ap-northeast-1.amazonaws.com/Business+Management+and+Administration/Customer_Service_Representatives_Career_Video.mp4"
+                  src="{{ cdn_url('https://topteenc.s3.ap-northeast-1.amazonaws.com/Business+Management+and+Administration/Customer_Service_Representatives_Career_Video.mp4') }}"
                   type="video/mp4">
               </video>
               <canvas class="thumbnailCanvas"></canvas>
@@ -571,7 +571,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
 
         <div class="video-box">
           <a href="#" class="video-link" data-bs-toggle="modal" data-bs-target="#videoModal"
-            data-video="https://topteenc.s3.ap-northeast-1.amazonaws.com/Human+services/39-9041.00.mp4">
+            data-video="{{ cdn_url('https://topteenc.s3.ap-northeast-1.amazonaws.com/Human+services/39-9041.00.mp4') }}">
             <div class="text-in">
               <span class=" d-inline-block text-truncate bg-blue text-white fs-12 px-2 text-center">
                 Human Services
@@ -583,7 +583,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
             </div>
             <div class="video-thumb-auto">
               <video class="videoPlayer" controls preload="none">
-                <source src="https://topteenc.s3.ap-northeast-1.amazonaws.com/Human+services/39-9041.00.mp4"
+                <source src="{{ cdn_url('https://topteenc.s3.ap-northeast-1.amazonaws.com/Human+services/39-9041.00.mp4') }}"
                   type="video/mp4">
               </video>
               <canvas class="thumbnailCanvas"></canvas>
@@ -1264,7 +1264,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
 <script>
   // Home hero video modal: thumbnail first (if present), then play on click; on close reset
   document.addEventListener('DOMContentLoaded', function() {
-    var homeVideoEmbedUrl = {{ home_video_embed_url|default('https://topteenc.s3.ap-northeast-1.amazonaws.com/media/TopTeen_1080P.mp4')|tojson }};
+    var homeVideoEmbedUrl = {{ cdn_url(home_video_embed_url|default('https://topteenc.s3.ap-northeast-1.amazonaws.com/media/TopTeen_1080P.mp4'))|tojson }};
     var staticDemoModal = document.getElementById('staticDemo');
     var staticDemoVideo = document.getElementById('staticDemoVideo');
     var homeThumb = document.getElementById('homeVideoModalThumbnail');

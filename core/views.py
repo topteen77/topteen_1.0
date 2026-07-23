@@ -255,6 +255,8 @@ class Home(TemplateView):
     def _home_video_context(self):
         from core.models import Configuration
 
+        from core.s3_utils import rewrite_s3_url_to_cdn
+
         default_home_video = 'https://topteenc.s3.ap-northeast-1.amazonaws.com/media/TopTeen_1080P.mp4'
         home_video_url = (
             Configuration.get('HOME_VIDEO_URL', default=default_home_video, editable=True)
@@ -280,6 +282,11 @@ class Home(TemplateView):
                     home_video_thumbnail_url = (
                         'https://img.youtube.com/vi/' + home_video_yt_id + '/maxresdefault.jpg'
                     )
+        # Legacy config may store absolute S3 URLs — rewrite when CloudFront is enabled.
+        if not home_video_yt_id:
+            home_video_url = rewrite_s3_url_to_cdn(home_video_url) or home_video_url
+            home_video_embed_url = rewrite_s3_url_to_cdn(home_video_embed_url) or home_video_embed_url
+        home_video_thumbnail_url = rewrite_s3_url_to_cdn(home_video_thumbnail_url) or home_video_thumbnail_url
         return {
             'home_video_url': home_video_url,
             'home_video_thumbnail_url': home_video_thumbnail_url,
