@@ -215,7 +215,13 @@ class CareerAdminForm(forms.ModelForm):
     class Meta:
         model = Career
         fields = '__all__'
-        exclude = ['description_json', 'summary']
+        exclude = [
+            'description_json',
+            'summary',
+            'mindmap_validation_status',
+            'mindmap_validated_at',
+            'mindmap_validation_errors',
+        ]
         widgets = {
             'career_cluster': CareerClusterSelectWidget(),
         }

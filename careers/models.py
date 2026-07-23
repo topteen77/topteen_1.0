@@ -260,6 +260,19 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
     career_paths = models.ManyToManyField(CareerPath, blank=True)
     video_url=models.URLField(max_length=250,blank=True)
     videos = models.ManyToManyField("Videos", blank=True)
+    # Cached mindmap validation (columns already exist in DB; default required for inserts)
+    mindmap_validation_status = models.CharField(
+        max_length=20,
+        choices=(
+            ('not_checked', 'Not checked'),
+            ('valid', 'Valid'),
+            ('error', 'Error'),
+        ),
+        default='not_checked',
+        db_index=True,
+    )
+    mindmap_validated_at = models.DateTimeField(null=True, blank=True)
+    mindmap_validation_errors = models.TextField(null=True, blank=True)
 
     
     class Meta(BaseModel.Meta):
