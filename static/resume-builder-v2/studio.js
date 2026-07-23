@@ -17,6 +17,44 @@
   var queuedProfileSyncOffers = [];
   var LANGUAGE_LEVELS = ["Native", "Fluent", "Advanced", "Intermediate", "Basic", "Beginner"];
 
+  function normalizeLanguageLevel(raw) {
+    var s = (raw || "").trim();
+    if (!s) return "";
+    if (LANGUAGE_LEVELS.indexOf(s) >= 0) return s;
+    var lower = s.toLowerCase();
+    var i;
+    for (i = 0; i < LANGUAGE_LEVELS.length; i++) {
+      if (LANGUAGE_LEVELS[i].toLowerCase() === lower) return LANGUAGE_LEVELS[i];
+    }
+    var aliases = {
+      "native / mother tongue": "Native",
+      "mother tongue": "Native",
+      "native speaker": "Native",
+      "professional working proficiency": "Fluent",
+      "full professional proficiency": "Advanced",
+      "conversational": "Intermediate",
+      "intermediate (b1)": "Intermediate",
+      "intermediate (b2)": "Intermediate",
+      "elementary": "Basic",
+      "basic (a2)": "Basic",
+      "beginner (a1)": "Beginner",
+    };
+    return aliases[lower] || s;
+  }
+
+  function buildLanguageLevelOptions(selectedLevel) {
+    var level = normalizeLanguageLevel(selectedLevel);
+    var opts = ['<option value="">—</option>'];
+    if (level && LANGUAGE_LEVELS.indexOf(level) < 0) {
+      opts.push('<option value="' + esc(level) + '" selected>' + esc(level) + "</option>");
+    }
+    LANGUAGE_LEVELS.forEach(function (lv) {
+      var sel = level === lv ? " selected" : "";
+      opts.push('<option value="' + esc(lv) + '"' + sel + ">" + esc(lv) + "</option>");
+    });
+    return opts.join("");
+  }
+
   function $(sel, root) {
     return (root || document).querySelector(sel);
   }
@@ -227,7 +265,7 @@
       var nameEl = row.querySelector("[data-lang-name]");
       var levelEl = row.querySelector("[data-lang-level]");
       var name = nameEl ? nameEl.value.trim() : "";
-      var level = levelEl ? levelEl.value.trim() : "";
+      var level = levelEl ? normalizeLanguageLevel(levelEl.value) : "";
       if (!name && !level) return;
       if (name && !level) {
         setFieldErrorOnElement(levelEl, "Select a level");
@@ -597,7 +635,15 @@
       showValidationToast();
       return;
     }
-    setActiveSection(id);
+    setSavingState(true);
+    saveCurrentSection()
+      .then(function () {
+        setActiveSection(id);
+      })
+      .catch(function () {})
+      .finally(function () {
+        setSavingState(false);
+      });
   }
 
   function activeFormCard() {
@@ -1609,15 +1655,12 @@
     langs.forEach(function (lg, idx) {
       var row = document.createElement("div");
       row.className = "rb2-lang-row";
-      var levelOpts = LANGUAGE_LEVELS.map(function (lv) {
-        var sel = (lg.level || "") === lv ? " selected" : "";
-        return "<option value=\"" + esc(lv) + "\"" + sel + ">" + esc(lv) + "</option>";
-      }).join("");
+      var levelOpts = buildLanguageLevelOptions(lg.level || "");
       row.innerHTML =
         "<div class=\"rb2-field\"><label>Language</label>" +
         "<input type=\"text\" data-lang-name placeholder=\"e.g. English\" value=\"" + esc(lg.name || "") + "\" /></div>" +
         "<div class=\"rb2-field\"><label>Level</label>" +
-        "<select data-lang-level><option value=\"\">—</option>" + levelOpts + "</select></div>" +
+        "<select data-lang-level>" + levelOpts + "</select></div>" +
         "<div class=\"rb2-lang-row__remove\">" +
         "<span class=\"rb2-lang-row__remove-label\" aria-hidden=\"true\">Remove</span>" +
         "<button type=\"button\" class=\"rb2-lang-remove\" title=\"Remove language\" aria-label=\"Remove language\">" +
@@ -1662,8 +1705,8 @@
       var nameEl = row.querySelector("[data-lang-name]");
       var levelEl = row.querySelector("[data-lang-level]");
       var name = nameEl ? nameEl.value.trim() : "";
-      var level = levelEl ? levelEl.value.trim() : "";
-      if (name) langs.push({ name: name, level: level });
+      var level = levelEl ? normalizeLanguageLevel(levelEl.value) : "";
+      if (name && level) langs.push({ name: name, level: level });
     });
     return langs;
   }
@@ -2465,6 +2508,7 @@
         return;
       }
       if (!validateAllSections()) return;
+      setSavingState(true);
       saveAllSections()
         .then(function () {
           var msgs = window.RB2Messages;
@@ -2474,7 +2518,10 @@
           var formMain = document.querySelector(".rb2-studio-form");
           if (formMain) formMain.scrollTop = 0;
         })
-        .catch(function () {});
+        .catch(function () {})
+        .finally(function () {
+          setSavingState(false);
+        });
     });
   }
 
@@ -2728,14 +2775,12 @@
       if (!container) return;
       var row = document.createElement("div");
       row.className = "rb2-lang-row";
-      var levelOpts = LANGUAGE_LEVELS.map(function (lv) {
-        return "<option value=\"" + esc(lv) + "\">" + esc(lv) + "</option>";
-      }).join("");
+      var levelOpts = buildLanguageLevelOptions("");
       row.innerHTML =
         "<div class=\"rb2-field\"><label>Language</label>" +
         "<input type=\"text\" data-lang-name placeholder=\"e.g. Hindi\" /></div>" +
         "<div class=\"rb2-field\"><label>Level</label>" +
-        "<select data-lang-level><option value=\"\">—</option>" + levelOpts + "</select></div>" +
+        "<select data-lang-level>" + levelOpts + "</select></div>" +
         "<div class=\"rb2-lang-row__remove\">" +
         "<span class=\"rb2-lang-row__remove-label\" aria-hidden=\"true\">Remove</span>" +
         "<button type=\"button\" class=\"rb2-lang-remove\" title=\"Remove language\" aria-label=\"Remove language\">" +

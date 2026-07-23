@@ -121,6 +121,33 @@ LANGUAGE_LEVEL_OPTIONS = [
     "Beginner",
 ]
 
+_LANGUAGE_LEVEL_ALIASES = {
+    "native / mother tongue": "Native",
+    "mother tongue": "Native",
+    "native speaker": "Native",
+    "professional working proficiency": "Fluent",
+    "full professional proficiency": "Advanced",
+    "conversational": "Intermediate",
+    "intermediate (b1)": "Intermediate",
+    "intermediate (b2)": "Intermediate",
+    "elementary": "Basic",
+    "basic (a2)": "Basic",
+    "beginner (a1)": "Beginner",
+}
+
+
+def _normalize_language_level(raw: str) -> str:
+    s = (raw or "").strip()
+    if not s:
+        return ""
+    if s in LANGUAGE_LEVEL_OPTIONS:
+        return s
+    lower = s.lower()
+    for opt in LANGUAGE_LEVEL_OPTIONS:
+        if opt.lower() == lower:
+            return opt
+    return _LANGUAGE_LEVEL_ALIASES.get(lower, s)
+
 
 def studio_sections_for_user(user, resume=None) -> list[str]:
     """Canonical studio section order — always current (not stale v2 meta)."""
@@ -942,7 +969,9 @@ def save_resume_languages(resume, languages_raw: list | None) -> list[dict]:
         name = (lg.get("name") or "").strip()[:200]
         if not name:
             continue
-        level = (lg.get("level") or "").strip()[:200]
+        level = _normalize_language_level(lg.get("level") or "")[:200]
+        if not level:
+            continue
         cleaned.append({"name": name, "level": level})
     save_v2_meta(resume, {"languages": cleaned})
     UserResumeActivity.objects.filter(resume=resume, title__startswith="Language:").delete()
