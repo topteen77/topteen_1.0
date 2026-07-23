@@ -236,6 +236,23 @@ def user_pdf_presigned_download_url(user_id, filename, download_name=None, expir
         return None
 
 
+def user_pdf_browser_url(user_id, filename, download_name=None):
+    """
+    Best URL for opening a stored report PDF in the browser.
+
+    Prefers CloudFront, then a short-lived S3 signed URL. Returns None when
+    neither is available (caller may fall back to the Django download view).
+    """
+    if not user_id or not filename:
+        return None
+    cdn = user_pdf_cdn_url(user_id, filename)
+    if cdn:
+        return cdn
+    return user_pdf_presigned_download_url(
+        user_id, filename, download_name=download_name or filename, inline=True
+    )
+
+
 def serve_user_pdf_response(user_id, filename, download_name=None, inline=True):
     """
     Deliver a stored report PDF without streaming bytes through Gunicorn.
@@ -284,37 +301,80 @@ def serve_user_pdf_response(user_id, filename, download_name=None, inline=True):
         return None
 
 
+def _pdf_ready_cache():
+    """
+    Cache used for user PDF ready-flags.
+
+    Prefer a real Redis alias when ENABLE_REDIS is on so flags survive across
+    requests even if default cache is DummyCache (DEBUG + DISABLE_CACHE_FOR_DEV).
+    """
+    from django.core.cache import caches
+
+    if getattr(settings, "ENABLE_REDIS", False):
+        for alias in ("translations", "sessions", "default"):
+            try:
+                backend = (settings.CACHES.get(alias) or {}).get("BACKEND", "")
+                if "DummyCache" in backend:
+                    continue
+                return caches[alias]
+            except Exception:
+                continue
+    try:
+        return caches["default"]
+    except Exception:
+        from django.core.cache import cache
+
+        return cache
+
+
 def mark_user_pdf_ready(user_id, filename, ready=True):
-    """Redis flag — S3 exists() is unreliable in this project's storage config."""
+    """Redis (or shared) flag — S3 exists() is unreliable in this project's storage config."""
     if not user_id or not filename:
         return
     try:
-        from django.core.cache import cache
-
+        c = _pdf_ready_cache()
         key = f"user_pdf_ready:v1:{user_id}:{filename}"
         if ready:
-            cache.set(key, 1, 60 * 60 * 24 * 14)
+            c.set(key, 1, 60 * 60 * 24 * 14)
         else:
-            cache.delete(key)
+            c.delete(key)
     except Exception:
         pass
 
 
-def user_pdf_exists(user_id, filename):
+def user_pdf_exists(user_id, filename, *, probe_storage=False):
     """
-    True if a previously generated report PDF is already in media storage.
+    True if a previously generated report PDF is already available.
 
-    Prefer Redis ready-flag only on the hot path. Do NOT probe S3 with open()/exists()
-    when the flag is missing — missing-key probes are slow and block Gunicorn under load.
+    Prefer the Redis ready-flag on the hot path. When ``probe_storage=True``
+    (status polling only), also check default_storage and re-mark the flag if
+    the object is found — so dashboard buttons auto-enable after generation.
     """
     if not user_id or not filename:
         return False
+    key = f"user_pdf_ready:v1:{user_id}:{filename}"
     try:
-        from django.core.cache import cache
-
-        return bool(cache.get(f"user_pdf_ready:v1:{user_id}:{filename}"))
+        if bool(_pdf_ready_cache().get(key)):
+            return True
     except Exception:
+        pass
+
+    if not probe_storage:
         return False
+
+    storage_key = user_pdf_key(user_id, filename)
+    try:
+        if default_storage.exists(storage_key):
+            mark_user_pdf_ready(user_id, filename, True)
+            return True
+    except Exception as e:
+        logger.warning(
+            "user_pdf_exists storage probe failed user_id=%s file=%s: %s",
+            user_id,
+            filename,
+            e,
+        )
+    return False
 
 
 def class10_pdf_lock_key(user_id, test_paper):

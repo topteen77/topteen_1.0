@@ -629,8 +629,15 @@
     <a href="{{ url('app:dashboard') }}" class="sticky-back-btn" onclick="event.preventDefault(); window.location = document.referrer || this.href;">
       <i class="fas fa-arrow-left"></i> Back
     </a>
-    <a href="{% if viewing_as_admin and user_id %}{{ url('app:class10_report_download_pdf', args=[user_id]) }}{% else %}{{ url('app:class10_report_download_pdf_own') }}{% endif %}" class="sticky-download-btn">
-      <i class="fas fa-download"></i> Download PDF
+    <a href="{% if viewing_as_admin and user_id %}{{ url('app:class10_report_download_pdf', args=[user_id]) }}{% else %}{{ url('app:class10_report_download_pdf_own') }}{% endif %}"
+       class="sticky-download-btn js-report-pdf-btn is-preparing"
+       data-pdf-url="{% if viewing_as_admin and user_id %}{{ url('app:class10_report_download_pdf', args=[user_id]) }}{% else %}{{ url('app:class10_report_download_pdf_own') }}{% endif %}"
+       data-label-default="Download PDF"
+       data-label-preparing="Preparing PDF…"
+       aria-disabled="true"
+       aria-busy="true"
+       tabindex="-1">
+      <i class="fas fa-download"></i> Preparing PDF…
     </a>
   </div>
   {% endif %}
@@ -639,6 +646,7 @@
 
 {% block additionaljs %}
 {{ super() }}
+{% include 'template20/app/partials/report_pdf_async_download.html' %}
 <script>
 (function () {
   function initStreamPathwaysToggle() {

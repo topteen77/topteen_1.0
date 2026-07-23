@@ -1,0 +1,161 @@
+{# PDF buttons start disabled ("Preparing PDF…"); enable only when ready.
+   Mark each download link with class "js-report-pdf-btn" and data-pdf-url.
+   Optional: data-label-default, data-label-preparing
+   Buttons sharing the same data-pdf-url update together.
+
+   One status poll per unique PDF URL on load (status also enqueues generation).
+   Continues with backoff only while preparing; stops when ready or after max wait. #}
+<style>
+  .js-report-pdf-btn.is-preparing,
+  .js-report-pdf-btn[aria-disabled="true"] {
+    opacity: 0.7;
+    cursor: not-allowed !important;
+    pointer-events: none;
+  }
+</style>
+<script>
+(function () {
+  if (window.__reportPdfAsyncInit) return;
+  window.__reportPdfAsyncInit = true;
+
+  function withQuery(url, key, value) {
+    var u = url || '';
+    var sep = u.indexOf('?') >= 0 ? '&' : '?';
+    return u + sep + encodeURIComponent(key) + '=' + encodeURIComponent(value);
+  }
+
+  function labelHtml(btn, text) {
+    var icon = btn.querySelector('i');
+    var iconStr = icon ? icon.outerHTML + ' ' : '';
+    return iconStr + text;
+  }
+
+  function groupKey(btn) {
+    return (btn.getAttribute('data-pdf-url') || btn.getAttribute('href') || '').split('?')[0];
+  }
+
+  function buttonsForUrl(pdfUrl) {
+    var key = (pdfUrl || '').split('?')[0];
+    return Array.prototype.filter.call(
+      document.querySelectorAll('.js-report-pdf-btn'),
+      function (b) { return groupKey(b) === key; }
+    );
+  }
+
+  function setGroupPreparing(pdfUrl) {
+    buttonsForUrl(pdfUrl).forEach(function (btn) {
+      var labelPreparing = btn.getAttribute('data-label-preparing') || 'Preparing PDF…';
+      btn.classList.add('is-preparing');
+      btn.setAttribute('aria-disabled', 'true');
+      btn.setAttribute('aria-busy', 'true');
+      btn.setAttribute('tabindex', '-1');
+      btn.removeAttribute('target');
+      btn.dataset.readyUrl = '';
+      btn.innerHTML = labelHtml(btn, labelPreparing);
+    });
+  }
+
+  function setGroupReady(pdfUrl, openUrl) {
+    buttonsForUrl(pdfUrl).forEach(function (btn) {
+      var labelDefault = btn.getAttribute('data-label-default') || 'Download PDF';
+      btn.classList.remove('is-preparing');
+      btn.removeAttribute('aria-disabled');
+      btn.setAttribute('aria-busy', 'false');
+      btn.removeAttribute('tabindex');
+      btn.dataset.readyUrl = openUrl;
+      btn.setAttribute('href', openUrl);
+      btn.innerHTML = labelHtml(btn, labelDefault);
+    });
+  }
+
+  function startWatch(pdfUrl) {
+    var key = (pdfUrl || '').split('?')[0];
+    if (!key || startWatch._started[key]) return;
+    startWatch._started[key] = true;
+
+    var pollTimer = null;
+    var pollStarted = Date.now();
+    var maxPollMs = 180000;
+    var delayMs = 2000;
+
+    function stopPoll() {
+      if (pollTimer) {
+        clearTimeout(pollTimer);
+        pollTimer = null;
+      }
+    }
+
+    function scheduleNext() {
+      if (Date.now() - pollStarted > maxPollMs) {
+        stopPoll();
+        return;
+      }
+      pollTimer = setTimeout(pollStatus, delayMs);
+      // Back off so Network is not flooded while Celery is slow.
+      delayMs = Math.min(delayMs * 1.5, 10000);
+    }
+
+    function pollStatus() {
+      if (Date.now() - pollStarted > maxPollMs) {
+        stopPoll();
+        return;
+      }
+      fetch(withQuery(key, 'status', '1'), {
+        credentials: 'same-origin',
+        headers: { 'Accept': 'application/json' },
+      })
+        .then(function (r) {
+          if (!r.ok) throw new Error('status ' + r.status);
+          return r.json();
+        })
+        .then(function (data) {
+          if (data && data.ready && data.url) {
+            stopPoll();
+            setGroupReady(key, data.url);
+            return;
+          }
+          scheduleNext();
+        })
+        .catch(function () {
+          scheduleNext();
+        });
+    }
+
+    setGroupPreparing(key);
+    // status=1 also enqueues generation when missing — no separate prefetch.
+    pollStatus();
+  }
+  startWatch._started = {};
+
+  function bindPdfButton(btn) {
+    if (!btn || btn.dataset.pdfBound === '1') return;
+    btn.dataset.pdfBound = '1';
+
+    var pdfUrl = btn.getAttribute('data-pdf-url') || btn.getAttribute('href') || '';
+    if (!pdfUrl) return;
+
+    // Remove target=_blank so a premature click never opens the wait page.
+    btn.removeAttribute('target');
+
+    startWatch(pdfUrl);
+
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (btn.getAttribute('aria-disabled') === 'true') return;
+      var openUrl = btn.dataset.readyUrl || btn.getAttribute('href');
+      if (!openUrl) return;
+      window.open(openUrl, '_blank', 'noopener,noreferrer');
+    });
+  }
+
+  function init() {
+    document.querySelectorAll('.js-report-pdf-btn').forEach(bindPdfButton);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>

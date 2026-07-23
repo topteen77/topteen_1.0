@@ -8,6 +8,7 @@ from core.utils import (
     ensure_user_pdf_folder,
     save_user_pdf,
     serve_user_pdf_response,
+    user_pdf_browser_url,
     user_pdf_exists,
 )
 from django.http import HttpResponseRedirect, JsonResponse
@@ -1073,36 +1074,76 @@ def _add_no_cache_headers(response):
 
 
 def _pdf_preparing_response():
-    """Quiet wait tab while Celery finishes; refresh replaces this with the PDF viewer."""
+    """Fallback HTML if the download URL is opened directly (no JS button flow)."""
     return HttpResponse(
         """<!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8"/>
-<meta http-equiv="refresh" content="1"/>
-<title>Opening report…</title>
+<meta http-equiv="refresh" content="2"/>
+<title>Preparing report…</title>
 <style>
- body{margin:0;min-height:100vh;background:#fff;display:flex;align-items:center;justify-content:center;
-  font-family:system-ui,sans-serif;color:#666;font-size:0.95rem}
+ body{margin:0;min-height:100vh;background:#f7f8fa;display:flex;align-items:center;justify-content:center;
+  font-family:system-ui,-apple-system,sans-serif;color:#334155}
+ .box{text-align:center;padding:2rem;max-width:22rem}
+ .spin{width:2rem;height:2rem;margin:0 auto 1rem;border:3px solid #cbd5e1;border-top-color:#4f46e5;
+  border-radius:50%;animation:s .8s linear infinite}
+ @keyframes s{to{transform:rotate(360deg)}}
+ h1{font-size:1.1rem;font-weight:600;margin:0 0 .5rem}
+ p{margin:0;font-size:.9rem;color:#64748b;line-height:1.45}
 </style>
 </head>
-<body><p>Opening your report…</p>
-<script>setTimeout(function(){location.reload()},1000)</script>
+<body><div class="box"><div class="spin" aria-hidden="true"></div>
+<h1>Preparing your report</h1>
+<p>This usually takes a few seconds. This tab will open the PDF when it is ready.</p>
+</div>
+<script>setTimeout(function(){location.reload()},2000)</script>
 </body></html>""",
         content_type="text/html; charset=utf-8",
     )
+
+
+def _pdf_wants_async_api(request):
+    """True for button/prefetch JSON flows (do not return the wait HTML page)."""
+    if (request.GET.get("status") or "").strip() == "1":
+        return True
+    if (request.GET.get("prefetch") or "").strip() == "1":
+        return True
+    accept = (request.META.get("HTTP_ACCEPT") or "").lower()
+    return "application/json" in accept
 
 
 def _try_serve_or_enqueue_web_report_pdf(request, target_user, report_kind, *, _sync_generate=False):
     """
     Serve a stored PDF or enqueue Celery generation.
 
+    Query flags used by the report-page button UX:
+      - prefetch=1 → enqueue only, HTTP 204
+      - status=1 (or Accept: application/json) → {"ready": bool, "url": "..."}
+
     Returns an HttpResponse when handled; None means caller should generate sync.
     """
     if _sync_generate or (request.GET.get("debug") or "").strip() == "true":
         return None
+
+    is_prefetch = (request.GET.get("prefetch") or "").strip() == "1"
+    wants_api = _pdf_wants_async_api(request)
     filename = class10_web_report_pdf_filename(target_user, report_kind)
+    fallback_open = request.build_absolute_uri(request.path)
+
     try:
-        if user_pdf_exists(target_user.id, filename):
+        # Status/prefetch polls may probe storage so buttons flip to ready
+        # automatically once the PDF lands on S3/CloudFront.
+        exists = user_pdf_exists(
+            target_user.id,
+            filename,
+            probe_storage=bool(is_prefetch or wants_api),
+        )
+        if exists:
+            open_url = user_pdf_browser_url(target_user.id, filename, download_name=filename) or fallback_open
+            if is_prefetch:
+                return HttpResponse(status=204)
+            if wants_api:
+                return JsonResponse({"ready": True, "url": open_url, "preparing": False})
             served = serve_user_pdf_response(
                 target_user.id, filename, download_name=filename, inline=True
             )
@@ -1114,21 +1155,44 @@ def _try_serve_or_enqueue_web_report_pdf(request, target_user, report_kind, *, _
             getattr(target_user, "id", None),
             report_kind,
         )
+
+    enqueued = False
     try:
         from app.task import enqueue_class10_web_report_pdf
 
-        if enqueue_class10_web_report_pdf(
-            target_user.id,
-            report_kind,
-            request.build_absolute_uri("/"),
-        ):
-            return _pdf_preparing_response()
+        enqueued = bool(
+            enqueue_class10_web_report_pdf(
+                target_user.id,
+                report_kind,
+                request.build_absolute_uri("/"),
+            )
+        )
     except Exception:
         logger.exception(
             "web report PDF enqueue failed user=%s kind=%s; falling back to sync",
             getattr(target_user, "id", None),
             report_kind,
         )
+        if is_prefetch or wants_api:
+            return JsonResponse(
+                {"ready": False, "preparing": False, "error": "enqueue_failed"},
+                status=503,
+            )
+        return None
+
+    if is_prefetch:
+        return HttpResponse(status=204) if enqueued else HttpResponse(status=503)
+
+    if wants_api:
+        if not enqueued:
+            return JsonResponse(
+                {"ready": False, "preparing": False, "error": "celery_unavailable"},
+                status=503,
+            )
+        return JsonResponse({"ready": False, "url": None, "preparing": True})
+
+    if enqueued:
+        return _pdf_preparing_response()
     return None
 
 

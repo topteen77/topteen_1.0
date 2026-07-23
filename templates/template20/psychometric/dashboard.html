@@ -66,6 +66,7 @@
 {% endblock %}
 
 {% block student_additionaljs %}
+{% include 'template20/app/partials/report_pdf_async_download.html' %}
 {% if show_stream_questionnaire %}
 <script src="{{ static('js_new/streamDecisionQuestionnaire.js') }}?v=16" defer></script>
 {% endif %}
