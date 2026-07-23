@@ -10574,7 +10574,7 @@ a:hover {
   color: #5046e5;
 }
 
-.cat-main-content .table tr th:first-child {
+.cat-main-content .table tr:not(:first-child) th:first-child {
   background: #5046e5;
   color: #fff;
   text-align: center;
@@ -10584,7 +10584,49 @@ a:hover {
 .cat-main-content .table tr th {
   background: #f4f5ff;
   border-bottom: 0;
+}
 
+.cat-main-content table,
+.cat-main-content .table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 1.25rem 0;
+  background: #fff;
+  border: 1px solid #e4e7fb;
+  border-radius: 12px;
+  overflow: hidden;
+  table-layout: fixed;
+}
+
+.cat-main-content table th,
+.cat-main-content table td,
+.cat-main-content .table th,
+.cat-main-content .table td {
+  padding: 14px 18px;
+  line-height: 1.6;
+  vertical-align: top;
+  border: 1px solid #e8eaf6;
+  color: #2d2a4a;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+.cat-main-content table tr:first-child th,
+.cat-main-content table tr:first-child td,
+.cat-main-content .table tr:first-child th,
+.cat-main-content .table tr:first-child td {
+  background: #f2f0ff;
+  font-weight: 600;
+  color: #3f37c9;
+  text-align: center;
+  font-size: 16px;
+  padding: 16px 18px;
+}
+
+.cat-main-content table tbody tr:nth-child(even) td,
+.cat-main-content .table tbody tr:nth-child(even) td {
+  background: #fafbff;
 }
 
 .cat-main-content tbody,
@@ -10592,17 +10634,65 @@ a:hover {
 .cat-main-content th,
 .cat-main-content thead,
 .cat-main-content tr {
-  border-color: inherit;
+  border-color: #e4e7fb;
   border-style: solid;
-  border-width: 1px;
+  border-width: 0;
   font-weight: 400;
-  font-size: 16px;
-
+  font-size: 15px;
 }
 
 .cat-main-content ul {
   padding-left: 14px;
   font-weight: 400;
+}
+
+.blogDetail table,
+.blogDetail .table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 1.25rem 0;
+  background: #fff;
+  border: 1px solid #e4e7fb;
+  border-radius: 12px;
+  overflow: hidden;
+  table-layout: fixed;
+}
+
+.blogDetail table th,
+.blogDetail table td,
+.blogDetail .table th,
+.blogDetail .table td {
+  padding: 14px 18px;
+  line-height: 1.6;
+  vertical-align: top;
+  border: 1px solid #e8eaf6;
+  color: #2d2a4a;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+.blogDetail table tr:first-child th,
+.blogDetail table tr:first-child td,
+.blogDetail .table tr:first-child th,
+.blogDetail .table tr:first-child td {
+  background: #f2f0ff;
+  font-weight: 600;
+  color: #3f37c9;
+  text-align: center;
+  font-size: 16px;
+  padding: 16px 18px;
+}
+
+.blogDetail table tbody tr:nth-child(even) td,
+.blogDetail .table tbody tr:nth-child(even) td {
+  background: #fafbff;
+}
+
+.blogDetail table td p,
+.blogDetail .table td p {
+  margin: 0;
+  line-height: 1.6;
 }
 
 
