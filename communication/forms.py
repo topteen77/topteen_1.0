@@ -2,7 +2,7 @@ from django import forms
 from ckeditor.widgets import CKEditorWidget
 
 from communication.email_template_registry import get_email_template_meta
-from communication.models import EmailMessageTemplate, MessagingSettings
+from communication.models import EmailMessageTemplate, SmsSettings, WhatsAppSettings
 from communication.providers import sms_provider_choices, whatsapp_provider_choices
 
 
@@ -36,30 +36,42 @@ class EmailMessageTemplateAdminForm(forms.ModelForm):
             })
 
 
-class MessagingSettingsAdminForm(forms.ModelForm):
+class SmsSettingsAdminForm(forms.ModelForm):
     class Meta:
-        model = MessagingSettings
+        model = SmsSettings
         fields = '__all__'
         widgets = {
-            'active_channel':         forms.RadioSelect,
             'smartping_password': forms.PasswordInput(render_value=True, attrs={'autocomplete': 'new-password'}),
             'plivo_auth_token': forms.PasswordInput(render_value=True, attrs={'autocomplete': 'new-password'}),
-            'sms_message_template': forms.Textarea(attrs={'rows': 3, 'cols': 80}),
-            'sender_mode': forms.RadioSelect,
+            'message_template': forms.Textarea(attrs={'rows': 3, 'cols': 80}),
             'test_destination': forms.TextInput(attrs={'placeholder': '+9198XXXXXXXX', 'style': 'max-width:280px;'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        sms_help = self.fields['sms_provider'].help_text
-        wa_help = self.fields['whatsapp_provider'].help_text
-        self.fields['sms_provider'] = forms.ChoiceField(
+        help_text = self.fields['provider'].help_text
+        self.fields['provider'] = forms.ChoiceField(
             choices=sms_provider_choices() or [('smartping', 'SmartPing'), ('plivo', 'Plivo')],
-            initial=getattr(self.instance, 'sms_provider', None) or 'smartping',
-            help_text=sms_help,
+            initial=getattr(self.instance, 'provider', None) or 'smartping',
+            help_text=help_text,
         )
-        self.fields['whatsapp_provider'] = forms.ChoiceField(
+
+
+class WhatsAppSettingsAdminForm(forms.ModelForm):
+    class Meta:
+        model = WhatsAppSettings
+        fields = '__all__'
+        widgets = {
+            'plivo_auth_token': forms.PasswordInput(render_value=True, attrs={'autocomplete': 'new-password'}),
+            'test_destination': forms.TextInput(attrs={'placeholder': '+9198XXXXXXXX', 'style': 'max-width:280px;'}),
+            'otp_template_preview': forms.Textarea(attrs={'rows': 4, 'cols': 80, 'readonly': True}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        help_text = self.fields['provider'].help_text
+        self.fields['provider'] = forms.ChoiceField(
             choices=whatsapp_provider_choices() or [('plivo', 'Plivo')],
-            initial=getattr(self.instance, 'whatsapp_provider', None) or 'plivo',
-            help_text=wa_help,
+            initial=getattr(self.instance, 'provider', None) or 'plivo',
+            help_text=help_text,
         )

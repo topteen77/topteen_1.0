@@ -179,13 +179,13 @@ class ComService:
         )
         return self.send_mail(subject,to,text_content,html_content)
 
-    def _messaging_cfg(self):
-        from communication.messaging_config import get_messaging_settings
-        return get_messaging_settings()
+    def _sms_cfg(self):
+        from communication.messaging_config import get_sms_settings
+        return get_sms_settings()
 
-    def _is_production_messaging_env(self):
-        from communication.messaging_config import is_production_messaging_env
-        return is_production_messaging_env()
+    def _whatsapp_cfg(self):
+        from communication.messaging_config import get_whatsapp_settings
+        return get_whatsapp_settings()
 
     def _channel_enabled(self, channel='sms'):
         from communication.messaging_config import channel_enabled
@@ -208,7 +208,7 @@ class ComService:
         )
 
     def send_mobile_otp(self, user):
-        """Send OTP via the admin-selected SMS provider (keys required or service stays off)."""
+        """Send OTP via SMS settings (independent of WhatsApp)."""
         from communication.providers import get_provider
 
         try:
@@ -219,10 +219,10 @@ class ComService:
             formatted_phone = self.format_phone_number_with_country_code(user)
             print(f"Formatted phone number: {formatted_phone} (original: {user})")
 
-            cfg = self._messaging_cfg()
-            provider_key = (cfg.sms_provider or 'smartping').strip().lower()
+            cfg = self._sms_cfg()
+            provider_key = (cfg.provider or 'smartping').strip().lower()
             provider = get_provider(provider_key)
-            message_template = cfg.sms_message_template or '{otp} is your verification code for TopTeen'
+            message_template = cfg.message_template or '{otp} is your verification code for TopTeen'
             message = message_template.format(otp=otp)
             log_key = f"{provider_key}:sms:{formatted_phone}:{message}"
             response_text = 'DEBUG'
@@ -238,7 +238,7 @@ class ComService:
                 result = provider.send_sms(
                     formatted_phone,
                     message,
-                    config=cfg.provider_config_for(provider_key),
+                    config=cfg.provider_config(),
                 )
                 response_text = result.get('response') or result.get('error') or ''
                 log_key = result.get('log_key') or log_key
@@ -260,15 +260,12 @@ class ComService:
             return False
 
     def send_whatsapp_otp(self, user, otp_type=None):
-        """
-        Send OTP via the admin-selected WhatsApp provider.
-        Missing keys → service disabled (OTP still created when channel selected).
-        """
+        """Send OTP via WhatsApp settings (independent of SMS)."""
         from communication.providers import get_provider
 
-        cfg = self._messaging_cfg()
-        if not cfg.whatsapp_enabled:
-            logger.warning('WhatsApp OTP skipped: active_channel is not whatsapp')
+        cfg = self._whatsapp_cfg()
+        if not cfg.is_enabled:
+            logger.warning('WhatsApp OTP skipped: WhatsApp disabled in admin')
             return False
 
         if otp_type is None:
@@ -278,7 +275,7 @@ class ComService:
             user = int(user)
             otp = self.get_otp(user, otp_type)
             formatted_phone = self.format_phone_number_with_country_code(user)
-            provider_key = (cfg.whatsapp_provider or 'plivo').strip().lower()
+            provider_key = (cfg.provider or 'plivo').strip().lower()
             provider = get_provider(provider_key)
             log_key = f"{provider_key}:whatsapp-otp:{formatted_phone}:{otp}"
             response_text = 'DEBUG'
@@ -293,11 +290,11 @@ class ComService:
             if self._should_send_mobile_message(log_key, channel='whatsapp'):
                 result = provider.send_whatsapp_template(
                     formatted_phone,
-                    template_name=cfg.whatsapp_otp_template,
-                    language=cfg.whatsapp_otp_template_lang or 'en',
+                    template_name=cfg.otp_template,
+                    language=cfg.otp_template_lang or 'en',
                     body_params=[str(otp)],
                     auth_copy_code=True,
-                    config=cfg.provider_config_for(provider_key),
+                    config=cfg.provider_config(),
                 )
                 response_text = result.get('response') or result.get('error') or ''
                 log_key = result.get('log_key') or log_key
@@ -315,63 +312,41 @@ class ComService:
             logger.exception('WhatsApp OTP failed for %s: %s', user, e)
             return False
 
-    def send_admin_test_otp(self, destination, *, cfg=None):
+    def send_admin_test_otp(self, destination, *, channel='sms'):
         """
-        Staff-only test send for MessagingSettings admin.
-        Bypasses non-production env gate (admin explicitly clicked Test),
-        but still blocks Sandbox mode on a production app env.
+        Staff sandbox test. Bypasses is_enabled; still requires credentials + assets.
+        channel: 'sms' | 'whatsapp'
         """
         from communication.providers import get_provider
-        from communication.messaging_config import (
-            has_from_number,
-            is_production_messaging_env,
-        )
 
-        cfg = cfg or self._messaging_cfg()
-        channel = (cfg.active_channel or '').strip().lower()
         dest = str(destination or '').strip()
+        channel = (channel or '').strip().lower()
         if not dest:
             return {'success': False, 'error': 'Missing test destination'}
         if channel not in ('sms', 'whatsapp'):
-            return {'success': False, 'error': 'Select SMS or WhatsApp first'}
-
-        if cfg.sender_mode == cfg.SENDER_MODE_TESTING and is_production_messaging_env():
-            return {
-                'success': False,
-                'error': 'Sandbox blocked on production app environment',
-            }
-
-        if cfg.sender_mode == cfg.SENDER_MODE_PRODUCTION and not has_from_number(cfg):
-            return {
-                'success': False,
-                'error': 'Production mode needs a From number (Step 4)',
-            }
+            return {'success': False, 'error': 'channel must be sms or whatsapp'}
 
         formatted_phone = self.format_phone_number_with_country_code(dest)
         otp = self.generate_otp()
 
         try:
             if channel == 'sms':
-                provider_key = (cfg.sms_provider or 'smartping').strip().lower()
+                cfg = self._sms_cfg()
+                if not cfg.config_ready_for_test():
+                    return {
+                        'success': False,
+                        'error': cfg.missing_config_message() or 'SMS config incomplete for test',
+                    }
+                provider_key = (cfg.provider or 'smartping').strip().lower()
                 provider = get_provider(provider_key)
                 if not provider or not provider.supports_sms:
                     return {'success': False, 'error': f'SMS provider {provider_key!r} unavailable'}
-                if not cfg.provider_keys_ok(provider_key, for_whatsapp=False) and cfg.sender_mode != cfg.SENDER_MODE_TESTING:
-                    return {
-                        'success': False,
-                        'error': cfg.missing_keys_message(provider_key, for_whatsapp=False),
-                    }
-                # Sandbox still needs credentials
-                if provider_key == 'plivo' and not (cfg.plivo_auth_id.strip() and cfg.plivo_auth_token.strip()):
-                    return {'success': False, 'error': 'Plivo Auth ID/Token required'}
-                if provider_key == 'smartping' and not (cfg.smartping_username.strip() and cfg.smartping_password.strip()):
-                    return {'success': False, 'error': 'SmartPing credentials required'}
-                message_template = cfg.sms_message_template or '{otp} is your verification code for TopTeen'
+                message_template = cfg.message_template or '{otp} is your verification code for TopTeen'
                 message = message_template.format(otp=otp)
                 result = provider.send_sms(
                     formatted_phone,
                     message,
-                    config=cfg.provider_config_for(provider_key),
+                    config=cfg.provider_config(),
                 )
                 log_key = result.get('log_key') or f'admin-test:sms:{formatted_phone}:{otp}'
                 self.make_log_entry(
@@ -387,35 +362,23 @@ class ComService:
                     'otp': otp,
                 }
 
-            # WhatsApp
-            if not cfg.whatsapp_template_is_approved():
+            cfg = self._whatsapp_cfg()
+            if not cfg.config_ready_for_test():
                 return {
                     'success': False,
-                    'error': (
-                        f'Template status {cfg.whatsapp_otp_template_status or "unknown"!r} '
-                        '— must be APPROVED (Step 3)'
-                    ),
+                    'error': cfg.missing_config_message() or 'WhatsApp config incomplete for test',
                 }
-            provider_key = (cfg.whatsapp_provider or 'plivo').strip().lower()
+            provider_key = (cfg.provider or 'plivo').strip().lower()
             provider = get_provider(provider_key)
             if not provider or not provider.supports_whatsapp:
                 return {'success': False, 'error': f'WhatsApp provider {provider_key!r} unavailable'}
-            if provider_key == 'plivo' and not (cfg.plivo_auth_id.strip() and cfg.plivo_auth_token.strip()):
-                return {'success': False, 'error': 'Plivo Auth ID/Token required'}
-            if not (cfg.whatsapp_otp_template or '').strip():
-                return {'success': False, 'error': 'Fetch an approved WhatsApp template first (Step 3)'}
-            if not (cfg.plivo_whatsapp_from or '').strip() and provider_key == 'plivo':
-                return {
-                    'success': False,
-                    'error': 'Paste WhatsApp From number (Step 4) — required even for sandbox tests',
-                }
             result = provider.send_whatsapp_template(
                 formatted_phone,
-                template_name=cfg.whatsapp_otp_template,
-                language=cfg.whatsapp_otp_template_lang or 'en',
+                template_name=cfg.otp_template,
+                language=cfg.otp_template_lang or 'en',
                 body_params=[str(otp)],
                 auth_copy_code=True,
-                config=cfg.provider_config_for(provider_key),
+                config=cfg.provider_config(),
             )
             log_key = result.get('log_key') or f'admin-test:wa:{formatted_phone}:{otp}'
             self.make_log_entry(
@@ -435,36 +398,29 @@ class ComService:
             return {'success': False, 'error': str(exc)}
 
     def send_whatsapp_message(self, to_number, text=None, *, template_name=None, body_params=None):
-        """Send WhatsApp via admin-selected provider; disabled if keys missing."""
+        """Send WhatsApp via WhatsApp settings; disabled if not ready."""
         from communication.providers import get_provider
-        from communication.messaging_config import env_allows_send
 
-        cfg = self._messaging_cfg()
-        if not cfg.is_whatsapp_ready():
+        cfg = self._whatsapp_cfg()
+        if not cfg.is_ready():
             logger.warning(
                 'WhatsApp message skipped: %s',
                 self._skip_send_reason('whatsapp-msg', channel='whatsapp'),
             )
             return False
-        if not env_allows_send(cfg):
-            logger.warning(
-                'WhatsApp message skipped: %s',
-                cfg.sender_mode_block_reason() or 'environment/sender mode mismatch',
-            )
-            return False
 
-        provider_key = (cfg.whatsapp_provider or 'plivo').strip().lower()
+        provider_key = (cfg.provider or 'plivo').strip().lower()
         provider = get_provider(provider_key)
         if not provider or not provider.supports_whatsapp:
             return False
 
         formatted_phone = self.format_phone_number_with_country_code(to_number)
-        pconfig = cfg.provider_config_for(provider_key)
+        pconfig = cfg.provider_config()
         if template_name is not None or body_params is not None:
             result = provider.send_whatsapp_template(
                 formatted_phone,
-                template_name=template_name or cfg.whatsapp_otp_template,
-                language=cfg.whatsapp_otp_template_lang or 'en',
+                template_name=template_name or cfg.otp_template,
+                language=cfg.otp_template_lang or 'en',
                 body_params=body_params,
                 config=pconfig,
             )
@@ -489,9 +445,8 @@ class ComService:
         if otp_type == choices.CommunicationTypeChooices.WHATSAPP:
             return self.send_whatsapp_otp(user)
         if otp_type == choices.CommunicationTypeChooices.SMS:
-            cfg = self._messaging_cfg()
-            # Mutual exclusivity: if WhatsApp channel is active (and keys ready), deliver there
-            if cfg.whatsapp_enabled:
+            # Prefer WhatsApp only when fully ready; otherwise SMS (staging/production safe)
+            if self._channel_enabled('whatsapp'):
                 return self.send_whatsapp_otp(user, otp_type=choices.CommunicationTypeChooices.SMS)
             return self.send_mobile_otp(user)
         return None

@@ -69,119 +69,30 @@ class OTP(models.Model):
         return "{} ({}) : ".format(self.user, self.get_type_display(), self.otp)
 
 
-class MessagingSettings(models.Model):
-    """
-    Singleton: SMS + WhatsApp (admin-managed).
+class SmsSettings(models.Model):
+    """Singleton: SMS provider, credentials, template, sandbox test, enable/disable."""
 
-    ENVIRONMENT / DEBUG stay in .env (shown read-only in admin).
-    Only one of SMS or WhatsApp can be active.
-    If provider API keys are empty, that service is treated as disabled.
-    """
-
-    CHANNEL_DISABLED = ''
-    CHANNEL_SMS = 'sms'
-    CHANNEL_WHATSAPP = 'whatsapp'
-    CHANNEL_CHOICES = (
-        (CHANNEL_DISABLED, 'Disabled (no SMS / WhatsApp sends)'),
-        (CHANNEL_SMS, 'SMS only'),
-        (CHANNEL_WHATSAPP, 'WhatsApp only'),
+    is_enabled = models.BooleanField(
+        default=False,
+        help_text='When on, live SMS OTP can send (also needs credentials + From).',
     )
-
-    active_channel = models.CharField(
-        max_length=20,
-        choices=CHANNEL_CHOICES,
-        default=CHANNEL_DISABLED,
-        help_text='Only one of SMS or WhatsApp can be enabled at a time.',
-    )
-    sms_provider = models.CharField(
+    provider = models.CharField(
         max_length=40,
         default='smartping',
-        help_text='Plug-and-play SMS provider (smartping, plivo, …).',
+        help_text='SMS provider (smartping, plivo, …).',
     )
-    whatsapp_provider = models.CharField(
-        max_length=40,
-        default='plivo',
-        help_text='Plug-and-play WhatsApp provider (plivo, …).',
-    )
-    force_send_non_production = models.BooleanField(
-        default=False,
-        help_text=(
-            'Allow real sends outside production (DEBUG / non-production) when using '
-            'production sender numbers. Leave off except for short tests.'
-        ),
-    )
-    SENDER_MODE_PRODUCTION = 'production'
-    SENDER_MODE_TESTING = 'testing'
-    SENDER_MODE_CHOICES = (
-        (SENDER_MODE_PRODUCTION, 'Production (live From numbers + optional Test button)'),
-        (SENDER_MODE_TESTING, 'Sandbox / testing only (test button only; blocked on production app)'),
-    )
-    sender_mode = models.CharField(
-        max_length=20,
-        choices=SENDER_MODE_CHOICES,
-        default=SENDER_MODE_PRODUCTION,
-        help_text=(
-            'Step 3a: Production = save + Test button (needs From number). '
-            'Sandbox = testing button only. Auto-switches to Sandbox when Step 4 finds no From number. '
-            'Sandbox is blocked when ENVIRONMENT=production and DEBUG=False.'
-        ),
+    message_template = models.CharField(
+        max_length=500,
+        default='{otp} is your verification code for TopTeen',
+        help_text='SMS body with {otp}. Must match DLT-approved text for India.',
     )
     test_destination = models.CharField(
         max_length=40,
         blank=True,
         default='',
-        help_text=(
-            'E.164 phone for admin Test / Sandbox sends (e.g. +9198…). '
-            'Plivo sandbox often requires a verified destination number.'
-        ),
+        help_text='E.164 phone for admin sandbox test (e.g. +9198…).',
     )
 
-    sms_message_template = models.CharField(
-        max_length=500,
-        default='{otp} is your verification code for TopTeen',
-        help_text=(
-            'SMS ONLY. Body text with {otp}. Must match DLT-approved SMS text for India. '
-            'Not used for WhatsApp.'
-        ),
-    )
-    whatsapp_otp_template = models.CharField(
-        max_length=200,
-        blank=True,
-        default='',
-        help_text=(
-            'WhatsApp Meta/Plivo template name only (e.g. login_otp_verification). '
-            'Message body is NOT edited here — it comes from the approved provider template. '
-            'Use “Fetch WhatsApp templates from Plivo”.'
-        ),
-    )
-    whatsapp_otp_template_lang = models.CharField(
-        max_length=20,
-        blank=True,
-        default='en',
-        help_text='Language from the provider template (en / en_US). Filled by fetch.',
-    )
-    whatsapp_otp_template_status = models.CharField(
-        max_length=40,
-        blank=True,
-        default='',
-        help_text='Last fetched Meta status (APPROVED, PENDING, DRAFT, …).',
-    )
-    whatsapp_otp_template_preview = models.TextField(
-        blank=True,
-        default='',
-        help_text='Read-only preview of the approved template body from Plivo ({{1}} = OTP).',
-    )
-    plivo_waba_id = models.CharField(
-        max_length=120,
-        blank=True,
-        default='',
-        help_text=(
-            'WhatsApp Business Account ID from Plivo Console → WhatsApp. '
-            'Required to fetch templates from Plivo.'
-        ),
-    )
-
-    # SmartPing keys
     smartping_api_url = models.URLField(
         max_length=500,
         blank=True,
@@ -194,56 +105,26 @@ class MessagingSettings(models.Model):
     smartping_dlt_principal_entity_id = models.CharField(max_length=64, blank=True, default='')
     smartping_unicode = models.CharField(max_length=10, blank=True, default='false')
 
-    # Plivo keys
-    plivo_auth_id = models.CharField(
-        max_length=120,
-        blank=True,
-        default='',
-        help_text='Required for Plivo. Empty = Plivo disabled.',
-    )
-    plivo_auth_token = models.CharField(
-        max_length=120,
-        blank=True,
-        default='',
-        help_text='Required for Plivo. Empty = Plivo disabled.',
-    )
+    plivo_auth_id = models.CharField(max_length=120, blank=True, default='')
+    plivo_auth_token = models.CharField(max_length=120, blank=True, default='')
     plivo_sms_from = models.CharField(
         max_length=40,
         blank=True,
         default='',
-        help_text=(
-            'SMS sender: Plivo number (E.164) or alphanumeric sender ID. '
-            'Use “Fetch SMS numbers from Plivo” in admin after saving Auth ID/Token, '
-            'or copy from Plivo Console → Phone Numbers.'
-        ),
-    )
-    plivo_whatsapp_from = models.CharField(
-        max_length=40,
-        blank=True,
-        default='',
-        help_text=(
-            'WhatsApp sender: WABA-linked number in E.164 (+91…). '
-            'Not auto-listed by API — copy from Plivo Console → WhatsApp → your business account.'
-        ),
+        help_text='Plivo SMS From (E.164 or alphanumeric). Use Fetch numbers after saving keys.',
     )
 
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = 'SMS & WhatsApp settings'
-        verbose_name_plural = 'SMS & WhatsApp settings'
+        verbose_name = 'SMS settings'
+        verbose_name_plural = 'SMS settings'
 
     def __str__(self):
-        return 'SMS & WhatsApp settings'
+        return 'SMS settings'
 
     def save(self, *args, **kwargs):
         self.pk = 1
-        if self.active_channel not in (
-            self.CHANNEL_DISABLED,
-            self.CHANNEL_SMS,
-            self.CHANNEL_WHATSAPP,
-        ):
-            self.active_channel = self.CHANNEL_DISABLED
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
@@ -254,103 +135,63 @@ class MessagingSettings(models.Model):
         obj, _ = cls.objects.get_or_create(pk=1)
         return obj
 
-    @property
-    def sms_enabled(self):
-        return self.active_channel == self.CHANNEL_SMS
-
-    @property
-    def whatsapp_enabled(self):
-        return self.active_channel == self.CHANNEL_WHATSAPP
-
-    def provider_keys_ok(self, provider_key: str, *, for_whatsapp: bool = False) -> bool:
-        """True only when required API keys for that provider are present."""
-        key = (provider_key or '').strip().lower()
+    def credentials_ok(self) -> bool:
+        key = (self.provider or '').strip().lower()
         if key == 'smartping':
             return bool(self.smartping_username.strip() and self.smartping_password.strip())
         if key == 'plivo':
-            if not (self.plivo_auth_id.strip() and self.plivo_auth_token.strip()):
-                return False
-            sandbox = self.sender_mode == self.SENDER_MODE_TESTING
-            if for_whatsapp:
-                if not self.whatsapp_otp_template.strip():
-                    return False
-                # Sandbox may have no owned From yet — admin Test still needs a paste later.
-                return sandbox or bool(self.plivo_whatsapp_from.strip())
-            return sandbox or bool(self.plivo_sms_from.strip())
-        # Unknown provider: treat as not configured
+            return bool(self.plivo_auth_id.strip() and self.plivo_auth_token.strip())
         return False
 
-    def whatsapp_template_is_approved(self) -> bool:
-        status = (self.whatsapp_otp_template_status or '').strip().upper()
-        return status == 'APPROVED'
-
-    def missing_keys_message(self, provider_key: str, *, for_whatsapp: bool = False) -> str:
-        key = (provider_key or '').strip().lower()
+    def has_from_number(self) -> bool:
+        key = (self.provider or '').strip().lower()
         if key == 'smartping':
-            missing = []
+            return bool(self.smartping_from.strip())
+        if key == 'plivo':
+            return bool(self.plivo_sms_from.strip())
+        return False
+
+    def config_ready_for_test(self) -> bool:
+        """Sandbox test: credentials + From (no is_enabled)."""
+        if not self.credentials_ok():
+            return False
+        return self.has_from_number()
+
+    def is_ready(self) -> bool:
+        """Live sends: enabled + credentials + From + message template."""
+        if not self.is_enabled:
+            return False
+        if not self.credentials_ok() or not self.has_from_number():
+            return False
+        tmpl = (self.message_template or '').strip()
+        return bool(tmpl and '{otp}' in tmpl)
+
+    def missing_config_message(self) -> str:
+        missing = []
+        key = (self.provider or '').strip().lower()
+        if key == 'smartping':
             if not self.smartping_username.strip():
                 missing.append('SmartPing username')
             if not self.smartping_password.strip():
                 missing.append('SmartPing password')
-            return 'Missing: ' + ', '.join(missing) if missing else ''
-        if key == 'plivo':
-            missing = []
+            if not self.smartping_from.strip():
+                missing.append('SmartPing From')
+        elif key == 'plivo':
             if not self.plivo_auth_id.strip():
                 missing.append('Plivo Auth ID')
             if not self.plivo_auth_token.strip():
                 missing.append('Plivo Auth Token')
-            sandbox = self.sender_mode == self.SENDER_MODE_TESTING
-            if for_whatsapp:
-                if not self.whatsapp_otp_template.strip():
-                    missing.append('WhatsApp OTP template name')
-                if not sandbox and not self.plivo_whatsapp_from.strip():
-                    missing.append('Plivo WhatsApp From')
-            elif not sandbox and not self.plivo_sms_from.strip():
+            if not self.plivo_sms_from.strip():
                 missing.append('Plivo SMS From')
-            return 'Missing: ' + ', '.join(missing) if missing else ''
-        return f'Unknown provider {key!r}'
+        else:
+            return f'Unknown provider {key!r}'
+        tmpl = (self.message_template or '').strip()
+        if not tmpl or '{otp}' not in tmpl:
+            missing.append('message template with {otp}')
+        return 'Missing: ' + ', '.join(missing) if missing else ''
 
-    def is_sms_ready(self) -> bool:
-        if not (self.sms_enabled and self.provider_keys_ok(self.sms_provider, for_whatsapp=False)):
-            return False
-        return self.sender_allowed_in_current_env()
-
-    def is_whatsapp_ready(self) -> bool:
-        if not (
-            self.whatsapp_enabled
-            and self.provider_keys_ok(self.whatsapp_provider, for_whatsapp=True)
-        ):
-            return False
-        if not self.whatsapp_template_is_approved():
-            return False
-        return self.sender_allowed_in_current_env()
-
-    def sender_allowed_in_current_env(self) -> bool:
-        """Testing/sandbox senders cannot be used when the app is in production."""
-        from django.conf import settings as dj_settings
-
-        env = str(getattr(dj_settings, 'ENVIRONMENT', '') or '').strip().lower()
-        is_prod = env == 'production' and not dj_settings.DEBUG
-        if self.sender_mode == self.SENDER_MODE_TESTING and is_prod:
-            return False
-        return True
-
-    def sender_mode_block_reason(self) -> str:
-        from django.conf import settings as dj_settings
-
-        env = str(getattr(dj_settings, 'ENVIRONMENT', '') or '').strip().lower()
-        is_prod = env == 'production' and not dj_settings.DEBUG
-        if self.sender_mode == self.SENDER_MODE_TESTING and is_prod:
-            return (
-                'Sender mode is Testing/sandbox — blocked on production '
-                '(ENVIRONMENT=production, DEBUG=False). Switch Sender mode to '
-                'Production numbers after upgrading Plivo / using live numbers.'
-            )
-        return ''
-
-
-    def provider_config_for(self, provider_key: str) -> dict:
-        key = (provider_key or '').strip().lower()
+    def provider_config(self) -> dict:
+        key = (self.provider or '').strip().lower()
         if key == 'smartping':
             return {
                 'api_url': self.smartping_api_url,
@@ -366,10 +207,135 @@ class MessagingSettings(models.Model):
                 'auth_id': self.plivo_auth_id,
                 'auth_token': self.plivo_auth_token,
                 'sms_from': self.plivo_sms_from,
-                'whatsapp_from': self.plivo_whatsapp_from,
-                'whatsapp_otp_template': self.whatsapp_otp_template,
-                'whatsapp_otp_template_lang': self.whatsapp_otp_template_lang,
-                'waba_id': self.plivo_waba_id,
+            }
+        return {}
+
+
+class WhatsAppSettings(models.Model):
+    """Singleton: WhatsApp provider, credentials, approved template, sandbox test, enable/disable."""
+
+    is_enabled = models.BooleanField(
+        default=False,
+        help_text='When on, live WhatsApp OTP can send (also needs APPROVED template + From).',
+    )
+    provider = models.CharField(
+        max_length=40,
+        default='plivo',
+        help_text='WhatsApp provider (plivo, …).',
+    )
+    test_destination = models.CharField(
+        max_length=40,
+        blank=True,
+        default='',
+        help_text='E.164 phone for admin sandbox test (e.g. +9198…).',
+    )
+
+    plivo_auth_id = models.CharField(max_length=120, blank=True, default='')
+    plivo_auth_token = models.CharField(max_length=120, blank=True, default='')
+    waba_id = models.CharField(
+        max_length=120,
+        blank=True,
+        default='',
+        help_text='WhatsApp Business Account ID (Plivo Console → WhatsApp).',
+    )
+    whatsapp_from = models.CharField(
+        max_length=40,
+        blank=True,
+        default='',
+        help_text='WABA-linked sender in E.164 (+91…). Paste from Plivo Console → WhatsApp.',
+    )
+    otp_template = models.CharField(
+        max_length=200,
+        blank=True,
+        default='',
+        help_text='Meta/Plivo template name (e.g. login_otp_verification). Use Fetch templates.',
+    )
+    otp_template_lang = models.CharField(max_length=20, blank=True, default='en')
+    otp_template_status = models.CharField(
+        max_length=40,
+        blank=True,
+        default='',
+        help_text='Last fetched status (must be APPROVED for live sends).',
+    )
+    otp_template_preview = models.TextField(
+        blank=True,
+        default='',
+        help_text='Read-only preview from provider ({{1}} = OTP).',
+    )
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'WhatsApp settings'
+        verbose_name_plural = 'WhatsApp settings'
+
+    def __str__(self):
+        return 'WhatsApp settings'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        return
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def credentials_ok(self) -> bool:
+        key = (self.provider or '').strip().lower()
+        if key == 'plivo':
+            return bool(self.plivo_auth_id.strip() and self.plivo_auth_token.strip())
+        return False
+
+    def template_is_approved(self) -> bool:
+        return (self.otp_template_status or '').strip().upper() == 'APPROVED'
+
+    def has_from_number(self) -> bool:
+        return bool((self.whatsapp_from or '').strip())
+
+    def config_ready_for_test(self) -> bool:
+        """Sandbox test: credentials + APPROVED template + From (no is_enabled)."""
+        return bool(
+            self.credentials_ok()
+            and (self.otp_template or '').strip()
+            and self.template_is_approved()
+            and self.has_from_number()
+        )
+
+    def is_ready(self) -> bool:
+        return bool(self.is_enabled and self.config_ready_for_test())
+
+    def missing_config_message(self) -> str:
+        missing = []
+        key = (self.provider or '').strip().lower()
+        if key == 'plivo':
+            if not self.plivo_auth_id.strip():
+                missing.append('Plivo Auth ID')
+            if not self.plivo_auth_token.strip():
+                missing.append('Plivo Auth Token')
+        else:
+            return f'Unknown provider {key!r}'
+        if not (self.otp_template or '').strip():
+            missing.append('OTP template name')
+        elif not self.template_is_approved():
+            missing.append(f'template APPROVED (now {self.otp_template_status or "unknown"!r})')
+        if not self.has_from_number():
+            missing.append('WhatsApp From')
+        return 'Missing: ' + ', '.join(missing) if missing else ''
+
+    def provider_config(self) -> dict:
+        key = (self.provider or '').strip().lower()
+        if key == 'plivo':
+            return {
+                'auth_id': self.plivo_auth_id,
+                'auth_token': self.plivo_auth_token,
+                'whatsapp_from': self.whatsapp_from,
+                'whatsapp_otp_template': self.otp_template,
+                'whatsapp_otp_template_lang': self.otp_template_lang,
+                'waba_id': self.waba_id,
             }
         return {}
 

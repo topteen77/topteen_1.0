@@ -8,15 +8,16 @@ import html as html_module
 
 from communication.email_preview import render_admin_email_preview
 from communication.email_template_registry import get_email_template_meta
-from communication.forms import EmailMessageTemplateAdminForm, MessagingSettingsAdminForm
-from communication.messaging_config import (
-    apply_no_numbers_fallback,
-    flow_steps,
-    has_from_number,
-    is_production_messaging_env,
-    seed_messaging_settings_from_env,
+from communication.forms import (
+    EmailMessageTemplateAdminForm,
+    SmsSettingsAdminForm,
+    WhatsAppSettingsAdminForm,
 )
-from .models import CommunicationLog, EmailMessageTemplate, MessagingSettings, OTP
+from communication.messaging_config import (
+    seed_sms_settings_from_env,
+    seed_whatsapp_settings_from_env,
+)
+from .models import CommunicationLog, EmailMessageTemplate, OTP, SmsSettings, WhatsAppSettings
 from core import choices
 
 
@@ -50,29 +51,23 @@ def _admin_pre_block(content):
     )
 
 
-@admin.register(MessagingSettings)
-class MessagingSettingsAdmin(admin.ModelAdmin):
-    """Stepped setup: service → provider → template → prod/sandbox → From → send path."""
+@admin.register(SmsSettings)
+class SmsSettingsAdmin(admin.ModelAdmin):
+    """Independent SMS: provider, credentials, From, sandbox test, enable/disable."""
 
-    form = MessagingSettingsAdminForm
-    change_form_template = 'admin/communication/messagingsettings/change_form.html'
-    list_display = ('active_channel', 'sms_provider', 'whatsapp_provider', 'sender_mode', 'updated_at')
-    readonly_fields = (
-        'updated_at',
-        'runtime_status',
-        'whatsapp_otp_template_status',
-        'whatsapp_otp_template_preview',
-    )
+    form = SmsSettingsAdminForm
+    change_form_template = 'admin/communication/smssettings/change_form.html'
+    list_display = ('is_enabled', 'provider', 'updated_at')
+    readonly_fields = ('updated_at', 'runtime_status')
 
     fieldsets = (
-        ('Step 1 — Select service', {
-            'fields': ('active_channel', 'runtime_status'),
-            'description': 'Choose SMS only or WhatsApp only (or Disabled). Only one channel can send.',
+        ('Enable / disable', {
+            'fields': ('is_enabled', 'runtime_status'),
+            'description': 'Turn on only when ready for live SMS OTP. Sandbox test works without this.',
         }),
-        ('Step 2 — Select provider + API keys', {
+        ('Provider + API keys', {
             'fields': (
-                'sms_provider',
-                'whatsapp_provider',
+                'provider',
                 'plivo_auth_id',
                 'plivo_auth_token',
                 'smartping_api_url',
@@ -83,38 +78,13 @@ class MessagingSettingsAdmin(admin.ModelAdmin):
                 'smartping_dlt_principal_entity_id',
                 'smartping_unicode',
             ),
-            'description': (
-                'SMS → Sms provider (+ SmartPing or Plivo keys). '
-                'WhatsApp → Whatsapp provider (+ Plivo keys). Empty keys = that service stays off.'
-            ),
         }),
-        ('Step 3 — Template', {
-            'fields': (
-                'sms_message_template',
-                'plivo_waba_id',
-                'whatsapp_otp_template',
-                'whatsapp_otp_template_lang',
-                'whatsapp_otp_template_status',
-                'whatsapp_otp_template_preview',
-            ),
-            'description': (
-                'SMS: edit body with {otp}. '
-                'WhatsApp: set WABA ID, then use “Fetch approved templates” (body comes from Meta — must be APPROVED).'
-            ),
+        ('Template + From', {
+            'fields': ('message_template', 'plivo_sms_from'),
+            'description': 'For Plivo: save keys, then Fetch SMS From numbers. SmartPing uses SmartPing From above.',
         }),
-        ('Step 3a — Production or Sandbox', {
-            'fields': ('sender_mode', 'force_send_non_production', 'test_destination'),
-            'description': (
-                'Production: Save, then use Test button (live From required). '
-                'Sandbox: Test button only — blocked when the app itself is production.'
-            ),
-        }),
-        ('Step 4 — From numbers', {
-            'fields': ('plivo_sms_from', 'plivo_whatsapp_from'),
-            'description': (
-                'Fetch SMS numbers from Plivo, or paste WhatsApp From from Plivo Console → WhatsApp. '
-                'If none available, Sandbox mode is forced (Step 5).'
-            ),
+        ('Sandbox test', {
+            'fields': ('test_destination',),
         }),
         ('Timestamps', {
             'fields': ('updated_at',),
@@ -122,7 +92,7 @@ class MessagingSettingsAdmin(admin.ModelAdmin):
     )
 
     def has_add_permission(self, request):
-        return not MessagingSettings.objects.exists()
+        return not SmsSettings.objects.exists()
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -133,17 +103,12 @@ class MessagingSettingsAdmin(admin.ModelAdmin):
             path(
                 '<path:object_id>/fetch-plivo-sms-from/',
                 self.admin_site.admin_view(self.fetch_plivo_sms_from_view),
-                name='communication_messagingsettings_fetch_plivo_sms',
-            ),
-            path(
-                '<path:object_id>/fetch-plivo-whatsapp-templates/',
-                self.admin_site.admin_view(self.fetch_plivo_whatsapp_templates_view),
-                name='communication_messagingsettings_fetch_plivo_wa',
+                name='communication_smssettings_fetch_plivo_sms',
             ),
             path(
                 '<path:object_id>/send-test/',
-                self.admin_site.admin_view(self.send_test_message_view),
-                name='communication_messagingsettings_send_test',
+                self.admin_site.admin_view(self.send_test_view),
+                name='communication_smssettings_send_test',
             ),
         ]
         return custom + urls
@@ -151,33 +116,31 @@ class MessagingSettingsAdmin(admin.ModelAdmin):
     def fetch_plivo_sms_from_view(self, request, object_id):
         from communication.providers import plivo as plivo_provider
 
-        obj = self.get_object(request, object_id) or MessagingSettings.load()
+        obj = self.get_object(request, object_id) or SmsSettings.load()
+        change_url = reverse('admin:communication_smssettings_change', args=[obj.pk])
         if request.method == 'POST':
-            auth_id = (request.POST.get('plivo_auth_id') or obj.plivo_auth_id or '').strip()
-            auth_token = (request.POST.get('plivo_auth_token') or obj.plivo_auth_token or '').strip()
-            if auth_id:
-                obj.plivo_auth_id = auth_id
-            if auth_token:
-                obj.plivo_auth_token = auth_token
+            for field in ('plivo_auth_id', 'plivo_auth_token'):
+                val = (request.POST.get(field) or '').strip()
+                if val:
+                    setattr(obj, field, val)
+
+        if (obj.provider or '').strip().lower() != 'plivo':
+            messages.error(request, 'Set provider to Plivo to fetch SMS numbers.')
+            return HttpResponseRedirect(change_url)
 
         result = plivo_provider.list_account_numbers(
-            config=obj.provider_config_for('plivo'),
+            config=obj.provider_config(),
             services='sms',
         )
-        change_url = reverse('admin:communication_messagingsettings_change', args=[obj.pk])
-
         if not result.get('success'):
-            messages.error(request, f"Could not fetch Plivo numbers: {result.get('error') or 'unknown error'}")
+            messages.error(request, f"Could not fetch Plivo numbers: {result.get('error') or 'unknown'}")
             return HttpResponseRedirect(change_url)
 
         numbers = result.get('numbers') or []
         if not numbers:
-            apply_no_numbers_fallback(obj)
             messages.warning(
                 request,
-                'Step 4–5: No SMS From numbers on this Plivo account. '
-                'Switched to Sandbox / testing. Use the Sandbox test button with a verified destination, '
-                'or buy/enable a number in Plivo Console and fetch again.',
+                'No SMS-capable numbers on this Plivo account. Buy/enable a number or enter From manually.',
             )
             return HttpResponseRedirect(change_url)
 
@@ -188,67 +151,169 @@ class MessagingSettingsAdmin(admin.ModelAdmin):
         )
         if not obj.plivo_sms_from.strip():
             obj.plivo_sms_from = chosen
-            if obj.sender_mode != MessagingSettings.SENDER_MODE_PRODUCTION:
-                obj.sender_mode = MessagingSettings.SENDER_MODE_PRODUCTION
-                obj.save(update_fields=['plivo_sms_from', 'sender_mode', 'updated_at'])
-            else:
-                obj.save(update_fields=['plivo_sms_from', 'updated_at'])
-            messages.success(
-                request,
-                f'Step 4–5: Plivo SMS From set to {chosen} (production path). Numbers: {listing}',
-            )
+            obj.save(update_fields=['plivo_sms_from', 'plivo_auth_id', 'plivo_auth_token', 'updated_at'])
+            messages.success(request, f'SMS From set to {chosen}. Numbers: {listing}')
         else:
-            messages.info(
-                request,
-                f'Plivo SMS From is already “{obj.plivo_sms_from}”. Account SMS numbers: {listing}',
-            )
-        if len(numbers) > 1:
-            messages.warning(
-                request,
-                'Multiple SMS numbers found — confirm the correct sender is selected.',
-            )
+            messages.info(request, f'SMS From already “{obj.plivo_sms_from}”. Account numbers: {listing}')
         return HttpResponseRedirect(change_url)
 
+    def send_test_view(self, request, object_id):
+        from communication.com_service import ComService
+
+        obj = self.get_object(request, object_id) or SmsSettings.load()
+        change_url = reverse('admin:communication_smssettings_change', args=[obj.pk])
+        if request.method != 'POST':
+            return HttpResponseRedirect(change_url)
+
+        dest = (request.POST.get('test_destination') or obj.test_destination or '').strip()
+        if dest and dest != (obj.test_destination or '').strip():
+            obj.test_destination = dest
+            obj.save(update_fields=['test_destination', 'updated_at'])
+        if not dest:
+            messages.error(request, 'Enter a sandbox test destination phone (E.164).')
+            return HttpResponseRedirect(change_url)
+
+        result = ComService().send_admin_test_otp(dest, channel='sms')
+        if result.get('success'):
+            messages.success(request, f'SMS sandbox test OK to {dest}. {result.get("detail") or ""}')
+        else:
+            messages.error(request, f'SMS sandbox test failed: {result.get("error") or "unknown"}')
+        return HttpResponseRedirect(change_url)
+
+    def changelist_view(self, request, extra_context=None):
+        obj = SmsSettings.load()
+        seed_sms_settings_from_env(obj)
+        return HttpResponseRedirect(reverse('admin:communication_smssettings_change', args=[obj.pk]))
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        obj = self.get_object(request, object_id) or SmsSettings.load()
+        extra_context.update({
+            'messaging_environment': getattr(django_settings, 'ENVIRONMENT', ''),
+            'messaging_debug': django_settings.DEBUG,
+            'sms_is_ready': obj.is_ready(),
+            'sms_config_ok': obj.config_ready_for_test(),
+            'sms_status': (
+                'ready for live sends' if obj.is_ready()
+                else ('config OK — enable for live' if obj.config_ready_for_test()
+                      else (obj.missing_config_message() or 'incomplete'))
+            ),
+        })
+        return super().change_view(request, object_id, form_url, extra_context=extra_context)
+
+    @admin.display(description='Runtime status')
+    def runtime_status(self, obj):
+        if not obj:
+            return '—'
+        lines = [
+            f"Env: ENVIRONMENT={getattr(django_settings, 'ENVIRONMENT', '')} DEBUG={django_settings.DEBUG}",
+            f"Enabled: {'yes' if obj.is_enabled else 'no'}",
+            f"Provider: {obj.provider}",
+            f"Config for test: {'yes' if obj.config_ready_for_test() else 'no'}",
+            f"Live ready: {'yes' if obj.is_ready() else 'no'}",
+        ]
+        if not obj.is_ready():
+            lines.append(obj.missing_config_message() or '')
+        return _admin_pre_block('\n'.join(lines))
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        if obj.is_enabled and not obj.is_ready():
+            messages.warning(
+                request,
+                'SMS enabled but not ready — ' + (obj.missing_config_message() or 'complete configuration'),
+            )
+
+
+@admin.register(WhatsAppSettings)
+class WhatsAppSettingsAdmin(admin.ModelAdmin):
+    """Independent WhatsApp: provider, credentials, templates, sandbox test, enable/disable."""
+
+    form = WhatsAppSettingsAdminForm
+    change_form_template = 'admin/communication/whatsappsettings/change_form.html'
+    list_display = ('is_enabled', 'provider', 'otp_template', 'otp_template_status', 'updated_at')
+    readonly_fields = ('updated_at', 'runtime_status', 'otp_template_status', 'otp_template_preview')
+
+    fieldsets = (
+        ('Enable / disable', {
+            'fields': ('is_enabled', 'runtime_status'),
+            'description': 'Turn on only when ready for live WhatsApp OTP. Sandbox test works without this.',
+        }),
+        ('Provider + API keys', {
+            'fields': ('provider', 'plivo_auth_id', 'plivo_auth_token', 'waba_id'),
+        }),
+        ('Approved template + From', {
+            'fields': (
+                'otp_template',
+                'otp_template_lang',
+                'otp_template_status',
+                'otp_template_preview',
+                'whatsapp_from',
+            ),
+            'description': 'Fetch APPROVED templates from Plivo. Paste WhatsApp From from Plivo Console.',
+        }),
+        ('Sandbox test', {
+            'fields': ('test_destination',),
+        }),
+        ('Timestamps', {
+            'fields': ('updated_at',),
+        }),
+    )
+
+    def has_add_permission(self, request):
+        return not WhatsAppSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path(
+                '<path:object_id>/fetch-plivo-whatsapp-templates/',
+                self.admin_site.admin_view(self.fetch_plivo_whatsapp_templates_view),
+                name='communication_whatsappsettings_fetch_plivo_wa',
+            ),
+            path(
+                '<path:object_id>/send-test/',
+                self.admin_site.admin_view(self.send_test_view),
+                name='communication_whatsappsettings_send_test',
+            ),
+        ]
+        return custom + urls
+
     def fetch_plivo_whatsapp_templates_view(self, request, object_id):
-        """Fetch APPROVED WhatsApp OTP templates from Plivo for the selected WA provider."""
         from communication.providers import plivo as plivo_provider
 
-        obj = self.get_object(request, object_id) or MessagingSettings.load()
-        change_url = reverse('admin:communication_messagingsettings_change', args=[obj.pk])
+        obj = self.get_object(request, object_id) or WhatsAppSettings.load()
+        change_url = reverse('admin:communication_whatsappsettings_change', args=[obj.pk])
 
-        if (obj.whatsapp_provider or '').strip().lower() != 'plivo':
-            messages.error(
-                request,
-                f'WhatsApp provider is “{obj.whatsapp_provider}” — template fetch is implemented for Plivo. '
-                'Set Whatsapp provider to Plivo (and Active channel to WhatsApp when sending).',
-            )
+        if (obj.provider or '').strip().lower() != 'plivo':
+            messages.error(request, 'Set provider to Plivo to fetch WhatsApp templates.')
             return HttpResponseRedirect(change_url)
 
         if request.method == 'POST':
-            for field in ('plivo_auth_id', 'plivo_auth_token', 'plivo_waba_id'):
+            for field in ('plivo_auth_id', 'plivo_auth_token', 'waba_id'):
                 val = (request.POST.get(field) or '').strip()
                 if val:
                     setattr(obj, field, val)
 
-        waba_id = (obj.plivo_waba_id or '').strip()
+        waba_id = (obj.waba_id or '').strip()
         if not waba_id:
-            messages.error(
-                request,
-                'Step 3: Set Plivo WABA ID first (Plivo Console → WhatsApp), save, then fetch.',
-            )
+            messages.error(request, 'Set WABA ID first, save, then fetch templates.')
             return HttpResponseRedirect(change_url)
 
-        preferred = (request.POST.get('whatsapp_otp_template') or obj.whatsapp_otp_template or 'login_otp_verification').strip()
+        preferred = (request.POST.get('otp_template') or obj.otp_template or 'login_otp_verification').strip()
         listed = plivo_provider.list_whatsapp_templates(
             waba_id=waba_id,
-            config=obj.provider_config_for('plivo'),
+            config=obj.provider_config(),
             name=preferred or None,
             limit=20,
         )
         if not listed.get('success'):
             listed = plivo_provider.list_whatsapp_templates(
                 waba_id=waba_id,
-                config=obj.provider_config_for('plivo'),
+                config=obj.provider_config(),
                 limit=20,
             )
         if not listed.get('success'):
@@ -257,10 +322,7 @@ class MessagingSettingsAdmin(admin.ModelAdmin):
 
         templates = listed.get('templates') or []
         if not templates:
-            messages.warning(
-                request,
-                'No WhatsApp templates returned. Sync/approve templates in Plivo Console → WhatsApp → Templates.',
-            )
+            messages.warning(request, 'No WhatsApp templates returned from Plivo.')
             return HttpResponseRedirect(change_url)
 
         def score(t):
@@ -278,33 +340,33 @@ class MessagingSettingsAdmin(admin.ModelAdmin):
         detail = plivo_provider.get_whatsapp_template(
             waba_id=waba_id,
             template_id=chosen.get('template_id') or '',
-            config=obj.provider_config_for('plivo'),
+            config=obj.provider_config(),
         )
 
-        obj.whatsapp_otp_template = chosen.get('name') or preferred
-        obj.whatsapp_otp_template_lang = (
+        obj.otp_template = chosen.get('name') or preferred
+        obj.otp_template_lang = (
             (detail.get('language') if detail.get('success') else None)
             or chosen.get('language')
-            or obj.whatsapp_otp_template_lang
+            or obj.otp_template_lang
             or 'en'
         )
-        obj.whatsapp_otp_template_status = (
+        obj.otp_template_status = (
             (detail.get('status') if detail.get('success') else None)
             or chosen.get('status')
             or ''
         )
         if detail.get('success') and detail.get('preview'):
-            obj.whatsapp_otp_template_preview = detail['preview']
-        elif not obj.whatsapp_otp_template_preview:
-            obj.whatsapp_otp_template_preview = (
+            obj.otp_template_preview = detail['preview']
+        elif not obj.otp_template_preview:
+            obj.otp_template_preview = (
                 '{{1}} is your verification code. For your security, do not share this code.'
             )
         obj.save(update_fields=[
-            'whatsapp_otp_template',
-            'whatsapp_otp_template_lang',
-            'whatsapp_otp_template_status',
-            'whatsapp_otp_template_preview',
-            'plivo_waba_id',
+            'otp_template',
+            'otp_template_lang',
+            'otp_template_status',
+            'otp_template_preview',
+            'waba_id',
             'plivo_auth_id',
             'plivo_auth_token',
             'updated_at',
@@ -314,136 +376,62 @@ class MessagingSettingsAdmin(admin.ModelAdmin):
             f"{t.get('name')} [{t.get('status')}/{t.get('category')}/{t.get('language')}]"
             for t in templates_sorted[:8]
         )
-        if obj.whatsapp_otp_template_status == 'APPROVED':
+        if obj.otp_template_status == 'APPROVED':
             messages.success(
                 request,
-                f'Step 3 OK: WhatsApp template {obj.whatsapp_otp_template} '
-                f'({obj.whatsapp_otp_template_lang}, APPROVED). Available: {summary}',
+                f'Template set: {obj.otp_template} ({obj.otp_template_lang}, APPROVED). Available: {summary}',
             )
         else:
             messages.warning(
                 request,
-                f'Step 3 incomplete: “{obj.whatsapp_otp_template}” status is '
-                f'{obj.whatsapp_otp_template_status or "unknown"} (need APPROVED). '
-                f'Send for Verification in Plivo/Meta, then fetch again. Available: {summary}',
-            )
-
-        # Step 4 hint for WhatsApp From
-        if not (obj.plivo_whatsapp_from or '').strip():
-            apply_no_numbers_fallback(obj)
-            messages.warning(
-                request,
-                'Step 4–5: No WhatsApp From set. Switched to Sandbox. '
-                'Paste the WABA number from Plivo Console → WhatsApp, then switch to Production when ready.',
+                f'Template “{obj.otp_template}” status is {obj.otp_template_status or "unknown"} '
+                f'(need APPROVED). Available: {summary}',
             )
         return HttpResponseRedirect(change_url)
 
-    def send_test_message_view(self, request, object_id):
-        """Admin Test / Sandbox send for the active channel."""
+    def send_test_view(self, request, object_id):
         from communication.com_service import ComService
 
-        obj = self.get_object(request, object_id) or MessagingSettings.load()
-        change_url = reverse('admin:communication_messagingsettings_change', args=[obj.pk])
-
+        obj = self.get_object(request, object_id) or WhatsAppSettings.load()
+        change_url = reverse('admin:communication_whatsappsettings_change', args=[obj.pk])
         if request.method != 'POST':
             return HttpResponseRedirect(change_url)
 
-        # Persist destination if posted
         dest = (request.POST.get('test_destination') or obj.test_destination or '').strip()
         if dest and dest != (obj.test_destination or '').strip():
             obj.test_destination = dest
             obj.save(update_fields=['test_destination', 'updated_at'])
-
         if not dest:
-            messages.error(request, 'Enter a Test destination phone (E.164) in Step 3a, then try again.')
+            messages.error(request, 'Enter a sandbox test destination phone (E.164).')
             return HttpResponseRedirect(change_url)
 
-        if obj.active_channel not in (MessagingSettings.CHANNEL_SMS, MessagingSettings.CHANNEL_WHATSAPP):
-            messages.error(request, 'Step 1: Select SMS or WhatsApp before sending a test.')
-            return HttpResponseRedirect(change_url)
-
-        if obj.sender_mode == MessagingSettings.SENDER_MODE_TESTING and is_production_messaging_env():
-            messages.error(
-                request,
-                'Sandbox mode is blocked on production app (ENVIRONMENT=production, DEBUG=False). '
-                'Use Production mode with a live From number.',
-            )
-            return HttpResponseRedirect(change_url)
-
-        if obj.sender_mode == MessagingSettings.SENDER_MODE_PRODUCTION and not has_from_number(obj):
-            apply_no_numbers_fallback(obj)
-            messages.error(
-                request,
-                'No From number for Production. Switched to Sandbox — set a From number or use Sandbox test.',
-            )
-            return HttpResponseRedirect(change_url)
-
-        result = ComService().send_admin_test_otp(dest, cfg=obj)
+        result = ComService().send_admin_test_otp(dest, channel='whatsapp')
         if result.get('success'):
-            mode_label = 'Sandbox' if obj.sender_mode == MessagingSettings.SENDER_MODE_TESTING else 'Production test'
-            messages.success(
-                request,
-                f'{mode_label} send OK to {dest} via {obj.active_channel}. '
-                f"Detail: {result.get('detail') or 'sent'}",
-            )
+            messages.success(request, f'WhatsApp sandbox test OK to {dest}. {result.get("detail") or ""}')
         else:
-            messages.error(
-                request,
-                f"Test send failed: {result.get('error') or 'unknown error'}",
-            )
+            messages.error(request, f'WhatsApp sandbox test failed: {result.get("error") or "unknown"}')
         return HttpResponseRedirect(change_url)
 
     def changelist_view(self, request, extra_context=None):
-        obj = MessagingSettings.load()
-        seed_messaging_settings_from_env(obj)
-        return HttpResponseRedirect(
-            reverse('admin:communication_messagingsettings_change', args=[obj.pk])
-        )
+        obj = WhatsAppSettings.load()
+        seed_whatsapp_settings_from_env(obj)
+        return HttpResponseRedirect(reverse('admin:communication_whatsappsettings_change', args=[obj.pk]))
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = extra_context or {}
-        obj = self.get_object(request, object_id) or MessagingSettings.load()
-        extra_context.update(self._banner_context(obj))
-        return super().change_view(request, object_id, form_url, extra_context=extra_context)
-
-    def _banner_context(self, obj):
-        if not obj.sms_enabled:
-            sms_status = f'channel is {obj.get_active_channel_display()}'
-        elif not obj.provider_keys_ok(obj.sms_provider, for_whatsapp=False):
-            sms_status = obj.missing_keys_message(obj.sms_provider, for_whatsapp=False)
-        else:
-            sms_status = 'ready'
-        if not obj.whatsapp_enabled:
-            wa_status = f'channel is {obj.get_active_channel_display()}'
-        elif not obj.provider_keys_ok(obj.whatsapp_provider, for_whatsapp=True):
-            wa_status = obj.missing_keys_message(obj.whatsapp_provider, for_whatsapp=True)
-        elif not obj.whatsapp_template_is_approved():
-            wa_status = (
-                f'template {obj.whatsapp_otp_template!r} status '
-                f'{obj.whatsapp_otp_template_status or "unknown"!r} (need APPROVED)'
-            )
-        else:
-            wa_status = 'ready'
-        steps = flow_steps(obj)
-        return {
+        obj = self.get_object(request, object_id) or WhatsAppSettings.load()
+        extra_context.update({
             'messaging_environment': getattr(django_settings, 'ENVIRONMENT', ''),
             'messaging_debug': django_settings.DEBUG,
-            'messaging_is_production': is_production_messaging_env(),
-            'messaging_sms_ready': obj.is_sms_ready(),
-            'messaging_wa_ready': obj.is_whatsapp_ready(),
-            'messaging_sms_status': sms_status,
-            'messaging_wa_status': wa_status,
-            'messaging_flow_steps': steps,
-            'messaging_has_from': has_from_number(obj),
-            'messaging_show_production_test': (
-                obj.sender_mode == MessagingSettings.SENDER_MODE_PRODUCTION
-                and obj.active_channel in ('sms', 'whatsapp')
+            'wa_is_ready': obj.is_ready(),
+            'wa_config_ok': obj.config_ready_for_test(),
+            'wa_status': (
+                'ready for live sends' if obj.is_ready()
+                else ('config OK — enable for live' if obj.config_ready_for_test()
+                      else (obj.missing_config_message() or 'incomplete'))
             ),
-            'messaging_show_sandbox_test_only': (
-                obj.sender_mode == MessagingSettings.SENDER_MODE_TESTING
-                and obj.active_channel in ('sms', 'whatsapp')
-            ),
-        }
+        })
+        return super().change_view(request, object_id, form_url, extra_context=extra_context)
 
     @admin.display(description='Runtime status')
     def runtime_status(self, obj):
@@ -451,55 +439,22 @@ class MessagingSettingsAdmin(admin.ModelAdmin):
             return '—'
         lines = [
             f"Env: ENVIRONMENT={getattr(django_settings, 'ENVIRONMENT', '')} DEBUG={django_settings.DEBUG}",
-            f"Production messaging: {'yes' if is_production_messaging_env() else 'no'}",
-            f"Sender mode: {obj.get_sender_mode_display()}",
-            f"From number: {'yes' if has_from_number(obj) else 'no'}",
-            f"SMS ready: {'yes' if obj.is_sms_ready() else 'no'}",
-            f"WhatsApp ready: {'yes' if obj.is_whatsapp_ready() else 'no'}",
+            f"Enabled: {'yes' if obj.is_enabled else 'no'}",
+            f"Provider: {obj.provider}",
+            f"Template: {obj.otp_template or '—'} [{obj.otp_template_status or '?'}]",
+            f"Config for test: {'yes' if obj.config_ready_for_test() else 'no'}",
+            f"Live ready: {'yes' if obj.is_ready() else 'no'}",
         ]
-        block = obj.sender_mode_block_reason()
-        if block:
-            lines.append(f"Block: {block}")
+        if not obj.is_ready():
+            lines.append(obj.missing_config_message() or '')
         return _admin_pre_block('\n'.join(lines))
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        if obj.sender_mode == MessagingSettings.SENDER_MODE_PRODUCTION and not has_from_number(obj):
-            if apply_no_numbers_fallback(obj):
-                messages.warning(
-                    request,
-                    'Step 5: No From number — switched to Sandbox / testing. '
-                    'Fetch or paste a From number to use Production.',
-                )
-                obj.refresh_from_db()
-        if obj.sms_enabled and not obj.provider_keys_ok(obj.sms_provider, for_whatsapp=False):
+        if obj.is_enabled and not obj.is_ready():
             messages.warning(
                 request,
-                'SMS channel selected but keys incomplete — SMS stays DISABLED until keys are added. '
-                + obj.missing_keys_message(obj.sms_provider, for_whatsapp=False),
-            )
-        if obj.whatsapp_enabled and not obj.provider_keys_ok(obj.whatsapp_provider, for_whatsapp=True):
-            messages.warning(
-                request,
-                'WhatsApp channel selected but keys incomplete — WhatsApp stays DISABLED until keys are added. '
-                + obj.missing_keys_message(obj.whatsapp_provider, for_whatsapp=True),
-            )
-        if (
-            (obj.is_sms_ready() or obj.is_whatsapp_ready())
-            and not is_production_messaging_env()
-            and not obj.force_send_non_production
-            and obj.sender_mode != MessagingSettings.SENDER_MODE_TESTING
-        ):
-            messages.info(
-                request,
-                'Keys look OK, but this is not production — live customer traffic with production '
-                'numbers stays blocked (use Test button, Sandbox mode, or Force send non-production).',
-            )
-        if obj.sender_mode == MessagingSettings.SENDER_MODE_TESTING and is_production_messaging_env():
-            messages.error(
-                request,
-                'Sandbox mode — SMS/WhatsApp will NOT send on this production environment. '
-                'Set Production mode after adding live From numbers.',
+                'WhatsApp enabled but not ready — ' + (obj.missing_config_message() or 'complete configuration'),
             )
 
 

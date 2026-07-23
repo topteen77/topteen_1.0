@@ -168,6 +168,8 @@ code/**/migrations/0**.py
 */migrations/0*.py
 # skilllab international courses + later migrations must be in git (0018 depends on 0017)
 !skilllab/migrations/*.py
+# SMS / WhatsApp settings migrations must deploy to staging & production
+!communication/migrations/*.py
 media/
 .DS_Store
 # Backup files # 

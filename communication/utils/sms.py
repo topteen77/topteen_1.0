@@ -1,9 +1,7 @@
 import logging
 from typing import Dict, Any
 
-from django.conf import settings
-
-from communication.messaging_config import get_messaging_settings, should_send_mobile_message
+from communication.messaging_config import get_sms_settings, should_send_mobile_message
 from communication.providers import get_provider
 
 logger = logging.getLogger(__name__)
@@ -11,25 +9,25 @@ logger = logging.getLogger(__name__)
 
 def send_verification_sms(to_number: str, otp: str, message: str = None, timeout: int = 10) -> Dict[str, Any]:
     """
-    Send verification SMS via the admin-selected provider.
-    Missing keys → skipped (service disabled).
+    Send verification SMS via SMS settings.
+    Missing keys / disabled → skipped.
     """
-    cfg = get_messaging_settings()
-    provider_key = (cfg.sms_provider or 'smartping').strip().lower()
+    cfg = get_sms_settings()
+    provider_key = (cfg.provider or 'smartping').strip().lower()
     provider = get_provider(provider_key)
-    sms_text = message or (cfg.sms_message_template or '{otp} is your verification code for TopTeen').format(otp=otp)
+    sms_text = message or (cfg.message_template or '{otp} is your verification code for TopTeen').format(otp=otp)
     log_key = f'{provider_key}:sms:{to_number}:{sms_text}'
 
     if not should_send_mobile_message(log_key, channel='sms'):
         logger.info(
-            'SMS skipped (channel/keys/env). SMS ready=%s provider=%s',
-            cfg.is_sms_ready(),
+            'SMS skipped (enabled/keys). SMS ready=%s provider=%s',
+            cfg.is_ready(),
             provider_key,
         )
         return {
             'success': True,
             'skipped': True,
-            'response': 'SKIPPED: SMS not ready (keys/channel/environment)',
+            'response': 'SKIPPED: SMS not ready (keys/enabled)',
         }
 
     if not provider or not provider.supports_sms:
@@ -38,7 +36,7 @@ def send_verification_sms(to_number: str, otp: str, message: str = None, timeout
     result = provider.send_sms(
         to_number,
         sms_text,
-        config=cfg.provider_config_for(provider_key),
+        config=cfg.provider_config(),
         timeout=timeout,
     )
     return {

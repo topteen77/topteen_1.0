@@ -811,16 +811,15 @@ _TOPTEEN_FROM_EMAIL = config('TOPTEEN_FROM_EMAIL', default='support@topteen.care
 TOPTEEN_FROM_EMAIL = _TOPTEEN_FROM_EMAIL
 MOBILE_SMS_SERVICE = ''
 
-# SMS / WhatsApp — real sends only when ENVIRONMENT=production, DEBUG=False,
-# and the channel flag is True. Non-prod: OTP is still generated/logged, not sent
-# unless *_FORCE_SEND=True (explicit local test).
+# SMS / WhatsApp — live enable/disable and credentials are managed in admin
+# (SmsSettings / WhatsAppSettings). Env values below seed empty admin fields only.
 # https://www.plivo.com/ — Auth ID/Token from https://manage.plivo.com/dashboard/
-SMS_ENABLED = config('SMS_ENABLED', default=False, cast=bool)
-WHATSAPP_ENABLED = config('WHATSAPP_ENABLED', default=False, cast=bool)
+SMS_ENABLED = config('SMS_ENABLED', default=False, cast=bool)  # legacy; prefer admin SmsSettings.is_enabled
+WHATSAPP_ENABLED = config('WHATSAPP_ENABLED', default=False, cast=bool)  # legacy; prefer admin WhatsAppSettings.is_enabled
 SMS_PROVIDER = config('SMS_PROVIDER', default='smartping').strip().lower()  # smartping | plivo
-OTP_MOBILE_CHANNEL = config('OTP_MOBILE_CHANNEL', default='sms').strip().lower()  # sms | whatsapp
-SMS_FORCE_SEND = config('SMS_FORCE_SEND', default=False, cast=bool)
-WHATSAPP_FORCE_SEND = config('WHATSAPP_FORCE_SEND', default=False, cast=bool)
+OTP_MOBILE_CHANNEL = config('OTP_MOBILE_CHANNEL', default='sms').strip().lower()  # legacy
+SMS_FORCE_SEND = config('SMS_FORCE_SEND', default=False, cast=bool)  # legacy
+WHATSAPP_FORCE_SEND = config('WHATSAPP_FORCE_SEND', default=False, cast=bool)  # legacy
 
 # SmartPing SMS API Configuration
 SMARTPING_SMS_API_URL = config('SMARTPING_SMS_API_URL', default='https://pgapi.smartping.ai/fe/api/v1/send')

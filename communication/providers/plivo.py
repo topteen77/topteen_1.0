@@ -4,7 +4,7 @@ Plivo SMS + WhatsApp client (REST API via requests).
 Docs: https://www.plivo.com/docs/
 Console: https://manage.plivo.com/dashboard/
 
-Credentials come from ``config`` (admin MessagingSettings) with Django settings fallback.
+Credentials come from ``config`` (admin SmsSettings / WhatsAppSettings) with Django settings fallback.
 """
 from __future__ import annotations
 
