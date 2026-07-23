@@ -113,35 +113,72 @@ class MessagingSettings(models.Model):
     SENDER_MODE_PRODUCTION = 'production'
     SENDER_MODE_TESTING = 'testing'
     SENDER_MODE_CHOICES = (
-        (SENDER_MODE_PRODUCTION, 'Production numbers (live customer traffic)'),
-        (SENDER_MODE_TESTING, 'Testing / trial / sandbox numbers only'),
+        (SENDER_MODE_PRODUCTION, 'Production (live From numbers + optional Test button)'),
+        (SENDER_MODE_TESTING, 'Sandbox / testing only (test button only; blocked on production app)'),
     )
     sender_mode = models.CharField(
         max_length=20,
         choices=SENDER_MODE_CHOICES,
         default=SENDER_MODE_PRODUCTION,
         help_text=(
-            'Testing numbers (Plivo trial/sandbox, etc.) MUST NOT be used on production. '
-            'If set to Testing, sends are blocked when ENVIRONMENT=production and DEBUG=False.'
+            'Step 3a: Production = save + Test button (needs From number). '
+            'Sandbox = testing button only. Auto-switches to Sandbox when Step 4 finds no From number. '
+            'Sandbox is blocked when ENVIRONMENT=production and DEBUG=False.'
+        ),
+    )
+    test_destination = models.CharField(
+        max_length=40,
+        blank=True,
+        default='',
+        help_text=(
+            'E.164 phone for admin Test / Sandbox sends (e.g. +9198…). '
+            'Plivo sandbox often requires a verified destination number.'
         ),
     )
 
     sms_message_template = models.CharField(
         max_length=500,
         default='{otp} is your verification code for TopTeen',
-        help_text='SMS body. Use {otp}. Must match DLT-approved text for India.',
+        help_text=(
+            'SMS ONLY. Body text with {otp}. Must match DLT-approved SMS text for India. '
+            'Not used for WhatsApp.'
+        ),
     )
     whatsapp_otp_template = models.CharField(
         max_length=200,
         blank=True,
-        default='login_otp_verification',
-        help_text='Approved WhatsApp auth template name (e.g. login_otp_verification).',
+        default='',
+        help_text=(
+            'WhatsApp Meta/Plivo template name only (e.g. login_otp_verification). '
+            'Message body is NOT edited here — it comes from the approved provider template. '
+            'Use “Fetch WhatsApp templates from Plivo”.'
+        ),
     )
     whatsapp_otp_template_lang = models.CharField(
         max_length=20,
         blank=True,
         default='en',
-        help_text='Language code exactly as in Plivo/Meta (en or en_US).',
+        help_text='Language from the provider template (en / en_US). Filled by fetch.',
+    )
+    whatsapp_otp_template_status = models.CharField(
+        max_length=40,
+        blank=True,
+        default='',
+        help_text='Last fetched Meta status (APPROVED, PENDING, DRAFT, …).',
+    )
+    whatsapp_otp_template_preview = models.TextField(
+        blank=True,
+        default='',
+        help_text='Read-only preview of the approved template body from Plivo ({{1}} = OTP).',
+    )
+    plivo_waba_id = models.CharField(
+        max_length=120,
+        blank=True,
+        default='',
+        help_text=(
+            'WhatsApp Business Account ID from Plivo Console → WhatsApp. '
+            'Required to fetch templates from Plivo.'
+        ),
     )
 
     # SmartPing keys
@@ -233,11 +270,19 @@ class MessagingSettings(models.Model):
         if key == 'plivo':
             if not (self.plivo_auth_id.strip() and self.plivo_auth_token.strip()):
                 return False
+            sandbox = self.sender_mode == self.SENDER_MODE_TESTING
             if for_whatsapp:
-                return bool(self.plivo_whatsapp_from.strip() and self.whatsapp_otp_template.strip())
-            return bool(self.plivo_sms_from.strip())
+                if not self.whatsapp_otp_template.strip():
+                    return False
+                # Sandbox may have no owned From yet — admin Test still needs a paste later.
+                return sandbox or bool(self.plivo_whatsapp_from.strip())
+            return sandbox or bool(self.plivo_sms_from.strip())
         # Unknown provider: treat as not configured
         return False
+
+    def whatsapp_template_is_approved(self) -> bool:
+        status = (self.whatsapp_otp_template_status or '').strip().upper()
+        return status == 'APPROVED'
 
     def missing_keys_message(self, provider_key: str, *, for_whatsapp: bool = False) -> str:
         key = (provider_key or '').strip().lower()
@@ -254,12 +299,13 @@ class MessagingSettings(models.Model):
                 missing.append('Plivo Auth ID')
             if not self.plivo_auth_token.strip():
                 missing.append('Plivo Auth Token')
+            sandbox = self.sender_mode == self.SENDER_MODE_TESTING
             if for_whatsapp:
-                if not self.plivo_whatsapp_from.strip():
-                    missing.append('Plivo WhatsApp From')
                 if not self.whatsapp_otp_template.strip():
                     missing.append('WhatsApp OTP template name')
-            elif not self.plivo_sms_from.strip():
+                if not sandbox and not self.plivo_whatsapp_from.strip():
+                    missing.append('Plivo WhatsApp From')
+            elif not sandbox and not self.plivo_sms_from.strip():
                 missing.append('Plivo SMS From')
             return 'Missing: ' + ', '.join(missing) if missing else ''
         return f'Unknown provider {key!r}'
@@ -274,6 +320,8 @@ class MessagingSettings(models.Model):
             self.whatsapp_enabled
             and self.provider_keys_ok(self.whatsapp_provider, for_whatsapp=True)
         ):
+            return False
+        if not self.whatsapp_template_is_approved():
             return False
         return self.sender_allowed_in_current_env()
 
@@ -321,6 +369,7 @@ class MessagingSettings(models.Model):
                 'whatsapp_from': self.plivo_whatsapp_from,
                 'whatsapp_otp_template': self.whatsapp_otp_template,
                 'whatsapp_otp_template_lang': self.whatsapp_otp_template_lang,
+                'waba_id': self.plivo_waba_id,
             }
         return {}
 

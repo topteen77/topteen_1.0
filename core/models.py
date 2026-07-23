@@ -360,10 +360,12 @@ class Review(BaseModel, PublishableModel):
 
     def get_image_url(self):
         """Get image URL: S3 URL if set, else local image, else default placeholder."""
+        from core.s3_utils import rewrite_s3_url_to_cdn
+
         if self.image_s3_url:
-            return self.image_s3_url
+            return rewrite_s3_url_to_cdn(self.image_s3_url)
         if self.image and self.image.name:
-            return self.image.url
+            return rewrite_s3_url_to_cdn(self.image.url)
         return "/static/images/review-default.png"
 
     @property
@@ -808,18 +810,22 @@ class Ebook(BaseModel, PublishableModel):
 
     def get_cover_url(self):
         """Get cover image URL - prioritizes S3 URL over uploaded file"""
+        from core.s3_utils import rewrite_s3_url_to_cdn
+
         if self.cover_image_s3_url:
-            return self.cover_image_s3_url
+            return rewrite_s3_url_to_cdn(self.cover_image_s3_url)
         if self.cover_image and self.cover_image.name:
-            return self.cover_image.url
+            return rewrite_s3_url_to_cdn(self.cover_image.url)
         return None
 
     def get_pdf_url(self):
         """Get PDF file URL - prioritizes S3 URL over uploaded file"""
+        from core.s3_utils import rewrite_s3_url_to_cdn
+
         if self.pdf_file_s3_url:
-            return self.pdf_file_s3_url
+            return rewrite_s3_url_to_cdn(self.pdf_file_s3_url)
         if self.pdf_file and self.pdf_file.name:
-            return self.pdf_file.url
+            return rewrite_s3_url_to_cdn(self.pdf_file.url)
         return None
 
     @classmethod

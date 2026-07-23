@@ -172,6 +172,27 @@ def _user_pdf_s3_object_key(storage_relative_key: str) -> str:
     return relative.lstrip("/")
 
 
+def user_pdf_cdn_url(user_id, filename):
+    """
+    Public CloudFront URL for a stored report PDF when CDN mode is enabled.
+
+    Returns None when CloudFront is not active (caller should use presigned/proxy).
+    """
+    if not user_id or not filename:
+        return None
+    if not getattr(settings, "USE_S3_FOR_MEDIA", False):
+        return None
+    try:
+        from core.s3_utils import cdn_url_for_s3_key, cloudfront_media_enabled
+
+        if not cloudfront_media_enabled():
+            return None
+        return cdn_url_for_s3_key(_user_pdf_s3_object_key(user_pdf_key(user_id, filename)))
+    except Exception as e:
+        logger.warning("user_pdf_cdn_url failed user_id=%s file=%s: %s", user_id, filename, e)
+        return None
+
+
 def user_pdf_presigned_download_url(user_id, filename, download_name=None, expires_in=600, inline=True):
     """
     Short-lived S3 GET URL for a stored report PDF.
@@ -219,8 +240,8 @@ def serve_user_pdf_response(user_id, filename, download_name=None, inline=True):
     """
     Deliver a stored report PDF without streaming bytes through Gunicorn.
 
-    Prefer a 302 redirect to a short-lived S3 signed URL. Fall back to
-    FileResponse only for local (non-S3) storage.
+    Prefer CloudFront (when S3_MEDIA_ACCESS_MODE=cloudfront), else a 302 to a
+    short-lived S3 signed URL. Fall back to FileResponse for local storage.
 
     ``inline=True`` (default) opens the PDF in the browser tab so a
     "Preparing…" wait page is replaced by the viewer instead of a download.
@@ -229,12 +250,18 @@ def serve_user_pdf_response(user_id, filename, download_name=None, inline=True):
         return None
 
     name = download_name or filename
+    from django.http import HttpResponseRedirect
+
+    cdn = user_pdf_cdn_url(user_id, filename)
+    if cdn:
+        response = HttpResponseRedirect(cdn)
+        response["Cache-Control"] = "private, max-age=300"
+        return response
+
     signed = user_pdf_presigned_download_url(
         user_id, filename, download_name=name, inline=inline
     )
     if signed:
-        from django.http import HttpResponseRedirect
-
         response = HttpResponseRedirect(signed)
         response["Cache-Control"] = "no-store"
         return response

@@ -204,6 +204,8 @@ class Home(TemplateView):
         for c in clusters:
             if not c.name:
                 continue
+            from core.s3_utils import rewrite_s3_url_to_cdn
+
             icon_url = (
                 getattr(c, 'career_track_icon_s3_url', None)
                 or (c.career_track_icon.url if (c.career_track_icon and c.career_track_icon.name) else None)
@@ -211,7 +213,7 @@ class Home(TemplateView):
             )
             career_track_cards.append({
                 'label': (c.name or '').strip(),
-                'icon_url': icon_url,
+                'icon_url': rewrite_s3_url_to_cdn(icon_url) if icon_url else icon_url,
                 'url': f"{careers_base_url}?mode=view-mode&cluster={c.id}",
             })
         if career_track_cards:
