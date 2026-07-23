@@ -279,6 +279,9 @@ class CareerAdmin(admin.ModelAdmin):
     # Using custom AJAX dropdown instead of inline edit
     # list_editable = ['publish_status']
     actions = ['make_published', 'make_draft', 'assign_to_cluster']
+    # Soft-delete BaseModel.delete() hides rows but leaves them in DB; admin delete is permanent.
+    delete_confirmation_template = 'admin/careers/career/delete_confirmation.html'
+    delete_selected_confirmation_template = 'admin/careers/career/delete_selected_confirmation.html'
     
     inlines = [VocationalCareerReasoningMappingInline, CareerMediaInline]
     readonly_fields = ['created', 'modified', 'preview_url', 'validation_errors']
@@ -572,6 +575,32 @@ class CareerAdmin(admin.ModelAdmin):
             path('<path:object_id>/json-preview/', self.admin_site.admin_view(self.json_preview), name='careers_career_json_preview'),
         ]
         return custom_urls + urls
+
+    def has_delete_permission(self, request, obj=None):
+        """Hard delete is admin-only (staff with delete permission)."""
+        return request.user.is_staff and super().has_delete_permission(request, obj)
+
+    def delete_model(self, request, obj):
+        """Permanently remove the career row (hard delete)."""
+        name = obj.name or f'#{obj.pk}'
+        obj.delete(hard_delete=True)
+        self.message_user(
+            request,
+            f'Career "{name}" was permanently deleted.',
+            messages.SUCCESS,
+        )
+
+    def delete_queryset(self, request, queryset):
+        """Permanently remove selected careers (hard delete)."""
+        count = 0
+        for obj in queryset:
+            obj.delete(hard_delete=True)
+            count += 1
+        self.message_user(
+            request,
+            f'{count} career(s) permanently deleted.',
+            messages.SUCCESS,
+        )
 
     def update_publish_status_ajax(self, request):
         """Handle AJAX request to update publish status"""

@@ -1,0 +1,30 @@
+{% extends "admin/delete_selected_confirmation.html" %}
+{% load i18n %}
+
+{% block content %}
+  <div class="messagelist">
+    <div class="warning" style="margin-bottom: 1em; padding: 12px 16px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; color: #664d03;">
+      <strong>{% translate "Permanent delete" %}</strong>:
+      {% translate "Selected careers will be hard-deleted from the database. Related data may also be removed. This cannot be undone." %}
+    </div>
+  </div>
+  {{ block.super }}
+{% endblock %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var form = document.querySelector('#content-main form');
+    if (!form) return;
+    form.addEventListener('submit', function (e) {
+      if (!window.confirm(
+        'Permanently delete the selected career(s)?\n\n' +
+        'This cannot be undone.'
+      )) {
+        e.preventDefault();
+      }
+    });
+  });
+  </script>
+{% endblock %}
