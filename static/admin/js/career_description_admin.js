@@ -103,21 +103,21 @@
             return;
         }
         
-        var toolsHtml = '<div class="description-tools-wrapper" style="margin: 20px 0; clear: both; padding: 20px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px;">' +
-            '<div class="description-toolbar" style="display: flex; gap: 10px; margin-bottom: 15px;">' +
-            '<button type="button" id="convert-to-h2-btn" class="button" style="background: #417690; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Convert to H2</button>' +
-            '<button type="button" id="json-preview-btn" class="button" style="background: #417690; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">JSON Preview</button>' +
+        var toolsHtml = '<div class="description-tools-wrapper">' +
+            '<div class="description-toolbar">' +
+            '<button type="button" id="convert-to-h2-btn" class="button description-toolbar-btn">Convert to H2</button>' +
+            '<button type="button" id="json-preview-btn" class="button description-toolbar-btn">JSON Preview</button>' +
             '</div>' +
-            '<div class="description-tabs" style="border-bottom: 1px solid #ddd; margin-top: 20px;">' +
-            '<button type="button" class="tab-button active" data-tab="editor" style="padding: 10px 20px; border: none; background: none; cursor: pointer; border-bottom: 2px solid #417690;">Editor</button>' +
-            '<button type="button" class="tab-button" data-tab="accordion" style="padding: 10px 20px; border: none; background: none; cursor: pointer;">Accordion Preview</button>' +
+            '<div class="description-tabs">' +
+            '<button type="button" class="tab-button active" data-tab="editor">Editor</button>' +
+            '<button type="button" class="tab-button" data-tab="accordion">Accordion Preview</button>' +
             '</div>' +
-            '<div class="tab-content" style="border: 1px solid #ddd; border-top: none; background: #fff;">' +
-            '<div id="editor-tab" class="tab-pane active" style="display: block; padding: 20px;">' +
-            '<div id="description-field-container"><p style="color: #666; margin-bottom: 10px;">Description Editor:</p></div>' +
+            '<div class="tab-content">' +
+            '<div id="editor-tab" class="tab-pane active">' +
+            '<div id="description-field-container"><p class="description-muted">Description Editor:</p></div>' +
             '</div>' +
-            '<div id="accordion-tab" class="tab-pane" style="display: none; padding: 20px; min-height: 400px;">' +
-            '<div id="accordion-preview-container"><p style="color: #666;">Click "Accordion Preview" tab to see how the description will render as accordions.</p></div>' +
+            '<div id="accordion-tab" class="tab-pane" style="display: none;">' +
+            '<div id="accordion-preview-container"><p class="description-muted">Click "Accordion Preview" tab to see how the description will render as accordions.</p></div>' +
             '</div>' +
             '</div>' +
             '</div>';

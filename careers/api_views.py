@@ -17,8 +17,19 @@ from .docx_utils import convert_docx_to_html, extract_career_data_from_html
 from .ai_query_processor import QueryProcessor
 import json
 import logging
+import re
 
 logger = logging.getLogger(__name__)
+
+
+def _html_body_fragment(html_content: str) -> str:
+    """If converter returned a full document, return only the body inner HTML."""
+    if not html_content:
+        return html_content
+    match = re.search(r'<body[^>]*>(.*)</body>', html_content, flags=re.IGNORECASE | re.DOTALL)
+    if match:
+        return match.group(1).strip()
+    return html_content.strip()
 
 
 def extract_accordion_sections(career):
@@ -293,39 +304,68 @@ def format_career_for_response(career, include_sections=False):
     return formatted
 
 
-@csrf_exempt
+@login_required
 @require_http_methods(["POST"])
 def process_docx_api(request):
-    """API endpoint to process DOCX files and return extracted content"""
+    """
+    Accept an uploaded .docx in memory only (never written to disk / media).
+    Convert with scripts.convert_docx_to_html and return HTML for admin preview / copy.
+    The upload lives only in the request body + RAM for this request.
+    """
+    from io import BytesIO
+    from pathlib import Path
+
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'Staff access required'}, status=403)
+
     try:
-        # Get the uploaded file
         docx_file = request.FILES.get('docx_file')
         if not docx_file:
             return JsonResponse({'error': 'No DOCX file provided'}, status=400)
-        
-        # Validate file type
-        if not docx_file.name.lower().endswith('.docx'):
+
+        name_lower = docx_file.name.lower()
+        if not name_lower.endswith('.docx'):
             return JsonResponse({'error': 'Only DOCX files are allowed'}, status=400)
-        
-        # Validate file size (10MB limit)
+
         if docx_file.size > 10 * 1024 * 1024:
             return JsonResponse({'error': 'File size must be under 10MB'}, status=400)
-        
-        # Convert DOCX to HTML
-        html_content = convert_docx_to_html(docx_file)
-        
-        # Extract title, summary, and description
+
+        # Keep bytes in RAM only — do not save to MEDIA / tempfile / disk
+        buffer = BytesIO()
+        for chunk in docx_file.chunks():
+            buffer.write(chunk)
+        buffer.seek(0)
+
+        stem = Path(docx_file.name).stem if docx_file.name else 'document'
+
+        try:
+            from scripts.convert_docx_to_html import convert_docx_to_html as convert_docx_full
+            html_content = convert_docx_full(buffer, filename=stem)
+        except ImportError:
+            buffer.seek(0)
+            html_content = convert_docx_to_html(buffer)
+
+        # Drop reference so buffer can be GC'd promptly
+        buffer.close()
+
+        if not html_content:
+            return JsonResponse({'error': 'Conversion produced empty HTML'}, status=400)
+
+        # Prefer body fragment for pasting into CKEditor (not a full HTML document)
+        html_content = _html_body_fragment(html_content)
+
         title, summary, description = extract_career_data_from_html(html_content)
-        
-        # Return the extracted content
+
         return JsonResponse({
             'success': True,
+            'html': html_content,
             'title': title,
             'summary': summary,
-            'description': description
+            'description': description or html_content,
         })
-        
+
     except Exception as e:
+        logger.exception('Error processing DOCX file')
         return JsonResponse({'error': f'Error processing DOCX file: {str(e)}'}, status=500)
 
 @require_http_methods(["GET"])

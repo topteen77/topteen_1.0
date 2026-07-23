@@ -109,11 +109,86 @@
         }
     }
 
+    function initSidebarHelpDismiss() {
+        var HELP_STORAGE_KEY = 'topteen.admin.sidebarHelpHidden';
+        var help = document.getElementById('tt-sidebar-help');
+        var closeBtn = document.getElementById('tt-sidebar-help-close');
+        var dontShow = document.getElementById('tt-sidebar-help-dont-show');
+        if (!help) {
+            return;
+        }
+
+        function isHiddenPref() {
+            try {
+                return localStorage.getItem(HELP_STORAGE_KEY) === '1';
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function setHiddenPref(hidden) {
+            try {
+                if (hidden) {
+                    localStorage.setItem(HELP_STORAGE_KEY, '1');
+                } else {
+                    localStorage.removeItem(HELP_STORAGE_KEY);
+                }
+            } catch (e) {
+                /* ignore */
+            }
+        }
+
+        function hideHelp() {
+            help.setAttribute('hidden', '');
+        }
+
+        function showHelp() {
+            help.removeAttribute('hidden');
+            if (dontShow) {
+                dontShow.checked = false;
+            }
+        }
+
+        // Apply startup preference before paint of interactive use
+        if (isHiddenPref()) {
+            hideHelp();
+            if (dontShow) {
+                dontShow.checked = true;
+            }
+        } else {
+            showHelp();
+        }
+
+        if (closeBtn && !closeBtn._ttHelpWired) {
+            closeBtn._ttHelpWired = true;
+            closeBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (dontShow && dontShow.checked) {
+                    setHiddenPref(true);
+                }
+                hideHelp();
+            });
+        }
+
+        if (dontShow && !dontShow._ttHelpWired) {
+            dontShow._ttHelpWired = true;
+            dontShow.addEventListener('change', function () {
+                if (dontShow.checked) {
+                    setHiddenPref(true);
+                    hideHelp();
+                } else {
+                    setHiddenPref(false);
+                }
+            });
+        }
+    }
+
     function initTopteenNavSidebar() {
         keepSidebarOpen();
         highlightSidebarNav();
         scrollHubSectionIntoView();
         scrollAdvancedModelIntoView();
+        initSidebarHelpDismiss();
     }
 
     if (document.readyState === 'loading') {

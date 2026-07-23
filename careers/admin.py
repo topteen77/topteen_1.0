@@ -181,35 +181,36 @@ class CareerClusterSelectWidget(forms.SelectMultiple):
 class CareerAdminForm(forms.ModelForm):
     """Custom form for Career admin with automatic DOCX processing"""
     
-    # Custom field for DOCX upload (not stored in database)
+    # Temporary DOCX upload (not stored); converted via scripts/convert_docx_to_html
     docx_file = forms.FileField(
         required=False,
-        help_text='''
-        <div id="docx-processing-status" style="display: none; margin: 10px 0; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px;">
-            <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                <div id="processing-spinner" style="width: 20px; height: 20px; border: 2px solid #f3f3f3; border-top: 2px solid #007cba; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 10px;"></div>
-                <span id="processing-text" style="font-weight: bold; color: #007cba;">Processing DOCX file...</span>
-            </div>
-            <div id="processing-progress" style="width: 100%; background-color: #e9ecef; border-radius: 10px; overflow: hidden;">
-                <div id="progress-bar" style="height: 6px; background-color: #007cba; width: 0%; transition: width 0.3s ease;"></div>
-            </div>
-            <div id="processing-message" style="margin-top: 10px; font-size: 14px; color: #6c757d;"></div>
-        </div>
-        
-        <style>
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        </style>
-        
-        Upload a DOCX file to automatically populate career name and description fields. This will overwrite existing content.
-        ''',
+        label='Import Word (.docx) → HTML',
+        help_text=(
+            'Upload a .docx temporarily. It is converted with full formatting '
+            '(headings, lists, tables, paragraphs) and shown in a popup so you can copy the HTML. '
+            'The file is not saved.'
+            '<div id="docx-processing-status" style="display: none; margin: 10px 0; padding: 15px; '
+            'background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px;">'
+            '<div style="display: flex; align-items: center; margin-bottom: 10px;">'
+            '<div id="processing-spinner" style="width: 20px; height: 20px; border: 2px solid #f3f3f3; '
+            'border-top: 2px solid #007cba; border-radius: 50%; animation: spin 1s linear infinite; '
+            'margin-right: 10px;"></div>'
+            '<span id="processing-text" style="font-weight: bold; color: #007cba;">Converting Word document...</span>'
+            '</div>'
+            '<div id="processing-progress" style="width: 100%; background-color: #e9ecef; '
+            'border-radius: 10px; overflow: hidden;">'
+            '<div id="progress-bar" style="height: 6px; background-color: #007cba; width: 0%; '
+            'transition: width 0.3s ease;"></div>'
+            '</div>'
+            '<div id="processing-message" style="margin-top: 10px; font-size: 14px; color: #6c757d;"></div>'
+            '</div>'
+            '<style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>'
+        ),
         widget=forms.FileInput(attrs={
-            'accept': '.docx',
+            'accept': '.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             'id': 'docx_file_input',
-            'onchange': 'processDocxFile(this)'
-        })
+            'onchange': 'processDocxFile(this)',
+        }),
     )
     
     class Meta:
@@ -294,10 +295,13 @@ class CareerAdmin(admin.ModelAdmin):
             'fields': ('career_cluster',),
             'description': 'Select one or more career clusters to categorize this career. This helps organize careers in the career library.',
         }),
-        ('DOCX Upload', {
+        ('DOCX → HTML Import', {
             'fields': ('docx_file',),
-            'description': 'Upload a DOCX file to automatically populate career name and description fields. This will overwrite existing content.',
-            'classes': ('collapse',),
+            'description': (
+                'Add only — use “Import HTML from Word” next to JSON Preview. '
+                'Upload is temporary (memory only); preview, copy, or add to description.'
+            ),
+            'classes': ('collapse', 'docx-import-fieldset'),
         }),
         ('Preview & Validation', {
             'fields': ('preview_url', 'validation_errors'),
@@ -533,7 +537,20 @@ class CareerAdmin(admin.ModelAdmin):
         form = super().get_form(request, obj, **kwargs)
         if 'career_paths' in form.base_fields:
             form.base_fields['career_paths'].required = False
+        # DOCX import is add-only
+        if obj is not None and 'docx_file' in form.base_fields:
+            del form.base_fields['docx_file']
         return form
+
+    def get_fieldsets(self, request, obj=None):
+        """DOCX → HTML import is available on Add only."""
+        fieldsets = list(super().get_fieldsets(request, obj))
+        if obj is not None:
+            fieldsets = [
+                fs for fs in fieldsets
+                if fs[0] != 'DOCX → HTML Import'
+            ]
+        return fieldsets
     
     def update_career_cluster_ajax(self, request):
         """Handle AJAX request to update career cluster"""
@@ -692,7 +709,11 @@ class CareerAdmin(admin.ModelAdmin):
     
     class Media:
         css = {
-            'all': ('admin/css/docx_processing.css', 'admin/css/mindmap_validation.css',)
+            'all': (
+                'admin/css/docx_processing.css',
+                'admin/css/career_description_admin.css',
+                'admin/css/mindmap_validation.css',
+            )
         }
         js = ('admin/js/docx_processing.js', 'admin/js/career_cluster_dropdown.js',)
     

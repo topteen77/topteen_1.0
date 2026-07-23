@@ -20,11 +20,23 @@
   box-shadow: var(--tt-shadow-sm, 0 2px 12px rgba(0, 0, 0, 0.06));
 }
 
+.tt-sidebar-help[hidden] {
+  display: none !important;
+}
+
+.tt-sidebar-help__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
 .tt-sidebar-help strong {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 6px;
+  margin: 0;
   font-size: 12px;
   color: var(--body-fg);
 }
@@ -32,6 +44,93 @@
 .tt-sidebar-help strong::before {
   content: "💡";
   font-size: 14px;
+}
+
+.tt-sidebar-help__close {
+  flex-shrink: 0;
+  margin: -4px -4px 0 0;
+  padding: 0 6px;
+  border: 0;
+  background: transparent;
+  color: var(--tt-text-muted, var(--body-quiet-color));
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.tt-sidebar-help__close:hover {
+  color: var(--tt-text, var(--body-fg));
+  background: var(--tt-surface-3, var(--darkened-bg));
+}
+
+.tt-sidebar-help p {
+  margin: 0 0 10px;
+}
+
+.tt-sidebar-help__dont-show {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--tt-text-muted, var(--body-quiet-color));
+  cursor: pointer;
+  user-select: none;
+}
+
+.tt-sidebar-help__dont-show input {
+  margin: 2px 0 0;
+  flex-shrink: 0;
+}
+
+.tt-sidebar-docx {
+  margin: 0 0 14px;
+  padding: 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--tt-text-muted, var(--body-quiet-color));
+  background: var(--tt-surface-2, var(--body-bg));
+  border: 1px solid var(--tt-border, var(--hairline-color));
+  border-radius: 10px;
+  box-shadow: var(--tt-shadow-sm, 0 2px 12px rgba(0, 0, 0, 0.06));
+}
+
+.tt-sidebar-docx strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: var(--tt-text, var(--body-fg));
+}
+
+.tt-sidebar-docx p {
+  margin: 0 0 10px;
+}
+
+.tt-sidebar-docx__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: #417690;
+  color: #fff !important;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tt-sidebar-docx__btn:hover {
+  opacity: 0.92;
+}
+
+.tt-sidebar-docx .docx-processing-status {
+  margin-top: 10px;
+  margin-bottom: 0;
+  padding: 10px;
 }
 
 .tt-sidebar-nav {

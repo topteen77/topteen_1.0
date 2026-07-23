@@ -4,14 +4,30 @@
 {{ block.super }}
 
 <!-- Description Tools - Add after the form fields -->
-<div class="description-tools-wrapper" style="margin: 20px 0; clear: both; padding: 20px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px;">
-    <div class="description-toolbar" style="display: flex; gap: 10px; margin-bottom: 15px;">
-        <button type="button" id="convert-to-h2-btn" class="button" style="background: #417690; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">
+<div class="description-tools-wrapper">
+    <div class="description-toolbar">
+        <button type="button" id="convert-to-h2-btn" class="button description-toolbar-btn">
             Convert to H2
         </button>
-        <button type="button" id="json-preview-btn" class="button" style="background: #417690; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">
+        <button type="button" id="json-preview-btn" class="button description-toolbar-btn">
             JSON Preview
         </button>
+        {% if add %}
+        <button type="button" id="docx-html-import-btn" class="button description-toolbar-btn" title="Upload a Word file temporarily and convert to HTML">
+            Import HTML from Word
+        </button>
+        <input type="file" id="docx_file_input_toolbar" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
+        {% endif %}
+    </div>
+    <div id="docx-processing-status" class="docx-processing-status" style="display: none;">
+        <div class="processing-header">
+            <div id="processing-spinner" class="processing-spinner"></div>
+            <span id="processing-text" class="processing-text">Converting Word document...</span>
+        </div>
+        <div id="processing-progress" class="processing-progress">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <div id="processing-message" class="processing-message"></div>
     </div>
     
     <!-- Editor and Preview - Side by Side -->

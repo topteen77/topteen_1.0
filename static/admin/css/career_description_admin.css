@@ -5,24 +5,33 @@
 
 .description-tools-wrapper {
     margin-bottom: 20px;
+    margin-top: 20px;
+    clear: both;
+    padding: 20px;
+    background: var(--tt-surface-2, #f8f9fa);
+    border: 1px solid var(--tt-border, #dee2e6);
+    border-radius: 5px;
+    color: var(--tt-text, #212529);
 }
 
 .description-toolbar {
     display: flex;
+    flex-wrap: wrap;
     gap: 10px;
     margin-bottom: 15px;
     padding: 10px;
-    background: #f8f9fa;
+    background: var(--tt-surface-3, #f8f9fa);
     border-radius: 5px;
-    border: 1px solid #dee2e6;
+    border: 1px solid var(--tt-border, #dee2e6);
 }
 
-.description-toolbar button {
-    background: #417690;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 4px;
+.description-toolbar button,
+.description-toolbar-btn {
+    background: #417690 !important;
+    color: #fff !important;
+    border: none !important;
+    padding: 8px 15px !important;
+    border-radius: 4px !important;
     cursor: pointer;
     font-size: 14px;
     transition: opacity 0.2s;
@@ -38,7 +47,7 @@
 }
 
 .description-tabs {
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid var(--tt-border, #ddd);
     margin-bottom: 0;
 }
 
@@ -48,14 +57,14 @@
     background: none;
     cursor: pointer;
     font-size: 14px;
-    color: #666;
+    color: var(--tt-text-muted, #666);
     border-bottom: 2px solid transparent;
     transition: all 0.2s;
 }
 
 .tab-button:hover {
     color: #417690;
-    background: #f8f9fa;
+    background: var(--tt-surface-2, #f8f9fa);
 }
 
 .tab-button.active {
@@ -65,9 +74,10 @@
 }
 
 .tab-content {
-    border: 1px solid #ddd;
+    border: 1px solid var(--tt-border, #ddd);
     border-top: none;
-    background: #fff;
+    background: var(--tt-surface, #fff);
+    color: var(--tt-text, #212529);
 }
 
 .tab-pane {
@@ -84,64 +94,77 @@
     min-height: 400px;
 }
 
+.description-muted {
+    color: var(--tt-text-muted, #666);
+}
+
 /* JSON Preview Modal */
-#json-preview-modal {
+#json-preview-modal,
+.json-preview-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.55);
     z-index: 10000;
     display: none;
 }
 
-#json-preview-modal .modal-content {
+#json-preview-modal .modal-content,
+.json-preview-modal-dialog {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: white;
+    background: var(--tt-surface, #fff);
+    color: var(--tt-text, #212529);
     padding: 20px;
     border-radius: 5px;
     max-width: 800px;
     width: 90%;
     max-height: 80vh;
     overflow: auto;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--tt-shadow-md, 0 4px 20px rgba(0, 0, 0, 0.3));
+    border: 1px solid var(--tt-border, #dee2e6);
 }
 
-#json-preview-modal .modal-header {
+#json-preview-modal .modal-header,
+.json-preview-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
     padding-bottom: 10px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid var(--tt-border, #ddd);
 }
 
-#json-preview-modal h2 {
+#json-preview-modal h2,
+.json-preview-modal-header h2 {
     margin: 0;
     font-size: 20px;
-    color: #333;
+    color: var(--tt-text, #333);
 }
 
-#json-preview-modal #close-json-modal {
-    background: #dc3545;
-    color: white;
-    border: none;
-    padding: 5px 15px;
-    border-radius: 4px;
+#json-preview-modal #close-json-modal,
+#close-json-modal {
+    background: #dc3545 !important;
+    color: #fff !important;
+    border: none !important;
+    padding: 5px 15px !important;
+    border-radius: 4px !important;
     cursor: pointer;
     font-size: 14px;
 }
 
 #json-preview-modal #close-json-modal:hover {
-    background: #c82333;
+    background: #c82333 !important;
 }
 
-#json-preview-content {
-    background: #f8f9fa;
+#json-preview-content,
+.json-preview-content {
+    background: var(--tt-surface-2, #f8f9fa);
+    color: var(--tt-text, #212529);
     padding: 15px;
     border-radius: 4px;
     overflow: auto;
@@ -151,6 +174,7 @@
     line-height: 1.5;
     white-space: pre-wrap;
     word-wrap: break-word;
+    border: 1px solid var(--tt-border, #dee2e6);
 }
 
 /* Accordion Preview Styles */

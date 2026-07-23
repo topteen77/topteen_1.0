@@ -1,9 +1,48 @@
 {% load i18n static %}
 <button class="sticky toggle-nav-sidebar" id="toggle-nav-sidebar" aria-label="{% translate 'Toggle navigation' %}"></button>
 <nav class="sticky" id="nav-sidebar" aria-label="{% translate 'Sidebar' %}">
-  <div class="tt-sidebar-help">
-    <strong>{% translate 'How to navigate' %}</strong>
+  <div class="tt-sidebar-help" id="tt-sidebar-help">
+    <div class="tt-sidebar-help__header">
+      <strong>{% translate 'How to navigate' %}</strong>
+      <button type="button" class="tt-sidebar-help__close" id="tt-sidebar-help-close"
+              aria-label="{% translate 'Close' %}" title="{% translate 'Close' %}">&times;</button>
+    </div>
     <p>{% translate 'Pick a functional area below. Each listing page groups related CRUD screens — you rarely need the advanced model list.' %}</p>
+    <label class="tt-sidebar-help__dont-show">
+      <input type="checkbox" id="tt-sidebar-help-dont-show">
+      <span>{% translate "Don't show on startup" %}</span>
+    </label>
+  </div>
+  <script>
+  (function () {
+    try {
+      if (localStorage.getItem('topteen.admin.sidebarHelpHidden') === '1') {
+        var el = document.getElementById('tt-sidebar-help');
+        if (el) el.setAttribute('hidden', '');
+      }
+    } catch (e) {}
+  })();
+  </script>
+
+  <div class="tt-sidebar-docx" id="tt-sidebar-docx">
+    <strong>{% translate 'Word → HTML' %}</strong>
+    <p>{% translate 'Upload a .docx temporarily (not saved). Convert with full formatting, then copy or insert into any HTML field on this page.' %}</p>
+    <button type="button" id="docx-sidebar-import-btn" class="tt-sidebar-docx__btn">
+      {% translate 'Import Word → HTML' %}
+    </button>
+    <input type="file" id="docx_sidebar_file_input"
+           accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+           hidden>
+    <div id="docx-sidebar-status" class="docx-processing-status" style="display: none;">
+      <div class="processing-header">
+        <div class="processing-spinner"></div>
+        <span class="processing-text">{% translate 'Converting…' %}</span>
+      </div>
+      <div class="processing-progress">
+        <div id="progress-bar" class="progress-bar"></div>
+      </div>
+      <div id="processing-message" class="processing-message"></div>
+    </div>
   </div>
 
   <ul class="tt-sidebar-nav">
