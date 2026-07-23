@@ -270,7 +270,7 @@ class CareerAdmin(admin.ModelAdmin):
     list_display = [
         'id', 'name', 'reasoning_areas_display', 'career_clusters_display', 'related_careers_summary',
         'publish_status_display', 'image_url_display', 'preview_link',
-        'mindmap_validation', 'skills_count', 'created_date', 'modified_date', 'delete_link',
+        'mindmap_validation', 'skills_count', 'created_date', 'modified_date',
     ]
     list_filter = ['publish_status', 'created', 'modified', 'career_cluster', CareerClusterEmptyFilter, ImageEmptyFilter, ImageDuplicateFilter, MindmapValidationFilter]
     search_fields = ['name', 'summary', 'description']
@@ -419,26 +419,6 @@ class CareerAdmin(admin.ModelAdmin):
             )
         return '-'
     preview_link.short_description = 'Preview'
-
-    def delete_link(self, obj):
-        """Per-row Delete on the career listing page (opens confirmation + popup)."""
-        if not obj or not obj.pk:
-            return '-'
-        url = reverse('admin:careers_career_delete', args=[obj.pk])
-        return format_html(
-            '<a class="deletelink" href="{}" style="color:#ba2121;font-weight:600;" '
-            'title="Permanently delete this career" '
-            'onclick="return confirm(&quot;Permanently delete this career?\\n\\nThis cannot be undone.&quot;);">'
-            'Delete</a>',
-            url,
-        )
-    delete_link.short_description = 'Delete'
-
-    def get_list_display(self, request):
-        display = list(super().get_list_display(request))
-        if not self.has_delete_permission(request):
-            display = [f for f in display if f != 'delete_link']
-        return display
     
     def validation_errors(self, obj):
         """Show validation errors in detail"""
