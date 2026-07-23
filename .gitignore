@@ -170,6 +170,8 @@ code/**/migrations/0**.py
 !skilllab/migrations/*.py
 # SMS / WhatsApp settings migrations must deploy to staging & production
 !communication/migrations/*.py
+# core migrations (LLM + dashboard) must deploy — 0053+ depends on 0052 etc.
+!core/migrations/*.py
 media/
 .DS_Store
 # Backup files # 

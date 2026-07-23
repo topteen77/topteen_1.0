@@ -1,0 +1,131 @@
+from django.db import migrations, models
+
+
+def seed_translate_languages(apps, schema_editor):
+    TranslateLanguage = apps.get_model('core', 'TranslateLanguage')
+    catalog = [
+        ('en', 'English'),
+        ('ar', 'Arabic'),
+        ('as', 'Assamese'),
+        ('awa', 'Awadhi'),
+        ('bn', 'Bengali'),
+        ('bho', 'Bhojpuri'),
+        ('zh-CN', 'Chinese (Simplified)'),
+        ('zh-TW', 'Chinese (Traditional)'),
+        ('cs', 'Czech'),
+        ('dog', 'Dogri'),
+        ('nl', 'Dutch'),
+        ('fr', 'French'),
+        ('fr-CA', 'French (Canada)'),
+        ('de', 'German'),
+        ('el', 'Greek'),
+        ('gu', 'Gujarati'),
+        ('hi', 'Hindi'),
+        ('it', 'Italian'),
+        ('ja', 'Japanese'),
+        ('kn', 'Kannada'),
+        ('ks', 'Kashmiri'),
+        ('kok', 'Konkani'),
+        ('ko', 'Korean'),
+        ('mai', 'Maithili'),
+        ('ms', 'Malay'),
+        ('ml', 'Malayalam'),
+        ('mr', 'Marathi'),
+        ('mwr', 'Marwari'),
+        ('mni', 'Manipuri'),
+        ('ne', 'Nepali'),
+        ('np', 'Nepali (np)'),
+        ('or', 'Odia'),
+        ('pa', 'Punjabi'),
+        ('pt', 'Portuguese'),
+        ('pt-BR', 'Portuguese (Brazil)'),
+        ('ru', 'Russian'),
+        ('sat', 'Santali'),
+        ('sd', 'Sindhi'),
+        ('es', 'Spanish'),
+        ('sw', 'Swahili'),
+        ('ta', 'Tamil'),
+        ('te', 'Telugu'),
+        ('tr', 'Turkish'),
+        ('ur', 'Urdu'),
+        ('vi', 'Vietnamese'),
+        ('si', 'Sinhala'),
+        ('tl', 'Filipino'),
+        ('th', 'Thai'),
+        ('kk', 'Kazakh'),
+        ('uz', 'Uzbek'),
+        ('af', 'Afrikaans'),
+        ('sq', 'Albanian'),
+        ('am', 'Amharic'),
+        ('hy', 'Armenian'),
+        ('az', 'Azerbaijani'),
+        ('eu', 'Basque'),
+        ('be', 'Belarusian'),
+        ('bs', 'Bosnian'),
+        ('bg', 'Bulgarian'),
+        ('ca', 'Catalan'),
+        ('hr', 'Croatian'),
+        ('da', 'Danish'),
+        ('et', 'Estonian'),
+        ('fi', 'Finnish'),
+        ('ka', 'Georgian'),
+        ('he', 'Hebrew'),
+        ('hu', 'Hungarian'),
+        ('id', 'Indonesian'),
+        ('ga', 'Irish'),
+        ('jv', 'Javanese'),
+        ('lv', 'Latvian'),
+        ('lt', 'Lithuanian'),
+        ('mk', 'Macedonian'),
+        ('no', 'Norwegian'),
+        ('fa', 'Persian'),
+        ('pl', 'Polish'),
+        ('ro', 'Romanian'),
+        ('sr', 'Serbian'),
+        ('sk', 'Slovak'),
+        ('sl', 'Slovenian'),
+        ('sv', 'Swedish'),
+        ('uk', 'Ukrainian'),
+        ('cy', 'Welsh'),
+    ]
+    default_enabled = {
+        'ar', 'as', 'awa', 'bn', 'bho', 'zh-CN', 'cs', 'dog', 'nl', 'en', 'fr', 'fr-CA',
+        'de', 'el', 'gu', 'hi', 'it', 'ja', 'kn', 'ks', 'kok', 'ko', 'mai', 'ms', 'ml',
+        'mr', 'mwr', 'mni', 'np', 'or', 'pa', 'pt', 'pt-BR', 'ru', 'sat', 'sd', 'es',
+        'sw', 'ta', 'te', 'tr', 'ur', 'vi', 'si', 'ne', 'tl', 'th', 'kk', 'uz',
+    }
+    for index, (code, name) in enumerate(catalog):
+        TranslateLanguage.objects.get_or_create(
+            code=code,
+            defaults={
+                'name': name,
+                'enabled': code in default_enabled,
+                'sort_order': 0 if code == 'en' else index + 1,
+            },
+        )
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('core', '0050_motivation_rule_applies_to_post_matric'),
+    ]
+
+    operations = [
+        migrations.CreateModel(
+            name='TranslateLanguage',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('code', models.CharField(db_index=True, max_length=20, unique=True)),
+                ('name', models.CharField(max_length=100)),
+                ('enabled', models.BooleanField(default=False)),
+                ('sort_order', models.PositiveIntegerField(default=0)),
+            ],
+            options={
+                'verbose_name': 'Translate language',
+                'verbose_name_plural': 'Translate languages',
+                'ordering': ('sort_order', 'name'),
+            },
+        ),
+        migrations.RunPython(seed_translate_languages, migrations.RunPython.noop),
+    ]
