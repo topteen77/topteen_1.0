@@ -391,9 +391,151 @@ def _sanitize_tab_html(html: str) -> str:
     )
 
 
+def _simple_markdown_to_html(text: str) -> str:
+    """Dependency-free markdown subset for staging when `markdown` isn't installed."""
+    from django.utils.html import escape
+
+    lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
+    out: List[str] = []
+    in_ul = False
+    in_ol = False
+    in_table = False
+    paragraph: List[str] = []
+
+    def close_lists():
+        nonlocal in_ul, in_ol
+        if in_ul:
+            out.append("</ul>")
+            in_ul = False
+        if in_ol:
+            out.append("</ol>")
+            in_ol = False
+
+    def close_table():
+        nonlocal in_table
+        if in_table:
+            out.append("</tbody></table>")
+            in_table = False
+
+    def flush_paragraph():
+        nonlocal paragraph
+        if not paragraph:
+            return
+        body = " ".join(paragraph).strip()
+        paragraph = []
+        if body:
+            out.append(f"<p>{_inline_md(body)}</p>")
+
+    def _inline_md(value: str) -> str:
+        # Escape first, then restore intentional markdown emphasis/links.
+        s = escape(value)
+        s = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", s)
+        s = re.sub(r"__(.+?)__", r"<strong>\1</strong>", s)
+        s = re.sub(r"(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)", r"<em>\1</em>", s)
+        s = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r'<a href="\2">\1</a>', s)
+        return s
+
+    def is_table_sep(line: str) -> bool:
+        return bool(re.match(r"^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$", line))
+
+    def table_cells(line: str) -> List[str]:
+        raw = line.strip().strip("|")
+        return [c.strip() for c in raw.split("|")]
+
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+
+        if not stripped:
+            flush_paragraph()
+            close_lists()
+            close_table()
+            i += 1
+            continue
+
+        heading = re.match(r"^(#{1,6})\s+(.*)$", stripped)
+        if heading:
+            flush_paragraph()
+            close_lists()
+            close_table()
+            level = len(heading.group(1))
+            out.append(f"<h{level}>{_inline_md(heading.group(2))}</h{level}>")
+            i += 1
+            continue
+
+        # GFM-style table: header + separator + rows
+        if (
+            "|" in stripped
+            and i + 1 < len(lines)
+            and is_table_sep(lines[i + 1])
+        ):
+            flush_paragraph()
+            close_lists()
+            close_table()
+            headers = table_cells(stripped)
+            out.append("<table><thead><tr>")
+            for cell in headers:
+                out.append(f"<th>{_inline_md(cell)}</th>")
+            out.append("</tr></thead><tbody>")
+            in_table = True
+            i += 2
+            while i < len(lines) and "|" in lines[i] and lines[i].strip():
+                cells = table_cells(lines[i])
+                out.append("<tr>")
+                for cell in cells:
+                    out.append(f"<td>{_inline_md(cell)}</td>")
+                out.append("</tr>")
+                i += 1
+            close_table()
+            continue
+
+        ul = re.match(r"^[-*+]\s+(.*)$", stripped)
+        if ul:
+            flush_paragraph()
+            close_table()
+            if in_ol:
+                out.append("</ol>")
+                in_ol = False
+            if not in_ul:
+                out.append("<ul>")
+                in_ul = True
+            out.append(f"<li>{_inline_md(ul.group(1))}</li>")
+            i += 1
+            continue
+
+        ol = re.match(r"^\d+\.\s+(.*)$", stripped)
+        if ol:
+            flush_paragraph()
+            close_table()
+            if in_ul:
+                out.append("</ul>")
+                in_ul = False
+            if not in_ol:
+                out.append("<ol>")
+                in_ol = True
+            out.append(f"<li>{_inline_md(ol.group(1))}</li>")
+            i += 1
+            continue
+
+        close_lists()
+        close_table()
+        paragraph.append(stripped)
+        i += 1
+
+    flush_paragraph()
+    close_lists()
+    close_table()
+    return "\n".join(out)
+
+
 def _markdown_to_html(markdown_text: str) -> str:
-    """Convert markdown to HTML; try progressively simpler extensions."""
-    import markdown
+    """Convert markdown to HTML; prefer python-markdown, else built-in fallback."""
+    try:
+        import markdown
+    except ImportError:
+        logger.warning("python-markdown not installed; using built-in markdown fallback")
+        return _simple_markdown_to_html(markdown_text)
 
     extension_sets = (
         ["extra", "sane_lists", "nl2br", "tables"],
@@ -409,9 +551,8 @@ def _markdown_to_html(markdown_text: str) -> str:
         except Exception as e:
             last_error = e
             continue
-    if last_error:
-        raise last_error
-    return markdown.markdown(markdown_text)
+    logger.warning("python-markdown extensions failed (%s); using built-in fallback", last_error)
+    return _simple_markdown_to_html(markdown_text)
 
 
 def _as_template_html(html: str):
@@ -452,17 +593,8 @@ def render_markdown_html(markdown_text: str) -> str:
     try:
         html = _markdown_to_html(text)
     except Exception as e:
-        logger.warning("markdown conversion failed: %s", e)
-        # Last resort: still avoid dumping raw markdown markers when possible.
-        try:
-            import markdown as _md
-
-            html = _md.markdown(text)
-        except Exception as e2:
-            logger.error("markdown unavailable or failed: %s", e2)
-            from django.utils.html import escape
-
-            return _as_template_html(escape(text).replace("\n", "<br>"))
+        logger.error("markdown conversion failed: %s", e)
+        html = _simple_markdown_to_html(text)
 
     try:
         return _as_template_html(_sanitize_tab_html(html))
