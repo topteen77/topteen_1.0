@@ -5767,12 +5767,14 @@ class InstituteDashboardView(TemplateView):
 
                 week_days = []
                 max_activity = 0
+                week_total = 0
                 for i in range(7):
                     d = week_start + timedelta(days=i)
                     sess_n = int(sess_by_day.get(d, 0) or 0)
                     test_n = int(test_by_day.get(d, 0) or 0)
                     total = sess_n + test_n
                     max_activity = max(max_activity, total)
+                    week_total += total
                     week_days.append(
                         {
                             "date": d.isoformat(),
@@ -5789,6 +5791,7 @@ class InstituteDashboardView(TemplateView):
                     "week_start": week_start.isoformat(),
                     "week_end": week_end.isoformat(),
                     "days": week_days,
+                    "total_activity": int(week_total),
                 }
 
                 base = list(
@@ -6292,6 +6295,7 @@ class InstituteDashboardView(TemplateView):
                     "week_start": "",
                     "week_end": "",
                     "days": [],
+                    "total_activity": 0,
                 }
                 ctx["ttv2_counselors_roster"] = []
                 ctx["ttv2_counselors_chart_controls"] = {
@@ -8742,6 +8746,22 @@ def get_heatmap_data_api(request):
         user = request.user
         demographic_type = request.GET.get('demographic_type', 'grade')  # grade, section, or stream
         institute_slug = request.GET.get('institute_slug', None)  # For individual institute
+
+        def _cached_payload(cache_key, builder):
+            try:
+                from django.core.cache import caches
+                c = caches["roster"]
+            except Exception:
+                from django.core.cache import cache as c
+            cached = c.get(cache_key)
+            if isinstance(cached, dict) and "heatmapData" in cached:
+                return cached
+            payload = builder()
+            try:
+                c.set(cache_key, payload, 90)
+            except Exception:
+                pass
+            return payload
         
         # If institute_slug is provided, get data for that specific institute
         if institute_slug:
@@ -8752,8 +8772,11 @@ def get_heatmap_data_api(request):
                        (institute.institute_group and institute.institute_group.institute_group_admin == user) or
                        (institute.marketing_group and institute.marketing_group.marketing_group_admin == user)):
                     return JsonResponse({'error': 'Unauthorized access to institute'}, status=403)
-                
-                heatmap_data = get_heatmap_data_for_institute(institute, demographic_type)
+
+                heatmap_data = _cached_payload(
+                    f"inst:heatmap:v1:{institute.pk}:{demographic_type}",
+                    lambda: get_heatmap_data_for_institute(institute, demographic_type),
+                )
                 return JsonResponse(heatmap_data, safe=False)
             except Institute.DoesNotExist:
                 return JsonResponse({'error': 'Institute not found'}, status=404)
@@ -8772,7 +8795,10 @@ def get_heatmap_data_api(request):
                 # Check if user is an institute user (individual institute)
                 institute = Institute.objects.filter(created_by=user).first()
                 if institute:
-                    heatmap_data = get_heatmap_data_for_institute(institute, demographic_type)
+                    heatmap_data = _cached_payload(
+                        f"inst:heatmap:v1:{institute.pk}:{demographic_type}",
+                        lambda: get_heatmap_data_for_institute(institute, demographic_type),
+                    )
                     return JsonResponse(heatmap_data, safe=False)
                 # Marketing / institute-group dashboards load this API before an org row may exist
                 ut = getattr(user, 'user_type', None)
@@ -8781,7 +8807,10 @@ def get_heatmap_data_api(request):
                 return JsonResponse({'error': 'User is not authorized'}, status=403)
         
         # Get heatmap data for group
-        heatmap_data = get_heatmap_data_for_group(user, group_type, demographic_type)
+        heatmap_data = _cached_payload(
+            f"inst:heatmap:group:v1:{user.pk}:{group_type}:{demographic_type}",
+            lambda: get_heatmap_data_for_group(user, group_type, demographic_type),
+        )
         
         return JsonResponse(heatmap_data, safe=False)
     

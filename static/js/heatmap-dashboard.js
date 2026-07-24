@@ -139,6 +139,11 @@
             if (!this.isHeatmapPresent()) {
                 return;
             }
+            // Abort prior in-flight request so rapid view switches don't stack work.
+            if (this._heatmapAbort) {
+                try { this._heatmapAbort.abort(); } catch (e0) {}
+            }
+            this._heatmapAbort = (typeof AbortController !== 'undefined') ? new AbortController() : null;
             this.state.loading = true;
             this.updateLoadingState(true);
 
@@ -148,14 +153,19 @@
             if (instituteSlug) {
                 apiUrl += '&institute_slug=' + encodeURIComponent(instituteSlug);
             }
-            
-            fetch(apiUrl, {
+
+            const fetchOpts = {
                 method: 'GET',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                 },
                 credentials: 'same-origin'
-            })
+            };
+            if (this._heatmapAbort) {
+                fetchOpts.signal = this._heatmapAbort.signal;
+            }
+            
+            fetch(apiUrl, fetchOpts)
             .then(response => response.text().then(function(text) {
                 if (!response.ok) {
                     var msg = 'Could not load heatmap data (' + response.status + ')';
@@ -193,11 +203,22 @@
                 self.updateLoadingState(false);
             })
             .catch(error => {
+                if (error && error.name === 'AbortError') {
+                    return;
+                }
                 console.error('Error loading heatmap data:', error);
                 self.state.loading = false;
                 self.updateLoadingState(false);
                 var msg = (error && error.message) ? error.message : 'Error loading heatmap data. Please try again.';
-                alert(msg);
+                var container = document.getElementById('heatmap-grid-container');
+                if (container) {
+                    container.innerHTML =
+                        '<div class="text-center p-5 text-muted">' +
+                        '<p class="mb-1 fw-semibold">Could not load heatmap</p>' +
+                        '<p class="mb-0 small">' + msg + '</p></div>';
+                } else {
+                    alert(msg);
+                }
             });
         },
 
@@ -218,18 +239,71 @@
             this.loadData();
         },
 
-        // Update loading state
+        _clearHeatmapLoaderTimer: function() {
+            if (this._loaderTimer) {
+                clearTimeout(this._loaderTimer);
+                this._loaderTimer = null;
+            }
+        },
+
+        _removeHeatmapAjaxLoader: function() {
+            this._clearHeatmapLoaderTimer();
+            const container = document.getElementById('heatmap-grid-container');
+            if (!container) {
+                return;
+            }
+            const el = container.querySelector('.ttv2-heatmap-ajax-loader');
+            if (el && el.parentNode) {
+                el.parentNode.removeChild(el);
+            }
+            container.removeAttribute('aria-busy');
+        },
+
+        _showHeatmapAjaxLoader: function() {
+            const container = document.getElementById('heatmap-grid-container');
+            if (!container) {
+                return;
+            }
+            if (container.querySelector('.ttv2-heatmap-ajax-loader')) {
+                return;
+            }
+            try { container.style.position = 'relative'; } catch (e1) {}
+            container.setAttribute('aria-busy', 'true');
+            const wrap = document.createElement('div');
+            wrap.className = 'ttv2-heatmap-ajax-loader';
+            wrap.setAttribute('role', 'status');
+            wrap.innerHTML =
+                '<div class="spinner-border text-primary" role="status">' +
+                '<span class="visually-hidden">Loading heatmap...</span></div>';
+            container.appendChild(wrap);
+        },
+
+        // Loader only during AJAX — deferred so fast/cached responses skip the flash.
         updateLoadingState: function(loading) {
             const refreshBtn = document.getElementById('heatmap-refresh-btn');
             if (refreshBtn) {
                 if (loading) {
                     refreshBtn.disabled = true;
-                    refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+                    refreshBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Refreshing...';
                 } else {
                     refreshBtn.disabled = false;
-                    refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+                    refreshBtn.innerHTML = '<i class="bx bx-refresh"></i> Refresh';
                 }
             }
+            if (!loading) {
+                this._removeHeatmapAjaxLoader();
+                return;
+            }
+            this._clearHeatmapLoaderTimer();
+            const self = this;
+            // ~180ms: hide loader for warm/cache hits; show only when AJAX is still pending.
+            this._loaderTimer = setTimeout(function() {
+                self._loaderTimer = null;
+                if (!self.state.loading) {
+                    return;
+                }
+                self._showHeatmapAjaxLoader();
+            }, 180);
         },
 
         // Render the entire dashboard

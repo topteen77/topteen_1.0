@@ -76,12 +76,8 @@
   </div>
 
   <div class="heatmap-grid-card">
-    <div id="heatmap-grid-container"{% if heatmap_institute_slug is defined and heatmap_institute_slug %} data-institute-slug="{{ heatmap_institute_slug }}"{% endif %}>
-      <div class="text-center p-5 text-muted">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Loading heatmap...</span>
-        </div>
-      </div>
+    <div id="heatmap-grid-container"{% if heatmap_institute_slug is defined and heatmap_institute_slug %} data-institute-slug="{{ heatmap_institute_slug }}"{% endif %} class="heatmap-grid-container--ajax" style="position:relative;min-height:220px;">
+      {# Loader appears only while the heatmap AJAX request is in flight (JS). #}
     </div>
   </div>
 

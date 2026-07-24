@@ -1834,6 +1834,7 @@
   {# Weekly activity heatmap (current week): tests + sessions #}
   {% set wa = (ttv2_counselors_week_activity if ttv2_counselors_week_activity is defined else {}) %}
   {% set days = (wa.get('days') if wa and wa.get('days') else []) %}
+  {% set _week_total = (wa.get('total_activity')|default(0)) %}
   <div class="ttv2-card ttv2-activity-card">
     <div class="ttv2-data-card-head">
       <div class="ttv2-data-card-title-wrap">
@@ -1846,14 +1847,12 @@
           </div>
         </div>
       </div>
-      {% if days and (days|length) %}
-        {% set _sum = 0 %}
-        {% for d in days %}{% set _sum = _sum + (d.total|default(0)) %}{% endfor %}
-        <span class="ttv2-data-card-summary-pill"><i class="bx bx-line-chart" aria-hidden="true"></i>Total activity: <span class="ttv2-num">{{ _sum }}</span></span>
+      {% if (_week_total|default(0)) > 0 %}
+        <span class="ttv2-data-card-summary-pill"><i class="bx bx-line-chart" aria-hidden="true"></i>Total activity: <span class="ttv2-num">{{ _week_total }}</span></span>
       {% endif %}
     </div>
 
-    {% if days and (days|length) %}
+    {% if days and (_week_total|default(0)) > 0 %}
       <div class="ttv2-activity-strip-wrap">
         <div class="ttv2-activity-strip" aria-label="Weekly activity (tests + sessions)">
           {% for d in days %}
@@ -1874,7 +1873,7 @@
       <div class="ttv2-empty-state">
         <span class="ttv2-empty-ico" aria-hidden="true"><i class="bx bx-calendar-x"></i></span>
         <p class="ttv2-empty-title">No weekly activity found</p>
-        <p class="ttv2-empty-sub">There are no tests or sessions logged for the selected week yet.</p>
+        <p class="ttv2-empty-sub">There are no tests or sessions logged for this week yet. Activity will appear here once counselors log sessions or students take tests.</p>
       </div>
     {% endif %}
   </div>
