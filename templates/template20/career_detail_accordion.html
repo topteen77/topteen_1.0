@@ -1716,9 +1716,9 @@
             {% set is_direct = video.upload_video or (video_url and not is_youtube and ('.mp4' in video_url.lower() or '.webm' in video_url.lower() or '.mov' in video_url.lower())) %}
             <div class="video-box mb-3">
               <a href="#"
-                 class="video-link js-career-detail-video-open"
+                 class="js-career-detail-video-open"
                  data-bs-toggle="modal"
-                 data-bs-target="#videoModal"
+                 data-bs-target="#careerDetailVideoModal"
                  data-video="{{ video_url }}"
                  data-video-id="{{ video.id }}"
                  data-title="{{ video.name|e }}"
@@ -1740,8 +1740,8 @@
                     <i class='bx bx-play-circle fs-48'></i>
                   </div>
                   {% elif is_direct %}
-                  {# Capture first frame as screenshot for uploaded/S3 MP4s #}
-                  <video class="videoPlayer" muted playsinline preload="metadata" crossorigin="anonymous">
+                  {# Capture first frame as screenshot for uploaded/S3 MP4s (muted; never used for playback) #}
+                  <video class="career-video-thumb-source videoPlayer" muted playsinline preload="metadata" crossorigin="anonymous">
                     <source src="{{ video_url }}" type="video/mp4">
                   </video>
                   <canvas class="thumbnailCanvas" aria-hidden="true"></canvas>
@@ -1774,6 +1774,14 @@
             height: 100%;
             object-fit: cover;
             display: block;
+          }
+          .video-vertical a.js-career-detail-video-open {
+            width: 100%;
+            display: block;
+            cursor: pointer;
+          }
+          .video-vertical .career-video-thumb-source {
+            display: none;
           }
         </style>
         {% endif %}
@@ -1901,19 +1909,19 @@
 </section>
 {% endif %}
 
-<!-- Video Modal (play on same page) -->
-<div class="modal fade career-video-modal" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
+<!-- Career detail video modal (own IDs — do not share #videoModal/#videoFrame with main.js) -->
+<div class="modal fade career-video-modal" id="careerDetailVideoModal" tabindex="-1" aria-labelledby="careerDetailVideoModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header position-relative" style="z-index: 10;">
-        <h5 class="modal-title" id="videoModalLabel">Career Video</h5>
-        <button type="button" class="btn-close" id="videoModalCloseBtn" data-bs-dismiss="modal" aria-label="Close" style="position: relative; z-index: 11;"></button>
+        <h5 class="modal-title" id="careerDetailVideoModalLabel">Career Video</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="position: relative; z-index: 11;"></button>
       </div>
       <div class="modal-body p-0 position-relative" style="z-index: 1;">
         <div class="ratio ratio-16x9 bg-dark">
-          <iframe id="videoFrame" src="" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" style="display:none; border:0;" title="Career video"></iframe>
-          <video id="modalVideo" class="w-100 h-100" controls playsinline controlsList="nodownload" oncontextmenu="return false;" style="display:none; background:#000; object-fit:contain;">
-            <source id="modalVideoSource" src="" type="video/mp4">
+          <iframe id="careerDetailVideoFrame" src="" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" style="display:none; border:0;" title="Career video"></iframe>
+          <video id="careerDetailModalVideo" class="w-100 h-100" controls playsinline controlsList="nodownload" oncontextmenu="return false;" style="display:none; background:#000; object-fit:contain;">
+            <source id="careerDetailModalVideoSource" src="" type="video/mp4">
             Your browser does not support the video tag.
           </video>
         </div>
@@ -1945,13 +1953,13 @@
     careerAspectMindmap = null;
   }
   
-  // Video modal handler — play career sidebar videos in popup on this page
+  // Video modal — isolated from main.js (#videoModal / .video-link) to avoid double audio echo
   document.addEventListener('DOMContentLoaded', function() {
-    const videoModal = document.getElementById('videoModal');
-    const modalTitleEl = document.getElementById('videoModalLabel');
-    const videoFrame = document.getElementById('videoFrame');
-    const modalVideo = document.getElementById('modalVideo');
-    const modalVideoSource = document.getElementById('modalVideoSource');
+    const videoModal = document.getElementById('careerDetailVideoModal');
+    const modalTitleEl = document.getElementById('careerDetailVideoModalLabel');
+    const videoFrame = document.getElementById('careerDetailVideoFrame');
+    const modalVideo = document.getElementById('careerDetailModalVideo');
+    const modalVideoSource = document.getElementById('careerDetailModalVideoSource');
 
     function toYouTubeEmbed(url) {
       if (!url) return '';
@@ -1986,34 +1994,50 @@
       modalTitleEl.textContent = (title && String(title).trim()) ? title : 'Career Video';
     }
 
+    function silenceSidebarThumbVideos() {
+      document.querySelectorAll('.career-video-thumb-source, .video-vertical .videoPlayer').forEach(function(v) {
+        try {
+          v.muted = true;
+          v.pause();
+          v.currentTime = 0;
+        } catch (e) {}
+      });
+    }
+
     function stopPlayers() {
-      if (videoFrame) videoFrame.src = '';
+      if (videoFrame) {
+        videoFrame.src = '';
+        videoFrame.style.display = 'none';
+      }
       if (modalVideo) {
         try { modalVideo.pause(); } catch (e) {}
         if (modalVideoSource) modalVideoSource.src = '';
+        try { modalVideo.removeAttribute('src'); } catch (e) {}
         try { modalVideo.load(); } catch (e) {}
+        modalVideo.style.display = 'none';
       }
+      silenceSidebarThumbVideos();
     }
 
     document.querySelectorAll('.js-career-detail-video-open').forEach(function(el) {
       el.addEventListener('click', function(e) {
         e.preventDefault();
+        e.stopPropagation();
       });
     });
 
     if (videoModal) {
       videoModal.addEventListener('show.bs.modal', function(event) {
+        stopPlayers();
+        silenceSidebarThumbVideos();
+
         const button = event.relatedTarget;
         const videoUrl = button ? button.getAttribute('data-video') : '';
         const title = button ? button.getAttribute('data-title') : '';
         setModalTitle(title);
 
         if (isYouTube(videoUrl)) {
-          if (modalVideo) {
-            try { modalVideo.pause(); } catch (e) {}
-            modalVideo.style.display = 'none';
-          }
-          if (modalVideoSource) modalVideoSource.src = '';
+          if (modalVideo) modalVideo.style.display = 'none';
           if (videoFrame) {
             videoFrame.style.display = 'block';
             videoFrame.src = toYouTubeEmbed(videoUrl);
@@ -2030,10 +2054,7 @@
             try { modalVideo.play(); } catch (e) {}
           }
         } else if (videoUrl) {
-          if (modalVideo) {
-            try { modalVideo.pause(); } catch (e) {}
-            modalVideo.style.display = 'none';
-          }
+          if (modalVideo) modalVideo.style.display = 'none';
           if (videoFrame) {
             videoFrame.style.display = 'block';
             videoFrame.src = videoUrl;
@@ -2044,8 +2065,10 @@
       videoModal.addEventListener('hide.bs.modal', function() {
         setModalTitle('Career Video');
         stopPlayers();
-        if (videoFrame) videoFrame.style.display = 'none';
-        if (modalVideo) modalVideo.style.display = 'none';
+      });
+
+      videoModal.addEventListener('hidden.bs.modal', function() {
+        stopPlayers();
       });
     }
 
@@ -2053,6 +2076,8 @@
     if (typeof generateThumbnails === 'function') {
       try { generateThumbnails(); } catch (e) {}
     }
+    // Keep thumb sources muted after canvas capture
+    setTimeout(silenceSidebarThumbVideos, 1500);
 
     // Copy link functionality
     const copyLinks = document.querySelectorAll('.copy-link');
