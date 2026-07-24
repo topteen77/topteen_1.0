@@ -405,16 +405,19 @@ body.ttv2-shell .ttv2-topbar-pay-now {
         u.searchParams.set('embed', '1');
         var pathMatch = String(url || '').match(/combined_report\/(\d+)/);
         var pathId = pathMatch ? pathMatch[1] : null;
-        var sid = (studentId && String(studentId)) || pathId;
+        var testReportMatch = String(u.pathname || '').match(/\/test([123])_report(?:\/(\d+))?\/?$/);
+        var sid = (studentId && String(studentId)) || pathId || (testReportMatch && testReportMatch[2]) || null;
         if (sid) {
           u.searchParams.set('user_id', String(sid));
           if (u.pathname.indexOf('combined_report') !== -1) {
             u.pathname = u.pathname.replace(/combined_report\/\d+/, 'combined_report/' + String(sid));
           }
-          if (/\/test[123]_report\/?$/.test(u.pathname)) {
-            u.pathname = u.pathname.replace(/\/test[123]_report\/?$/, function (m) {
-              return m.replace(/\/?$/, '/') + String(sid);
-            });
+          if (testReportMatch) {
+            var testNum = testReportMatch[1];
+            u.pathname = u.pathname.replace(
+              /\/test[123]_report(?:\/\d+)?\/?$/,
+              '/test' + testNum + '_report/' + String(sid) + '/'
+            );
           }
           if (u.pathname.indexOf('/dashboard/') !== -1 && !/\/dashboard\/\d+/.test(u.pathname)) {
             u.pathname = u.pathname.replace(/\/dashboard\/?$/, '/dashboard/' + String(sid));

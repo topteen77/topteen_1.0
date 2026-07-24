@@ -981,6 +981,19 @@ def tieup_pay_cta_for_institute(institute, user):
         return None
     if not user_can_access_tieup_institute(user, institute):
         return None
+
+    from django.core.cache import caches
+
+    try:
+        c = caches["roster"]
+    except Exception:
+        from django.core.cache import cache as c
+
+    cache_key = f"inst:tieup_cta:v1:{int(institute.pk)}:{int(user.pk)}"
+    cached = c.get(cache_key)
+    if cached is not None:
+        return cached or None
+
     ensure_pending_tieup_order_for_institute(institute, user)
     billing = build_institute_billing_ctx(institute, user)
     pay_order_id = billing.get("pay_order_id")
@@ -988,21 +1001,20 @@ def tieup_pay_cta_for_institute(institute, user):
     if not pay_order_id or not billing.get("has_pending") or not _is_payable_amount(
         pending_total
     ):
+        c.set(cache_key, False, 60)
         return None
-    from django.urls import reverse
-
     slug = institute.slug
-    return {
+    payload = {
         "show": True,
         "is_group": False,
         "institute_name": institute.name,
         "institute_slug": slug,
         "pending_total": pending_total,
         "pay_order_id": pay_order_id,
-        "payments_url": reverse(
-            "institute:institutedashboard_page", args=[slug, "payments"]
-        ),
+        "payments_url": f"/institute/{slug}/payments/",
     }
+    c.set(cache_key, payload, 60)
+    return payload
 
 
 def tieup_pay_cta_for_group_admin(user):

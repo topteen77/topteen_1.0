@@ -5191,10 +5191,24 @@ body.ttv2-shell .ttv2-chip{
   white-space:nowrap;
   text-decoration:none;
 }
+body.ttv2-shell button.ttv2-chip{
+  font-family:inherit;
+  cursor:pointer;
+  appearance:none;
+  -webkit-appearance:none;
+}
 body.ttv2-shell a.ttv2-chip:hover,
-body.ttv2-shell a.ttv2-chip:focus{
+body.ttv2-shell a.ttv2-chip:focus,
+body.ttv2-shell button.ttv2-chip:hover,
+body.ttv2-shell button.ttv2-chip:focus{
   text-decoration:none;
   color:inherit;
+}
+body.ttv2-shell button.ttv2-chip--report:hover,
+body.ttv2-shell button.ttv2-chip--report:focus{
+  background:rgba(99,102,241,.22);
+  border-color:rgba(99,102,241,.42);
+  color:#1e1b4b;
 }
 body.ttv2-shell .ttv2-chip--solid{
   background:rgba(99,102,241,.14);

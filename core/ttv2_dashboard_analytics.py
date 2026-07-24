@@ -191,7 +191,10 @@ def _followups_all_time(
 
 
 def _psych_and_risk(user_ids: Sequence[int]) -> Tuple[int, int, int, float]:
-    """completed_count, total_students, on_track, avg_clarity_gap (legacy + post-matric)."""
+    """completed_count, total_students, on_track, avg_clarity_gap (legacy + post-matric).
+
+    Batched — no per-user TestCompletion / TestSession round-trips.
+    """
     from core.student_psychometric_metrics import psychometric_complete_user_ids
 
     uids = [int(x) for x in user_ids if x]
@@ -201,27 +204,40 @@ def _psych_and_risk(user_ids: Sequence[int]) -> Tuple[int, int, int, float]:
 
     complete_ids = psychometric_complete_user_ids(uids)
     completed = len(complete_ids)
-    gap_sum = 0.0
-    for uid in uids:
-        if uid in complete_ids:
-            continue
-        tc = (
-            TestCompletion.objects.filter(user_id=uid)
-            .values("test1_complete", "test2_complete", "test3_complete")
-            .first()
+    incomplete = [uid for uid in uids if uid not in complete_ids]
+    if not incomplete:
+        return completed, total, completed, 0.0
+
+    tc_by_uid = {
+        int(row["user_id"]): row
+        for row in TestCompletion.objects.filter(user_id__in=incomplete).values(
+            "user_id", "test1_complete", "test2_complete", "test3_complete"
         )
+    }
+
+    post_counts: Dict[int, int] = {}
+    need_post = [uid for uid in incomplete if uid not in tc_by_uid]
+    if need_post:
+        from app_post_matric.models import TestSession
+
+        for row in (
+            TestSession.objects.filter(user_id__in=need_post, is_completed=True)
+            .values("user_id")
+            .annotate(n=Count("test_id", distinct=True))
+        ):
+            post_counts[int(row["user_id"])] = int(row["n"] or 0)
+
+    gap_sum = 0.0
+    for uid in incomplete:
+        tc = tc_by_uid.get(uid)
         if tc:
-            sub = sum(bool(tc.get(k)) for k in tc)
+            sub = sum(
+                bool(tc.get(k))
+                for k in ("test1_complete", "test2_complete", "test3_complete")
+            )
             gap_sum += 100.0 * (1.0 - sub / 3.0) if sub < 3 else 0.0
         else:
-            from app_post_matric.models import TestSession
-
-            n = (
-                TestSession.objects.filter(user_id=uid, is_completed=True)
-                .values("test_id")
-                .distinct()
-                .count()
-            )
+            n = post_counts.get(uid, 0)
             gap_sum += 100.0 * (1.0 - min(n, 4) / 4.0)
 
     avg_clarity = round((gap_sum / total) if total else 0.0, 1)

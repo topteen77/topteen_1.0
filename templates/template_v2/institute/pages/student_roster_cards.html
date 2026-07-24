@@ -255,9 +255,22 @@
               <div class="ttv2-student-barrow">
                 <div class="ttv2-student-barlabel">{{ _row.label }}</div>
                 <div style="display:flex;justify-content:flex-end;">
+                  {% if _row.attempted and _row.report_url %}
+                  <button type="button"
+                          class="ttv2-chip ttv2-chip--solid ttv2-chip--report"
+                          data-ttv2-open-report
+                          data-ttv2-student-id="{{ u.id if u else '' }}"
+                          data-ttv2-report-url="{{ _row.report_url }}"
+                          data-ttv2-report-title="{{ (_row.label ~ ' — ' ~ (u.name if (u and u.name) else 'Student')) if _row.label else (u.name if (u and u.name) else 'Student report') }}"
+                          title="Open {{ _row.label }} report"
+                          aria-label="Open {{ _row.label }} report">
+                    Completed
+                  </button>
+                  {% else %}
                   <span class="ttv2-chip {% if _row.attempted %}ttv2-chip--solid{% else %}ttv2-chip--disabled{% endif %}">
                     {% if _row.attempted %}Completed{% else %}Not attempted{% endif %}
                   </span>
+                  {% endif %}
                 </div>
               </div>
               {% endfor %}

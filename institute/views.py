@@ -587,114 +587,6 @@ def _institute_logo_url_safe(institute) -> str:
     except Exception:
         pass
     return ""
-    """
-    Augment results_data for student roster (list + cards). Shared across roles.
-    """
-    try:
-        from colleges.models import CollegeShortlist
-        from core.models import MIAssessmentResult, EQAssessmentResult
-
-        uids = []
-        for sm in (ctx.get("students") or []):
-            try:
-                if sm and getattr(sm, "student_id", None):
-                    uids.append(int(sm.student_id))
-            except Exception:
-                continue
-        uids = list({x for x in uids if x})
-        abroad_uids = set()
-        if uids:
-            qs = (
-                CollegeShortlist.objects.filter(user_id__in=uids)
-                .select_related("college", "college__country")
-            )
-            for cs in qs:
-                try:
-                    c = cs.college
-                    country = getattr(c, "country", None) if c else None
-                    name = (getattr(country, "name", "") or "").strip().lower()
-                    short = (getattr(country, "short_name", "") or "").strip().lower()
-                    if country and name and name != "india" and short != "in":
-                        abroad_uids.add(int(cs.user_id))
-                except Exception:
-                    continue
-        mi_uids = set()
-        eq_uids = set()
-        try:
-            if uids:
-                mi_uids = set(
-                    MIAssessmentResult.objects.filter(user_id__in=uids)
-                    .values_list("user_id", flat=True)
-                    .distinct()
-                )
-                eq_uids = set(
-                    EQAssessmentResult.objects.filter(user_id__in=uids)
-                    .values_list("user_id", flat=True)
-                    .distinct()
-                )
-        except Exception:
-            mi_uids, eq_uids = set(), set()
-        results_data = ctx.get("results_data") or {}
-        for sm in (ctx.get("students") or []):
-            try:
-                uid = int(sm.student_id) if sm and sm.student_id else None
-            except Exception:
-                uid = None
-            if not uid:
-                continue
-            student_user = getattr(sm, "student", None) if sm else None
-            rd = results_data.get(uid) or (results_data.get(student_user) if student_user else None) or {}
-            try:
-                cas = getattr(sm, "class_and_section", None)
-                rd.setdefault("track", (getattr(cas, "stream", "") or "").strip() or "")
-            except Exception:
-                rd.setdefault("track", "")
-            rd.setdefault("match_pct", rd.get("match_pct") or "")
-            rd.setdefault("risk_score", rd.get("risk_score") or "")
-
-            td = rd.get("test_details") if isinstance(rd, dict) else {}
-            if not isinstance(td, dict):
-                td = {}
-
-            def _attempted(v):
-                try:
-                    s = (str(v or "")).strip().lower()
-                except Exception:
-                    s = ""
-                return bool(v is True or s in ("1", "true", "yes", "y", "completed", "complete", "done", "attempted"))
-
-            # Primary source: dedicated MI/EQ assessment rows.
-            mi_attempted = True if uid in mi_uids else False
-            eq_attempted = True if uid in eq_uids else False
-
-            # Fallback source: older payloads may store explicit MI/EQ keys directly.
-            # Do not infer MI/EQ from other psychometric tests like personality/test1.
-            if not mi_attempted:
-                mi_attempted = any([
-                    _attempted(td.get("mi_assessment")),
-                    _attempted(td.get("multiple_intelligence_assessment")),
-                ])
-            if not eq_attempted:
-                eq_attempted = any([
-                    _attempted(td.get("eq_assessment")),
-                    _attempted(td.get("emotional_intelligence_assessment")),
-                ])
-
-            rd["mi_attempted"] = mi_attempted
-            rd["eq_attempted"] = eq_attempted
-            rd["mi_report_url"] = (
-                "%s?inline=1" % reverse("core:mi_report_pdf_user", args=[uid]) if mi_attempted else ""
-            )
-            rd["eq_report_url"] = (
-                "%s?inline=1" % reverse("core:eq_report_pdf_user", args=[uid]) if eq_attempted else ""
-            )
-            rd["abroad_exploring"] = True if uid in abroad_uids else False
-            results_data[uid] = rd
-            if student_user:
-                results_data[student_user] = rd
-        ctx["results_data"] = results_data
-    except Exception:
-        pass
 
 
 def _render_ttv2_tieup_payments_partial(request, ctx):
@@ -894,14 +786,115 @@ def _ttv2_marketing_counselor_followups_response(request, group_admin):
 
 def apply_student_table_display_enrichment(request, ctx):
     """
-    Normalize roster AJAX context for shared student table / card templates.
+    Augment results_data for student roster (list + cards). Shared across roles.
 
-    Counselor dashboards pass remark and follow-up POST URLs from counselor.views.
-    Institute and group/marketing rosters mostly rely on ``table_config``; this
-    hook remains for shared defaults and future role-specific URLs.
+    Adds MI/EQ attempt flags, report URLs, abroad exploring, and track defaults.
+    Counselor dashboards may also pass remark/follow-up POST URLs separately.
     """
     if not isinstance(ctx, dict):
         return
+    try:
+        from colleges.models import CollegeShortlist
+        from core.models import MIAssessmentResult, EQAssessmentResult
+
+        uids = []
+        for sm in (ctx.get("students") or []):
+            try:
+                if sm and getattr(sm, "student_id", None):
+                    uids.append(int(sm.student_id))
+            except Exception:
+                continue
+        uids = list({x for x in uids if x})
+        abroad_uids = set()
+        if uids:
+            qs = (
+                CollegeShortlist.objects.filter(user_id__in=uids)
+                .select_related("college", "college__country")
+            )
+            for cs in qs:
+                try:
+                    c = cs.college
+                    country = getattr(c, "country", None) if c else None
+                    name = (getattr(country, "name", "") or "").strip().lower()
+                    short = (getattr(country, "short_name", "") or "").strip().lower()
+                    if country and name and name != "india" and short != "in":
+                        abroad_uids.add(int(cs.user_id))
+                except Exception:
+                    continue
+        mi_uids = set()
+        eq_uids = set()
+        try:
+            if uids:
+                mi_uids = set(
+                    MIAssessmentResult.objects.filter(user_id__in=uids)
+                    .values_list("user_id", flat=True)
+                    .distinct()
+                )
+                eq_uids = set(
+                    EQAssessmentResult.objects.filter(user_id__in=uids)
+                    .values_list("user_id", flat=True)
+                    .distinct()
+                )
+        except Exception:
+            mi_uids, eq_uids = set(), set()
+        results_data = ctx.get("results_data") or {}
+        for sm in (ctx.get("students") or []):
+            try:
+                uid = int(sm.student_id) if sm and sm.student_id else None
+            except Exception:
+                uid = None
+            if not uid:
+                continue
+            student_user = getattr(sm, "student", None) if sm else None
+            rd = results_data.get(uid) or (results_data.get(student_user) if student_user else None) or {}
+            try:
+                cas = getattr(sm, "class_and_section", None)
+                rd.setdefault("track", (getattr(cas, "stream", "") or "").strip() or "")
+            except Exception:
+                rd.setdefault("track", "")
+            rd.setdefault("match_pct", rd.get("match_pct") or "")
+            rd.setdefault("risk_score", rd.get("risk_score") or "")
+
+            td = rd.get("test_details") if isinstance(rd, dict) else {}
+            if not isinstance(td, dict):
+                td = {}
+
+            def _attempted(v):
+                try:
+                    s = (str(v or "")).strip().lower()
+                except Exception:
+                    s = ""
+                return bool(v is True or s in ("1", "true", "yes", "y", "completed", "complete", "done", "attempted"))
+
+            mi_attempted = True if uid in mi_uids else False
+            eq_attempted = True if uid in eq_uids else False
+
+            if not mi_attempted:
+                mi_attempted = any([
+                    _attempted(td.get("mi_assessment")),
+                    _attempted(td.get("multiple_intelligence_assessment")),
+                ])
+            if not eq_attempted:
+                eq_attempted = any([
+                    _attempted(td.get("eq_assessment")),
+                    _attempted(td.get("emotional_intelligence_assessment")),
+                ])
+
+            rd["mi_attempted"] = mi_attempted
+            rd["eq_attempted"] = eq_attempted
+            rd["mi_report_url"] = (
+                "%s?inline=1" % reverse("core:mi_report_pdf_user", args=[uid]) if mi_attempted else ""
+            )
+            rd["eq_report_url"] = (
+                "%s?inline=1" % reverse("core:eq_report_pdf_user", args=[uid]) if eq_attempted else ""
+            )
+            rd["abroad_exploring"] = True if uid in abroad_uids else False
+            results_data[uid] = rd
+            if student_user:
+                results_data[student_user] = rd
+        ctx["results_data"] = results_data
+    except Exception:
+        pass
 
 
 def _ttv2_counselor_dropdown_row(
@@ -4265,8 +4258,8 @@ class InstituteDashboardView(TemplateView):
             # Get test link - only provide link if all tests are completed
             test_link = None
             if test_status == "completed":
-                from django.urls import reverse
-                test_link = f"{reverse('post_matric:combined_report',args=[user.id])}"
+                from core.assessment_access import roster_combined_report_url
+                test_link = roster_combined_report_url(user_id=user.id, is_senior=True)
             
             return {
                 "streams": {},
@@ -4290,11 +4283,10 @@ class InstituteDashboardView(TemplateView):
             
         except Exception as e:
             print(f"Error in _get_post_matric_test_result_optimized: {e}")
-            from django.urls import reverse
             return {
                 "streams": {},
                 "test_success": False,
-                "test_link": reverse('post_matric:tests'),
+                "test_link": "/api/web/tests/",
                 "success_count": 0,
                 "test_status": "no_tests",
                 "test_details": {
@@ -4395,26 +4387,15 @@ class InstituteDashboardView(TemplateView):
                 if test3_result and test3_result.results:
                     personality_res = test3_result.results
                     scores = {label.split("_")[0].upper(): value for label, value in personality_res.items()}
-                
-                # Count successful tests from pre-fetched results
-                success_count = sum(1 for result in results_list if result.is_test_successful)
-            else:
-                success_count = 0
+
+            # Prefer TestCompletion flags — never call Results.is_test_successful (N+1 DB hit).
+            success_count = completed_tests
             
-            # Get test link only when the full Class 10 bundle is complete.
-            # Never fall back to the test-home URL — that made Report open a non-report page.
-            from django.urls import reverse
+            # Combined report URL when full Class 10 bundle is complete (no reverse / no per-result queries).
+            from core.assessment_access import roster_combined_report_url
             test_link = None
             if test_status == "completed":
-                latest_result = None
-                if results_list:
-                    latest_result = max(results_list, key=lambda r: r.created if hasattr(r, 'created') else r.id)
-                    if latest_result:
-                        candidate = latest_result.get_test_report_or_test_link(user)
-                        if candidate and candidate != '#':
-                            test_link = candidate
-                if not test_link:
-                    test_link = reverse('app:dashboard_for_user', args=[user.id])
+                test_link = roster_combined_report_url(user_id=user.id, is_senior=False)
             
             return {
                 "streams": scores,
@@ -4465,43 +4446,52 @@ class InstituteDashboardView(TemplateView):
         # Batch psychometric + Results without materializing all StudentManagement rows
         from psychometric_tests.models import PsychometricTestResult
         from app.models import Results
-        student_user_ids = list(
-            stu_manage.values_list("student_id", flat=True).filter(student__isnull=False)
+        from core.student_psychometric_metrics import (
+            student_management_psychometric_complete_exists,
         )
-        psychometric_results_map = {}
-        if student_user_ids:
-            psychometric_results = PsychometricTestResult.objects.filter(
-                assessment__central_test_candidate__user_id__in=student_user_ids
-            ).select_related("assessment__central_test_candidate__user")
-            for result in psychometric_results:
-                user = result.assessment.central_test_candidate.user
-                if user not in psychometric_results_map:
-                    psychometric_results_map[user] = []
-                psychometric_results_map[user].append(result)
 
-        psych_stu_ids = set(psychometric_results_map.keys())
-        ptr_count = stu_manage.filter(student_id__in=[u.id for u in psych_stu_ids]).count()
+        _ttv2_page_early = (kwargs.get("page") or "dashboard").strip().lower()
+        _students_page_light = _ttv2_page_early == "students"
 
-        test_results_map = {}
-        all_results = []
-        if student_user_ids:
-            all_results = list(
-                Results.objects.filter(
-                    user_id__in=student_user_ids
-                ).select_related("user")
+        # KPI counts: aggregate only — do not load full result rows into memory.
+        ptr_count = 0
+        ptr_count1 = 0
+        if not _students_page_light:
+            student_user_ids = list(
+                stu_manage.values_list("student_id", flat=True).filter(student__isnull=False)
             )
-            for result in all_results:
-                if result.user not in test_results_map:
-                    test_results_map[result.user] = []
-                test_results_map[result.user].append(result)
+            if student_user_ids:
+                ptr_count = (
+                    stu_manage.filter(
+                        Exists(
+                            PsychometricTestResult.objects.filter(
+                                assessment__central_test_candidate__user_id=OuterRef(
+                                    "student_id"
+                                )
+                            )
+                        )
+                    ).count()
+                )
+                # Matches Results.is_test_successful (TestCompletion primary battery done).
+                ptr_count1 = (
+                    stu_manage.filter(
+                        Exists(
+                            TestCompletion.objects.filter(
+                                user_id=OuterRef("student_id"),
+                                test1_complete=True,
+                                test2_complete=True,
+                                test3_complete=True,
+                            )
+                        )
+                    ).count()
+                )
+        else:
+            student_user_ids = []
+            # Students page only needs completed-battery count for the participation chart.
+            ptr_count1 = stu_manage.filter(
+                student_management_psychometric_complete_exists()
+            ).count()
 
-        success_user_ids = {
-            r.user_id
-            for r in all_results
-            if getattr(r, "is_test_successful", False)
-        }
-        ptr_count1 = stu_manage.filter(student_id__in=success_user_ids).count()
-        
         # Use centralized function to get class_and_sections based on role
         class_and_sections = get_class_and_sections_by_role(request.user, stu_manage)
         
@@ -4519,8 +4509,9 @@ class InstituteDashboardView(TemplateView):
         higher_class_results = {}
         
         # Lightweight streams chart: sample first 200 students, batch Results by user_id
+        # Students page charts use KPI counts only — skip this heavy Results pull.
         streams = {}
-        if student_user_ids:
+        if student_user_ids and not _students_page_light:
             sample_students = list(stu_manage[:200])
             sample_user_ids = [s.student_id for s in sample_students if s.student_id]
             if sample_user_ids:
@@ -4553,137 +4544,165 @@ class InstituteDashboardView(TemplateView):
         counselor_ids = [c.id for c in counselors]
 
         # v2 dashboard: Unassigned students (not mapped to any counselor)
+        # Students page does not render this block — skip the extra queries.
         ttv2_unassigned_rows = []
         ttv2_counselor_options = []
-        try:
-            unassigned_qs = (
-                stu_manage.filter(counselors__isnull=True)
-                .select_related("student", "class_and_section")
-                .order_by("-created")
-            )
-            unassigned_rows = []
-            for sm in list(unassigned_qs[:25]):
-                u = getattr(sm, "student", None)
-                cas = getattr(sm, "class_and_section", None)
-                unassigned_rows.append(
-                    {
-                        "sm_id": sm.id,
-                        "student_id": getattr(sm, "student_id", None),
-                        "name": getattr(u, "name", None) or getattr(u, "email", None) or "Student",
-                        "email": getattr(u, "email", None) or "",
-                        "class": getattr(cas, "class_and_section", None) or "",
-                        "stream": getattr(cas, "stream", None) or "",
-                    }
+        if not _students_page_light:
+            try:
+                unassigned_qs = (
+                    stu_manage.filter(counselors__isnull=True)
+                    .select_related("student", "class_and_section")
+                    .order_by("-created")
                 )
-            ttv2_unassigned_rows = unassigned_rows
-            ttv2_counselor_options = [
-                _ttv2_counselor_dropdown_row(c.id, getattr(c, "counselor_name", "") or "")
-                for c in counselors
-            ]
-        except Exception:
-            ttv2_unassigned_rows = []
-            ttv2_counselor_options = []
-        
-        # Batch fetch all FollowUpStatus records for all counselors at once
-        all_followups = FollowUpStatus.objects.filter(counselor_id__in=counselor_ids).select_related('counselor')
-        
-        # Create maps for efficient lookup
-        followups_by_counselor = {}
-        for followup in all_followups:
-            if followup.counselor_id not in followups_by_counselor:
-                followups_by_counselor[followup.counselor_id] = []
-            followups_by_counselor[followup.counselor_id].append(followup)
-        
-        # Batch fetch session data grouped by counselor and date
-        from django.db.models import Count
-        sessions_data_all = (
-            FollowUpStatus.objects
-            .filter(counselor_id__in=counselor_ids)
-            .values('counselor_id', 'last_follow_up_date')
-            .annotate(session_count=Count('id'))
-        )
-        
-        # Group session data by counselor
-        sessions_by_counselor = {}
-        for session in sessions_data_all:
-            counselor_id = session['counselor_id']
-            if counselor_id not in sessions_by_counselor:
-                sessions_by_counselor[counselor_id] = []
-            sessions_by_counselor[counselor_id].append(session)
-        
+                unassigned_rows = []
+                for sm in list(unassigned_qs[:25]):
+                    u = getattr(sm, "student", None)
+                    cas = getattr(sm, "class_and_section", None)
+                    unassigned_rows.append(
+                        {
+                            "sm_id": sm.id,
+                            "student_id": getattr(sm, "student_id", None),
+                            "name": getattr(u, "name", None) or getattr(u, "email", None) or "Student",
+                            "email": getattr(u, "email", None) or "",
+                            "class": getattr(cas, "class_and_section", None) or "",
+                            "stream": getattr(cas, "stream", None) or "",
+                        }
+                    )
+                ttv2_unassigned_rows = unassigned_rows
+                ttv2_counselor_options = [
+                    _ttv2_counselor_dropdown_row(c.id, getattr(c, "counselor_name", "") or "")
+                    for c in counselors
+                ]
+            except Exception:
+                ttv2_unassigned_rows = []
+                ttv2_counselor_options = []
+
         counselor_data_list = []
         couns_sessions_data = []
+        sessions_data_json = '[]'
 
-        for counselor in counselors:
-            counselor_id = counselor.id
-            followups = followups_by_counselor.get(counselor_id, [])
+        if not _students_page_light:
+            # Batch fetch all FollowUpStatus records for all counselors at once
+            all_followups = FollowUpStatus.objects.filter(counselor_id__in=counselor_ids).select_related('counselor')
             
-            # Calculate counts from pre-fetched data
-            sessions_count = len(followups)
-            # "Students counseled" should match KPI semantics: distinct students with >=1 completed follow-up.
-            completed_followups = [f for f in followups if (getattr(f, "follow_up_status", "") or "").lower() == "completed"]
-            students_counseled_count = len({int(getattr(f, "student_id", 0) or 0) for f in completed_followups if getattr(f, "student_id", None)})
+            # Create maps for efficient lookup
+            followups_by_counselor = {}
+            for followup in all_followups:
+                if followup.counselor_id not in followups_by_counselor:
+                    followups_by_counselor[followup.counselor_id] = []
+                followups_by_counselor[followup.counselor_id].append(followup)
             
-            # Append data for each counselor to the list
-            counselor_data_list.append({
-                'id': counselor.id,
-                'coun_admin': counselor.counselor_admin,
-                'name': counselor.counselor_name,
-                'email': counselor.counselor_email,
-                'sessions': sessions_count,
-                'students_counseled': students_counseled_count,
-                'completed_followups': int(len(completed_followups)),
-                'created': counselor.created
-            })
+            # Batch fetch session data grouped by counselor and date
+            from django.db.models import Count
+            sessions_data_all = (
+                FollowUpStatus.objects
+                .filter(counselor_id__in=counselor_ids)
+                .values('counselor_id', 'last_follow_up_date')
+                .annotate(session_count=Count('id'))
+            )
             
-            # Get session data for the current counselor from pre-fetched data
-            sessions_data_list = sessions_by_counselor.get(counselor_id, [])
-            # Convert dates to strings
-            for session in sessions_data_list:
-                if session.get('last_follow_up_date'):
-                    session['last_follow_up_date'] = session['last_follow_up_date'].isoformat()
+            # Group session data by counselor
+            sessions_by_counselor = {}
+            for session in sessions_data_all:
+                counselor_id = session['counselor_id']
+                if counselor_id not in sessions_by_counselor:
+                    sessions_by_counselor[counselor_id] = []
+                sessions_by_counselor[counselor_id].append(session)
 
-            # Calculate sessions for the current week (Monday to Saturday)
-            week_data = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0}  # Monday to Saturday
-            for session in sessions_data_list:
-                try:
+            for counselor in counselors:
+                counselor_id = counselor.id
+                followups = followups_by_counselor.get(counselor_id, [])
+                
+                # Calculate counts from pre-fetched data
+                sessions_count = len(followups)
+                # "Students counseled" should match KPI semantics: distinct students with >=1 completed follow-up.
+                completed_followups = [f for f in followups if (getattr(f, "follow_up_status", "") or "").lower() == "completed"]
+                students_counseled_count = len({int(getattr(f, "student_id", 0) or 0) for f in completed_followups if getattr(f, "student_id", None)})
+                
+                # Append data for each counselor to the list
+                counselor_data_list.append({
+                    'id': counselor.id,
+                    'coun_admin': counselor.counselor_admin,
+                    'name': counselor.counselor_name,
+                    'email': counselor.counselor_email,
+                    'sessions': sessions_count,
+                    'students_counseled': students_counseled_count,
+                    'completed_followups': int(len(completed_followups)),
+                    'created': counselor.created
+                })
+                
+                # Get session data for the current counselor from pre-fetched data
+                sessions_data_list = sessions_by_counselor.get(counselor_id, [])
+                # Convert dates to strings
+                for session in sessions_data_list:
                     if session.get('last_follow_up_date'):
-                        session_date = datetime.strptime(session['last_follow_up_date'], "%Y-%m-%d")
-                        day_of_week = session_date.weekday()  # Monday is 0
-                        if day_of_week < 6:  # Only consider Monday to Saturday
-                            week_data[day_of_week] += session.get('session_count', 0)
-                except (KeyError, ValueError) as e:
-                    print(f"Error parsing session data: {e} in session: {session}")
+                        session['last_follow_up_date'] = session['last_follow_up_date'].isoformat()
 
-            # Prepare the final sessions data for the counselor
-            final_sessions_data = []
-            for day, count in week_data.items():
-                # Calculate the correct date for each day in the week
-                # Assume we want the date of the most recent Monday
-                recent_monday = datetime.now() - timedelta(days=datetime.now().weekday())
-                final_sessions_data.append({
-                    "day": (recent_monday + timedelta(days=day)).strftime("%Y-%m-%d"),
-                    "session_count": count
+                # Calculate sessions for the current week (Monday to Saturday)
+                week_data = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0}  # Monday to Saturday
+                for session in sessions_data_list:
+                    try:
+                        if session.get('last_follow_up_date'):
+                            session_date = datetime.strptime(session['last_follow_up_date'], "%Y-%m-%d")
+                            day_of_week = session_date.weekday()  # Monday is 0
+                            if day_of_week < 6:  # Only consider Monday to Saturday
+                                week_data[day_of_week] += session.get('session_count', 0)
+                    except (KeyError, ValueError) as e:
+                        print(f"Error parsing session data: {e} in session: {session}")
+
+                # Prepare the final sessions data for the counselor
+                final_sessions_data = []
+                for day, count in week_data.items():
+                    # Calculate the correct date for each day in the week
+                    # Assume we want the date of the most recent Monday
+                    recent_monday = datetime.now() - timedelta(days=datetime.now().weekday())
+                    final_sessions_data.append({
+                        "day": (recent_monday + timedelta(days=day)).strftime("%Y-%m-%d"),
+                        "session_count": count
+                    })
+
+                couns_sessions_data.append({
+                    "counselor_id": counselor.id,
+                    "counselor_name": counselor.counselor_name,
+                    "sessions": final_sessions_data
                 })
 
-            # Append the sessions data for the current counselor to the main list
-            couns_sessions_data.append({
-                'counselor_id': counselor.id,
-                'counselor_name': counselor.counselor_name,
-                'sessions': final_sessions_data  # Add sessions data for this counselor
-            })
-        # Convert to JSON
-        try:
-            sessions_data_json = json.dumps(couns_sessions_data)
-        except Exception as e:
-            print(f"Error serializing sessions data: {e}")
-            sessions_data_json = '[]'
+            try:
+                sessions_data_json = json.dumps(couns_sessions_data)
+            except Exception as e:
+                print(f"Error serializing sessions data: {e}")
+                sessions_data_json = '[]'
+        else:
+            # Students page: counselor options still needed for assign-advisor UI on roster cards.
+            try:
+                ttv2_counselor_options = [
+                    _ttv2_counselor_dropdown_row(c.id, getattr(c, "counselor_name", "") or "")
+                    for c in counselors
+                ]
+            except Exception:
+                ttv2_counselor_options = []
+            counselor_data_list = [
+                {
+                    'id': c.id,
+                    'coun_admin': c.counselor_admin,
+                    'name': c.counselor_name,
+                    'email': c.counselor_email,
+                    'sessions': 0,
+                    'students_counseled': 0,
+                    'completed_followups': 0,
+                    'created': c.created,
+                }
+                for c in counselors
+            ]
         
         # For initial page load, create minimal pagination - table will load via AJAX
         # Don't process filters or student data here - it's done in AJAX request
         from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
         # Create a minimal paginator with just 1 item for initial structure
-        minimal_students = stu_manage[:1] if hasattr(stu_manage, '__getitem__') else []
+        if hasattr(stu_manage, "order_by"):
+            minimal_students = stu_manage.order_by("-created")[:1]
+        else:
+            minimal_students = stu_manage[:1] if hasattr(stu_manage, "__getitem__") else []
         pages = Paginator(minimal_students, 10)
         page_number = request.GET.get('page', 1)
         try:
@@ -4696,8 +4715,12 @@ class InstituteDashboardView(TemplateView):
         # Pass count directly as integer for this specific institute
         ctx['total_students_count'] = total_students_count_list  # Direct count for this institute
         ctx["total_students"]=total_students  # Minimal for initial structure
-        ctx["active_students"]=stu_manage.filter(student__is_active=True).count() if hasattr(stu_manage, 'count') else 0
-        ctx["psychometric_test_result_count"]=ptr_count  # Just count
+        if _students_page_light:
+            ctx["active_students"] = total_students_count_list
+            ctx["psychometric_test_result_count"] = 0
+        else:
+            ctx["active_students"]=stu_manage.filter(student__is_active=True).count() if hasattr(stu_manage, 'count') else 0
+            ctx["psychometric_test_result_count"]=ptr_count  # Just count
         ctx["central_test_candidate"]=CentralTestCandidate.objects.none()  # Don't load all
         ctx["institute"]=institute
         ctx["class_and_sections"]=class_and_sections
@@ -4709,7 +4732,13 @@ class InstituteDashboardView(TemplateView):
             )
 
             ctx.update(build_institute_package_dashboard_ctx(institute))
-            ctx["student_psychometric_packages"] = get_student_package_labels_for_institute(institute)
+            # Roster AJAX builds package labels per page; skip full-institute map on students shell.
+            if _students_page_light:
+                ctx["student_psychometric_packages"] = {}
+            else:
+                ctx["student_psychometric_packages"] = get_student_package_labels_for_institute(
+                    institute
+                )
         ctx['class_counts']=class_counts  # Add class counts for dropdown
         ctx['unique_streams']=unique_streams  # Add unique streams for dropdown
         ctx['stu']=stu_manage  # Keep as QuerySet, don't convert to list
@@ -4723,24 +4752,28 @@ class InstituteDashboardView(TemplateView):
         ctx['streams'] = streams  # Empty for initial load
         ctx['higher_class_results'] = {}  # Empty for initial load
         ctx['Testsession'] = TestSession
+        # v2 shell: separate page mode (dashboard/students/assessments/...) from URL
+        ctx["ttv2_page"] = (kwargs.get("page") or "dashboard").strip().lower()
         try:
             from core.ttv2_dashboard_analytics import build_ttv2_analytics, empty_ttv2_analytics
-            _dr_start, _dr_end = _ttv2_date_range_from_request(request)
 
-            ctx["ttv2_analytics"] = build_ttv2_analytics(
-                "institute",
-                institute=institute,
-                student_management_qs=stu_manage,
-                week_start=_ttv2_week_start_from_request(request),
-                date_start=_dr_start,
-                date_end=_dr_end,
-            )
+            # Students page uses its own lightweight charts + AJAX insights — skip heavy analytics.
+            if ctx["ttv2_page"] == "students":
+                ctx["ttv2_analytics"] = empty_ttv2_analytics()
+            else:
+                _dr_start, _dr_end = _ttv2_date_range_from_request(request)
+                ctx["ttv2_analytics"] = build_ttv2_analytics(
+                    "institute",
+                    institute=institute,
+                    student_management_qs=stu_manage,
+                    week_start=_ttv2_week_start_from_request(request),
+                    date_start=_dr_start,
+                    date_end=_dr_end,
+                )
         except Exception:
             from core.ttv2_dashboard_analytics import empty_ttv2_analytics
 
             ctx["ttv2_analytics"] = empty_ttv2_analytics()
-        # v2 shell: separate page mode (dashboard/students/assessments/...) from URL
-        ctx["ttv2_page"] = (kwargs.get("page") or "dashboard").strip().lower()
         _ttv2_dbg(
             {
                 "hypothesisId": "H1",
@@ -4760,23 +4793,29 @@ class InstituteDashboardView(TemplateView):
             status_filter = None
             if ctx["ttv2_page"] == "payments":
                 status_filter = (request.GET.get("status") or "").strip().lower() or None
-            attach_institute_tieup_payment_ctx(
-                ctx, institute, request.user, status_filter=status_filter
-            )
+            # Students page does not render payments UI — skip coupon/order queries.
+            if ctx["ttv2_page"] != "students":
+                attach_institute_tieup_payment_ctx(
+                    ctx, institute, request.user, status_filter=status_filter
+                )
             if ctx["ttv2_page"] in ("payments", "dashboard"):
                 ctx["ttv2_tieup_payments"] = ctx.get("tieup_payment_rows") or ctx.get("rows", [])
                 ctx["ttv2_payments_status_filter"] = status_filter or ""
 
         # Students page: Psychometric assessment PDF stats (MI/EI attempts in scope)
-        try:
-            from core.models import MIAssessmentResult, EQAssessmentResult
-            uids = list(stu_manage.values_list("student_id", flat=True))
-            uids = [int(x) for x in uids if x]
-            mi_uids = set(MIAssessmentResult.objects.filter(user_id__in=uids).values_list("user_id", flat=True).distinct())
-            eq_uids = set(EQAssessmentResult.objects.filter(user_id__in=uids).values_list("user_id", flat=True).distinct())
-            attempted = len(mi_uids.union(eq_uids))
-            ctx["ttv2_psych_pdf"] = {"attempted": attempted, "total": len(set(uids))}
-        except Exception:
+        # Block is currently unused in the students template — skip expensive scans there.
+        if ctx.get("ttv2_page") != "students":
+            try:
+                from core.models import MIAssessmentResult, EQAssessmentResult
+                uids = list(stu_manage.values_list("student_id", flat=True))
+                uids = [int(x) for x in uids if x]
+                mi_uids = set(MIAssessmentResult.objects.filter(user_id__in=uids).values_list("user_id", flat=True).distinct())
+                eq_uids = set(EQAssessmentResult.objects.filter(user_id__in=uids).values_list("user_id", flat=True).distinct())
+                attempted = len(mi_uids.union(eq_uids))
+                ctx["ttv2_psych_pdf"] = {"attempted": attempted, "total": len(set(uids))}
+            except Exception:
+                ctx["ttv2_psych_pdf"] = {"attempted": 0, "total": 0}
+        else:
             ctx["ttv2_psych_pdf"] = {"attempted": 0, "total": 0}
         # v2 unified body picks the embedded partial from ttv2_role_ctx.role, not the URL. A
         # marketing (or other) user opening an institute dashboard URL with ?ttv2_partial=1
@@ -6456,8 +6495,11 @@ class InstituteDashboardView(TemplateView):
 
         return render(request, _dashboard_primary_template_name(self), ctx )
     
-    def _results_aux_maps_by_user_id(self, user_ids):
-        """Batch-fetch test rows for institute student table; dict keys are user_id (int)."""
+    def _results_aux_maps_by_user_id(self, user_ids, include_results=True):
+        """Batch-fetch test rows for institute student table; dict keys are user_id (int).
+
+        When ``include_results`` is False, skip Results (used for status-only filter passes).
+        """
         tcm, pmm, rmap = {}, {}, {}
         if not user_ids:
             return tcm, pmm, rmap
@@ -6469,27 +6511,60 @@ class InstituteDashboardView(TemplateView):
             uids = []
         if not uids:
             return tcm, pmm, rmap
-        for tc in TestCompletion.objects.filter(user_id__in=uids).select_related("user"):
+        for tc in TestCompletion.objects.filter(user_id__in=uids).only(
+            "id",
+            "user_id",
+            "test1_complete",
+            "test2_complete",
+            "test3_complete",
+            "numerical_complete",
+            "verbal_complete",
+            "logical_complete",
+            "emotional_complete",
+            "machanical_complete",
+            "language_complete",
+            "spatial_complete",
+        ):
             tcm[tc.user_id] = tc
-        for s in PostMatricTestSession.objects.filter(user_id__in=uids).select_related("user", "test", "result"):
+        for s in PostMatricTestSession.objects.filter(user_id__in=uids).select_related(
+            "test", "result"
+        ):
             pmm.setdefault(s.user_id, []).append(s)
-        for r in Results.objects.filter(user_id__in=uids).select_related("user"):
-            rmap.setdefault(r.user_id, []).append(r)
+        if include_results:
+            for r in Results.objects.filter(user_id__in=uids).defer("selected_answers"):
+                rmap.setdefault(r.user_id, []).append(r)
         return tcm, pmm, rmap
 
-    def _build_results_data_for_managements(self, sm_list, tcm, pmm, rmap):
+    def _build_results_data_for_managements(self, sm_list, tcm, pmm, rmap, use_cache=True):
+        from institute.roster_cache import (
+            get_cached_roster_result,
+            set_many_cached_roster_results,
+        )
+
         out = {}
+        to_cache = {}
         for stu in sm_list:
             if not stu.student_id or not stu.student:
                 continue
             user = stu.student
-            out[user.id] = self._get_student_test_result_optimized(
+            uid = int(user.id)
+            if use_cache:
+                cached = get_cached_roster_result(uid)
+                if cached is not None:
+                    out[uid] = cached
+                    continue
+            payload = self._get_student_test_result_optimized(
                 user,
                 stu,
                 tcm.get(stu.student_id),
                 pmm.get(stu.student_id) or [],
                 rmap.get(stu.student_id) or [],
             )
+            if use_cache:
+                to_cache[uid] = payload
+            out[uid] = payload
+        if use_cache and to_cache:
+            set_many_cached_roster_results(to_cache)
         return out
 
     def get_student_table_context_ajax(self, request, *args, **kwargs):
@@ -6517,10 +6592,18 @@ class InstituteDashboardView(TemplateView):
 
         stream_filter = request.GET.get("stream", "")
         test_taken_filter = request.GET.get("test_taken", "").strip()
+        _display_param = (request.GET.get("display") or "").strip().lower()
+        _is_cards = _display_param == "cards"
 
-        class_and_sections = get_class_and_sections_by_role(request.user, stu_manage)
-        class_counts = get_class_counts(stu_manage)
-        unique_streams = get_unique_streams_by_role(request.user, stu_manage)
+        # Filter dropdown metadata lives on the shell; cards AJAX does not need it.
+        if _is_cards:
+            class_and_sections = []
+            class_counts = {}
+            unique_streams = []
+        else:
+            class_and_sections = get_class_and_sections_by_role(request.user, stu_manage)
+            class_counts = get_class_counts(stu_manage)
+            unique_streams = get_unique_streams_by_role(request.user, stu_manage)
 
         # Class / name: DB; do not require results_data yet.
         filtered_students = apply_student_filters(stu_manage, request, results_data=None)
@@ -6540,8 +6623,6 @@ class InstituteDashboardView(TemplateView):
 
         # Grid (cards) view fills a 3-column grid best with 12 per page (4 rows × 3).
         # Use 12 as the default when no explicit per_page is supplied and we're in cards mode.
-        _display_param = (request.GET.get("display") or "").strip().lower()
-        _is_cards = _display_param == "cards"
         _default_pp = "12" if _is_cards else "10"
         per_page_param = request.GET.get("per_page", _default_pp)
         if per_page_param == "all":
@@ -6553,7 +6634,47 @@ class InstituteDashboardView(TemplateView):
                 per_page_value = 12 if _is_cards else 10
 
         page_number = request.GET.get("page", 1)
-        if test_taken_filter:
+        if test_taken_filter and hasattr(filtered_students, "filter"):
+            # DB-side assessment status filter — avoid materializing the full roster.
+            from core.student_psychometric_metrics import (
+                student_management_psychometric_complete_exists,
+            )
+            from app_post_matric.models import TestSession as PostMatricTestSession
+
+            completed_exists = student_management_psychometric_complete_exists()
+            any_legacy_attempt = Exists(
+                TestCompletion.objects.filter(user_id=OuterRef("student_id")).filter(
+                    Q(test1_complete=True)
+                    | Q(test2_complete=True)
+                    | Q(test3_complete=True)
+                    | Q(numerical_complete=True)
+                    | Q(verbal_complete=True)
+                    | Q(logical_complete=True)
+                    | Q(emotional_complete=True)
+                    | Q(machanical_complete=True)
+                    | Q(language_complete=True)
+                    | Q(spatial_complete=True)
+                )
+            )
+            any_post_attempt = Exists(
+                PostMatricTestSession.objects.filter(
+                    user_id=OuterRef("student_id"), is_completed=True
+                )
+            )
+            any_attempt = any_legacy_attempt | any_post_attempt
+
+            qs = filtered_students.select_related(
+                "student", "class_and_section", "institute"
+            )
+            if test_taken_filter == "Yes":
+                qs = qs.filter(completed_exists)
+            elif test_taken_filter == "No":
+                qs = qs.filter(~any_attempt)
+            elif test_taken_filter == "In Progress":
+                qs = qs.filter(any_attempt).filter(~completed_exists)
+            pages = Paginator(qs.order_by("-created"), per_page_value)
+        elif test_taken_filter:
+            # Non-queryset fallback (rare list path)
             if hasattr(filtered_students, "order_by"):
                 sm_all = list(
                     filtered_students.select_related(
@@ -6565,9 +6686,11 @@ class InstituteDashboardView(TemplateView):
                     list(filtered_students), key=lambda x: x.created, reverse=True
                 )
             uids_all = [sm.student_id for sm in sm_all if sm.student_id]
-            tcm, pmm, rmap = self._results_aux_maps_by_user_id(uids_all)
+            tcm, pmm, rmap = self._results_aux_maps_by_user_id(
+                uids_all, include_results=False
+            )
             full_results = self._build_results_data_for_managements(
-                sm_all, tcm, pmm, rmap
+                sm_all, tcm, pmm, rmap, use_cache=False
             )
             kept = []
             for sm in sm_all:
@@ -6596,19 +6719,25 @@ class InstituteDashboardView(TemplateView):
         except (EmptyPage, PageNotAnInteger):
             total_students = pages.get_page(1)
 
-        if test_taken_filter:
-            page_list = list(total_students.object_list)
-            results_data = {
-                sm.student_id: full_results[sm.student_id]
-                for sm in page_list
-                if sm.student_id in full_results
-            }
-        else:
-            page_list = list(total_students.object_list)
-            page_uids = [sm.student_id for sm in page_list if sm.student_id]
-            tcm, pmm, rmap = self._results_aux_maps_by_user_id(page_uids)
-            results_data = self._build_results_data_for_managements(
-                page_list, tcm, pmm, rmap
+        page_list = list(total_students.object_list)
+        page_uids = [sm.student_id for sm in page_list if sm.student_id]
+        from institute.roster_cache import merge_cached_roster_results
+
+        results_data = merge_cached_roster_results(page_uids)
+        missing_uids = [uid for uid in page_uids if uid not in results_data]
+        if missing_uids:
+            missing_sms = [
+                sm for sm in page_list if sm.student_id in missing_uids
+            ]
+            # Cards use TestCompletion / sessions for status chips; skip heavy Results JSON.
+            need_results = _display_param != "cards"
+            tcm, pmm, rmap = self._results_aux_maps_by_user_id(
+                missing_uids, include_results=need_results
+            )
+            results_data.update(
+                self._build_results_data_for_managements(
+                    missing_sms, tcm, pmm, rmap, use_cache=True
+                )
             )
 
         # Latest counselling status per student (for roster cards).
@@ -6721,7 +6850,11 @@ class InstituteDashboardView(TemplateView):
             if hasattr(filtered_students, "filter")
             else filtered_students
         )
-        if institute:
+        if _is_cards:
+            # Cards use ttv2_counselors_by_institute_id only.
+            counselor_opts = []
+            bulk_counselor_opts = []
+        elif institute:
             counselor_opts = [
                 _ttv2_counselor_dropdown_row(c.id, getattr(c, "counselor_name", "") or "")
                 for c in Counselor.qs_for_institute(institute).only(
@@ -6818,8 +6951,6 @@ class InstituteDashboardView(TemplateView):
         from institute.psychometric_packages import (
             build_institute_package_dashboard_ctx,
             build_roster_assessment_map,
-            get_student_package_labels_for_institute,
-            get_student_package_labels_for_user_ids,
             institute_package_mode_active,
         )
         from core.assessment_access import packages_enabled
@@ -6828,16 +6959,15 @@ class InstituteDashboardView(TemplateView):
             page_list, results_data
         )
         pkg_ctx["psychometric_packages_enabled"] = packages_enabled()
+        # Labels already on roster assessment display — avoid a second package query.
+        pkg_ctx["student_psychometric_packages"] = {
+            uid: (display.get("package_labels") or [])
+            for uid, display in (pkg_ctx["student_roster_assessments"] or {}).items()
+            if display.get("package_labels")
+        }
         if institute:
             pkg_ctx.update(build_institute_package_dashboard_ctx(institute))
-            pkg_ctx["student_psychometric_packages"] = get_student_package_labels_for_institute(
-                institute
-            )
         else:
-            page_student_ids = [sm.student_id for sm in page_list if sm.student_id]
-            pkg_ctx["student_psychometric_packages"] = get_student_package_labels_for_user_ids(
-                page_student_ids
-            )
             # Multi-school roster (marketing / institute-group): keep package column
             # and card badges available whenever the feature flag is on.
             pkg_ctx["institute_package_mode"] = bool(packages_enabled()) and (
@@ -6850,8 +6980,8 @@ class InstituteDashboardView(TemplateView):
 
         return {
             "total_students": total_students,
-            "total_students_count": stu_manage.count(),
-            # Rows matching current filters (before pagination); used to refresh the v2 roster header via AJAX.
+            # Avoid a second full-roster COUNT — filtered paginator count is what the UI needs.
+            "total_students_count": pages.count,
             "roster_filtered_total": pages.count,
             "class_and_sections": class_and_sections,
             "class_counts": class_counts,

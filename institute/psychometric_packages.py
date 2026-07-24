@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set
 
 from django.contrib import messages
 
@@ -11,10 +11,12 @@ from core import choices
 from core.assessment_access import (
     get_active_packages_for_institute,
     get_institute_roster_report_url,
+    get_roster_assessment_report_url,
     get_student_custom_package_names,
     get_student_entitled_assessment_codes,
     has_legacy_full_bundle_access,
     packages_enabled,
+    roster_combined_report_url,
 )
 from core.psychometric_grade import get_student_psychometric_track
 from psychometric_tests.models import InstitutePackagePrice, PsychometricPackage, StudentPackageAssignment
@@ -26,16 +28,19 @@ CLASS10_ROSTER_ASSESSMENTS = [
     {
         'code': 'class10_personality',
         'label': 'Personality Assessment',
+        'engine_key': 'test1',
         'detail_keys': ('personality_assessment', 'test1'),
     },
     {
         'code': 'class10_interest',
         'label': 'Career Interest assessment',
+        'engine_key': 'test2',
         'detail_keys': ('career_interest_assessment', 'test2'),
     },
     {
         'code': 'class10_aptitude',
         'label': 'Comprehensive Aptitude assessment',
+        'engine_key': 'test3',
         'detail_keys': ('comprehensive_aptitude_assessment', 'test3'),
     },
 ]
@@ -44,21 +49,25 @@ POST_MATRIC_ROSTER_ASSESSMENTS = [
     {
         'code': 'class12_personality',
         'label': 'Personality Assessment',
+        'engine_key': '1',
         'detail_keys': ('personality_assessment', 'career_assessment', 'test1'),
     },
     {
         'code': 'class12_motivation',
         'label': 'Motivation Assessment',
+        'engine_key': '2',
         'detail_keys': ('motivation_assessment', 'test2'),
     },
     {
         'code': 'class12_interest',
         'label': 'Career Interest Inventory',
+        'engine_key': '3',
         'detail_keys': ('career_interest_inventory', 'test3'),
     },
     {
         'code': 'class12_aptitude',
         'label': 'Aptitude Assessment',
+        'engine_key': '4',
         'detail_keys': ('aptitude_assessment', 'test4'),
     },
 ]
@@ -242,42 +251,75 @@ def build_student_roster_assessment_display(
     result_dict: Optional[dict],
     *,
     is_senior: bool,
+    legacy_full: Optional[bool] = None,
+    entitled_codes: Optional[Set[str]] = None,
+    package_labels: Optional[List[str]] = None,
 ) -> dict:
     """
     Assessment rows for institute roster cards/list.
 
     Package students see only entitled tests; custom package names are included
     for manual verification. Full-bundle / legacy students keep all track tests.
+
+    Optional precomputed flags avoid per-student DB hits on roster pages.
     """
     td = (result_dict or {}).get('test_details') or {}
     catalog = POST_MATRIC_ROSTER_ASSESSMENTS if is_senior else CLASS10_ROSTER_ASSESSMENTS
-    package_labels = get_student_custom_package_names(user)
-
-    if has_legacy_full_bundle_access(user):
-        rows = [
-            {
-                'label': item['label'],
-                'attempted': _detail_attempted(td, item['detail_keys']),
-            }
-            for item in catalog
-        ]
-        report_ready, report_url = get_institute_roster_report_url(user, is_senior=is_senior)
+    if package_labels is None:
+        package_labels = get_student_custom_package_names(user)
     else:
-        entitled = get_student_entitled_assessment_codes(user)
-        rows = [
-            {
-                'label': item['label'],
-                'attempted': _detail_attempted(td, item['detail_keys']),
-            }
-            for item in catalog
-            if item['code'] in entitled
-        ]
-        report_ready, report_url = get_institute_roster_report_url(user, is_senior=is_senior)
+        package_labels = list(package_labels or [])
+
+    if legacy_full is None:
+        legacy_full = has_legacy_full_bundle_access(user)
+    if entitled_codes is None and not legacy_full:
+        entitled_codes = get_student_entitled_assessment_codes(user)
+    elif entitled_codes is None:
+        entitled_codes = set()
+
+    def _row_for(item):
+        attempted = _detail_attempted(td, item['detail_keys'])
+        row_report = ''
+        if attempted:
+            row_report = get_roster_assessment_report_url(
+                user,
+                is_senior=is_senior,
+                engine_key=item.get('engine_key') or '',
+            )
+        return {
+            'label': item['label'],
+            'engine_key': item.get('engine_key') or '',
+            'attempted': attempted,
+            'report_url': row_report or '',
+        }
+
+    if legacy_full:
+        rows = [_row_for(item) for item in catalog]
+    else:
+        rows = [_row_for(item) for item in catalog if item['code'] in entitled_codes]
+
+    # Prefer already-built roster status (no extra completion queries / reverse()).
+    status = ((result_dict or {}).get('test_status') or '').strip().lower()
+    report_ready = status == 'completed'
+    report_url = ''
+    if report_ready:
+        uid = int(getattr(user, 'id', 0) or 0)
+        if uid:
+            report_url = roster_combined_report_url(user_id=uid, is_senior=is_senior)
+        # Fallback for callers without status in result_dict.
+        if not report_url:
+            report_ready, report_url = get_institute_roster_report_url(
+                user, is_senior=is_senior
+            )
+    elif not result_dict:
+        report_ready, report_url = get_institute_roster_report_url(
+            user, is_senior=is_senior
+        )
 
     return {
         'rows': rows,
         'package_labels': package_labels,
-        'show_all_tests': has_legacy_full_bundle_access(user),
+        'show_all_tests': bool(legacy_full),
         'report_ready': bool(report_ready),
         'report_url': report_url or '',
         'is_custom_package': bool(package_labels),
@@ -294,6 +336,33 @@ def build_roster_assessment_map(page_list, results_data) -> Dict[int, dict]:
     ]
     labels_by_uid = get_student_package_labels_for_user_ids(page_student_ids)
 
+    # Resolve institute package mode once (avoid N× StudentManagement / entitlement queries).
+    institute = None
+    for sm in page_list or []:
+        institute = getattr(sm, 'institute', None)
+        if institute:
+            break
+    package_mode = bool(
+        packages_enabled()
+        and institute
+        and getattr(institute, 'uses_package_psychometric_mode', lambda: False)()
+    )
+    legacy_default = not package_mode
+
+    entitled_by_uid: Dict[int, Set[str]] = {}
+    if package_mode and page_student_ids:
+        from psychometric_tests.models import StudentAssessmentEntitlement
+
+        for row in (
+            StudentAssessmentEntitlement.objects.filter(
+                user_id__in=page_student_ids,
+                is_active=True,
+                assessment__is_active=True,
+            )
+            .values_list('user_id', 'assessment__code')
+        ):
+            entitled_by_uid.setdefault(int(row[0]), set()).add(row[1])
+
     for sm in page_list or []:
         uid = getattr(sm, 'student_id', None)
         student = getattr(sm, 'student', None)
@@ -305,13 +374,15 @@ def build_roster_assessment_map(page_list, results_data) -> Dict[int, dict]:
             class_label = str(cas.class_and_section).lower()
         is_senior = ('11' in class_label) or ('12' in class_label)
         result = results_data.get(uid) if isinstance(results_data, dict) else None
+        assignment_labels = labels_by_uid.get(int(uid)) or []
         display = build_student_roster_assessment_display(
             student,
             result,
             is_senior=is_senior,
+            legacy_full=legacy_default,
+            entitled_codes=entitled_by_uid.get(int(uid), set()),
+            package_labels=assignment_labels,
         )
-        # Prefer assignment rows (works for marketing/group multi-school pages).
-        assignment_labels = labels_by_uid.get(int(uid)) or []
         if assignment_labels:
             display['package_labels'] = assignment_labels
             display['is_custom_package'] = True

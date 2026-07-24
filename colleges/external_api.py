@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from types import SimpleNamespace
@@ -157,7 +158,7 @@ def is_tab_content_enabled(tab_data: Optional[Dict[str, Any]]) -> bool:
     if not isinstance(tab_data, dict) or tab_data.get("error"):
         return False
 
-    markdown = (tab_data.get("markdown_content") or "").strip()
+    markdown = extract_tab_body(tab_data)
     has_content = tab_data.get("has_content") is True
     valid_content = tab_data.get("valid_content") is True
     validation = str(tab_data.get("content_validation_state") or "").lower()
@@ -246,61 +247,131 @@ def filter_enabled_college_items(items: Sequence[Dict[str, Any]]) -> List[Dict[s
     return [item for item, ok in results if ok]
 
 
+def _content_looks_like_html(text: str) -> bool:
+    """True when tab payload is already HTML (common for richer college pages)."""
+    sample = (text or "").lstrip()[:1200].lower()
+    if not sample:
+        return False
+    if sample.startswith("<!doctype") or sample.startswith("<html") or sample.startswith("<"):
+        return True
+    return bool(
+        re.search(
+            r"</?(?:div|section|article|table|thead|tbody|tr|td|th|ul|ol|li|p|h[1-6]|span|br|img|figure)\b",
+            sample,
+        )
+    )
+
+
+def _sanitize_tab_html(html: str) -> str:
+    """Allowlist-sanitize HTML from the upstream API."""
+    import bleach
+
+    allowed_tags = set(bleach.sanitizer.ALLOWED_TAGS).union(
+        {
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "p",
+            "pre",
+            "code",
+            "table",
+            "thead",
+            "tbody",
+            "tfoot",
+            "tr",
+            "th",
+            "td",
+            "hr",
+            "br",
+            "ul",
+            "ol",
+            "li",
+            "strong",
+            "em",
+            "b",
+            "i",
+            "u",
+            "blockquote",
+            "div",
+            "span",
+            "section",
+            "article",
+            "figure",
+            "figcaption",
+            "img",
+            "caption",
+            "colgroup",
+            "col",
+        }
+    )
+    return bleach.clean(
+        html,
+        tags=allowed_tags,
+        attributes={
+            **bleach.sanitizer.ALLOWED_ATTRIBUTES,
+            "a": ["href", "title", "rel", "target"],
+            "td": ["colspan", "rowspan", "align"],
+            "th": ["colspan", "rowspan", "align"],
+            "img": ["src", "alt", "title", "width", "height"],
+            "div": ["class"],
+            "span": ["class"],
+            "table": ["class"],
+            "p": ["class"],
+            "h1": ["class"],
+            "h2": ["class"],
+            "h3": ["class"],
+            "h4": ["class"],
+            "section": ["class"],
+            "article": ["class"],
+        },
+        strip=True,
+    )
+
+
 def render_markdown_html(markdown_text: str) -> str:
+    """Render tab body: pass through HTML as-is (sanitized), else convert markdown."""
     if not markdown_text:
         return ""
+
+    # Upstream often stores HTML in `markdown_content`. Don't run that through
+    # markdown/nl2br — it breaks tables and can surface tags as plain text.
+    if _content_looks_like_html(markdown_text):
+        try:
+            return _sanitize_tab_html(markdown_text)
+        except Exception:
+            from django.utils.html import escape
+            from django.utils.safestring import mark_safe
+
+            return mark_safe(escape(markdown_text).replace("\n", "<br>"))
+
     try:
         import markdown
-        import bleach
 
         html = markdown.markdown(
             markdown_text,
             extensions=["extra", "sane_lists", "nl2br", "tables"],
         )
-        allowed_tags = set(bleach.sanitizer.ALLOWED_TAGS).union(
-            {
-                "h1",
-                "h2",
-                "h3",
-                "h4",
-                "h5",
-                "h6",
-                "p",
-                "pre",
-                "code",
-                "table",
-                "thead",
-                "tbody",
-                "tr",
-                "th",
-                "td",
-                "hr",
-                "br",
-                "ul",
-                "ol",
-                "li",
-                "strong",
-                "em",
-                "blockquote",
-            }
-        )
-        return bleach.clean(
-            html,
-            tags=allowed_tags,
-            attributes={
-                **bleach.sanitizer.ALLOWED_ATTRIBUTES,
-                "a": ["href", "title", "rel", "target"],
-                "td": ["colspan", "rowspan"],
-                "th": ["colspan", "rowspan"],
-            },
-            strip=True,
-        )
+        return _sanitize_tab_html(html)
     except Exception:
         # Fallback: plain text with line breaks
         from django.utils.html import escape
         from django.utils.safestring import mark_safe
 
         return mark_safe(escape(markdown_text).replace("\n", "<br>"))
+
+
+def extract_tab_body(tab_data: Optional[Dict[str, Any]]) -> str:
+    """Prefer explicit HTML fields, then markdown_content."""
+    if not isinstance(tab_data, dict):
+        return ""
+    for key in ("html_content", "content_html", "html", "markdown_content", "content"):
+        value = tab_data.get(key)
+        if isinstance(value, str) and value.strip():
+            return value
+    return ""
 
 
 def get_college_detail_context_from_api(
@@ -374,7 +445,7 @@ def get_college_detail_context_from_api(
         else:
             tab_data = tab_payload.get(api_tab) or {}
             if isinstance(tab_data, dict) and is_tab_content_enabled(tab_data):
-                tab_markdown = tab_data.get("markdown_content") or ""
+                tab_markdown = extract_tab_body(tab_data)
                 tab_html = render_markdown_html(tab_markdown)
             else:
                 tab_error = f"No enabled content for '{active_tab['label']}'."

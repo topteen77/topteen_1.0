@@ -88,18 +88,16 @@
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,1,0" />
 
   <script>
-    // v2 theme bootstrap: apply before paint
+    // v2 theme bootstrap: apply before paint. Default = day (light) for all users.
     (function () {
       try {
         var key = 'ttv2_theme';
         var stored = (localStorage.getItem(key) || '').toLowerCase();
-        var theme = (stored === 'light' || stored === 'dark') ? stored : null;
-        if (!theme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-          theme = 'dark';
-        }
-        if (!theme) theme = 'light';
+        var theme = (stored === 'light' || stored === 'dark') ? stored : 'light';
         document.documentElement.setAttribute('data-ttv2-theme', theme);
-      } catch (e) {}
+      } catch (e) {
+        document.documentElement.setAttribute('data-ttv2-theme', 'light');
+      }
     })();
   </script>
 
