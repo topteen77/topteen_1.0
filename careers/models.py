@@ -282,6 +282,28 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
             models.Index(fields=['slug']),
         ]
 
+    def _make_unique_slug(self, base_slug):
+        """Build a unique slug against all rows (including soft-deleted)."""
+        from django.utils.text import slugify
+
+        base = slugify(base_slug or '') or 'career'
+        base = base[:240]
+        candidate = base
+        n = 2
+        qs = Career.objects.complete().filter(slug=candidate)
+        if self.pk:
+            qs = qs.exclude(pk=self.pk)
+        while qs.exists():
+            suffix = f'-{n}'
+            candidate = f'{base[:255 - len(suffix)]}{suffix}'
+            qs = Career.objects.complete().filter(slug=candidate)
+            if self.pk:
+                qs = qs.exclude(pk=self.pk)
+            n += 1
+            if n > 10000:
+                break
+        return candidate
+
     def url(self):
         return reverse('careers:careerdetail',args=[self.slug,self.id])
 
@@ -611,6 +633,24 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
             if len(converted_name) > 500:
                 converted_name = converted_name[:497] + '...'
             self.name = converted_name
+
+        # Unique slug including soft-deleted rows (SlugModel only checks active → 500 on re-add)
+        update_fields = kwargs.get('update_fields', None)
+        if not update_fields or 'slug' in (update_fields or []):
+            if not self.slug or not str(self.slug).strip():
+                self.slug = self._make_unique_slug(self.name or 'career')
+                if update_fields is not None and 'slug' not in update_fields:
+                    update_fields = list(update_fields) + ['slug']
+                    kwargs['update_fields'] = update_fields
+            else:
+                conflict = Career.objects.complete().filter(slug=self.slug)
+                if self.pk:
+                    conflict = conflict.exclude(pk=self.pk)
+                if conflict.exists():
+                    self.slug = self._make_unique_slug(self.slug)
+                    if update_fields is not None and 'slug' not in update_fields:
+                        update_fields = list(update_fields) + ['slug']
+                        kwargs['update_fields'] = update_fields
 
         # Check if we're already updating description_json (to prevent recursion)
         update_fields = kwargs.get('update_fields', None)

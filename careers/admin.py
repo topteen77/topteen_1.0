@@ -220,6 +220,38 @@ class CareerAdminForm(forms.ModelForm):
             # Require that an actual file is present
             if not image or not getattr(image, 'name', None):
                 self.add_error('image', 'Image is required to publish a career.')
+
+        # Catch duplicate careers before submit (avoids MySQL IntegrityError 500 on slug)
+        name = (cleaned.get('name') or '').strip()
+        if name:
+            active = Career.objects.filter(name__iexact=name)
+            if self.instance and self.instance.pk:
+                active = active.exclude(pk=self.instance.pk)
+            if active.exists():
+                other = active.first()
+                self.add_error(
+                    'name',
+                    (
+                        f'A career named "{other.name}" already exists (ID {other.id}). '
+                        'Open that career to edit it instead of creating a duplicate.'
+                    ),
+                )
+            else:
+                deleted = Career.objects.complete().filter(
+                    name__iexact=name,
+                    object_status=choices.ObjectStatus.DELETED,
+                )
+                if self.instance and self.instance.pk:
+                    deleted = deleted.exclude(pk=self.instance.pk)
+                if deleted.exists():
+                    other = deleted.first()
+                    self.add_error(
+                        'name',
+                        (
+                            f'A deleted career named "{other.name}" already exists (ID {other.id}). '
+                            'Restore that career or choose a different name.'
+                        ),
+                    )
         return cleaned
     def clean_docx_file(self):
         """Validate uploaded DOCX file"""
