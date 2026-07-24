@@ -27,45 +27,24 @@ from .docx_utils import convert_docx_to_html, extract_career_data_from_html
 # Register your models here.
 
 class MindmapValidationFilter(SimpleListFilter):
-    """Custom filter for mindmap validation status"""
+    """Filter by cached mindmap_validation_status (not live XMind checks)."""
     title = 'Mindmap Validation'
     parameter_name = 'mindmap_validation'
     
     def lookups(self, request, model_admin):
-        """
-        Returns a list of tuples. The first element in each
-        tuple is the coded value for the option that will
-        appear in the URL query. The second element is the
-        human-readable name for the option that will appear
-        in the right sidebar.
-        """
         return (
             ('valid', 'Valid'),
             ('errors', 'Has Errors'),
+            ('not_checked', 'Not checked'),
         )
     
     def queryset(self, request, queryset):
-        """
-        Returns the filtered queryset based on the value
-        provided in the query string and retrievable via
-        `self.value()`.
-        """
         if self.value() == 'valid':
-            # Filter careers with valid mindmaps
-            valid_ids = []
-            for career in queryset:
-                is_valid, _ = career.validate_mindmap()
-                if is_valid:
-                    valid_ids.append(career.id)
-            return queryset.filter(id__in=valid_ids)
-        elif self.value() == 'errors':
-            # Filter careers with mindmap errors
-            error_ids = []
-            for career in queryset:
-                is_valid, _ = career.validate_mindmap()
-                if not is_valid:
-                    error_ids.append(career.id)
-            return queryset.filter(id__in=error_ids)
+            return queryset.filter(mindmap_validation_status='valid')
+        if self.value() == 'errors':
+            return queryset.filter(mindmap_validation_status='error')
+        if self.value() == 'not_checked':
+            return queryset.filter(mindmap_validation_status='not_checked')
         return queryset
 
 
@@ -478,30 +457,43 @@ class CareerAdmin(admin.ModelAdmin):
     image_url_display.short_description = 'Image URL'
     
     def mindmap_validation(self, obj):
-        """Display mindmap validation status with error icon and hover tooltip"""
-        is_valid, errors = obj.validate_mindmap()
-        
-        if is_valid:
-            # Show nothing if validated
-            return format_html('')
-        else:
-            # Show error icon with hover tooltip
-            error_text = '; '.join(errors) if errors else 'Mindmap validation failed'
-            # Escape HTML in error text for title attribute
-            from django.utils.html import escape
-            escaped_error = escape(error_text)
+        """Show cached mindmap status — do not live-validate (new careers stay not_checked until post-insert check)."""
+        import json
+        from django.utils.html import escape
+
+        status = getattr(obj, 'mindmap_validation_status', None) or 'not_checked'
+        if status == 'not_checked':
             return format_html(
-                '<span class="mindmap-validation-error" style="color: #dc3545; cursor: help; display: inline-block;" '
-                'title="{}" data-bs-toggle="tooltip" data-bs-placement="top">'
-                '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: middle;">'
-                '<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>'
-                '<path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>'
-                '</svg>'
-                '</span>',
-                escaped_error
+                '<span style="color:#6c757d;" title="Mindmap not checked yet">—</span>'
             )
+        if status == 'valid':
+            return format_html('')
+
+        errors = []
+        raw = getattr(obj, 'mindmap_validation_errors', None) or ''
+        if raw:
+            try:
+                parsed = json.loads(raw)
+                if isinstance(parsed, list):
+                    errors = [str(x) for x in parsed]
+                else:
+                    errors = [str(parsed)]
+            except Exception:
+                errors = [str(raw)]
+        error_text = '; '.join(errors) if errors else 'Mindmap validation failed'
+        escaped_error = escape(error_text)
+        return format_html(
+            '<span class="mindmap-validation-error" style="color: #dc3545; cursor: help; display: inline-block;" '
+            'title="{}" data-bs-toggle="tooltip" data-bs-placement="top">'
+            '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: middle;">'
+            '<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>'
+            '<path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>'
+            '</svg>'
+            '</span>',
+            escaped_error
+        )
     mindmap_validation.short_description = 'Mindmap'
-    mindmap_validation.admin_order_field = 'name'
+    mindmap_validation.admin_order_field = 'mindmap_validation_status'
     
     def make_published(self, request, queryset):
         updated = queryset.update(publish_status=1)
@@ -618,6 +610,45 @@ class CareerAdmin(admin.ModelAdmin):
             f'{count} career(s) permanently deleted.',
             messages.SUCCESS,
         )
+
+    def save_model(self, request, obj, form, change):
+        """
+        On insert: do not run mindmap validation during save (status stays not_checked).
+        After insert: check mindmap and show a generation alert if missing.
+        On edit: refresh cached mindmap status quietly.
+        """
+        is_add = not change
+        if is_add:
+            obj.mindmap_validation_status = 'not_checked'
+            obj.mindmap_validated_at = None
+            obj.mindmap_validation_errors = None
+
+        super().save_model(request, obj, form, change)
+
+        if is_add:
+            is_valid, errors = obj.refresh_mindmap_validation(save=True)
+            if is_valid:
+                self.message_user(
+                    request,
+                    'Career saved. Mindmap is available for this career.',
+                    messages.SUCCESS,
+                )
+            else:
+                detail = '; '.join(errors) if errors else 'Mindmap not found'
+                self.message_user(
+                    request,
+                    (
+                        f'Career saved. Mindmap generation needed: {detail}. '
+                        'Add an XMind file under career_mindmap (matching career name/cluster) '
+                        'or ensure the description has clear headings so a mindmap can be generated.'
+                    ),
+                    messages.WARNING,
+                )
+        else:
+            try:
+                obj.refresh_mindmap_validation(save=True)
+            except Exception:
+                pass
 
     def update_publish_status_ajax(self, request):
         """Handle AJAX request to update publish status"""

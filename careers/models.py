@@ -460,6 +460,32 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
         
         # All validations passed
         return (True, [])
+
+    def refresh_mindmap_validation(self, *, save=True):
+        """
+        Run mindmap checks and cache result on the career row.
+        Call after insert/update — not during the insert write itself.
+        """
+        import json
+        from django.utils import timezone
+
+        is_valid, errors = self.validate_mindmap()
+        # Description-based mindmap still works on the site without an XMind file.
+        if not is_valid and self.has_career_mindmap_api_data():
+            is_valid = True
+            errors = []
+
+        self.mindmap_validation_status = 'valid' if is_valid else 'error'
+        self.mindmap_validation_errors = json.dumps(errors) if errors else None
+        self.mindmap_validated_at = timezone.now()
+        if save and self.pk:
+            self.save(update_fields=[
+                'mindmap_validation_status',
+                'mindmap_validation_errors',
+                'mindmap_validated_at',
+                'modified',
+            ])
+        return is_valid, errors
     
     def convert_description_to_jsmind_json(self):
         """
