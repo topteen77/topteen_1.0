@@ -1710,21 +1710,43 @@
           <h3 class="sidebar-title">Career Video</h3>
           <div class="car-rel-video video-vertical flex-column">
             {% for video in career.videos.all()[:2] %}
+            {% set video_url = video.get_video_or_url() %}
+            {% set thumb_url = video.get_thumbnail_url() %}
+            {% set is_youtube = video_url and ('youtube.com' in video_url or 'youtu.be' in video_url) %}
+            {% set is_direct = video.upload_video or (video_url and not is_youtube and ('.mp4' in video_url.lower() or '.webm' in video_url.lower() or '.mov' in video_url.lower())) %}
             <div class="video-box mb-3">
-              <a href="{{ url('careers:videodetail', args=[video.slug]) }}" class="video-link">
+              <a href="#"
+                 class="video-link js-career-detail-video-open"
+                 data-bs-toggle="modal"
+                 data-bs-target="#videoModal"
+                 data-video="{{ video_url }}"
+                 data-video-id="{{ video.id }}"
+                 data-title="{{ video.name|e }}"
+                 role="button"
+                 aria-label="Play video: {{ video.name|e }}">
                 <div class="text-b">
                   <div class="blankdiv"></div>
                   <div class="video-play"><img src="{{ static('images_new/icons/video-play.svg') }}" alt="Play Icon" /></div>
                 </div>
-                <div class="video-thumb-auto">
-                  {% if video.upload_video %}
-                  <video class="videoPlayer">
-                    <source src="{{ video.upload_video.url }}" type="video/mp4">
+                <div class="video-thumb-auto position-relative">
+                  {% if thumb_url %}
+                  <img src="{{ thumb_url }}"
+                       alt="{{ video.name }}"
+                       class="img-fluid career-video-sidebar-thumb"
+                       loading="lazy"
+                       decoding="async"
+                       onerror="this.onerror=null; this.style.display='none'; var ph=this.nextElementSibling; if(ph){ph.style.display='flex';}">
+                  <div class="career-video-sidebar-placeholder bg-gray d-flex align-items-center justify-content-center w-100 h-100" style="display:none;">
+                    <i class='bx bx-play-circle fs-48'></i>
+                  </div>
+                  {% elif is_direct %}
+                  {# Capture first frame as screenshot for uploaded/S3 MP4s #}
+                  <video class="videoPlayer" muted playsinline preload="metadata" crossorigin="anonymous">
+                    <source src="{{ video_url }}" type="video/mp4">
                   </video>
-                  {% elif video.video_image %}
-                  <img src="{{ video.video_image.url }}" alt="{{ video.name }}" class="img-fluid" loading="lazy" decoding="async">
+                  <canvas class="thumbnailCanvas" aria-hidden="true"></canvas>
                   {% else %}
-                  <div class="bg-gray p-4 text-center">
+                  <div class="career-video-sidebar-placeholder bg-gray d-flex align-items-center justify-content-center w-100 h-100">
                     <i class='bx bx-play-circle fs-48'></i>
                   </div>
                   {% endif %}
@@ -1734,6 +1756,26 @@
             {% endfor %}
           </div>
         </div>
+        <style>
+          .video-vertical .video-thumb-auto .career-video-sidebar-thumb {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+          }
+          .video-vertical .video-thumb-auto .career-video-sidebar-placeholder {
+            width: 100%;
+            height: 100%;
+            min-height: 180px;
+            background: #e9ecef;
+          }
+          .video-vertical .video-thumb-auto .thumbnailCanvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+          }
+        </style>
         {% endif %}
 
         <!-- Leading Professions Sidebar -->
@@ -1859,19 +1901,22 @@
 </section>
 {% endif %}
 
-<!-- Video Modal -->
-<div class="modal fade" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
+<!-- Video Modal (play on same page) -->
+<div class="modal fade career-video-modal" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header position-relative" style="z-index: 10;">
         <h5 class="modal-title" id="videoModalLabel">Career Video</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close" id="videoModalCloseBtn" data-bs-dismiss="modal" aria-label="Close" style="position: relative; z-index: 11;"></button>
       </div>
-      <div class="modal-body">
-        <video id="modalVideo" class="w-100" controls>
-          <source src="" type="video/mp4">
-          Your browser does not support the video tag.
-        </video>
+      <div class="modal-body p-0 position-relative" style="z-index: 1;">
+        <div class="ratio ratio-16x9 bg-dark">
+          <iframe id="videoFrame" src="" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" style="display:none; border:0;" title="Career video"></iframe>
+          <video id="modalVideo" class="w-100 h-100" controls playsinline controlsList="nodownload" oncontextmenu="return false;" style="display:none; background:#000; object-fit:contain;">
+            <source id="modalVideoSource" src="" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
       </div>
     </div>
   </div>
@@ -1900,26 +1945,113 @@
     careerAspectMindmap = null;
   }
   
-  // Video modal handler
+  // Video modal handler — play career sidebar videos in popup on this page
   document.addEventListener('DOMContentLoaded', function() {
     const videoModal = document.getElementById('videoModal');
+    const modalTitleEl = document.getElementById('videoModalLabel');
+    const videoFrame = document.getElementById('videoFrame');
     const modalVideo = document.getElementById('modalVideo');
-    
+    const modalVideoSource = document.getElementById('modalVideoSource');
+
+    function toYouTubeEmbed(url) {
+      if (!url) return '';
+      if (url.indexOf('youtube.com/watch') !== -1) {
+        const videoId = (url.split('v=')[1] || '').split('&')[0];
+        return videoId ? ('https://www.youtube.com/embed/' + videoId + '?autoplay=1') : url;
+      }
+      if (url.indexOf('youtu.be/') !== -1) {
+        const videoId = (url.split('youtu.be/')[1] || '').split('?')[0];
+        return videoId ? ('https://www.youtube.com/embed/' + videoId + '?autoplay=1') : url;
+      }
+      if (url.indexOf('youtube.com/embed/') !== -1) {
+        return url.indexOf('autoplay=') === -1
+          ? (url + (url.indexOf('?') === -1 ? '?autoplay=1' : '&autoplay=1'))
+          : url;
+      }
+      return url;
+    }
+
+    function isYouTube(url) {
+      return !!(url && (url.indexOf('youtube.com') !== -1 || url.indexOf('youtu.be') !== -1));
+    }
+
+    function isDirectVideo(url) {
+      if (!url) return false;
+      const u = String(url).toLowerCase();
+      return u.indexOf('.mp4') !== -1 || u.indexOf('.webm') !== -1 || u.indexOf('.mov') !== -1;
+    }
+
+    function setModalTitle(title) {
+      if (!modalTitleEl) return;
+      modalTitleEl.textContent = (title && String(title).trim()) ? title : 'Career Video';
+    }
+
+    function stopPlayers() {
+      if (videoFrame) videoFrame.src = '';
+      if (modalVideo) {
+        try { modalVideo.pause(); } catch (e) {}
+        if (modalVideoSource) modalVideoSource.src = '';
+        try { modalVideo.load(); } catch (e) {}
+      }
+    }
+
+    document.querySelectorAll('.js-career-detail-video-open').forEach(function(el) {
+      el.addEventListener('click', function(e) {
+        e.preventDefault();
+      });
+    });
+
     if (videoModal) {
       videoModal.addEventListener('show.bs.modal', function(event) {
         const button = event.relatedTarget;
-        const videoUrl = button.getAttribute('data-video');
-        if (modalVideo && videoUrl) {
-          modalVideo.src = videoUrl;
+        const videoUrl = button ? button.getAttribute('data-video') : '';
+        const title = button ? button.getAttribute('data-title') : '';
+        setModalTitle(title);
+
+        if (isYouTube(videoUrl)) {
+          if (modalVideo) {
+            try { modalVideo.pause(); } catch (e) {}
+            modalVideo.style.display = 'none';
+          }
+          if (modalVideoSource) modalVideoSource.src = '';
+          if (videoFrame) {
+            videoFrame.style.display = 'block';
+            videoFrame.src = toYouTubeEmbed(videoUrl);
+          }
+        } else if (isDirectVideo(videoUrl)) {
+          if (videoFrame) {
+            videoFrame.src = '';
+            videoFrame.style.display = 'none';
+          }
+          if (modalVideo && modalVideoSource) {
+            modalVideoSource.src = videoUrl;
+            modalVideo.load();
+            modalVideo.style.display = 'block';
+            try { modalVideo.play(); } catch (e) {}
+          }
+        } else if (videoUrl) {
+          if (modalVideo) {
+            try { modalVideo.pause(); } catch (e) {}
+            modalVideo.style.display = 'none';
+          }
+          if (videoFrame) {
+            videoFrame.style.display = 'block';
+            videoFrame.src = videoUrl;
+          }
         }
       });
-      
+
       videoModal.addEventListener('hide.bs.modal', function() {
-        if (modalVideo) {
-          modalVideo.pause();
-          modalVideo.src = '';
-        }
+        setModalTitle('Career Video');
+        stopPlayers();
+        if (videoFrame) videoFrame.style.display = 'none';
+        if (modalVideo) modalVideo.style.display = 'none';
       });
+    }
+
+    // Ensure first-frame thumbnails for MP4s without video_image
+    if (typeof generateThumbnails === 'function') {
+      try { generateThumbnails(); } catch (e) {}
     }
 
     // Copy link functionality
