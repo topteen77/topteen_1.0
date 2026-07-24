@@ -293,7 +293,12 @@ def _content_looks_like_html(text: str) -> bool:
     sample = (text or "").lstrip()[:1200].lower()
     if not sample:
         return False
-    if sample.startswith("<!doctype") or sample.startswith("<html") or sample.startswith("<"):
+    if sample.startswith("<!doctype") or sample.startswith("<html"):
+        return True
+    # Prefer markdown when classic markdown markers dominate the start.
+    if re.search(r"(?m)^(#{1,6}\s|\*\*[^*]|[-*+]\s|\|.+\|)", (text or "").lstrip()[:400]):
+        return False
+    if sample.startswith("<"):
         return True
     return bool(
         re.search(
@@ -303,9 +308,23 @@ def _content_looks_like_html(text: str) -> bool:
     )
 
 
+def _content_looks_like_markdown(text: str) -> bool:
+    sample = text or ""
+    return bool(
+        re.search(
+            r"(?m)(^#{1,6}\s|\*\*[^*\n]+\*\*|__[^_\n]+__|^\s*[-*+]\s|\[[^\]]+\]\([^)]+\)|^\|.+\|)",
+            sample,
+        )
+    )
+
+
 def _sanitize_tab_html(html: str) -> str:
     """Allowlist-sanitize HTML from the upstream API."""
-    import bleach
+    try:
+        import bleach
+    except ImportError:
+        logger.warning("bleach is not installed; returning unsanitized tab HTML")
+        return html
 
     allowed_tags = set(bleach.sanitizer.ALLOWED_TAGS).union(
         {
@@ -372,36 +391,84 @@ def _sanitize_tab_html(html: str) -> str:
     )
 
 
+def _markdown_to_html(markdown_text: str) -> str:
+    """Convert markdown to HTML; try progressively simpler extensions."""
+    import markdown
+
+    extension_sets = (
+        ["extra", "sane_lists", "nl2br", "tables"],
+        ["extra", "nl2br", "tables"],
+        ["extra", "tables"],
+        ["tables"],
+        [],
+    )
+    last_error: Optional[Exception] = None
+    for extensions in extension_sets:
+        try:
+            return markdown.markdown(markdown_text, extensions=extensions)
+        except Exception as e:
+            last_error = e
+            continue
+    if last_error:
+        raise last_error
+    return markdown.markdown(markdown_text)
+
+
+def _as_template_html(html: str):
+    """Mark HTML safe for both Django and Jinja2 autoescape."""
+    try:
+        from markupsafe import Markup
+
+        return Markup(html)
+    except Exception:
+        from django.utils.safestring import mark_safe
+
+        return mark_safe(html)
+
+
 def render_markdown_html(markdown_text: str) -> str:
-    """Render tab body: pass through HTML as-is (sanitized), else convert markdown."""
+    """Render tab body as HTML as soon as the API response is received.
+
+    - HTML payloads are sanitized and returned.
+    - Markdown payloads are converted to HTML, then sanitized.
+    """
     if not markdown_text:
         return ""
 
-    # Upstream often stores HTML in `markdown_content`. Don't run that through
-    # markdown/nl2br — it breaks tables and can surface tags as plain text.
-    if _content_looks_like_html(markdown_text):
-        try:
-            return _sanitize_tab_html(markdown_text)
-        except Exception:
-            from django.utils.html import escape
-            from django.utils.safestring import mark_safe
+    text = markdown_text.strip()
+    if not text:
+        return ""
 
-            return mark_safe(escape(markdown_text).replace("\n", "<br>"))
+    # Upstream often stores HTML in `markdown_content`. Don't run that through
+    # markdown/nl2br — it breaks tables. But if it clearly is markdown, convert.
+    treat_as_html = _content_looks_like_html(text) and not _content_looks_like_markdown(text)
+    if treat_as_html:
+        try:
+            return _as_template_html(_sanitize_tab_html(text))
+        except Exception as e:
+            logger.warning("tab HTML sanitize failed: %s", e)
+            return _as_template_html(text)
 
     try:
-        import markdown
+        html = _markdown_to_html(text)
+    except Exception as e:
+        logger.warning("markdown conversion failed: %s", e)
+        # Last resort: still avoid dumping raw markdown markers when possible.
+        try:
+            import markdown as _md
 
-        html = markdown.markdown(
-            markdown_text,
-            extensions=["extra", "sane_lists", "nl2br", "tables"],
-        )
-        return _sanitize_tab_html(html)
-    except Exception:
-        # Fallback: plain text with line breaks
-        from django.utils.html import escape
-        from django.utils.safestring import mark_safe
+            html = _md.markdown(text)
+        except Exception as e2:
+            logger.error("markdown unavailable or failed: %s", e2)
+            from django.utils.html import escape
 
-        return mark_safe(escape(markdown_text).replace("\n", "<br>"))
+            return _as_template_html(escape(text).replace("\n", "<br>"))
+
+    try:
+        return _as_template_html(_sanitize_tab_html(html))
+    except Exception as e:
+        logger.warning("post-markdown sanitize failed: %s", e)
+        return _as_template_html(html)
 
 
 def extract_tab_body(tab_data: Optional[Dict[str, Any]]) -> str:

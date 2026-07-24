@@ -2,6 +2,7 @@ amqp==5.3.1
 asgiref==3.8.1
 async-timeout==5.0.1
 beautifulsoup4==4.13.4
+bleach==6.3.0
 billiard==4.2.1
 Brotli==1.1.0
 cachetools==5.5.2
@@ -50,6 +51,7 @@ idna==3.10
 Jinja2==3.1.6
 kiwisolver==1.4.8
 kombu==5.5.4
+Markdown==3.10
 MarkupSafe==3.0.2
 matplotlib==3.10.3
 mysqlclient==2.2.6
