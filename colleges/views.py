@@ -165,10 +165,12 @@ class CollegeList(TemplateView):
         return build_html_head(title=name, description=name)
 
     def get_context(self, request,state, *args, **kwargs):
+        from django.conf import settings
         from django.urls import reverse
-        from django.core.paginator import Paginator
-        from django.db.models import Q
-        
+
+        if getattr(settings, "USE_INDIAN_COLLEGES_API", False):
+            return self.get_indian_api_context(request)
+
         try:
             clg=CollegeDocumentFilter()
             ctx=clg.get_college_list_context(request,state)
@@ -178,6 +180,7 @@ class CollegeList(TemplateView):
             ctx = self.get_fallback_context(request, state)
         
         ctx['html_head'] = self.__html_head()
+        ctx['use_indian_colleges_api'] = False
         counrty=request.GET.getlist('country')
         state_list=request.GET.getlist('state')
         city=request.GET.getlist('city')
@@ -210,6 +213,38 @@ class CollegeList(TemplateView):
                     ctx['parent_student_id'] = int(student_id)
         except Exception:
             pass
+        from users.parent_suggestions import apply_student_parent_suggestions_context, maybe_mark_parent_suggestions_seen
+        apply_student_parent_suggestions_context(ctx, request, "colleges")
+        maybe_mark_parent_suggestions_seen(
+            request, "colleges", is_parent_student_context=ctx.get("is_parent_student_context", False)
+        )
+        return ctx
+
+    def get_indian_api_context(self, request):
+        from django.urls import reverse
+        from colleges.external_api import get_college_list_context_from_api
+
+        try:
+            ctx = get_college_list_context_from_api(request)
+        except Exception as e:
+            print(f"Indian colleges API unavailable, falling back to local colleges: {e}")
+            ctx = self.get_fallback_context(request, None)
+            ctx['use_indian_colleges_api'] = False
+            ctx['api_error'] = str(e)
+            country = request.GET.getlist('country')
+            state_list = request.GET.getlist('state')
+            city = request.GET.getlist('city')
+            ctx['query_list'] = state_list + city
+            ctx['get_updated_url'] = "&".join(
+                [f"country={c}" for c in country]
+                + [f"state={s}" for s in state_list]
+                + [f"city={ci}" for ci in city]
+            )
+
+        ctx['html_head'] = self.__html_head()
+        ctx['breadcrumb'] = get_breadcrumb([{'text': 'Colleges', 'url': reverse('colleges:college')}])
+        ctx['is_parent_student_context'] = False
+        ctx['parent_student_id'] = None
         from users.parent_suggestions import apply_student_parent_suggestions_context, maybe_mark_parent_suggestions_seen
         apply_student_parent_suggestions_context(ctx, request, "colleges")
         maybe_mark_parent_suggestions_seen(
@@ -302,6 +337,71 @@ class CollegeList(TemplateView):
 
     def get(self, request,*args, **kwargs):      
         return render(request, self.template_name, self.get_context(request,args, kwargs))
+
+
+class IndianCollegeDetails(TemplateView):
+    """College detail page backed by the Indian colleges API."""
+
+    template_name = "template20/indian_college_detail.html"
+
+    def get(self, request, college_id, tab=None, *args, **kwargs):
+        from django.http import Http404
+        from django.shortcuts import redirect
+        from django.urls import reverse
+        from colleges.external_api import (
+            CollegeContentDisabled,
+            get_college_detail_context_from_api,
+            resolve_detail_tab,
+        )
+
+        active = resolve_detail_tab(tab)
+        # Canonicalize aliases like cut_off -> cut-off
+        if tab and tab != active["path"]:
+            url = reverse(
+                "colleges:indian_collegedetail_tab",
+                kwargs={"college_id": college_id, "tab": active["path"]},
+            )
+            stream = request.GET.get("stream")
+            if stream:
+                url = f"{url}?stream={stream}"
+            return redirect(url)
+
+        try:
+            ctx = get_college_detail_context_from_api(
+                college_id=college_id,
+                tab=active["path"],
+                stream_slug=request.GET.get("stream"),
+            )
+            ctx["api_error"] = None
+        except CollegeContentDisabled:
+            raise Http404("College details are not available yet.")
+        except Exception as e:
+            print(f"Indian college detail API error: {e}")
+            raise Http404("Unable to load college details right now.")
+
+        redirect_tab = ctx.get("redirect_tab")
+        if redirect_tab and redirect_tab != active["path"]:
+            url = reverse(
+                "colleges:indian_collegedetail_tab",
+                kwargs={"college_id": college_id, "tab": redirect_tab},
+            )
+            stream = request.GET.get("stream")
+            if stream:
+                url = f"{url}?stream={stream}"
+            return redirect(url)
+
+        ctx["html_head"] = build_html_head(
+            title=ctx.get("college_name") or "College",
+            description=ctx.get("college_location") or "College details",
+        )
+        ctx["breadcrumb"] = get_breadcrumb(
+            [
+                {"text": "Colleges", "url": reverse("colleges:college")},
+                {"text": ctx.get("college_name") or "Details", "url": ""},
+            ]
+        )
+        return render(request, self.template_name, ctx)
+
 
 def shortlist_college_view(request):
     if not request.user.is_authenticated:

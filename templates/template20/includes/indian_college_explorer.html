@@ -1,0 +1,236 @@
+{# Student-friendly Indian colleges search UI #}
+<form method="GET" id="collegeFilterForm" class="indian-explorer">
+  <div class="indian-search-panel mb-4">
+    <div class="indian-search-row">
+      <div class="indian-search-input-wrap">
+        <i class='bx bx-search'></i>
+        <input type="search" name="q" value="{{ search_query or '' }}"
+               class="form-control indian-search-input"
+               placeholder="Search college, city, or course…"
+               autocomplete="off"
+               aria-label="Search colleges">
+      </div>
+      <button type="submit" class="btn indian-search-btn">
+        <i class='bx bx-search-alt'></i> Search
+      </button>
+    </div>
+    <p class="indian-search-hint mb-0">
+      Tip: pick a <strong>State</strong> first, then refine by stream, fee, or entrance exam.
+    </p>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-3">
+      <div class="indian-filter-panel" id="filterSidebar">
+        <div class="indian-filter-head">
+          <div>
+            <h3 class="indian-filter-title mb-0"><i class='bx bx-slider-alt'></i> Filters</h3>
+            {% if selected_filter_count %}
+            <span class="indian-filter-count">{{ selected_filter_count }} active</span>
+            {% endif %}
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            {% if active_filters %}
+            <a href="{{ url('colleges:college') }}" class="indian-clear-link">Clear filter{% if selected_filter_count != 1 %}s{% endif %}</a>
+            {% endif %}
+            <button type="button" class="btn-close d-lg-none" aria-label="Close" onclick="closeFilterSidebar()"></button>
+          </div>
+        </div>
+
+        {% if active_filters %}
+        <div class="indian-active-box">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="indian-active-label">Applied</span>
+            <a href="{{ url('colleges:college') }}" class="indian-clear-link">Clear {% if selected_filter_count == 1 %}filter{% else %}all{% endif %}</a>
+          </div>
+          <div class="d-flex flex-wrap gap-2">
+            {% for chip in active_filters %}
+            <a href="{{ chip.remove_url }}" class="indian-active-chip indian-active-chip-remove" title="Remove {{ chip.label }}">
+              {% if chip.kind == 'search' %}<i class='bx bx-search'></i>{% endif %}
+              <span>{{ chip.label }}</span>
+              <i class='bx bx-x'></i>
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="filter-accordion indian-filter-accordion">
+          {% macro filter_radio(title, name, options, open=false, searchable=false) %}
+          {% if options %}
+          <details class="indian-filter-group" {% if open %}open{% endif %}>
+            <summary>
+              <span>{{ title }}</span>
+              <i class="bx bx-chevron-down chevron-icon"></i>
+            </summary>
+            <div class="filter-options mt-2">
+              {% if searchable %}
+              <input type="search" class="form-control form-control-sm indian-option-search mb-2"
+                     placeholder="Search {{ title|lower }}…" data-filter-search
+                     aria-label="Search {{ title }}">
+              {% endif %}
+              <div class="indian-option-list" style="max-height: 210px; overflow-y: auto;">
+                {% for opt in options %}
+                <label class="indian-option" data-option-label="{{ opt.name|lower }}">
+                  <input class="form-check-input indian-radio-toggle" type="radio" name="{{ name }}" value="{{ opt.id }}"
+                         {% if opt.selected %}checked data-was-checked="1"{% endif %} onchange="this.form.submit()">
+                  <span>{{ opt.name }}{% if opt.count %} <em class="indian-option-count">({{ opt.count }})</em>{% endif %}</span>
+                </label>
+                {% endfor %}
+              </div>
+            </div>
+          </details>
+          {% endif %}
+          {% endmacro %}
+
+          {% macro filter_check(title, name, options, open=false, searchable=false) %}
+          {% if options %}
+          <details class="indian-filter-group" {% if open %}open{% endif %}>
+            <summary>
+              <span>{{ title }}</span>
+              <i class="bx bx-chevron-down chevron-icon"></i>
+            </summary>
+            <div class="filter-options mt-2">
+              {% if searchable %}
+              <input type="search" class="form-control form-control-sm indian-option-search mb-2"
+                     placeholder="Search {{ title|lower }}…" data-filter-search
+                     aria-label="Search {{ title }}">
+              {% endif %}
+              <div class="indian-option-list" style="max-height: 210px; overflow-y: auto;">
+                {% for opt in options %}
+                <label class="indian-option" data-option-label="{{ opt.name|lower }}">
+                  <input class="form-check-input" type="checkbox" name="{{ name }}" value="{{ opt.id }}"
+                         {% if opt.selected %}checked{% endif %} onchange="this.form.submit()">
+                  <span>{{ opt.name }}{% if opt.count %} <em class="indian-option-count">({{ opt.count }})</em>{% endif %}</span>
+                </label>
+                {% endfor %}
+              </div>
+            </div>
+          </details>
+          {% endif %}
+          {% endmacro %}
+
+          {{ filter_radio('State', 'state', api_filters.state, open=true, searchable=true) }}
+          {% if has_selected_state %}
+            {{ filter_check('City', 'city', api_filters.city, open=true, searchable=true) }}
+          {% endif %}
+          {{ filter_radio('Stream', 'stream', api_filters.stream, searchable=true) }}
+          {% if has_selected_stream %}
+            {{ filter_check('Sub Stream', 'sub_stream', api_filters.sub_stream, open=true, searchable=true) }}
+            {{ filter_radio('Course', 'course', api_filters.course, searchable=true) }}
+          {% endif %}
+          {{ filter_radio('Course Type', 'course_type', api_filters.course_type) }}
+          {{ filter_radio('College Type', 'college_type', api_filters.college_type) }}
+          {{ filter_radio('Avg Fee / Year', 'avg_fee', api_filters.avg_fee) }}
+          {{ filter_radio('Course Duration', 'course_duration', api_filters.course_duration) }}
+          {{ filter_radio('College Category', 'college_category', api_filters.college_category, searchable=true) }}
+          {{ filter_check('Entrance Exam', 'entrance_exam', api_filters.entrance_exam, searchable=true) }}
+          {{ filter_radio('Gender', 'gender', api_filters.gender) }}
+        </div>
+
+        {% if active_filters %}
+        <a href="{{ url('colleges:college') }}" class="btn indian-reset-btn w-100 mt-3">Reset filters</a>
+        {% endif %}
+      </div>
+      <div class="filter-backdrop" id="filterBackdrop" onclick="closeFilterSidebar()"></div>
+    </div>
+
+    <div class="col-lg-9">
+      <div class="indian-results-toolbar mb-3">
+        <button class="btn indian-mobile-filter d-lg-none" type="button" onclick="openFilterSidebar()">
+          <i class="bx bx-filter-alt"></i>
+          Filters{% if selected_filter_count %} ({{ selected_filter_count }}){% endif %}
+        </button>
+        <div class="indian-results-meta">
+          <h3 class="indian-results-title mb-1">College results</h3>
+          <p class="mb-0 text-muted fs-14">
+            {% if colleges %}
+              <strong>{{ total_results or colleges.paginator.count }}</strong> colleges found
+              · showing <strong>{{ colleges|length }}</strong> on this page
+            {% else %}
+              No matching colleges
+            {% endif %}
+          </p>
+          {% if location_debug and location_debug.location_source == 'ip' and not query_list and not search_query %}
+          <p class="indian-location-note mb-0">
+            Nearby suggestion: {{ location_debug.resolved_city_name or '' }}{% if location_debug.resolved_state_name %}, {{ location_debug.resolved_state_name }}{% endif %}.
+            Choose a state to explore more.
+          </p>
+          {% endif %}
+        </div>
+      </div>
+
+      {% include "template20/includes/parent_suggested_section.html" %}
+
+      {% if api_error %}
+      <div class="alert alert-warning">{{ api_error }}</div>
+      {% endif %}
+
+      {% if colleges %}
+      <div class="row">
+        {% for college in colleges %}
+        <div class="col-md-6 col-xl-4 mb-4">
+          <a href="{{ url('colleges:indian_collegedetail', args=[college.college_id]) }}" class="text-decoration-none indian-college-card-link">
+            <article class="indian-college-card h-100">
+              <h4 class="indian-college-name">{{ college.name }}</h4>
+              <p class="indian-college-location mb-2">
+                <i class='bx bx-map'></i>
+                India{% if college.state_name %}, {{ college.state_name }}{% endif %}{% if college.city_name %}, {{ college.city_name }}{% endif %}
+              </p>
+              {% if college.college_type %}
+              <p class="indian-college-type mb-2">{{ college.college_type }}</p>
+              {% endif %}
+              {% if college.avg_fees %}
+              <div class="indian-fee-row">
+                {% for fee in college.avg_fees[:3] %}
+                <span class="indian-fee">{{ fee }}</span>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </article>
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+
+      {% if colleges.paginator.num_pages > 1 and (colleges.has_previous() or colleges.has_next()) %}
+      <nav aria-label="College pagination" class="college-pagination mt-2">
+        <ul class="pagination justify-content-center indian-pagination">
+          {% if colleges.has_previous() %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ colleges.previous_page_number() }}{% if get_updated_url %}&{{ get_updated_url }}{% endif %}" aria-label="Previous">
+              <i class='bx bx-chevron-left'></i>
+            </a>
+          </li>
+          {% endif %}
+          {% for page_num in colleges.paginator.page_range %}
+            {% if page_num == colleges.number %}
+              <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+            {% elif page_num > (colleges.number - 3) and page_num < (colleges.number + 3) %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_num }}{% if get_updated_url %}&{{ get_updated_url }}{% endif %}">{{ page_num }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+          {% if colleges.has_next() %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ colleges.next_page_number() }}{% if get_updated_url %}&{{ get_updated_url }}{% endif %}" aria-label="Next">
+              <i class='bx bx-chevron-right'></i>
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
+
+      {% else %}
+      <div class="indian-empty text-center py-5 px-3">
+        <div class="indian-empty-icon"><i class='bx bx-buildings'></i></div>
+        <h4 class="mb-2">No colleges match your search</h4>
+        <p class="text-muted mb-4">Try a different state, clear some filters, or search with a shorter college name.</p>
+        <a href="{{ url('colleges:college') }}" class="btn indian-search-btn">Start fresh</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</form>

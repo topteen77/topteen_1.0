@@ -141,6 +141,15 @@ ENABLE_ELASTICSEARCH = config('ENABLE_ELASTICSEARCH', default=True, cast=bool)
 if ENABLE_ELASTICSEARCH:
     INSTALLED_APPS.append('django_elasticsearch_dsl')
 
+# Indian colleges listing API (canamuni upstream). When enabled, /colleges/ uses this API.
+USE_INDIAN_COLLEGES_API = config('USE_INDIAN_COLLEGES_API', default=True, cast=bool)
+INDIAN_COLLEGES_API_BASE = config(
+    'INDIAN_COLLEGES_API_BASE', default='http://35.154.133.230:8000'
+)
+INDIAN_COLLEGES_DETAIL_BASE = config(
+    'INDIAN_COLLEGES_DETAIL_BASE', default='http://35.154.133.230:5173'
+)
+
 # AI Features Configuration (Optional - defaults to False)
 ENABLE_AI_FEATURES = config('ENABLE_AI_FEATURES', default=False, cast=bool)
 ENABLE_AI_SUMMARIES = config('ENABLE_AI_SUMMARIES', default=False, cast=bool)
