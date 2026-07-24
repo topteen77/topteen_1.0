@@ -258,7 +258,7 @@ class Careers(TemplateView):
     def get_fallback_context(self, request, url_cluster_id=None):
         from django.core.paginator import Paginator
         from .models import Career, CareerCluster
-        from django.db.models import Count, Prefetch
+        from django.db.models import Prefetch
 
         # Support both GET and POST requests
         request_data = request.POST if request.method == 'POST' else request.GET

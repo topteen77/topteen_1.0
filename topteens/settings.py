@@ -60,7 +60,7 @@ INSTALLED_APPS = [
     'gamification.apps.GamificationConfig',
     'skilllab',
     'users',
-    'careers',
+    'careers.apps.CareersConfig',
     'topteenadmin',
     'colleges',
     'courses',
@@ -761,6 +761,7 @@ _redis_port = config('REDIS_PORT', default='6379') or '6379'
 SESSION_REDIS_DB = config('SESSION_REDIS_DB', default=2, cast=int)
 TRANSLATION_REDIS_DB = config('TRANSLATION_REDIS_DB', default=3, cast=int)
 ROSTER_REDIS_DB = config('ROSTER_REDIS_DB', default=4, cast=int)
+CAREERS_REDIS_DB = config('CAREERS_REDIS_DB', default=5, cast=int)
 SESSION_CACHE_ALIAS = 'sessions'
 SESSION_USE_SIGNED_COOKIES = config('SESSION_USE_SIGNED_COOKIES', default=False, cast=bool)
 
@@ -794,6 +795,16 @@ if ENABLE_REDIS:
         'KEY_PREFIX': 'topteen_roster',
         'TIMEOUT': 90,
     }
+    # Careers list/cluster/detail — Redis even in DEBUG (default may be DummyCache).
+    CACHES['careers'] = {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': f"redis://{_redis_host}:{_redis_port}/{CAREERS_REDIS_DB}",
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'KEY_PREFIX': 'topteen_careers',
+        'TIMEOUT': 900,
+    }
 else:
     CACHES['translations'] = {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
@@ -802,6 +813,10 @@ else:
     CACHES['roster'] = {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
         'LOCATION': 'topteen-roster',
+    }
+    CACHES['careers'] = {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'topteen-careers',
     }
 
 SESSION_ENGINE = (config('SESSION_ENGINE', default='') or '').strip()
