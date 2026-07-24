@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
 import re
+import time
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from types import SimpleNamespace
@@ -11,12 +14,21 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 import requests
 from django.conf import settings
+from django.core.cache import caches
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_PAGE_SIZE = 12
 ENABLED_CONTENT_STATUSES = {"COMPLETED", "COMPLETE", "SUCCESS"}
 ENABLED_VALIDATION_STATES = {"approved"}
+# Keep under typical nginx/gunicorn proxy timeouts (often 30–60s).
+UPSTREAM_HTTP_TIMEOUT = int(getattr(settings, "INDIAN_COLLEGES_HTTP_TIMEOUT", 12) or 12)
+UPSTREAM_CACHE_TTL = int(getattr(settings, "INDIAN_COLLEGES_CACHE_TTL", 300) or 300)
+CONTEXT_CACHE_TTL = int(getattr(settings, "INDIAN_COLLEGES_CONTEXT_CACHE_TTL", 90) or 90)
+# Soft deadline so the view returns before nginx 502s the worker.
+LIST_BUILD_DEADLINE_SEC = float(
+    getattr(settings, "INDIAN_COLLEGES_LIST_DEADLINE_SEC", 18) or 18
+)
 
 
 class CollegeContentDisabled(Exception):
@@ -96,7 +108,22 @@ def _detail_base() -> str:
     return (getattr(settings, "INDIAN_COLLEGES_DETAIL_BASE", "") or "").rstrip("/")
 
 
-def _request_json(method: str, path: str, payload: Optional[Dict[str, Any]] = None, timeout: int = 30) -> Dict[str, Any]:
+def _college_api_cache():
+    try:
+        return caches["roster"]
+    except Exception:
+        from django.core.cache import cache
+
+        return cache
+
+
+def _cache_key(prefix: str, payload: Any) -> str:
+    raw = json.dumps(payload, sort_keys=True, default=str, separators=(",", ":"))
+    digest = hashlib.md5(raw.encode("utf-8")).hexdigest()
+    return f"indian_colleges:v2:{prefix}:{digest}"
+
+
+def _request_json(method: str, path: str, payload: Optional[Dict[str, Any]] = None, timeout: int = UPSTREAM_HTTP_TIMEOUT) -> Dict[str, Any]:
     base = _api_base()
     if not base:
         raise RuntimeError("INDIAN_COLLEGES_API_BASE is not configured")
@@ -119,8 +146,22 @@ def _request_json(method: str, path: str, payload: Optional[Dict[str, Any]] = No
     return data
 
 
-def _post_json(path: str, payload: Dict[str, Any], timeout: int = 30) -> Dict[str, Any]:
-    return _request_json("POST", path, payload=payload, timeout=timeout)
+def _post_json(path: str, payload: Dict[str, Any], timeout: int = UPSTREAM_HTTP_TIMEOUT) -> Dict[str, Any]:
+    cache_key = _cache_key(f"post:{path}", payload)
+    c = _college_api_cache()
+    try:
+        cached = c.get(cache_key)
+        if isinstance(cached, dict):
+            return cached
+    except Exception:
+        pass
+
+    data = _request_json("POST", path, payload=payload, timeout=timeout)
+    try:
+        c.set(cache_key, data, UPSTREAM_CACHE_TTL)
+    except Exception:
+        pass
+    return data
 
 
 def _get_json(path: str, timeout: int = 30) -> Dict[str, Any]:
@@ -790,9 +831,107 @@ def get_college_list_context_from_api(request) -> Dict[str, Any]:
         sort_order = "asc"
     search_query = (request.GET.get("q") or "").strip()
     search_lower = search_query.lower()
+    # nationwide=True is a default anti-geo flag, not a user filter.
+    user_applied_filters = bool(search_lower) or any(
+        key != "nationwide" for key in (selected_filters or {})
+    )
 
-    filters_payload = fetch_filters(selected_filters)
-    user_applied_filters = bool(selected_filters) or bool(search_lower)
+    context_cache_key = _cache_key(
+        "list_ctx",
+        {
+            "selected_filters": selected_filters,
+            "page": page,
+            "page_size": page_size,
+            "sort_order": sort_order,
+            "q": search_query,
+        },
+    )
+    cache_backend = _college_api_cache()
+    try:
+        cached_ctx = cache_backend.get(context_cache_key)
+        if isinstance(cached_ctx, dict) and cached_ctx.get("use_indian_colleges_api"):
+            return cached_ctx
+    except Exception:
+        pass
+
+    # Only one worker builds a cold context; others wait briefly for cache.
+    lock_key = f"{context_cache_key}:lock"
+    got_lock = False
+    try:
+        got_lock = bool(cache_backend.add(lock_key, "1", 45))
+    except Exception:
+        got_lock = True
+    if not got_lock:
+        for _ in range(40):
+            time.sleep(0.25)
+            try:
+                cached_ctx = cache_backend.get(context_cache_key)
+                if isinstance(cached_ctx, dict) and cached_ctx.get("use_indian_colleges_api"):
+                    return cached_ctx
+            except Exception:
+                break
+        # Builder still slow — fall through and build (better than hanging forever).
+
+    started = time.monotonic()
+
+    # Kick filters + first list pages in parallel (biggest latency win on cold load).
+    fetch_size = 50 if user_applied_filters else 48
+    # Parallel page batches keep totals useful without serial multi-second scans
+    # that push nginx past ~30s and return 502 on demo under load.
+    max_upstream_pages = 12 if user_applied_filters else 8
+    batch_size = 4
+    list_payload: Dict[str, Any] = {}
+    filters_payload: Dict[str, Any] = {}
+
+    def _fetch_pages(page_nos: Sequence[int]) -> Dict[int, Dict[str, Any]]:
+        if not page_nos:
+            return {}
+        with ThreadPoolExecutor(max_workers=len(page_nos)) as pool:
+            futs = {
+                page_no: pool.submit(
+                    fetch_colleges_list,
+                    selected_filters,
+                    page_no,
+                    fetch_size,
+                    "name",
+                    sort_order,
+                    True,
+                )
+                for page_no in page_nos
+            }
+            out: Dict[int, Dict[str, Any]] = {}
+            for page_no, fut in futs.items():
+                remaining = max(1.0, LIST_BUILD_DEADLINE_SEC - (time.monotonic() - started))
+                out[page_no] = fut.result(timeout=remaining)
+            return out
+
+    # Filters + first list batch in parallel.
+    first_batch = list(range(1, min(batch_size, max_upstream_pages) + 1))
+    with ThreadPoolExecutor(max_workers=1 + len(first_batch)) as pool:
+        fut_filters = pool.submit(fetch_filters, selected_filters)
+        list_futs = {
+            page_no: pool.submit(
+                fetch_colleges_list,
+                selected_filters,
+                page_no,
+                fetch_size,
+                "name",
+                sort_order,
+                True,
+            )
+            for page_no in first_batch
+        }
+        remaining = max(1.0, LIST_BUILD_DEADLINE_SEC - (time.monotonic() - started))
+        try:
+            filters_payload = fut_filters.result(timeout=remaining)
+            page_payloads = {}
+            for page_no, fut in list_futs.items():
+                remaining = max(1.0, LIST_BUILD_DEADLINE_SEC - (time.monotonic() - started))
+                page_payloads[page_no] = fut.result(timeout=remaining)
+        except Exception as exc:
+            for fut in list(list_futs.values()) + [fut_filters]:
+                fut.cancel()
+            raise RuntimeError(f"Indian colleges upstream timed out or failed: {exc}") from exc
 
     # Facets/counts/options use enabled colleges only (Admission content enabled).
     enabled_facet_bucket = _empty_result_facet_bucket()
@@ -810,28 +949,13 @@ def get_college_list_context_from_api(request) -> Dict[str, Any]:
             or search_lower in (item.get("course_name") or "").lower()
         ]
 
-    # Always walk upstream from page 1 so totals/facets stay stable across pagination.
-    # With filters: scan until exhausted (capped) for an accurate enabled total.
-    # Without filters: scan a fixed upstream window so page changes don't rewrite counts.
     enabled_ordered: List[Dict[str, Any]] = []
-    list_payload: Dict[str, Any] = {}
-    upstream_page = 1
+    upstream_page = 0
     upstream_exhausted = False
     upstream_has_next = False
-    fetch_size = 50 if user_applied_filters else 36
-    max_upstream_pages = 20 if user_applied_filters else 4
 
-    while upstream_page <= max_upstream_pages:
-        list_payload = fetch_colleges_list(
-            selected_filters=selected_filters,
-            page=upstream_page,
-            page_size=fetch_size,
-            sort_by="name",
-            sort_order=sort_order,
-            detail_view=True,
-        )
-        upstream_has_next = bool(list_payload.get("has_next"))
-        enabled_items = _enabled_matching(list_payload.get("data") or [])
+    def _ingest(payload: Dict[str, Any]) -> None:
+        enabled_items = _enabled_matching(payload.get("data") or [])
         for item in enabled_items:
             college_key = item.get("college_id")
             if college_key is None:
@@ -841,10 +965,33 @@ def get_college_list_context_from_api(request) -> Dict[str, Any]:
             if college_key is not None:
                 enabled_seen_ids.add(college_key)
             enabled_ordered.append(item)
-        if not upstream_has_next:
-            upstream_exhausted = True
+
+    def _ingest_ordered(payloads: Dict[int, Dict[str, Any]]) -> None:
+        nonlocal list_payload, upstream_page, upstream_has_next, upstream_exhausted
+        for page_no in sorted(payloads):
+            list_payload = payloads[page_no] or {}
+            upstream_page = page_no
+            upstream_has_next = bool(list_payload.get("has_next"))
+            _ingest(list_payload)
+            if not upstream_has_next:
+                upstream_exhausted = True
+                break
+
+    _ingest_ordered(page_payloads)
+
+    while (
+        not upstream_exhausted
+        and upstream_page < max_upstream_pages
+        and (time.monotonic() - started) < LIST_BUILD_DEADLINE_SEC
+    ):
+        next_start = upstream_page + 1
+        next_end = min(max_upstream_pages, upstream_page + batch_size)
+        if next_start > next_end:
             break
-        upstream_page += 1
+        try:
+            _ingest_ordered(_fetch_pages(range(next_start, next_end + 1)))
+        except Exception:
+            break
 
     accumulate_result_facets(enabled_facet_bucket, enabled_ordered, None)
 
@@ -1207,7 +1354,7 @@ def get_college_list_context_from_api(request) -> Dict[str, Any]:
     active_labels = [chip["label"] for chip in active_filters]
     selected_count = len(active_filters)
 
-    return {
+    result = {
         "use_indian_colleges_api": True,
         "colleges": page_obj,
         "total_results": display_total,
@@ -1241,3 +1388,14 @@ def get_college_list_context_from_api(request) -> Dict[str, Any]:
         "bookmarked_college_slugs": [],
         "api_error": None,
     }
+    try:
+        _college_api_cache().set(context_cache_key, result, CONTEXT_CACHE_TTL)
+    except Exception:
+        pass
+    finally:
+        if got_lock:
+            try:
+                _college_api_cache().delete(lock_key)
+            except Exception:
+                pass
+    return result
