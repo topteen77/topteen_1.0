@@ -512,6 +512,11 @@ def build_selected_filters(
     if gender_id:
         selected["gender"] = {"id": int(gender_id)}
 
+    # Avoid upstream IP geolocation when the user has not chosen a state/city.
+    # Without this, empty selected_filters scopes results to the caller's (server) IP.
+    if not state_id and not cities:
+        selected["nationwide"] = True
+
     return selected
 
 

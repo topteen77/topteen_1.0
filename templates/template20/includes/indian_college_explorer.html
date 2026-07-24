@@ -151,12 +151,6 @@
               No matching colleges
             {% endif %}
           </p>
-          {% if location_debug and location_debug.location_source == 'ip' and not query_list and not search_query %}
-          <p class="indian-location-note mb-0">
-            Nearby suggestion: {{ location_debug.resolved_city_name or '' }}{% if location_debug.resolved_state_name %}, {{ location_debug.resolved_state_name }}{% endif %}.
-            Choose a state to explore more.
-          </p>
-          {% endif %}
         </div>
       </div>
 
