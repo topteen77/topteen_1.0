@@ -199,6 +199,12 @@ class Careers(TemplateView):
     def get(self, request, *args, **kwargs):
         # Cluster page: store GET params in session for clean URL; clear session when no params (Reset)
         try:
+            from careers.page_cache import (
+                list_html_cache_key,
+                store_anon_html_if_eligible,
+                try_serve_anon_html,
+            )
+
             url_cluster_id = kwargs.get('cluster_id')
             if url_cluster_id is not None and request.method == 'GET':
                 session_key = 'career_cluster_%s' % url_cluster_id
@@ -213,7 +219,14 @@ class Careers(TemplateView):
                     if session_key in request.session:
                         del request.session[session_key]
                         request.session.modified = True
-            return render(request, self.template_name, self.get_context(request, args, kwargs))
+
+            cache_key = list_html_cache_key(request, cluster_id=url_cluster_id)
+            cached = try_serve_anon_html(request, cache_key)
+            if cached is not None:
+                return cached
+
+            response = render(request, self.template_name, self.get_context(request, args, kwargs))
+            return store_anon_html_if_eligible(request, cache_key, response)
         except Http404:
             raise
         except Exception as e:
@@ -278,15 +291,12 @@ class Careers(TemplateView):
             and url_cluster_id is None
         )
 
-        # Clusters with counts in one query (needed on landing + kept for context elsewhere)
-        clusters_list = list(CareerCluster.objects.filter(
-            career_clusters__publish_status=1,
-            object_status=1
-        ).annotate(
-            career_count=Count('career_clusters', distinct=True)
-        ).filter(career_count__gt=0).distinct().order_by('name'))
-        clusters = clusters_list
-        clusters_with_counts = [{'cluster': c, 'count': c.career_count} for c in clusters_list]
+        # Cluster cards: cached result payload (skips annotate query on warm hits)
+        from careers.page_cache import get_or_set_clusters_with_counts, hydrate_clusters_with_counts
+
+        clusters_payload = get_or_set_clusters_with_counts()
+        clusters_with_counts = hydrate_clusters_with_counts(clusters_payload)
+        clusters = [item['cluster'] for item in clusters_with_counts]
 
         careers_page = []
         paginator_count = 0
@@ -625,7 +635,7 @@ class CareerDetail(TemplateView):
             ctx['career_footer_paragraph_html'] = conclusion_paragraph_html or ''
             ctx['accordion_toc'] = []
 
-        # Mindmap: API-backed radial/classic vs static SVG accordion navigator
+            # Mindmap: API-backed radial/classic vs static SVG accordion navigator
         try:
             from core.models import Configuration
 
@@ -636,9 +646,9 @@ class CareerDetail(TemplateView):
             ctx['career_detail_use_classic_mindmap'] = dmt in ('16', '17', '18', '19')
             ctx['career_detail_classic_layout'] = 'vertical' if dmt in ('17', '19') else 'horizontal'
             ctx['career_detail_classic_visual_ribbon'] = dmt in ('18', '19')
-            # Backward-compatible name used by some templates / logic
+            # Legacy template flag name; value is API availability (not disk XMind)
             ctx['has_xmind_file'] = ctx['career_mindmap_api_available']
-            ctx['xmind_file_path'] = str(career.get_xmind_file_path()) if career.has_xmind_file() else None
+            ctx['xmind_file_path'] = None
             # Pre-fetch clusters as list for Jinja2 template
             ctx['career_clusters'] = list(career.career_cluster.all())
         except Exception:
@@ -1559,12 +1569,27 @@ class CareerDetail(TemplateView):
         
     def get(self, request,career_id,slug, *args, **kwargs):
         try:
+            from careers.page_cache import (
+                detail_html_cache_key,
+                store_anon_html_if_eligible,
+                try_serve_anon_html,
+            )
+
             if is_ajax(request=request):
                 clgdf=CareerDocumentFilter()
                 ctx=clgdf.get_career_detail(request,slug,is_ajax=True)
                 html=render_to_string("topteenfrontend/includes/explore_college.html",ctx)
                 return HttpResponse(html)
-            return render(request, self.template_name,self.get_context(request,career_id,slug, args, kwargs))
+
+            cache_key = detail_html_cache_key(career_id, slug)
+            cached = try_serve_anon_html(request, cache_key)
+            if cached is not None:
+                return cached
+
+            response = render(
+                request, self.template_name, self.get_context(request, career_id, slug, args, kwargs)
+            )
+            return store_anon_html_if_eligible(request, cache_key, response)
         except Http404:
             raise
         except Exception as e:
@@ -1641,10 +1666,13 @@ def convert_xmind_to_jsmind_json(xmind_data, career_name=None):
 
 def career_mindmap_json_api(request, career_id, slug):
     """
-    API endpoint: Convert career's XMind file to JSON (jsMind format)
-    Falls back to parsing HTML from career.description if XMind file not found.
-    Uses career.get_xmind_file_path() which points to /career_mindmap directory.
-    Returns graceful 404 if neither XMind file nor description available.
+    API endpoint: return jsMind JSON for a career.
+
+    Production output order (do not change without an intentional migration):
+    1. Legacy .xmind under career_mindmap/ when present (richer trees for many careers)
+    2. Else parse career.description (h2/h3)
+
+    Admins no longer manage XMind; description is the supported authoring path.
     """
     if request.method == 'OPTIONS':
         response = HttpResponse()
@@ -1656,7 +1684,7 @@ def career_mindmap_json_api(request, career_id, slug):
     try:
         career = get_object_or_404(Career, id=career_id, slug=slug)
         
-        # Try XMind file first
+        # Legacy silent source: keep first for production mindmap parity
         xmind_file_path = career.get_xmind_file_path()
         
         if xmind_file_path and xmind_file_path.exists():
@@ -1676,7 +1704,7 @@ def career_mindmap_json_api(request, career_id, slug):
                 logger.warning(f'Error processing XMind file for career {career.name}: {str(e)}')
                 # Fall through to HTML parsing fallback
         
-        # Fallback: Parse HTML from career.description using model method
+        # Supported path: Parse HTML from career.description
         if career.description:
             try:
                 jsmind_json = career.convert_description_to_jsmind_json()
@@ -2256,12 +2284,15 @@ class CareerMindmapView(TemplateView):
         ctx['breadcrumb'] = self._breadcrumb(career)
         ctx['html_head'] = self.html_head(career)
         
-        # Check if XMind file exists
+        # Mindmap available via description (or legacy silent XMind) — same as career detail API
         try:
-            ctx['has_xmind_file'] = career.has_xmind_file()
-            ctx['xmind_file_path'] = str(career.get_xmind_file_path()) if career.has_xmind_file() else None
+            ctx['has_career_mindmap'] = career.has_career_mindmap_api_data()
+            # Template still keys off has_xmind_file; keep name for layout, value = API availability
+            ctx['has_xmind_file'] = ctx['has_career_mindmap']
+            ctx['xmind_file_path'] = None
             ctx['career_clusters'] = list(career.career_cluster.all())
         except Exception:
+            ctx['has_career_mindmap'] = False
             ctx['has_xmind_file'] = False
             ctx['xmind_file_path'] = None
             ctx['career_clusters'] = []

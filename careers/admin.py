@@ -630,17 +630,16 @@ class CareerAdmin(admin.ModelAdmin):
             if is_valid:
                 self.message_user(
                     request,
-                    'Career saved. Mindmap is available for this career.',
+                    'Career saved. Mindmap is available from the career description.',
                     messages.SUCCESS,
                 )
             else:
-                detail = '; '.join(errors) if errors else 'Mindmap not found'
+                detail = '; '.join(errors) if errors else 'Mindmap not available'
                 self.message_user(
                     request,
                     (
-                        f'Career saved. Mindmap generation needed: {detail}. '
-                        'Add an XMind file under career_mindmap (matching career name/cluster) '
-                        'or ensure the description has clear headings so a mindmap can be generated.'
+                        f'Career saved. Mindmap needs attention: {detail}. '
+                        'Add clear h2/h3 section headings in the description so the mindmap can be built.'
                     ),
                     messages.WARNING,
                 )

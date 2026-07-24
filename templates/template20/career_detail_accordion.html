@@ -982,7 +982,7 @@
           {% endif %}
 
           <!-- ============================================ -->
-          <!-- NEW SVG-based Mindmap (Active) - When API mindmap unavailable (no XMind / no parsable description) -->
+          <!-- Static SVG mindmap when API mindmap unavailable -->
           <!-- ============================================ -->
           {% if enable_career_mindmap and not career_mindmap_api_available %}
           <div class="mindmap-wrapper mt-5 mb-5" id="career-svg-mindmap-section">
@@ -1161,7 +1161,7 @@
           })();
           </script>
           {% else %}
-          <div class="mindmap-wrapper mt-5 mb-5" id="career-xmind-mindmap-section">
+          <div class="mindmap-wrapper mt-5 mb-5" id="career-radial-mindmap-section">
             <div class="card" style="border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15); background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
               <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 25px;">
                 <h5 class="mb-0">✨ Radial Mind Map - {{ career.name }}</h5>
@@ -1191,7 +1191,7 @@
           <script src="{{ static('js/radial-mindmap.js') }}"></script>
           <script>
           (function() {
-            if (!document.getElementById('career-xmind-mindmap-section')) return;
+            if (!document.getElementById('career-radial-mindmap-section')) return;
             function run() {
               if (typeof window.RadialMindmap === 'undefined') { setTimeout(run, 50); return; }
               window.RadialMindmap.init({

@@ -415,51 +415,24 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
     
     def validate_mindmap(self):
         """
-        Validate mindmap file for this career.
-        Returns tuple: (is_valid: bool, errors: list)
-        Checks:
-        1. If mindmap file exists
-        2. If title in XMind file matches career name
+        Admin-facing check: can this career serve a mindmap on the site?
+
+        Mindmaps are built from career.description (h2/h3). Legacy .xmind files
+        under career_mindmap/ may still be used silently by the JSON API for
+        production output parity, but admins are not required to manage XMind.
         """
         errors = []
-        
-        # Check if file exists
-        xmind_path = self.get_xmind_file_path()
-        if not xmind_path or not xmind_path.exists():
-            errors.append("Mindmap file not found")
-            return (False, errors)
-        
-        # Check if title matches
-        try:
-            import xmindparser
-            xmind_data = xmindparser.xmind_to_dict(str(xmind_path))
-            
-            if not xmind_data or not isinstance(xmind_data, list) or len(xmind_data) == 0:
-                errors.append("Invalid XMind file format")
-                return (False, errors)
-            
-            sheet = xmind_data[0]
-            root_topic = sheet.get('topic', {})
-            xmind_title = root_topic.get('title') or root_topic.get('label') or ''
-            
-            # Normalize both titles for comparison (case-insensitive, strip whitespace)
-            career_name_normalized = (self.name or '').strip().lower()
-            xmind_title_normalized = xmind_title.strip().lower()
-            
-            if career_name_normalized and xmind_title_normalized:
-                if career_name_normalized != xmind_title_normalized:
-                    errors.append(f"Title mismatch: XMind has '{xmind_title}' but career name is '{self.name}'")
-                    return (False, errors)
-            
-        except ImportError:
-            errors.append("xmindparser library not available")
-            return (False, errors)
-        except Exception as e:
-            errors.append(f"Error reading XMind file: {str(e)}")
-            return (False, errors)
-        
-        # All validations passed
-        return (True, [])
+        if self.has_career_mindmap_api_data():
+            return (True, [])
+        if not (self.description and str(self.description).strip()):
+            errors.append(
+                "No mindmap data: add a career description with clear section headings (h2)"
+            )
+        else:
+            errors.append(
+                "Could not build a mindmap from the description; use clear h2/h3 section headings"
+            )
+        return (False, errors)
 
     def refresh_mindmap_validation(self, *, save=True):
         """
@@ -470,11 +443,6 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
         from django.utils import timezone
 
         is_valid, errors = self.validate_mindmap()
-        # Description-based mindmap still works on the site without an XMind file.
-        if not is_valid and self.has_career_mindmap_api_data():
-            is_valid = True
-            errors = []
-
         self.mindmap_validation_status = 'valid' if is_valid else 'error'
         self.mindmap_validation_errors = json.dumps(errors) if errors else None
         self.mindmap_validated_at = timezone.now()
