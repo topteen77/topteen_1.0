@@ -74,6 +74,7 @@ function loadStudentsTable(url, options = {}) {
     containerId: options.containerId || 'students-table-container',
     loaderId: options.loaderId || 'students-loader',
     wrapperId: options.wrapperId || 'students-table-wrapper',
+    skipCache: !!options.skipCache,
     onSuccess: options.onSuccess || null,
     onError: options.onError || null,
   };
@@ -88,18 +89,175 @@ function loadStudentsTable(url, options = {}) {
     return;
   }
 
-  // Show loader, hide table
-  if (loader) loader.style.display = 'block';
-  if (tableContainer) tableContainer.style.display = 'none';
-  if (wrapper) wrapper.style.display = 'none';
-
   // Ensure data_type is in URL for AJAX requests
   let ajaxUrl = url;
   if (!ajaxUrl.includes('data_type=')) {
     ajaxUrl += (ajaxUrl.includes('?') ? '&' : '?') + 'data_type=students';
   }
 
-  console.log('Loading students from:', ajaxUrl);
+  // Short-lived browser cache of rendered roster HTML (revisiting a filter skips network).
+  const ROSTER_HTML_CACHE_TTL_MS = 60000;
+  const ROSTER_HTML_CACHE_MAX = 24;
+  if (!window.__ttv2StudentRosterHtmlCache) {
+    window.__ttv2StudentRosterHtmlCache = Object.create(null);
+  }
+  const htmlCache = window.__ttv2StudentRosterHtmlCache;
+
+  function cacheKeyFor(u) {
+    try {
+      return new URL(u, window.location.origin).toString();
+    } catch (eK) {
+      return String(u || '');
+    }
+  }
+
+  function readCachedHtml(u) {
+    if (config.skipCache) return null;
+    const key = cacheKeyFor(u);
+    const hit = htmlCache[key];
+    if (!hit || !hit.html) return null;
+    if ((Date.now() - (hit.ts || 0)) > ROSTER_HTML_CACHE_TTL_MS) {
+      try { delete htmlCache[key]; } catch (eD) {}
+      return null;
+    }
+    return hit.html;
+  }
+
+  function writeCachedHtml(u, html) {
+    if (!html || config.skipCache) return;
+    const key = cacheKeyFor(u);
+    htmlCache[key] = { html: html, ts: Date.now() };
+    const keys = Object.keys(htmlCache);
+    if (keys.length > ROSTER_HTML_CACHE_MAX) {
+      keys
+        .sort(function (a, b) { return (htmlCache[a].ts || 0) - (htmlCache[b].ts || 0); })
+        .slice(0, keys.length - ROSTER_HTML_CACHE_MAX)
+        .forEach(function (k) { try { delete htmlCache[k]; } catch (eP) {} });
+    }
+  }
+
+  window.ttv2InvalidateStudentRosterHtmlCache = function () {
+    window.__ttv2StudentRosterHtmlCache = Object.create(null);
+  };
+
+  let loaderTimer = null;
+  let requestAlive = true;
+
+  function clearLoaderTimer() {
+    if (loaderTimer) {
+      clearTimeout(loaderTimer);
+      loaderTimer = null;
+    }
+  }
+
+  function hideLoaderDeferredCleanup() {
+    requestAlive = false;
+    clearLoaderTimer();
+    if (loader) loader.style.display = 'none';
+    if (tableContainer) {
+      tableContainer.style.display = '';
+      tableContainer.style.opacity = '';
+    }
+    if (wrapper) {
+      wrapper.style.display = '';
+      wrapper.style.opacity = '';
+    }
+  }
+
+  function showLoaderDeferred() {
+    clearLoaderTimer();
+    // Fast/cached responses: skip spinner. Slow AJAX: show after ~180ms only.
+    loaderTimer = setTimeout(function () {
+      loaderTimer = null;
+      if (!requestAlive) return;
+      if (loader) loader.style.display = 'block';
+      if (tableContainer) tableContainer.style.opacity = '0.45';
+      if (wrapper) wrapper.style.opacity = '0.45';
+    }, 180);
+  }
+
+  function applyRosterHtml(html) {
+    hideLoaderDeferredCleanup();
+    if (wrapper) {
+      wrapper.innerHTML = html;
+      wrapper.style.display = 'block';
+      wrapper.style.opacity = '';
+    } else if (tableContainer) {
+      tableContainer.innerHTML = html;
+      tableContainer.style.display = 'block';
+      tableContainer.style.opacity = '';
+    }
+    if (tableContainer) tableContainer.style.opacity = '';
+
+    try {
+      var hostEl = wrapper || tableContainer;
+      var inj = hostEl
+        ? (hostEl.querySelector && hostEl.querySelector('#students-table-container'))
+        : null;
+      if (!inj && tableContainer && tableContainer.id === 'students-table-container') {
+        inj = tableContainer;
+      }
+      var n = inj && inj.getAttribute ? inj.getAttribute('data-ttv2-roster-total') : null;
+      var countEl = document.getElementById('ttv2-students-roster-count');
+      if (countEl && n !== null && n !== undefined && String(n).length) {
+        countEl.textContent = String(n);
+      }
+    } catch (eCount) {}
+
+    if (typeof initializeStudentRowHover === 'function') {
+      initializeStudentRowHover();
+    }
+    if (typeof initializeStudentRowHandlers === 'function') {
+      initializeStudentRowHandlers();
+    }
+    if (typeof initTooltips === 'function') {
+      initTooltips();
+    }
+    try {
+      if (typeof window !== 'undefined' && typeof window.ttv2InitAdvisorChangeControls === 'function') {
+        window.ttv2InitAdvisorChangeControls();
+      }
+    } catch (e0) {}
+    try {
+      var hostAfter = wrapper || tableContainer;
+      var injAfter =
+        hostAfter && hostAfter.querySelector
+          ? hostAfter.querySelector('#students-table-container')
+          : null;
+      if (!injAfter && tableContainer && tableContainer.id === 'students-table-container') {
+        injAfter = tableContainer;
+      }
+      if (typeof window.ttv2RefreshBulkAdvisorBar === 'function') {
+        window.ttv2RefreshBulkAdvisorBar(injAfter || null);
+      }
+    } catch (_eRbLoad) {}
+    try {
+      if (typeof window !== 'undefined' && typeof window.ttv2InitCounselorRemarksControls === 'function') {
+        window.ttv2InitCounselorRemarksControls();
+      }
+    } catch (e1) {}
+    try {
+      if (typeof window !== 'undefined' && typeof window.ttv2InitCounselorFollowUpControls === 'function') {
+        window.ttv2InitCounselorFollowUpControls();
+      }
+    } catch (eF) {}
+    try {
+      if (typeof window !== 'undefined' && typeof window.ttv2InitFollowUpHistoryViewer === 'function') {
+        window.ttv2InitFollowUpHistoryViewer();
+      }
+    } catch (eH) {}
+    if (config.onSuccess) {
+      config.onSuccess(html);
+    }
+  }
+
+  const cached = readCachedHtml(ajaxUrl);
+  if (cached) {
+    applyRosterHtml(cached);
+    return;
+  }
+
+  showLoaderDeferred();
 
   const fetchOpts = (typeof window.ttv2AjaxFetchOptions === 'function')
     ? window.ttv2AjaxFetchOptions()
@@ -108,7 +266,7 @@ function loadStudentsTable(url, options = {}) {
   fetch(ajaxUrl, fetchOpts)
     .then(response => {
       if (typeof window.ttv2HandleAuthResponse === 'function' && window.ttv2HandleAuthResponse(response)) {
-        if (loader) loader.style.display = 'none';
+        hideLoaderDeferredCleanup();
         if (config.onError) config.onError('session_expired');
         return null;
       }
@@ -120,107 +278,17 @@ function loadStudentsTable(url, options = {}) {
     .then(html => {
       if (!html) return;
       if (typeof window.ttv2IsLoginPageHtml === 'function' && window.ttv2IsLoginPageHtml(html)) {
-        if (loader) loader.style.display = 'none';
+        hideLoaderDeferredCleanup();
         if (typeof window.ttv2PromptLogin === 'function') window.ttv2PromptLogin();
         if (config.onError) config.onError('session_expired');
         return;
       }
-      // Hide loader
-      if (loader) loader.style.display = 'none';
-
-      // Update table content
-      if (wrapper) {
-        wrapper.innerHTML = html;
-        wrapper.style.display = 'block';
-      } else if (tableContainer) {
-        tableContainer.innerHTML = html;
-        tableContainer.style.display = 'block';
-      }
-
-      // v2 roster header: show count for current filters/search (matches paginator total, not unscoped org total).
-      try {
-        var hostEl = wrapper || tableContainer;
-        var inj = hostEl
-          ? (hostEl.querySelector && hostEl.querySelector('#students-table-container'))
-          : null;
-        if (!inj && tableContainer && tableContainer.id === 'students-table-container') {
-          inj = tableContainer;
-        }
-        var n = inj && inj.getAttribute ? inj.getAttribute('data-ttv2-roster-total') : null;
-        var countEl = document.getElementById('ttv2-students-roster-count');
-        if (countEl && n !== null && n !== undefined && String(n).length) {
-          countEl.textContent = String(n);
-        }
-      } catch (eCount) {}
-
-      // Re-initialize student row hover if function exists
-      if (typeof initializeStudentRowHover === 'function') {
-        initializeStudentRowHover();
-      }
-      if (typeof initializeStudentRowHandlers === 'function') {
-        initializeStudentRowHandlers();
-      }
-
-      // Re-initialize tooltips if function exists
-      if (typeof initTooltips === 'function') {
-        initTooltips();
-      }
-
-      // Institute v2: re-bind advisor change/unassign controls after AJAX inject.
-      // (Injected HTML scripts won't run; bindings must happen here.)
-      try {
-        if (typeof window !== 'undefined' && typeof window.ttv2InitAdvisorChangeControls === 'function') {
-          window.ttv2InitAdvisorChangeControls();
-        }
-      } catch (e0) {}
-
-      try {
-        var hostAfter = wrapper || tableContainer;
-        var injAfter =
-          hostAfter && hostAfter.querySelector
-            ? hostAfter.querySelector('#students-table-container')
-            : null;
-        if (!injAfter && tableContainer && tableContainer.id === 'students-table-container') {
-          injAfter = tableContainer;
-        }
-        if (typeof window.ttv2RefreshBulkAdvisorBar === 'function') {
-          window.ttv2RefreshBulkAdvisorBar(injAfter || null);
-        }
-      } catch (_eRbLoad) {}
-
-      // Counselor remarks: bind save buttons (delegated).
-      try {
-        if (typeof window !== 'undefined' && typeof window.ttv2InitCounselorRemarksControls === 'function') {
-          window.ttv2InitCounselorRemarksControls();
-        }
-      } catch (e1) {}
-
-      // Counselor follow-up (modal): bind open + submit handlers.
-      try {
-        if (typeof window !== 'undefined' && typeof window.ttv2InitCounselorFollowUpControls === 'function') {
-          window.ttv2InitCounselorFollowUpControls();
-        }
-      } catch (eF) {}
-
-      // Institute/admin: follow-up history timeline viewer.
-      try {
-        if (typeof window !== 'undefined' && typeof window.ttv2InitFollowUpHistoryViewer === 'function') {
-          window.ttv2InitFollowUpHistoryViewer();
-        }
-      } catch (eH) {}
-
-      // Call success callback
-      if (config.onSuccess) {
-        config.onSuccess(html);
-      }
+      writeCachedHtml(ajaxUrl, html);
+      applyRosterHtml(html);
     })
     .catch(error => {
       console.error('Error loading students table:', error);
-      
-      // Hide loader
-      if (loader) loader.style.display = 'none';
-      
-      // Show error message
+      hideLoaderDeferredCleanup();
       const errorMsg = 'Error loading students. Please refresh the page.';
       if (wrapper) {
         wrapper.innerHTML = `<div class="alert alert-danger">${errorMsg}</div>`;
@@ -229,8 +297,6 @@ function loadStudentsTable(url, options = {}) {
         tableContainer.innerHTML = `<div class="alert alert-danger">${errorMsg}</div>`;
         tableContainer.style.display = 'block';
       }
-
-      // Call error callback
       if (config.onError) {
         config.onError(error);
       }
@@ -239,8 +305,11 @@ function loadStudentsTable(url, options = {}) {
 
 function ttv2ReloadStudentRosterAjax() {
   try {
+    if (typeof window.ttv2InvalidateStudentRosterHtmlCache === 'function') {
+      window.ttv2InvalidateStudentRosterHtmlCache();
+    }
     if (typeof loadStudentsTable !== 'function') return;
-    loadStudentsTable(ttv2BuildStudentRosterLoadUrl({}));
+    loadStudentsTable(ttv2BuildStudentRosterLoadUrl({}), { skipCache: true });
   } catch (eR0) {}
 }
 

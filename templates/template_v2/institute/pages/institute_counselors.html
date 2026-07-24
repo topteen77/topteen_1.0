@@ -1175,29 +1175,94 @@
     }
     #sec-institute-counselors .ttv2-activity-strip-wrap {
       margin-top: 14px;
-      padding: 14px;
+      padding: 16px 14px 12px;
       border-radius: 18px;
       border: 1px solid rgba(148, 163, 184, 0.16);
       background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.44), rgba(255, 255, 255, 0.16)),
-        rgba(248, 250, 252, 0.72);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(248, 250, 252, 0.9)),
+        rgba(241, 245, 249, 0.65);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
     }
     #sec-institute-counselors .ttv2-activity-strip {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 10px;
+      align-items: end;
+      margin: 0;
+      min-height: 132px;
+    }
+    #sec-institute-counselors .ttv2-activity-day {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       gap: 8px;
+      min-width: 0;
+    }
+    #sec-institute-counselors .ttv2-activity-day-count {
+      font-size: 11px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--c-text2);
+      line-height: 1;
+      min-height: 12px;
+    }
+    #sec-institute-counselors .ttv2-activity-day-count.is-zero {
+      color: var(--c-text3);
+      font-weight: 600;
+    }
+    #sec-institute-counselors .ttv2-activity-bar-track {
+      width: 100%;
+      max-width: 42px;
+      height: 88px;
+      display: flex;
       align-items: flex-end;
-      justify-content: space-between;
-      margin-top: 0;
+      justify-content: center;
+      border-radius: 14px;
+      background:
+        repeating-linear-gradient(
+          to top,
+          transparent 0,
+          transparent 21px,
+          rgba(148, 163, 184, 0.12) 21px,
+          rgba(148, 163, 184, 0.12) 22px
+        );
+      padding: 4px 0 2px;
     }
     #sec-institute-counselors .ttv2-activity-pill {
-      flex: 1 1 0;
-      min-width: 12px;
-      height: 54px;
+      width: 100%;
+      max-width: 28px;
+      min-height: 6px;
+      height: var(--ttv2-bar-h, 6px);
       border-radius: 999px;
-      background: linear-gradient(180deg, rgba(99, 102, 241, 0.18), rgba(99, 102, 241, 0.58));
+      flex: 0 0 auto;
+      background: linear-gradient(180deg, #818cf8 0%, #6366f1 55%, #4f46e5 100%);
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.24),
-        0 8px 18px rgba(99, 102, 241, 0.14);
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        0 8px 16px rgba(99, 102, 241, 0.22);
+      transition: transform .12s ease, filter .12s ease;
+      cursor: default;
+    }
+    #sec-institute-counselors .ttv2-activity-pill.is-zero {
+      background: rgba(148, 163, 184, 0.35);
+      box-shadow: none;
+      max-width: 22px;
+    }
+    #sec-institute-counselors .ttv2-activity-pill:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.05);
+    }
+    #sec-institute-counselors .ttv2-activity-day-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--c-text2);
+      line-height: 1;
+    }
+    #sec-institute-counselors .ttv2-activity-day-date {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--c-text3);
+      line-height: 1;
     }
     #sec-institute-counselors .ttv2-activity-note {
       display: flex;
@@ -1205,7 +1270,9 @@
       justify-content: space-between;
       gap: 10px;
       flex-wrap: wrap;
-      margin-top: 12px;
+      margin-top: 14px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(148, 163, 184, 0.14);
     }
     #sec-institute-counselors .ttv2-activity-legend {
       display: inline-flex;
@@ -1225,6 +1292,19 @@
       height: 10px;
       border-radius: 50%;
       background: linear-gradient(135deg, #6366f1, #38bdf8);
+    }
+    @media (max-width: 575.98px) {
+      #sec-institute-counselors .ttv2-activity-strip {
+        gap: 6px;
+        min-height: 118px;
+      }
+      #sec-institute-counselors .ttv2-activity-bar-track {
+        height: 72px;
+        max-width: 34px;
+      }
+      #sec-institute-counselors .ttv2-activity-day-date {
+        display: none;
+      }
     }
     #sec-institute-counselors .ttv2-leaderboard-card {
       position: relative;
@@ -1857,16 +1937,30 @@
         <div class="ttv2-activity-strip" aria-label="Weekly activity (tests + sessions)">
           {% for d in days %}
             {% set inten = (d.intensity|default(0)) %}
-            {% set alpha = (0.18 + (inten * 0.72)) %}
-            <div class="ttv2-activity-pill"
-                 role="img"
-                 title="{{ d.label }} ({{ d.date }}): sessions {{ d.sessions }}, tests {{ d.tests }}, total {{ d.total }}"
-                 style="background:rgba(99,102,241,{{ alpha }});"></div>
+            {% set tot = (d.total|default(0))|int %}
+            {% if tot <= 0 %}
+              {% set bar_h = 6 %}
+            {% else %}
+              {% set bar_h = (12 + (inten * 70))|round|int %}
+            {% endif %}
+            {% set day_num = (d.date[8:10] if d.date and (d.date|length) >= 10 else '') %}
+            <div class="ttv2-activity-day"
+                 title="{{ d.label }} ({{ d.date }}): sessions {{ d.sessions }}, tests {{ d.tests }}, total {{ tot }}">
+              <div class="ttv2-activity-day-count{% if tot == 0 %} is-zero{% endif %}">{{ tot }}</div>
+              <div class="ttv2-activity-bar-track">
+                <div class="ttv2-activity-pill{% if tot == 0 %} is-zero{% endif %}"
+                     role="img"
+                     aria-label="{{ d.label }}: {{ tot }} activities"
+                     style="--ttv2-bar-h: {{ bar_h }}px;"></div>
+              </div>
+              <div class="ttv2-activity-day-label">{{ d.label }}</div>
+              {% if day_num %}<div class="ttv2-activity-day-date">{{ day_num }}</div>{% endif %}
+            </div>
           {% endfor %}
         </div>
         <div class="ttv2-activity-note">
           <span class="ttv2-activity-legend">Activity = tests + sessions</span>
-          <div class="ttv2-muted">Hover a bar for daily details.</div>
+          <div class="ttv2-muted">Hover a day for sessions / tests split.</div>
         </div>
       </div>
     {% else %}
