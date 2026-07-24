@@ -39,9 +39,62 @@ from django.conf import settings
 import xmindparser
 import logging
 import re
+import traceback
+import uuid
 from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
+
+
+def _can_view_career_error_details(request):
+    """Staff/superuser or DEBUG: show technical error details on career error pages."""
+    user = getattr(request, 'user', None)
+    if getattr(settings, 'DEBUG', False):
+        return True
+    return bool(user and user.is_authenticated and (user.is_staff or user.is_superuser))
+
+
+def render_career_safe_error(request, exc, *, page_label='Career page', career_id=None, slug=None, status=200):
+    """
+    Never surface an unhandled 500 for career pages: render a friendly page with
+    error details (full traceback for staff/DEBUG).
+    """
+    error_id = uuid.uuid4().hex[:12]
+    tb = traceback.format_exc()
+    logger.error(
+        'Career page error [%s] %s career_id=%s slug=%s: %s',
+        error_id, page_label, career_id, slug, exc,
+        exc_info=True,
+    )
+    show_details = _can_view_career_error_details(request)
+    ctx = {
+        'html_head': build_html_head(title=f'{page_label} | Error'),
+        'page_label': page_label,
+        'error_id': error_id,
+        'error_type': type(exc).__name__,
+        'error_message': str(exc) or type(exc).__name__,
+        'career_id': career_id,
+        'career_slug': slug,
+        'show_error_details': show_details,
+        'error_traceback': tb if show_details else None,
+        'request_path': getattr(request, 'path', ''),
+    }
+    try:
+        return render(request, 'template20/career_error.html', ctx, status=status)
+    except Exception:
+        # Absolute fallback if the error template itself fails
+        logger.exception('Career error template failed [%s]', error_id)
+        body = (
+            f'<h1>Something went wrong loading this career page</h1>'
+            f'<p>Error ID: {error_id}</p>'
+            f'<p>{type(exc).__name__}: {exc}</p>'
+            f'<p><a href="/careers/">Back to careers</a></p>'
+        )
+        if show_details:
+            body += f'<pre style="white-space:pre-wrap;text-align:left">{tb}</pre>'
+        return HttpResponse(body, status=status, content_type='text/html; charset=utf-8')
+
+
 # Create your views here.
 class Careers(TemplateView):
     
@@ -143,34 +196,49 @@ class Careers(TemplateView):
         
     def get(self, request, *args, **kwargs):
         # Cluster page: store GET params in session for clean URL; clear session when no params (Reset)
-        url_cluster_id = kwargs.get('cluster_id')
-        if url_cluster_id is not None and request.method == 'GET':
-            session_key = 'career_cluster_%s' % url_cluster_id
-            if request.GET.getlist('career') or request.GET.get('page'):
-                request.session[session_key] = {
-                    'career_ids': request.GET.getlist('career'),
-                    'page': request.GET.get('page') or '1',
-                }
-                request.session.modified = True
-            else:
-                # Clean URL with no params (e.g. Reset): clear session so results are unfiltered
-                if session_key in request.session:
-                    del request.session[session_key]
+        try:
+            url_cluster_id = kwargs.get('cluster_id')
+            if url_cluster_id is not None and request.method == 'GET':
+                session_key = 'career_cluster_%s' % url_cluster_id
+                if request.GET.getlist('career') or request.GET.get('page'):
+                    request.session[session_key] = {
+                        'career_ids': request.GET.getlist('career'),
+                        'page': request.GET.get('page') or '1',
+                    }
                     request.session.modified = True
-        return render(request, self.template_name, self.get_context(request, args, kwargs))
+                else:
+                    # Clean URL with no params (e.g. Reset): clear session so results are unfiltered
+                    if session_key in request.session:
+                        del request.session[session_key]
+                        request.session.modified = True
+            return render(request, self.template_name, self.get_context(request, args, kwargs))
+        except Http404:
+            raise
+        except Exception as e:
+            return render_career_safe_error(
+                request, e,
+                page_label='Careers',
+                career_id=kwargs.get('cluster_id'),
+                slug=kwargs.get('cluster_slug'),
+            )
     
     def post(self, request, *args, **kwargs):
         # SEO redirect: single cluster from form -> /careers/cluster/<slug>-<id>/
-        clusters_post = request.POST.getlist("cluster")
-        if len(clusters_post) == 1:
-            try:
-                cid = int(clusters_post[0])
-                cluster = CareerCluster.objects.filter(id=cid).first()
-                if cluster:
-                    return redirect(reverse("careers:career_cluster", args=[cluster.slug, cluster.id]))
-            except (ValueError, TypeError):
-                pass
-        return render(request, self.template_name, self.get_context(request, args, kwargs))
+        try:
+            clusters_post = request.POST.getlist("cluster")
+            if len(clusters_post) == 1:
+                try:
+                    cid = int(clusters_post[0])
+                    cluster = CareerCluster.objects.filter(id=cid).first()
+                    if cluster:
+                        return redirect(reverse("careers:career_cluster", args=[cluster.slug, cluster.id]))
+                except (ValueError, TypeError):
+                    pass
+            return render(request, self.template_name, self.get_context(request, args, kwargs))
+        except Http404:
+            raise
+        except Exception as e:
+            return render_career_safe_error(request, e, page_label='Careers')
     
     def get_fallback_context(self, request, url_cluster_id=None):
         from django.core.paginator import Paginator
@@ -495,71 +563,105 @@ class CareerDetail(TemplateView):
             id=career_id, slug=slug,
         )
         ctx['career']=career
-        description_body, conclusion_paragraph_html = split_trailing_conclusion_from_description(
-            career.description or ''
-        )
-        intro_html = extract_intro_html_from_description(description_body)
-        # Do not show intro box when it is the same paragraph as the conclusion footer.
-        if intro_html and conclusion_paragraph_html:
-            intro_norm = conclusion_text_normalized(intro_html)
-            concl_norm = conclusion_text_normalized(conclusion_paragraph_html)
-            if intro_norm and intro_norm == concl_norm:
-                intro_html = ""
+        try:
+            description_body, conclusion_paragraph_html = split_trailing_conclusion_from_description(
+                career.description or ''
+            )
+            intro_html = extract_intro_html_from_description(description_body)
+            # Do not show intro box when it is the same paragraph as the conclusion footer.
+            if intro_html and conclusion_paragraph_html:
+                intro_norm = conclusion_text_normalized(intro_html)
+                concl_norm = conclusion_text_normalized(conclusion_paragraph_html)
+                if intro_norm and intro_norm == concl_norm:
+                    intro_html = ""
+        except Exception as e:
+            logger.warning('description split failed for career %s: %s', career_id, e, exc_info=True)
+            description_body = career.description or ''
+            conclusion_paragraph_html = ''
+            intro_html = ''
         ctx['description_intro_html'] = intro_html
         ctx['breadcrumb'] = self._breadcrumb(career)
-        country=Country.objects.all()
-        ctx['colleges'] = College.get_all_colleges()
-        ctx['countries']=country
+        try:
+            ctx['countries'] = Country.objects.all()
+        except Exception as e:
+            logger.warning('countries load failed: %s', e, exc_info=True)
+            ctx['countries'] = []
+        try:
+            ctx['colleges'] = College.get_all_colleges()
+        except Exception as e:
+            logger.warning('colleges load failed: %s', e, exc_info=True)
+            ctx['colleges'] = []
         ctx['html_head'] = self.html_head(career)
         ctx['career_rating']=career.career_rating.all()
         ctx['career_rating_url']=reverse("careers:careerrating")
         try:
-            ctx['shortlisted_career'] = CareerShortlist.objects.get(user=request.user,career=career)
-        except:
+            if request.user.is_authenticated:
+                ctx['shortlisted_career'] = CareerShortlist.objects.get(user=request.user,career=career)
+            else:
+                ctx['shortlisted_career'] = None
+        except Exception:
              ctx['shortlisted_career'] = None
         
-        from careers.related_careers import get_related_careers
-        ctx['related_careers'] = get_related_careers(career, limit=6, published_only=True).prefetch_related(
-            'career_cluster', 'profession'
-        )
+        try:
+            from careers.related_careers import get_related_careers
+            ctx['related_careers'] = get_related_careers(career, limit=6, published_only=True).prefetch_related(
+                'career_cluster', 'profession'
+            )
+        except Exception as e:
+            logger.warning('related_careers failed for career %s: %s', career_id, e, exc_info=True)
+            ctx['related_careers'] = Career.objects.none()
 
         # Generate mindmap data (career clusters)
-        ctx['mindmap_data'] = self._get_mindmap_data(career)
+        try:
+            ctx['mindmap_data'] = self._get_mindmap_data(career)
+        except Exception as e:
+            logger.warning('mindmap_data failed for career %s: %s', career_id, e, exc_info=True)
+            ctx['mindmap_data'] = '{}'
         
         # Generate career aspect mindmap data (like HIPPOLOGY example)
-        ctx['career_aspect_mindmap'] = self._get_career_aspect_mindmap(career)
+        try:
+            ctx['career_aspect_mindmap'] = self._get_career_aspect_mindmap(career)
+        except Exception as e:
+            logger.warning('career_aspect_mindmap failed for career %s: %s', career_id, e, exc_info=True)
+            ctx['career_aspect_mindmap'] = None
 
         # Build accordion from live description HTML only (not description_json).
         # Stale JSON often embeds the full document in multiple sections and duplicates the conclusion.
-        accordion_source_html = description_body
-        if count_h2_in_html(description_body) == 0:
-            accordion_source_html, _ = convert_bold_candidates_to_h2(description_body)
+        try:
+            accordion_source_html = description_body
+            if count_h2_in_html(description_body) == 0:
+                accordion_source_html, _ = convert_bold_candidates_to_h2(description_body)
 
-        accordion_sections = build_description_accordion_sections(
-            accordion_source_html,
-            json_sections=None,
-        )
-        if conclusion_paragraph_html:
-            accordion_sections = strip_conclusion_from_accordion_sections(
-                accordion_sections,
-                conclusion_paragraph_html,
+            accordion_sections = build_description_accordion_sections(
+                accordion_source_html,
+                json_sections=None,
             )
-            accordion_sections = filter_blank_sections(accordion_sections)
+            if conclusion_paragraph_html:
+                accordion_sections = strip_conclusion_from_accordion_sections(
+                    accordion_sections,
+                    conclusion_paragraph_html,
+                )
+                accordion_sections = filter_blank_sections(accordion_sections)
 
-        accordion_sections, footer_html = split_trailing_untitled_section_for_frontend(
-            accordion_sections
-        )
-        # Career detail page already shows an intro/summary at the top (description_intro_html).
-        # Hide redundant intro-like sections (Overview/About/Intro) inside the accordion for careers only.
-        accordion_sections = [
-            s for s in accordion_sections
-            if (s.get("section_id") or "").strip().lower() != "overview"
-            and not is_intro_heading(s.get("title"))
-        ]
+            accordion_sections, footer_html = split_trailing_untitled_section_for_frontend(
+                accordion_sections
+            )
+            # Career detail page already shows an intro/summary at the top (description_intro_html).
+            # Hide redundant intro-like sections (Overview/About/Intro) inside the accordion for careers only.
+            accordion_sections = [
+                s for s in accordion_sections
+                if (s.get("section_id") or "").strip().lower() != "overview"
+                and not is_intro_heading(s.get("title"))
+            ]
 
-        ctx['accordion_sections'] = accordion_sections
-        ctx['career_footer_paragraph_html'] = conclusion_paragraph_html or footer_html
-        ctx['accordion_toc'] = toc_from_sections(accordion_sections)
+            ctx['accordion_sections'] = accordion_sections
+            ctx['career_footer_paragraph_html'] = conclusion_paragraph_html or footer_html
+            ctx['accordion_toc'] = toc_from_sections(accordion_sections)
+        except Exception as e:
+            logger.warning('accordion build failed for career %s: %s', career_id, e, exc_info=True)
+            ctx['accordion_sections'] = []
+            ctx['career_footer_paragraph_html'] = conclusion_paragraph_html or ''
+            ctx['accordion_toc'] = []
 
         # Mindmap: API-backed radial/classic vs static SVG accordion navigator
         try:
@@ -1483,13 +1585,22 @@ class CareerDetail(TemplateView):
         return get_breadcrumb(lst)
         
     def get(self, request,career_id,slug, *args, **kwargs):
-        data={}  
-        if is_ajax(request=request):
-            clgdf=CareerDocumentFilter()
-            ctx=clgdf.get_career_detail(request,slug,is_ajax=True)
-            html=render_to_string("topteenfrontend/includes/explore_college.html",ctx)
-            return HttpResponse(html)    
-        return render(request, self.template_name,self.get_context(request,career_id,slug, args, kwargs))
+        try:
+            if is_ajax(request=request):
+                clgdf=CareerDocumentFilter()
+                ctx=clgdf.get_career_detail(request,slug,is_ajax=True)
+                html=render_to_string("topteenfrontend/includes/explore_college.html",ctx)
+                return HttpResponse(html)
+            return render(request, self.template_name,self.get_context(request,career_id,slug, args, kwargs))
+        except Http404:
+            raise
+        except Exception as e:
+            return render_career_safe_error(
+                request, e,
+                page_label='Career detail',
+                career_id=career_id,
+                slug=slug,
+            )
 
 
 def convert_xmind_to_jsmind_json(xmind_data, career_name=None):
@@ -1613,14 +1724,25 @@ def career_mindmap_json_api(request, career_id, slug):
         response['Access-Control-Allow-Origin'] = '*'
         return response
     
+    except Http404:
+        raise
     except Exception as e:
-        # Catch-all for any unexpected errors
-        logger.error(f'Unexpected error in career_mindmap_json_api: {str(e)}')
-        
-        response = JsonResponse({
-            'error': 'Service temporarily unavailable',
-            'available': False
-        }, status=500)
+        # Never return HTTP 500 — clients (and Network tab) treat that as a hard failure.
+        error_id = uuid.uuid4().hex[:12]
+        logger.error(
+            'Unexpected error in career_mindmap_json_api [%s]: %s',
+            error_id, e, exc_info=True,
+        )
+        payload = {
+            'error': 'Mind map temporarily unavailable',
+            'available': False,
+            'error_id': error_id,
+            'error_type': type(e).__name__,
+            'error_message': str(e) or type(e).__name__,
+        }
+        if _can_view_career_error_details(request):
+            payload['error_details'] = traceback.format_exc()
+        response = JsonResponse(payload, status=200)
         response['Access-Control-Allow-Origin'] = '*'
         return response
 
