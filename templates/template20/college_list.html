@@ -388,13 +388,149 @@ Find the perfect college for your career goals. Explore colleges by location, co
     display: flex; align-items: center; justify-content: center;
     background: #f3e8ff; color: #7c3aed; font-size: 2rem;
   }
+  .indian-psych-match {
+    background: linear-gradient(160deg, #ffffff 0%, #f8f5ff 100%);
+    border: 1px solid #ebe4f7;
+    border-radius: 16px;
+    padding: 1rem 1.15rem;
+  }
+  .indian-psych-match-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .indian-psych-match-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1f2937;
+  }
+  .indian-psych-match-sub {
+    font-size: 0.86rem;
+    color: #6b7280;
+    max-width: 40rem;
+  }
+  .indian-psych-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+  .indian-psych-match-cta {
+    border: none;
+    background: #7c3aed;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.84rem;
+    border-radius: 999px;
+    padding: 0.4rem 0.9rem;
+    white-space: nowrap;
+  }
+  .indian-psych-match-cta:hover { color: #fff; filter: brightness(1.05); }
+  .indian-psych-match-link {
+    border: 1px solid #ddd6fe;
+    background: #fff;
+    color: #6d28d9;
+    font-weight: 600;
+    font-size: 0.84rem;
+    border-radius: 999px;
+    padding: 0.4rem 0.9rem;
+    white-space: nowrap;
+  }
+  .indian-psych-match-link:hover { color: #6d28d9; background: #faf5ff; }
+  .indian-psych-stream-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+  }
+  .indian-psych-chip {
+    display: inline-block;
+    text-decoration: none;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #5b21b6;
+    background: #f3e8ff;
+    border: 1px solid #e9d5ff;
+    border-radius: 999px;
+    padding: 0.28rem 0.7rem;
+  }
+  .indian-psych-chip.is-primary,
+  .indian-psych-chip:hover {
+    background: #7c3aed;
+    border-color: #7c3aed;
+    color: #fff;
+  }
+  .indian-psych-preview-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: #6b7280;
+    margin-bottom: 0.45rem;
+  }
+  .indian-psych-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+  .indian-psych-preview-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: #fff;
+    border: 1px solid #eceff5;
+    border-radius: 12px;
+    padding: 0.7rem 0.8rem;
+  }
+  .indian-psych-preview-card:hover { border-color: #ddd6fe; }
+  .indian-psych-preview-name {
+    display: block;
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.15rem;
+  }
+  .indian-psych-preview-meta {
+    display: block;
+    font-size: 0.75rem;
+    color: #7c3aed;
+    font-weight: 600;
+  }
   @media (max-width: 991px) {
+    /* Keep slide-out filters out of document flow on mobile/PWA */
+    .indian-explorer > .row > .col-lg-3 {
+      flex: 0 0 0;
+      width: 0;
+      max-width: 0;
+      padding: 0 !important;
+      margin: 0 !important;
+      overflow: visible;
+    }
+    .indian-explorer > .row > .col-lg-9 {
+      flex: 0 0 100%;
+      max-width: 100%;
+    }
     .indian-filter-panel {
       position: fixed; inset: 0 auto 0 0; width: min(360px, 88vw); z-index: 1050;
       transform: translateX(-105%); transition: transform .25s ease; overflow-y: auto;
       border-radius: 0 16px 16px 0; top: 0;
+      max-height: 100dvh;
+      padding-top: env(safe-area-inset-top, 0);
+      padding-bottom: env(safe-area-inset-bottom, 0);
     }
     .indian-filter-panel.filter-open { transform: translateX(0); }
+    .indian-psych-match-head { flex-direction: column; }
+    .indian-psych-actions { width: 100%; }
+    .indian-psych-match-cta,
+    .indian-psych-match-link { flex: 1 1 auto; text-align: center; }
+    .indian-psych-preview-grid { grid-template-columns: 1fr; }
+  }
+  @media (display-mode: standalone) {
+    .indian-explorer-section {
+      padding-left: max(0.75rem, env(safe-area-inset-left));
+      padding-right: max(0.75rem, env(safe-area-inset-right));
+    }
+    .indian-psych-match { margin-top: 0.25rem; }
   }
 </style>
 {% endif %}
@@ -612,6 +748,63 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   });
+
+  // Matched-for-you course preview (async; does not block list SSR).
+  (function loadPsychMatchPreview() {
+    var root = document.getElementById('indianPsychMatch');
+    if (!root) return;
+    var url = root.getAttribute('data-preview-url');
+    var grid = document.getElementById('indianPsychPreviewGrid');
+    var statusEl = document.getElementById('indianPsychPreviewStatus');
+    if (!url || !grid) return;
+    if (grid.children.length > 0) {
+      if (statusEl) statusEl.hidden = true;
+      return;
+    }
+    if (statusEl) {
+      statusEl.hidden = false;
+      statusEl.textContent = 'Loading matched courses…';
+    }
+    function escapeHtml(s) {
+      return String(s || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+    var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = setTimeout(function() { if (controller) controller.abort(); }, 8000);
+    fetch(url, {
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+      credentials: 'same-origin',
+      signal: controller ? controller.signal : undefined
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      clearTimeout(timer);
+      if (!data || !data.ok || !Array.isArray(data.courses) || !data.courses.length) {
+        if (statusEl) {
+          statusEl.hidden = false;
+          statusEl.innerHTML = 'No course preview yet. <a href="/colleges/matched-courses/">Open matched courses</a>';
+        }
+        return;
+      }
+      grid.innerHTML = data.courses.map(function(c) {
+        var href = '/colleges/courses/' + encodeURIComponent(c.id) + '/?' + (c.detail_query || ('name=' + encodeURIComponent(c.name || '')));
+        return '<a class="indian-psych-preview-card" href="' + href + '">' +
+          '<span class="indian-psych-preview-name">' + escapeHtml(c.name) + '</span>' +
+          '<span class="indian-psych-preview-meta">Open course page</span></a>';
+      }).join('');
+      if (statusEl) statusEl.hidden = true;
+    })
+    .catch(function() {
+      clearTimeout(timer);
+      if (statusEl) {
+        statusEl.hidden = false;
+        statusEl.innerHTML = 'Could not load preview. <a href="/colleges/matched-courses/">Open matched courses</a>';
+      }
+    });
+  })();
 
   function getCookie(name) {
     let cookieValue = null;

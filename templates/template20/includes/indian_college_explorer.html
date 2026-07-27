@@ -136,6 +136,53 @@
     </div>
 
     <div class="col-lg-9">
+      {% if psychometric_match %}
+      <div class="indian-psych-match mb-3"
+           id="indianPsychMatch"
+           data-preview-url="{{ url('colleges:matched_courses_api') }}?stream={{ psychometric_match.stream_id }}"
+           data-stream-name="{{ psychometric_match.stream_name }}">
+        <div class="indian-psych-match-head">
+          <div>
+            <h3 class="indian-psych-match-title mb-1">{{ psychometric_match.headline }}</h3>
+            <p class="indian-psych-match-sub mb-0">{{ psychometric_match.subcopy }}</p>
+          </div>
+          <div class="indian-psych-actions">
+            <a class="btn indian-psych-match-cta"
+               href="{{ url('colleges:matched_courses') }}?stream={{ psychometric_match.stream_id }}">
+              View matched courses
+            </a>
+            <a class="btn indian-psych-match-link"
+               href="{{ url('colleges:college') }}?{{ psychometric_match.filter_query }}">
+              Apply {{ psychometric_match.stream_name }} filter
+            </a>
+          </div>
+        </div>
+        {% if psychometric_match.stream_options %}
+        <div class="indian-psych-stream-chips mt-3">
+          {% for opt in psychometric_match.stream_options %}
+          <a class="indian-psych-chip {% if opt.id == psychometric_match.stream_id %}is-primary{% endif %}"
+             href="{{ url('colleges:matched_courses') }}?stream={{ opt.id }}">{{ opt.name }}</a>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="indian-psych-preview mt-3" id="indianPsychPreview">
+          <div class="indian-psych-preview-label">Matched courses</div>
+          <div class="indian-psych-preview-grid" id="indianPsychPreviewGrid">
+            {% for course in psychometric_match_courses or [] %}
+            <a class="indian-psych-preview-card"
+               href="{{ url('colleges:indian_course_detail', args=[course.id]) }}?{{ course.detail_query }}">
+              <span class="indian-psych-preview-name">{{ course.name }}</span>
+              <span class="indian-psych-preview-meta">Open course page</span>
+            </a>
+            {% endfor %}
+          </div>
+          <p class="indian-psych-preview-status text-muted fs-13 mb-0 mt-2" id="indianPsychPreviewStatus"
+             {% if psychometric_match_courses %}hidden{% endif %}>Loading matched courses…</p>
+        </div>
+      </div>
+      {% endif %}
+
       <div class="indian-results-toolbar mb-3">
         <button class="btn indian-mobile-filter d-lg-none" type="button" onclick="openFilterSidebar()">
           <i class="bx bx-filter-alt"></i>

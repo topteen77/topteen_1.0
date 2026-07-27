@@ -3,11 +3,10 @@ from __future__ import annotations
 
 import json
 
-from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.utils.decorators import method_decorator
 from django.views import View
 
+from core.ajax_auth import ajax_session_expired_response
 from core.ai_feature_quota import (
     ALL_FEATURES,
     AIFeatureQuotaExceeded,
@@ -17,16 +16,23 @@ from core.ai_feature_quota import (
 )
 
 
-@method_decorator(login_required(login_url="/user/login/"), name="dispatch")
-class AIFeatureQuotaStatusAPI(View):
+class _AIFeatureQuotaAPIMixin:
+    """JSON APIs must not use @login_required redirects (would set ?next= to this URL)."""
+
+    def dispatch(self, request, *args, **kwargs):
+        if not getattr(request.user, "is_authenticated", False):
+            return ajax_session_expired_response(request)
+        return super().dispatch(request, *args, **kwargs)
+
+
+class AIFeatureQuotaStatusAPI(_AIFeatureQuotaAPIMixin, View):
     http_method_names = ["get"]
 
     def get(self, request, *args, **kwargs):
         return JsonResponse(status_for_user(request.user, request=request))
 
 
-@method_decorator(login_required(login_url="/user/login/"), name="dispatch")
-class AIFeatureQuotaConsumeAPI(View):
+class AIFeatureQuotaConsumeAPI(_AIFeatureQuotaAPIMixin, View):
     http_method_names = ["post"]
 
     def post(self, request, *args, **kwargs):

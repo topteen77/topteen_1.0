@@ -1,0 +1,171 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+Matched Courses | Top Teen
+{% endblock %}
+
+{% block description_content %}
+Courses matched to your psychometric profile. Browse courses and find colleges that offer them.
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block content %}
+<section class="pt-md-18 pt-14 pb-5">
+  <div class="container">
+    <div class="row mb-3">
+      <div class="col-12">
+        {% include 'template20/includes/breadcrumb.html' %}
+      </div>
+    </div>
+
+    {% if not psychometric_match %}
+    <div class="matched-courses-empty text-center py-5 px-3">
+      <h1 class="h4 mb-2">No psychometric match yet</h1>
+      <p class="text-muted mb-4">Complete your psychometric assessment to unlock matched courses.</p>
+      <a href="{{ url('colleges:college') }}" class="btn btn-outline-primary me-2">Back to colleges</a>
+      <a href="/psychometrictest/" class="btn btn-primary">Take assessment</a>
+    </div>
+    {% else %}
+    <div class="matched-courses-hero mb-4">
+      <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+        <div>
+          <h1 class="h4 mb-2">{{ psychometric_match.headline }}</h1>
+          <p class="text-muted mb-0">{{ psychometric_match.subcopy }}</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{{ url('colleges:college') }}?{{ active_stream_query }}" class="btn btn-sm matched-cta-secondary">
+            Colleges in {{ active_stream_name }}
+          </a>
+          <a href="{{ url('colleges:college') }}" class="btn btn-sm matched-cta-outline">All colleges</a>
+        </div>
+      </div>
+
+      {% if psychometric_match.stream_options %}
+      <div class="matched-stream-chips mt-3">
+        {% for opt in psychometric_match.stream_options %}
+        <a class="matched-chip {% if opt.id == active_stream_id %}is-active{% endif %}"
+           href="{{ url('colleges:matched_courses') }}?stream={{ opt.id }}">{{ opt.name }}</a>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <form method="get" class="matched-search mb-4">
+      {% if active_stream_id %}<input type="hidden" name="stream" value="{{ active_stream_id }}">{% endif %}
+      <div class="matched-search-row">
+        <input type="search" name="q" value="{{ search_query or '' }}"
+               class="form-control" placeholder="Search matched courses…"
+               aria-label="Search matched courses">
+        <button type="submit" class="btn matched-search-btn">Search</button>
+      </div>
+    </form>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="h6 mb-0">{{ active_stream_name }} courses</h2>
+      <span class="text-muted fs-14">{{ courses|length }} shown</span>
+    </div>
+
+    {% if courses %}
+    <div class="matched-course-grid">
+      {% for course in courses %}
+      <a class="matched-course-card"
+         href="{{ url('colleges:indian_course_detail', args=[course.id]) }}?{{ course.detail_query }}">
+        <div class="matched-course-name">{{ course.name }}</div>
+        <div class="matched-course-meta">Open course page <i class='bx bx-right-arrow-alt'></i></div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="matched-courses-empty text-center py-5 px-3">
+      <p class="text-muted mb-0">No courses found for this stream{% if search_query %} and search{% endif %}.</p>
+    </div>
+    {% endif %}
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block additionalcss %}
+<style>
+  .matched-courses-hero {
+    background: linear-gradient(160deg, #ffffff 0%, #f8f5ff 100%);
+    border: 1px solid #ebe4f7;
+    border-radius: 16px;
+    padding: 1.15rem 1.25rem;
+  }
+  .matched-stream-chips { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+  .matched-chip {
+    display: inline-block;
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #5b21b6;
+    background: #f3e8ff;
+    border: 1px solid #e9d5ff;
+    border-radius: 999px;
+    padding: 0.3rem 0.75rem;
+  }
+  .matched-chip.is-active,
+  .matched-chip:hover { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+  .matched-cta-secondary {
+    background: #7c3aed; color: #fff; border-radius: 999px; font-weight: 600; border: none;
+  }
+  .matched-cta-secondary:hover { color: #fff; filter: brightness(1.05); }
+  .matched-cta-outline {
+    border: 1px solid #ddd6fe; color: #6d28d9; border-radius: 999px; font-weight: 600; background: #fff;
+  }
+  .matched-search-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.65rem;
+  }
+  .matched-search-btn {
+    background: #7c3aed; color: #fff; font-weight: 600; border-radius: 10px; border: none; padding: 0.55rem 1rem;
+  }
+  .matched-search-btn:hover { color: #fff; filter: brightness(1.05); }
+  .matched-course-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+  @media (max-width: 767px) {
+    .matched-course-grid { grid-template-columns: 1fr; }
+  }
+  .matched-course-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: #fff;
+    border: 1px solid #e8e8ee;
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+  }
+  .matched-course-card:hover {
+    border-color: #ddd6fe;
+    box-shadow: 0 8px 20px rgba(88, 28, 135, 0.08);
+    transform: translateY(-2px);
+  }
+  .matched-course-name {
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.35rem;
+    line-height: 1.35;
+  }
+  .matched-course-meta {
+    font-size: 0.8rem;
+    color: #7c3aed;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+  }
+  .matched-courses-empty {
+    background: #fff;
+    border: 1px dashed #ddd6fe;
+    border-radius: 16px;
+  }
+</style>
+{% endblock %}

@@ -102,10 +102,24 @@
                   </thead>
                   <tbody>
                     {% for item in courses %}
+                    {% set course_name = item.name or (item.course.name if item.course else 'Course') %}
+                    {% set course_id = (item.course.id if item.course and item.course.id else item.id) %}
+                    {% set degree_level = item.course.degree_level if item.course else '' %}
+                    {% set stream_name = item.course.stream_name if item.course else '' %}
+                    {% set stream_slug = item.course.stream_slug if item.course else (selected_stream or '') %}
                     <tr>
-                      <td>{{ item.name or (item.course.name if item.course else 'Course') }}</td>
-                      <td>{{ item.course.degree_level if item.course else '—' }}</td>
-                      <td>{{ item.course.stream_name if item.course else '—' }}</td>
+                      <td>
+                        {% if course_id %}
+                        <a class="indian-course-link"
+                           href="{{ url('colleges:indian_course_detail', args=[course_id]) }}?name={{ course_name|urlencode }}&degree={{ degree_level|urlencode }}&stream={{ stream_name|urlencode }}&stream_slug={{ stream_slug|urlencode }}&from_college={{ college_id }}">
+                          {{ course_name }}
+                        </a>
+                        {% else %}
+                        {{ course_name }}
+                        {% endif %}
+                      </td>
+                      <td>{{ degree_level or '—' }}</td>
+                      <td>{{ stream_name or '—' }}</td>
                     </tr>
                     {% endfor %}
                   </tbody>
@@ -213,6 +227,15 @@
     border: 1px solid #a7f3d0;
     border-radius: 8px;
     padding: 0.25rem 0.6rem;
+  }
+  .indian-course-link {
+    color: #6d28d9;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .indian-course-link:hover {
+    color: #5b21b6;
+    text-decoration: underline;
   }
   .college-tabs .nav-tabs {
     border-bottom: 1px solid #e5e7eb;

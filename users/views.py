@@ -199,6 +199,8 @@ def is_safe_post_login_redirect_path(path):
     base = (p.split('?')[0] or '').lower()
     if '/notifications/api/' in base:
         return False
+    if base.startswith('/ai-feature-quota/'):
+        return False
     if base.startswith('/api/v1/'):
         return False
     if base.startswith('/api-auth/'):
@@ -4116,7 +4118,17 @@ class UserColleges(TemplateView):
                 seen.add(cs.college_id)
         ctx["colleges"] = colleges
         indian_shortlists = list(
-            IndianCollegeShortlist.objects.filter(user_id__in=user_ids).order_by("-id")
+            IndianCollegeShortlist.objects.filter(user_id__in=user_ids)
+            .only(
+                "id",
+                "external_college_id",
+                "name",
+                "city_name",
+                "state_name",
+                "college_type",
+                "avg_fees",
+            )
+            .order_by("-id")
         )
         # Dedupe by external id across linked accounts
         seen_indian = set()

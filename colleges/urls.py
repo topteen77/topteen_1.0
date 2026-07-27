@@ -21,4 +21,19 @@ urlpatterns = [
         views.shortlist_indian_college_view,
         name="shortlist_indian_college",
     ),
+    path(
+        "matched-courses/",
+        views.MatchedCoursesView.as_view(),
+        name="matched_courses",
+    ),
+    path(
+        "api/matched-courses/",
+        views.psychometric_match_courses_api,
+        name="matched_courses_api",
+    ),
+    path(
+        "courses/<int:course_id>/",
+        views.IndianCourseDetailView.as_view(),
+        name="indian_course_detail",
+    ),
 ]

@@ -26,7 +26,10 @@
   function fetchStatus() {
     return fetch(CFG.statusUrl, {
       credentials: "same-origin",
-      headers: { Accept: "application/json" },
+      headers: {
+        Accept: "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+      },
     }).then(function (r) {
       if (!r.ok) throw new Error("quota status failed");
       return r.json();
@@ -41,6 +44,7 @@
         Accept: "application/json",
         "Content-Type": "application/json",
         "X-CSRFToken": csrf(),
+        "X-Requested-With": "XMLHttpRequest",
       },
       body: JSON.stringify({ feature: feature }),
     }).then(function (r) {
