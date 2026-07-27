@@ -488,6 +488,131 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
+  // Persist a compact search snapshot for Indian college detail sidebar (no API).
+  (function saveIndianSearchSnapshot() {
+    var wrap = document.getElementById('indianCollegeResults');
+    if (!wrap) return;
+    var cards = wrap.querySelectorAll('.indian-result-card');
+    if (!cards.length) return;
+    var results = [];
+    cards.forEach(function(card) {
+      if (results.length >= 12) return;
+      results.push({
+        id: card.getAttribute('data-college-id'),
+        name: card.getAttribute('data-name') || '',
+        city: card.getAttribute('data-city') || '',
+        state: card.getAttribute('data-state') || '',
+        type: card.getAttribute('data-type') || '',
+        fees: card.getAttribute('data-fees') || ''
+      });
+    });
+    try {
+      sessionStorage.setItem('indian_college_search_snapshot', JSON.stringify({
+        listUrl: wrap.getAttribute('data-list-url') || '/colleges/',
+        query: (window.location.search || '').replace(/^\?/, '') || wrap.getAttribute('data-search-query') || '',
+        savedAt: Date.now(),
+        results: results
+      }));
+    } catch (e) {}
+  })();
+
+  document.querySelectorAll('.indian-bookmark-btn').forEach(function(button) {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var isAuthenticated = {{ 'true' if request.user.is_authenticated else 'false' }};
+      if (!isAuthenticated) {
+        Swal.fire({
+          title: 'Login Required',
+          text: 'You must be logged in to shortlist colleges. Would you like to login?',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#667eea',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Yes, Login',
+          cancelButtonText: 'Cancel'
+        }).then(function(result) {
+          if (result.isConfirmed) {
+            var trigger = document.querySelector('.student-login-popup-trigger, #header-signin-btn');
+            if (trigger) trigger.click();
+            else window.location.href = '/user/login/';
+          }
+        });
+        return;
+      }
+      var btn = this;
+      var icon = btn.querySelector('i');
+      var csrfToken = getCookie('csrftoken');
+      var body = new URLSearchParams({
+        college_id: btn.getAttribute('data-college-id') || '',
+        name: btn.getAttribute('data-name') || '',
+        city_name: btn.getAttribute('data-city') || '',
+        state_name: btn.getAttribute('data-state') || '',
+        college_type: btn.getAttribute('data-type') || '',
+        avg_fees: btn.getAttribute('data-fees') || '',
+        csrfmiddlewaretoken: csrfToken || ''
+      });
+      btn.disabled = true;
+      btn.style.opacity = '0.6';
+      fetch('{{ url("colleges:shortlist_indian_college") }}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': csrfToken || '',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: body.toString()
+      })
+      .then(function(r) {
+        if (r.status === 401 || r.status === 403) {
+          Swal.fire({
+            title: 'Login Required',
+            text: 'You must be logged in to shortlist colleges. Would you like to login?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#667eea',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, Login',
+            cancelButtonText: 'Cancel'
+          }).then(function(result) {
+            if (result.isConfirmed) {
+              var trigger = document.querySelector('.student-login-popup-trigger, #header-signin-btn');
+              if (trigger) trigger.click();
+              else window.location.href = '/user/login/';
+            }
+          });
+          return null;
+        }
+        return r.json();
+      })
+      .then(function(data) {
+        if (!data) return;
+        if (!data.success) throw new Error('fail');
+        var on = !!data.shortlisted;
+        if (icon) {
+          icon.className = on ? 'bx bxs-bookmark' : 'bx bx-bookmark';
+          icon.style.color = on ? '#28a745' : '#666';
+        }
+        btn.classList.toggle('bookmarked', on);
+        btn.title = on ? 'Remove from shortlist' : 'Shortlist college';
+        Swal.fire({
+          title: on ? 'College shortlisted' : 'Removed from shortlist',
+          icon: 'success', position: 'top-end', showConfirmButton: false, timer: 2000, toast: true
+        });
+      })
+      .catch(function() {
+        Swal.fire({
+          title: 'Error updating shortlist',
+          icon: 'error', position: 'top-end', showConfirmButton: false, timer: 2000, toast: true
+        });
+      })
+      .finally(function() {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+      });
+    });
+  });
+
   function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {

@@ -24,8 +24,22 @@
         <div class="college-header indian-detail-header p-4 mb-4">
           <div class="d-flex align-items-start gap-3">
             <div class="indian-detail-initials" aria-hidden="true">{{ initials }}</div>
-            <div>
-              <h1 class="college-title mb-2 h4">{{ college_name }}</h1>
+            <div class="flex-grow-1">
+              <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                <h1 class="college-title mb-2 h4">{{ college_name }}</h1>
+                <button type="button"
+                        class="btn btn-sm indian-detail-shortlist {% if is_indian_shortlisted %}bookmarked{% endif %}"
+                        id="indianDetailShortlist"
+                        data-college-id="{{ college_id }}"
+                        data-name="{{ college_name|e }}"
+                        data-city="{{ college_city or '' }}"
+                        data-state="{{ college_state or '' }}"
+                        data-type="{{ college_type or '' }}"
+                        data-fees="{{ (college_fees|join(', ') if college_fees else '')|e }}">
+                  <i class='bx {% if is_indian_shortlisted %}bxs-bookmark{% else %}bx-bookmark{% endif %}'></i>
+                  <span>{% if is_indian_shortlisted %}Shortlisted{% else %}Shortlist{% endif %}</span>
+                </button>
+              </div>
               {% if college_location %}
               <div class="text-muted mb-2"><i class='bx bx-map-pin'></i> {{ college_location }}</div>
               {% endif %}
@@ -42,7 +56,7 @@
         </div>
 
         <div class="college-tabs mb-4">
-          <ul class="nav nav-tabs flex-nowrap overflow-auto" style="white-space: nowrap;">
+          <ul class="nav nav-tabs flex-nowrap">
             {% for tab in tabs %}
             <li class="nav-item">
               <a class="nav-link {% if tab.active %}active{% endif %}"
@@ -116,23 +130,15 @@
           {% endif %}
         </div>
 
-        <a href="{{ url('colleges:college') }}" class="btn btn-outline-primary mb-5">
-          <i class='bx bx-arrow-back'></i> Back to Colleges
+        <a href="{{ url('colleges:college') }}" id="indianBackToColleges" class="btn btn-outline-primary mb-5">
+          <i class='bx bx-arrow-back'></i> <span>Back to Colleges</span>
         </a>
       </div>
 
       <div class="col-lg-4">
-        <div class="p-3 bg-white rounded shadow-sm mb-4">
-          <h3 class="h6 mb-3">Quick Info</h3>
-          <ul class="list-unstyled mb-0 fs-14 text-muted">
-            <li class="mb-2"><strong>Name:</strong> {{ college_name }}</li>
-            {% if college_city %}<li class="mb-2"><strong>City:</strong> {{ college_city }}</li>{% endif %}
-            {% if college_state %}<li class="mb-2"><strong>State:</strong> {{ college_state }}</li>{% endif %}
-            {% if college_type %}<li class="mb-2"><strong>Type:</strong> {{ college_type }}</li>{% endif %}
-            {% if college_fees %}
-            <li class="mb-0"><strong>Avg Fee:</strong> {{ college_fees|join(', ') }}</li>
-            {% endif %}
-          </ul>
+        <div id="indianFromSearchBlock" class="p-3 bg-white rounded shadow-sm mb-4" hidden>
+          <h3 class="h6 mb-3">From your search</h3>
+          <div id="indianFromSearchList" class="indian-from-search-list"></div>
         </div>
       </div>
     </div>
@@ -171,6 +177,23 @@
     background: linear-gradient(145deg, #ede9fe, #ddd6fe);
     border: 1px solid #ddd6fe;
   }
+  .indian-detail-shortlist {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1px solid #ddd6fe;
+    background: #fff;
+    color: #5b21b6;
+    border-radius: 999px;
+    padding: 0.35rem 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .indian-detail-shortlist.bookmarked {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #047857;
+  }
   .indian-chip {
     display: inline-block;
     font-size: 0.75rem;
@@ -191,7 +214,16 @@
     border-radius: 8px;
     padding: 0.25rem 0.6rem;
   }
-  .college-tabs .nav-tabs { border-bottom: 1px solid #e5e7eb; }
+  .college-tabs .nav-tabs {
+    border-bottom: 1px solid #e5e7eb;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .college-tabs .nav-tabs::-webkit-scrollbar { display: none; }
   .college-tabs .nav-link {
     color: #4b5563;
     border: none;
@@ -203,6 +235,31 @@
     color: #7c3aed;
     border-bottom-color: #7c3aed;
     background: transparent;
+  }
+  .indian-from-search-item {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid #eceff5;
+    border-radius: 12px;
+    padding: 0.75rem 0.85rem;
+    margin-bottom: 0.65rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .indian-from-search-item:last-child { margin-bottom: 0; }
+  .indian-from-search-item:hover {
+    border-color: #ddd6fe;
+    box-shadow: 0 4px 12px rgba(88, 28, 135, 0.06);
+  }
+  .indian-from-search-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.2rem;
+  }
+  .indian-from-search-meta {
+    font-size: 0.78rem;
+    color: #6b7280;
   }
   .indian-college-markdown h1,
   .indian-college-markdown h2,
@@ -227,4 +284,177 @@
     padding: 0.5rem 0.75rem;
   }
 </style>
+{% endblock %}
+
+{% block additionaljs %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+(function() {
+  var SNAPSHOT_KEY = 'indian_college_search_snapshot';
+  var currentId = String({{ college_id }});
+
+  function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      document.cookie.split(';').forEach(function(cookie) {
+        cookie = cookie.trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        }
+      });
+    }
+    return cookieValue;
+  }
+
+  function readSnapshot() {
+    try {
+      var raw = sessionStorage.getItem(SNAPSHOT_KEY);
+      if (!raw) return null;
+      var data = JSON.parse(raw);
+      if (!data || !Array.isArray(data.results)) return null;
+      return data;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function escapeHtml(s) {
+    return String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  var snapshot = readSnapshot();
+  var backBtn = document.getElementById('indianBackToColleges');
+  if (snapshot && snapshot.listUrl && backBtn) {
+    var href = snapshot.listUrl;
+    if (snapshot.query) {
+      href += (href.indexOf('?') === -1 ? '?' : '&') + snapshot.query;
+    }
+    backBtn.setAttribute('href', href);
+    var label = backBtn.querySelector('span');
+    if (label) label.textContent = 'Back to search results';
+  }
+
+  var block = document.getElementById('indianFromSearchBlock');
+  var list = document.getElementById('indianFromSearchList');
+  if (snapshot && block && list) {
+    var others = snapshot.results.filter(function(item) {
+      return String(item.id) !== currentId;
+    }).slice(0, 8);
+    if (others.length) {
+      list.innerHTML = others.map(function(item) {
+        var loc = ['India', item.state, item.city].filter(Boolean).join(', ');
+        var meta = [item.type, item.fees].filter(Boolean).join(' · ');
+        return '<a class="indian-from-search-item" href="/colleges/institute/' + encodeURIComponent(item.id) + '/">' +
+          '<div class="indian-from-search-name">' + escapeHtml(item.name) + '</div>' +
+          '<div class="indian-from-search-meta">' + escapeHtml(loc) +
+          (meta ? '<br>' + escapeHtml(meta) : '') +
+          '</div></a>';
+      }).join('');
+      block.hidden = false;
+    }
+  }
+
+  var shortlistBtn = document.getElementById('indianDetailShortlist');
+  if (shortlistBtn) {
+    shortlistBtn.addEventListener('click', function() {
+      var isAuthenticated = {{ 'true' if request.user.is_authenticated else 'false' }};
+      if (!isAuthenticated) {
+        if (window.Swal) {
+          Swal.fire({
+            title: 'Login Required',
+            text: 'You must be logged in to shortlist colleges. Would you like to login?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#667eea',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, Login',
+            cancelButtonText: 'Cancel'
+          }).then(function(result) {
+            if (result.isConfirmed) {
+              var trigger = document.querySelector('.student-login-popup-trigger, #header-signin-btn');
+              if (trigger) trigger.click();
+              else window.location.href = '/user/login/';
+            }
+          });
+        }
+        return;
+      }
+      var btn = shortlistBtn;
+      var csrf = getCookie('csrftoken');
+      var body = new URLSearchParams({
+        college_id: btn.getAttribute('data-college-id') || '',
+        name: btn.getAttribute('data-name') || '',
+        city_name: btn.getAttribute('data-city') || '',
+        state_name: btn.getAttribute('data-state') || '',
+        college_type: btn.getAttribute('data-type') || '',
+        avg_fees: btn.getAttribute('data-fees') || '',
+        csrfmiddlewaretoken: csrf || ''
+      });
+      btn.disabled = true;
+      fetch('{{ url("colleges:shortlist_indian_college") }}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': csrf || '',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: body.toString()
+      })
+      .then(function(r) {
+        if (r.status === 401 || r.status === 403) {
+          if (window.Swal) {
+            Swal.fire({
+              title: 'Login Required',
+              text: 'You must be logged in to shortlist colleges. Would you like to login?',
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonColor: '#667eea',
+              cancelButtonColor: '#d33',
+              confirmButtonText: 'Yes, Login',
+              cancelButtonText: 'Cancel'
+            }).then(function(result) {
+              if (result.isConfirmed) {
+                var trigger = document.querySelector('.student-login-popup-trigger, #header-signin-btn');
+                if (trigger) trigger.click();
+                else window.location.href = '/user/login/';
+              }
+            });
+          }
+          return null;
+        }
+        return r.json();
+      })
+      .then(function(data) {
+        if (!data) return;
+        if (!data.success) throw new Error('fail');
+        var on = !!data.shortlisted;
+        btn.classList.toggle('bookmarked', on);
+        var icon = btn.querySelector('i');
+        var span = btn.querySelector('span');
+        if (icon) icon.className = on ? 'bx bxs-bookmark' : 'bx bx-bookmark';
+        if (span) span.textContent = on ? 'Shortlisted' : 'Shortlist';
+        if (window.Swal) {
+          Swal.fire({
+            title: on ? 'College shortlisted' : 'Removed from shortlist',
+            icon: 'success', position: 'top-end', showConfirmButton: false, timer: 2000, toast: true
+          });
+        }
+      })
+      .catch(function() {
+        if (window.Swal) {
+          Swal.fire({
+            title: 'Error updating shortlist',
+            icon: 'error', position: 'top-end', showConfirmButton: false, timer: 2000, toast: true
+          });
+        }
+      })
+      .finally(function() { btn.disabled = false; });
+    });
+  }
+})();
+</script>
 {% endblock %}

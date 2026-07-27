@@ -4102,7 +4102,7 @@ class UserColleges(TemplateView):
         return build_html_head(title=name, description=name)
 
     def get_context(self,request,*args,**kwargs):
-        from colleges.models import CollegeShortlist
+        from colleges.models import CollegeShortlist, IndianCollegeShortlist
         ctx={}
         ctx["html_head"] = self.html_head()
         user_ids = _bookmark_owner_user_ids(request.user)
@@ -4115,6 +4115,18 @@ class UserColleges(TemplateView):
                 colleges.append(cs.college)
                 seen.add(cs.college_id)
         ctx["colleges"] = colleges
+        indian_shortlists = list(
+            IndianCollegeShortlist.objects.filter(user_id__in=user_ids).order_by("-id")
+        )
+        # Dedupe by external id across linked accounts
+        seen_indian = set()
+        indian_colleges = []
+        for item in indian_shortlists:
+            if item.external_college_id in seen_indian:
+                continue
+            seen_indian.add(item.external_college_id)
+            indian_colleges.append(item)
+        ctx["indian_colleges"] = indian_colleges
         ctx['breadcrumb']=self.__breadcrumb()
         from users.parent_suggestions import (
             apply_scrapbook_parent_updates_context,

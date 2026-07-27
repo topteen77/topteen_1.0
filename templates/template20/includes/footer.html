@@ -1,7 +1,7 @@
 <!-- Footer Section -->
 <footer class="footer-area">
   {% block footer_cta %}
-  {% if not has_payment %}
+  {% if not has_payment and not request.path.startswith('/colleges/') %}
   <div class="footer-cta border-bottom-t pb-md-8 pb-5">
     <div class="container">
       <div class="row">

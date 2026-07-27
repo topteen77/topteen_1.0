@@ -3,7 +3,7 @@ from urllib import request
 from django.shortcuts import render
 from django.http import JsonResponse
 from colleges.document_filters import CollegeDocumentFilter
-from .models import College,CollegeShortlist
+from .models import College, CollegeShortlist, IndianCollegeShortlist
 from django.shortcuts import get_object_or_404
 from django.views.generic import TemplateView
 from courses.models import Course
@@ -245,6 +245,13 @@ class CollegeList(TemplateView):
         ctx['breadcrumb'] = get_breadcrumb([{'text': 'Colleges', 'url': reverse('colleges:college')}])
         ctx['is_parent_student_context'] = False
         ctx['parent_student_id'] = None
+        ctx['indian_shortlisted_ids'] = []
+        if request.user.is_authenticated:
+            ctx['indian_shortlisted_ids'] = list(
+                IndianCollegeShortlist.objects.filter(user=request.user).values_list(
+                    'external_college_id', flat=True
+                )
+            )
         from users.parent_suggestions import apply_student_parent_suggestions_context, maybe_mark_parent_suggestions_seen
         apply_student_parent_suggestions_context(ctx, request, "colleges")
         maybe_mark_parent_suggestions_seen(
@@ -379,6 +386,14 @@ class IndianCollegeDetails(TemplateView):
             print(f"Indian college detail API error: {e}")
             raise Http404("Unable to load college details right now.")
 
+        ctx["is_indian_shortlisted"] = False
+        if request.user.is_authenticated:
+            ctx["is_indian_shortlisted"] = IndianCollegeShortlist.objects.filter(
+                user=request.user,
+                external_college_id=int(college_id),
+                object_status=1,
+            ).exists()
+
         redirect_tab = ctx.get("redirect_tab")
         if redirect_tab and redirect_tab != active["path"]:
             url = reverse(
@@ -423,3 +438,72 @@ def shortlist_college_view(request):
             return JsonResponse({'success':'true'})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+def shortlist_indian_college_view(request):
+    """Toggle shortlist for an external Indian college (student dashboard scrapbook)."""
+    if not request.user.is_authenticated:
+        return JsonResponse(
+            {"success": False, "error": "User not authenticated"},
+            status=401,
+        )
+
+    college_id = request.POST.get("college_id") or request.GET.get("college_id")
+    if not college_id:
+        return JsonResponse(
+            {"success": False, "error": "College ID is required"},
+            status=400,
+        )
+    try:
+        college_id = int(college_id)
+    except (TypeError, ValueError):
+        return JsonResponse(
+            {"success": False, "error": "Invalid college ID"},
+            status=400,
+        )
+
+    name = (request.POST.get("name") or request.GET.get("name") or "").strip()
+    city_name = (request.POST.get("city_name") or "").strip()
+    state_name = (request.POST.get("state_name") or "").strip()
+    college_type = (request.POST.get("college_type") or "").strip()
+    avg_fees = (request.POST.get("avg_fees") or "").strip()
+
+    existing = IndianCollegeShortlist.objects.filter(
+        user=request.user,
+        external_college_id=college_id,
+    ).first()
+    if existing and existing.object_status == 1:
+        existing.delete(hard_delete=True)
+        return JsonResponse(
+            {
+                "success": True,
+                "message": "Removed Shortlisted",
+                "shortlisted": False,
+            }
+        )
+
+    if existing:
+        existing.object_status = 1
+        existing.name = name or existing.name or f"College {college_id}"
+        existing.city_name = city_name or existing.city_name
+        existing.state_name = state_name or existing.state_name
+        existing.college_type = college_type or existing.college_type
+        existing.avg_fees = avg_fees or existing.avg_fees
+        existing.save()
+    else:
+        IndianCollegeShortlist.objects.create(
+            user=request.user,
+            external_college_id=college_id,
+            name=name or f"College {college_id}",
+            city_name=city_name,
+            state_name=state_name,
+            college_type=college_type,
+            avg_fees=avg_fees,
+        )
+    return JsonResponse(
+        {
+            "success": True,
+            "message": "College Shortlisted",
+            "shortlisted": True,
+        }
+    )

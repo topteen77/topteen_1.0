@@ -161,28 +161,53 @@
       {% endif %}
 
       {% if colleges %}
-      <div class="row">
+      <div class="row" id="indianCollegeResults"
+           data-search-query="{{ (get_updated_url or '')|e }}"
+           data-list-url="{{ url('colleges:college') }}">
         {% for college in colleges %}
+        {% set is_shortlisted = college.college_id in (indian_shortlisted_ids or []) %}
         <div class="col-md-6 col-xl-4 mb-4">
-          <a href="{{ url('colleges:indian_collegedetail', args=[college.college_id]) }}" class="text-decoration-none indian-college-card-link">
-            <article class="indian-college-card h-100">
-              <h4 class="indian-college-name">{{ college.name }}</h4>
-              <p class="indian-college-location mb-2">
-                <i class='bx bx-map'></i>
-                India{% if college.state_name %}, {{ college.state_name }}{% endif %}{% if college.city_name %}, {{ college.city_name }}{% endif %}
-              </p>
-              {% if college.college_type %}
-              <p class="indian-college-type mb-2">{{ college.college_type }}</p>
-              {% endif %}
-              {% if college.avg_fees %}
-              <div class="indian-fee-row">
-                {% for fee in college.avg_fees[:3] %}
-                <span class="indian-fee">{{ fee }}</span>
-                {% endfor %}
-              </div>
-              {% endif %}
-            </article>
-          </a>
+          <div class="position-relative h-100">
+            <button type="button"
+                    class="btn btn-sm p-2 position-absolute top-0 end-0 m-2 indian-bookmark-btn {% if is_shortlisted %}bookmarked{% endif %}"
+                    style="z-index: 2; background: rgba(255,255,255,0.95); border-radius: 50%; width: 36px; height: 36px;"
+                    data-college-id="{{ college.college_id }}"
+                    data-name="{{ college.name|e }}"
+                    data-city="{{ college.city_name or '' }}"
+                    data-state="{{ college.state_name or '' }}"
+                    data-type="{{ college.college_type or '' }}"
+                    data-fees="{{ (college.avg_fees|join(', ') if college.avg_fees else '')|e }}"
+                    title="{% if is_shortlisted %}Remove from shortlist{% else %}Shortlist college{% endif %}">
+              <i class='bx {% if is_shortlisted %}bxs-bookmark{% else %}bx-bookmark{% endif %}'
+                 style="font-size: 20px; color: {% if is_shortlisted %}#28a745{% else %}#666{% endif %};"></i>
+            </button>
+            <a href="{{ url('colleges:indian_collegedetail', args=[college.college_id]) }}"
+               class="text-decoration-none indian-college-card-link indian-result-card"
+               data-college-id="{{ college.college_id }}"
+               data-name="{{ college.name|e }}"
+               data-city="{{ college.city_name or '' }}"
+               data-state="{{ college.state_name or '' }}"
+               data-type="{{ college.college_type or '' }}"
+               data-fees="{{ (college.avg_fees|join(', ') if college.avg_fees else '')|e }}">
+              <article class="indian-college-card h-100">
+                <h4 class="indian-college-name">{{ college.name }}</h4>
+                <p class="indian-college-location mb-2">
+                  <i class='bx bx-map'></i>
+                  India{% if college.state_name %}, {{ college.state_name }}{% endif %}{% if college.city_name %}, {{ college.city_name }}{% endif %}
+                </p>
+                {% if college.college_type %}
+                <p class="indian-college-type mb-2">{{ college.college_type }}</p>
+                {% endif %}
+                {% if college.avg_fees %}
+                <div class="indian-fee-row">
+                  {% for fee in college.avg_fees[:3] %}
+                  <span class="indian-fee">{{ fee }}</span>
+                  {% endfor %}
+                </div>
+                {% endif %}
+              </article>
+            </a>
+          </div>
         </div>
         {% endfor %}
       </div>

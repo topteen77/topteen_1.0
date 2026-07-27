@@ -16,4 +16,9 @@ urlpatterns = [
     ),
     path("",views.CollegeList.as_view(),name='college'),
     path("shortlistcollege/",views.shortlist_college_view,name="shortlistcollege"),
+    path(
+        "shortlist-indian-college/",
+        views.shortlist_indian_college_view,
+        name="shortlist_indian_college",
+    ),
 ]
