@@ -63,15 +63,23 @@
         align-items: center;
         flex-shrink: 0;
       }
-      .tt-header-mobile-account .dropdown-content.login-content {
+      .tt-header-mobile-account.dropdown:not(.dropdown-show) .dropdown-content.login-content {
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        pointer-events: none !important;
+      }
+
+      .tt-header-mobile-account.dropdown .dropdown-content.login-content {
         position: absolute;
-        right: -43px;
-        top: calc(100% + 8px);
+        right: 0;
+        top: calc(100% + 8px) !important;
         width: min(302px, calc(100vw - 24px));
         z-index: 1060;
         box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
         border-radius: 12px;
-        top:44px !important;
       }
       .tt-header .tt-notification-dropdown {
         min-width: min(344px, calc(100vw - 24px));
@@ -297,25 +305,25 @@
 
     if (burger && menu) {
       burger.addEventListener('click', function (e) {
+        e.preventDefault();
         e.stopPropagation();
-        var isActive = burger.classList.toggle('is-active');
-        if (isActive) {
-          openMenu();
-        } else {
+        if (menu.classList.contains('is-active')) {
           closeMenu();
+        } else {
+          openMenu();
         }
       });
 
-      // Close when clicking a link (mobile)
+      // Close when clicking a link (mobile/tablet)
       menu.querySelectorAll('a').forEach(function (a) {
         a.addEventListener('click', function () {
-          if (window.innerWidth < 768) closeMenu();
+          if (window.innerWidth < 992) closeMenu();
         });
       });
 
-      // Click outside to close (mobile)
+      // Click outside to close (mobile/tablet)
       document.addEventListener('click', function (e) {
-        if (window.innerWidth < 768) {
+        if (window.innerWidth < 992) {
           if (!menu.contains(e.target) && !burger.contains(e.target)) {
             closeMenu();
           }
@@ -324,7 +332,7 @@
 
       // Ensure classes removed on resize to desktop
       window.addEventListener('resize', function () {
-        if (window.innerWidth >= 768) {
+        if (window.innerWidth >= 992) {
           closeMenu();
         }
       });

@@ -9,16 +9,8 @@
     );
   }
 
-  function isIOS() {
-    return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
-  }
-
   function shouldShowLaunchScreen() {
     if (!isStandalonePwa()) {
-      return false;
-    }
-    /* iOS uses apple-touch-startup-image (logo + tagline) on cold start. */
-    if (isIOS()) {
       return false;
     }
     try {
@@ -36,34 +28,87 @@
     }
   }
 
+  function forceCleanup() {
+    document.documentElement.classList.remove('pwa-launch-active');
+    var splash = document.getElementById('pwa-launch-screen');
+    if (!splash) {
+      return;
+    }
+    splash.hidden = true;
+    splash.classList.remove('is-hiding');
+    splash.setAttribute('aria-hidden', 'true');
+  }
+
+  function showSplash() {
+    var splash = document.getElementById('pwa-launch-screen');
+    if (!splash) {
+      return null;
+    }
+    document.documentElement.classList.add('pwa-launch-active');
+    splash.hidden = false;
+    splash.classList.remove('is-hiding');
+    splash.setAttribute('aria-hidden', 'false');
+    return splash;
+  }
+
   if (!shouldShowLaunchScreen()) {
+    forceCleanup();
     return;
   }
 
-  var splash = document.getElementById('pwa-launch-screen');
+  var splash = showSplash();
   if (!splash) {
+    forceCleanup();
     return;
   }
 
+  var progressBar = document.getElementById('pwa-launch-progress');
+  var progressRoot = splash.querySelector('.pwa-launch-screen__loader');
   var minVisibleMs = 1400;
-  var maxVisibleMs = 3500;
+  var maxVisibleMs = 4000;
   var startedAt = Date.now();
   var hidden = false;
+  var progress = 0;
+  var progressTimer = null;
 
-  document.documentElement.classList.add('pwa-launch-active');
-  splash.hidden = false;
+  function setProgress(value) {
+    progress = Math.max(0, Math.min(100, value));
+    if (progressBar) {
+      progressBar.style.width = progress + '%';
+    }
+    if (progressRoot) {
+      progressRoot.setAttribute('aria-valuenow', String(Math.round(progress)));
+    }
+  }
+
+  function tickProgress() {
+    if (hidden) {
+      return;
+    }
+    var elapsed = Date.now() - startedAt;
+    var target = Math.min(94, 12 + (elapsed / maxVisibleMs) * 82);
+    if (target > progress) {
+      setProgress(target);
+    }
+    progressTimer = window.setTimeout(tickProgress, 100);
+  }
+
+  tickProgress();
 
   function hideSplash() {
     if (hidden) {
       return;
     }
     hidden = true;
+    if (progressTimer) {
+      window.clearTimeout(progressTimer);
+    }
+    setProgress(100);
     markLaunchScreenShown();
     splash.classList.add('is-hiding');
     window.setTimeout(function () {
-      splash.hidden = true;
-      document.documentElement.classList.remove('pwa-launch-active');
-    }, 360);
+      forceCleanup();
+    }, 420);
   }
 
   function scheduleHide() {
@@ -74,8 +119,14 @@
   if (document.readyState === 'complete') {
     scheduleHide();
   } else {
-    window.addEventListener('load', scheduleHide);
+    window.addEventListener('load', scheduleHide, { once: true });
   }
 
   window.setTimeout(hideSplash, maxVisibleMs);
+
+  window.addEventListener('pageshow', function () {
+    if (!shouldShowLaunchScreen()) {
+      forceCleanup();
+    }
+  });
 })();
