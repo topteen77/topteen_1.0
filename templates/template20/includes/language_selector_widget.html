@@ -1,5 +1,7 @@
-{# Centralized language picker — one instance per page; opened via [data-tt-lang-trigger] buttons. #}
-<div id="tt-language-widget" class="tt-lang-widget" hidden aria-hidden="true">
+{# Centralized language picker — one instance per page; opened via [data-tt-lang-trigger] buttons.
+   Keep this popup out of Google Translate (notranslate) so language names stay in English
+   and users can always find "English" after switching. #}
+<div id="tt-language-widget" class="tt-lang-widget notranslate skiptranslate" translate="no" hidden aria-hidden="true">
   <div class="tt-lang-widget-backdrop" data-tt-lang-close tabindex="-1" aria-hidden="true"></div>
   <div class="tt-lang-widget-panel" role="dialog" aria-modal="true" aria-labelledby="tt-lang-widget-title">
     <div class="tt-lang-drawer-handle" aria-hidden="true"></div>
@@ -28,6 +30,13 @@
       <p class="tt-lang-complexity-hint" id="tt-lang-complexity-hint">Easy uses simple everyday words — best for younger students.</p>
     </div>
     <div class="tt-lang-grid" id="tt-lang-grid"></div>
+  </div>
+</div>
+<div id="tt-lang-switch-loader" class="tt-lang-switch-loader notranslate skiptranslate" translate="no" hidden aria-hidden="true" role="status" aria-live="polite">
+  <div class="tt-lang-switch-loader-card">
+    <div class="tt-lang-switch-spinner" aria-hidden="true"></div>
+    <p class="tt-lang-switch-loader-title" id="tt-lang-switch-loader-title">Switching language</p>
+    <p class="tt-lang-switch-loader-sub" id="tt-lang-switch-loader-sub">Updating page content…</p>
   </div>
 </div>
 <div id="google_translate_element" class="tt-google-translate-hidden" aria-hidden="true"></div>

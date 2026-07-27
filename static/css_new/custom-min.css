@@ -12084,6 +12084,88 @@ body.tt-lang-menu-open {
   background: #b42318;
 }
 
+.tt-lang-switch-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 14000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.38);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.tt-lang-switch-loader.is-visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.tt-lang-switch-loader[hidden] {
+  display: none !important;
+}
+
+.tt-lang-switch-loader-card {
+  width: min(320px, 100%);
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 24px 24px;
+  text-align: center;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.28);
+}
+
+.tt-lang-switch-spinner {
+  width: 42px;
+  height: 42px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  border: 3px solid #e8eaf5;
+  border-top-color: #5249df;
+  animation: tt-lang-spin 0.75s linear infinite;
+}
+
+.tt-lang-switch-loader-title {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e1e1e;
+  letter-spacing: -0.02em;
+}
+
+.tt-lang-switch-loader-sub {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #6b7280;
+}
+
+body.tt-lang-switching {
+  overflow: hidden;
+  cursor: wait;
+}
+
+@keyframes tt-lang-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tt-lang-switch-spinner {
+    animation: none;
+    border-top-color: #e8eaf5;
+    border-right-color: #5249df;
+  }
+
+  .tt-lang-switch-loader {
+    transition: none;
+  }
+}
+
 .tt-lang-toggle--icon {
   width: 40px;
   height: 40px;

@@ -985,9 +985,23 @@ var TT_COMPLEXITY_HINTS = {
   medium: 'Medium keeps a balanced, clear tone.',
   hard: 'Hard uses formal, academic language.'
 };
+var TT_LANG_WIDGET_COPY = {
+  title: 'Choose language',
+  searchPlaceholder: 'Search',
+  searchAria: 'Search language',
+  resetTitle: 'Reset to English',
+  resetAria: 'Reset to English',
+  closeAria: 'Close language menu',
+  complexityLabel: 'Reading level',
+  easy: 'Easy',
+  medium: 'Medium',
+  hard: 'Hard',
+  loaderTitle: 'Switching language',
+  loaderSub: 'Updating page content…'
+};
 var TT_CONTENT_ROOT_SELECTORS = ['main', '[role="main"]', '#content', '.main-content'];
 var TT_CONTENT_TEXT_SELECTORS = 'p, h1, h2, h3, h4, h5, h6, li, td, th, dt, dd, label, figcaption, blockquote, .card-text, .report-text';
-var TT_SKIP_ANCESTOR_SELECTORS = '#tt-language-widget, header, footer, nav, script, style, noscript, .goog-te-banner-frame, .skiptranslate, .tt-lang-widget, .modal';
+var TT_SKIP_ANCESTOR_SELECTORS = '#tt-language-widget, #tt-lang-switch-loader, header, footer, nav, script, style, noscript, .goog-te-banner-frame, .skiptranslate, .tt-lang-widget, .modal, [data-tt-lang-trigger]';
 
 function getTranslateComplexity() {
   try {
@@ -1259,6 +1273,10 @@ function initCustomLanguageSelector() {
     return;
   }
 
+  // Escape popup + triggers from Google Translate so names stay English.
+  widget.classList.add('notranslate', 'skiptranslate');
+  widget.setAttribute('translate', 'no');
+
   var grid = document.getElementById('tt-lang-grid');
   var searchInput = document.getElementById('tt-lang-search');
   var resetBtn = widget.querySelector('[data-tt-lang-reset]');
@@ -1267,9 +1285,12 @@ function initCustomLanguageSelector() {
   var complexityButtons = complexityWrap
     ? complexityWrap.querySelectorAll('[data-complexity]')
     : [];
+  var langLoader = document.getElementById('tt-lang-switch-loader');
   var currentLanguage = 'en';
   var currentComplexity = getTranslateComplexity();
   var isOpen = false;
+  var langSwitchToken = 0;
+  var langSwitchObserver = null;
 
   function getTranslateCombo() {
     var container = document.getElementById('google_translate_element');
@@ -1283,6 +1304,165 @@ function initCustomLanguageSelector() {
     return document.querySelectorAll('[data-tt-lang-trigger]');
   }
 
+  function protectTriggersFromTranslate() {
+    getTriggers().forEach(function (trigger) {
+      trigger.classList.add('notranslate', 'skiptranslate');
+      trigger.setAttribute('translate', 'no');
+    });
+  }
+
+  function restoreWidgetEnglishCopy() {
+    var title = document.getElementById('tt-lang-widget-title');
+    if (title) {
+      title.textContent = TT_LANG_WIDGET_COPY.title;
+    }
+    if (searchInput) {
+      searchInput.placeholder = TT_LANG_WIDGET_COPY.searchPlaceholder;
+      searchInput.setAttribute('aria-label', TT_LANG_WIDGET_COPY.searchAria);
+    }
+    if (resetBtn) {
+      resetBtn.setAttribute('aria-label', TT_LANG_WIDGET_COPY.resetAria);
+      resetBtn.setAttribute('title', TT_LANG_WIDGET_COPY.resetTitle);
+    }
+    var closeBtn = widget.querySelector('.tt-lang-close');
+    if (closeBtn) {
+      closeBtn.setAttribute('aria-label', TT_LANG_WIDGET_COPY.closeAria);
+    }
+    var complexityLabel = document.getElementById('tt-lang-complexity-label');
+    if (complexityLabel) {
+      complexityLabel.textContent = TT_LANG_WIDGET_COPY.complexityLabel;
+    }
+    complexityButtons.forEach(function (btn) {
+      var level = btn.getAttribute('data-complexity');
+      if (level && TT_LANG_WIDGET_COPY[level]) {
+        btn.textContent = TT_LANG_WIDGET_COPY[level];
+      }
+    });
+    if (complexityHint) {
+      complexityHint.textContent = TT_COMPLEXITY_HINTS[currentComplexity] || '';
+    }
+    if (grid) {
+      grid.querySelectorAll('.tt-lang-option[data-lang-name]').forEach(function (btn) {
+        btn.textContent = btn.getAttribute('data-lang-name') || btn.textContent;
+      });
+    }
+  }
+
+  function showLanguageSwitchLoader(langName) {
+    if (!langLoader) {
+      return;
+    }
+    var titleEl = document.getElementById('tt-lang-switch-loader-title');
+    var subEl = document.getElementById('tt-lang-switch-loader-sub');
+    if (titleEl) {
+      titleEl.textContent = langName && langName !== 'English'
+        ? ('Switching to ' + langName)
+        : TT_LANG_WIDGET_COPY.loaderTitle;
+    }
+    if (subEl) {
+      subEl.textContent = TT_LANG_WIDGET_COPY.loaderSub;
+    }
+    langLoader.hidden = false;
+    langLoader.setAttribute('aria-hidden', 'false');
+    requestAnimationFrame(function () {
+      langLoader.classList.add('is-visible');
+    });
+    document.body.classList.add('tt-lang-switching');
+  }
+
+  function hideLanguageSwitchLoader() {
+    if (!langLoader) {
+      return;
+    }
+    langLoader.classList.remove('is-visible');
+    langLoader.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('tt-lang-switching');
+    window.setTimeout(function () {
+      if (!langLoader.classList.contains('is-visible')) {
+        langLoader.hidden = true;
+      }
+    }, 220);
+  }
+
+  function waitForLanguageSwitchSettle(token, done) {
+    if (langSwitchObserver) {
+      langSwitchObserver.disconnect();
+      langSwitchObserver = null;
+    }
+    var finished = false;
+    var quietTimer = null;
+    var startedAt = Date.now();
+    var minMs = 900;
+    var maxMs = 3800;
+
+    function finish() {
+      if (finished || token !== langSwitchToken) {
+        return;
+      }
+      finished = true;
+      if (quietTimer) {
+        window.clearTimeout(quietTimer);
+      }
+      if (langSwitchObserver) {
+        langSwitchObserver.disconnect();
+        langSwitchObserver = null;
+      }
+      restoreWidgetEnglishCopy();
+      if (typeof done === 'function') {
+        done();
+      }
+    }
+
+    function tryFinish() {
+      if (finished || token !== langSwitchToken) {
+        return;
+      }
+      var elapsed = Date.now() - startedAt;
+      if (elapsed < minMs) {
+        window.setTimeout(tryFinish, minMs - elapsed);
+        return;
+      }
+      finish();
+    }
+
+    try {
+      langSwitchObserver = new MutationObserver(function (mutations) {
+        if (token !== langSwitchToken) {
+          return;
+        }
+        // Ignore mutations inside the loader / language widget itself.
+        var relevant = mutations.some(function (mutation) {
+          var target = mutation.target;
+          if (!target) {
+            return false;
+          }
+          var el = target.nodeType === 1 ? target : target.parentElement;
+          if (el && el.closest && el.closest('#tt-lang-switch-loader, #tt-language-widget')) {
+            return false;
+          }
+          return true;
+        });
+        if (!relevant) {
+          return;
+        }
+        window.clearTimeout(quietTimer);
+        quietTimer = window.setTimeout(tryFinish, 500);
+      });
+      langSwitchObserver.observe(document.body, {
+        childList: true,
+        subtree: true,
+        characterData: true
+      });
+    } catch (e) {
+      window.setTimeout(finish, 1400);
+      return;
+    }
+
+    // Cached translations may not mutate much — still show loader briefly.
+    window.setTimeout(tryFinish, minMs + 250);
+    window.setTimeout(finish, maxMs);
+  }
+
   function setWidgetOpen(open) {
     var nextOpen = !!open;
     if (nextOpen === isOpen) {
@@ -1291,6 +1471,7 @@ function initCustomLanguageSelector() {
     isOpen = nextOpen;
 
     if (isOpen) {
+      restoreWidgetEnglishCopy();
       widget.hidden = false;
       widget.setAttribute('aria-hidden', 'false');
       requestAnimationFrame(function () {
@@ -1320,6 +1501,7 @@ function initCustomLanguageSelector() {
   }
 
   function updateTriggerLabels(langCode, langName) {
+    protectTriggersFromTranslate();
     document.querySelectorAll('[data-tt-lang-trigger] .tt-lang-toggle-label').forEach(function (labelEl) {
       if (langCode === 'en') {
         labelEl.textContent = 'Language';
@@ -1347,6 +1529,21 @@ function initCustomLanguageSelector() {
     }
   }
 
+  function resolveLanguageName(langCode) {
+    if (!langCode || langCode === 'en') {
+      return 'English';
+    }
+    var resolved = langCode;
+    getEnabledLanguageEntries().some(function (entry) {
+      if (entry.code === langCode) {
+        resolved = entry.name || langCode;
+        return true;
+      }
+      return false;
+    });
+    return resolved;
+  }
+
   function setComplexity(level, rerun) {
     if (level !== 'easy' && level !== 'medium' && level !== 'hard') {
       return;
@@ -1354,18 +1551,7 @@ function initCustomLanguageSelector() {
     currentComplexity = level;
     setTranslateComplexity(level);
     updateComplexityUi();
-    var combo = getTranslateCombo();
-    var langName = 'English';
-    if (combo) {
-      Array.from(combo.options).some(function (option) {
-        if (option.value === currentLanguage) {
-          langName = currentLanguage === 'en' ? 'English' : option.textContent.trim();
-          return true;
-        }
-        return false;
-      });
-    }
-    updateTriggerLabels(currentLanguage, langName);
+    updateTriggerLabels(currentLanguage, resolveLanguageName(currentLanguage));
     if (rerun && currentLanguage !== 'en') {
       scheduleTranslateComplexity(currentLanguage, currentComplexity, 300);
     }
@@ -1375,8 +1561,12 @@ function initCustomLanguageSelector() {
     if (!grid) {
       return;
     }
+    var safeName = langName || resolveLanguageName(langCode);
     var combo = getTranslateCombo();
+    var token = ++langSwitchToken;
     currentLanguage = langCode;
+    showLanguageSwitchLoader(safeName);
+
     if (combo) {
       // Prefer Google combo when the language is supported there.
       var hasOption = Array.from(combo.options).some(function (option) {
@@ -1394,11 +1584,13 @@ function initCustomLanguageSelector() {
         return;
       }
     }
-    updateTriggerLabels(langCode, langName);
+    updateTriggerLabels(langCode, safeName);
     updateComplexityUi();
     // Rebuild so the newly selected language is hidden and the previous one reappears.
     buildLanguageOptions(combo);
+    restoreWidgetEnglishCopy();
     setWidgetOpen(false);
+    waitForLanguageSwitchSettle(token, hideLanguageSwitchLoader);
     if (langCode !== 'en') {
       scheduleTranslateComplexity(langCode, currentComplexity, 1800);
     } else {
@@ -1412,7 +1604,11 @@ function initCustomLanguageSelector() {
     }
     var normalized = query.trim().toLowerCase();
     grid.querySelectorAll('.tt-lang-option').forEach(function (btn) {
-      var label = (btn.textContent || '').toLowerCase();
+      var label = (
+        (btn.getAttribute('data-lang-name') || '') + ' ' +
+        (btn.getAttribute('data-lang') || '') + ' ' +
+        (btn.textContent || '')
+      ).toLowerCase();
       btn.hidden = normalized && label.indexOf(normalized) === -1;
     });
   }
@@ -1482,8 +1678,10 @@ function initCustomLanguageSelector() {
       var langName = entry.code === 'en' ? 'English' : entry.name;
       var btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'tt-lang-option';
+      btn.className = 'tt-lang-option notranslate';
+      btn.setAttribute('translate', 'no');
       btn.setAttribute('data-lang', entry.code);
+      btn.setAttribute('data-lang-name', langName);
       btn.setAttribute('role', 'option');
       btn.textContent = langName;
       btn.addEventListener('click', function () {
@@ -1491,15 +1689,9 @@ function initCustomLanguageSelector() {
       });
       grid.appendChild(btn);
     });
-    var selectedName = 'English';
-    getEnabledLanguageEntries().some(function (entry) {
-      if (entry.code === selected) {
-        selectedName = selected === 'en' ? 'English' : entry.name;
-        return true;
-      }
-      return false;
-    });
+    var selectedName = resolveLanguageName(selected);
     updateTriggerLabels(selected, selectedName);
+    restoreWidgetEnglishCopy();
     // Keep Google combo in sync when present (used to apply translation).
     if (combo && selected) {
       try {
@@ -1622,6 +1814,8 @@ function initCustomLanguageSelector() {
       }
       buildLanguageOptions(combo);
       bindControls();
+      protectTriggersFromTranslate();
+      restoreWidgetEnglishCopy();
       if (window.ttLanguageSelector && window.ttLanguageSelector.refreshTriggers) {
         window.ttLanguageSelector.refreshTriggers();
       }

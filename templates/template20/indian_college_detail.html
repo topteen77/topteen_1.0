@@ -71,6 +71,12 @@
         <div class="college-tab-content bg-white rounded shadow-sm p-4 mb-4">
           {% if api_error %}
           <div class="alert alert-warning mb-0">{{ api_error }}</div>
+          {% elif content_unavailable %}
+            <h2 class="h5 mb-3">Overview</h2>
+            <p class="text-muted mb-3">{{ tab_error }}</p>
+            <a class="btn btn-sm btn-outline-primary" href="{{ url('colleges:college') }}">
+              ← Back to college search
+            </a>
           {% elif is_courses_tab %}
             <h2 class="h5 mb-3">Courses and Fees</h2>
             {% if tab_error and not streams %}
@@ -104,14 +110,17 @@
                     {% for item in courses %}
                     {% set course_name = item.name or (item.course.name if item.course else 'Course') %}
                     {% set course_id = (item.course.id if item.course and item.course.id else item.id) %}
+                    {% set course_slug = item.course.slug if item.course else '' %}
                     {% set degree_level = item.course.degree_level if item.course else '' %}
                     {% set stream_name = item.course.stream_name if item.course else '' %}
                     {% set stream_slug = item.course.stream_slug if item.course else (selected_stream or '') %}
-                    <tr>
+                    {% set is_highlighted = highlight_course_slug and course_slug == highlight_course_slug %}
+                    <tr class="{% if is_highlighted %}indian-course-row-active{% endif %}"
+                        {% if is_highlighted %}id="indian-active-course"{% endif %}>
                       <td>
                         {% if course_id %}
-                        <a class="indian-course-link"
-                           href="{{ url('colleges:indian_course_detail', args=[course_id]) }}?name={{ course_name|urlencode }}&degree={{ degree_level|urlencode }}&stream={{ stream_name|urlencode }}&stream_slug={{ stream_slug|urlencode }}&from_college={{ college_id }}">
+                        <a class="indian-course-link{% if is_highlighted %} is-active{% endif %}"
+                           href="{{ url('colleges:indian_course_detail', args=[course_id]) }}?name={{ course_name|urlencode }}&degree={{ degree_level|urlencode }}&stream={{ stream_name|urlencode }}&stream_slug={{ stream_slug|urlencode }}&course_slug={{ course_slug|urlencode }}&from_college={{ college_id }}">
                           {{ course_name }}
                         </a>
                         {% else %}
@@ -306,6 +315,24 @@
     border: 1px solid #e5e7eb;
     padding: 0.5rem 0.75rem;
   }
+  .indian-college-markdown .indian-md-table-wrap,
+  .indian-college-markdown .table-responsive {
+    margin-bottom: 1rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .indian-college-markdown li { margin-bottom: 0.35rem; line-height: 1.6; }
+  .indian-college-markdown li > p { margin-bottom: 0.25rem; }
+  .indian-course-row-active {
+    background: #f5f3ff !important;
+  }
+  .indian-course-row-active td {
+    border-color: #ddd6fe;
+  }
+  .indian-course-link.is-active {
+    color: #5b21b6;
+    font-weight: 700;
+  }
 </style>
 {% endblock %}
 
@@ -315,6 +342,13 @@
 (function() {
   var SNAPSHOT_KEY = 'indian_college_search_snapshot';
   var currentId = String({{ college_id }});
+
+  var activeCourse = document.getElementById('indian-active-course');
+  if (activeCourse && activeCourse.scrollIntoView) {
+    setTimeout(function() {
+      activeCourse.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 120);
+  }
 
   function getCookie(name) {
     var cookieValue = null;

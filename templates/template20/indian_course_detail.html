@@ -21,14 +21,32 @@
 
     <div class="course-detail-hero mb-4">
       <h1 class="h4 mb-2">{{ course_name }}</h1>
+      {% if overview_college_name %}
+      <div class="course-college-line mb-2">
+        {% if overview_college_id %}
+        <a class="course-college-link"
+           href="{{ url('colleges:indian_collegedetail_tab', args=[overview_college_id, 'courses']) }}{% if stream_slug or course_slug %}?{% if stream_slug %}stream={{ stream_slug }}{% endif %}{% if stream_slug and course_slug %}&{% endif %}{% if course_slug %}course={{ course_slug }}{% endif %}{% endif %}">
+          {{ overview_college_name }}
+        </a>
+        {% else %}
+        <span class="course-college-link is-static">{{ overview_college_name }}</span>
+        {% endif %}
+        {% if overview_college_city or overview_college_state %}
+        <span class="course-college-place">
+          ·
+          India{% if overview_college_state %}, {{ overview_college_state }}{% endif %}{% if overview_college_city %}, {{ overview_college_city }}{% endif %}
+        </span>
+        {% endif %}
+      </div>
+      {% endif %}
       <div class="d-flex flex-wrap gap-2 mb-2">
         {% if degree_level %}<span class="course-pill">{{ degree_level }}</span>{% endif %}
         {% if stream_name %}<span class="course-pill">{{ stream_name }}</span>{% endif %}
       </div>
       <div class="d-flex flex-wrap gap-2">
-        {% if from_college_id %}
+        {% if from_college_id or overview_college_id %}
         <a class="btn btn-sm course-btn-outline"
-           href="{{ url('colleges:indian_collegedetail_tab', args=[from_college_id, 'courses']) }}{% if stream_slug %}?stream={{ stream_slug }}{% endif %}">
+           href="{{ url('colleges:indian_collegedetail_tab', args=[from_college_id or overview_college_id, 'courses']) }}{% if stream_slug or course_slug %}?{% if stream_slug %}stream={{ stream_slug }}{% endif %}{% if stream_slug and course_slug %}&{% endif %}{% if course_slug %}course={{ course_slug }}{% endif %}{% endif %}">
           ← Back to college courses
         </a>
         {% endif %}
@@ -40,8 +58,16 @@
       </div>
     </div>
 
-    <h2 class="h6 mb-3">Colleges offering this course</h2>
+    {% if has_course_html %}
+    <div class="course-overview bg-white rounded shadow-sm p-4 mb-4">
+      <div class="indian-college-markdown course-markdown-body">
+        {{ course_html|safe }}
+      </div>
+    </div>
+    {% endif %}
+
     {% if colleges %}
+    <h2 class="h6 mb-3">Colleges offering this course</h2>
     <div class="course-college-grid">
       {% for college in colleges %}
       <a class="course-college-card" href="{{ college.url }}">
@@ -52,13 +78,6 @@
         </div>
       </a>
       {% endfor %}
-    </div>
-    {% else %}
-    <div class="course-empty text-center py-5 px-3">
-      <p class="text-muted mb-3">No colleges found for this course right now.</p>
-      <a href="{{ url('colleges:college') }}?q={{ course_name|urlencode }}" class="btn btn-outline-primary">
-        Search colleges
-      </a>
     </div>
     {% endif %}
   </div>
@@ -73,6 +92,19 @@
     border-radius: 16px;
     padding: 1.15rem 1.25rem;
   }
+  .course-college-line {
+    font-size: 0.95rem;
+    color: #4b5563;
+    line-height: 1.45;
+  }
+  .course-college-link {
+    font-weight: 700;
+    color: #5b21b6;
+    text-decoration: none;
+  }
+  .course-college-link:hover { color: #4c1d95; text-decoration: underline; }
+  .course-college-link.is-static { color: #374151; }
+  .course-college-place { color: #6b7280; font-weight: 500; }
   .course-pill {
     display: inline-block;
     font-size: 0.75rem;
@@ -124,6 +156,87 @@
     background: #fff;
     border: 1px dashed #ddd6fe;
     border-radius: 16px;
+  }
+  .course-overview .indian-college-markdown h1,
+  .course-overview .indian-college-markdown h2,
+  .course-overview .indian-college-markdown h3,
+  .course-overview .indian-college-markdown h4 {
+    margin-top: 1.35rem;
+    margin-bottom: 0.65rem;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.35;
+  }
+  .course-overview .indian-college-markdown h1:first-child,
+  .course-overview .indian-college-markdown h2:first-child,
+  .course-overview .indian-college-markdown h3:first-child {
+    margin-top: 0;
+  }
+  .course-overview .indian-college-markdown h2 { font-size: 1.2rem; }
+  .course-overview .indian-college-markdown h3 { font-size: 1.05rem; }
+  .course-overview .indian-college-markdown h4 { font-size: 0.98rem; }
+  .course-overview .indian-college-markdown p {
+    margin-bottom: 0.9rem;
+    color: #374151;
+    line-height: 1.7;
+    font-size: 0.95rem;
+  }
+  .course-overview .indian-college-markdown strong,
+  .course-overview .indian-college-markdown b {
+    color: #1f2937;
+    font-weight: 700;
+  }
+  .course-overview .indian-college-markdown ul,
+  .course-overview .indian-college-markdown ol {
+    padding-left: 1.35rem;
+    margin: 0 0 1rem;
+    color: #374151;
+  }
+  .course-overview .indian-college-markdown li {
+    margin-bottom: 0.4rem;
+    line-height: 1.65;
+    font-size: 0.95rem;
+  }
+  .course-overview .indian-college-markdown li > p {
+    margin-bottom: 0.35rem;
+  }
+  .course-overview .indian-college-markdown .indian-md-table-wrap,
+  .course-overview .indian-college-markdown .table-responsive {
+    margin: 0.75rem 0 1.15rem;
+    border: 1px solid #e8e8ee;
+    border-radius: 12px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .course-overview .indian-college-markdown table {
+    width: 100%;
+    min-width: 480px;
+    margin: 0;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  .course-overview .indian-college-markdown th,
+  .course-overview .indian-college-markdown td {
+    border: 1px solid #e5e7eb;
+    padding: 0.65rem 0.85rem;
+    vertical-align: top;
+    text-align: left;
+    color: #374151;
+  }
+  .course-overview .indian-college-markdown thead th,
+  .course-overview .indian-college-markdown tr:first-child th {
+    background: #f5f3ff;
+    color: #4c1d95;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .course-overview .indian-college-markdown tbody tr:nth-child(even) td {
+    background: #fafafa;
+  }
+  .course-overview .indian-college-markdown hr {
+    border: 0;
+    border-top: 1px solid #eee;
+    margin: 1.25rem 0;
   }
 </style>
 {% endblock %}

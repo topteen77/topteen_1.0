@@ -208,6 +208,412 @@ def fetch_courses_fees_stream(college_id: int, stream_slug: str) -> Dict[str, An
     )
 
 
+def fetch_course_fees_detail(college_id: int, course_slug: str) -> Dict[str, Any]:
+    """GET /colleges/{id}/courses-fees/{course_slug}/ — includes markdown_content."""
+    slug = (course_slug or "").strip("/")
+    if not slug:
+        return {"error": "Missing course slug"}
+    return _get_json(f"/colleges/{int(college_id)}/courses-fees/{slug}/")
+
+
+def course_name_to_slug(name: str) -> str:
+    """Best-effort slug from a course title (matches canamuni-style slugs)."""
+    raw = (name or "").strip().lower()
+    if not raw:
+        return ""
+    slug = re.sub(r"[^a-z0-9]+", "-", raw).strip("-")
+    return slug
+
+
+def _normalize_course_label(value: str) -> str:
+    text = (value or "").lower()
+    text = re.sub(r"[\[\](){}+,./&]", " ", text)
+    text = re.sub(r"[^a-z0-9]+", " ", text)
+    return " ".join(text.split())
+
+
+def _course_label_score(want: str, have: str) -> float:
+    a = set(_normalize_course_label(want).split())
+    b = set(_normalize_course_label(have).split())
+    if not a or not b:
+        return 0.0
+    if a == b:
+        return 1.0
+    if a.issubset(b) or b.issubset(a):
+        return 0.88
+    return len(a & b) / float(len(a | b))
+
+
+def _stream_slug_candidates(stream_slug: str = "", stream_name: str = "") -> List[str]:
+    out: List[str] = []
+    for raw in (stream_slug, course_name_to_slug(stream_name)):
+        s = (raw or "").strip().strip("/")
+        if s and s not in out:
+            out.append(s)
+    name = (stream_name or "").strip().lower()
+    extras = []
+    if "educ" in name or "teach" in name:
+        extras.extend(["teaching-education", "education", "teacher-education"])
+    if "commerce" in name:
+        extras.append("commerce")
+    if "science" in name:
+        extras.append("science")
+    if "law" in name:
+        extras.append("law")
+    if "medical" in name:
+        extras.append("medical")
+    if "management" in name:
+        extras.append("management")
+    for s in extras:
+        if s not in out:
+            out.append(s)
+    return out
+
+
+def _iter_college_stream_courses(
+    college_id: int, stream_candidates: List[str]
+) -> List[Dict[str, Any]]:
+    """Return course rows from matching stream(s) for a college."""
+    rows: List[Dict[str, Any]] = []
+    tried = set()
+    candidates = list(stream_candidates or [])
+
+    # Discover actual stream slugs when unknown / to widen match.
+    try:
+        streams_payload = fetch_courses_fees_streams(college_id)
+        if streams_payload.get("error") and not (streams_payload.get("streams") or []):
+            return []
+        discovered: List[str] = []
+        related: List[str] = []
+        for stream in streams_payload.get("streams") or []:
+            if not isinstance(stream, dict):
+                continue
+            slug = (stream.get("slug") or "").strip()
+            name = (stream.get("name") or "").strip().lower()
+            if not slug:
+                continue
+            discovered.append(slug)
+            if not candidates:
+                related.append(slug)
+                continue
+            for want in candidates:
+                want_l = want.lower()
+                if (
+                    want_l in slug
+                    or slug in want_l
+                    or want_l in name
+                    or _course_label_score(want, name) >= 0.35
+                ):
+                    related.append(slug)
+                    break
+        if related:
+            for slug in related:
+                if slug not in candidates:
+                    candidates.append(slug)
+        elif discovered and not candidates:
+            candidates.extend(discovered)
+        elif discovered and candidates:
+            # Keep guessed candidates first; append discovered as fallback.
+            for slug in discovered:
+                if slug not in candidates:
+                    candidates.append(slug)
+    except Exception:
+        pass
+
+    for slug in candidates:
+        if not slug or slug in tried:
+            continue
+        tried.add(slug)
+        try:
+            payload = fetch_courses_fees_stream(college_id, slug)
+        except Exception:
+            continue
+        for item in payload.get("courses") or []:
+            if isinstance(item, dict):
+                item = dict(item)
+                item["_stream_slug"] = slug
+                rows.append(item)
+        if rows:
+            break
+    return rows
+
+
+def resolve_course_fees_slug(
+    college_id: int,
+    *,
+    course_slug: str = "",
+    course_id: Optional[int] = None,
+    course_name: str = "",
+    stream_slug: str = "",
+    stream_name: str = "",
+) -> str:
+    """Resolve courses-fees detail slug for a college course."""
+    slug = (course_slug or "").strip().strip("/")
+    if slug:
+        return slug
+
+    want_name = (course_name or "").strip()
+    want_id = None
+    try:
+        want_id = int(course_id) if course_id is not None else None
+    except (TypeError, ValueError):
+        want_id = None
+
+    rows = _iter_college_stream_courses(
+        college_id, _stream_slug_candidates(stream_slug, stream_name)
+    )
+
+    def _row_meta(item: Dict[str, Any]):
+        nested = item.get("course") if isinstance(item.get("course"), dict) else {}
+        item_slug = (nested.get("slug") or "").strip()
+        ids = []
+        for raw in (nested.get("id"), item.get("id")):
+            try:
+                if raw is not None:
+                    ids.append(int(raw))
+            except (TypeError, ValueError):
+                pass
+        item_name = (item.get("name") or nested.get("name") or "").strip()
+        return item_slug, ids, item_name
+
+    if want_name:
+        for item in rows:
+            item_slug, _ids, item_name = _row_meta(item)
+            if item_slug and item_name.lower() == want_name.lower():
+                return item_slug
+
+    if want_id is not None:
+        for item in rows:
+            item_slug, ids, _item_name = _row_meta(item)
+            if item_slug and want_id in ids:
+                return item_slug
+
+    if want_name and rows:
+        best = (0.0, "")
+        for item in rows:
+            item_slug, _ids, item_name = _row_meta(item)
+            if not item_slug:
+                continue
+            score = _course_label_score(want_name, item_name)
+            if score > best[0]:
+                best = (score, item_slug)
+        if best[0] >= 0.55 and best[1]:
+            return best[1]
+
+    return course_name_to_slug(course_name)
+
+
+def fetch_course_overview_html(
+    college_id: int,
+    *,
+    course_slug: str = "",
+    course_id: Optional[int] = None,
+    course_name: str = "",
+    stream_slug: str = "",
+    stream_name: str = "",
+) -> Dict[str, Any]:
+    """Fetch college course markdown and return rendered HTML + meta."""
+    out: Dict[str, Any] = {
+        "html": "",
+        "course_slug": "",
+        "course_name": course_name or "",
+        "degree_level": "",
+        "stream_name": stream_name or "",
+        "stream_slug": stream_slug or "",
+        "college_id": None,
+        "college_name": "",
+        "college_city": "",
+        "college_state": "",
+    }
+    try:
+        cid = int(college_id)
+    except (TypeError, ValueError):
+        return out
+
+    slug = resolve_course_fees_slug(
+        cid,
+        course_slug=course_slug,
+        course_id=course_id,
+        course_name=course_name,
+        stream_slug=stream_slug,
+        stream_name=stream_name,
+    )
+    out["course_slug"] = slug
+    if not slug:
+        return out
+
+    try:
+        detail = fetch_course_fees_detail(cid, slug)
+    except Exception as e:
+        logger.warning(
+            "course fees detail failed college=%s slug=%s: %s", cid, slug, e
+        )
+        # Fuzzy slug may be wrong; try best stream-course slug directly.
+        rows = _iter_college_stream_courses(
+            cid, _stream_slug_candidates(stream_slug, stream_name)
+        )
+        detail = {}
+        best = (0.0, "", {})
+        for item in rows:
+            nested = item.get("course") if isinstance(item.get("course"), dict) else {}
+            item_slug = (nested.get("slug") or "").strip()
+            item_name = (item.get("name") or nested.get("name") or "").strip()
+            if not item_slug:
+                continue
+            score = _course_label_score(course_name, item_name) if course_name else 0.0
+            if score > best[0]:
+                best = (score, item_slug, item)
+        if best[0] >= 0.55 and best[1]:
+            try:
+                detail = fetch_course_fees_detail(cid, best[1])
+                out["course_slug"] = best[1]
+                slug = best[1]
+            except Exception:
+                return out
+        else:
+            return out
+
+    if not isinstance(detail, dict) or detail.get("error"):
+        return out
+
+    course_block = detail.get("course") if isinstance(detail.get("course"), dict) else {}
+    markdown = (
+        course_block.get("markdown_content")
+        or detail.get("markdown_content")
+        or ""
+    )
+    if markdown:
+        try:
+            out["html"] = render_markdown_html(markdown)
+        except Exception as e:
+            logger.warning("course markdown render failed: %s", e)
+            out["html"] = ""
+
+    nested = course_block.get("course")
+    if isinstance(nested, dict):
+        out["course_name"] = nested.get("name") or out["course_name"]
+        out["degree_level"] = nested.get("degree_level") or ""
+        out["stream_name"] = nested.get("stream_name") or out["stream_name"]
+        out["stream_slug"] = nested.get("stream_slug") or out["stream_slug"]
+    elif course_block.get("name"):
+        out["course_name"] = course_block.get("name") or out["course_name"]
+    location = detail.get("location") if isinstance(detail.get("location"), dict) else {}
+    out["college_name"] = (location.get("name") or "").strip()
+    out["college_city"] = (location.get("city") or "").strip()
+    out["college_state"] = (location.get("state") or "").strip()
+    if out.get("html"):
+        out["college_id"] = cid
+    return out
+
+
+def find_course_overview_html(
+    *,
+    course_name: str = "",
+    course_id: Optional[int] = None,
+    course_slug: str = "",
+    stream_name: str = "",
+    stream_slug: str = "",
+    stream_id: Optional[int] = None,
+    college_ids: Optional[List[int]] = None,
+    max_colleges: int = 8,
+) -> Dict[str, Any]:
+    """Find course markdown across candidate colleges (matched-course pages).
+
+    Many filter-matched colleges have no publishable courses-fees content.
+    Try provided college ids first, then a small stream college sample.
+    """
+    cache_backend = _college_api_cache()
+    cache_key = _cache_key(
+        "course_overview_html:v2",
+        {
+            "course_id": course_id,
+            "course_name": (course_name or "").strip().lower(),
+            "stream_id": stream_id,
+            "stream_slug": stream_slug,
+        },
+    )
+    try:
+        cached = cache_backend.get(cache_key)
+        if isinstance(cached, dict) and cached.get("html"):
+            return cached
+    except Exception:
+        pass
+
+    empty = {
+        "html": "",
+        "course_slug": course_slug or "",
+        "course_name": course_name or "",
+        "degree_level": "",
+        "stream_name": stream_name or "",
+        "stream_slug": stream_slug or "",
+        "college_id": None,
+        "college_name": "",
+        "college_city": "",
+        "college_state": "",
+    }
+
+    seen = set()
+    ordered_ids: List[int] = []
+    for raw in college_ids or []:
+        try:
+            cid = int(raw)
+        except (TypeError, ValueError):
+            continue
+        if cid in seen:
+            continue
+        seen.add(cid)
+        ordered_ids.append(cid)
+
+    # Broaden search using stream college list when needed.
+    if len(ordered_ids) < max_colleges and stream_id:
+        try:
+            selected = build_selected_filters(stream_id=int(stream_id))
+            listing = fetch_colleges_list(
+                selected_filters=selected,
+                page=1,
+                page_size=24,
+                detail_view=True,
+                sort_by="college_name",
+                sort_order="asc",
+            )
+            for row in listing.get("data") or listing.get("results") or []:
+                raw = row.get("college_id") or row.get("id")
+                try:
+                    cid = int(raw)
+                except (TypeError, ValueError):
+                    continue
+                if cid in seen:
+                    continue
+                seen.add(cid)
+                ordered_ids.append(cid)
+                if len(ordered_ids) >= max_colleges:
+                    break
+        except Exception as e:
+            logger.warning("overview stream college broaden failed: %s", e)
+
+    for cid in ordered_ids[: max(1, max_colleges)]:
+        try:
+            overview = fetch_course_overview_html(
+                cid,
+                course_slug=course_slug,
+                course_id=course_id,
+                course_name=course_name,
+                stream_slug=stream_slug,
+                stream_name=stream_name,
+            )
+        except Exception as e:
+            logger.warning("overview fetch failed college=%s: %s", cid, e)
+            continue
+        if overview.get("html"):
+            try:
+                cache_backend.set(cache_key, overview, UPSTREAM_CACHE_TTL)
+            except Exception:
+                pass
+            return overview
+
+    return empty
+
+
 def resolve_detail_tab(tab: Optional[str]) -> Dict[str, str]:
     key = (tab or "admission").strip("/").lower()
     return _TAB_BY_PATH.get(key) or _TAB_BY_PATH["admission"]
@@ -246,11 +652,11 @@ def is_courses_tab_enabled(college_id: int) -> bool:
 
 
 def is_college_content_enabled(college_id: Optional[int]) -> bool:
-    """List gate: college is shown only when Admission content is enabled."""
+    """List gate: college is shown only when at least one detail tab is enabled."""
     if not college_id:
         return False
     cid = int(college_id)
-    cache_key = f"indian_colleges:v2:enabled:{cid}"
+    cache_key = f"indian_colleges:v3:enabled:{cid}"
     cache_backend = _college_api_cache()
     try:
         cached = cache_backend.get(cache_key)
@@ -261,11 +667,18 @@ def is_college_content_enabled(college_id: Optional[int]) -> bool:
 
     enabled = False
     try:
+        # Fast path: admission alone covers most publishable colleges.
         payload = fetch_college_tab_details(cid, "admission")
-        if not payload.get("error"):
-            enabled = is_tab_content_enabled(payload.get("admission"))
+        if not payload.get("error") and is_tab_content_enabled(payload.get("admission")):
+            enabled = True
+        elif is_courses_tab_enabled(cid):
+            enabled = True
+        else:
+            # Any other tab (placement, cutoff, etc.) counts as active content.
+            tabs = get_enabled_tabs_for_college(cid, include_courses=False)
+            enabled = bool(tabs)
     except Exception as e:
-        logger.debug("admission status check failed for %s: %s", college_id, e)
+        logger.debug("college enabled check failed for %s: %s", college_id, e)
         enabled = False
 
     try:
@@ -426,6 +839,88 @@ def _sanitize_tab_html(html: str) -> str:
     )
 
 
+def _normalize_api_markdown(text: str) -> str:
+    """Normalize upstream markdown so lists/tables render reliably.
+
+    Course/college API bodies often omit the blank line before a list, e.g.:
+      ... including:\\n*   Computer Application
+    python-markdown then keeps the asterisks inside a paragraph (worse with nl2br).
+    """
+    if not text:
+        return ""
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    lines = text.split("\n")
+    out: List[str] = []
+
+    def _is_list_line(line: str) -> bool:
+        return bool(re.match(r"^[ \t]*(?:[-*+]|\d+\.)[ \t]+\S", line))
+
+    def _is_table_line(line: str) -> bool:
+        s = line.strip()
+        return s.startswith("|") and s.count("|") >= 2
+
+    for line in lines:
+        prev = out[-1] if out else ""
+        prev_blank = not prev.strip()
+        if (
+            _is_list_line(line)
+            and out
+            and not prev_blank
+            and not _is_list_line(prev)
+        ):
+            out.append("")
+        elif (
+            _is_table_line(line)
+            and out
+            and not prev_blank
+            and not _is_table_line(prev)
+        ):
+            out.append("")
+        out.append(line)
+
+    text = "\n".join(out)
+    # Normalize "*   item" / "1.   item" marker spacing.
+    text = re.sub(r"(?m)^([ \t]*[-*+])[ \t]+", r"\1 ", text)
+    text = re.sub(r"(?m)^([ \t]*\d+\.)[ \t]+", r"\1 ", text)
+    return text
+
+
+def _wrap_markdown_tables(html: str) -> str:
+    """Wrap bare <table> nodes for horizontal scroll on small screens."""
+    if not html or "<table" not in html.lower():
+        return html
+    try:
+        parts: List[str] = []
+        i = 0
+        lower = html.lower()
+        while True:
+            start = lower.find("<table", i)
+            if start < 0:
+                parts.append(html[i:])
+                break
+            parts.append(html[i:start])
+            end = lower.find("</table>", start)
+            if end < 0:
+                parts.append(html[start:])
+                break
+            end += len("</table>")
+            block = html[start:end]
+            already = "indian-md-table-wrap" in block or 'class="table-responsive"' in block
+            # Don't wrap if already inside our wrapper (look back a bit).
+            prefix = html[max(0, start - 64) : start]
+            if already or "indian-md-table-wrap" in prefix:
+                parts.append(block)
+            else:
+                parts.append(
+                    f'<div class="table-responsive indian-md-table-wrap">{block}</div>'
+                )
+            i = end
+        return "".join(parts)
+    except Exception as e:
+        logger.warning("table wrap failed: %s", e)
+        return html
+
+
 def _simple_markdown_to_html(text: str) -> str:
     """Dependency-free markdown subset for staging when `markdown` isn't installed."""
     from django.utils.html import escape
@@ -566,28 +1061,31 @@ def _simple_markdown_to_html(text: str) -> str:
 
 def _markdown_to_html(markdown_text: str) -> str:
     """Convert markdown to HTML; prefer python-markdown, else built-in fallback."""
+    normalized = _normalize_api_markdown(markdown_text)
     try:
         import markdown
     except ImportError:
         logger.warning("python-markdown not installed; using built-in markdown fallback")
-        return _simple_markdown_to_html(markdown_text)
+        return _simple_markdown_to_html(normalized)
 
+    # Prefer list/table fidelity over nl2br — nl2br turns list lines into <br> text.
     extension_sets = (
-        ["extra", "sane_lists", "nl2br", "tables"],
-        ["extra", "nl2br", "tables"],
+        ["extra", "sane_lists", "tables"],
+        ["sane_lists", "tables"],
         ["extra", "tables"],
         ["tables"],
+        ["extra", "sane_lists", "nl2br", "tables"],
         [],
     )
     last_error: Optional[Exception] = None
     for extensions in extension_sets:
         try:
-            return markdown.markdown(markdown_text, extensions=extensions)
+            return markdown.markdown(normalized, extensions=extensions)
         except Exception as e:
             last_error = e
             continue
     logger.warning("python-markdown extensions failed (%s); using built-in fallback", last_error)
-    return _simple_markdown_to_html(markdown_text)
+    return _simple_markdown_to_html(normalized)
 
 
 def _as_template_html(html: str):
@@ -629,7 +1127,9 @@ def render_markdown_html(markdown_text: str) -> str:
         html = _markdown_to_html(text)
     except Exception as e:
         logger.error("markdown conversion failed: %s", e)
-        html = _simple_markdown_to_html(text)
+        html = _simple_markdown_to_html(_normalize_api_markdown(text))
+
+    html = _wrap_markdown_tables(html)
 
     try:
         return _as_template_html(_sanitize_tab_html(html))
@@ -653,6 +1153,7 @@ def get_college_detail_context_from_api(
     college_id: int,
     tab: Optional[str] = None,
     stream_slug: Optional[str] = None,
+    highlight_course_slug: Optional[str] = None,
 ) -> Dict[str, Any]:
     requested_tab = resolve_detail_tab(tab)
     active_tab = requested_tab
@@ -679,12 +1180,11 @@ def get_college_detail_context_from_api(
     ]
 
     enabled_tabs = get_enabled_tabs_for_college(college_id, include_courses=True)
+    enabled_paths = {item["path"] for item in enabled_tabs}
     if not enabled_tabs:
         raise CollegeContentDisabled(
-            f"College {college_id} has no enabled content tabs."
+            f"College {college_id} has no publishable detail tabs."
         )
-
-    enabled_paths = {item["path"] for item in enabled_tabs}
     if active_tab["path"] not in enabled_paths:
         # Caller can redirect to the first enabled tab.
         active_tab = enabled_tabs[0]
@@ -696,15 +1196,38 @@ def get_college_detail_context_from_api(
     streams = []
     courses = []
     selected_stream = (stream_slug or "").strip() or None
+    highlight_slug = (highlight_course_slug or "").strip().strip("/")
+    content_unavailable = False
 
     if api_tab == "inner_course":
         streams_payload = fetch_courses_fees_streams(college_id)
         if streams_payload.get("error"):
             tab_error = streams_payload.get("error")
         streams = streams_payload.get("streams") or []
+        # If a specific course is requested, pick the stream that contains it.
+        if highlight_slug and streams:
+            for stream in streams:
+                slug = (stream.get("slug") or "").strip()
+                if not slug:
+                    continue
+                try:
+                    probe = fetch_courses_fees_stream(college_id, slug)
+                except Exception:
+                    continue
+                for item in probe.get("courses") or []:
+                    nested = item.get("course") if isinstance(item, dict) else None
+                    item_slug = ""
+                    if isinstance(nested, dict):
+                        item_slug = (nested.get("slug") or "").strip()
+                    if item_slug == highlight_slug:
+                        selected_stream = slug
+                        courses = probe.get("courses") or []
+                        break
+                if selected_stream == slug and courses:
+                    break
         if not selected_stream and streams:
             selected_stream = streams[0].get("slug")
-        if selected_stream:
+        if selected_stream and not courses:
             try:
                 course_payload = fetch_courses_fees_stream(college_id, selected_stream)
                 if course_payload.get("error"):
@@ -749,10 +1272,12 @@ def get_college_detail_context_from_api(
         "tab_html": tab_html,
         "tab_markdown": tab_markdown,
         "tab_error": tab_error,
+        "content_unavailable": content_unavailable,
         "is_courses_tab": api_tab == "inner_course",
         "streams": streams,
         "courses": courses,
         "selected_stream": selected_stream,
+        "highlight_course_slug": highlight_slug,
         "base_details": base,
         "redirect_tab": (
             None

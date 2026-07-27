@@ -390,8 +390,14 @@ class IndianCollegeDetails(TemplateView):
                 kwargs={"college_id": college_id, "tab": active["path"]},
             )
             stream = request.GET.get("stream")
+            course = request.GET.get("course")
+            qs = []
             if stream:
-                url = f"{url}?stream={stream}"
+                qs.append(f"stream={stream}")
+            if course:
+                qs.append(f"course={course}")
+            if qs:
+                url = f"{url}?{'&'.join(qs)}"
             return redirect(url)
 
         try:
@@ -399,6 +405,7 @@ class IndianCollegeDetails(TemplateView):
                 college_id=college_id,
                 tab=active["path"],
                 stream_slug=request.GET.get("stream"),
+                highlight_course_slug=request.GET.get("course"),
             )
             ctx["api_error"] = None
         except CollegeContentDisabled:
@@ -421,8 +428,14 @@ class IndianCollegeDetails(TemplateView):
                 kwargs={"college_id": college_id, "tab": redirect_tab},
             )
             stream = request.GET.get("stream")
+            course = request.GET.get("course")
+            qs = []
             if stream:
-                url = f"{url}?stream={stream}"
+                qs.append(f"stream={stream}")
+            if course:
+                qs.append(f"course={course}")
+            if qs:
+                url = f"{url}?{'&'.join(qs)}"
             return redirect(url)
 
         ctx["html_head"] = build_html_head(
@@ -645,29 +658,116 @@ class IndianCourseDetailView(TemplateView):
     def get(self, request, course_id, *args, **kwargs):
         from django.urls import reverse
         from colleges.course_pages import get_colleges_for_course
+        from colleges.external_api import find_course_overview_html
 
         course_name = (request.GET.get("name") or f"Course {course_id}").strip()
         degree_level = (request.GET.get("degree") or "").strip()
         stream_name = (request.GET.get("stream") or "").strip()
         stream_slug = (request.GET.get("stream_slug") or "").strip()
+        course_slug = (request.GET.get("course_slug") or "").strip()
+        stream_id = request.GET.get("stream_id")
         from_college_id = request.GET.get("from_college")
         try:
             from_college_id = int(from_college_id) if from_college_id else None
         except (TypeError, ValueError):
             from_college_id = None
+        try:
+            stream_id = int(stream_id) if stream_id else None
+        except (TypeError, ValueError):
+            stream_id = None
+
+        try:
+            course_id_int = int(course_id)
+        except (TypeError, ValueError):
+            course_id_int = 0
+
+        # Map stream label → id for matched-course links that only send the name.
+        if stream_id is None and stream_name:
+            from colleges.psychometric_match import RIASEC_TO_STREAMS
+
+            want = stream_name.strip().lower()
+            for rows in RIASEC_TO_STREAMS.values():
+                for row in rows:
+                    if (row.get("name") or "").strip().lower() == want:
+                        stream_id = int(row["id"])
+                        break
+                if stream_id is not None:
+                    break
 
         payload = get_colleges_for_course(
-            course_name, stream_name=stream_name, limit=12
+            course_name,
+            stream_name=stream_name,
+            stream_slug=stream_slug,
+            course_slug=course_slug,
+            limit=12,
         )
+        colleges = payload.get("colleges") or []
+
+        college_ids = []
+        if from_college_id:
+            college_ids.append(from_college_id)
+        for row in colleges:
+            try:
+                college_ids.append(int(row.get("id")))
+            except (TypeError, ValueError, AttributeError):
+                continue
+
+        overview = find_course_overview_html(
+            course_name=course_name,
+            course_id=course_id_int,
+            course_slug=course_slug,
+            stream_name=stream_name,
+            stream_slug=stream_slug,
+            stream_id=stream_id,
+            college_ids=college_ids,
+            max_colleges=10,
+        )
+        course_html = overview.get("html") or ""
+        if course_html and not str(course_html).strip():
+            course_html = ""
+        course_slug = overview.get("course_slug") or course_slug
+        # Keep the page title as the matched/filter course name; overview may
+        # resolve to a closely related published course at a content-ready college.
+        degree_level = overview.get("degree_level") or degree_level
+        if overview.get("stream_name"):
+            stream_name = overview.get("stream_name") or stream_name
+        stream_slug = overview.get("stream_slug") or stream_slug
+        overview_college_id = overview.get("college_id") or from_college_id
+        overview_college_name = (overview.get("college_name") or "").strip()
+        overview_college_city = (overview.get("college_city") or "").strip()
+        overview_college_state = (overview.get("college_state") or "").strip()
+        if not overview_college_name and overview_college_id:
+            for row in colleges:
+                try:
+                    if int(row.get("id")) == int(overview_college_id):
+                        overview_college_name = (row.get("name") or "").strip()
+                        overview_college_city = (row.get("city") or "").strip()
+                        overview_college_state = (row.get("state") or "").strip()
+                        break
+                except (TypeError, ValueError, AttributeError):
+                    continue
 
         crumbs = [{"text": "Colleges", "url": reverse("colleges:college")}]
         if from_college_id:
             crumbs.append(
                 {
-                    "text": "College",
+                    "text": overview_college_name or "College",
                     "url": reverse(
                         "colleges:indian_collegedetail_tab",
                         kwargs={"college_id": from_college_id, "tab": "courses"},
+                    ),
+                }
+            )
+        elif overview_college_id and overview_college_name:
+            crumbs.append(
+                {
+                    "text": overview_college_name,
+                    "url": reverse(
+                        "colleges:indian_collegedetail_tab",
+                        kwargs={
+                            "college_id": overview_college_id,
+                            "tab": "courses",
+                        },
                     ),
                 }
             )
@@ -679,13 +779,20 @@ class IndianCourseDetailView(TemplateView):
                 description=f"{course_name} colleges and course details",
             ),
             "breadcrumb": get_breadcrumb(crumbs),
-            "course_id": int(course_id),
+            "course_id": course_id_int,
             "course_name": course_name,
             "degree_level": degree_level,
             "stream_name": stream_name,
             "stream_slug": stream_slug,
+            "course_slug": course_slug,
             "from_college_id": from_college_id,
-            "colleges": payload.get("colleges") or [],
+            "overview_college_id": overview_college_id,
+            "overview_college_name": overview_college_name,
+            "overview_college_city": overview_college_city,
+            "overview_college_state": overview_college_state,
+            "course_html": course_html,
+            "has_course_html": bool(str(course_html or "").strip()),
+            "colleges": colleges,
             "filter_query": payload.get("filter_query") or "",
         }
         return render(request, self.template_name, ctx)
