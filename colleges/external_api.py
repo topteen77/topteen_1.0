@@ -25,10 +25,12 @@ ENABLED_VALIDATION_STATES = {"approved"}
 UPSTREAM_HTTP_TIMEOUT = int(getattr(settings, "INDIAN_COLLEGES_HTTP_TIMEOUT", 12) or 12)
 UPSTREAM_CACHE_TTL = int(getattr(settings, "INDIAN_COLLEGES_CACHE_TTL", 300) or 300)
 CONTEXT_CACHE_TTL = int(getattr(settings, "INDIAN_COLLEGES_CONTEXT_CACHE_TTL", 90) or 90)
+ENABLED_CACHE_TTL = int(getattr(settings, "INDIAN_COLLEGES_ENABLED_CACHE_TTL", 600) or 600)
 # Soft deadline so the view returns before nginx 502s the worker.
 LIST_BUILD_DEADLINE_SEC = float(
     getattr(settings, "INDIAN_COLLEGES_LIST_DEADLINE_SEC", 18) or 18
 )
+SEARCH_RESULT_LIMIT = 48
 
 
 class CollegeContentDisabled(Exception):
@@ -169,6 +171,7 @@ def _get_json(path: str, timeout: int = 30) -> Dict[str, Any]:
 
 
 def fetch_college_base_details(college_id: int) -> Dict[str, Any]:
+    # Guide mentions college_id; upstream currently requires `id`.
     return _get_json(f"/colleges/college-details/?id={int(college_id)}")
 
 
@@ -176,6 +179,22 @@ def fetch_college_tab_details(college_id: int, tab_name: str) -> Dict[str, Any]:
     return _get_json(
         f"/colleges/college-details/?id={int(college_id)}&tab_name={tab_name}"
     )
+
+
+def fetch_college_search(query: str) -> Optional[List[Dict[str, Any]]]:
+    """POST /colleges/search/. Returns None on transport/API failure."""
+    q = (query or "").strip()
+    if not q:
+        return []
+    try:
+        data = _post_json("/colleges/search/", {"query": q})
+    except Exception as e:
+        logger.warning("college search API failed: %s", e)
+        return None
+    results = data.get("results") if isinstance(data, dict) else None
+    if not isinstance(results, list):
+        return []
+    return [row for row in results if isinstance(row, dict) and row.get("id")]
 
 
 def fetch_courses_fees_streams(college_id: int) -> Dict[str, Any]:
@@ -230,14 +249,30 @@ def is_college_content_enabled(college_id: Optional[int]) -> bool:
     """List gate: college is shown only when Admission content is enabled."""
     if not college_id:
         return False
+    cid = int(college_id)
+    cache_key = f"indian_colleges:v2:enabled:{cid}"
+    cache_backend = _college_api_cache()
     try:
-        payload = fetch_college_tab_details(int(college_id), "admission")
-        if payload.get("error"):
-            return False
-        return is_tab_content_enabled(payload.get("admission"))
+        cached = cache_backend.get(cache_key)
+        if cached is True or cached is False:
+            return bool(cached)
+    except Exception:
+        pass
+
+    enabled = False
+    try:
+        payload = fetch_college_tab_details(cid, "admission")
+        if not payload.get("error"):
+            enabled = is_tab_content_enabled(payload.get("admission"))
     except Exception as e:
         logger.debug("admission status check failed for %s: %s", college_id, e)
-        return False
+        enabled = False
+
+    try:
+        cache_backend.set(cache_key, enabled, ENABLED_CACHE_TTL)
+    except Exception:
+        pass
+    return enabled
 
 
 def get_enabled_tabs_for_college(
@@ -858,6 +893,80 @@ def adapt_college(item: Dict[str, Any]) -> SimpleNamespace:
     )
 
 
+def list_item_from_details(college_id: int, base: Dict[str, Any]) -> Dict[str, Any]:
+    """Map college-details payload into a list-row shape for facets/cards."""
+    city = base.get("city") if isinstance(base.get("city"), dict) else {}
+    state = base.get("state") if isinstance(base.get("state"), dict) else {}
+    ctype = base.get("college_type") if isinstance(base.get("college_type"), dict) else {}
+    stream = base.get("stream") if isinstance(base.get("stream"), dict) else {}
+    substream = base.get("substream") if isinstance(base.get("substream"), dict) else {}
+    gender = base.get("gender") if isinstance(base.get("gender"), dict) else {}
+    category = base.get("category") if isinstance(base.get("category"), dict) else {}
+    fees = base.get("college_avg_fee") if isinstance(base.get("college_avg_fee"), list) else []
+    fee_ids = []
+    avg_fees = []
+    for fee in fees:
+        if not isinstance(fee, dict):
+            continue
+        fid = _as_int(fee.get("id"))
+        if fid is not None:
+            fee_ids.append(fid)
+        if fee.get("fees"):
+            avg_fees.append(fee.get("fees"))
+    exam_ids = []
+    for exam in base.get("entrance_exams") or []:
+        if isinstance(exam, dict):
+            eid = _as_int(exam.get("id"))
+            if eid is not None:
+                exam_ids.append(eid)
+    duration = base.get("duration") if isinstance(base.get("duration"), dict) else {}
+    return {
+        "college_id": int(college_id),
+        "college_name": base.get("name") or "College",
+        "city_id": _as_int(city.get("id")),
+        "city_name": city.get("name") or "",
+        "state_id": _as_int(state.get("id")),
+        "state_name": state.get("name") or "",
+        "college_type": ctype.get("name") or "",
+        "stream_id": _as_int(stream.get("id")),
+        "stream_name": stream.get("name") or "",
+        "substream_id": _as_int(substream.get("id")),
+        "substream_name": substream.get("name") or "",
+        "gender_id": _as_int(gender.get("id")),
+        "gender_name": gender.get("name") or gender.get("gender") or "",
+        "category_id": _as_int(category.get("id")),
+        "category_name": category.get("name") or "",
+        "duration_id": _as_int(duration.get("id")),
+        "duration_value": duration.get("duration") or duration.get("name") or "",
+        "fee_ids": fee_ids,
+        "avg_fees_array": avg_fees,
+        "entrance_exam_ids": exam_ids,
+        "course_id": None,
+        "course_name": "",
+    }
+
+
+def resolve_college_type_name(selected_filters: Dict[str, Any]) -> Dict[str, Any]:
+    """Upstream ignores college_type when `name` is missing — fill it from /filters/."""
+    selected = dict(selected_filters or {})
+    college_type = selected.get("college_type")
+    if not isinstance(college_type, dict):
+        return selected
+    type_id = _as_int(college_type.get("id"))
+    if type_id is None or college_type.get("name"):
+        return selected
+    try:
+        payload = fetch_filters({"nationwide": True})
+        options = ((payload.get("filters") or {}).get("static") or {}).get("college_type") or []
+        for opt in options:
+            if _as_int(opt.get("id")) == type_id and opt.get("name"):
+                selected["college_type"] = {"id": type_id, "name": str(opt.get("name"))}
+                break
+    except Exception as e:
+        logger.debug("college_type name resolve failed: %s", e)
+    return selected
+
+
 def _as_int(value: Any) -> Optional[int]:
     try:
         if value is None or value == "":
@@ -1022,6 +1131,9 @@ def get_college_list_context_from_api(request) -> Dict[str, Any]:
         entrance_exam_ids=entrance_exam_ids,
         gender_id=gender_id,
     )
+    # API requires college_type.name; id-only silently drops the filter.
+    if college_type_id:
+        selected_filters = resolve_college_type_name(selected_filters)
 
     page = _as_int(request.GET.get("page")) or 1
     page_size = _as_int(request.GET.get("page_size")) or DEFAULT_PAGE_SIZE
@@ -1073,20 +1185,120 @@ def get_college_list_context_from_api(request) -> Dict[str, Any]:
 
     started = time.monotonic()
 
-    # Kick filters + first list pages in parallel (biggest latency win on cold load).
-    fetch_size = 50 if user_applied_filters else 48
-    # Parallel page batches keep totals useful without serial multi-second scans
-    # that push nginx past ~30s and return 502 on demo under load.
-    max_upstream_pages = 12 if user_applied_filters else 8
-    batch_size = 4
+    # Facets/counts/options use enabled colleges only (Admission content enabled).
+    enabled_facet_bucket = _empty_result_facet_bucket()
+    enabled_seen_ids: set = set()
+    enabled_ordered: List[Dict[str, Any]] = []
     list_payload: Dict[str, Any] = {}
     filters_payload: Dict[str, Any] = {}
+    used_search_api = False
 
-    def _fetch_pages(page_nos: Sequence[int]) -> Dict[int, Dict[str, Any]]:
-        if not page_nos:
-            return {}
-        with ThreadPoolExecutor(max_workers=len(page_nos)) as pool:
-            futs = {
+    # Prefer official search API for `q` (avoids scanning alphabetical list pages).
+    search_hits: Optional[List[Dict[str, Any]]] = None
+    if search_query:
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            fut_filters = pool.submit(fetch_filters, selected_filters)
+            fut_search = pool.submit(fetch_college_search, search_query)
+            remaining = max(1.0, LIST_BUILD_DEADLINE_SEC - (time.monotonic() - started))
+            try:
+                filters_payload = fut_filters.result(timeout=remaining)
+                search_hits = fut_search.result(timeout=remaining)
+            except Exception as exc:
+                fut_filters.cancel()
+                fut_search.cancel()
+                raise RuntimeError(
+                    f"Indian colleges upstream timed out or failed: {exc}"
+                ) from exc
+
+        if search_hits is not None:
+            used_search_api = True
+
+            def _load_search_hit(hit: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+                cid = _as_int(hit.get("id"))
+                if cid is None or not is_college_content_enabled(cid):
+                    return None
+                try:
+                    base = fetch_college_base_details(cid)
+                    if base.get("error"):
+                        return None
+                    return list_item_from_details(cid, base)
+                except Exception:
+                    return None
+
+            hits = search_hits[:SEARCH_RESULT_LIMIT]
+            with ThreadPoolExecutor(max_workers=min(10, len(hits) or 1)) as pool:
+                for item in pool.map(_load_search_hit, hits):
+                    if not item:
+                        continue
+                    college_key = item.get("college_id")
+                    if college_key is not None and college_key in enabled_seen_ids:
+                        continue
+                    if college_key is not None:
+                        enabled_seen_ids.add(college_key)
+                    enabled_ordered.append(item)
+
+            # Search API is name-only — apply active sidebar filters locally.
+            if state_id:
+                enabled_ordered = [
+                    item for item in enabled_ordered if item.get("state_id") == state_id
+                ]
+            if city_ids:
+                city_set = set(city_ids)
+                enabled_ordered = [
+                    item for item in enabled_ordered if item.get("city_id") in city_set
+                ]
+            if stream_id:
+                enabled_ordered = [
+                    item for item in enabled_ordered if item.get("stream_id") == stream_id
+                ]
+            if college_type_id:
+                type_name = (
+                    (selected_filters.get("college_type") or {}).get("name") or ""
+                ).strip().lower()
+                if type_name:
+                    enabled_ordered = [
+                        item
+                        for item in enabled_ordered
+                        if (item.get("college_type") or "").strip().lower() == type_name
+                    ]
+
+    if not used_search_api:
+        # Kick filters + first list pages in parallel (biggest latency win on cold load).
+        fetch_size = 50 if user_applied_filters else 48
+        # Parallel page batches keep totals useful without serial multi-second scans
+        # that push nginx past ~30s and return 502 on demo under load.
+        max_upstream_pages = 12 if user_applied_filters else 8
+        batch_size = 4
+
+        def _fetch_pages(page_nos: Sequence[int]) -> Dict[int, Dict[str, Any]]:
+            if not page_nos:
+                return {}
+            with ThreadPoolExecutor(max_workers=len(page_nos)) as pool:
+                futs = {
+                    page_no: pool.submit(
+                        fetch_colleges_list,
+                        selected_filters,
+                        page_no,
+                        fetch_size,
+                        "name",
+                        sort_order,
+                        True,
+                    )
+                    for page_no in page_nos
+                }
+                out: Dict[int, Dict[str, Any]] = {}
+                for page_no, fut in futs.items():
+                    remaining = max(
+                        1.0, LIST_BUILD_DEADLINE_SEC - (time.monotonic() - started)
+                    )
+                    out[page_no] = fut.result(timeout=remaining)
+                return out
+
+        # Filters + first list batch in parallel.
+        first_batch = list(range(1, min(batch_size, max_upstream_pages) + 1))
+        with ThreadPoolExecutor(max_workers=1 + len(first_batch)) as pool:
+            fut_filters = pool.submit(fetch_filters, selected_filters)
+            list_futs = {
                 page_no: pool.submit(
                     fetch_colleges_list,
                     selected_filters,
@@ -1096,101 +1308,78 @@ def get_college_list_context_from_api(request) -> Dict[str, Any]:
                     sort_order,
                     True,
                 )
-                for page_no in page_nos
+                for page_no in first_batch
             }
-            out: Dict[int, Dict[str, Any]] = {}
-            for page_no, fut in futs.items():
-                remaining = max(1.0, LIST_BUILD_DEADLINE_SEC - (time.monotonic() - started))
-                out[page_no] = fut.result(timeout=remaining)
-            return out
+            remaining = max(1.0, LIST_BUILD_DEADLINE_SEC - (time.monotonic() - started))
+            try:
+                filters_payload = fut_filters.result(timeout=remaining)
+                page_payloads = {}
+                for page_no, fut in list_futs.items():
+                    remaining = max(
+                        1.0, LIST_BUILD_DEADLINE_SEC - (time.monotonic() - started)
+                    )
+                    page_payloads[page_no] = fut.result(timeout=remaining)
+            except Exception as exc:
+                for fut in list(list_futs.values()) + [fut_filters]:
+                    fut.cancel()
+                raise RuntimeError(
+                    f"Indian colleges upstream timed out or failed: {exc}"
+                ) from exc
 
-    # Filters + first list batch in parallel.
-    first_batch = list(range(1, min(batch_size, max_upstream_pages) + 1))
-    with ThreadPoolExecutor(max_workers=1 + len(first_batch)) as pool:
-        fut_filters = pool.submit(fetch_filters, selected_filters)
-        list_futs = {
-            page_no: pool.submit(
-                fetch_colleges_list,
-                selected_filters,
-                page_no,
-                fetch_size,
-                "name",
-                sort_order,
-                True,
-            )
-            for page_no in first_batch
-        }
-        remaining = max(1.0, LIST_BUILD_DEADLINE_SEC - (time.monotonic() - started))
-        try:
-            filters_payload = fut_filters.result(timeout=remaining)
-            page_payloads = {}
-            for page_no, fut in list_futs.items():
-                remaining = max(1.0, LIST_BUILD_DEADLINE_SEC - (time.monotonic() - started))
-                page_payloads[page_no] = fut.result(timeout=remaining)
-        except Exception as exc:
-            for fut in list(list_futs.values()) + [fut_filters]:
-                fut.cancel()
-            raise RuntimeError(f"Indian colleges upstream timed out or failed: {exc}") from exc
+        def _enabled_matching(items: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
+            enabled_items = filter_enabled_college_items(items)
+            if not search_lower:
+                return enabled_items
+            return [
+                item
+                for item in enabled_items
+                if search_lower in (item.get("college_name") or "").lower()
+                or search_lower in (item.get("city_name") or "").lower()
+                or search_lower in (item.get("course_name") or "").lower()
+            ]
 
-    # Facets/counts/options use enabled colleges only (Admission content enabled).
-    enabled_facet_bucket = _empty_result_facet_bucket()
-    enabled_seen_ids: set = set()
+        upstream_page = 0
+        upstream_exhausted = False
+        upstream_has_next = False
 
-    def _enabled_matching(items: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        enabled_items = filter_enabled_college_items(items)
-        if not search_lower:
-            return enabled_items
-        return [
-            item
-            for item in enabled_items
-            if search_lower in (item.get("college_name") or "").lower()
-            or search_lower in (item.get("city_name") or "").lower()
-            or search_lower in (item.get("course_name") or "").lower()
-        ]
+        def _ingest(payload: Dict[str, Any]) -> None:
+            enabled_items = _enabled_matching(payload.get("data") or [])
+            for item in enabled_items:
+                college_key = item.get("college_id")
+                if college_key is None:
+                    college_key = item.get("id")
+                if college_key is not None and college_key in enabled_seen_ids:
+                    continue
+                if college_key is not None:
+                    enabled_seen_ids.add(college_key)
+                enabled_ordered.append(item)
 
-    enabled_ordered: List[Dict[str, Any]] = []
-    upstream_page = 0
-    upstream_exhausted = False
-    upstream_has_next = False
+        def _ingest_ordered(payloads: Dict[int, Dict[str, Any]]) -> None:
+            nonlocal list_payload, upstream_page, upstream_has_next, upstream_exhausted
+            for page_no in sorted(payloads):
+                list_payload = payloads[page_no] or {}
+                upstream_page = page_no
+                upstream_has_next = bool(list_payload.get("has_next"))
+                _ingest(list_payload)
+                if not upstream_has_next:
+                    upstream_exhausted = True
+                    break
 
-    def _ingest(payload: Dict[str, Any]) -> None:
-        enabled_items = _enabled_matching(payload.get("data") or [])
-        for item in enabled_items:
-            college_key = item.get("college_id")
-            if college_key is None:
-                college_key = item.get("id")
-            if college_key is not None and college_key in enabled_seen_ids:
-                continue
-            if college_key is not None:
-                enabled_seen_ids.add(college_key)
-            enabled_ordered.append(item)
+        _ingest_ordered(page_payloads)
 
-    def _ingest_ordered(payloads: Dict[int, Dict[str, Any]]) -> None:
-        nonlocal list_payload, upstream_page, upstream_has_next, upstream_exhausted
-        for page_no in sorted(payloads):
-            list_payload = payloads[page_no] or {}
-            upstream_page = page_no
-            upstream_has_next = bool(list_payload.get("has_next"))
-            _ingest(list_payload)
-            if not upstream_has_next:
-                upstream_exhausted = True
+        while (
+            not upstream_exhausted
+            and upstream_page < max_upstream_pages
+            and (time.monotonic() - started) < LIST_BUILD_DEADLINE_SEC
+        ):
+            next_start = upstream_page + 1
+            next_end = min(max_upstream_pages, upstream_page + batch_size)
+            if next_start > next_end:
                 break
-
-    _ingest_ordered(page_payloads)
-
-    while (
-        not upstream_exhausted
-        and upstream_page < max_upstream_pages
-        and (time.monotonic() - started) < LIST_BUILD_DEADLINE_SEC
-    ):
-        next_start = upstream_page + 1
-        next_end = min(max_upstream_pages, upstream_page + batch_size)
-        if next_start > next_end:
-            break
-        try:
-            _ingest_ordered(_fetch_pages(range(next_start, next_end + 1)))
-        except Exception:
-            break
+            try:
+                _ingest_ordered(_fetch_pages(range(next_start, next_end + 1)))
+            except Exception:
+                break
 
     accumulate_result_facets(enabled_facet_bucket, enabled_ordered, None)
 
