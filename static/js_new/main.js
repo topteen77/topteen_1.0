@@ -371,38 +371,7 @@ if (header) {
 
 
 
-// Toggle to show and hide navbar menu - Cross-browser compatible
-document.addEventListener('DOMContentLoaded', function() {
-  const navbarMenu = document.getElementById("menu");
-  const burgerMenu = document.getElementById("burger");
-  
-  // Check if elements exist before adding event listeners
-  if (burgerMenu && navbarMenu) {
-    // Use both click and touchstart for better mobile support
-    burgerMenu.addEventListener("click", function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      navbarMenu.classList.toggle("is-active");
-      burgerMenu.classList.toggle("is-active");
-    });
-    
-    // Touch support for mobile devices
-    burgerMenu.addEventListener("touchstart", function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      navbarMenu.classList.toggle("is-active");
-      burgerMenu.classList.toggle("is-active");
-    });
-    
-    // Close menu when clicking outside
-    document.addEventListener("click", function(e) {
-      if (!burgerMenu.contains(e.target) && !navbarMenu.contains(e.target)) {
-        navbarMenu.classList.remove("is-active");
-        burgerMenu.classList.remove("is-active");
-      }
-    });
-  }
-});
+// Mobile nav toggle is handled in template20/includes/header.html (avoid duplicate handlers).
 
 // Toggle to show and hide dropdown menu
 const dropdown = document.querySelectorAll(".dropdown");
@@ -524,19 +493,6 @@ window.addEventListener("resize", () => {
     dropdown.forEach((item) => {
       item.classList.remove("dropdown-show");
     });
-  }
-});
-
-// Fixed navbar menu on window resizing
-window.addEventListener("resize", () => {
-  const navbarMenu = document.getElementById("menu");
-  const burgerMenu = document.getElementById("burger");
-  
-  if (window.innerWidth > 992) {
-    if (navbarMenu && burgerMenu && navbarMenu.classList.contains("is-active")) {
-      navbarMenu.classList.remove("is-active");
-      burgerMenu.classList.remove("is-active");
-    }
   }
 });
 

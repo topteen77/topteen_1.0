@@ -7033,6 +7033,7 @@ a:hover {
   pointer-events: none;
   background-color: var(--color-white-100);
   transition: opacity 0.4s ease;
+  z-index: 8890;
 }
 
 .navbar-block.is-active {
@@ -7614,6 +7615,11 @@ a:hover {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    z-index: 8892;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .tt-header-mobile-toolbar .burger-line {
@@ -7645,6 +7651,160 @@ a:hover {
 
   .navbar-block {
     top: 56px;
+  }
+
+  .navbar-block:not(.is-active) {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .navbar-block.is-active,
+  .tt-header .navbar-block.is-active,
+  .tt-header .navbar-block.is-open {
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  .tt-header .navbar {
+    position: relative;
+    overflow: visible;
+  }
+
+  .tt-header .navbar-inner {
+    position: relative;
+    z-index: 8895;
+  }
+
+  .tt-header-mobile-toolbar {
+    position: relative;
+    z-index: 8896;
+  }
+
+  .tt-header-mobile-account.dropdown:not(.dropdown-show) .dropdown-content.login-content {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+  }
+
+  .tt-header-mobile-account.dropdown.dropdown-show .dropdown-content.login-content {
+    visibility: visible !important;
+    opacity: 1 !important;
+    height: auto;
+    max-height: none;
+    padding: 8px 13px;
+    pointer-events: auto !important;
+  }
+
+  /* Mobile / tablet slide-out navigation panel */
+  .tt-header .navbar-block {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 1.5rem;
+  }
+
+  .tt-header .navbar-block .menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+  }
+
+  .tt-header .navbar-block .menu-item {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    padding: 0;
+    border-bottom: 1px solid #ece9ff;
+  }
+
+  .tt-header .navbar-block .menu-item:last-child {
+    border-bottom: none;
+  }
+
+  .tt-header .navbar-block .menu-link,
+  .tt-header .navbar-block .dropdown-toggle.menu-link {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    justify-content: space-between;
+    box-sizing: border-box;
+  }
+
+  .tt-header .navbar-block .dropdown-show > .dropdown-toggle .bx.bx-chevron-down {
+    rotate: 180deg;
+  }
+
+  .tt-header .navbar-block .dropdown:not(.dropdown-show) .dropdown-content,
+  .tt-header .navbar-block .dropdown:not(.dropdown-show) .dropdown-content.tabs-auto-fit,
+  .tt-header .navbar-block .dropdown:not(.dropdown-show) .dropdown-content.tabs-auto-fit.blogs-menu,
+  .tt-header .navbar-block .dropdown:not(.dropdown-show) .dropdown-content.tabs-auto-fit.country-menu,
+  .tt-header .navbar-block .dropdown:not(.dropdown-show) .dropdown-content.tabs-auto-fit.exam-menu,
+  .tt-header .navbar-block .dropdown:not(.dropdown-show) .dropdown-content.tabs-auto-fit.discovernav {
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    overflow: hidden !important;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .tt-header .navbar-block .dropdown.dropdown-show .dropdown-content.tabs-auto-fit,
+  .tt-header .navbar-block .dropdown.dropdown-show .dropdown-content.tabs-auto-fit.blogs-menu,
+  .tt-header .navbar-block .dropdown.dropdown-show .dropdown-content.tabs-auto-fit.country-menu,
+  .tt-header .navbar-block .dropdown.dropdown-show .dropdown-content.tabs-auto-fit.exam-menu,
+  .tt-header .navbar-block .dropdown.dropdown-show .dropdown-content.tabs-auto-fit.discovernav {
+    visibility: visible;
+    width: 100%;
+    border: none;
+    border-radius: 0;
+    background: #f8f7ff;
+    padding: 0;
+    top: auto !important;
+    pointer-events: auto;
+  }
+
+  .tt-header .navbar-block .dropdown-content.tabs-auto-fit a {
+    display: block;
+    float: none;
+    width: 100%;
+    padding: 12px 20px 12px 28px !important;
+    border-bottom: 1px solid #ece9ff;
+    font-size: 14px;
+    font-weight: 500;
+    color: #3f37c9;
+    white-space: normal;
+  }
+
+  .tt-header .navbar-block .dropdown-content.tabs-auto-fit a:last-child {
+    border-bottom: none;
+  }
+
+  .tt-header .navbar-block .menu-item.translate-container-menu {
+    border-bottom: none;
+    padding: 12px 20px 8px;
+  }
+
+  .tt-header .navbar-block .translate-container-menu .tt-lang-toggle {
+    width: 100%;
+    max-width: none;
+    border: 1px solid #dcd9ff;
+    border-radius: 12px;
+    background: #fff;
   }
 }
 
@@ -12520,7 +12680,7 @@ body.tt-lang-menu-open {
 
 
 /* Mobile Search Styles */
-@media (max-width: 768px) {
+@media (max-width: 991.98px) {
   .search-container {
     position: fixed;
     top: 64px;
@@ -13326,6 +13486,12 @@ body.tt-lang-menu-open {
   display: none;
 }
 
+@media (max-width: 1200px) {
+  .mobile-sc-view {
+    overflow: hidden;
+  }
+}
+
 @media (max-width: 767px) {
   .vocational-cr-accordion .pros-cons-content {
     grid-template-columns: 1fr;
@@ -13335,6 +13501,57 @@ body.tt-lang-menu-open {
   .voc-left .heading-title {
     line-height: 31px;
   }
+
+  .mobile-sc-view {
+    overflow: hidden;
+  }
+
+  .stat-grid-info {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grid-video {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 13px;
+  }
+
+
+  .success-stories{
+    overflow: hidden;
+  }
+
+  .readiness .grid-3 , .blog-section .grid-3{
+    grid-template-columns: repeat(1, 1fr);
+    }
+
+    .card-content{grid-template-columns: 1fr;}
+
+    .india-bg {
+      background: radial-gradient(235.3% 235.3% at 50% 0%, rgba(255, 233, 193, 0.3) 19.49%, rgba(209, 208, 254, 0.4) 27.79%, rgba(248, 208, 254, 0.8) 47.75%);
+    }
+
+    .canada-bg {
+      background: #ffd9c9;
+    }
+
+    .australia-bg {
+      background:  #cae8ff;
+          }
+
+          .usa-bg {
+            background:  #deefff;
+          }   
+          .uk-bg {
+            background:  #e9f2ff;
+          }
+          .nz-bg {
+            background:  #f0dfff;
+          }
+
+          .career-battle-popup-layout {
+                       grid-template-columns: 100% !important;
+                    }
 
 }
 
