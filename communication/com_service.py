@@ -79,13 +79,15 @@ class ComService:
         # Return as is if we can't determine (fallback)
         return phone_str
 
-    def get_otp(self,user,otp_type):
-        user_otp=OTP.objects.filter(user=user,type=otp_type)
-        if user_otp.exists():
-            user_otp = user_otp.first()
-            return user_otp.otp
-        new_otp =self.generate_otp()
-        OTP.objects.create(user=user,otp=new_otp,type=otp_type)
+    def get_otp(self, user, otp_type, *, refresh=False):
+        """Return OTP for user+type. refresh=True issues a new code (used on send)."""
+        user_key = str(user).strip()
+        qs = OTP.objects.filter(user=user_key, type=otp_type)
+        if qs.exists() and not refresh:
+            return qs.first().otp
+        qs.delete()
+        new_otp = self.generate_otp()
+        OTP.objects.create(user=user_key, otp=new_otp, type=otp_type)
         return new_otp
 
 
@@ -135,7 +137,7 @@ class ComService:
         print()
         print(f"From Con_service",">"*30,user)
         print()
-        otp = self.get_otp(user,choices.CommunicationTypeChooices.EMAIL)
+        otp = self.get_otp(user, choices.CommunicationTypeChooices.EMAIL, refresh=True)
         to=user
         subject, text_content, html_content = render_transactional_email(
             'email_otp',
@@ -213,7 +215,7 @@ class ComService:
 
         try:
             user = int(user)
-            otp = self.get_otp(user, choices.CommunicationTypeChooices.SMS)
+            otp = self.get_otp(user, choices.CommunicationTypeChooices.SMS, refresh=True)
             print("sending mobile otp for {} is {}".format(user, otp))
 
             formatted_phone = self.format_phone_number_with_country_code(user)
@@ -222,7 +224,11 @@ class ComService:
             cfg = self._sms_cfg()
             provider_key = (cfg.provider or 'smartping').strip().lower()
             provider = get_provider(provider_key)
-            message_template = cfg.message_template or '{otp} is your verification code for TopTeen'
+            message_template = (
+                cfg.message_template
+                or getattr(settings, 'SMARTPING_SMS_MESSAGE_TEMPLATE', None)
+                or '{otp} is your verification code for TestprepGPT AI'
+            )
             message = message_template.format(otp=otp)
             log_key = f"{provider_key}:sms:{formatted_phone}:{message}"
             response_text = 'DEBUG'
@@ -273,7 +279,7 @@ class ComService:
 
         try:
             user = int(user)
-            otp = self.get_otp(user, otp_type)
+            otp = self.get_otp(user, otp_type, refresh=True)
             formatted_phone = self.format_phone_number_with_country_code(user)
             provider_key = (cfg.provider or 'plivo').strip().lower()
             provider = get_provider(provider_key)
@@ -451,8 +457,9 @@ class ComService:
             return self.send_mobile_otp(user)
         return None
         
-    def verify_otp(self,user,otp,otp_type,delete=True):
-        user_otp=OTP.objects.filter(user=user,otp=otp,type=otp_type)
+    def verify_otp(self, user, otp, otp_type, delete=True):
+        user_key = str(user).strip()
+        user_otp = OTP.objects.filter(user=user_key, otp=otp, type=otp_type)
         if user_otp.exists():
             if delete:
                 user_otp.delete()

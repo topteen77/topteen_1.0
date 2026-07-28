@@ -336,7 +336,7 @@ def resolve_stream_for_user(
 
 
 def _offering_ids_cache_key(stream_id: int) -> str:
-    return f"indian_psych_offering_ids:v1:{int(stream_id)}"
+    return f"indian_psych_offering_ids:v5:{int(stream_id)}"
 
 
 def get_cached_offering_course_ids(stream_id: int) -> Optional[Set[int]]:
@@ -360,16 +360,173 @@ def resolve_offering_course_ids(
 ) -> Set[int]:
     """Return filter course ids that have ≥1 college with an active courses tab.
 
-    Optimized: one parallel pass over the stream's course list, with per-course
-    and stream-level caching so later matched-course views stay cheap.
+    Optimized supply-side inventory:
+    - Sample a small set of stream colleges with publishable courses tabs
+    - Collect course labels/slugs from those colleges
+    - Map back onto the filters course list (fuzzy), instead of probing
+      every matched course individually.
     """
     cached = get_cached_offering_course_ids(stream_id)
     if cached is not None:
         return cached
 
+    from colleges.external_api import (
+        _course_label_score,
+        _normalize_course_label,
+        build_selected_filters,
+        fetch_colleges_list,
+        fetch_courses_fees_stream,
+        fetch_courses_fees_streams,
+        is_courses_tab_enabled,
+    )
+
+    filter_rows = [
+        row for row in courses if row.get("id") and row.get("name")
+    ][: max(1, max_check)]
+    if not filter_rows:
+        try:
+            _match_cache().set(_offering_ids_cache_key(stream_id), [], OFFERING_IDS_CACHE_TTL)
+        except Exception:
+            pass
+        return set()
+
+    # 1) Sample stream colleges (two pages for better stream/course coverage).
+    college_ids: List[int] = []
+    seen_college: Set[int] = set()
+    try:
+        for page in (1, 2):
+            listing = fetch_colleges_list(
+                selected_filters=build_selected_filters(stream_id=int(stream_id)),
+                page=page,
+                page_size=16,
+                detail_view=True,
+                sort_by="college_name",
+                sort_order="asc",
+            )
+            rows = listing.get("data") or listing.get("results") or []
+            for row in rows:
+                raw = row.get("college_id") or row.get("id")
+                try:
+                    cid = int(raw)
+                except (TypeError, ValueError):
+                    continue
+                if cid in seen_college:
+                    continue
+                seen_college.add(cid)
+                college_ids.append(cid)
+            if len(rows) < 16:
+                break
+    except Exception:
+        logger.warning("offering inventory college list failed", exc_info=True)
+
+    # 2) Keep colleges with an active courses tab (parallel, capped).
+    active_ids: List[int] = []
+    if college_ids:
+        def _active(cid: int) -> Optional[int]:
+            try:
+                return cid if is_courses_tab_enabled(cid) else None
+            except Exception:
+                return None
+
+        with ThreadPoolExecutor(max_workers=min(8, len(college_ids) or 1)) as pool:
+            for cid in pool.map(_active, college_ids[:20]):
+                if cid is not None:
+                    active_ids.append(cid)
+                if len(active_ids) >= 12:
+                    break
+
+    # 3) Collect course labels from active colleges.
+    inventory_labels: List[str] = []
+    stream_hint = (stream_name or "").strip().lower()
+
+    def _collect(cid: int) -> List[str]:
+        labels: List[str] = []
+        try:
+            streams = fetch_courses_fees_streams(cid).get("streams") or []
+        except Exception:
+            return labels
+        related = []
+        for stream in streams:
+            if not isinstance(stream, dict):
+                continue
+            slug = (stream.get("slug") or "").strip()
+            sname = (stream.get("name") or "").strip().lower()
+            if not slug:
+                continue
+            if (
+                not stream_hint
+                or stream_hint in sname
+                or stream_hint in slug
+                or any(tok in sname for tok in stream_hint.split() if len(tok) > 3)
+            ):
+                related.append(slug)
+        if not related:
+            related = [
+                (s.get("slug") or "").strip()
+                for s in streams
+                if isinstance(s, dict) and s.get("slug")
+            ][:2]
+        for slug in related[:2]:
+            try:
+                payload = fetch_courses_fees_stream(cid, slug)
+            except Exception:
+                continue
+            for item in payload.get("courses") or []:
+                if not isinstance(item, dict):
+                    continue
+                nested = item.get("course") if isinstance(item.get("course"), dict) else {}
+                label = (item.get("name") or nested.get("name") or "").strip()
+                if label:
+                    labels.append(label)
+        return labels
+
+    if active_ids:
+        with ThreadPoolExecutor(max_workers=min(6, len(active_ids) or 1)) as pool:
+            for labels in pool.map(_collect, active_ids):
+                inventory_labels.extend(labels)
+
+    inventory_norm = {_normalize_course_label(x) for x in inventory_labels if x}
+
+    # 4) Map inventory onto filter course ids.
+    # Only accept equal/near-equal labels, or inventory that is at least as
+    # specific as the filter course (avoid B.Ed unlocking B.Ed+M.Ed).
+    offering_ids: Set[int] = set()
+    for row in filter_rows:
+        name = (row.get("name") or "").strip()
+        if not name:
+            continue
+        norm = _normalize_course_label(name)
+        filter_tokens = set(norm.split())
+        hit = norm in inventory_norm
+        if not hit:
+            for inv in inventory_labels:
+                inv_norm = _normalize_course_label(inv)
+                inv_tokens = set(inv_norm.split())
+                score = _course_label_score(name, inv)
+                if score >= 0.95 or filter_tokens == inv_tokens:
+                    hit = True
+                    break
+                # Inventory covers this filter course (same or more specific).
+                if score >= 0.8 and filter_tokens and filter_tokens.issubset(inv_tokens):
+                    hit = True
+                    break
+        if hit:
+            try:
+                offering_ids.add(int(row["id"]))
+            except (TypeError, ValueError):
+                pass
+
+    # Always demand-check a capped slice of remaining filter courses.
+    # Inventory alone under-recalls niche streams (e.g. Physical Education)
+    # when the alphabetical college sample lacks those departments.
     from colleges.course_pages import has_active_course_offerings
 
-    rows = [row for row in courses if row.get("id") and row.get("name")][: max(1, max_check)]
+    remaining = [
+        row for row in filter_rows if int(row.get("id") or 0) not in offering_ids
+    ]
+    # Small streams (~20–40 filter courses): check almost all leftovers once, cache.
+    check_budget = 24 if len(filter_rows) <= 48 else 12
+    remaining = remaining[:check_budget]
 
     def _check(row: Dict[str, Any]) -> Optional[int]:
         try:
@@ -382,10 +539,9 @@ def resolve_offering_course_ids(
         except Exception:
             return None
 
-    offering_ids: Set[int] = set()
-    if rows:
-        with ThreadPoolExecutor(max_workers=min(8, len(rows) or 1)) as pool:
-            for cid in pool.map(_check, rows):
+    if remaining:
+        with ThreadPoolExecutor(max_workers=min(6, len(remaining) or 1)) as pool:
+            for cid in pool.map(_check, remaining):
                 if cid is not None:
                     offering_ids.add(cid)
 

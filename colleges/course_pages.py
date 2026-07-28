@@ -231,14 +231,11 @@ def find_active_course_in_college(
         _course_label_score,
         _iter_college_stream_courses,
         _stream_slug_candidates,
-        is_courses_tab_enabled,
     )
 
     try:
         cid = int(college_id)
     except (TypeError, ValueError):
-        return None
-    if not is_courses_tab_enabled(cid):
         return None
 
     want_slug = (course_slug or "").strip().strip("/")
@@ -246,8 +243,23 @@ def find_active_course_in_college(
     if not want_slug and not want_name:
         return None
 
+    cache_key = (
+        f"indian_course_in_college:v2:{cid}:"
+        f"{want_slug or '-'}:"
+        f"{''.join(ch if ch.isalnum() else '_' for ch in want_name.lower())[:60]}:"
+        f"{(stream_slug or '-').strip()}"
+    )
+    try:
+        cached = _course_cache().get(cache_key)
+        if cached is False:
+            return None
+        if isinstance(cached, dict) and cached.get("course_slug"):
+            return cached
+    except Exception:
+        pass
+
     rows = _iter_college_stream_courses(
-        cid, _stream_slug_candidates(stream_slug, stream_name)
+        cid, _stream_slug_candidates(stream_slug, stream_name), max_streams=2
     )
     best: Optional[Dict[str, Any]] = None
     best_score = 0.0
@@ -259,12 +271,17 @@ def find_active_course_in_college(
         item_name = (item.get("name") or nested.get("name") or "").strip()
         item_stream = (item.get("_stream_slug") or nested.get("stream_slug") or "").strip()
         if want_slug and item_slug and item_slug == want_slug:
-            return {
+            found = {
                 "course_slug": item_slug,
                 "course_name": item_name or want_name,
                 "stream_slug": item_stream or stream_slug,
                 "score": 1.0,
             }
+            try:
+                _course_cache().set(cache_key, found, COLLEGES_CACHE_TTL)
+            except Exception:
+                pass
+            return found
         score = _course_label_score(want_name, item_name) if want_name else 0.0
         if score > best_score and item_slug:
             best_score = score
@@ -275,7 +292,15 @@ def find_active_course_in_college(
                 "score": score,
             }
     if best and best_score >= min_score:
+        try:
+            _course_cache().set(cache_key, best, COLLEGES_CACHE_TTL)
+        except Exception:
+            pass
         return best
+    try:
+        _course_cache().set(cache_key, False, COLLEGES_CACHE_TTL)
+    except Exception:
+        pass
     return None
 
 
@@ -300,7 +325,7 @@ def get_colleges_for_course(
     course_slug = (course_slug or "").strip().strip("/")
     safe_name = "".join(ch if ch.isalnum() else "_" for ch in name.lower())[:80]
     cache_key = (
-        f"indian_course_colleges:v6:{stream_id or 0}:{safe_name}:"
+        f"indian_course_colleges:v10:{stream_id or 0}:{safe_name}:"
         f"{stream_slug or '-'}:{course_slug or '-'}:{int(limit)}"
     )
     try:
@@ -315,9 +340,9 @@ def get_colleges_for_course(
     filter_query = urlencode({"q": name})
     course_filter_id = None
     matched_name = name
-    target_limit = max(1, min(int(limit or 12), 24))
-    # Pull extra upstream rows; many filter hits lack this course on courses tab.
-    fetch_limit = max(target_limit * 4, 32)
+    target_limit = max(1, min(int(limit or 12), 12))
+    # Pull a modest oversample; stop early once enough courses-tab matches exist.
+    fetch_limit = max(target_limit * 2, 16)
 
     try:
         from colleges.external_api import (
@@ -342,6 +367,8 @@ def get_colleges_for_course(
         match = _best_course_match(name, raw_courses)
 
         candidates: List[Dict[str, Any]] = []
+        selected = None
+        page1_full = False
         if match and match.get("id"):
             course_filter_id = int(match["id"])
             matched_name = (match.get("name") or name).strip()
@@ -375,6 +402,7 @@ def get_colleges_for_course(
                         "type": row.get("college_type") or "",
                     }
                 )
+            page1_full = len(rows) >= fetch_limit
 
         # Fallback: official search by course label when filter match is empty.
         if not candidates:
@@ -434,37 +462,77 @@ def get_colleges_for_course(
                 if candidates:
                     break
 
-        # Keep only colleges that actively list this course on the courses tab.
-        if candidates:
-            def _match_row(row: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-                found = find_active_course_in_college(
-                    row.get("id"),
-                    matched_name or name,
-                    course_slug=course_slug,
-                    stream_slug=stream_slug,
-                    stream_name=stream_name,
-                )
-                if not found:
-                    return None
-                out = dict(row)
-                out["course_slug"] = found.get("course_slug") or course_slug
-                out["stream_slug"] = found.get("stream_slug") or stream_slug
-                out["url"] = _college_courses_tab_url(
-                    int(row["id"]),
-                    out.get("stream_slug") or "",
-                    out.get("course_slug") or "",
-                )
-                return out
+        def _match_row(row: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+            found = find_active_course_in_college(
+                row.get("id"),
+                matched_name or name,
+                course_slug=course_slug,
+                stream_slug=stream_slug,
+                stream_name=stream_name,
+            )
+            if not found:
+                return None
+            out = dict(row)
+            out["course_slug"] = found.get("course_slug") or course_slug
+            out["stream_slug"] = found.get("stream_slug") or stream_slug
+            out["url"] = _college_courses_tab_url(
+                int(row["id"]),
+                out.get("stream_slug") or "",
+                out.get("course_slug") or "",
+            )
+            return out
 
-            batch_size = 5
-            for i in range(0, len(candidates), batch_size):
-                chunk = candidates[i : i + batch_size]
-                with ThreadPoolExecutor(max_workers=min(5, len(chunk) or 1)) as pool:
+        def _probe(rows: List[Dict[str, Any]]) -> None:
+            nonlocal colleges
+            batch_size = 4
+            for i in range(0, len(rows), batch_size):
+                if len(colleges) >= target_limit:
+                    break
+                chunk = rows[i : i + batch_size]
+                with ThreadPoolExecutor(max_workers=min(4, len(chunk) or 1)) as pool:
                     matched_rows = list(pool.map(_match_row, chunk))
                 colleges.extend(row for row in matched_rows if row)
-                if len(colleges) >= target_limit:
-                    colleges = colleges[:target_limit]
-                    break
+            if len(colleges) > target_limit:
+                colleges = colleges[:target_limit]
+
+        # Keep only colleges that actively list this course on the courses tab.
+        if candidates:
+            _probe(candidates)
+
+        # Lazy page-2 only when page-1 was full and we still need matches.
+        if (
+            selected
+            and page1_full
+            and len(colleges) < target_limit
+        ):
+            try:
+                list_payload2 = fetch_colleges_list(
+                    selected_filters=selected,
+                    page=2,
+                    page_size=fetch_limit,
+                    detail_view=True,
+                    sort_by="college_name",
+                    sort_order="asc",
+                )
+                seen = {c["id"] for c in colleges}
+                more: List[Dict[str, Any]] = []
+                for row in list_payload2.get("data") or list_payload2.get("results") or []:
+                    cid = row.get("college_id")
+                    if not cid or int(cid) in seen:
+                        continue
+                    more.append(
+                        {
+                            "id": int(cid),
+                            "name": row.get("college_name") or f"College {cid}",
+                            "city": row.get("city_name") or "",
+                            "state": row.get("state_name") or "",
+                            "type": row.get("college_type") or "",
+                        }
+                    )
+                if more:
+                    _probe(more)
+            except Exception:
+                pass
     except Exception:
         logger.warning("get_colleges_for_course failed", exc_info=True)
 
@@ -475,7 +543,149 @@ def get_colleges_for_course(
         "matched_course_name": matched_name,
     }
     try:
-        _course_cache().set(cache_key, result, COLLEGES_CACHE_TTL)
+        # Don't pin empty misses for long — recover when upstream data improves.
+        ttl = COLLEGES_CACHE_TTL if colleges else min(45, COLLEGES_CACHE_TTL)
+        _course_cache().set(cache_key, result, ttl)
+    except Exception:
+        pass
+    return result
+
+
+def build_course_detail_page(
+    *,
+    course_name: str,
+    course_id: Optional[int] = None,
+    course_slug: str = "",
+    stream_name: str = "",
+    stream_slug: str = "",
+    stream_id: Optional[int] = None,
+    from_college_id: Optional[int] = None,
+    college_limit: int = 8,
+) -> Dict[str, Any]:
+    """Single optimized payload for the course detail page.
+
+    - Reuses one colleges-for-course pass for the list
+    - Overview markdown comes from from_college (fast path) or the first
+      verified college (no second multi-college crawl)
+    - Parallelizes independent upstream calls when possible
+    """
+    from concurrent.futures import ThreadPoolExecutor
+    from colleges.external_api import (
+        fetch_course_overview_html,
+        find_course_overview_html,
+    )
+
+    name = (course_name or "").strip()
+    stream_slug = (stream_slug or "").strip().strip("/")
+    course_slug = (course_slug or "").strip().strip("/")
+    page_cache_key = (
+        f"indian_course_page:v4:{stream_id or 0}:"
+        f"{int(course_id) if course_id else 0}:"
+        f"{''.join(ch if ch.isalnum() else '_' for ch in name.lower())[:80]}:"
+        f"{course_slug or '-'}:{from_college_id or 0}:{int(college_limit)}"
+    )
+    try:
+        cached = _course_cache().get(page_cache_key)
+        if isinstance(cached, dict) and "colleges" in cached:
+            return cached
+    except Exception:
+        pass
+
+    overview: Dict[str, Any] = {
+        "html": "",
+        "course_slug": course_slug,
+        "course_name": name,
+        "degree_level": "",
+        "stream_name": stream_name or "",
+        "stream_slug": stream_slug,
+        "college_id": None,
+        "college_name": "",
+        "college_city": "",
+        "college_state": "",
+    }
+    payload: Dict[str, Any] = {
+        "colleges": [],
+        "filter_query": "",
+        "course_filter_id": None,
+        "matched_course_name": name,
+    }
+
+    def _load_colleges() -> Dict[str, Any]:
+        return get_colleges_for_course(
+            name,
+            stream_name=stream_name,
+            stream_slug=stream_slug,
+            course_slug=course_slug,
+            limit=college_limit,
+        )
+
+    def _load_overview_from(college_id: int, slug: str = "") -> Dict[str, Any]:
+        return fetch_course_overview_html(
+            college_id,
+            course_slug=slug or course_slug,
+            course_id=course_id,
+            course_name=name,
+            stream_slug=stream_slug,
+            stream_name=stream_name,
+        )
+
+    try:
+        if from_college_id and (course_slug or name):
+            # Fast path: known college + course list in parallel.
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                fut_list = pool.submit(_load_colleges)
+                fut_ov = pool.submit(
+                    _load_overview_from, int(from_college_id), course_slug
+                )
+                payload = fut_list.result()
+                overview = fut_ov.result() or overview
+        else:
+            payload = _load_colleges()
+            colleges = payload.get("colleges") or []
+            if colleges:
+                first = colleges[0]
+                overview = _load_overview_from(
+                    int(first["id"]), first.get("course_slug") or course_slug
+                )
+            else:
+                # Rare fallback: tiny crawl when filter list is empty.
+                overview = find_course_overview_html(
+                    course_name=name,
+                    course_id=course_id,
+                    course_slug=course_slug,
+                    stream_name=stream_name,
+                    stream_slug=stream_slug,
+                    stream_id=stream_id,
+                    college_ids=[from_college_id] if from_college_id else None,
+                    max_colleges=3,
+                )
+    except Exception:
+        logger.warning("build_course_detail_page failed", exc_info=True)
+        try:
+            payload = _load_colleges()
+        except Exception:
+            pass
+
+    if not overview.get("html") and (payload.get("colleges") or []):
+        # Overview failed on preferred college; try first list match once.
+        try:
+            first = payload["colleges"][0]
+            if int(first.get("id") or 0) != int(overview.get("college_id") or 0):
+                overview = _load_overview_from(
+                    int(first["id"]), first.get("course_slug") or course_slug
+                )
+        except Exception:
+            pass
+
+    result = {
+        "colleges": payload.get("colleges") or [],
+        "filter_query": payload.get("filter_query") or "",
+        "course_filter_id": payload.get("course_filter_id"),
+        "matched_course_name": payload.get("matched_course_name") or name,
+        "overview": overview,
+    }
+    try:
+        _course_cache().set(page_cache_key, result, COLLEGES_CACHE_TTL)
     except Exception:
         pass
     return result
@@ -498,7 +708,7 @@ def has_active_course_offerings(
     stream_id = stream_id_from_name(stream_name) or 0
     safe = "".join(ch if ch.isalnum() else "_" for ch in name.lower())[:80]
     cache_key = (
-        f"indian_course_has_offering:v1:{stream_id}:"
+        f"indian_course_has_offering:v2:{stream_id}:"
         f"{int(course_id) if course_id else 0}:{safe}"
     )
     try:

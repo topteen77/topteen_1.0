@@ -221,8 +221,20 @@ def seed_sms_settings_from_env(obj=None):
             changed = True
 
     _set_if_empty('provider', getattr(settings, 'SMS_PROVIDER', 'smartping'))
-    _set_if_empty('message_template', getattr(settings, 'PLIVO_SMS_MESSAGE_TEMPLATE', None))
     _set_if_empty('message_template', getattr(settings, 'SMARTPING_SMS_MESSAGE_TEMPLATE', None))
+    _set_if_empty('message_template', getattr(settings, 'PLIVO_SMS_MESSAGE_TEMPLATE', None))
+    # Correct known DLT mismatches (brand text that is not on the SmartPing template)
+    approved_sms = (
+        getattr(settings, 'SMARTPING_SMS_MESSAGE_TEMPLATE', None)
+        or '{otp} is your verification code for TestprepGPT AI'
+    ).strip()
+    current_tmpl = (obj.message_template or '').strip()
+    if approved_sms and current_tmpl and (
+        'TopTeen' in current_tmpl
+        or current_tmpl == '{otp} is your verification code for TestprepGPT'
+    ):
+        obj.message_template = approved_sms
+        changed = True
     _set_if_empty('smartping_api_url', getattr(settings, 'SMARTPING_SMS_API_URL', None))
     _set_if_empty('smartping_username', getattr(settings, 'SMARTPING_SMS_USERNAME', None))
     _set_if_empty('smartping_password', getattr(settings, 'SMARTPING_SMS_PASSWORD', None))

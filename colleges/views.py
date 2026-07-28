@@ -657,8 +657,7 @@ class IndianCourseDetailView(TemplateView):
 
     def get(self, request, course_id, *args, **kwargs):
         from django.urls import reverse
-        from colleges.course_pages import get_colleges_for_course
-        from colleges.external_api import find_course_overview_html
+        from colleges.course_pages import build_course_detail_page
 
         course_name = (request.GET.get("name") or f"Course {course_id}").strip()
         degree_level = (request.GET.get("degree") or "").strip()
@@ -694,40 +693,22 @@ class IndianCourseDetailView(TemplateView):
                 if stream_id is not None:
                     break
 
-        payload = get_colleges_for_course(
-            course_name,
-            stream_name=stream_name,
-            stream_slug=stream_slug,
-            course_slug=course_slug,
-            limit=12,
-        )
-        colleges = payload.get("colleges") or []
-
-        college_ids = []
-        if from_college_id:
-            college_ids.append(from_college_id)
-        for row in colleges:
-            try:
-                college_ids.append(int(row.get("id")))
-            except (TypeError, ValueError, AttributeError):
-                continue
-
-        overview = find_course_overview_html(
+        page = build_course_detail_page(
             course_name=course_name,
             course_id=course_id_int,
             course_slug=course_slug,
             stream_name=stream_name,
             stream_slug=stream_slug,
             stream_id=stream_id,
-            college_ids=college_ids,
-            max_colleges=10,
+            from_college_id=from_college_id,
+            college_limit=8,
         )
+        colleges = page.get("colleges") or []
+        overview = page.get("overview") or {}
         course_html = overview.get("html") or ""
         if course_html and not str(course_html).strip():
             course_html = ""
         course_slug = overview.get("course_slug") or course_slug
-        # Keep the page title as the matched/filter course name; overview may
-        # resolve to a closely related published course at a content-ready college.
         degree_level = overview.get("degree_level") or degree_level
         if overview.get("stream_name"):
             stream_name = overview.get("stream_name") or stream_name
@@ -793,6 +774,6 @@ class IndianCourseDetailView(TemplateView):
             "course_html": course_html,
             "has_course_html": bool(str(course_html or "").strip()),
             "colleges": colleges,
-            "filter_query": payload.get("filter_query") or "",
+            "filter_query": page.get("filter_query") or "",
         }
         return render(request, self.template_name, ctx)

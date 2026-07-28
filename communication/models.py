@@ -83,7 +83,7 @@ class SmsSettings(models.Model):
     )
     message_template = models.CharField(
         max_length=500,
-        default='{otp} is your verification code for TopTeen',
+        default='{otp} is your verification code for TestprepGPT AI',
         help_text='SMS body with {otp}. Must match DLT-approved text for India.',
     )
     test_destination = models.CharField(

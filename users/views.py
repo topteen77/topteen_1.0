@@ -2138,13 +2138,12 @@ class LoginSignUp(APIView):
                 # Create OTP and send immediately (same as Resend OTP) so SMS/email is received
                 # without depending on Celery worker; .delay() was causing first OTP to never send
                 cs = ComService()
+                send_otp_mail(username, otp_type)
                 otp = cs.get_otp(username, otp_type)
-                # Print OTP to terminal for debugging
                 if otp_type == choices.CommunicationTypeChooices.EMAIL:
                     logger.debug("Email OTP for %s: %s", username, otp)
                 else:
                     logger.debug("SMS OTP for %s: %s", username, otp)
-                send_otp_mail(username, otp_type)
                 
                 data['user_name']=username
                 data["show_otp"]=True
@@ -2732,9 +2731,9 @@ class SendMobileOtp(APIView):
 
         cs = ComService()
         otp_type = choices.CommunicationTypeChooices.SMS
+        send_otp_mail(int(mobile), otp_type)
         otp = cs.get_otp(int(mobile), otp_type)
         logger.debug("Mobile Update - SMS OTP for %s: %s", mobile, otp)
-        send_otp_mail(int(mobile), otp_type)
         response_data = {'success': True, 'message': 'OTP sent successfully'}
         # Include OTP in response for browser console debugging (only in DEBUG mode)
         if settings.DEBUG:
@@ -2849,9 +2848,9 @@ class SendParentOtp(APIView):
 
         cs = ComService()
         otp_type = choices.CommunicationTypeChooices.SMS
+        send_otp_mail(int(mobile), otp_type)
         otp = cs.get_otp(int(mobile), otp_type)
         logger.debug("Parent Link - SMS OTP for %s: %s", mobile, otp)
-        send_otp_mail(int(mobile), otp_type)
         response_data = {'success': True, 'message': 'OTP sent successfully'}
         # Include OTP in response for browser console debugging (only in DEBUG mode)
         if settings.DEBUG:
@@ -3073,15 +3072,13 @@ class ForgotPassword(APIView):
 
             if user:
                 otp_type=choices.CommunicationTypeChooices.SMS if isinstance(username, int) else choices.CommunicationTypeChooices.EMAIL
-                # Get OTP and print it before sending
                 cs = ComService()
+                send_otp_mail(username,otp_type)
                 otp = cs.get_otp(username, otp_type)
-                # Print OTP to terminal for debugging
                 if otp_type == choices.CommunicationTypeChooices.EMAIL:
                     logger.debug("Forgot Password - Email OTP for %s: %s", username, otp)
                 else:
                     logger.debug("Forgot Password - SMS OTP for %s: %s", username, otp)
-                send_otp_mail(username,otp_type)
                 sign = Signer()
                 enc_user_name=sign.sign_object(({"enc_user_name":username}))
                 data['enc_user_name']=enc_user_name  
@@ -3170,16 +3167,16 @@ class ResendOtp(APIView):
                 email=str(username)
                 username=email    
             otp_type=choices.CommunicationTypeChooices.SMS if isinstance(username, int) else choices.CommunicationTypeChooices.EMAIL
-            # Get OTP and print it before sending
+            send_otp_mail(username,otp_type)
             otp = cs.get_otp(username, otp_type)
-            # Print OTP to terminal for debugging
             if otp_type == choices.CommunicationTypeChooices.EMAIL:
                 logger.debug("Resend - Email OTP for %s: %s", username, otp)
             else:
                 logger.debug("Resend - SMS OTP for %s: %s", username, otp)
-            send_otp_mail(username,otp_type)
             data['message']="OTP sent successfully"
             data['success']=True
+            data['show_otp']=True
+            data['user_name']=username
             # Include OTP in response for browser console debugging (only in DEBUG mode)
             if settings.DEBUG:
                 data['debug_otp'] = otp

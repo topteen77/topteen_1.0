@@ -271,14 +271,21 @@ def _stream_slug_candidates(stream_slug: str = "", stream_name: str = "") -> Lis
 
 
 def _iter_college_stream_courses(
-    college_id: int, stream_candidates: List[str]
+    college_id: int, stream_candidates: List[str], *, max_streams: int = 3
 ) -> List[Dict[str, Any]]:
-    """Return course rows from matching stream(s) for a college."""
+    """Return course rows from matching stream(s) for a college.
+
+    Fetches at most `max_streams` stream course lists (related streams first).
+    """
     rows: List[Dict[str, Any]] = []
     tried = set()
-    candidates = list(stream_candidates or [])
+    preferred: List[str] = []
+    fallback: List[str] = []
+    for raw in stream_candidates or []:
+        slug = (raw or "").strip().strip("/")
+        if slug and slug not in preferred:
+            preferred.append(slug)
 
-    # Discover actual stream slugs when unknown / to widen match.
     try:
         streams_payload = fetch_courses_fees_streams(college_id)
         if streams_payload.get("error") and not (streams_payload.get("streams") or []):
@@ -293,10 +300,10 @@ def _iter_college_stream_courses(
             if not slug:
                 continue
             discovered.append(slug)
-            if not candidates:
+            if not preferred:
                 related.append(slug)
                 continue
-            for want in candidates:
+            for want in preferred:
                 want_l = want.lower()
                 if (
                     want_l in slug
@@ -306,21 +313,18 @@ def _iter_college_stream_courses(
                 ):
                     related.append(slug)
                     break
-        if related:
-            for slug in related:
-                if slug not in candidates:
-                    candidates.append(slug)
-        elif discovered and not candidates:
-            candidates.extend(discovered)
-        elif discovered and candidates:
-            # Keep guessed candidates first; append discovered as fallback.
-            for slug in discovered:
-                if slug not in candidates:
-                    candidates.append(slug)
+            else:
+                fallback.append(slug)
+        ordered: List[str] = []
+        # Prefer discovered related streams first, then guessed candidates.
+        for slug in related + preferred + (discovered if not preferred else fallback):
+            if slug not in ordered:
+                ordered.append(slug)
+        preferred = ordered
     except Exception:
         pass
 
-    for slug in candidates:
+    for slug in preferred[: max(1, int(max_streams or 3))]:
         if not slug or slug in tried:
             continue
         tried.add(slug)
@@ -497,6 +501,23 @@ def fetch_course_overview_html(
         out["stream_slug"] = nested.get("stream_slug") or out["stream_slug"]
     elif course_block.get("name"):
         out["course_name"] = course_block.get("name") or out["course_name"]
+
+    # Reject weak/wrong course matches (e.g. B.Ed content for a B.P.Ed page).
+    if course_name and out.get("course_name"):
+        if _course_label_score(course_name, out["course_name"]) < 0.72:
+            return {
+                "html": "",
+                "course_slug": out.get("course_slug") or "",
+                "course_name": course_name or "",
+                "degree_level": "",
+                "stream_name": stream_name or "",
+                "stream_slug": stream_slug or "",
+                "college_id": None,
+                "college_name": "",
+                "college_city": "",
+                "college_state": "",
+            }
+
     location = detail.get("location") if isinstance(detail.get("location"), dict) else {}
     out["college_name"] = (location.get("name") or "").strip()
     out["college_city"] = (location.get("city") or "").strip()
@@ -524,7 +545,7 @@ def find_course_overview_html(
     """
     cache_backend = _college_api_cache()
     cache_key = _cache_key(
-        "course_overview_html:v2",
+        "course_overview_html:v3",
         {
             "course_id": course_id,
             "course_name": (course_name or "").strip().lower(),
@@ -564,14 +585,14 @@ def find_course_overview_html(
         seen.add(cid)
         ordered_ids.append(cid)
 
-    # Broaden search using stream college list when needed.
-    if len(ordered_ids) < max_colleges and stream_id:
+    # Broaden only when no candidate colleges were provided.
+    if not ordered_ids and stream_id:
         try:
             selected = build_selected_filters(stream_id=int(stream_id))
             listing = fetch_colleges_list(
                 selected_filters=selected,
                 page=1,
-                page_size=24,
+                page_size=min(12, max(4, max_colleges * 2)),
                 detail_view=True,
                 sort_by="college_name",
                 sort_order="asc",
@@ -591,7 +612,9 @@ def find_course_overview_html(
         except Exception as e:
             logger.warning("overview stream college broaden failed: %s", e)
 
-    for cid in ordered_ids[: max(1, max_colleges)]:
+    # Prefer exact slug fetches on provided colleges (cheap); stop at first HTML hit.
+    limit = max(1, min(int(max_colleges or 3), 4))
+    for cid in ordered_ids[:limit]:
         try:
             overview = fetch_course_overview_html(
                 cid,
