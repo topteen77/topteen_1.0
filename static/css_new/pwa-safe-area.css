@@ -71,6 +71,10 @@
     padding-right: max(18px, var(--tt-safe-right)) !important;
   }
 
+  #cb-window.cb-kb-open #cb-input-area {
+    padding-bottom: 10px !important;
+  }
+
   #cb-fab-wrap {
     bottom: max(18px, var(--tt-safe-bottom)) !important;
     right: max(18px, var(--tt-safe-right)) !important;

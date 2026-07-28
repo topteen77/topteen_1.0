@@ -1292,6 +1292,36 @@
     bottom: max(18px, env(safe-area-inset-bottom, 0px));
     right: max(18px, env(safe-area-inset-right, 0px));
   }
+
+  /* iOS keyboard: JS pins window to visualViewport; keep composer fully visible */
+  #cb-window.cb-kb-open {
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 0 !important;
+    transform: none !important;
+  }
+
+  #cb-window.cb-kb-open #cb-input-hint {
+    display: none;
+  }
+
+  #cb-window.cb-kb-open #cb-input-area {
+    padding-bottom: 10px !important;
+  }
+
+  #cb-input {
+    font-size: 16px; /* avoid iOS focus zoom that clips the send button */
+  }
+
+  #cb-input-row {
+    align-items: flex-end;
+  }
+
+  #cb-send {
+    flex-shrink: 0;
+  }
 }
 
 /* ------------------------------------------------------------------
