@@ -1884,10 +1884,53 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // nav search
 
+/**
+ * Shared full-screen smart loader (same look as language switch).
+ * Usage: TTSmartLoader.show('Saving profile', 'Please wait…'); TTSmartLoader.hide();
+ */
+(function (global) {
+  'use strict';
+  var hideTimer = null;
 
+  function getEl() {
+    return document.getElementById('tt-smart-loader');
+  }
 
+  function show(title, sub) {
+    var el = getEl();
+    if (!el) return;
+    if (hideTimer) {
+      clearTimeout(hideTimer);
+      hideTimer = null;
+    }
+    var titleEl = document.getElementById('tt-smart-loader-title');
+    var subEl = document.getElementById('tt-smart-loader-sub');
+    if (titleEl) titleEl.textContent = title || 'Saving';
+    if (subEl) subEl.textContent = sub || 'Please wait…';
+    el.hidden = false;
+    el.setAttribute('aria-hidden', 'false');
+    requestAnimationFrame(function () {
+      el.classList.add('is-visible');
+    });
+    document.body.classList.add('tt-smart-loading');
+  }
 
+  function hide() {
+    var el = getEl();
+    if (!el) return;
+    el.classList.remove('is-visible');
+    el.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('tt-smart-loading');
+    hideTimer = window.setTimeout(function () {
+      if (!el.classList.contains('is-visible')) {
+        el.hidden = true;
+      }
+      hideTimer = null;
+    }, 220);
+  }
 
+  global.TTSmartLoader = { show: show, hide: hide };
+})(window);
 
 
 

@@ -1,9 +1,12 @@
 <button type="button"
   class="stat-card-info-btn"
-  data-bs-toggle="tooltip"
+  data-bs-toggle="popover"
   data-bs-placement="top"
-  data-bs-trigger="hover focus"
-  data-bs-title="{{ tooltip_text }}"
-  aria-label="More information about this statistic">
+  data-bs-trigger="click"
+  data-bs-html="true"
+  data-bs-custom-class="stat-card-info-popover"
+  data-stat-info="{{ tooltip_text|e }}"
+  aria-label="More information about this statistic"
+  aria-expanded="false">
   <i class='bx bx-info-circle' aria-hidden="true"></i>
 </button>

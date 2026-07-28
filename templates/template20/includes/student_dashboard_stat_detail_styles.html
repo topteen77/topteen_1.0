@@ -534,50 +534,165 @@
     }
   }
 
-  /* Stat cards: info icon + clickable count (user + psychometric dashboards) */
-  #dashboard-stats-section .stat-card {
+  /* Stat cards: whole card clickable; info inside on desktop, outside on mobile */
+  #dashboard-stats-section .stat-card-wrap {
     position: relative;
   }
 
+  #dashboard-stats-section .stat-card {
+    position: relative;
+    width: 100%;
+  }
+
+  #dashboard-stats-section .stat-card-clickable {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+
+  #dashboard-stats-section .stat-card-clickable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.1);
+    border-color: rgba(92, 84, 212, 0.28);
+  }
+
+  #dashboard-stats-section .stat-card-clickable:focus-visible {
+    outline: 2px solid rgba(92, 84, 212, 0.45);
+    outline-offset: 2px;
+  }
+
+  /* Desktop: info inside card top-right */
   #dashboard-stats-section .stat-card-info-btn {
     position: absolute;
     top: 8px;
     right: 8px;
-    z-index: 2;
+    z-index: 3;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 22px;
-    height: 22px;
+    width: 26px;
+    height: 26px;
     padding: 0;
-    border: 0;
+    border: 1px solid #e2e8f0;
     border-radius: 50%;
-    background: transparent;
-    color: #94a3b8;
-    font-size: 16px;
+    background: #fff;
+    color: #64748b;
+    font-size: 15px;
     line-height: 1;
-    cursor: help;
-    transition: color 0.2s ease, background 0.2s ease;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1);
+    transform: none;
+    transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   }
 
   #dashboard-stats-section .stat-card-info-btn:hover,
-  #dashboard-stats-section .stat-card-info-btn:focus-visible {
+  #dashboard-stats-section .stat-card-info-btn:focus-visible,
+  #dashboard-stats-section .stat-card-info-btn[aria-expanded="true"] {
     color: #5c54d4;
-    background: rgba(92, 84, 212, 0.1);
+    background: #f5f3ff;
+    border-color: rgba(92, 84, 212, 0.35);
+    box-shadow: 0 4px 12px rgba(92, 84, 212, 0.18);
+    outline: none;
+    transform: scale(1.06);
+  }
+
+  #dashboard-stats-section .stat-card-info-btn i {
+    display: block;
+    line-height: 1;
+  }
+
+  /* Mobile only: shift info outside the card corner */
+  @media (max-width: 767.98px) {
+    #dashboard-stats-section .stat-card-wrap {
+      padding-top: 8px;
+      padding-right: 8px;
+    }
+
+    #dashboard-stats-section .stat-card-info-btn {
+      top: 0;
+      right: 0;
+      transform: translate(28%, -28%);
+    }
+
+    #dashboard-stats-section .stat-card-info-btn:hover,
+    #dashboard-stats-section .stat-card-info-btn:focus-visible,
+    #dashboard-stats-section .stat-card-info-btn[aria-expanded="true"] {
+      transform: translate(28%, -28%) scale(1.06);
+    }
+  }
+
+  /* Info popover with close */
+  .stat-card-info-popover {
+    --bs-popover-max-width: 280px;
+    --bs-popover-border-color: #e8ecf4;
+    --bs-popover-body-padding-x: 0;
+    --bs-popover-body-padding-y: 0;
+    z-index: 1080;
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.16);
+  }
+
+  .stat-card-info-popover .popover-arrow::before {
+    border-top-color: #e8ecf4;
+  }
+
+  .stat-card-info-popover-inner {
+    position: relative;
+    padding: 14px 36px 14px 14px;
+  }
+
+  .stat-card-info-popover-text {
+    font-size: 13px;
+    line-height: 1.45;
+    color: #334155;
+  }
+
+  .stat-card-info-popover-close {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #94a3b8;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .stat-card-info-popover-close:hover,
+  .stat-card-info-popover-close:focus-visible {
+    background: #f1f5f9;
+    color: #475569;
     outline: none;
   }
 
   #dashboard-stats-section .stat-value-trigger {
-    cursor: pointer;
-    border-radius: 4px;
-    transition: color 0.2s ease;
-    width: fit-content;
+    /* legacy class kept for count-up targets; card itself is the hit target */
+    cursor: inherit;
+    width: auto;
   }
 
-  #dashboard-stats-section .stat-value-trigger:hover,
-  #dashboard-stats-section .stat-value-trigger:focus-visible {
-    color: #5c54d4 !important;
-    outline: 2px solid rgba(92, 84, 212, 0.35);
-    outline-offset: 2px;
+  @media (max-width: 575.98px) {
+    #dashboard-stats-section .stat-card-wrap {
+      padding-top: 6px;
+      padding-right: 6px;
+    }
+    #dashboard-stats-section .stat-card-info-btn {
+      width: 24px;
+      height: 24px;
+      font-size: 14px;
+      transform: translate(22%, -22%);
+    }
+    #dashboard-stats-section .stat-card-info-btn:hover,
+    #dashboard-stats-section .stat-card-info-btn:focus-visible {
+      transform: translate(22%, -22%) scale(1.06);
+    }
   }
 </style>

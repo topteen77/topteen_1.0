@@ -33,6 +33,20 @@
   input[name="userbirthdaydate"] {
     padding-left: 45px !important;
   }
+  /* Narrow DOB field + long placeholder truncates on first visit; keep text readable */
+  #userbirthdaydate::placeholder {
+    font-size: 13px;
+    letter-spacing: -0.01em;
+  }
+  @media (max-width: 640px) {
+    input[name="userbirthdaydate"] {
+      padding-left: 40px !important;
+      font-size: 16px; /* avoid iOS zoom */
+    }
+    #userbirthdaydate::placeholder {
+      font-size: 14px;
+    }
+  }
 
 
 label.hobbiesTab img {
@@ -84,7 +98,7 @@ label.hobbiesTab img {
       padding-top: 0;
     }
     .profile-onboarding.pb-5 {
-      padding-bottom: 1rem !important;
+      padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)) !important;
     }
     .profile-onboarding .profile-wizard-header {
       margin-bottom: 12px;
@@ -97,10 +111,33 @@ label.hobbiesTab img {
     .profile-onboarding .page h2.mt-15 {
       margin-top: 8px !important;
     }
+    /* Fixed bottom bar — sticky fails when ancestors use overflow-x: hidden */
     .profile-onboarding .profile-wizard-footer {
-      margin-top: 12px;
-      margin-bottom: 8px;
-      padding: 12px 14px;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 12px 16px max(12px, env(safe-area-inset-bottom, 0px));
+      border-radius: 0;
+      border-left: none;
+      border-right: none;
+      border-bottom: none;
+      box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.1);
+      /* Above Ask AI / Career FABs so Next/Save stay tappable in PWA */
+      z-index: 2147483646;
+    }
+    body.profile-onboarding .profile-wizard-shell {
+      padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+    }
+    /* Hide chat widgets on profile edit — they cover the Save/Next bar */
+    body.profile-onboarding #pc-root,
+    body.profile-onboarding #cb-root,
+    body.profile-onboarding #pc-fab,
+    body.profile-onboarding #cb-fab-wrap {
+      display: none !important;
     }
     /* Prevent Slick from leaving tall empty slide height (other steps are tall forms) */
     .profile-onboarding .newPages .slick-list {
@@ -368,6 +405,10 @@ label.hobbiesTab img {
       min-width: 0;
       flex: 1;
     }
+    .profile-onboarding .profile-wizard-footer {
+      gap: 10px;
+      padding: 10px 12px max(10px, env(safe-area-inset-bottom, 0px));
+    }
   }
   .streamTab, .hobbiesTab {
     cursor: pointer;
@@ -439,6 +480,16 @@ label.hobbiesTab img {
   }
   @media (max-width: 575px) {
     .profile-onboarding .icon-input[style*="width"] {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+    /* DOB + Gender side-by-side truncates placeholders on phones */
+    .profile-dob-gender-row {
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 12px !important;
+    }
+    .profile-dob-gender-row .icon-input {
       width: 100% !important;
       max-width: 100% !important;
     }
@@ -752,7 +803,7 @@ label.hobbiesTab img {
 
 <div class="container">
 <section class="profile-onboarding pb-5">
-  <form class="position-relative w-100 profile-wizard-shell" method="POST" enctype="multipart/form-data" id="profileForm" onsubmit="return validateFormSubmission();">
+  <form class="position-relative w-100 profile-wizard-shell" method="POST" enctype="multipart/form-data" id="profileForm" novalidate onsubmit="return validateFormSubmission();">
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
     
     <!-- Validation Error Display Area -->
@@ -777,12 +828,12 @@ label.hobbiesTab img {
       <div class="profile-wizard-progress-track" aria-hidden="true">
         <div class="profile-wizard-progress-fill" id="wizardProgressFill" style="width: 20%;"></div>
       </div>
-      <ol class="profile-wizard-steps{% if is_profile_edit_mode %} profile-wizard-steps--clickable{% endif %}" id="wizardStepsList" aria-label="Profile setup progress">
-        <li class="is-active" data-step="0"{% if is_profile_edit_mode %} role="button" tabindex="0" aria-label="Go to step 1: Goal"{% endif %}><span>1</span>Goal</li>
-        <li data-step="1"{% if is_profile_edit_mode %} role="button" tabindex="0" aria-label="Go to step 2: Details"{% endif %}><span>2</span>Details</li>
-        <li data-step="2"{% if is_profile_edit_mode %} role="button" tabindex="0" aria-label="Go to step 3: Photo"{% endif %}><span>3</span>Photo</li>
-        <li data-step="3"{% if is_profile_edit_mode %} role="button" tabindex="0" aria-label="Go to step 4: Subjects"{% endif %}><span>4</span>Subjects</li>
-        <li data-step="4"{% if is_profile_edit_mode %} role="button" tabindex="0" aria-label="Go to step 5: Hobbies"{% endif %}><span>5</span>Hobbies</li>
+      <ol class="profile-wizard-steps profile-wizard-steps--clickable" id="wizardStepsList" aria-label="Profile setup progress">
+        <li class="is-active" data-step="0" role="button" tabindex="0" aria-label="Go to step 1: Goal"><span>1</span>Goal</li>
+        <li data-step="1" role="button" tabindex="0" aria-label="Go to step 2: Details"><span>2</span>Details</li>
+        <li data-step="2" role="button" tabindex="0" aria-label="Go to step 3: Photo"><span>3</span>Photo</li>
+        <li data-step="3" role="button" tabindex="0" aria-label="Go to step 4: Subjects"><span>4</span>Subjects</li>
+        <li data-step="4" role="button" tabindex="0" aria-label="Go to step 5: Hobbies"><span>5</span>Hobbies</li>
       </ol>
     </div>
 
@@ -867,7 +918,7 @@ label.hobbiesTab img {
         </div>
 
         <!-- Date of Birth and Gender -->
-        <div class="w-100 d-flex justify-content-center gap-3 mb-3">
+        <div class="w-100 d-flex justify-content-center gap-3 mb-3 profile-dob-gender-row">
           <div class="icon-input position-relative has-label" style="width: 288px;">
             <label for="userbirthdaydate" class="form-label fs-14 fw-semibold mb-2">Date of Birth</label>
             <div class="icon-input-field">
@@ -877,7 +928,7 @@ label.hobbiesTab img {
                      value="{{ birthdate_value|default('', true) }}"
                      class="form-control custom-input w-100" 
                      style="height: 48px;"
-                     placeholder="Select date (DD-MM-YYYY)" required />
+                     placeholder="Select date of birth" required />
             </div>
           </div>
           <div class="icon-input position-relative has-label" style="width: 288px;">
@@ -1217,6 +1268,7 @@ label.hobbiesTab img {
   ];
   const WIZARD_TOTAL = WIZARD_STEPS.length;
   const WIZARD_EDIT_MODE = {{ 'true' if is_profile_edit_mode else 'false' }};
+  let wizardMaxReached = 0;
 
   function scrollWizardIntoView() {
     const header = document.querySelector('.profile-wizard-header');
@@ -1231,7 +1283,8 @@ label.hobbiesTab img {
 
   function getWizardSlideIndex() {
     if (!$('.newPages').hasClass('slick-initialized')) return 0;
-    return $('.newPages').slick('slickCurrentSlide') || 0;
+    const idx = $('.newPages').slick('slickCurrentSlide');
+    return (typeof idx === 'number' && !isNaN(idx)) ? idx : 0;
   }
 
   function validateWizardStep(stepIndex) {
@@ -1247,6 +1300,8 @@ label.hobbiesTab img {
     const idx = typeof stepIndex === 'number' ? stepIndex : getWizardSlideIndex();
     const step = WIZARD_STEPS[idx] || WIZARD_STEPS[0];
     const progress = ((idx + 1) / WIZARD_TOTAL) * 100;
+    if (idx > wizardMaxReached) wizardMaxReached = idx;
+    if (WIZARD_EDIT_MODE) wizardMaxReached = WIZARD_TOTAL - 1;
 
     $('#wizardStepCount').text('Step ' + (idx + 1) + ' of ' + WIZARD_TOTAL);
     $('#wizardStepTitle').text(step.title);
@@ -1257,11 +1312,22 @@ label.hobbiesTab img {
       $(this).removeClass('is-active is-complete');
       if (stepNum < idx) $(this).addClass('is-complete');
       if (stepNum === idx) $(this).addClass('is-active');
+      // Allow tapping completed / reached steps to jump back
+      const canJump = WIZARD_EDIT_MODE || stepNum <= wizardMaxReached;
+      $(this).attr('aria-disabled', canJump ? 'false' : 'true');
+      $(this).css('pointer-events', canJump ? 'auto' : 'none');
+      if (canJump) {
+        $(this).attr('tabindex', '0');
+      }
     });
 
     $('#wizardPrevBtn').prop('disabled', idx === 0);
     if (idx === WIZARD_TOTAL - 1) {
-      $('#wizardNextBtn').html('Finish <i class="bx bx-check"></i>');
+      $('#wizardNextBtn').html(
+        WIZARD_EDIT_MODE
+          ? 'Save <i class="bx bx-check"></i>'
+          : 'Finish <i class="bx bx-check"></i>'
+      );
     } else if (idx === 2 && $('#photoPreviewImg').hasClass('d-none')) {
       $('#wizardNextBtn').html('Skip &amp; Next <i class="bx bx-chevron-right"></i>');
     } else {
@@ -1269,11 +1335,39 @@ label.hobbiesTab img {
     }
   }
 
-  function goToWizardStep(stepIndex) {
+  function goToWizardStep(stepIndex, focusField) {
     if (!$('.newPages').hasClass('slick-initialized')) return;
-    $('.newPages').slick('slickGoTo', stepIndex, false);
-    updateWizardUI(stepIndex);
-    scrollWizardIntoView();
+    const target = Math.max(0, Math.min(WIZARD_TOTAL - 1, stepIndex));
+    $('.newPages').slick('slickGoTo', target, true);
+    updateWizardUI(target);
+    // Recalc active slide height after jump (inactive slides are collapsed)
+    setTimeout(function() {
+      if ($('.newPages').hasClass('slick-initialized')) {
+        $('.newPages').slick('setPosition');
+        var $active = $('.newPages .slick-slide.slick-active');
+        var h = $active.outerHeight() || 0;
+        if (h > 0) $('.newPages .slick-list').height(h);
+      }
+      if (focusField && focusField.length) {
+        const el = focusField[0];
+        try {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } catch (e) {
+          $('html, body').animate({ scrollTop: focusField.offset().top - 100 }, 300);
+        }
+        // Date field: switch to native date picker when focusing for correction
+        if (el.id === 'userbirthdaydate' && el.type === 'text') {
+          try { el.focus(); } catch (e2) {}
+        }
+        focusField.trigger('focus');
+        focusField.addClass('is-invalid');
+        focusField.off('input.wizardErr change.wizardErr').on('input.wizardErr change.wizardErr', function() {
+          $(this).removeClass('is-invalid');
+        });
+      } else {
+        scrollWizardIntoView();
+      }
+    }, 160);
   }
 
   // Image upload
@@ -1379,12 +1473,19 @@ label.hobbiesTab img {
     setTimeout(refreshWizardCarousel, 100);
 
     if (WIZARD_EDIT_MODE) {
-      $('#wizardStepsList li').on('click keypress', function(e) {
-        if (e.type === 'keypress' && e.which !== 13 && e.which !== 32) return;
-        const step = parseInt($(this).data('step'), 10);
-        if (!isNaN(step)) goToWizardStep(step);
-      });
+      wizardMaxReached = WIZARD_TOTAL - 1;
     }
+
+    // Step pills: jump to any reached step (or any step in edit mode)
+    $('#wizardStepsList li').on('click keypress', function(e) {
+      if (e.type === 'keypress' && e.which !== 13 && e.which !== 32) return;
+      e.preventDefault();
+      const step = parseInt($(this).data('step'), 10);
+      if (isNaN(step)) return;
+      if (WIZARD_EDIT_MODE || step <= wizardMaxReached) {
+        goToWizardStep(step);
+      }
+    });
 
     $('#wizardPrevBtn').on('click', function() {
       const current = getWizardSlideIndex();
@@ -1430,42 +1531,68 @@ label.hobbiesTab img {
 
   });
 
-  // Show validation error at top
-  function showValidationError(message, fieldElement) {
+  // Show validation error and jump to the field's wizard step
+  function showValidationError(message, fieldElement, stepIndex) {
     const errorAlert = $('#validationErrorAlert');
     const errorText = $('#validationErrorText');
-    
+
     errorText.text(message);
     errorAlert.removeClass('d-none').addClass('show');
-    
-    // Scroll to top to show error
-    $('html, body').animate({
-      scrollTop: 0
-    }, 300);
-    
-    // Focus on invalid field if provided
-    if (fieldElement && fieldElement.length) {
+
+    const targetStep = (typeof stepIndex === 'number')
+      ? stepIndex
+      : (fieldElement && fieldElement.length ? findWizardStepForField(fieldElement) : null);
+
+    if (typeof targetStep === 'number') {
+      goToWizardStep(targetStep, fieldElement && fieldElement.length ? fieldElement : null);
+    } else if (fieldElement && fieldElement.length) {
       setTimeout(function() {
-        fieldElement.focus();
+        try {
+          fieldElement[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } catch (e) {
+          $('html, body').animate({ scrollTop: fieldElement.offset().top - 100 }, 300);
+        }
+        fieldElement.trigger('focus');
         fieldElement.addClass('is-invalid');
-        // Remove invalid class after user starts typing
-        fieldElement.on('input change', function() {
+        fieldElement.off('input.wizardErr change.wizardErr').on('input.wizardErr change.wizardErr', function() {
           $(this).removeClass('is-invalid');
         });
-      }, 400);
+      }, 100);
+    } else {
+      scrollWizardIntoView();
     }
-    
+
     // Auto-hide after 5 seconds
     setTimeout(function() {
       errorAlert.addClass('d-none').removeClass('show');
     }, 5000);
   }
 
+  function findWizardStepForField($field) {
+    if (!$field || !$field.length) return null;
+    const $slide = $field.closest('.slick-slide');
+    if ($slide.length) {
+      const idx = parseInt($slide.attr('data-slick-index'), 10);
+      if (!isNaN(idx) && idx >= 0) return idx;
+    }
+    const $page = $field.closest('.page');
+    if ($page.length && $('.newPages').hasClass('slick-initialized')) {
+      const pages = $('.newPages > .page, .newPages .slick-slide > .page');
+      // Prefer slick slide index via parent
+      const $slickSlide = $page.closest('.slick-slide');
+      if ($slickSlide.length) {
+        const idx = parseInt($slickSlide.attr('data-slick-index'), 10);
+        if (!isNaN(idx) && idx >= 0) return idx;
+      }
+    }
+    return null;
+  }
+
   // Validation functions
   function validatefigureoutform() {
     const checked = $('input[name="userfigureout"]:checked').length;
     if (checked == 0) {
-      showValidationError("Please select at least one option", null);
+      showValidationError("Please select at least one option", null, 0);
       return false;
     }
     return true;
@@ -1473,40 +1600,40 @@ label.hobbiesTab img {
 
   function validateuserinfoform() {
     if ($('input[name="username"]').val() == "" || $('input[name="username"]').val().trim() == "") {
-      showValidationError("Please enter your full name", $('input[name="username"]'));
+      showValidationError("Please enter your full name", $('input[name="username"]'), 1);
       return false;
     }
     if ($('input[name="userbirthdaydate"]').val() == "") {
-      showValidationError("Please select your date of birth", $('input[name="userbirthdaydate"]'));
+      showValidationError("Please select your date of birth", $('input[name="userbirthdaydate"]'), 1);
       return false;
     }
     if ($('#gender').val() == "") {
-      showValidationError("Please select your gender", $('#gender'));
+      showValidationError("Please select your gender", $('#gender'), 1);
       return false;
     }
     const phoneVal = $('input[name="userphone"]').val();
     if (phoneVal == "" || phoneVal.trim() == "") {
-      showValidationError("Please enter your phone number", $('input[name="userphone"]'));
+      showValidationError("Please enter your phone number", $('input[name="userphone"]'), 1);
       return false;
     }
     if (!validatePhone(phoneVal)) {
-      showValidationError("Please enter a valid 10-digit phone number starting with 6, 7, 8, or 9", $('input[name="userphone"]'));
+      showValidationError("Please enter a valid 10-digit phone number starting with 6, 7, 8, or 9", $('input[name="userphone"]'), 1);
       return false;
     }
     const emailVal = ($('input[name="useremail"]').val() || "").trim();
     if (emailVal !== "") {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(emailVal)) {
-        showValidationError("Please enter a valid email address", $('input[name="useremail"]'));
+        showValidationError("Please enter a valid email address", $('input[name="useremail"]'), 1);
         return false;
       }
     }
     if ($('input[name="userschool"]').val() == "" || $('input[name="userschool"]').val().trim() == "") {
-      showValidationError("Please enter your school name", $('input[name="userschool"]'));
+      showValidationError("Please enter your school name", $('input[name="userschool"]'), 1);
       return false;
     }
     if ($('select[name="usergrade"]').val() == "" || $('select[name="usergrade"]').val() == null) {
-      showValidationError("Please select your grade/class", $('select[name="usergrade"]'));
+      showValidationError("Please select your grade/class", $('select[name="usergrade"]'), 1);
       return false;
     }
     return true;
@@ -1515,7 +1642,7 @@ label.hobbiesTab img {
   function validatesubjectform() {
     const checked = $('input[name="usersubject"]:checked').length;
     if (checked == 0) {
-      showValidationError("Please select at least one subject", null);
+      showValidationError("Please select at least one subject", null, 3);
       return false;
     }
     return true;
@@ -1523,6 +1650,16 @@ label.hobbiesTab img {
 
   // Validate form submission - validate all required fields
   function validateFormSubmission() {
+    function showSaveLoader() {
+      if (window.TTSmartLoader && typeof window.TTSmartLoader.show === 'function') {
+        window.TTSmartLoader.show('Saving profile', 'Please wait while we update your settings…');
+      }
+      var nextBtn = document.getElementById('wizardNextBtn');
+      if (nextBtn) {
+        nextBtn.disabled = true;
+      }
+    }
+
     // If slick is initialized, compute the last slide index dynamically
     if ($('.newPages').hasClass('slick-initialized')) {
       const slickObj = $('.newPages').slick('getSlick');
@@ -1530,21 +1667,20 @@ label.hobbiesTab img {
       const lastIndex = slickObj && typeof slickObj.slideCount === 'number' ? slickObj.slideCount - 1 : 4;
       // Only validate if we're on the last step
       if (currentSlide === lastIndex) {
-        // Validate all required fields before submission
+        // Validate all required fields before submission (each failure jumps to that step)
         if (!validatefigureoutform()) {
           return false;
         }
         if (!validateuserinfoform()) {
-          goToWizardStep(1);
           return false;
         }
         if (!validatesubjectform()) {
-          goToWizardStep(3);
           return false;
         }
         if (!validatehobbiesform()) {
           return false;
         }
+        showSaveLoader();
         return true;
       } else {
         // Prevent form submission on intermediate steps
@@ -1564,13 +1700,14 @@ label.hobbiesTab img {
     if (!validatehobbiesform()) {
       return false;
     }
+    showSaveLoader();
     return true;
   }
 
   function validatehobbiesform() {
     const checked = $('input[name="hobbies"]:checked').length;
     if (checked == 0) {
-      showValidationError("Please select at least one hobby", null);
+      showValidationError("Please select at least one hobby", null, 4);
       return false;
     }
     return true;

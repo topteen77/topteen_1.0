@@ -6,7 +6,7 @@
 {% block additionalhead %}
 {{ super() }}
 <link rel="stylesheet" href="{{ static('resume-builder-prototype/styles.css') }}?v=56">
-<link rel="stylesheet" href="{{ static('resume-builder-v2/styles.css') }}?v=43">
+<link rel="stylesheet" href="{{ static('resume-builder-v2/styles.css') }}?v=44">
 <link rel="stylesheet" href="{{ static('resume-builder-v2/messages.css') }}?v=4">
 <link rel="stylesheet" href="{{ static('resume-builder-v2/ai-review.css') }}?v=2">
 <style>
@@ -26,11 +26,14 @@
   }
   body.rb2-studio-page .user-dashboard-container { max-width: 100%; padding: 0; }
   body.rb2-studio-page .student-dash-shell.row { margin: 0; min-height: 0; }
-  /* Keep sidebar toggle visible and icon rendered on studio */
-  body.rb2-studio-page .std-shell-sidebar-toggle {
-    display: inline-flex !important;
+  /* Sidebar toggle is desktop-only; mobile uses .std-shell-menu (avoid double hamburgers) */
+  @media (min-width: 992px) {
+    body.rb2-studio-page .std-shell-sidebar-toggle {
+      display: inline-flex !important;
+    }
   }
-  body.rb2-studio-page .std-shell-sidebar-toggle i.bx::before {
+  body.rb2-studio-page .std-shell-sidebar-toggle i.bx::before,
+  body.rb2-studio-page .std-shell-menu i.bx::before {
     font-family: "boxicons" !important;
   }
 </style>
@@ -191,7 +194,14 @@
           <div class="rb2-photo-row">
             <div class="rb2-photo-preview" id="rb2PhotoPreview">
               {% if resume_photo_url %}
-              <img src="{{ resume_photo_url }}" alt="Your photo" class="rb2-photo-preview__img" id="rb2PhotoImg">
+              <img
+                src="{{ resume_photo_url }}"
+                alt="Your photo"
+                class="rb2-photo-preview__img"
+                id="rb2PhotoImg"
+                onerror="this.onerror=null;this.hidden=true;var p=document.getElementById('rb2PhotoPlaceholder');if(p){p.hidden=false;}var l=document.getElementById('rb2PhotoUploadLabel');if(l){l.textContent='Add photo';}var r=document.getElementById('rb2PhotoRemove');if(r){r.hidden=true;}"
+              >
+              <span class="rb2-photo-preview__avatar-initials" id="rb2PhotoPlaceholder" hidden>{{ avatar_initial }}</span>
               {% else %}
               <span class="rb2-photo-preview__avatar-initials" id="rb2PhotoPlaceholder">{{ avatar_initial }}</span>
               {% endif %}
@@ -655,5 +665,5 @@ window.__RB2_STUDIO = {
 </script>
 <script src="{{ static('resume-builder-v2/messages.js') }}?v=3"></script>
 <script src="{{ static('resume-builder-v2/ai-review-modal.js') }}?v=3"></script>
-<script src="{{ static('resume-builder-v2/studio.js') }}?v=70"></script>
+<script src="{{ static('resume-builder-v2/studio.js') }}?v=71"></script>
 {% endblock %}

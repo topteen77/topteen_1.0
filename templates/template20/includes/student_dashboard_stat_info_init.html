@@ -47,15 +47,81 @@
       requestAnimationFrame(step);
     }
     function initDashboardStatTooltips() {
-      if (typeof bootstrap === 'undefined' || !bootstrap.Tooltip) return;
-      root.querySelectorAll('#dashboard-stats-section [data-bs-toggle="tooltip"]').forEach(function (el) {
-        var existing = bootstrap.Tooltip.getInstance(el);
-        if (existing) existing.dispose();
-        new bootstrap.Tooltip(el, { container: 'body' });
+      if (typeof bootstrap === 'undefined' || !bootstrap.Popover) return;
+
+      function buildPopoverHtml(text) {
+        var safe = String(text || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+        return (
+          '<div class="stat-card-info-popover-inner">' +
+            '<button type="button" class="stat-card-info-popover-close" aria-label="Close">' +
+              '<i class="bx bx-x" aria-hidden="true"></i>' +
+            '</button>' +
+            '<p class="stat-card-info-popover-text mb-0">' + safe + '</p>' +
+          '</div>'
+        );
+      }
+
+      root.querySelectorAll('#dashboard-stats-section .stat-card-info-btn').forEach(function (el) {
+        var existingTip = bootstrap.Tooltip && bootstrap.Tooltip.getInstance(el);
+        if (existingTip) existingTip.dispose();
+        var existingPop = bootstrap.Popover.getInstance(el);
+        if (existingPop) existingPop.dispose();
+
+        var text = el.getAttribute('data-stat-info') || el.getAttribute('data-bs-title') || '';
+        var pop = new bootstrap.Popover(el, {
+          container: 'body',
+          html: true,
+          sanitize: false,
+          trigger: 'click',
+          placement: 'top',
+          customClass: 'stat-card-info-popover',
+          content: buildPopoverHtml(text)
+        });
+
+        el.addEventListener('shown.bs.popover', function () {
+          el.setAttribute('aria-expanded', 'true');
+          var tipId = el.getAttribute('aria-describedby');
+          var tip = tipId ? document.getElementById(tipId) : null;
+          if (!tip) return;
+          var closeBtn = tip.querySelector('.stat-card-info-popover-close');
+          if (!closeBtn) return;
+          closeBtn.onclick = function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            pop.hide();
+          };
+        });
+        el.addEventListener('hidden.bs.popover', function () {
+          el.setAttribute('aria-expanded', 'false');
+        });
       });
+
+      // Close when clicking outside (and don't open the stat modal)
+      if (!root.__ttStatInfoOutsideBound) {
+        root.__ttStatInfoOutsideBound = true;
+        document.addEventListener('click', function (e) {
+          var t = e.target;
+          if (!t || !t.closest) return;
+          if (t.closest('.stat-card-info-btn') || t.closest('.stat-card-info-popover')) return;
+          root.querySelectorAll('#dashboard-stats-section .stat-card-info-btn').forEach(function (btn) {
+            var instance = bootstrap.Popover.getInstance(btn);
+            if (instance) instance.hide();
+          });
+        }, true);
+      }
     }
     function initDashboardStatDetailTriggers() {
-      root.querySelectorAll('#dashboard-stats-section .stat-value-trigger').forEach(function (el) {
+      root.querySelectorAll('#dashboard-stats-section .stat-card-info-btn').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          // Keep card modal from opening; Bootstrap popover handles open/close
+          e.stopPropagation();
+        });
+      });
+      root.querySelectorAll('#dashboard-stats-section .stat-card-clickable').forEach(function (el) {
         el.addEventListener('keydown', function (e) {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();

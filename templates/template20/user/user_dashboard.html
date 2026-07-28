@@ -520,10 +520,14 @@
   }
 
   /* Dashboard stats - Duolingo-style */
+  .dashboard-stat-cards {
+    overflow: visible;
+  }
   .dashboard-stat-col {
     opacity: 0;
     transform: translateY(12px);
     animation: dashboardStatIn 0.4s ease-out forwards;
+    overflow: visible;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -1228,96 +1232,104 @@
           <h2 class="fs-24 fw-semibold mb-3">Statistics</h2>
           <div class="row g-3 dashboard-stat-cards">
             <div class="col-6 col-md-3 dashboard-stat-col" style="animation-delay: 0.1s;">
-              <div class="stat-card stat-card-trophies">
+              <div class="stat-card-wrap">
                 {% with tooltip_text='Trophies you unlock by completing milestones such as your profile, psychometric tests, aptitude sections, career direction, and payment.' %}
                 {% include 'template20/includes/stat_card_info_btn.html' %}
                 {% endwith %}
-                <div class="stat-card-icon">
-                  <img src="{{ static('images_new/icons/champion-winner-icon.svg') }}" style="max-width:35px;"
-                    alt="Trophies" />
-                </div>
-                <div>
-                  <p class="fs-18 fw-semibold mb-0 stat-value stat-value-trigger" id="stat-trophies"
-                    data-value="{{ trophies_unlocked|default(0) }}"
-                    data-bs-toggle="modal" data-bs-target="#dashboardStatTrophiesModal"
-                    role="button" tabindex="0" title="View trophy details">0</p>
-                  <p class="text-gray fs-10 mb-0">Trophies Unlocked</p>
+                <div class="stat-card stat-card-trophies stat-card-clickable"
+                  data-bs-toggle="modal" data-bs-target="#dashboardStatTrophiesModal"
+                  role="button" tabindex="0" title="View trophy details" aria-label="View trophy details">
+                  <div class="stat-card-icon">
+                    <img src="{{ static('images_new/icons/champion-winner-icon.svg') }}" style="max-width:35px;"
+                      alt="Trophies" />
+                  </div>
+                  <div>
+                    <p class="fs-18 fw-semibold mb-0 stat-value" id="stat-trophies"
+                      data-value="{{ trophies_unlocked|default(0) }}">0</p>
+                    <p class="text-gray fs-10 mb-0">Trophies Unlocked</p>
+                  </div>
                 </div>
               </div>
             </div>
             <div class="col-6 col-md-3 dashboard-stat-col" style="animation-delay: 0.2s;">
-              <div class="stat-card stat-card-points">
+              <div class="stat-card-wrap">
                 {% with tooltip_text='Total points earned from activities like registration, profile completion, finishing tests, and other achievements on TopTeen.' %}
                 {% include 'template20/includes/stat_card_info_btn.html' %}
                 {% endwith %}
-                <div class="stat-card-icon">
-                  <img src="{{ static('images_new/icons/rewards.svg') }}" style="max-width:35px;" alt="Total Points" />
-                </div>
-                <div>
-                  <p class="fs-18 fw-semibold mb-0 stat-value stat-value-trigger" id="stat-points"
-                    data-value="{{ total_points|default(0) }}"
-                    data-bs-toggle="modal" data-bs-target="#dashboardStatPointsModal"
-                    role="button" tabindex="0" title="View points breakdown">0</p>
-                  <p class="text-gray fs-10 mb-0">Total Points</p>
+                <div class="stat-card stat-card-points stat-card-clickable"
+                  data-bs-toggle="modal" data-bs-target="#dashboardStatPointsModal"
+                  role="button" tabindex="0" title="View points breakdown" aria-label="View points breakdown">
+                  <div class="stat-card-icon">
+                    <img src="{{ static('images_new/icons/rewards.svg') }}" style="max-width:35px;" alt="Total Points" />
+                  </div>
+                  <div>
+                    <p class="fs-18 fw-semibold mb-0 stat-value" id="stat-points"
+                      data-value="{{ total_points|default(0) }}">0</p>
+                    <p class="text-gray fs-10 mb-0">Total Points</p>
+                  </div>
                 </div>
               </div>
             </div>
             <div class="col-6 col-md-3 dashboard-stat-col" style="animation-delay: 0.3s;">
-              <div
-                class="stat-card stat-card-streak {% if streak_days|default(0) > 0 %}stat-card-streak-active{% endif %}">
+              <div class="stat-card-wrap">
                 {% with tooltip_text='Consecutive days you have been active on TopTeen. Log in or complete an activity each day to keep your streak going.' %}
                 {% include 'template20/includes/stat_card_info_btn.html' %}
                 {% endwith %}
-                <div class="stat-card-icon streak-icon-wrap">
-                  <img src="{{ static('images_new/icons/streak-icom.svg') }}" style="max-width:35px;"
-                    alt="Streak" />
-                </div>
-                <div>
-                  <p class="fs-18 fw-semibold mb-0 stat-value stat-value-trigger" id="stat-streak"
-                    data-value="{{ streak_days|default(0) }}"
-                    data-streak-format="day-label"
-                    data-bs-toggle="modal" data-bs-target="#dashboardStatStreakModal"
-                    role="button" tabindex="0" title="View streak details">Day 0</p>
-                  <p class="text-gray fs-10 mb-0" id="stat-streak-label">Streak</p>
+                <div
+                  class="stat-card stat-card-streak stat-card-clickable {% if streak_days|default(0) > 0 %}stat-card-streak-active{% endif %}"
+                  data-bs-toggle="modal" data-bs-target="#dashboardStatStreakModal"
+                  role="button" tabindex="0" title="View streak details" aria-label="View streak details">
+                  <div class="stat-card-icon streak-icon-wrap">
+                    <img src="{{ static('images_new/icons/streak-icom.svg') }}" style="max-width:35px;"
+                      alt="Streak" />
+                  </div>
+                  <div>
+                    <p class="fs-18 fw-semibold mb-0 stat-value" id="stat-streak"
+                      data-value="{{ streak_days|default(0) }}"
+                      data-streak-format="day-label">Day 0</p>
+                    <p class="text-gray fs-10 mb-0" id="stat-streak-label">Streak</p>
+                  </div>
                 </div>
               </div>
             </div>
             <div class="col-6 col-md-3 dashboard-stat-col" style="animation-delay: 0.4s;">
-              <div class="stat-card stat-card-level">
+              <div class="stat-card-wrap">
                 {% with tooltip_text='Your rank based on total points: Rookie (0+), Explorer (500+), Champion (1,000+), Legend (2,000+). The bar shows progress to the next level.' %}
                 {% include 'template20/includes/stat_card_info_btn.html' %}
                 {% endwith %}
-                <div class="level-badge-icon">
-                  {% set level_name = current_level|default('Rookie') %}
-                  {% if level_name|lower == 'rookie' %}
-                  {% set level_badge_path = 'images_new/badges/rookie.png' %}
-                  {% elif level_name|lower == 'explorer' %}
-                  {% set level_badge_path = 'images_new/badges/explorer.png' %}
-                  {% elif level_name|lower == 'champion' %}
-                  {% set level_badge_path = 'images_new/badges/champion.png' %}
-                  {% elif level_name|lower == 'legend' %}
-                  {% set level_badge_path = 'images_new/badges/Legend.png' %}
-                  {% else %}
-                  {% set level_badge_path = 'images_new/icons/explore-icon.svg' %}
-                  {% endif %}
-                  <img src="{{ static(level_badge_path) }}" alt="{{ level_name }} badge" />
-                </div>
-                <div>
-                  <p class="fs-18 fw-semibold mb-0 stat-value stat-level-label stat-value-trigger" id="stat-level"
-                    data-bs-toggle="modal" data-bs-target="#dashboardStatLevelModal"
-                    role="button" tabindex="0" title="View level details">{{
-                    current_level|default('Rookie') }}</p>
-                  <p class="text-gray fs-10 mb-0">Current Level</p>
-                  {% if level_details and not level_details.is_max_level and next_level_min_points is not none %}
-                  <div class="level-progress-wrap mt-1" style="max-width: 80px;"
-                    title="{{ level_details.points_in_band|default(0) }}/{{ level_details.band_span_points|default(0) }} XP to {{ level_details.next_level_name|default('next level') }}">
-                    <div class="level-progress-bar" style="width: {{ level_details.level_progress_percent|default(level_progress_percent|default(0)) }}%; min-width: {% if (level_details.level_progress_percent|default(0)) > 0 %}6px{% else %}0{% endif %};"></div>
+                <div class="stat-card stat-card-level stat-card-clickable"
+                  data-bs-toggle="modal" data-bs-target="#dashboardStatLevelModal"
+                  role="button" tabindex="0" title="View level details" aria-label="View level details">
+                  <div class="level-badge-icon">
+                    {% set level_name = current_level|default('Rookie') %}
+                    {% if level_name|lower == 'rookie' %}
+                    {% set level_badge_path = 'images_new/badges/rookie.png' %}
+                    {% elif level_name|lower == 'explorer' %}
+                    {% set level_badge_path = 'images_new/badges/explorer.png' %}
+                    {% elif level_name|lower == 'champion' %}
+                    {% set level_badge_path = 'images_new/badges/champion.png' %}
+                    {% elif level_name|lower == 'legend' %}
+                    {% set level_badge_path = 'images_new/badges/Legend.png' %}
+                    {% else %}
+                    {% set level_badge_path = 'images_new/icons/explore-icon.svg' %}
+                    {% endif %}
+                    <img src="{{ static(level_badge_path) }}" alt="{{ level_name }} badge" />
                   </div>
-                  {% elif next_level_min_points is not none and level_progress_percent is not none %}
-                  <div class="level-progress-wrap mt-1" style="max-width: 80px;">
-                    <div class="level-progress-bar" style="width: {{ level_progress_percent }}%; min-width: {% if level_progress_percent > 0 %}6px{% else %}0{% endif %};"></div>
+                  <div>
+                    <p class="fs-18 fw-semibold mb-0 stat-value stat-level-label" id="stat-level">{{
+                      current_level|default('Rookie') }}</p>
+                    <p class="text-gray fs-10 mb-0">Current Level</p>
+                    {% if level_details and not level_details.is_max_level and next_level_min_points is not none %}
+                    <div class="level-progress-wrap mt-1" style="max-width: 80px;"
+                      title="{{ level_details.points_in_band|default(0) }}/{{ level_details.band_span_points|default(0) }} XP to {{ level_details.next_level_name|default('next level') }}">
+                      <div class="level-progress-bar" style="width: {{ level_details.level_progress_percent|default(level_progress_percent|default(0)) }}%; min-width: {% if (level_details.level_progress_percent|default(0)) > 0 %}6px{% else %}0{% endif %};"></div>
+                    </div>
+                    {% elif next_level_min_points is not none and level_progress_percent is not none %}
+                    <div class="level-progress-wrap mt-1" style="max-width: 80px;">
+                      <div class="level-progress-bar" style="width: {{ level_progress_percent }}%; min-width: {% if level_progress_percent > 0 %}6px{% else %}0{% endif %};"></div>
+                    </div>
+                    {% endif %}
                   </div>
-                  {% endif %}
                 </div>
               </div>
             </div>

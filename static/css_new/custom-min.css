@@ -12084,7 +12084,8 @@ body.tt-lang-menu-open {
   background: #b42318;
 }
 
-.tt-lang-switch-loader {
+.tt-lang-switch-loader,
+.tt-smart-loader {
   position: fixed;
   inset: 0;
   z-index: 14000;
@@ -12100,12 +12101,14 @@ body.tt-lang-menu-open {
   transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
-.tt-lang-switch-loader.is-visible {
+.tt-lang-switch-loader.is-visible,
+.tt-smart-loader.is-visible {
   opacity: 1;
   visibility: visible;
 }
 
-.tt-lang-switch-loader[hidden] {
+.tt-lang-switch-loader[hidden],
+.tt-smart-loader[hidden] {
   display: none !important;
 }
 
@@ -12143,7 +12146,8 @@ body.tt-lang-menu-open {
   color: #6b7280;
 }
 
-body.tt-lang-switching {
+body.tt-lang-switching,
+body.tt-smart-loading {
   overflow: hidden;
   cursor: wait;
 }
@@ -12161,7 +12165,8 @@ body.tt-lang-switching {
     border-right-color: #5249df;
   }
 
-  .tt-lang-switch-loader {
+  .tt-lang-switch-loader,
+  .tt-smart-loader {
     transition: none;
   }
 }
