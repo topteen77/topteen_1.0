@@ -361,6 +361,7 @@
       this._isOpen = !this._isOpen;
       this._win.classList.toggle('pc-hide', !this._isOpen);
       this._syncBackdrop();
+      this._syncPageScrollLock();
 
       if (this._isOpen) {
         this._clearUnread();
@@ -368,6 +369,73 @@
         if (!this._isInitialized && !this._ws) this._initChat();
         setTimeout(() => { if (!this._input.disabled) this._input.focus(); }, 350);
       }
+    }
+
+    /* iOS: CSS overflow:hidden alone still rubber-bands the page behind chat */
+    _shouldLockPageScroll() {
+      return window.matchMedia('(max-width: 991.98px)').matches;
+    }
+
+    _syncPageScrollLock() {
+      if (this._isOpen && this._shouldLockPageScroll()) {
+        this._lockPageScroll();
+      } else {
+        this._unlockPageScroll();
+      }
+    }
+
+    _lockPageScroll() {
+      if (this._scrollLocked) return;
+      this._scrollLocked = true;
+      this._lockScrollY = window.scrollY || window.pageYOffset || 0;
+      document.documentElement.classList.add('pc-scroll-lock');
+      document.body.classList.add('pc-scroll-lock');
+      document.body.style.top = '-' + this._lockScrollY + 'px';
+
+      this._onTouchStart = (e) => {
+        this._touchStartY = e.touches && e.touches[0] ? e.touches[0].clientY : 0;
+      };
+      this._onTouchMove = (e) => {
+        if (!e.cancelable) return;
+        const target = e.target;
+        const msgs = target && target.closest ? target.closest('#pc-msgs') : null;
+        if (msgs) {
+          const y = e.touches && e.touches[0] ? e.touches[0].clientY : 0;
+          const dy = y - (this._touchStartY || 0);
+          const atTop = msgs.scrollTop <= 0;
+          const atBottom = msgs.scrollTop + msgs.clientHeight >= msgs.scrollHeight - 1;
+          // At edge: block so rubber-band does not scroll the page behind
+          if ((atTop && dy > 0) || (atBottom && dy < 0)) {
+            e.preventDefault();
+          }
+          return;
+        }
+        // Touches outside the message list (header/input/backdrop) must not move page
+        if (target && target.closest && target.closest('#pc-win')) {
+          e.preventDefault();
+          return;
+        }
+        e.preventDefault();
+      };
+      document.addEventListener('touchstart', this._onTouchStart, { passive: true, capture: true });
+      document.addEventListener('touchmove', this._onTouchMove, { passive: false, capture: true });
+    }
+
+    _unlockPageScroll() {
+      if (!this._scrollLocked) return;
+      this._scrollLocked = false;
+      document.documentElement.classList.remove('pc-scroll-lock');
+      document.body.classList.remove('pc-scroll-lock');
+      document.body.style.removeProperty('top');
+      if (this._onTouchStart) {
+        document.removeEventListener('touchstart', this._onTouchStart, true);
+        this._onTouchStart = null;
+      }
+      if (this._onTouchMove) {
+        document.removeEventListener('touchmove', this._onTouchMove, true);
+        this._onTouchMove = null;
+      }
+      window.scrollTo(0, this._lockScrollY || 0);
     }
 
     /* ── Toggle fullscreen (20 % margin) ───────────────────── */

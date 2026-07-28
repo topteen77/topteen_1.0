@@ -12,7 +12,7 @@
 
 {% block footer %}{% if not embed_mode %}{{ super() }}{% endif %}{% endblock %}
 
-{% block bodyclass %}{{ super() }} combined-report-page{% if embed_mode %} report-embed-mode{% endif %}{% endblock %}
+{% block bodyclass %}{{ super() }} combined-report-page cb-standalone-report-page{% if embed_mode %} report-embed-mode{% endif %}{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
@@ -99,6 +99,8 @@
       clear: both;
     }
 
+    /* PDF page logos — site header already shows brand; hide to remove top white gap */
+    .combined-report-page .report-container .page-header,
     .combined-report-page .report-container .report-subsection .page-header {
       display: none;
     }
@@ -161,6 +163,33 @@
     margin-top: 28px;
     font-weight: 600;
     border-radius: 10px 10px 0 0;
+  }
+
+  /* Mobile only: keep “Your Psychometric Profile” on one centered line */
+  @media (max-width: 991.98px) {
+    .combined-report-page .text-color-top {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .combined-report-page .text-color-top .top-layout {
+      font-size: clamp(15px, 4.2vw, 22px);
+      padding: 10px 14px;
+      white-space: nowrap;
+      text-align: center;
+      box-sizing: border-box;
+      max-width: 100%;
+      margin-top: 4px;
+    }
+
+    .combined-report-page .report-container {
+      padding-top: 12px;
+    }
+
+    .combined-report-page .report-container .chapterPage {
+      padding-top: 8px;
+    }
   }
 
   .db-header {
@@ -336,8 +365,14 @@
     margin-top: 10px;
   }
 
-  .combined-report-page {
-    padding-top: 60px;
+  /* Body class clears fixed site header once.
+     Content also wraps in div.combined-report-page — do NOT pad both or you get a large top gap. */
+  body.combined-report-page {
+    padding-top: 56px;
+  }
+
+  div.combined-report-page {
+    padding-top: 0;
     background: #f5f5f5;
     overflow-x: hidden;
     padding-bottom: 80px;
@@ -361,9 +396,38 @@
 
   /* Prevent fixed-width blocks (e.g. 900px) from overflowing on small viewports */
   .report-container div[style*="900px"],
-  .report-container div[style*="width: 600px"] {
+  .report-container div[style*="width: 600px"],
+  .report-container div[style*="width:600px"],
+  .report-container table[style*="width: 600px"],
+  .report-container table[style*="width:600px"] {
     max-width: 100%;
     box-sizing: border-box;
+  }
+
+  /* Mobile only: Stream Description table (inline width:600px) was clipped on the right */
+  @media (max-width: 991.98px) {
+    .report-container table[style*="width:600px"],
+    .report-container table[style*="width: 600px"] {
+      width: 100% !important;
+      max-width: 100% !important;
+      table-layout: fixed;
+    }
+
+    .report-container table[style*="width:600px"] td,
+    .report-container table[style*="width: 600px"] td {
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      box-sizing: border-box;
+    }
+
+    .report-container table[style*="width:600px"] td[style*="width: 200px"],
+    .report-container table[style*="width:600px"] td[style*="width:200px"],
+    .report-container table[style*="width: 600px"] td[style*="width: 200px"],
+    .report-container table[style*="width: 600px"] td[style*="width:200px"] {
+      width: 28% !important;
+      max-width: 96px !important;
+      white-space: nowrap;
+    }
   }
 
   /* Sticky Download Button at bottom (same as test1 report) */

@@ -16920,6 +16920,18 @@ a.list-group-item .bx {
   padding-top: 54px;
 }
 
+/*
+  Global body { overflow-x:hidden } makes overflow-y compute to auto
+  (CSS quirk), so body becomes a scrollport and iPhone Safari feels
+  “stuck” on long reports until layout settles.
+  overflow-x: clip does not create that scrollport; page scrolls on viewport.
+*/
+body.logged-in.report-page,
+body.logged-in.combined-report-page {
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
 @media (max-width: 768px) {
 
 .top-layout {

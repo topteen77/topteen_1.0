@@ -52,6 +52,19 @@ body.cb-page-chat-right #pc-win {
   }
 }
 
+/* Mobile fullscreen: ignore right/left insets from position rules so panel is edge-to-edge */
+@media (max-width: 480px) {
+  body.cb-page-chat-right #pc-win,
+  body.cb-bots-stack #pc-win,
+  body.cb-bots-stack.cb-page-chat-right #pc-win {
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    transform: none !important;
+  }
+}
+
 /* ---- Same-side stack: Career Counsellor above Ask AI ---- */
 body.cb-bots-stack #pc-fab {
   bottom: 28px !important;
@@ -81,6 +94,16 @@ body.cb-bots-stack.cb-page-chat-right #pc-win {
   body.cb-bots-stack.cb-page-chat-right #pc-win {
     right: 18px !important;
     left: auto !important;
+  }
+}
+
+@media (max-width: 480px) {
+  body.cb-bots-stack.cb-page-chat-right #pc-win {
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    transform: none !important;
   }
 }
 
@@ -114,24 +137,65 @@ body.cb-standalone-report-page.cb-bots-stack #cb-window {
     bottom: 78px !important;
   }
 
-  body.cb-standalone-report-page #pc-win {
-    bottom: 142px !important;
+  /*
+    On mobile the Ask AI / career panels go fullscreen (height: 100dvh).
+    Do NOT also raise bottom — that shifts the panel off-screen (top negative)
+    and hides the header/close button. Also reset left/right so cb-page-chat-right
+    insets don’t leave side gaps.
+  */
+  body.cb-standalone-report-page #pc-win,
+  body.cb-standalone-report-page.cb-page-chat-right #pc-win,
+  body.report-page #pc-win,
+  body.combined-report-page #pc-win,
+  body.combined-report-page.cb-page-chat-right #pc-win {
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100dvh !important;
+    max-height: none !important;
+    border-radius: 0 !important;
+    transform: none !important;
   }
 
   body.cb-standalone-report-page #cb-fab-wrap {
     bottom: 78px !important;
   }
 
-  body.cb-standalone-report-page #cb-window {
-    bottom: 158px !important;
+  body.cb-standalone-report-page #cb-window,
+  body.cb-standalone-report-page.cb-bots-stack #cb-window {
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100dvh !important;
+    max-height: none !important;
+    border-radius: 0 !important;
   }
 
   body.cb-standalone-report-page.cb-bots-stack #cb-fab-wrap {
     bottom: 150px !important;
   }
+}
 
-  body.cb-standalone-report-page.cb-bots-stack #cb-window {
-    bottom: 230px !important;
+/* Tablet (not desktop): keep report chat above sticky bar without clipping */
+@media (min-width: 481px) and (max-width: 991.98px) {
+  body.cb-standalone-report-page #pc-win:not(.pc-hide):not(.pc-fullscreen) {
+    bottom: 88px !important;
+    top: auto !important;
+    height: min(700px, calc(100dvh - 100px)) !important;
+    max-height: calc(100dvh - 100px) !important;
+  }
+
+  body.cb-standalone-report-page #cb-window:not(.cb-hide):not(.cb-fullscreen) {
+    bottom: 88px !important;
+    top: auto !important;
+    height: min(700px, calc(100dvh - 100px)) !important;
+    max-height: calc(100dvh - 100px) !important;
   }
 }
 

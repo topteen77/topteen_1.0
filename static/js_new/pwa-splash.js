@@ -30,6 +30,14 @@
 
   function forceCleanup() {
     document.documentElement.classList.remove('pwa-launch-active');
+    try {
+      document.documentElement.style.removeProperty('overflow');
+      if (document.body) {
+        document.body.style.removeProperty('overflow');
+      }
+    } catch (err) {
+      /* ignore */
+    }
     var splash = document.getElementById('pwa-launch-screen');
     if (!splash) {
       return;
@@ -126,6 +134,13 @@
 
   window.addEventListener('pageshow', function () {
     if (!shouldShowLaunchScreen()) {
+      forceCleanup();
+    }
+  });
+
+  window.addEventListener('pagehide', forceCleanup);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden' && hidden) {
       forceCleanup();
     }
   });

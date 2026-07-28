@@ -23,6 +23,23 @@
   .graph--intelligence img {
     max-width: 440px;
   }
+  /* Mobile/tablet only — keep desktop graph size unchanged */
+  @media (max-width: 991.98px) {
+    .report-graph-block,
+    .graph {
+      max-width: 100%;
+      padding: 0 4px;
+      box-sizing: border-box;
+    }
+    .report-graph-block img,
+    .graph img,
+    .graph--intelligence img {
+      /* Cap like desktop; shrink further on narrow phones via 100% */
+      max-width: min(100%, 480px) !important;
+      width: 100% !important;
+      height: auto !important;
+    }
+  }
   @media print {
     .report-graph-page {
       page-break-before: always;

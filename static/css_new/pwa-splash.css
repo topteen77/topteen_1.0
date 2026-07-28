@@ -273,10 +273,14 @@ html:not(.pwa-launch-active) #pwa-launch-screen {
   opacity: 0 !important;
 }
 
-/* Hide app chrome while splash is visible — overlay blocks clicks; do not hide header (breaks nav after dismiss) */
-html.pwa-launch-active,
-html.pwa-launch-active body {
-  overflow: hidden !important;
+/*
+  While splash is visible the fixed overlay already blocks interaction.
+  Do NOT use overflow:hidden !important on html/body — if the splash class
+  is left behind (bfcache / interrupted hide), long pages like student
+  reports become permanently unscrollable.
+*/
+html.pwa-launch-active {
+  overscroll-behavior: none;
 }
 
 html.pwa-launch-active #cb-fab-wrap,
@@ -329,5 +333,25 @@ html.pwa-launch-active .pwa-update-banner {
   .pwa-launch-screen__tagline {
     margin-bottom: 1.25rem;
     font-size: 0.92rem;
+  }
+}
+
+/* Tablet: scale brand block so it doesn’t look undersized */
+@media (min-width: 768px) {
+  .pwa-launch-screen__content {
+    width: min(70vw, 26rem);
+  }
+
+  .pwa-launch-screen__logo-card {
+    max-width: min(48vw, 16rem);
+    padding: 20px 32px;
+  }
+
+  .pwa-launch-screen__logo {
+    max-width: 12.5rem;
+  }
+
+  .pwa-launch-screen__tagline {
+    font-size: 1.2rem;
   }
 }

@@ -207,7 +207,14 @@
               right     .3s ease,
               bottom    .3s ease,
               border-radius .3s ease;
-              height: clamp(400px, 70vh, 700px);
+}
+
+/* Mobile/tablet + short viewports only — keep desktop #pc-win at --pc-window-h */
+@media (max-width: 991.98px), (max-height: 560px) {
+  #pc-win {
+    height: min(700px, max(320px, 70vh));
+    max-height: calc(100dvh - 116px);
+  }
 }
 
 #pc-win.pc-hide {
@@ -379,8 +386,12 @@
    7. MESSAGES AREA
 ============================================================ */
 #pc-msgs {
-  flex:       1;
+  flex:       1 1 0%;
+  min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   padding:    20px 18px 10px;
   display:    flex;
   flex-direction: column;
@@ -813,12 +824,16 @@
 ============================================================ */
 @media (max-width: 480px) {
   #pc-win {
-    width:  100vw  !important;
+    top:    0      !important;
+    width:  100%   !important;
+    max-width: 100% !important;
     height: 100dvh !important;
+    max-height: none !important;
     bottom: 0      !important;
     left:   0      !important;
     right:  0      !important;
     border-radius: 0 !important;
+    transform: none !important;
   }
 
   #pc-win.pc-fullscreen {
@@ -827,11 +842,116 @@
     right:  0 !important;
     bottom: 0 !important;
     width:  100%   !important;
+    max-width: 100% !important;
     height: 100dvh !important;
+    max-height: none !important;
     border-radius: 0 !important;
+    transform: none !important;
+  }
+
+  /* Keep close/fullscreen controls visible above messages */
+  #pc-hdr {
+    flex-shrink: 0 !important;
+    position: relative;
+    z-index: 6;
+    min-height: var(--pc-header-h);
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  #pc-hdr-actions {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    flex-shrink: 0;
+  }
+
+  .pc-hdr-btn {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 
   /* On mobile, shift FAB up a bit and hide text label */
   #pc-fab        { bottom: 18px; left: 18px; padding: 0 14px; }
   #pc-fab-label  { display: none; }
+}
+
+/* Phone landscape / short tablets: keep Ask AI panel fully on-screen */
+@media (max-height: 560px) {
+  #pc-win:not(.pc-fullscreen) {
+    top: 8px !important;
+    bottom: 8px !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+}
+
+/* Report sticky bar: keep message list scrollable above bottom chrome (mobile/tablet only) */
+@media (max-width: 991.98px) {
+  /* Tablet only — on phones fullscreen rules below must win */
+  body.cb-standalone-report-page #pc-win:not(.pc-hide):not(.pc-fullscreen) {
+    max-height: calc(100dvh - 100px);
+  }
+
+  body.report-page #pc-win:not(.pc-hide):not(.pc-fullscreen),
+  body.combined-report-page #pc-win:not(.pc-hide):not(.pc-fullscreen) {
+    max-height: calc(100dvh - 100px);
+  }
+}
+
+@media (max-width: 480px) {
+  body.cb-standalone-report-page #pc-win:not(.pc-hide),
+  body.report-page #pc-win:not(.pc-hide),
+  body.combined-report-page #pc-win:not(.pc-hide) {
+    max-height: none !important;
+  }
+}
+
+@media (max-width: 991.98px) {
+  /*
+    Long report pages steal touch/wheel scroll from the chat.
+    Lock page scroll while Ask AI is open — desktop (≥992) unchanged.
+    JS also adds .pc-scroll-lock (position:fixed) for iOS rubber-band.
+  */
+  html.pc-scroll-lock,
+  html.pc-scroll-lock body,
+  body.report-page:has(#pc-win:not(.pc-hide)),
+  body.combined-report-page:has(#pc-win:not(.pc-hide)),
+  body.cb-standalone-report-page:has(#pc-win:not(.pc-hide)) {
+    overflow: hidden !important;
+    overscroll-behavior: none;
+    touch-action: none;
+  }
+
+  body.pc-scroll-lock {
+    position: fixed !important;
+    left: 0;
+    right: 0;
+    width: 100%;
+  }
+
+  body.report-page:has(#pc-win:not(.pc-hide)) #pc-win,
+  body.combined-report-page:has(#pc-win:not(.pc-hide)) #pc-win,
+  body.cb-standalone-report-page:has(#pc-win:not(.pc-hide)) #pc-win,
+  html.pc-scroll-lock #pc-win {
+    touch-action: auto;
+  }
+
+  body.report-page #pc-msgs,
+  body.combined-report-page #pc-msgs,
+  body.cb-standalone-report-page #pc-msgs,
+  html.pc-scroll-lock #pc-msgs {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+  }
+
+  /* Hide FAB while panel is open so it doesn’t cover the composer */
+  #pc-root:has(#pc-win:not(.pc-hide)) #pc-fab {
+    visibility: hidden;
+    pointer-events: none;
+  }
 }

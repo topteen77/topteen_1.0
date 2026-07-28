@@ -231,7 +231,9 @@
               bottom   .3s ease,
               border-radius .3s ease;
 
-              height: clamp(400px, 70vh, 700px);
+              /* Cap to viewport so phone landscape / short tabs don’t clip */
+              height: min(700px, max(320px, 70vh));
+              max-height: calc(100dvh - 116px);
 }
 
 
@@ -1250,6 +1252,7 @@
   #cb-window {
     width:  100vw   !important;
     height: 100dvh  !important;
+    max-height: none !important;
     bottom: 0       !important;
     right:  0       !important;
     left:   0       !important;
@@ -1264,6 +1267,7 @@
     bottom: 0 !important;
     width:  100% !important;
     height: 100dvh !important;
+    max-height: none !important;
     border-radius: 0 !important;
   }
 
@@ -1298,5 +1302,34 @@ body.cb-bots-stack #cb-window {
 @media (max-width: 480px) {
   body.cb-bots-stack #cb-fab-wrap {
     bottom: 90px !important;
+  }
+}
+
+/* Phone landscape / short tablets: keep panel fully on-screen */
+@media (max-height: 560px) {
+  #cb-window:not(.cb-fullscreen) {
+    top: 8px !important;
+    bottom: 8px !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  body.cb-bots-stack #cb-window:not(.cb-fullscreen) {
+    bottom: 8px !important;
+  }
+}
+
+/* Report pages (sticky download bar): keep message list scrollable on mobile/tablet only */
+@media (max-width: 991.98px) {
+  body.cb-standalone-report-page #cb-messages,
+  body.report-page #cb-messages,
+  body.combined-report-page #cb-messages {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    min-height: 0;
+  }
+
+  body.cb-standalone-report-page #cb-window:not(.cb-fullscreen) {
+    max-height: calc(100dvh - 100px);
   }
 }

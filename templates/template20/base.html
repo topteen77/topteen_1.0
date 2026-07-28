@@ -23,7 +23,7 @@
   <meta name="msapplication-TileColor" content="#da532c">
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#1a1464">
-  <link rel="stylesheet" href="{{ static('css_new/pwa-splash.css') }}?v=7">
+  <link rel="stylesheet" href="{{ static('css_new/pwa-splash.css') }}?v=9">
   <link rel="apple-touch-startup-image" href="{{ static('images_new/fav-icon/pwa-splash-1170x2532.png') }}" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
   <link rel="apple-touch-startup-image" href="{{ static('images_new/fav-icon/pwa-splash-1284x2778.png') }}" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
   <link rel="apple-touch-startup-image" href="{{ static('images_new/fav-icon/pwa-splash-1080x1920.png') }}" media="(orientation: portrait)">
@@ -79,9 +79,9 @@
   {% include 'template20/includes/seo_schema.html' %}
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="{{ static('css_new/bootstrap.min.css') }}">
-  <link rel="stylesheet" href="{{ static('css_new/custom-min.css') }}?v=20260727-6" type="text/css" media="all" />
-  {% if show_ai_counsellor_bot %}<link rel="stylesheet" href="{{ static('css_new/chatbot-widget.css') }}?v=20260326" type="text/css" media="all" />{% endif %}
-  {% if show_page_chat_widget %}<link rel="stylesheet" href="{{ static('css_new/page-chat-widget.css') }}?v=20260326" type="text/css" media="all" />{% endif %}
+  <link rel="stylesheet" href="{{ static('css_new/custom-min.css') }}?v=20260728-4" type="text/css" media="all" />
+  {% if show_ai_counsellor_bot %}<link rel="stylesheet" href="{{ static('css_new/chatbot-widget.css') }}?v=20260728b" type="text/css" media="all" />{% endif %}
+  {% if show_page_chat_widget %}<link rel="stylesheet" href="{{ static('css_new/page-chat-widget.css') }}?v=20260728e" type="text/css" media="all" />{% endif %}
   <link rel="stylesheet" href="{{ static('css_new/search.css') }}" type="text/css" media="all" />
   {% block chatbot_css %}
   {% if show_chatbot %}<link rel="stylesheet" href="{{ static('css_new/chatbot.css') }}" type="text/css" media="all" />{% endif %}
@@ -152,7 +152,7 @@
 
   {% block additionalcss %}
   {% if show_ai_counsellor_bot or show_page_chat_widget %}
-  <link rel="stylesheet" href="{{ static('css_new/chatbot-rule-widgets-layout.css') }}?v=20260704" type="text/css" media="all" />
+  <link rel="stylesheet" href="{{ static('css_new/chatbot-rule-widgets-layout.css') }}?v=20260728e" type="text/css" media="all" />
   {% endif %}
   {# cb-root position & same-side stack: body classes via chatbot_widget_body_class + chatbot-widget.css #}
   {% endblock %}
@@ -246,11 +246,11 @@
   {% endif %}
   {# When both widgets load, page-chat must mount first so cb-root is later in DOM (same z-index stacking). #}
   {% if show_page_chat_widget and show_ai_counsellor_bot %}
-  <script src="{{ static('js_new/page-chat-widget.js') }}" defer></script>
+  <script src="{{ static('js_new/page-chat-widget.js') }}?v=20260728d" defer></script>
   <script src="{{ static('js_new/chatbot-widget.js') }}" defer></script>
   {% else %}
   {% if show_ai_counsellor_bot %}<script src="{{ static('js_new/chatbot-widget.js') }}" defer></script>{% endif %}
-  {% if show_page_chat_widget %}<script src="{{ static('js_new/page-chat-widget.js') }}" defer></script>{% endif %}
+  {% if show_page_chat_widget %}<script src="{{ static('js_new/page-chat-widget.js') }}?v=20260728d" defer></script>{% endif %}
   {% endif %}
 
   {% block chatbot_js %}

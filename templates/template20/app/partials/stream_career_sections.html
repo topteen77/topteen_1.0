@@ -2,7 +2,7 @@
   {% for section in stream_career_sections %}
   <div class="cat-box cat-one-box" style="margin-top: 12px;">
     <div class="cat-head" style="background: #3F37C9; color:#fff; margin: 0px;">
-      <h4 style="font-size: 16px; width:600px; margin: 0px;{% if section_title_center|default(false) %} text-align: center;{% endif %}">{{ section.title }}</h4>
+      <h4 style="font-size: 16px; width:100%; max-width:600px; margin: 0px;{% if section_title_center|default(false) %} text-align: center;{% endif %}">{{ section.title }}</h4>
     </div>
     <div class="cat-list" style="padding:6px; margin-top:0px;{% if section_list_height %} height:{{ section_list_height }}; max-height: {{ section_list_height }}; min-height: {{ section_list_height }};{% endif %}">
       <ul style="{% if section_column_count %}column-count:{{ section_column_count }}; {% endif %}{% if section_list_disc|default(false) %}list-style: disc; padding-left: 23px;{% endif %}">
@@ -16,7 +16,7 @@
 {% elif courseName %}
 <div class="cat-box cat-one-box" style="margin-top: 12px;">
   <div class="cat-head" style="background: #3F37C9; color:#fff; margin: 0px;">
-    <h4 style="font-size: 16px; width:600px; margin: 0px;{% if section_title_center|default(false) %} text-align: center;{% endif %}">Suggested Careers</h4>
+    <h4 style="font-size: 16px; width:100%; max-width:600px; margin: 0px;{% if section_title_center|default(false) %} text-align: center;{% endif %}">Suggested Careers</h4>
   </div>
   <div class="cat-list" style="padding:6px; margin-top:0px;{% if section_list_height %} height:{{ section_list_height }}; max-height: {{ section_list_height }}; min-height: {{ section_list_height }};{% endif %}">
     <ul style="{% if section_column_count %}column-count:{{ section_column_count }}; {% endif %}{% if section_list_disc|default(false) %}list-style: disc; padding-left: 23px;{% endif %}">

@@ -60,13 +60,69 @@ label.hobbiesTab img {
   body.profile-onboarding .std-shell-menu {
     display: none !important;
   }
-  /* Mobile: minimal top space under fixed header */
+
+  /*
+    .mt-15 in the design system is margin-top: 7rem — creates a huge gap
+    between the step header and “What are you here for?” on mobile.
+  */
+  .profile-onboarding .mt-15 {
+    margin-top: 12px !important;
+  }
+  .profile-onboarding .page h2.mt-15 {
+    margin-top: 12px !important;
+  }
+
+  /* Mobile: tighten shell / step / footer whitespace */
   @media (max-width: 991px) {
     body.profile-onboarding .std-shell-main {
-      padding-top: 60px;
+      padding-top: 56px;
+    }
+    body.profile-onboarding .row.pt-3 {
+      padding-top: 0.25rem !important;
+    }
+    body.profile-onboarding .profile-wizard-shell {
+      padding-top: 0;
+    }
+    .profile-onboarding.pb-5 {
+      padding-bottom: 1rem !important;
+    }
+    .profile-onboarding .profile-wizard-header {
+      margin-bottom: 12px;
+      padding: 14px 14px 12px;
     }
     .profile-onboarding .page {
-      padding: 16px 16px 40px;
+      padding: 8px 12px 16px;
+    }
+    .profile-onboarding .mt-15,
+    .profile-onboarding .page h2.mt-15 {
+      margin-top: 8px !important;
+    }
+    .profile-onboarding .profile-wizard-footer {
+      margin-top: 12px;
+      margin-bottom: 8px;
+      padding: 12px 14px;
+    }
+    /* Prevent Slick from leaving tall empty slide height (other steps are tall forms) */
+    .profile-onboarding .newPages .slick-list {
+      height: auto !important;
+    }
+    .profile-onboarding .newPages .slick-track {
+      height: auto !important;
+      display: flex !important;
+      align-items: flex-start;
+    }
+    .profile-onboarding .newPages .slick-slide {
+      height: auto !important;
+    }
+    .profile-onboarding .newPages .slick-slide:not(.slick-active) {
+      height: 0 !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+      border: 0 !important;
+    }
+    .profile-onboarding .newPages .slick-slide.slick-active {
+      height: auto !important;
+      overflow: visible !important;
     }
   }
   @media (max-width: 480px) {
@@ -74,7 +130,12 @@ label.hobbiesTab img {
       padding-top: 56px;
     }
     .profile-onboarding .page {
-      padding: 12px 12px 32px;
+      padding: 6px 10px 12px;
+    }
+  }
+  @media (min-width: 768px) {
+    .profile-onboarding .mt-15 {
+      margin-top: 1.5rem !important;
     }
   }
   .newPages .slick-dots {
@@ -82,6 +143,19 @@ label.hobbiesTab img {
   }
   .newPages {
     position: relative;
+  }
+  /* Keep only the active wizard step tall — other steps are long forms */
+  .profile-onboarding .newPages .slick-list {
+    height: auto !important;
+  }
+  .profile-onboarding .newPages .slick-slide:not(.slick-active) {
+    height: 0 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+  .profile-onboarding .newPages .slick-slide.slick-active {
+    height: auto !important;
+    overflow: visible !important;
   }
   .page {
     min-height: auto;
@@ -340,6 +414,7 @@ label.hobbiesTab img {
   }
   .icon-input {
     position: relative;
+    max-width: 100%;
   }
   .icon-input .form-label {
     display: block;
@@ -348,6 +423,33 @@ label.hobbiesTab img {
   }
   .icon-input-field {
     position: relative;
+    min-width: 0;
+  }
+  /* Parent mobile: input + Add share one row — stack on narrow phones so placeholder stays readable */
+  .parent-mobile-row {
+    align-items: stretch;
+    min-width: 0;
+  }
+  .parent-mobile-row .icon-input-field {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .parent-mobile-row #add_parent_btn {
+    flex: 0 0 auto;
+  }
+  @media (max-width: 575px) {
+    .profile-onboarding .icon-input[style*="width"] {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+    .parent-mobile-row {
+      flex-direction: column;
+      gap: 10px !important;
+    }
+    .parent-mobile-row #add_parent_btn {
+      width: 100%;
+      min-width: 0 !important;
+    }
   }
   .icon-input-field .field-icon {
     position: absolute;
@@ -827,7 +929,7 @@ label.hobbiesTab img {
         <div class="w-100 d-flex justify-content-center mb-3">
           <div class="icon-input position-relative has-label" style="width: 576px;">
             <label class="form-label fs-14 fw-semibold mb-2">Parent Mobile Number <span class="text-muted fw-normal d-none">(Optional)</span></label>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 parent-mobile-row">
               <div class="icon-input-field flex-grow-1">
                 <i class='bx bx-group field-icon' aria-hidden="true"></i>
                 <input id="parent_mobile_profile" type="text"
@@ -1186,8 +1288,13 @@ label.hobbiesTab img {
     });
 
     function refreshWizardCarousel() {
-      if ($('.newPages').hasClass('slick-initialized')) {
-        $('.newPages').slick('setPosition');
+      if (!$('.newPages').hasClass('slick-initialized')) return;
+      $('.newPages').slick('setPosition');
+      /* Collapse inactive slides so tall later steps don’t leave empty space below */
+      var $active = $('.newPages .slick-slide.slick-active');
+      var h = $active.outerHeight() || 0;
+      if (h > 0) {
+        $('.newPages .slick-list').height(h);
       }
     }
 
@@ -1262,9 +1369,14 @@ label.hobbiesTab img {
         updateWizardUI(currentSlide);
         refreshWizardCarousel();
       });
+
+      // First paint: shrink list to active step height
+      setTimeout(refreshWizardCarousel, 50);
+      setTimeout(refreshWizardCarousel, 300);
     }
 
     updateWizardUI(0);
+    setTimeout(refreshWizardCarousel, 100);
 
     if (WIZARD_EDIT_MODE) {
       $('#wizardStepsList li').on('click keypress', function(e) {

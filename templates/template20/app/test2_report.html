@@ -8,7 +8,7 @@
 {% block chatbot_js %}{% endblock %}
 {% block footer_cta %}{% endblock %}
 
-{% block bodyclass %}{{ super() }} report-page{% endblock %}
+{% block bodyclass %}{{ super() }} report-page cb-standalone-report-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
@@ -278,7 +278,7 @@
 
     <div class="riasec-mini-card0-list">
 
-    <div class="test-title" style="color:#000; font-size:16px; font-weight: 600; margin-top: 5px; width:600px;">
+    <div class="test-title" style="color:#000; font-size:16px; font-weight: 600; margin-top: 5px; width:100%; max-width:600px;">
       Your Dominant Interest {% if dominant_interest_tied %}areas are{% else %}area is{% endif %}:
     </div>
     {% if dominant_interest_labels %}
@@ -306,7 +306,7 @@
   {% if user_name and user_ID %}
   <div class="chapterPage">
     <div class="graph">
-      <img style="width:550px;" src="{{ graph_image_media_url(user_name, user_ID, 'interest') }}" alt="graph" />
+      <img style="width:100%; max-width:550px;" src="{{ graph_image_media_url(user_name, user_ID, 'interest') }}" alt="graph" />
     </div>
 
     <!-- Next Steps -->
