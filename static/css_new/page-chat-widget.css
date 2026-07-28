@@ -827,8 +827,8 @@
 /* ============================================================
    14. MOBILE RESPONSIVE
 ============================================================ */
-@media (max-width: 480px) {
-  #pc-win {
+@media (max-width: 767.98px) {
+  #pc-win:not(.pc-kb-open) {
     top:    0      !important;
     width:  100%   !important;
     max-width: 100% !important;
@@ -841,7 +841,7 @@
     transform: none !important;
   }
 
-  #pc-win.pc-fullscreen {
+  #pc-win.pc-fullscreen:not(.pc-kb-open) {
     top:    0 !important;
     left:   0 !important;
     right:  0 !important;
@@ -862,10 +862,24 @@
     max-width: 100% !important;
     border-radius: 0 !important;
     transform: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
   }
 
   #pc-win.pc-kb-open #pc-input-hint {
     display: none;
+  }
+
+  #pc-win.pc-kb-open #pc-msgs {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  #pc-win.pc-kb-open #pc-input-area {
+    flex-shrink: 0 !important;
+    padding-bottom: 8px !important;
   }
 
   #pc-input-area {

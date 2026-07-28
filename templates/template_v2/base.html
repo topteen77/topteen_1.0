@@ -16,12 +16,16 @@
   {% endif %}
   <meta name="facebook-domain-verification" content="80fczxf7zf2ysu54gokd497v0b09zu" />
   {% endblock %}
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <link rel="apple-touch-icon" sizes="180x180" href="{{ static('images_new/fav-icon/apple-icon-114x114.png') }}">
   <link rel="icon" type="image/png" sizes="32x32" href="{{ static('images_new/fav-icon/favicon-32x32.png') }}">
   <link rel="icon" type="image/png" sizes="16x16" href="{{ static('images_new/fav-icon/favicon-16x16.png') }}">
   <link rel="mask-icon" href="{{ static('images_new/fav-icon/safari-pinned-tab.svg') }}" color="#5bbad5">
   <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#1a1464">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
   {% block title %}
   {% if html_head and html_head.title %}
@@ -70,13 +74,14 @@
 
   <link rel="stylesheet" href="{{ static('css_new/bootstrap.min.css') }}">
   <link rel="stylesheet" href="{{ static('css_new/custom-min.css') }}" type="text/css" media="all" />
-  {% if show_ai_counsellor_bot %}<link rel="stylesheet" href="{{ static('css_new/chatbot-widget.css') }}?v=20260326" type="text/css" media="all" />{% endif %}
-  {% if show_page_chat_widget %}<link rel="stylesheet" href="{{ static('css_new/page-chat-widget.css') }}?v=20260326" type="text/css" media="all" />{% endif %}
-  {% if show_ai_counsellor_bot or show_page_chat_widget %}<link rel="stylesheet" href="{{ static('css_new/chatbot-rule-widgets-layout.css') }}?v=20260626" type="text/css" media="all" />{% endif %}
+  {% if show_ai_counsellor_bot %}<link rel="stylesheet" href="{{ static('css_new/chatbot-widget.css') }}?v=20260728e" type="text/css" media="all" />{% endif %}
+  {% if show_page_chat_widget %}<link rel="stylesheet" href="{{ static('css_new/page-chat-widget.css') }}?v=20260728h" type="text/css" media="all" />{% endif %}
+  {% if show_ai_counsellor_bot or show_page_chat_widget %}<link rel="stylesheet" href="{{ static('css_new/chatbot-rule-widgets-layout.css') }}?v=20260728f" type="text/css" media="all" />{% endif %}
   <link rel="stylesheet" href="{{ static('css_new/search.css') }}" type="text/css" media="all" />
   {% block chatbot_css %}
   {% if show_chatbot %}<link rel="stylesheet" href="{{ static('css_new/chatbot.css') }}" type="text/css" media="all" />{% endif %}
   {% endblock %}
+  <link rel="stylesheet" href="{{ static('css_new/pwa-safe-area.css') }}?v=3" type="text/css" media="all" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">

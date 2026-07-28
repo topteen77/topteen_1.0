@@ -610,13 +610,23 @@
       const height = Math.max(240, Math.round(vv.height));
       this._win.classList.add('cb-kb-open');
       this._win.style.setProperty('top', top + 'px', 'important');
+      this._win.style.setProperty('left', '0px', 'important');
+      this._win.style.setProperty('right', '0px', 'important');
       this._win.style.setProperty('bottom', 'auto', 'important');
+      this._win.style.setProperty('width', '100%', 'important');
       this._win.style.setProperty('height', height + 'px', 'important');
       this._win.style.setProperty('max-height', height + 'px', 'important');
 
+      // Keep composer from eating the visible area while typing
+      if (this._input) {
+        const maxH = height < 420 ? 64 : 96;
+        this._input.style.height = '46px';
+        this._input.style.height = Math.min(this._input.scrollHeight, maxH) + 'px';
+      }
+
       if (this._inputArea && typeof this._inputArea.scrollIntoView === 'function') {
         try {
-          this._inputArea.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+          this._inputArea.scrollIntoView({ block: 'end', inline: 'nearest' });
         } catch (e) {}
       }
     }
@@ -625,7 +635,10 @@
       if (!this._win) return;
       this._win.classList.remove('cb-kb-open');
       this._win.style.removeProperty('top');
+      this._win.style.removeProperty('left');
+      this._win.style.removeProperty('right');
       this._win.style.removeProperty('bottom');
+      this._win.style.removeProperty('width');
       this._win.style.removeProperty('height');
       this._win.style.removeProperty('max-height');
     }

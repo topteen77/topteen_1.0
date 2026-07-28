@@ -85,6 +85,24 @@ body.cb-bots-stack.cb-page-chat-right #pc-win {
   transform-origin: bottom right !important;
 }
 
+@media (max-width: 767.98px) {
+  /* Fullscreen mobile panels must not keep desktop stack offsets */
+  body.cb-bots-stack #pc-win:not(.pc-kb-open),
+  body.cb-bots-stack.cb-page-chat-right #pc-win:not(.pc-kb-open) {
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100dvh !important;
+    max-height: none !important;
+  }
+  body.cb-bots-stack #pc-win.pc-kb-open {
+    bottom: auto !important;
+  }
+}
+
 @media (max-width: 768px) {
   body.cb-bots-stack.cb-page-chat-right #pc-fab {
     right: 18px !important;
