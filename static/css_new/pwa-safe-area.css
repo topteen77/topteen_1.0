@@ -1,0 +1,135 @@
+/**
+ * PWA / mobile safe-area insets
+ * viewport-fit=cover + apple status-bar black-translucent draw under the
+ * system bars — keep interactive chrome (header, chat close, FABs) clear.
+ */
+:root {
+  --tt-safe-top: env(safe-area-inset-top, 0px);
+  --tt-safe-right: env(safe-area-inset-right, 0px);
+  --tt-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --tt-safe-left: env(safe-area-inset-left, 0px);
+}
+
+/* Site marketing / app header — never under status bar */
+.header,
+.header.tt-header {
+  top: 0;
+  padding-top: var(--tt-safe-top);
+  padding-left: var(--tt-safe-left);
+  padding-right: var(--tt-safe-right);
+  box-sizing: border-box;
+}
+
+@media (max-width: 61.99875rem) {
+  .header.tt-header {
+    margin-top: 0 !important;
+  }
+}
+
+/* PWA update toast */
+.pwa-update-banner {
+  left: max(16px, var(--tt-safe-left)) !important;
+  right: max(16px, var(--tt-safe-right)) !important;
+  bottom: max(16px, var(--tt-safe-bottom)) !important;
+}
+
+/* Career Counsellor (#cb-*) fullscreen mobile */
+@media (max-width: 767.98px) {
+  #cb-header {
+    height: auto !important;
+    min-height: calc(var(--cb-header-h, 68px) + var(--tt-safe-top)) !important;
+    padding-top: var(--tt-safe-top) !important;
+    padding-left: max(18px, var(--tt-safe-left)) !important;
+    padding-right: max(18px, var(--tt-safe-right)) !important;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 20;
+  }
+
+  #cb-hdr-actions {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 21;
+  }
+
+  .cb-hdr-btn {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px;
+    min-height: 44px;
+    position: relative;
+    z-index: 22;
+    touch-action: manipulation;
+  }
+
+  #cb-input-area {
+    padding-bottom: max(16px, var(--tt-safe-bottom)) !important;
+    padding-left: max(18px, var(--tt-safe-left)) !important;
+    padding-right: max(18px, var(--tt-safe-right)) !important;
+  }
+
+  #cb-fab-wrap {
+    bottom: max(18px, var(--tt-safe-bottom)) !important;
+    right: max(18px, var(--tt-safe-right)) !important;
+  }
+
+  body.cb-ai-pos-left #cb-fab-wrap {
+    left: max(18px, var(--tt-safe-left)) !important;
+    right: auto !important;
+  }
+}
+
+/* Ask AI (#pc-*) fullscreen mobile */
+@media (max-width: 767.98px) {
+  #pc-hdr {
+    height: auto !important;
+    min-height: calc(var(--pc-header-h, 68px) + var(--tt-safe-top)) !important;
+    padding-top: var(--tt-safe-top) !important;
+    padding-left: max(18px, var(--tt-safe-left)) !important;
+    padding-right: max(18px, var(--tt-safe-right)) !important;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 20;
+  }
+
+  #pc-hdr-actions {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 21;
+  }
+
+  .pc-hdr-btn {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px;
+    min-height: 44px;
+    position: relative;
+    z-index: 22;
+    touch-action: manipulation;
+  }
+
+  #pc-input-area {
+    padding-bottom: max(16px, var(--tt-safe-bottom)) !important;
+    padding-left: max(18px, var(--tt-safe-left)) !important;
+    padding-right: max(18px, var(--tt-safe-right)) !important;
+  }
+
+  #pc-fab {
+    bottom: max(18px, var(--tt-safe-bottom)) !important;
+    left: max(18px, var(--tt-safe-left)) !important;
+  }
+}
+
+/* Standalone / installed PWA — reinforce insets when display-mode is set */
+@media (display-mode: standalone), (display-mode: fullscreen) {
+  .header,
+  .header.tt-header {
+    padding-top: max(12px, var(--tt-safe-top));
+  }
+}

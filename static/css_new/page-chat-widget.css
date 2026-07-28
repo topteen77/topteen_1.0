@@ -876,13 +876,18 @@
     font-size: 16px; /* avoid iOS focus zoom that clips the send button */
   }
 
-  /* Keep close/fullscreen controls visible above messages */
+  /* Keep close/fullscreen controls clear of the status bar.
+     height:auto — border-box + fixed height was eating the tap target. */
   #pc-hdr {
     flex-shrink: 0 !important;
     position: relative;
     z-index: 6;
-    min-height: var(--pc-header-h);
+    height: auto !important;
+    min-height: calc(var(--pc-header-h) + env(safe-area-inset-top, 0px));
     padding-top: env(safe-area-inset-top, 0px);
+    padding-left: max(18px, env(safe-area-inset-left, 0px));
+    padding-right: max(18px, env(safe-area-inset-right, 0px));
+    box-sizing: border-box;
   }
 
   #pc-hdr-actions {
@@ -896,10 +901,15 @@
     display: inline-flex !important;
     visibility: visible !important;
     opacity: 1 !important;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    touch-action: manipulation;
   }
 
   /* On mobile, shift FAB up a bit and hide text label */
-  #pc-fab        { bottom: 18px; left: 18px; padding: 0 14px; }
+  #pc-fab        { bottom: max(18px, env(safe-area-inset-bottom, 0px)); left: max(18px, env(safe-area-inset-left, 0px)); padding: 0 14px; }
   #pc-fab-label  { display: none; }
 }
 

@@ -81,11 +81,13 @@
   <link rel="stylesheet" href="{{ static('css_new/bootstrap.min.css') }}">
   <link rel="stylesheet" href="{{ static('css_new/custom-min.css') }}?v=20260728-smart1" type="text/css" media="all" />
   {% if show_ai_counsellor_bot %}<link rel="stylesheet" href="{{ static('css_new/chatbot-widget.css') }}?v=20260728c" type="text/css" media="all" />{% endif %}
-  {% if show_page_chat_widget %}<link rel="stylesheet" href="{{ static('css_new/page-chat-widget.css') }}?v=20260728f" type="text/css" media="all" />{% endif %}
+  {% if show_page_chat_widget %}<link rel="stylesheet" href="{{ static('css_new/page-chat-widget.css') }}?v=20260728g" type="text/css" media="all" />{% endif %}
   <link rel="stylesheet" href="{{ static('css_new/search.css') }}" type="text/css" media="all" />
   {% block chatbot_css %}
   {% if show_chatbot %}<link rel="stylesheet" href="{{ static('css_new/chatbot.css') }}" type="text/css" media="all" />{% endif %}
   {% endblock %}
+  {# After header + chat CSS so safe-area insets win over fixed heights #}
+  <link rel="stylesheet" href="{{ static('css_new/pwa-safe-area.css') }}?v=1" type="text/css" media="all" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">

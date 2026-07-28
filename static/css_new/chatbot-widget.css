@@ -1253,44 +1253,10 @@
     width:  100vw   !important;
     height: 100dvh  !important;
     max-height: none !important;
-    top:    0       !important;
     bottom: 0       !important;
     right:  0       !important;
     left:   0       !important;
     border-radius: 0 !important;
-    /* Keep panel below notch / status bar and above home indicator */
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    box-sizing: border-box;
-  }
-
-  /* Extra room so close (X) is never under the status bar / cut off */
-  #cb-header {
-    height: auto;
-    min-height: var(--cb-header-h);
-    padding-top: 10px;
-    padding-bottom: 10px;
-    padding-left: max(14px, env(safe-area-inset-left, 0px));
-    padding-right: max(10px, env(safe-area-inset-right, 0px));
-  }
-
-  #cb-hdr-actions {
-    gap: 2px;
-    margin-left: auto;
-    align-items: center;
-  }
-
-  .cb-hdr-btn {
-    width: 40px;
-    height: 40px;
-    flex-shrink: 0;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  #cb-hdr-name {
-    font-size: 15px;
-    line-height: 1.25;
-    padding-right: 4px;
   }
 
   /* On mobile, fullscreen = same as normal (already full screen) */
@@ -1303,11 +1269,29 @@
     height: 100dvh !important;
     max-height: none !important;
     border-radius: 0 !important;
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
-  #cb-fab-wrap { bottom: 18px; right: 18px; }
+  /* Clear status bar — fixed height + border-box was crushing the close button */
+  #cb-header {
+    height: auto !important;
+    min-height: calc(var(--cb-header-h) + env(safe-area-inset-top, 0px)) !important;
+    padding-top: env(safe-area-inset-top, 0px) !important;
+    padding-left: max(18px, env(safe-area-inset-left, 0px));
+    padding-right: max(18px, env(safe-area-inset-right, 0px));
+    box-sizing: border-box;
+    z-index: 10;
+  }
+
+  #cb-input-area {
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+    padding-left: max(18px, env(safe-area-inset-left, 0px));
+    padding-right: max(18px, env(safe-area-inset-right, 0px));
+  }
+
+  #cb-fab-wrap {
+    bottom: max(18px, env(safe-area-inset-bottom, 0px));
+    right: max(18px, env(safe-area-inset-right, 0px));
+  }
 }
 
 /* ------------------------------------------------------------------
