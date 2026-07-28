@@ -267,13 +267,14 @@
       this._indArea = el('div', { id: 'pc-ind-area' });
 
       /* ---- Input area ---- */
-      const inputArea = el('div', { id: 'pc-input-area' });
+      this._inputArea = el('div', { id: 'pc-input-area' });
       const inputRow  = el('div', { id: 'pc-input-row' });
 
       this._input = el('textarea', {
         id          : 'pc-input',
         placeholder : 'Ask anything about this page…',
         rows        : '1',
+        enterKeyHint: 'send',
       });
       this._input.disabled = true;
 
@@ -291,16 +292,16 @@
         '<a class="ai-quota-info__link" href="/ai-tokens/">' +
         '<i class="bx bx-info-circle" aria-hidden="true"></i> ' +
         '<span class="ai-quota-info__text">AI tokens need to recharge — Buy now.</span></a>';
-      inputArea.appendChild(inputRow);
-      inputArea.appendChild(hint);
-      inputArea.appendChild(this._quotaInfo);
+      this._inputArea.appendChild(inputRow);
+      this._inputArea.appendChild(hint);
+      this._inputArea.appendChild(this._quotaInfo);
 
       /* ---- Assemble window ---- */
       this._win.appendChild(hdr);
       this._win.appendChild(this._overlay);
       this._win.appendChild(this._msgArea);
       this._win.appendChild(this._indArea);
-      this._win.appendChild(inputArea);
+      this._win.appendChild(this._inputArea);
 
       /* ---- Assemble root ---- */
       this._root.appendChild(this._fab);
@@ -320,7 +321,74 @@
         this._input.style.height = '46px';
         this._input.style.height = Math.min(this._input.scrollHeight, 120) + 'px';
       });
+      this._bindKeyboardViewport();
       this._refreshQuota();
+    }
+
+    /*
+      Mobile keyboards shrink the visual viewport; fixed 100dvh panels keep the
+      composer under the keyboard so the send button is only half-visible.
+      Pin #pc-win to visualViewport while the input is focused (phones only).
+    */
+    _bindKeyboardViewport() {
+      if (this._vvBound) return;
+      this._vvBound = true;
+      this._inputFocused = false;
+      this._onVvChange = () => this._syncKeyboardViewport();
+
+      this._input.addEventListener('focus', () => {
+        this._inputFocused = true;
+        this._syncKeyboardViewport();
+        setTimeout(() => this._syncKeyboardViewport(), 80);
+        setTimeout(() => this._syncKeyboardViewport(), 320);
+      });
+      this._input.addEventListener('blur', () => {
+        this._inputFocused = false;
+        this._clearKeyboardViewport();
+      });
+
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', this._onVvChange);
+        window.visualViewport.addEventListener('scroll', this._onVvChange);
+      }
+      window.addEventListener('orientationchange', this._onVvChange);
+    }
+
+    _shouldFitVisualViewport() {
+      return window.matchMedia('(max-width: 480px)').matches;
+    }
+
+    _syncKeyboardViewport() {
+      if (!this._isOpen || !this._inputFocused || !this._shouldFitVisualViewport()) {
+        this._clearKeyboardViewport();
+        return;
+      }
+      const vv = window.visualViewport;
+      if (!vv) return;
+
+      const top = Math.max(0, Math.round(vv.offsetTop));
+      const height = Math.max(240, Math.round(vv.height));
+      this._win.classList.add('pc-kb-open');
+      this._win.style.setProperty('top', top + 'px', 'important');
+      this._win.style.setProperty('bottom', 'auto', 'important');
+      this._win.style.setProperty('height', height + 'px', 'important');
+      this._win.style.setProperty('max-height', height + 'px', 'important');
+
+      // Keep send button in the visible area after keyboard animation
+      if (this._inputArea && typeof this._inputArea.scrollIntoView === 'function') {
+        try {
+          this._inputArea.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        } catch (e) {}
+      }
+    }
+
+    _clearKeyboardViewport() {
+      if (!this._win) return;
+      this._win.classList.remove('pc-kb-open');
+      this._win.style.removeProperty('top');
+      this._win.style.removeProperty('bottom');
+      this._win.style.removeProperty('height');
+      this._win.style.removeProperty('max-height');
     }
 
     _refreshQuota() {
@@ -368,6 +436,9 @@
         // Kick off init on first open
         if (!this._isInitialized && !this._ws) this._initChat();
         setTimeout(() => { if (!this._input.disabled) this._input.focus(); }, 350);
+      } else {
+        this._inputFocused = false;
+        this._clearKeyboardViewport();
       }
     }
 

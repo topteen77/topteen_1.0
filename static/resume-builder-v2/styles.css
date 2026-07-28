@@ -864,6 +864,19 @@ body:not(.rb2-studio-page) .rb2-page {
   overflow: hidden;
 }
 
+/* Cached CSS template silhouette (no per-card iframe / network preview) */
+.rb2-resume-card__thumb {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.rb2-resume-card__thumb-mock.rb2-tpl-mock,
+.rb2-resume-card__thumb .rb2-tpl-mock {
+  inset: 16px 18px 14px;
+  border-radius: 6px;
+}
+
 .rb2-resume-card__iframe {
   width: 200%;
   height: 200%;
@@ -894,6 +907,12 @@ body:not(.rb2-studio-page) .rb2-page {
 
 .rb2-resume-card:hover .rb2-resume-card__preview-link {
   opacity: 1;
+}
+
+@media (hover: none), (max-width: 768px) {
+  .rb2-resume-card__preview-link {
+    opacity: 1;
+  }
 }
 
 .rb2-resume-card__body {
@@ -1831,6 +1850,65 @@ body:not(.rb2-studio-page) .rb2-page {
 
 .rb2-topbar-exit {
   padding: 8px 12px;
+}
+
+.rb2-topbar-exit__text {
+  margin-left: 2px;
+}
+
+@media (max-width: 768px) {
+  .rb2-studio-topbar {
+    padding: 10px 12px;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .rb2-studio-topbar__left {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* Full-width action row so Download / Preview / exit are never clipped */
+  .rb2-studio-topbar__actions {
+    flex: 1 1 100%;
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    flex-shrink: 1;
+    gap: 8px;
+    box-sizing: border-box;
+  }
+
+  .rb2-studio-topbar__actions > .rb2-btn,
+  .rb2-studio-topbar__actions > .rb2-ai-gen-wrap {
+    flex: 0 0 auto;
+  }
+
+  /* Icon-only exit — text was overflowing off-screen */
+  .rb2-topbar-exit {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .rb2-topbar-exit__text {
+    display: none;
+  }
+}
+
+@media (max-width: 400px) {
+  /* Keep labels readable; allow wrap instead of clipping */
+  .rb2-studio-topbar__actions .rb2-btn--sm {
+    padding-left: 10px;
+    padding-right: 10px;
+    font-size: 12px;
+  }
 }
 
 .rb2-ai-pending-banner {

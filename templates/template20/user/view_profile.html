@@ -146,6 +146,48 @@
     -webkit-overflow-scrolling: touch;
   }
 
+  /* Edit-profile section modals (PWA/mobile): keep Save footer visible */
+  @media (max-width: 991.98px) {
+    .profile-section-modal .modal-dialog {
+      margin: 0.5rem;
+      max-width: calc(100% - 1rem);
+      max-height: calc(100dvh - 1rem - env(safe-area-inset-bottom, 0px));
+    }
+    .profile-section-modal .modal-content {
+      max-height: calc(100dvh - 1rem - env(safe-area-inset-bottom, 0px));
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .profile-section-modal form,
+    .profile-section-modal .profile-modal-form {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .profile-section-modal .modal-body,
+    .profile-section-modal .profile-modal-scroll-body {
+      overflow-y: auto;
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .profile-section-modal .modal-footer {
+      flex-shrink: 0;
+      position: sticky;
+      bottom: 0;
+      background: #fff;
+      z-index: 2;
+      padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+    }
+    .profile-section-modal .modal-header {
+      flex-shrink: 0;
+    }
+  }
+
   @media (max-width: 767.98px) {
     .profile-card > .d-flex.justify-content-between.align-items-center {
       flex-direction: column;
@@ -601,6 +643,9 @@
         submitBtn.textContent = 'Saving...';
       }
       setErr(errEl, '');
+      if (window.TTSmartLoader && typeof window.TTSmartLoader.show === 'function') {
+        window.TTSmartLoader.show('Saving profile', 'Please wait while we update your profile…');
+      }
       return fetch(updateSectionUrl, {
         method: 'POST',
         headers: { 'X-CSRFToken': csrfToken },
@@ -609,12 +654,21 @@
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (data.success) {
+            // Keep loader visible through reload
             location.reload();
           } else {
+            if (window.TTSmartLoader && typeof window.TTSmartLoader.hide === 'function') {
+              window.TTSmartLoader.hide();
+            }
             setErr(errEl, data.message || 'Unable to save changes');
           }
         })
-        .catch(function() { setErr(errEl, 'Unable to save changes'); })
+        .catch(function() {
+          if (window.TTSmartLoader && typeof window.TTSmartLoader.hide === 'function') {
+            window.TTSmartLoader.hide();
+          }
+          setErr(errEl, 'Unable to save changes');
+        })
         .finally(function() {
           if (submitBtn) {
             submitBtn.disabled = false;

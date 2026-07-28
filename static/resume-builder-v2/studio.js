@@ -2008,26 +2008,56 @@
     if (removeBtn) removeBtn.hidden = !hasPhoto;
   }
 
+  function photoAvatarHtml() {
+    var initial = cfg.avatarInitial || "?";
+    return (
+      '<span class="rb2-photo-preview__avatar-initials" id="rb2PhotoPlaceholder">' +
+      esc(initial) +
+      "</span>"
+    );
+  }
+
+  function showPhotoAvatar(keepUploadState) {
+    var wrap = $("#rb2PhotoPreview");
+    if (!wrap) return;
+    wrap.innerHTML = photoAvatarHtml();
+    if (!keepUploadState) {
+      cfg.resumePhotoUrl = "";
+      setPhotoUploadLabel(false);
+    }
+  }
+
+  function bindPhotoImgFallback(img) {
+    if (!img || img.getAttribute("data-rb2-photo-bound") === "1") return;
+    img.setAttribute("data-rb2-photo-bound", "1");
+    img.addEventListener("error", function () {
+      // Broken/missing media → avatar initials instead of browser broken-image icon
+      showPhotoAvatar(false);
+    });
+    // Cached broken images may not fire error after bind — force check
+    if (img.complete && img.naturalWidth === 0) {
+      showPhotoAvatar(false);
+    }
+  }
+
   function setPhotoPreview(url) {
     var wrap = $("#rb2PhotoPreview");
     if (!wrap) return;
     cfg.resumePhotoUrl = url || "";
     if (url) {
-      var img = $("#rb2PhotoImg");
-      if (img) {
-        img.src = url;
-      } else {
-        wrap.innerHTML =
-          '<img src="' + esc(url) + '" alt="Your photo" class="rb2-photo-preview__img" id="rb2PhotoImg">';
-      }
+      wrap.innerHTML =
+        '<img src="' +
+        esc(url) +
+        '" alt="Your photo" class="rb2-photo-preview__img" id="rb2PhotoImg">' +
+        '<span class="rb2-photo-preview__avatar-initials" id="rb2PhotoPlaceholder" hidden>' +
+        esc(cfg.avatarInitial || "?") +
+        "</span>";
+      bindPhotoImgFallback($("#rb2PhotoImg"));
       setPhotoUploadLabel(true);
       scheduleLocalUiSync();
       return;
     }
-    var initial = cfg.avatarInitial || "?";
-    wrap.innerHTML =
-      '<span class="rb2-photo-preview__avatar-initials" id="rb2PhotoPlaceholder">' + esc(initial) + "</span>";
-    setPhotoUploadLabel(false);
+    showPhotoAvatar(false);
     scheduleLocalUiSync();
   }
 
@@ -3305,6 +3335,7 @@
 
   function bindPhotoUpload() {
     var input = $("#rb2PhotoInput");
+    bindPhotoImgFallback($("#rb2PhotoImg"));
     if (!input || !cfg.photoUploadUrl) return;
     input.addEventListener("change", function () {
       var file = input.files && input.files[0];

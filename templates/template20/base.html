@@ -15,7 +15,7 @@
   {% endif %}
   <meta name="facebook-domain-verification" content="80fczxf7zf2ysu54gokd497v0b09zu" />
   {% endblock %}
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <link rel="apple-touch-icon" sizes="180x180" href="{{ static('images_new/fav-icon/apple-touch-icon.png') }}">
   <link rel="icon" type="image/png" sizes="32x32" href="{{ static('images_new/fav-icon/favicon-32x32.png') }}">
   <link rel="icon" type="image/png" sizes="16x16" href="{{ static('images_new/fav-icon/favicon-16x16.png') }}">
@@ -79,9 +79,9 @@
   {% include 'template20/includes/seo_schema.html' %}
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="{{ static('css_new/bootstrap.min.css') }}">
-  <link rel="stylesheet" href="{{ static('css_new/custom-min.css') }}?v=20260728-4" type="text/css" media="all" />
+  <link rel="stylesheet" href="{{ static('css_new/custom-min.css') }}?v=20260728-smart1" type="text/css" media="all" />
   {% if show_ai_counsellor_bot %}<link rel="stylesheet" href="{{ static('css_new/chatbot-widget.css') }}?v=20260728b" type="text/css" media="all" />{% endif %}
-  {% if show_page_chat_widget %}<link rel="stylesheet" href="{{ static('css_new/page-chat-widget.css') }}?v=20260728e" type="text/css" media="all" />{% endif %}
+  {% if show_page_chat_widget %}<link rel="stylesheet" href="{{ static('css_new/page-chat-widget.css') }}?v=20260728f" type="text/css" media="all" />{% endif %}
   <link rel="stylesheet" href="{{ static('css_new/search.css') }}" type="text/css" media="all" />
   {% block chatbot_css %}
   {% if show_chatbot %}<link rel="stylesheet" href="{{ static('css_new/chatbot.css') }}" type="text/css" media="all" />{% endif %}
@@ -227,9 +227,9 @@
   <script src="{{ static('topteenfrontend/assets/js/otp_input.js') }}" defer></script>
   {# Use Bootstrap bundle which includes Popper (v2) to avoid Popper v1 / Bootstrap v5 mismatch #}
   <script src="{{ static('js_new/bootstrap.bundle.min.js') }}" defer></script>
-  <script src="{{ static('js_new/main.js') }}?v=20260727-2" defer></script>
+  <script src="{{ static('js_new/main.js') }}?v=20260728-account1" defer></script>
   <script src="{{ static('js_new/search.js') }}" defer></script>
-  <script src="{{ static('js_new/pwa-register.js') }}?v=1" defer></script>
+  <script src="{{ static('js_new/pwa-register.js') }}?v=2" defer></script>
 
   {% if show_ai_counsellor_bot or show_page_chat_widget %}
   <script>
@@ -246,11 +246,11 @@
   {% endif %}
   {# When both widgets load, page-chat must mount first so cb-root is later in DOM (same z-index stacking). #}
   {% if show_page_chat_widget and show_ai_counsellor_bot %}
-  <script src="{{ static('js_new/page-chat-widget.js') }}?v=20260728d" defer></script>
+  <script src="{{ static('js_new/page-chat-widget.js') }}?v=20260728e" defer></script>
   <script src="{{ static('js_new/chatbot-widget.js') }}" defer></script>
   {% else %}
   {% if show_ai_counsellor_bot %}<script src="{{ static('js_new/chatbot-widget.js') }}" defer></script>{% endif %}
-  {% if show_page_chat_widget %}<script src="{{ static('js_new/page-chat-widget.js') }}?v=20260728d" defer></script>{% endif %}
+  {% if show_page_chat_widget %}<script src="{{ static('js_new/page-chat-widget.js') }}?v=20260728e" defer></script>{% endif %}
   {% endif %}
 
   {% block chatbot_js %}
