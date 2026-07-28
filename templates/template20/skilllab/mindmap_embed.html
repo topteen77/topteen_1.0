@@ -8,17 +8,35 @@
   <link rel="stylesheet" href="{{ static('css_new/bootstrap.min.css') }}">
   <link rel="stylesheet" href="{{ static('counselor/classic-mindmap/classic-mindmap.css') }}">
   <style>
-    html, body { margin: 0; height: 100%; background: #fff; }
-    .sl-embed-wrap { padding: 8px; height: 100vh; box-sizing: border-box; }
-    .sl-embed-wrap .counselor-mindmap-widget { height: 100%; margin: 0 !important; border: 0 !important; }
+    html, body { margin: 0; height: 100%; background: #fff; overflow: hidden; }
+    .sl-embed-wrap {
+      padding: 0;
+      height: 100%;
+      min-height: 100%;
+      box-sizing: border-box;
+    }
+    /* Flush to iframe edges — widget defaults include Bootstrap p-2 / border / rounded */
+    .sl-embed-wrap .counselor-mindmap-widget {
+      height: 100%;
+      margin: 0 !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      padding: 0 !important;
+      background: #f8fafc !important;
+    }
     .sl-embed-wrap .counselor-mm-host {
-      height: calc(100vh - 20px) !important;
-      min-height: 320px !important;
+      height: 100% !important;
+      min-height: 100% !important;
+      border: 0 !important;
+      border-radius: 0 !important;
     }
     .sl-embed-wrap .counselor-mindmap-svg {
       min-height: 0 !important;
       height: 100% !important;
       width: 100% !important;
+    }
+    .sl-embed-wrap .cc-viewport {
+      border-radius: 0 !important;
     }
   </style>
 </head>

@@ -31,7 +31,8 @@ self.addEventListener('install', function (event) {
       );
     })
   );
-  self.skipWaiting();
+  // Do not skipWaiting here — wait for the user to tap Refresh so the
+  // update banner can dismiss cleanly after controllerchange.
 });
 
 self.addEventListener('activate', function (event) {

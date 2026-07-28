@@ -416,10 +416,10 @@ const toggleDropdownItem = (item) => {
   }
 };
 
-// v2 dashboard topbar: delay-hide avatar dropdown on hover-out
-// (Institute/marketing/group dashboards use this shared script; counselor has its own.)
+// v2 dashboard topbar + marketing header account popup:
+// auto-close after idle, and close when clicking outside.
 (function () {
-  var CLOSE_DELAY_MS = 6000;
+  var CLOSE_DELAY_MS = 5000;
   var timer = null;
 
   function clearT() {
@@ -427,6 +427,10 @@ const toggleDropdownItem = (item) => {
       clearTimeout(timer);
       timer = null;
     }
+  }
+
+  function isAccountDropdown(wrap) {
+    return !!(wrap && wrap.querySelector && wrap.querySelector(".dropdown-content.login-content"));
   }
 
   function closeNow(wrap) {
@@ -439,46 +443,112 @@ const toggleDropdownItem = (item) => {
   }
 
   function scheduleClose(wrap) {
+    if (!isAccountDropdown(wrap)) return;
     clearT();
     timer = setTimeout(function () {
       closeNow(wrap);
     }, CLOSE_DELAY_MS);
   }
 
-  function bindOnce() {
-    var wrap = document.querySelector(".ttv2-topbar-avatar-dropdown.dropdown");
-    if (!wrap || wrap.getAttribute("data-ttv2-hoverbound") === "1") return;
-    wrap.setAttribute("data-ttv2-hoverbound", "1");
+  function openAccountDropdowns() {
+    return Array.prototype.filter.call(
+      document.querySelectorAll(".dropdown.dropdown-show"),
+      isAccountDropdown
+    );
+  }
 
-    var menu = wrap.querySelector(".dropdown-content");
+  function bindAccountHover(wrap) {
+    if (!wrap || wrap.getAttribute("data-tt-account-hoverbound") === "1") return;
+    wrap.setAttribute("data-tt-account-hoverbound", "1");
+
+    var menu = wrap.querySelector(".dropdown-content.login-content");
     wrap.addEventListener("mouseenter", function () {
       clearT();
     });
     wrap.addEventListener("mouseleave", function () {
-      scheduleClose(wrap);
+      if (wrap.classList.contains("dropdown-show")) scheduleClose(wrap);
     });
     if (menu) {
       menu.addEventListener("mouseenter", function () {
         clearT();
       });
       menu.addEventListener("mouseleave", function () {
-        scheduleClose(wrap);
+        if (wrap.classList.contains("dropdown-show")) scheduleClose(wrap);
       });
     }
-
-    // If opened and user scrolls away, still close quickly.
-    window.addEventListener(
-      "scroll",
-      function () {
-        // keep the delay behavior; don't instant-close on minor scroll
-        if (wrap.classList.contains("dropdown-show")) scheduleClose(wrap);
-      },
-      { passive: true }
-    );
   }
 
+  function bindOnce() {
+    document
+      .querySelectorAll(
+        ".ttv2-topbar-avatar-dropdown.dropdown, .tt-header-mobile-account.dropdown, .menu-item.dropdown"
+      )
+      .forEach(function (wrap) {
+        if (isAccountDropdown(wrap)) bindAccountHover(wrap);
+      });
+  }
+
+  // Click outside → close; click inside open popup → refresh auto-close timer
+  document.addEventListener(
+    "click",
+    function (e) {
+      var opens = openAccountDropdowns();
+      if (!opens.length) {
+        // Toggle may open this tick — schedule after legacy toggle handler
+        var toggle = e.target && e.target.closest
+          ? e.target.closest(".tt-header-account-toggle, .dropdown-toggle.menu-link")
+          : null;
+        if (toggle) {
+          var wrap = toggle.closest(".dropdown");
+          if (isAccountDropdown(wrap)) {
+            setTimeout(function () {
+              if (wrap.classList.contains("dropdown-show")) scheduleClose(wrap);
+            }, 0);
+          }
+        }
+        return;
+      }
+
+      opens.forEach(function (wrap) {
+        if (wrap.contains(e.target)) {
+          scheduleClose(wrap);
+          return;
+        }
+        closeNow(wrap);
+      });
+
+      var toggleOpen = e.target && e.target.closest
+        ? e.target.closest(".tt-header-account-toggle, .dropdown-toggle.menu-link")
+        : null;
+      if (toggleOpen) {
+        var w = toggleOpen.closest(".dropdown");
+        if (isAccountDropdown(w)) {
+          setTimeout(function () {
+            if (w.classList.contains("dropdown-show")) scheduleClose(w);
+          }, 0);
+        }
+      }
+    },
+    false
+  );
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    openAccountDropdowns().forEach(closeNow);
+    clearT();
+  });
+
+  window.addEventListener(
+    "scroll",
+    function () {
+      openAccountDropdowns().forEach(function (wrap) {
+        scheduleClose(wrap);
+      });
+    },
+    { passive: true }
+  );
+
   document.addEventListener("DOMContentLoaded", bindOnce);
-  // In case scripts run after DOMContentLoaded in some shells
   try {
     bindOnce();
   } catch (e) {}
