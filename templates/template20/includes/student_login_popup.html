@@ -118,13 +118,44 @@
     height: 44px;
   }
   .student-popup-btn-outline:hover { background: rgba(63, 55, 201, 0.06); }
-  .student-popup-otp-row { display: flex; gap: 8px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
-  .student-popup-otp-row input {
-    width: 44px; height: 48px;
-    text-align: center; font-size: 18px; font-weight: 600;
-    border: 1px solid #e5e7eb; border-radius: 10px;
+  .student-popup-otp-row {
+    display: flex;
+    gap: clamp(4px, 1.5vw, 8px);
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: nowrap;
+    width: 100%;
+    max-width: 100%;
   }
+  .student-popup-otp-row .student-popup-otp-digit,
+  .student-popup-otp-row input {
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
+    max-width: 46px;
+    height: 48px;
+    padding: 0;
+    box-sizing: border-box;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+  }
+  .student-popup-otp-row .student-popup-otp-digit:focus,
   .student-popup-otp-row input:focus { outline: none; border-color: #3f37c9; }
+  @media (max-width: 420px) {
+    .profile-completion-popup.student-login-popup-global .profile-completion-content.student-login-popup-content {
+      padding: 24px 16px 16px;
+    }
+    .student-popup-otp-row .student-popup-otp-digit,
+    .student-popup-otp-row input {
+      height: 42px;
+      font-size: 16px;
+      max-width: none;
+    }
+  }
   .student-popup-switch { margin-top: 18px; text-align: center; }
   .student-popup-switch a { color: #3f37c9; font-weight: 600; font-size: 14px; text-decoration: none; }
   .student-popup-switch a:hover { text-decoration: underline; }
@@ -357,9 +388,8 @@
       inp.type = 'text';
       inp.inputMode = 'numeric';
       inp.maxLength = 1;
-      inp.className = 'student-popup-otp-row form-control';
+      inp.className = 'student-popup-otp-digit';
       inp.dataset.idx = i;
-      inp.style.cssText = 'width:44px;height:48px;text-align:center;font-size:18px;font-weight:600;border:2px solid #e0e0e0;border-radius:10px;';
       inp.addEventListener('input', function() {
         var idx = parseInt(this.dataset.idx, 10);
         if (this.value.length >= 1 && idx < 5) {
