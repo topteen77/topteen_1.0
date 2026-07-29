@@ -57,14 +57,14 @@
 <script src="{{ static('js_new/ai-feature-quota.js') }}?v=2"></script>
 {% endif %}
 {% if show_page_chat_widget and show_ai_counsellor_bot %}
-<script src="{{ static('js_new/page-chat-widget.js') }}"></script>
-<script src="{{ static('js_new/chatbot-widget.js') }}"></script>
+<script src="{{ static('js_new/page-chat-widget.js') }}?v=20260728-kb2"></script>
+<script src="{{ static('js_new/chatbot-widget.js') }}?v=20260728-kb2"></script>
 {% else %}
-{% if show_ai_counsellor_bot %}<script src="{{ static('js_new/chatbot-widget.js') }}"></script>{% endif %}
-{% if show_page_chat_widget %}<script src="{{ static('js_new/page-chat-widget.js') }}"></script>{% endif %}
+{% if show_ai_counsellor_bot %}<script src="{{ static('js_new/chatbot-widget.js') }}?v=20260728-kb2"></script>{% endif %}
+{% if show_page_chat_widget %}<script src="{{ static('js_new/page-chat-widget.js') }}?v=20260728-kb2"></script>{% endif %}
 {% endif %}
 
-{% if show_chatbot %}<script src="{{ static('js_new/chatbot-widget.js') }}"></script>{% endif %}
+{% if show_chatbot %}<script src="{{ static('js_new/chatbot-widget.js') }}?v=20260728-kb2"></script>{% endif %}
 <script>
   window.TT_INCLUDED_LANGUAGES = {{ translate_enabled_languages_csv | tojson }};
     window.TT_ENABLED_LANGUAGES = {{ translate_enabled_languages | default([]) | tojson }};

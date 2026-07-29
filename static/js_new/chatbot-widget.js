@@ -523,6 +523,7 @@
       inputArea.appendChild(inputRow);
       inputArea.appendChild(hint);
       inputArea.appendChild(this._quotaInfo);
+      this._inputArea = inputArea;
 
       /* ---- Assemble ---- */
       this._win.appendChild(hdr);
@@ -556,10 +557,90 @@
       this._input.addEventListener('input', () => {
         this._input.style.height = '46px';
         this._input.style.height = Math.min(this._input.scrollHeight, 120) + 'px';
+        if (this._inputFocused) this._syncKeyboardViewport();
       });
 
+      this._bindKeyboardViewport();
       this._showFabTooltip();
       this._refreshQuota();
+    }
+
+    /*
+      iPhone / mobile keyboards shrink the visual viewport; a fixed 100dvh panel
+      leaves the composer under the keyboard so the send button is half-cut.
+      Pin #cb-window to visualViewport while the input is focused.
+    */
+    _bindKeyboardViewport() {
+      if (this._vvBound) return;
+      this._vvBound = true;
+      this._inputFocused = false;
+      this._onVvChange = () => this._syncKeyboardViewport();
+
+      this._input.addEventListener('focus', () => {
+        this._inputFocused = true;
+        this._syncKeyboardViewport();
+        setTimeout(() => this._syncKeyboardViewport(), 80);
+        setTimeout(() => this._syncKeyboardViewport(), 320);
+      });
+      this._input.addEventListener('blur', () => {
+        this._inputFocused = false;
+        this._clearKeyboardViewport();
+      });
+
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', this._onVvChange);
+        window.visualViewport.addEventListener('scroll', this._onVvChange);
+      }
+      window.addEventListener('orientationchange', this._onVvChange);
+    }
+
+    _shouldFitVisualViewport() {
+      return window.matchMedia('(max-width: 767.98px)').matches;
+    }
+
+    _syncKeyboardViewport() {
+      if (!this._isOpen || !this._inputFocused || !this._shouldFitVisualViewport()) {
+        this._clearKeyboardViewport();
+        return;
+      }
+      const vv = window.visualViewport;
+      if (!vv) return;
+
+      const top = Math.max(0, Math.round(vv.offsetTop));
+      const height = Math.max(240, Math.round(vv.height));
+      this._win.classList.add('cb-kb-open');
+      this._win.style.setProperty('top', top + 'px', 'important');
+      this._win.style.setProperty('left', '0px', 'important');
+      this._win.style.setProperty('right', '0px', 'important');
+      this._win.style.setProperty('bottom', 'auto', 'important');
+      this._win.style.setProperty('width', '100%', 'important');
+      this._win.style.setProperty('height', height + 'px', 'important');
+      this._win.style.setProperty('max-height', height + 'px', 'important');
+
+      // Keep composer from eating the visible area while typing
+      if (this._input) {
+        const maxH = height < 420 ? 64 : 96;
+        this._input.style.height = '46px';
+        this._input.style.height = Math.min(this._input.scrollHeight, maxH) + 'px';
+      }
+
+      if (this._inputArea && typeof this._inputArea.scrollIntoView === 'function') {
+        try {
+          this._inputArea.scrollIntoView({ block: 'end', inline: 'nearest' });
+        } catch (e) {}
+      }
+    }
+
+    _clearKeyboardViewport() {
+      if (!this._win) return;
+      this._win.classList.remove('cb-kb-open');
+      this._win.style.removeProperty('top');
+      this._win.style.removeProperty('left');
+      this._win.style.removeProperty('right');
+      this._win.style.removeProperty('bottom');
+      this._win.style.removeProperty('width');
+      this._win.style.removeProperty('height');
+      this._win.style.removeProperty('max-height');
     }
 
     _refreshQuota() {
@@ -619,7 +700,12 @@
       this._syncBackdrop();
       if (this._isOpen) {
         this._clearUnread();
-        setTimeout(() => this._input.focus(), 350);
+        setTimeout(() => {
+          if (this._input && !this._input.disabled) this._input.focus();
+        }, 350);
+      } else {
+        this._inputFocused = false;
+        this._clearKeyboardViewport();
       }
     }
 

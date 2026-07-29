@@ -355,7 +355,7 @@
     }
 
     _shouldFitVisualViewport() {
-      return window.matchMedia('(max-width: 480px)').matches;
+      return window.matchMedia('(max-width: 767.98px)').matches;
     }
 
     _syncKeyboardViewport() {

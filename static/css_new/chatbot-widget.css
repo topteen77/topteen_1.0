@@ -1248,8 +1248,8 @@
 /* ============================================================
   14. MOBILE RESPONSIVE
 ============================================================ */
-@media (max-width: 480px) {
-  #cb-window {
+@media (max-width: 767.98px) {
+  #cb-window:not(.cb-kb-open) {
     width:  100vw   !important;
     height: 100dvh  !important;
     max-height: none !important;
@@ -1260,7 +1260,7 @@
   }
 
   /* On mobile, fullscreen = same as normal (already full screen) */
-  #cb-window.cb-fullscreen {
+  #cb-window.cb-fullscreen:not(.cb-kb-open) {
     top:    0 !important;
     left:   0 !important;
     right:  0 !important;
@@ -1271,7 +1271,85 @@
     border-radius: 0 !important;
   }
 
-  #cb-fab-wrap { bottom: 18px; right: 18px; }
+  /* Clear status bar — fixed height + border-box was crushing the close button */
+  #cb-header {
+    height: auto !important;
+    min-height: calc(var(--cb-header-h) + env(safe-area-inset-top, 0px)) !important;
+    padding-top: env(safe-area-inset-top, 0px) !important;
+    padding-left: max(18px, env(safe-area-inset-left, 0px));
+    padding-right: max(18px, env(safe-area-inset-right, 0px));
+    box-sizing: border-box;
+    z-index: 10;
+    flex-shrink: 0;
+  }
+
+  #cb-input-area {
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+    padding-left: max(18px, env(safe-area-inset-left, 0px));
+    padding-right: max(18px, env(safe-area-inset-right, 0px));
+    flex-shrink: 0;
+  }
+
+  #cb-fab-wrap {
+    bottom: max(18px, env(safe-area-inset-bottom, 0px));
+    right: max(18px, env(safe-area-inset-right, 0px));
+  }
+
+  /* iOS keyboard: JS pins window to visualViewport; keep composer fully visible */
+  #cb-window.cb-kb-open {
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 0 !important;
+    transform: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  #cb-window.cb-kb-open #cb-messages {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  #cb-window.cb-kb-open #cb-indicators {
+    flex-shrink: 0;
+  }
+
+  #cb-window.cb-kb-open #cb-input-hint {
+    display: none;
+  }
+
+  #cb-window.cb-kb-open #cb-input-area {
+    padding-bottom: 8px !important;
+    flex-shrink: 0 !important;
+  }
+
+  #cb-window.cb-kb-open #cb-input {
+    max-height: 72px !important;
+    font-size: 16px;
+  }
+
+  #cb-input {
+    font-size: 16px; /* avoid iOS focus zoom that clips the send button */
+  }
+
+  #cb-input-row {
+    align-items: flex-end;
+  }
+
+  #cb-send {
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  body.cb-ai-pos-left #cb-fab-wrap {
+    left: 18px !important;
+    right: auto !important;
+  }
 }
 
 /* ------------------------------------------------------------------
@@ -1299,9 +1377,25 @@ body.cb-bots-stack #cb-fab-wrap {
 body.cb-bots-stack #cb-window {
   bottom: 180px !important;
 }
+@media (max-width: 767.98px) {
+  /* Fullscreen mobile: never lift the panel — that grows it past the viewport */
+  body.cb-bots-stack #cb-window:not(.cb-kb-open),
+  body.cb-bots-stack #cb-window.cb-fullscreen:not(.cb-kb-open) {
+    top: 0 !important;
+    bottom: 0 !important;
+    height: 100dvh !important;
+    max-height: none !important;
+  }
+  body.cb-bots-stack #cb-window.cb-kb-open {
+    bottom: auto !important;
+  }
+  body.cb-bots-stack #cb-fab-wrap {
+    bottom: max(90px, calc(72px + env(safe-area-inset-bottom, 0px))) !important;
+  }
+}
 @media (max-width: 480px) {
   body.cb-bots-stack #cb-fab-wrap {
-    bottom: 90px !important;
+    bottom: max(90px, calc(72px + env(safe-area-inset-bottom, 0px))) !important;
   }
 }
 
