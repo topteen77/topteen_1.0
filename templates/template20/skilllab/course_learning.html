@@ -1,6 +1,6 @@
 {% extends 'template20/base.html' %}
 
-{% block title_content %}{{ skilllab_course.name }} - Course Learning | Top Teen{% endblock %}
+{% block title_content %}{{ skilllab_course.name }} - Course Learning | TopTeen{% endblock %}
 {% block description_content %}{{ skilllab_course.description|striptags|truncate(160) if skilllab_course.description else skilllab_course.name }}{% endblock %}
 
 {% block bodyclass %}skilllab-course-learning-page{% endblock %}
@@ -16,8 +16,8 @@
           <i class='bx bx-menu'></i>
           <span class="mobile-sidebar-toggle__label">Chapters</span>
         </button>
-        <a href="{{ url('core:home') }}" class="course-header-logo" aria-label="Top Teen home">
-          <img src="{{ static('images_new/logos/logo.svg') }}" alt="Top Teen" />
+        <a href="{{ url('core:home') }}" class="course-header-logo" aria-label="TopTeen home">
+          <img src="{{ static('images_new/logos/logo.svg') }}" alt="TopTeen" />
         </a>
       </div>
 

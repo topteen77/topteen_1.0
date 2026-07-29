@@ -29,9 +29,9 @@
 
   {% block title %}
   {% if html_head and html_head.title %}
-  <title>{{ html_head.title }} | Top Teen</title>
+  <title>{{ html_head.title }} | TopTeen</title>
   {% else %}
-  <title>{% block title_content %}Every Student, Career Ready | Top Teen{% endblock %}</title>
+  <title>{% block title_content %}Every Student, Career Ready | TopTeen{% endblock %}</title>
   {% endif %}
   {% endblock %}
 
@@ -58,14 +58,14 @@
   {% if not _seo_url and request %}{% set _seo_url = request.build_absolute_uri(request.path) %}{% endif %}
   {% if _seo_url %}<link rel="canonical" href="{{ _seo_url }}">{% endif %}
   <meta property="og:type" content="{{ html_head.og_type if (html_head and html_head.og_type) else 'website' }}">
-  <meta property="og:site_name" content="Top Teen">
-  <meta property="og:title" content="{{ _seo_title }} | Top Teen">
+  <meta property="og:site_name" content="TopTeen">
+  <meta property="og:title" content="{{ _seo_title }} | TopTeen">
   <meta property="og:description" content="{{ _seo_desc }}">
   <meta property="og:image" content="{{ _seo_image }}">
   {% if _seo_url %}<meta property="og:url" content="{{ _seo_url }}">{% endif %}
   <meta property="og:locale" content="en_IN">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="{{ _seo_title }} | Top Teen">
+  <meta name="twitter:title" content="{{ _seo_title }} | TopTeen">
   <meta name="twitter:description" content="{{ _seo_desc }}">
   <meta name="twitter:image" content="{{ _seo_image }}">
   {% endblock %}

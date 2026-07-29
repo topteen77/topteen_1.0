@@ -249,14 +249,14 @@ class BlogDetail(TemplateView):
         ctx['seo_schema_extra'] = {
             'date_published': blog.created.isoformat() if blog.created else None,
             'date_modified': blog.modified.isoformat() if blog.modified else None,
-            'author': getattr(blog.author, 'get_full_name', lambda: None)() or getattr(blog.author, 'username', 'Top Teen'),
+            'author': getattr(blog.author, 'get_full_name', lambda: None)() or getattr(blog.author, 'username', 'TopTeen'),
         }
         # SEO: Article schema for blog detail (dates + author)
         ctx['seo_schema_type'] = 'Article'
         ctx['seo_schema_extra'] = {
             'date_published': blog.created.isoformat() if blog.created else None,
             'date_modified': blog.modified.isoformat() if blog.modified else None,
-            'author': getattr(blog.author, 'get_full_name', lambda: None)() or getattr(blog.author, 'username', 'Top Teen'),
+            'author': getattr(blog.author, 'get_full_name', lambda: None)() or getattr(blog.author, 'username', 'TopTeen'),
         }
         ctx['latest_blogs']= latest_blogs[:5]
         student_id = request.GET.get("student_id")

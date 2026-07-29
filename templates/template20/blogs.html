@@ -1,7 +1,7 @@
 {% extends 'template20/base.html' %}
 
 {% block title_content %}
-{% if search_blogs %}{{ search_blogs }} - Search Blogs{% elif category %}{{ category.name|blog_category_display }} - Blogs{% elif blogtag %}{{ blogtag.name }} - Blogs{% else %}TopTeen Blogs | Insights for Better Career Decisions{% endif %} | Top Teen
+{% if search_blogs %}{{ search_blogs }} - Search Blogs{% elif category %}{{ category.name|blog_category_display }} - Blogs{% elif blogtag %}{{ blogtag.name }} - Blogs{% else %}TopTeen Blogs | Insights for Better Career Decisions{% endif %} | TopTeen
 {% endblock %}
 
 {% block description_content %}

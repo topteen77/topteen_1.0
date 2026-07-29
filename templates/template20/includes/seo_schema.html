@@ -30,7 +30,7 @@
 {% if html_head or _page_url %}
 {% set _schema_type = seo_schema_type|default('WebPage') %}
 {% set _schema_extra = seo_schema_extra|default({}) %}
-{% set _page_schema = get_webpage_schema(html_head, _page_url, 'Top Teen', _schema_type, _schema_extra) %}
+{% set _page_schema = get_webpage_schema(html_head, _page_url, 'TopTeen', _schema_type, _schema_extra) %}
 {% if _page_schema %}
 <script type="application/ld+json">
 {{ _page_schema|tojson_pretty }}

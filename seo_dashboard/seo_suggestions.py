@@ -8,9 +8,9 @@ import re
 # Page-type patterns and default labels for fallback
 PAGE_TEMPLATES = {
     "terms": {
-        "title": "Terms and Conditions | Top Teen Career Guidance",
-        "description": "Read Top Teen's terms and conditions. Trusted career guidance and college counselling for students in India. Clear policies for using our services.",
-        "keywords": "terms and conditions, Top Teen, career guidance terms, student counselling policy, India",
+        "title": "Terms and Conditions | TopTeen Career Guidance",
+        "description": "Read TopTeen's terms and conditions. Trusted career guidance and college counselling for students in India. Clear policies for using our services.",
+        "keywords": "terms and conditions, TopTeen, career guidance terms, student counselling policy, India",
         "improvements": [
             "Keep the first paragraph under 2–3 lines for snippet clarity.",
             "Use bullet points for key obligations to improve scannability.",
@@ -18,9 +18,9 @@ PAGE_TEMPLATES = {
         ],
     },
     "privacy": {
-        "title": "Privacy Policy | How Top Teen Uses Your Data",
-        "description": "Top Teen's privacy policy: how we collect, use and protect your data. Compliant career and college counselling for students and parents in India.",
-        "keywords": "privacy policy, Top Teen, data protection, student data, career counselling privacy, India",
+        "title": "Privacy Policy | How TopTeen Uses Your Data",
+        "description": "TopTeen's privacy policy: how we collect, use and protect your data. Compliant career and college counselling for students and parents in India.",
+        "keywords": "privacy policy, TopTeen, data protection, student data, career counselling privacy, India",
         "improvements": [
             "Include a short summary (2–3 sentences) at the top for quick scanning.",
             "Mention GDPR/Indian data laws if applicable to build trust.",
@@ -28,9 +28,9 @@ PAGE_TEMPLATES = {
         ],
     },
     "about": {
-        "title": "About Top Teen | Career Guidance for Students in India",
-        "description": "Top Teen helps Indian students choose the right stream, career and college. Expert career counselling, psychometric assessments and college guidance for classes 9–12.",
-        "keywords": "about Top Teen, career guidance India, student counselling, stream selection, college guidance, class 9 10 11 12",
+        "title": "About TopTeen | Career Guidance for Students in India",
+        "description": "TopTeen helps Indian students choose the right stream, career and college. Expert career counselling, psychometric assessments and college guidance for classes 9–12.",
+        "keywords": "about TopTeen, career guidance India, student counselling, stream selection, college guidance, class 9 10 11 12",
         "improvements": [
             "Lead with one clear value proposition in the first 50 words.",
             "Add stats (e.g. students helped, partners) if available for E-E-A-T.",
@@ -38,9 +38,9 @@ PAGE_TEMPLATES = {
         ],
     },
     "contact": {
-        "title": "Contact Top Teen | Career & College Counselling Support",
-        "description": "Contact Top Teen for career guidance and college counselling. Get in touch for students and parents. We're here to help you plan the right career path.",
-        "keywords": "contact Top Teen, career counselling contact, student support, college guidance help, India",
+        "title": "Contact TopTeen | Career & College Counselling Support",
+        "description": "Contact TopTeen for career guidance and college counselling. Get in touch for students and parents. We're here to help you plan the right career path.",
+        "keywords": "contact TopTeen, career counselling contact, student support, college guidance help, India",
         "improvements": [
             "Add expected response time (e.g. within 24 hours) to set expectations.",
             "Offer at least two contact methods (form + email or phone).",
@@ -49,7 +49,7 @@ PAGE_TEMPLATES = {
     },
     "career_planning": {
         "title": "Career Planning for Students | Stream & College Guidance",
-        "description": "Step-by-step career planning for Indian students. Choose the right stream after 10th, explore careers and colleges. Free resources and expert guidance from Top Teen.",
+        "description": "Step-by-step career planning for Indian students. Choose the right stream after 10th, explore careers and colleges. Free resources and expert guidance from TopTeen.",
         "keywords": "career planning, stream selection, career guidance for students, after 10th, college planning, India",
         "improvements": [
             "Use one H1 that includes the main keyword (e.g. Career Planning for Students).",
@@ -58,7 +58,7 @@ PAGE_TEMPLATES = {
         ],
     },
     "career_planning_4_year": {
-        "title": "4-Year Career Plan | Class 9 to 12 Roadmap | Top Teen",
+        "title": "4-Year Career Plan | Class 9 to 12 Roadmap | TopTeen",
         "description": "Build your 4-year career plan from class 9 to 12. Year-wise goals, stream selection and college prep. Free career planning guide for Indian students.",
         "keywords": "4 year career plan, class 9 to 12, stream selection, career roadmap, student planning, India",
         "improvements": [
@@ -68,8 +68,8 @@ PAGE_TEMPLATES = {
         ],
     },
     "career_planning_class_9": {
-        "title": "Career Planning Class 9 | Start Early with Top Teen",
-        "description": "Career planning tips for class 9 students in India. Explore interests, subjects and streams. Start your career journey with Top Teen's free guidance.",
+        "title": "Career Planning Class 9 | Start Early with TopTeen",
+        "description": "Career planning tips for class 9 students in India. Explore interests, subjects and streams. Start your career journey with TopTeen's free guidance.",
         "keywords": "career planning class 9, stream selection class 9, career guidance for class 9, India",
         "improvements": [
             "Address both students and parents in the first paragraph.",
@@ -79,7 +79,7 @@ PAGE_TEMPLATES = {
     },
     "career_planning_class_10": {
         "title": "Career Planning After Class 10 | Stream Selection Guide",
-        "description": "Choosing stream after class 10? Top Teen's career planning guide helps you pick Science, Commerce or Arts with confidence. Expert tips for students and parents.",
+        "description": "Choosing stream after class 10? TopTeen's career planning guide helps you pick Science, Commerce or Arts with confidence. Expert tips for students and parents.",
         "keywords": "career after class 10, stream selection after 10th, science commerce arts, career guidance class 10, India",
         "improvements": [
             "Compare streams (Science, Commerce, Arts) in a simple table or list.",
@@ -89,7 +89,7 @@ PAGE_TEMPLATES = {
     },
     "career_planning_class_11": {
         "title": "Career Planning Class 11 | Subject & College Prep",
-        "description": "Class 11 career planning: choose subjects, explore careers and start college prep. Top Teen's guide for Indian students in class 11.",
+        "description": "Class 11 career planning: choose subjects, explore careers and start college prep. TopTeen's guide for Indian students in class 11.",
         "keywords": "career planning class 11, subject selection class 11, college preparation, stream class 11, India",
         "improvements": [
             "Focus on subject-choice impact on future courses and careers.",
@@ -99,7 +99,7 @@ PAGE_TEMPLATES = {
     },
     "career_planning_class_12": {
         "title": "Career Planning Class 12 | College & Course Selection",
-        "description": "Class 12 career guide: college applications, course selection and entrance exams. Top Teen helps you plan the next step after class 12 in India.",
+        "description": "Class 12 career guide: college applications, course selection and entrance exams. TopTeen helps you plan the next step after class 12 in India.",
         "keywords": "career planning class 12, college selection, course after 12th, entrance exams, India",
         "improvements": [
             "List key entrance exams and deadlines in a clear format.",
@@ -109,7 +109,7 @@ PAGE_TEMPLATES = {
     },
     "emotional_intelligences": {
         "title": "Emotional Intelligence Test for Students | Free EQ Assessment",
-        "description": "Take a free emotional intelligence (EQ) test for students. Understand your strengths and improve soft skills. Part of Top Teen's career guidance toolkit.",
+        "description": "Take a free emotional intelligence (EQ) test for students. Understand your strengths and improve soft skills. Part of TopTeen's career guidance toolkit.",
         "keywords": "emotional intelligence test, EQ test for students, soft skills assessment, career readiness, India",
         "improvements": [
             "Explain what EQ is and why it matters for careers in the first 100 words.",
@@ -118,8 +118,8 @@ PAGE_TEMPLATES = {
         ],
     },
     "multiple_intelligences": {
-        "title": "Multiple Intelligence Test | Find Your Strengths | Top Teen",
-        "description": "Free multiple intelligence test for students. Discover your learning style and strengths. Use results for stream and career choices. Trusted by Top Teen.",
+        "title": "Multiple Intelligence Test | Find Your Strengths | TopTeen",
+        "description": "Free multiple intelligence test for students. Discover your learning style and strengths. Use results for stream and career choices. Trusted by TopTeen.",
         "keywords": "multiple intelligence test, MI test students, learning style, career choice, stream selection, India",
         "improvements": [
             "Briefly list the types of intelligence (e.g. logical, verbal) for SEO.",
@@ -128,9 +128,9 @@ PAGE_TEMPLATES = {
         ],
     },
     "four_pillars": {
-        "title": "Four Pillars of Learning | Top Teen Career Framework",
-        "description": "Explore the four pillars of learning that shape career success. Top Teen's framework for students and parents. Build a strong foundation for stream and career choice.",
-        "keywords": "four pillars of learning, career framework, student development, Top Teen, India",
+        "title": "Four Pillars of Learning | TopTeen Career Framework",
+        "description": "Explore the four pillars of learning that shape career success. TopTeen's framework for students and parents. Build a strong foundation for stream and career choice.",
+        "keywords": "four pillars of learning, career framework, student development, TopTeen, India",
         "improvements": [
             "Use one H1 and four H2s (one per pillar) for clear structure.",
             "Add one paragraph per pillar with a practical tip.",
@@ -138,9 +138,9 @@ PAGE_TEMPLATES = {
         ],
     },
     "all-faq": {
-        "title": "Career & College FAQs | Top Teen Answers",
-        "description": "Frequently asked questions on career guidance, stream selection and college admissions in India. Expert answers from Top Teen for students and parents.",
-        "keywords": "career FAQ, college admission FAQ, stream selection questions, Top Teen, India",
+        "title": "Career & College FAQs | TopTeen Answers",
+        "description": "Frequently asked questions on career guidance, stream selection and college admissions in India. Expert answers from TopTeen for students and parents.",
+        "keywords": "career FAQ, college admission FAQ, stream selection questions, TopTeen, India",
         "improvements": [
             "Use FAQ schema (JSON-LD) for rich results in Google.",
             "Keep each answer 2–4 sentences where possible.",
@@ -148,8 +148,8 @@ PAGE_TEMPLATES = {
         ],
     },
     "ebooks": {
-        "title": "Free Career E-Books for Students | Top Teen",
-        "description": "Download free career and college guidance e-books for Indian students. Expert tips on stream selection, careers and planning. From Top Teen.",
+        "title": "Free Career E-Books for Students | TopTeen",
+        "description": "Download free career and college guidance e-books for Indian students. Expert tips on stream selection, careers and planning. From TopTeen.",
         "keywords": "career e-books, free e-books students, college guidance PDF, stream selection guide, India",
         "improvements": [
             "List e-books with clear titles and one-line descriptions.",
@@ -158,8 +158,8 @@ PAGE_TEMPLATES = {
         ],
     },
     "searchand-explore": {
-        "title": "Search Careers & Colleges | Explore Options | Top Teen",
-        "description": "Search and explore careers and colleges in India. Filter by stream, interest and course. Top Teen helps you find the right career and college fit.",
+        "title": "Search Careers & Colleges | Explore Options | TopTeen",
+        "description": "Search and explore careers and colleges in India. Filter by stream, interest and course. TopTeen helps you find the right career and college fit.",
         "keywords": "search careers, search colleges, explore careers India, college search, stream wise careers",
         "improvements": [
             "Use a clear H1 like 'Search Careers and Colleges'.",
@@ -168,9 +168,9 @@ PAGE_TEMPLATES = {
         ],
     },
     "blogs": {
-        "title": "Career & College Blog | Tips for Students | Top Teen",
-        "description": "Top Teen's blog: career tips, stream selection advice and college guidance for Indian students. Expert articles for class 9–12 and parents.",
-        "keywords": "career blog, student blog, college guidance blog, stream selection tips, Top Teen, India",
+        "title": "Career & College Blog | Tips for Students | TopTeen",
+        "description": "TopTeen's blog: career tips, stream selection advice and college guidance for Indian students. Expert articles for class 9–12 and parents.",
+        "keywords": "career blog, student blog, college guidance blog, stream selection tips, TopTeen, India",
         "improvements": [
             "Use one H1 per post that includes the main topic.",
             "Keep intro under 100 words and add a clear takeaway.",
@@ -178,9 +178,9 @@ PAGE_TEMPLATES = {
         ],
     },
     "careers": {
-        "title": "Explore Careers | Stream-wise Career List | Top Teen",
-        "description": "Explore careers by stream and interest. Science, Commerce, Arts career options for Indian students. Detailed career profiles and guidance from Top Teen.",
-        "keywords": "career list, careers by stream, science commerce arts careers, career options India, Top Teen",
+        "title": "Explore Careers | Stream-wise Career List | TopTeen",
+        "description": "Explore careers by stream and interest. Science, Commerce, Arts career options for Indian students. Detailed career profiles and guidance from TopTeen.",
+        "keywords": "career list, careers by stream, science commerce arts careers, career options India, TopTeen",
         "improvements": [
             "Use H1 like 'Explore Careers' or 'Careers by Stream'.",
             "Add filters (stream, interest) and show result count.",
@@ -188,9 +188,9 @@ PAGE_TEMPLATES = {
         ],
     },
     "colleges": {
-        "title": "Colleges in India | Search & Compare | Top Teen",
-        "description": "Search and compare colleges in India. Find courses, fees and admission info. Top Teen helps students and parents shortlist the right college.",
-        "keywords": "colleges in India, college search, compare colleges, admission, courses, Top Teen",
+        "title": "Colleges in India | Search & Compare | TopTeen",
+        "description": "Search and compare colleges in India. Find courses, fees and admission info. TopTeen helps students and parents shortlist the right college.",
+        "keywords": "colleges in India, college search, compare colleges, admission, courses, TopTeen",
         "improvements": [
             "Use a clear H1 (e.g. Search Colleges in India).",
             "Show key filters (course, location, stream) above results.",
@@ -198,9 +198,9 @@ PAGE_TEMPLATES = {
         ],
     },
     "skilllabcourse": {
-        "title": "Skill Development Courses for Students | Top Teen",
-        "description": "Skill development and learning courses for Indian students. Build skills for career success. Explore courses on Top Teen.",
-        "keywords": "skill courses, student courses, skill development, career skills, Top Teen, India",
+        "title": "Skill Development Courses for Students | TopTeen",
+        "description": "Skill development and learning courses for Indian students. Build skills for career success. Explore courses on TopTeen.",
+        "keywords": "skill courses, student courses, skill development, career skills, TopTeen, India",
         "improvements": [
             "Use one H1 and separate H2s per course category.",
             "Add duration and level (e.g. class 9+) where relevant.",
@@ -208,8 +208,8 @@ PAGE_TEMPLATES = {
         ],
     },
     "psychometrictest": {
-        "title": "Psychometric Tests for Students | Career & Stream Fit | Top Teen",
-        "description": "Free psychometric tests for Indian students. Discover career fit, stream recommendation and interests. Trusted assessments from Top Teen.",
+        "title": "Psychometric Tests for Students | Career & Stream Fit | TopTeen",
+        "description": "Free psychometric tests for Indian students. Discover career fit, stream recommendation and interests. Trusted assessments from TopTeen.",
         "keywords": "psychometric test, career test students, stream recommendation test, interest test, India",
         "improvements": [
             "State what the test measures and how long it takes.",
@@ -218,8 +218,8 @@ PAGE_TEMPLATES = {
         ],
     },
     "testprep": {
-        "title": "Entrance Exam Prep & Test Prep | Top Teen",
-        "description": "Entrance exam and test preparation resources for Indian students. JEE, NEET, CUET and more. Top Teen supports your exam journey.",
+        "title": "Entrance Exam Prep & Test Prep | TopTeen",
+        "description": "Entrance exam and test preparation resources for Indian students. JEE, NEET, CUET and more. TopTeen supports your exam journey.",
         "keywords": "entrance exam prep, JEE NEET CUET, test preparation, exam guidance, India",
         "improvements": [
             "List major exams with short descriptions and links.",
@@ -228,9 +228,9 @@ PAGE_TEMPLATES = {
         ],
     },
     "home": {
-        "title": "Top Teen | Career Guidance & College Counselling for Students",
-        "description": "Top Teen helps Indian students choose the right stream, career and college. Free career assessments, expert guidance and college search. Start your career journey.",
-        "keywords": "career guidance, college counselling, stream selection, career for students, class 9 10 11 12, India, Top Teen",
+        "title": "TopTeen | Career Guidance & College Counselling for Students",
+        "description": "TopTeen helps Indian students choose the right stream, career and college. Free career assessments, expert guidance and college search. Start your career journey.",
+        "keywords": "career guidance, college counselling, stream selection, career for students, class 9 10 11 12, India, TopTeen",
         "improvements": [
             "Use one main H1 that includes your primary keyword.",
             "Above the fold: one value proposition + one clear CTA.",
@@ -241,9 +241,9 @@ PAGE_TEMPLATES = {
 
 # Fallback for unknown pages (generic, marketing-driven)
 DEFAULT_TEMPLATE = {
-    "title": "Career & College Guidance | Top Teen for Students",
-    "description": "Top Teen offers career guidance and college counselling for Indian students. Explore careers, streams and colleges. Trusted by students and parents.",
-    "keywords": "career guidance, college counselling, students India, stream selection, Top Teen",
+    "title": "Career & College Guidance | TopTeen for Students",
+    "description": "TopTeen offers career guidance and college counselling for Indian students. Explore careers, streams and colleges. Trusted by students and parents.",
+    "keywords": "career guidance, college counselling, students India, stream selection, TopTeen",
     "improvements": [
         "Use a single, clear H1 that matches the page topic.",
         "Keep meta description between 150–160 characters for best display in search.",
@@ -315,15 +315,15 @@ def get_seo_suggestions(url_key, current_title="", current_description="", page_
     if page_type == "blogs" and page_label:
         clean_label = _truncate(re.sub(r"<[^>]+>", "", str(page_label)), 40)
         if clean_label:
-            title = "{} | Career Blog | Top Teen".format(_truncate(clean_label, 50))
-            description = "{} – Expert career and college tips for Indian students. Top Teen blog.".format(_truncate(clean_label, 120))
+            title = "{} | Career Blog | TopTeen".format(_truncate(clean_label, 50))
+            description = "{} – Expert career and college tips for Indian students. TopTeen blog.".format(_truncate(clean_label, 120))
 
     # If we have a career slug (e.g. careers/software-engineer), use page_label
     if page_type == "careers" and page_label:
         clean_label = _truncate(re.sub(r"<[^>]+>", "", str(page_label)), 40)
         if clean_label:
-            title = "{} | Career Guide | Top Teen".format(_truncate(clean_label, 50))
-            description = "{} – Career scope, courses and skills. Career guidance for Indian students from Top Teen.".format(_truncate(clean_label, 110))
+            title = "{} | Career Guide | TopTeen".format(_truncate(clean_label, 50))
+            description = "{} – Career scope, courses and skills. Career guidance for Indian students from TopTeen.".format(_truncate(clean_label, 110))
 
     # Enforce length for Google
     title = _truncate(title, 70)
