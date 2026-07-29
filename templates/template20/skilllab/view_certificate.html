@@ -15,11 +15,27 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Playfair+Display:wght@400;700&display=swap');
 
-  .view-certificate-page {
-    padding-top: calc(72px + env(safe-area-inset-top, 0px));
-    padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  /*
+   * Header clearance — scope to the SECTION only.
+   * Body also has class view-certificate-page; padding on both stacked (~160px).
+   * Mobile header ≈ 56px; desktop floating header ≈ 18px margin + ~64px bar.
+   */
+  section.view-certificate-page {
+    padding-top: calc(56px + 0.75rem);
+    padding-bottom: 1rem;
     background: #f7f7fa;
     min-height: 0;
+  }
+
+  @media (min-width: 992px) {
+    section.view-certificate-page {
+      padding-top: calc(18px + 64px + 1rem);
+    }
+  }
+
+  body.skilllab-certificate-page,
+  body.view-certificate-page {
+    background: #f7f7fa;
   }
 
   body.skilllab-certificate-page .footer-cta,
@@ -30,10 +46,26 @@
   .certificate-wrapper {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 12px 16px 8px;
-    padding-left: max(16px, env(safe-area-inset-left, 0px));
-    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding: 0 16px 8px;
     overflow: visible;
+  }
+
+  .certificate-congrats {
+    margin: 0 0 0.75rem;
+    text-align: center;
+  }
+
+  .certificate-congrats__title {
+    margin: 0 0 0.25rem;
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #5249DF;
+  }
+
+  .certificate-congrats__text {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #6b7280;
   }
 
   /* Size to certificate art only — do not force 800px (breaks mobile overlays) */
@@ -140,8 +172,19 @@
 
   @media (max-width: 768px) {
     .certificate-wrapper {
-      padding-top: 12px;
       padding-bottom: 12px;
+    }
+    .certificate-page-header {
+      flex-direction: column;
+      align-items: stretch !important;
+      gap: 0.65rem !important;
+    }
+    .certificate-page-header h2 {
+      text-align: center;
+      font-size: 1.15rem;
+    }
+    .certificate-page-header > .d-flex {
+      justify-content: center;
     }
     .certificate-page-header .btn {
       font-size: 0.8rem;
@@ -177,7 +220,7 @@
   }
 
   .certificate-page-header {
-    margin-bottom: 1rem !important;
+    margin-bottom: 0.75rem !important;
   }
 
   @media print {
@@ -298,9 +341,9 @@
 <section class="view-certificate-page">
   <div class="container">
     <div class="certificate-wrapper">
-      <div class="certificate-congrats mb-3 text-center">
-        <p class="mb-1 fw-semibold" style="color:#5249DF;font-size:1.05rem;">Congratulations!</p>
-        <p class="mb-0 text-muted" style="font-size:0.95rem;">You successfully completed {{ skilllab_course.name }}.</p>
+      <div class="certificate-congrats">
+        <p class="certificate-congrats__title">Congratulations!</p>
+        <p class="certificate-congrats__text">You successfully completed {{ skilllab_course.name }}.</p>
       </div>
       <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 certificate-page-header">
         <h2 class="fs-24 fw-semibold mb-0">Certificate of Completion</h2>

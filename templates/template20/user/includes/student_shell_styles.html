@@ -12,17 +12,6 @@
     --dash-heading: #2a2f3f;
     --dash-shadow: 0 2px 14px rgba(42, 47, 63, 0.06);
     --dash-shadow-hover: 0 10px 28px rgba(42, 47, 63, 0.08);
-    --std-shell-bar-h: 52px;
-    /* Prefer constant() for older iOS; do not rely only on vars for env() */
-    --std-shell-safe-top: 0px;
-    --std-shell-top-offset: var(--std-shell-bar-h);
-  }
-
-  @supports (padding: env(safe-area-inset-top)) {
-    :root {
-      --std-shell-safe-top: env(safe-area-inset-top, 0px);
-      --std-shell-top-offset: calc(var(--std-shell-bar-h) + env(safe-area-inset-top, 0px));
-    }
   }
 
   body.student-dashboard-shell {
@@ -35,18 +24,9 @@
     left: 0;
     right: 0;
     z-index: 1035;
-    height: auto;
-    min-height: var(--std-shell-bar-h);
-    /* Direct env/constant — CSS var env() can resolve to 0 on some iOS PWAs */
-    padding-top: constant(safe-area-inset-top);
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-left: constant(safe-area-inset-left);
-    padding-left: env(safe-area-inset-left, 0px);
-    padding-right: constant(safe-area-inset-right);
-    padding-right: env(safe-area-inset-right, 0px);
-    box-sizing: border-box;
+    height: 52px;
     display: flex;
-    align-items: flex-end; /* keep controls in the content band, not the status-bar band */
+    align-items: center;
     background: var(--dash-surface);
     border-bottom: 1px solid var(--dash-border-soft);
     box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
@@ -96,7 +76,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    min-height: var(--std-shell-bar-h);
+    min-height: 52px;
   }
 
   .std-shell-icon-btn {
@@ -361,8 +341,7 @@
   }
 
   .std-shell-main {
-    padding-top: calc(var(--std-shell-bar-h) + constant(safe-area-inset-top));
-    padding-top: calc(var(--std-shell-bar-h) + env(safe-area-inset-top, 0px));
+    padding-top: 52px;
   }
 
   @media (max-width: 991px) {
@@ -377,7 +356,7 @@
   }
 
   body.student-dashboard-shell .student-resume-shell {
-    min-height: calc(100vh - var(--std-shell-top-offset));
+    min-height: calc(100vh - 52px);
     background: var(--dash-bg);
   }
 
@@ -400,7 +379,7 @@
   */
   body.student-dashboard-shell .student-dash-sidebar-col {
     position: sticky;
-    top: calc(var(--std-shell-bar-h) + env(safe-area-inset-top, 0px));
+    top: 50px;
     align-self: flex-start;
     display: flex;
     flex-direction: column;
@@ -409,8 +388,8 @@
 
   @media (min-width: 992px) {
     body.student-dashboard-shell #studentDashboardShell.sidebar-open .student-dash-sidebar-col {
-      height: calc(100vh - var(--std-shell-bar-h) - env(safe-area-inset-top, 0px));
-      max-height: calc(100vh - var(--std-shell-bar-h) - env(safe-area-inset-top, 0px));
+      height: calc(100vh - 50px);
+      max-height: calc(100vh - 50px);
     }
   }
 
@@ -433,7 +412,6 @@
     height: 100%;
     width: var(--std-sidebar-width);
     max-width: 92vw;
-    padding-top: env(safe-area-inset-top, 0px);
   }
 
   #mobileProfileDrawer .offcanvas-body {

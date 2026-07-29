@@ -15,7 +15,7 @@
   {% endif %}
   <meta name="facebook-domain-verification" content="80fczxf7zf2ysu54gokd497v0b09zu" />
   {% endblock %}
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="apple-touch-icon" sizes="180x180" href="{{ static('images_new/fav-icon/apple-touch-icon.png') }}">
   <link rel="icon" type="image/png" sizes="32x32" href="{{ static('images_new/fav-icon/favicon-32x32.png') }}">
   <link rel="icon" type="image/png" sizes="16x16" href="{{ static('images_new/fav-icon/favicon-16x16.png') }}">
@@ -87,7 +87,7 @@
   {% if show_chatbot %}<link rel="stylesheet" href="{{ static('css_new/chatbot.css') }}" type="text/css" media="all" />{% endif %}
   {% endblock %}
   {# After header + chat CSS so safe-area insets win over fixed heights #}
-  <link rel="stylesheet" href="{{ static('css_new/pwa-safe-area.css') }}?v=5" type="text/css" media="all" />
+  <link rel="stylesheet" href="{{ static('css_new/pwa-safe-area.css') }}?v=6" type="text/css" media="all" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">

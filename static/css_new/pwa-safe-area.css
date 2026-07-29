@@ -1,88 +1,26 @@
 /**
- * PWA / mobile safe-area insets
- * Prefer apple-mobile-web-app-status-bar-style=default so iOS keeps the
- * status bar opaque and out of content. Still pad with env()/constant()
- * for notches / home indicator when needed.
+ * PWA bottom chrome only.
+ *
+ * Do NOT use viewport-fit=cover + global top safe-area padding:
+ * that padded nav while content still drew under the status bar, and
+ * added empty space on desktop/dashboard pages.
+ *
+ * With apple-mobile-web-app-status-bar-style=default and no viewport-fit=cover,
+ * iOS keeps the webview below the status bar — top insets are not needed.
+ * Keep bottom insets for the home indicator on fixed FABs / update banner.
  */
-:root {
-  --tt-safe-top: 0px;
-  --tt-safe-right: 0px;
-  --tt-safe-bottom: 0px;
-  --tt-safe-left: 0px;
-}
 
-@supports (padding: env(safe-area-inset-top)) {
-  :root {
-    --tt-safe-top: env(safe-area-inset-top, 0px);
-    --tt-safe-right: env(safe-area-inset-right, 0px);
-    --tt-safe-bottom: env(safe-area-inset-bottom, 0px);
-    --tt-safe-left: env(safe-area-inset-left, 0px);
-  }
-}
-
-/* Site marketing / app header */
-.header,
-.header.tt-header {
-  top: 0;
-  padding-top: constant(safe-area-inset-top);
-  padding-top: env(safe-area-inset-top, 0px);
-  padding-left: constant(safe-area-inset-left);
-  padding-left: env(safe-area-inset-left, 0px);
-  padding-right: constant(safe-area-inset-right);
-  padding-right: env(safe-area-inset-right, 0px);
-  box-sizing: border-box;
-}
-
-@media (max-width: 61.99875rem) {
-  .header.tt-header {
-    margin-top: 0 !important;
-  }
-}
-
-/* PWA update toast */
+/* PWA update toast — clear home indicator */
 .pwa-update-banner {
   left: max(16px, env(safe-area-inset-left, 0px)) !important;
   right: max(16px, env(safe-area-inset-right, 0px)) !important;
   bottom: max(16px, env(safe-area-inset-bottom, 0px)) !important;
 }
 
-/* Career Counsellor (#cb-*) fullscreen mobile */
+/* Career Counsellor + Ask AI FABs / input (mobile only) */
 @media (max-width: 767.98px) {
-  #cb-header {
-    height: auto !important;
-    min-height: calc(var(--cb-header-h, 68px) + env(safe-area-inset-top, 0px)) !important;
-    padding-top: constant(safe-area-inset-top) !important;
-    padding-top: env(safe-area-inset-top, 0px) !important;
-    padding-left: max(18px, env(safe-area-inset-left, 0px)) !important;
-    padding-right: max(18px, env(safe-area-inset-right, 0px)) !important;
-    box-sizing: border-box;
-    position: relative;
-    z-index: 20;
-  }
-
-  #cb-hdr-actions {
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    flex-shrink: 0;
-    position: relative;
-    z-index: 21;
-  }
-
-  .cb-hdr-btn {
-    width: 44px !important;
-    height: 44px !important;
-    min-width: 44px;
-    min-height: 44px;
-    position: relative;
-    z-index: 22;
-    touch-action: manipulation;
-  }
-
   #cb-input-area {
     padding-bottom: max(16px, env(safe-area-inset-bottom, 0px)) !important;
-    padding-left: max(18px, env(safe-area-inset-left, 0px)) !important;
-    padding-right: max(18px, env(safe-area-inset-right, 0px)) !important;
   }
 
   #cb-window.cb-kb-open #cb-input-area {
@@ -98,104 +36,13 @@
     left: max(18px, env(safe-area-inset-left, 0px)) !important;
     right: auto !important;
   }
-}
-
-/* Ask AI (#pc-*) fullscreen mobile */
-@media (max-width: 767.98px) {
-  #pc-hdr {
-    height: auto !important;
-    min-height: calc(var(--pc-header-h, 68px) + env(safe-area-inset-top, 0px)) !important;
-    padding-top: constant(safe-area-inset-top) !important;
-    padding-top: env(safe-area-inset-top, 0px) !important;
-    padding-left: max(18px, env(safe-area-inset-left, 0px)) !important;
-    padding-right: max(18px, env(safe-area-inset-right, 0px)) !important;
-    box-sizing: border-box;
-    position: relative;
-    z-index: 20;
-  }
-
-  #pc-hdr-actions {
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    flex-shrink: 0;
-    position: relative;
-    z-index: 21;
-  }
-
-  .pc-hdr-btn {
-    width: 44px !important;
-    height: 44px !important;
-    min-width: 44px;
-    min-height: 44px;
-    position: relative;
-    z-index: 22;
-    touch-action: manipulation;
-  }
 
   #pc-input-area {
     padding-bottom: max(16px, env(safe-area-inset-bottom, 0px)) !important;
-    padding-left: max(18px, env(safe-area-inset-left, 0px)) !important;
-    padding-right: max(18px, env(safe-area-inset-right, 0px)) !important;
   }
 
   #pc-fab {
     bottom: max(18px, env(safe-area-inset-bottom, 0px)) !important;
     left: max(18px, env(safe-area-inset-left, 0px)) !important;
-  }
-}
-
-/* Skill Lab course learning — fixed header under status bar / notch */
-.course-page-header {
-  padding-top: constant(safe-area-inset-top);
-  padding-top: env(safe-area-inset-top, 0px);
-  padding-left: constant(safe-area-inset-left);
-  padding-left: env(safe-area-inset-left, 0px);
-  padding-right: constant(safe-area-inset-right);
-  padding-right: env(safe-area-inset-right, 0px);
-  box-sizing: border-box;
-}
-
-body.skilllab-course-learning-page .section-navigation {
-  padding-left: max(1rem, env(safe-area-inset-left, 0px));
-  padding-right: max(1rem, env(safe-area-inset-right, 0px));
-  padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
-  box-sizing: border-box;
-}
-
-/* Certificate pages that use marketing header */
-body.view-certificate-page .header.tt-header,
-.skilllab-certificate-page .header.tt-header {
-  padding-top: constant(safe-area-inset-top);
-  padding-top: env(safe-area-inset-top, 0px);
-}
-
-/* Student dashboard shell topbar — reinforce shell styles; use env() directly */
-.std-shell-topbar {
-  padding-top: constant(safe-area-inset-top) !important;
-  padding-top: env(safe-area-inset-top, 0px) !important;
-  padding-left: constant(safe-area-inset-left) !important;
-  padding-left: env(safe-area-inset-left, 0px) !important;
-  padding-right: constant(safe-area-inset-right) !important;
-  padding-right: env(safe-area-inset-right, 0px) !important;
-  height: auto !important;
-  min-height: 52px !important;
-  box-sizing: border-box !important;
-  align-items: flex-end !important;
-}
-
-.std-shell-main {
-  padding-top: calc(52px + constant(safe-area-inset-top)) !important;
-  padding-top: calc(52px + env(safe-area-inset-top, 0px)) !important;
-}
-
-body.student-dashboard-shell .student-dash-sidebar-col {
-  top: calc(52px + env(safe-area-inset-top, 0px)) !important;
-}
-
-@media (min-width: 992px) {
-  body.student-dashboard-shell #studentDashboardShell.sidebar-open .student-dash-sidebar-col {
-    height: calc(100vh - 52px - env(safe-area-inset-top, 0px)) !important;
-    max-height: calc(100vh - 52px - env(safe-area-inset-top, 0px)) !important;
   }
 }
