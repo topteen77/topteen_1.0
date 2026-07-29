@@ -1,5 +1,6 @@
 """Skill Lab course certificate issuance (separate from counselor certifications)."""
 
+from django.urls import reverse
 from django.utils import timezone
 
 from skilllab.models import (
@@ -11,15 +12,17 @@ from skilllab.models import (
 
 
 def is_skilllab_course_completed(user, skilllab_course):
-    """Return True when the user has completed every chapter in the course."""
+    """Return True when the user has completed every chapter / reached 100% progress."""
     if SkillLabCertification.objects.filter(user=user, skilllab_course=skilllab_course).exists():
+        return True
+    summary = SkillLabCourseProgressSummary.objects.filter(
+        user=user, skilllab_course=skilllab_course
+    ).first()
+    if summary and (summary.progress_percentage or 0) >= 100:
         return True
     chapters = list(skilllab_course.skilllabcoursechapter.order_by('created'))
     if not chapters:
-        summary = SkillLabCourseProgressSummary.objects.filter(
-            user=user, skilllab_course=skilllab_course
-        ).first()
-        return bool(summary and (summary.progress_percentage or 0) >= 100)
+        return False
     completed_ids = set(
         SkillLabCourseProgress.objects.filter(
             user=user,
@@ -113,3 +116,34 @@ def issue_skilllab_certificate_if_eligible(user, skilllab_course):
 
     mark_skilllab_course_complete(user, skilllab_course)
     return certification
+
+
+def skilllab_completion_payload(user, skilllab_course, progress_percentage=None):
+    """
+    Build API/template payload after progress updates.
+    Issues certificate when the course is complete.
+    """
+    summary = SkillLabCourseProgressSummary.objects.filter(
+        user=user, skilllab_course=skilllab_course
+    ).first()
+    pct = progress_percentage
+    if pct is None:
+        pct = summary.progress_percentage if summary else 0
+
+    certification = None
+    completed = is_skilllab_course_completed(user, skilllab_course) or (pct or 0) >= 100
+    if completed:
+        certification = issue_skilllab_certificate_if_eligible(user, skilllab_course)
+        pct = 100
+
+    return {
+        'progress_percentage': pct,
+        'course_completed': bool(completed and certification),
+        'certificate_url': (
+            reverse('skilllabcourse:skilllab_certificate', args=[skilllab_course.slug])
+            if completed else None
+        ),
+        'certificate_code': (
+            certification.certificate_code if certification else None
+        ),
+    }

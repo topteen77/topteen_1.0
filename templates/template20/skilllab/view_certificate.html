@@ -8,6 +8,7 @@
 {% block chatbot %}{% endblock %}
 {% block chatbot_css %}{% endblock %}
 {% block chatbot_js %}{% endblock %}
+{% block footer %}{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
@@ -15,19 +16,23 @@
   @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Playfair+Display:wght@400;700&display=swap');
 
   .view-certificate-page {
-    padding-top: calc(80px + env(safe-area-inset-top, 0px));
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-top: calc(72px + env(safe-area-inset-top, 0px));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
     background: #f7f7fa;
-    min-height: 100vh;
-    min-height: 100dvh;
+    min-height: 0;
+  }
+
+  body.skilllab-certificate-page .footer-cta,
+  body.view-certificate-page .footer-cta {
+    margin-top: 0 !important;
   }
 
   .certificate-wrapper {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 20px;
-    padding-left: max(20px, env(safe-area-inset-left, 0px));
-    padding-right: max(20px, env(safe-area-inset-right, 0px));
+    padding: 12px 16px 8px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
     overflow: visible;
   }
 
@@ -151,8 +156,28 @@
   }
 
   .certificate-actions {
-    margin-top: 30px;
-    text-align: center;
+    margin: 1rem 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .certificate-actions .btn {
+    margin: 0 !important;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1.15rem;
+    line-height: 1.2;
+    vertical-align: middle;
+  }
+
+  .certificate-page-header {
+    margin-bottom: 1rem !important;
   }
 
   @media print {
@@ -270,10 +295,14 @@
 {% endblock %}
 
 {% block content %}
-<section class="view-certificate-page pb-5">
+<section class="view-certificate-page">
   <div class="container">
     <div class="certificate-wrapper">
-      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 certificate-page-header">
+      <div class="certificate-congrats mb-3 text-center">
+        <p class="mb-1 fw-semibold" style="color:#5249DF;font-size:1.05rem;">Congratulations!</p>
+        <p class="mb-0 text-muted" style="font-size:0.95rem;">You successfully completed {{ skilllab_course.name }}.</p>
+      </div>
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 certificate-page-header">
         <h2 class="fs-24 fw-semibold mb-0">Certificate of Completion</h2>
         <div class="d-flex flex-wrap gap-2 align-items-center">
           <a href="{{ url('skilllabcourse:course_learning', args=[skilllab_course.slug]) }}"
@@ -326,11 +355,11 @@
       </div>
 
       <div class="certificate-actions">
-        <button onclick="window.print()" class="btn custom-button purple-button me-3">
-          <i class='bx bx-printer me-2'></i>Print Certificate
+        <button type="button" onclick="window.print()" class="btn custom-button purple-button">
+          <i class='bx bx-printer'></i>Print Certificate
         </button>
-        <button onclick="downloadCertificate()" class="btn btn-outline-primary">
-          <i class='bx bx-download me-2'></i>Download PDF
+        <button type="button" onclick="downloadCertificate()" class="btn btn-outline-primary">
+          <i class='bx bx-download'></i>Download PDF
         </button>
       </div>
     </div>
