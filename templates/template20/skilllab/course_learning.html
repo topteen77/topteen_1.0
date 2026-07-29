@@ -82,6 +82,14 @@
   right: 0;
   z-index: 1000;
   width: 100%;
+  box-sizing: border-box;
+  /* PWA / iOS notch — keep chrome below status bar */
+  padding-top: constant(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-left: constant(safe-area-inset-left);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: constant(safe-area-inset-right);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 
 .course-header-inner {
@@ -1259,12 +1267,15 @@
   gap: 0.75rem;
   margin: 0;
   padding: 0.65rem 1rem;
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
   padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
   border-top: 1px solid #e8eaf0;
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   box-shadow: 0 -8px 24px rgba(16, 24, 40, 0.1);
+  box-sizing: border-box;
 }
 .nav-btn {
   display: inline-flex;

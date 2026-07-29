@@ -145,6 +145,31 @@
   }
 }
 
+/* Skill Lab course learning — fixed header under status bar / notch */
+.course-page-header {
+  padding-top: constant(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-left: constant(safe-area-inset-left);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: constant(safe-area-inset-right);
+  padding-right: env(safe-area-inset-right, 0px);
+  box-sizing: border-box;
+}
+
+body.skilllab-course-learning-page .section-navigation {
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+}
+
+/* Certificate pages that use marketing header */
+body.view-certificate-page .header.tt-header,
+.skilllab-certificate-page .header.tt-header {
+  padding-top: constant(safe-area-inset-top);
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
 /* Student dashboard shell topbar — reinforce shell styles; use env() directly */
 .std-shell-topbar {
   padding-top: constant(safe-area-inset-top) !important;
