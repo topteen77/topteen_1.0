@@ -172,6 +172,26 @@
     border: 1px solid #abefc6;
   }
 
+  .parent-student-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .parent-student-tab {
+    border: 1px solid #d6ddf6;
+    background: #fff;
+    color: #4b4f7a;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .parent-student-tab.is-active,
+  .parent-student-tab:hover {
+    border-color: #6f7deb;
+    color: #403fa6;
+    background: #f3f0ff;
+  }
+  .parent-student-tab .grade-pill { font-size: 11px; color: #6b7280; margin-left: 4px; }
+
   .parent-empty-state {
     text-align: center;
     padding: 48px 24px;
@@ -214,19 +234,32 @@
       <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
         <div>
           <h2 class="parent-page-title fw-700 mb-1">{{ page_title }}</h2>
-          <p class="parent-page-subtitle mb-0">Shortlisted items for you and your linked students.</p>
+          <p class="parent-page-subtitle mb-0">Pick a student, then browse and shortlist {{ page_title|lower }} for them.</p>
         </div>
-        <a href="{{ browse_url }}" class="btn custom-button purple-button fw-600">
+        <a href="{{ browse_url }}" id="parentBrowseMoreBtn" class="btn custom-button purple-button fw-600"
+           data-browse-base="{{ browse_url_base }}">
           <i class='bx bx-search-alt me-1'></i>{{ browse_label }}
         </a>
       </div>
+      {% if linked_students and linked_students|length %}
+      <div class="parent-student-tabs" role="tablist" aria-label="Select student" id="contentStudentTabs">
+        {% for s in linked_students %}
+        <button type="button"
+                class="parent-student-tab{% if selected_student_id == s.id %} is-active{% elif not selected_student_id and loop.first %} is-active{% endif %}"
+                data-student-id="{{ s.id }}">
+          {{ s.name }}{% if s.grade_label %}<span class="grade-pill">· {{ s.grade_label }}</span>{% endif %}
+        </button>
+        {% endfor %}
+      </div>
+      {% endif %}
     </div>
 
     {% if (kind == 'careers' and career_cards and career_cards|length) or (kind == 'blogs' and blog_cards and blog_cards|length) or (kind == 'videos' and video_cards and video_cards|length) %}
-    <div class="row g-3">
+    <div class="row g-3" id="parentContentGrid">
       {% if kind == 'careers' %}
         {% for card in career_cards %}
-        <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3 parent-content-col"
+             data-student-ids="{{ (card.student_ids or [])|join(',') }}">
           <div class="parent-item-card{% if card.is_disliked %} border border-danger-subtle{% endif %}">
             <button type="button"
                     class="parent-item-remove-btn parent-remove-saved-btn"
@@ -237,7 +270,7 @@
                     aria-label="Remove {{ card.career.name }}">
               <i class='bx bx-x'></i>
             </button>
-            <a href="{{ card.career.url() }}" class="text-decoration-none d-block h-100">
+            <a href="{{ card.career.url() }}{% if selected_student_id %}?student_id={{ selected_student_id }}{% endif %}" class="text-decoration-none d-block h-100 parent-content-item-link">
               {% if card.career.image and card.career.image.name %}
               <img class="parent-item-thumb" src="{{ card.career.image.url }}" alt="{{ card.career.name }}" />
               {% else %}
@@ -248,9 +281,9 @@
                 <span class="{{ card.badge_class }}">{{ card.badge_label }}</span>
                 {% endif %}
                 {% if card.is_disliked %}
-                <span class="career-reaction-badge career-reaction-badge--disliked"><i class='bx bx-dislike'></i> Student disliked</span>
+                <span class="career-reaction-badge career-reaction-badge--disliked"><i class='bx bx-dislike'></i> {% if card.student_name %}{{ card.student_name }} disliked{% else %}Student disliked{% endif %}</span>
                 {% elif card.student_reaction == 'liked' %}
-                <span class="career-reaction-badge career-reaction-badge--liked"><i class='bx bx-like'></i> Student liked</span>
+                <span class="career-reaction-badge career-reaction-badge--liked"><i class='bx bx-like'></i> {% if card.student_name %}{{ card.student_name }} liked{% else %}Student liked{% endif %}</span>
                 {% endif %}
                 <p class="parent-item-title">{{ card.career.name }}</p>
                 {% if card.career.summary %}
@@ -263,7 +296,8 @@
         {% endfor %}
       {% elif kind == 'blogs' %}
         {% for card in blog_cards %}
-        <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3 parent-content-col"
+             data-student-ids="{{ (card.student_ids or [])|join(',') }}">
           <div class="parent-item-card">
             <button type="button"
                     class="parent-item-remove-btn parent-remove-saved-btn"
@@ -274,7 +308,7 @@
                     aria-label="Remove {{ card.blog.title }}">
               <i class='bx bx-x'></i>
             </button>
-            <a href="{{ url('blog:blogdetail', args=[card.blog.slug]) }}" class="text-decoration-none d-block h-100">
+            <a href="{{ url('blog:blogdetail', args=[card.blog.slug]) }}{% if selected_student_id %}?student_id={{ selected_student_id }}{% endif %}" class="text-decoration-none d-block h-100 parent-content-item-link">
               {% if card.blog.image and card.blog.image.name %}
               <img class="parent-item-thumb" src="{{ card.blog.image.url }}" alt="{{ card.blog.title }}" />
               {% else %}
@@ -295,7 +329,8 @@
         {% endfor %}
       {% elif kind == 'videos' %}
         {% for card in video_cards %}
-        <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3 parent-content-col"
+             data-student-ids="{{ (card.student_ids or [])|join(',') }}">
           <div class="parent-item-card">
             <button type="button"
                     class="parent-item-remove-btn parent-remove-saved-btn"
@@ -306,7 +341,7 @@
                     aria-label="Remove {{ card.video.name }}">
               <i class='bx bx-x'></i>
             </button>
-            <a href="{{ url('careers:videodetail', args=[card.video.slug]) }}" class="text-decoration-none d-block h-100">
+            <a href="{{ url('careers:videodetail', args=[card.video.slug]) }}{% if selected_student_id %}?student_id={{ selected_student_id }}{% endif %}" class="text-decoration-none d-block h-100 parent-content-item-link">
               {% set thumb = card.video.get_thumbnail_url() %}
               {% set video_url = card.video.get_video_or_url() %}
               {% set is_youtube = video_url and ('youtube.com' in video_url or 'youtu.be' in video_url) %}
@@ -328,9 +363,9 @@
                 <span class="{{ card.badge_class }}">{{ card.badge_label }}</span>
                 {% endif %}
                 {% if card.is_disliked %}
-                <span class="career-reaction-badge career-reaction-badge--disliked"><i class='bx bx-dislike'></i> Student disliked</span>
+                <span class="career-reaction-badge career-reaction-badge--disliked"><i class='bx bx-dislike'></i> {% if card.student_name %}{{ card.student_name }} disliked{% else %}Student disliked{% endif %}</span>
                 {% elif card.student_reaction == 'liked' %}
-                <span class="career-reaction-badge career-reaction-badge--liked"><i class='bx bx-like'></i> Student liked</span>
+                <span class="career-reaction-badge career-reaction-badge--liked"><i class='bx bx-like'></i> {% if card.student_name %}{{ card.student_name }} liked{% else %}Student liked{% endif %}</span>
                 {% endif %}
                 <p class="parent-item-title">{{ card.video.name }}</p>
                 {% if card.video.description %}
@@ -343,6 +378,12 @@
         {% endfor %}
       {% endif %}
     </div>
+    <div class="parent-empty-state" id="parentContentEmptyFilter" hidden>
+      <i class='bx bx-filter-alt d-block'></i>
+      <h4 class="fs-18 fw-700 text-dark mb-2">No shortlists for this student</h4>
+      <p class="text-muted fs-14 mb-3">Browse more and shortlist {{ page_title|lower }} for the selected student.</p>
+      <a href="{{ browse_url }}" class="btn custom-button purple-button fw-600 parent-browse-empty-btn">{{ browse_label }}</a>
+    </div>
     {% else %}
     <div class="parent-empty-state">
       {% if kind == 'careers' %}
@@ -353,7 +394,7 @@
       <i class='bx bx-play-circle d-block'></i>
       {% endif %}
       <h4 class="fs-18 fw-700 text-dark mb-2">No shortlisted items yet</h4>
-      <p class="text-muted fs-14 mb-3">Start exploring and shortlist {{ page_title|lower }} for your family.</p>
+      <p class="text-muted fs-14 mb-3">Pick a student above, then explore and shortlist {{ page_title|lower }} for them.</p>
       <a href="{{ browse_url }}" class="btn custom-button purple-button fw-600">{{ browse_label }}</a>
     </div>
     {% endif %}
@@ -366,6 +407,50 @@
 {% include 'template20/parents/includes/parent_swal.html' %}
 <script>
   (function () {
+    var selectedStudentId = {{ selected_student_id|tojson }};
+    var browseBase = {{ browse_url_base|tojson }};
+
+    function browseUrlForStudent(sid) {
+      if (!browseBase) return '#';
+      if (!sid) return browseBase;
+      return browseBase + (browseBase.indexOf('?') >= 0 ? '&' : '?') + 'student_id=' + sid;
+    }
+
+    function setBrowseLinks(sid) {
+      var url = browseUrlForStudent(sid);
+      var btn = document.getElementById('parentBrowseMoreBtn');
+      if (btn) btn.setAttribute('href', url);
+      document.querySelectorAll('.parent-browse-empty-btn').forEach(function (a) {
+        a.setAttribute('href', url);
+      });
+      document.querySelectorAll('.parent-content-item-link').forEach(function (a) {
+        try {
+          var u = new URL(a.getAttribute('href'), window.location.origin);
+          if (sid) u.searchParams.set('student_id', String(sid));
+          else u.searchParams.delete('student_id');
+          a.setAttribute('href', u.pathname + u.search);
+        } catch (e) {}
+      });
+    }
+
+    // Student tabs: full navigation so server returns only that student's shortlist.
+    document.querySelectorAll('#contentStudentTabs .parent-student-tab').forEach(function (tab) {
+      tab.addEventListener('click', function (e) {
+        e.preventDefault();
+        var sid = tab.getAttribute('data-student-id');
+        if (!sid || String(sid) === String(selectedStudentId)) return;
+        try {
+          var url = new URL(window.location.href);
+          url.searchParams.set('student_id', String(sid));
+          window.location.assign(url.pathname + url.search);
+        } catch (err) {
+          window.location.search = 'student_id=' + encodeURIComponent(sid);
+        }
+      });
+    });
+
+    if (selectedStudentId) setBrowseLinks(selectedStudentId);
+
     function getCookie(name) {
       var cookieValue = null;
       if (document.cookie && document.cookie !== '') {
@@ -384,6 +469,7 @@
     function removeSavedItem(btn, kind, itemName) {
       var form = new URLSearchParams();
       form.set('csrfmiddlewaretoken', getCookie('csrftoken') || '');
+      if (selectedStudentId) form.set('student_id', String(selectedStudentId));
       if (kind === 'careers') {
         form.set('careerslug', btn.getAttribute('data-careerslug') || '');
       } else if (kind === 'blogs') {

@@ -762,6 +762,7 @@ SESSION_REDIS_DB = config('SESSION_REDIS_DB', default=2, cast=int)
 TRANSLATION_REDIS_DB = config('TRANSLATION_REDIS_DB', default=3, cast=int)
 ROSTER_REDIS_DB = config('ROSTER_REDIS_DB', default=4, cast=int)
 CAREERS_REDIS_DB = config('CAREERS_REDIS_DB', default=5, cast=int)
+PARENTS_REDIS_DB = config('PARENTS_REDIS_DB', default=6, cast=int)
 SESSION_CACHE_ALIAS = 'sessions'
 SESSION_USE_SIGNED_COOKIES = config('SESSION_USE_SIGNED_COOKIES', default=False, cast=bool)
 
@@ -805,6 +806,16 @@ if ENABLE_REDIS:
         'KEY_PREFIX': 'topteen_careers',
         'TIMEOUT': 900,
     }
+    # Parent dashboard / catalog query results — Redis even in DEBUG (default may be DummyCache).
+    CACHES['parents'] = {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': f"redis://{_redis_host}:{_redis_port}/{PARENTS_REDIS_DB}",
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'KEY_PREFIX': 'topteen_parents',
+        'TIMEOUT': 120,
+    }
 else:
     CACHES['translations'] = {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
@@ -817,6 +828,10 @@ else:
     CACHES['careers'] = {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
         'LOCATION': 'topteen-careers',
+    }
+    CACHES['parents'] = {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'topteen-parents',
     }
 
 SESSION_ENGINE = (config('SESSION_ENGINE', default='') or '').strip()

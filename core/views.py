@@ -1212,6 +1212,9 @@ class EmotionalIntelligencesAssessmentView(LoginRequiredMixin, TemplateView):
         if referer and url_has_allowed_host_and_scheme(referer, allowed_hosts={request.get_host()}):
             if urlparse(referer).path.rstrip("/") != request.path.rstrip("/"):
                 return referer
+        subject, read_only = _mieq_assessment_subject(request)
+        if read_only and getattr(subject, "id", None):
+            return reverse("parents_student_dashboard", args=[subject.id])
         return reverse("users:userdashboard")
 
     def html_head(self):
@@ -1221,6 +1224,7 @@ class EmotionalIntelligencesAssessmentView(LoginRequiredMixin, TemplateView):
         )
 
     def get_context(self, request, *args, **kwargs):
+        subject, read_only = _mieq_assessment_subject(request)
         ctx = {}
         ctx["html_head"] = self.html_head()
         ctx["back_url"] = self.get_back_url(request)
@@ -1228,10 +1232,15 @@ class EmotionalIntelligencesAssessmentView(LoginRequiredMixin, TemplateView):
             {"text": "Emotional Intelligences", "url": reverse("core:emotional_intelligences")},
             {"text": "Assessment", "url": reverse("core:emotional_intelligences_assessment")},
         ])
-        ctx["save_eq_url"] = reverse("core:save_eq_assessment")
-        ctx["eq_report_pdf_url"] = reverse("core:eq_report_pdf")
-        if getattr(request, "user", None) and request.user.is_authenticated:
-            latest = EQAssessmentResult.objects.filter(user=request.user).order_by("-updated_at").first()
+        ctx["save_eq_url"] = "" if read_only else reverse("core:save_eq_assessment")
+        if read_only and getattr(subject, "id", None):
+            ctx["eq_report_pdf_url"] = reverse("core:eq_report_pdf_user", args=[subject.id])
+        else:
+            ctx["eq_report_pdf_url"] = reverse("core:eq_report_pdf")
+        ctx["assessment_read_only"] = read_only
+        ctx["assessment_subject_name"] = getattr(subject, "name", "") or "Student"
+        if getattr(subject, "is_authenticated", False) or getattr(subject, "id", None):
+            latest = EQAssessmentResult.objects.filter(user=subject).order_by("-updated_at").first()
             if latest:
                 ctx["saved_eq_responses"] = json.dumps(latest.responses)
                 from core.eq_scoring import calculate_eq_result, get_subscale_band
@@ -1298,6 +1307,9 @@ class MultipleIntelligencesAssessmentView(LoginRequiredMixin, TemplateView):
         if referer and url_has_allowed_host_and_scheme(referer, allowed_hosts={request.get_host()}):
             if urlparse(referer).path.rstrip("/") != request.path.rstrip("/"):
                 return referer
+        subject, read_only = _mieq_assessment_subject(request)
+        if read_only and getattr(subject, "id", None):
+            return reverse("parents_student_dashboard", args=[subject.id])
         return reverse("users:userdashboard")
 
     def html_head(self):
@@ -1307,6 +1319,7 @@ class MultipleIntelligencesAssessmentView(LoginRequiredMixin, TemplateView):
         )
 
     def get_context(self, request, *args, **kwargs):
+        subject, read_only = _mieq_assessment_subject(request)
         ctx = {}
         ctx["html_head"] = self.html_head()
         ctx["back_url"] = self.get_back_url(request)
@@ -1314,10 +1327,15 @@ class MultipleIntelligencesAssessmentView(LoginRequiredMixin, TemplateView):
             {"text": "Multiple Intelligences", "url": reverse("core:multiple_intelligences")},
             {"text": "Assessment", "url": reverse("core:multiple_intelligences_assessment")},
         ])
-        ctx["save_mi_url"] = reverse("core:save_mi_assessment")
-        ctx["mi_report_pdf_url"] = reverse("core:mi_report_pdf")
-        if getattr(request, "user", None) and request.user.is_authenticated:
-            latest = MIAssessmentResult.objects.filter(user=request.user).order_by("-updated_at").first()
+        ctx["save_mi_url"] = "" if read_only else reverse("core:save_mi_assessment")
+        if read_only and getattr(subject, "id", None):
+            ctx["mi_report_pdf_url"] = reverse("core:mi_report_pdf_user", args=[subject.id])
+        else:
+            ctx["mi_report_pdf_url"] = reverse("core:mi_report_pdf")
+        ctx["assessment_read_only"] = read_only
+        ctx["assessment_subject_name"] = getattr(subject, "name", "") or "Student"
+        if getattr(subject, "is_authenticated", False) or getattr(subject, "id", None):
+            latest = MIAssessmentResult.objects.filter(user=subject).order_by("-updated_at").first()
             if latest:
                 ctx["saved_mi_answers"] = json.dumps(latest.answers)
                 ctx["saved_mi_result"] = json.dumps({
@@ -2400,6 +2418,7 @@ def save_mi_assessment(request):
         style_name=str(style_name),
         style_summary=str(style_summary),
     )
+    _invalidate_parent_mieq_caches_for_student(request.user)
     return JsonResponse({"ok": True})
 
 
@@ -2440,7 +2459,18 @@ def save_eq_assessment(request):
         adaptive_eq=float(s.get("SC", 0) + s.get("SM", 0)),
         band_label=str(band_label) if band_label is not None else "",
     )
+    _invalidate_parent_mieq_caches_for_student(request.user)
     return JsonResponse({"ok": True})
+
+
+def _invalidate_parent_mieq_caches_for_student(student) -> None:
+    """Clear parent dashboard Redis caches for every linked parent."""
+    try:
+        from users.parent_dashboard_cache import invalidate_parent_caches_for_student
+
+        invalidate_parent_caches_for_student(student)
+    except Exception:
+        pass
 
 
 def _docx_path_to_html(docx_path):
@@ -2506,6 +2536,25 @@ def _can_view_assessment_report(viewer, target_user):
     except Exception:
         pass
     return False
+
+
+def _mieq_assessment_subject(request):
+    """Subject user for MI/EQ pages: self, or linked student via ?student_id= (read-only)."""
+    from django.core.exceptions import PermissionDenied
+
+    raw = (request.GET.get("student_id") or "").strip()
+    if not raw or not getattr(request, "user", None) or not request.user.is_authenticated:
+        return request.user, False
+    try:
+        sid = int(raw)
+    except (TypeError, ValueError):
+        return request.user, False
+    if sid == int(getattr(request.user, "id", 0) or 0):
+        return request.user, False
+    subject = get_object_or_404(User, id=sid)
+    if not _can_view_assessment_report(request.user, subject):
+        raise PermissionDenied("You are not allowed to view this assessment report.")
+    return subject, True
 
 
 def _resolve_assessment_report_user(request, user_id=None):

@@ -9,6 +9,7 @@
 }
 </style>
 
+{% set active_nav = request.resolver_match.url_name if request.resolver_match else '' %}
 
 <div class="student-dash-sidebar-col parent-sidebar-col d-none d-lg-block px-0">
   <div class="profile-sidebar parent-sidebar-scroll h-100">
@@ -34,57 +35,57 @@
       </div>
     </div>
 
-    <div class="mt-4">
-      <a href="{{ url('parents_dashboard') }}" class="d-block text-decoration-none mb-2">
-        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+    <div class="mt-4 parent-sidebar-nav" aria-label="Parent menu">
+      <a href="{{ url('parents_dashboard') }}" class="d-block text-decoration-none mb-2 parent-sidebar-link{% if active_nav == 'parents_dashboard' %} is-active{% endif %}"{% if active_nav == 'parents_dashboard' %} aria-current="page"{% endif %}>
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light parent-sidebar-item">
           <div>
             <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-home me-2 fs-18 text-purple'></i> Dashboard</p>
           </div>
           <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
         </div>
       </a>
-      <a href="{{ url('parents_courses') }}" class="d-block text-decoration-none mb-2">
-        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+      <a href="{{ url('parents_courses') }}" class="d-block text-decoration-none mb-2 parent-sidebar-link{% if active_nav == 'parents_courses' %} is-active{% endif %}"{% if active_nav == 'parents_courses' %} aria-current="page"{% endif %}>
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light parent-sidebar-item">
           <div>
             <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-book-open me-2 fs-18 text-purple'></i> Courses & Tests</p>
           </div>
           <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
         </div>
       </a>
-      <a href="{{ url('parents_careers') }}" class="d-block text-decoration-none mb-2">
-        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+      <a href="{{ url('parents_careers') }}" class="d-block text-decoration-none mb-2 parent-sidebar-link{% if active_nav == 'parents_careers' %} is-active{% endif %}"{% if active_nav == 'parents_careers' %} aria-current="page"{% endif %}>
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light parent-sidebar-item">
           <div>
             <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-briefcase me-2 fs-18 text-purple'></i> Careers</p>
           </div>
           <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
         </div>
       </a>
-      <a href="{{ url('parents_blogs') }}" class="d-block text-decoration-none mb-2">
-        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+      <a href="{{ url('parents_blogs') }}" class="d-block text-decoration-none mb-2 parent-sidebar-link{% if active_nav == 'parents_blogs' %} is-active{% endif %}"{% if active_nav == 'parents_blogs' %} aria-current="page"{% endif %}>
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light parent-sidebar-item">
           <div>
             <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-news me-2 fs-18 text-purple'></i> Blogs</p>
           </div>
           <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
         </div>
       </a>
-      <a href="{{ url('parents_videos') }}" class="d-block text-decoration-none mb-2">
-        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+      <a href="{{ url('parents_videos') }}" class="d-block text-decoration-none mb-2 parent-sidebar-link{% if active_nav == 'parents_videos' %} is-active{% endif %}"{% if active_nav == 'parents_videos' %} aria-current="page"{% endif %}>
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light parent-sidebar-item">
           <div>
             <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-play-circle me-2 fs-18 text-purple'></i> Videos</p>
           </div>
           <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
         </div>
       </a>
-      <a href="{{ url('parents_education_loan_calculator') }}" class="d-block text-decoration-none mb-2">
-        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+      <a href="{{ url('parents_education_loan_calculator') }}" class="d-block text-decoration-none mb-2 parent-sidebar-link{% if active_nav == 'parents_education_loan_calculator' %} is-active{% endif %}"{% if active_nav == 'parents_education_loan_calculator' %} aria-current="page"{% endif %}>
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light parent-sidebar-item">
           <div>
             <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-calculator me-2 fs-18 text-purple'></i> Education Loan Calculator</p>
           </div>
           <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
         </div>
       </a>
-      <a href="{{ url('parents_education_loan_applications') }}" class="d-block text-decoration-none mb-2">
-        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+      <a href="{{ url('parents_education_loan_applications') }}" class="d-block text-decoration-none mb-2 parent-sidebar-link{% if active_nav == 'parents_education_loan_applications' %} is-active{% endif %}"{% if active_nav == 'parents_education_loan_applications' %} aria-current="page"{% endif %}>
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light parent-sidebar-item">
           <div>
             <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-file me-2 fs-18 text-purple'></i> My Loan Applications</p>
           </div>
@@ -92,7 +93,7 @@
         </div>
       </a>
       <a href="{{ url('users:logout') }}" class="d-block text-decoration-none">
-        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light parent-sidebar-item">
           <div>
             <p class="fs-14 fw-semibold mb-1 d-flex align-items-center text-danger"><i class='bx bx-log-out-circle me-2 fs-18'></i> Sign Out</p>
           </div>

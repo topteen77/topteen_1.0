@@ -769,7 +769,8 @@ class StudentSignupView(LoginView):
 class ParentsLoginView(LoginView):
     """
     Parents login landing page (/parents/login/).
-    Mobile + OTP only.
+    Mobile + OTP only. No direct parent signup — account must already exist
+    (created when a student links a parent).
     Demo accounts: only Parent role.
     """
 
@@ -784,6 +785,12 @@ class ParentsLoginView(LoginView):
         return ctx
 
     def get(self, request, *args, **kwargs):
+        if (
+            getattr(request, "user", None)
+            and request.user.is_authenticated
+            and request.session.pop("fresh_login", False)
+        ):
+            return redirect(get_dashboard_url_for_user(request, request.user))
         ctx = self.get_context(request, *args, **kwargs)
         ctx['login_mode'] = 'parent'
         return render(request, self.template_name, ctx)
@@ -797,74 +804,124 @@ class ParentsDashboardView(TemplateView):
             return redirect('parents_login')
         if request.user.user_type != choices.UserType.PARENT:
             return redirect(get_dashboard_url_for_user(request, request.user))
-        from users.models import ParentStudentLink
-        linked = ParentStudentLink.objects.filter(parent=request.user).select_related('student')
-        students = [x.student for x in linked if x.student]
 
-        psychometric_students = []
-        students_dashboard_payload = []
+        from users.parent_dashboard_cache import get_or_build_parent_dashboard_payload
+        from users.parent_student_insights import linked_students_for_parent
 
-        # The parent dashboard only renders each student's name, email, mobile,
-        # class and grade in the switcher — so build a lightweight payload and
-        # skip the expensive assessment / AI-insight computations that used to
-        # run per student on every page load.
-        for s in students:
+        parent = request.user
+        parent_id = int(getattr(parent, "id", 0) or 0)
+
+        def _build_dashboard_payload() -> dict:
+            students = linked_students_for_parent(parent)
+            students_dashboard_payload = []
+            student_ids = []
+
+            for s in students:
+                try:
+                    basic = build_student_dashboard_basic(s)
+                except Exception:
+                    bucket_key, bucket_label = resolve_student_grade(s)
+                    basic = {
+                        "id": int(getattr(s, "id", 0) or 0),
+                        "name": getattr(s, "name", "") or "Student",
+                        "email": getattr(s, "email", "") or "",
+                        "mobile": getattr(s, "mobile", None) or "—",
+                        "class_display": "—",
+                        "grade_label": bucket_label,
+                        "grade_bucket": bucket_key,
+                    }
+                students_dashboard_payload.append(basic)
+                if basic.get("id"):
+                    student_ids.append(int(basic["id"]))
+
+            course_suggestions_by_student = {}
+            mieq_by_student = {}
             try:
-                basic = build_student_dashboard_basic(s)
-            except Exception:
-                bucket_key, bucket_label = resolve_student_grade(s)
-                basic = {
-                    "id": int(getattr(s, "id", 0) or 0),
-                    "name": getattr(s, "name", "") or "Student",
-                    "email": getattr(s, "email", "") or "",
-                    "mobile": getattr(s, "mobile", None) or "—",
-                    "class_display": "—",
-                    "grade_label": bucket_label,
-                    "grade_bucket": bucket_key,
+                from users.parent_courses_catalog import (
+                    _student_payload,
+                    build_parent_skilllab_suggestions,
+                )
+                from users.parent_dashboard_cache import (
+                    get_or_build_cached,
+                    parent_skilllab_suggest_cache_key,
+                    PARENT_DASH_TTL,
+                )
+                from users.parent_mieq_dashboard import build_parent_mieq_by_student
+
+                student_payloads = [_student_payload(s) for s in students]
+                student_users_by_id = {
+                    int(s.id): s for s in students if getattr(s, "id", None)
                 }
 
-            students_dashboard_payload.append(basic)
-            psychometric_students.append({
-                "student": s,
-                "grade_label": basic.get("grade_label", "Other"),
-                "grade_bucket": basic.get("grade_bucket", "other"),
-            })
+                def _build_skilllab():
+                    return build_parent_skilllab_suggestions(
+                        student_payloads, student_users_by_id, preview_limit=4
+                    )
 
-        selected_student = psychometric_students[0] if psychometric_students else None
-        selected_student_id = (
-            getattr(selected_student.get("student"), "id", None) if selected_student else None
-        )
+                course_suggestions_by_student = get_or_build_cached(
+                    parent_skilllab_suggest_cache_key(parent_id),
+                    _build_skilllab,
+                    ttl=PARENT_DASH_TTL,
+                    lock_key=f"{parent_skilllab_suggest_cache_key(parent_id)}:lock",
+                    validate=lambda v: isinstance(v, dict),
+                )
+                mieq_by_student = build_parent_mieq_by_student(parent, students)
+            except Exception:
+                course_suggestions_by_student = {}
+                mieq_by_student = {}
 
-        # Assessment reports are expensive to build, so never render them
-        # inline on page load. Each pane is an empty placeholder that is
-        # fetched lazily over AJAX (with a spinner) when the student is first
-        # selected, then cached client-side (show/hide) for instant switching.
-        student_assessment_reports = [
-            {"student_id": s.id, "html": "", "loaded": False}
-            for s in students
+            selected_student_id = student_ids[0] if student_ids else None
+            return {
+                "students_dashboard_payload": students_dashboard_payload,
+                "student_ids": student_ids,
+                "selected_student_id": selected_student_id,
+                "course_suggestions": course_suggestions_by_student or {},
+                "mieq_assessments": mieq_by_student or {},
+            }
+
+        if parent_id:
+            payload = get_or_build_parent_dashboard_payload(
+                parent_id, _build_dashboard_payload
+            )
+        else:
+            payload = _build_dashboard_payload()
+
+        students_dashboard_payload = payload.get("students_dashboard_payload") or []
+        student_ids = payload.get("student_ids") or [
+            int(s["id"]) for s in students_dashboard_payload if s.get("id")
         ]
+        selected_student_id = payload.get("selected_student_id")
+        if selected_student_id is None and student_ids:
+            selected_student_id = student_ids[0]
+        course_suggestions_by_student = payload.get("course_suggestions") or {}
+        mieq_by_student = payload.get("mieq_assessments") or {}
 
-        course_suggestions_by_student = {}
-        try:
-            from users.parent_courses_catalog import (
-                _student_payload,
-                build_parent_skilllab_suggestions,
-            )
-
-            student_payloads = [_student_payload(s) for s in students]
-            student_users_by_id = {int(s.id): s for s in students if getattr(s, "id", None)}
-            course_suggestions_by_student = build_parent_skilllab_suggestions(
-                student_payloads, student_users_by_id, preview_limit=4
-            )
-        except Exception:
-            pass
+        # Lightweight shells for report panes (HTML loaded lazily via AJAX + Redis).
+        student_assessment_reports = [
+            {"student_id": sid, "html": "", "loaded": False} for sid in student_ids
+        ]
+        # Keep template vars that expect student objects for the switcher labels.
+        psychometric_students = [
+            {
+                "student": type("S", (), {"id": s.get("id")})(),
+                "grade_label": s.get("grade_label", "Other"),
+                "grade_bucket": s.get("grade_bucket", "other"),
+            }
+            for s in students_dashboard_payload
+        ]
+        selected_student = psychometric_students[0] if psychometric_students else None
 
         ctx = {
-            "linked_students": students,
+            "linked_students": [],  # payload drives UI; avoid re-querying User rows
             "psychometric_students": psychometric_students,
             "selected_student": selected_student,
-            "students_dashboard_payload_json": mark_safe(json.dumps(students_dashboard_payload)),
-            "course_suggestions_json": mark_safe(json.dumps(course_suggestions_by_student)),
+            "students_dashboard_payload_json": mark_safe(
+                json.dumps(students_dashboard_payload)
+            ),
+            "course_suggestions_json": mark_safe(
+                json.dumps(course_suggestions_by_student)
+            ),
+            "mieq_assessments_json": mark_safe(json.dumps(mieq_by_student)),
             "selected_student_id": selected_student_id,
             "student_assessment_reports": student_assessment_reports,
         }
@@ -873,7 +930,7 @@ class ParentsDashboardView(TemplateView):
 
 @method_decorator(login_required(login_url=reverse_lazy('parents_login')), name='dispatch')
 class ParentCoursesCatalogView(TemplateView):
-    """Parent catalog of courses, tests, and assessments for linked students."""
+    """Parent catalog of courses for linked students (Redis-first query payloads)."""
     template_name = "template20/parents/courses_catalog.html"
 
     def get(self, request, *args, **kwargs):
@@ -881,8 +938,21 @@ class ParentCoursesCatalogView(TemplateView):
             return redirect(get_dashboard_url_for_user(request, request.user))
 
         from users.parent_courses_catalog import build_parent_courses_catalog
+        from users.parent_dashboard_cache import get_or_build_parent_catalog_payload
 
-        payload = build_parent_courses_catalog(request.user)
+        parent = request.user
+        parent_id = int(getattr(parent, "id", 0) or 0)
+
+        def _build():
+            return build_parent_courses_catalog(parent)
+
+        if parent_id:
+            payload = get_or_build_parent_catalog_payload(parent_id, _build)
+        else:
+            payload = _build()
+
+        # JSON-serializable rebuild: sections may contain model-backed fields from
+        # uncached path; cached path stores only plain data from build_parent_courses_catalog.
         ctx = {
             "page_title": "Courses & Tests",
             "sections": payload.get("sections") or [],
@@ -1171,8 +1241,7 @@ class ParentStudentAssessmentReportFragmentView(View):
     """Returns inline assessment report HTML for the parent dashboard (no iframe).
 
     The report build is expensive, so the rendered HTML fragment is cached per
-    student (both in-process and via the Django cache backend). Pass ?refresh=1
-    to force a rebuild (e.g. right after a student completes an assessment).
+    student (in-process + parents Redis alias). Pass ?refresh=1 to force a rebuild.
     """
 
     CACHE_TTL_SECONDS = 900  # 15 minutes
@@ -1182,30 +1251,41 @@ class ParentStudentAssessmentReportFragmentView(View):
         import logging
         import time
 
-        from django.core.cache import cache
         from django.http import HttpResponse
+
+        from users.parent_dashboard_cache import (
+            get_cached_json,
+            parent_report_html_cache_key,
+            set_cached_json,
+        )
 
         logger = logging.getLogger(__name__)
 
         student = _get_parent_linked_student_or_404(request, student_id)
-        cache_key = f"parent_report_html:{self.CACHE_VERSION}:{student.id}"
+        cache_key = parent_report_html_cache_key(student.id, self.CACHE_VERSION)
         force_refresh = (request.GET.get("refresh") or "").strip() == "1"
 
         if force_refresh:
             _PARENT_REPORT_HTML_CACHE.pop(cache_key, None)
+            try:
+                from users.parent_dashboard_cache import invalidate_parent_report_cache
+
+                invalidate_parent_report_cache(student.id)
+            except Exception:
+                pass
 
         html = None
         now = time.monotonic()
 
-        # 1) In-process cache (works even under DummyCache / without Redis).
+        # 1) In-process cache (fastest; works even without Redis).
         if not force_refresh:
             entry = _PARENT_REPORT_HTML_CACHE.get(cache_key)
             if entry and (now - entry[0]) < _PARENT_REPORT_HTML_TTL_SECONDS:
                 html = entry[1]
 
-        # 2) Shared Django cache (Redis in production).
+        # 2) Shared parents Redis alias (not DummyCache default in DEBUG).
         if html is None and not force_refresh:
-            html = cache.get(cache_key)
+            html = get_cached_json(cache_key)
 
         # 3) Build it.
         if html is None:
@@ -1223,10 +1303,7 @@ class ParentStudentAssessmentReportFragmentView(View):
                 html = parent_assessment_report_empty_html(student)
 
             _PARENT_REPORT_HTML_CACHE[cache_key] = (now, html)
-            try:
-                cache.set(cache_key, html, self.CACHE_TTL_SECONDS)
-            except Exception:
-                pass
+            set_cached_json(cache_key, html, self.CACHE_TTL_SECONDS)
 
         return HttpResponse(html)
 
@@ -1295,96 +1372,87 @@ class ParentContentListView(TemplateView):
     def get(self, request, kind, *args, **kwargs):
         kind = (kind or "").lower()
         user_ids = _parent_all_bookmark_user_ids(request)
-        from django.contrib.contenttypes.models import ContentType
-        from users.models import ParentStudentBookmark
+        from users.parent_student_insights import linked_students_for_parent, resolve_student_grade
+
+        raw_students = linked_students_for_parent(request.user)
+        linked_students = []
+        students_by_id = {}
+        for s in raw_students:
+            _, grade_label = resolve_student_grade(s)
+            sid = int(s.id)
+            students_by_id[sid] = s
+            linked_students.append({
+                "id": sid,
+                "name": getattr(s, "name", "") or "Student",
+                "grade_label": grade_label,
+            })
+        selected_student_id = None
+        raw_sid = (request.GET.get("student_id") or "").strip()
+        if raw_sid.isdigit():
+            sid = int(raw_sid)
+            if sid in students_by_id:
+                selected_student_id = sid
+        if selected_student_id is None and linked_students:
+            selected_student_id = linked_students[0]["id"]
+        selected_student = students_by_id.get(selected_student_id) if selected_student_id else None
+
+        career_cards = []
+        blog_cards = []
+        video_cards = []
+        items = []
 
         if kind == "careers":
-            from careers.models import Career, CareerShortlist
             page_title = "Careers"
             browse_url = reverse("careers:career")
-            careers = []
-            seen = set()
-            for cs in CareerShortlist.objects.filter(
-                user_id__in=user_ids, career__isnull=False
-            ).select_related("career").order_by("-id"):
-                if cs.career_id and cs.career_id not in seen and cs.career:
-                    careers.append(cs.career)
-                    seen.add(cs.career_id)
-            ct = ContentType.objects.get_for_model(Career)
-            for bm in ParentStudentBookmark.objects.filter(
-                parent=request.user, content_type=ct
-            ).order_by("-created"):
-                obj = Career.objects.filter(id=bm.object_id).first()
-                if obj and obj.id not in seen:
-                    careers.append(obj)
-                    seen.add(obj.id)
-            items = careers
             from users.career_interests import build_parent_career_shortlist_cards
 
-            career_cards = build_parent_career_shortlist_cards(request.user, user_ids)
+            career_cards = build_parent_career_shortlist_cards(
+                request.user, user_ids, student=selected_student
+            )
+            items = [c.get("career") for c in career_cards if c.get("career")]
         elif kind == "blogs":
-            from blog.models import BlogShortlist, Blog as BlogModel
             page_title = "Blogs"
             browse_url = reverse("blog:blogs")
-            blogs = []
-            seen = set()
-            for bs in BlogShortlist.objects.filter(
-                user_id__in=user_ids, blog__isnull=False
-            ).select_related("blog").order_by("-id"):
-                if bs.blog_id and bs.blog_id not in seen and bs.blog:
-                    blogs.append(bs.blog)
-                    seen.add(bs.blog_id)
-            ct = ContentType.objects.get_for_model(BlogModel)
-            for bm in ParentStudentBookmark.objects.filter(
-                parent=request.user, content_type=ct
-            ).order_by("-created"):
-                obj = BlogModel.get_published_objects().filter(id=bm.object_id).first()
-                if obj and obj.id not in seen:
-                    blogs.append(obj)
-                    seen.add(obj.id)
-            if seen:
-                published_ids = set(
-                    BlogModel.get_published_objects().filter(id__in=list(seen)).values_list("id", flat=True)
-                )
-                blogs = [b for b in blogs if b and b.id in published_ids]
-            items = blogs
+            from users.parent_saved_items import build_parent_blog_cards
+
+            blog_cards = build_parent_blog_cards(
+                request.user, user_ids, student=selected_student
+            )
+            items = [c.get("blog") for c in blog_cards if c.get("blog")]
         elif kind == "videos":
             page_title = "Videos"
             browse_url = reverse("careers:careervideos")
-            videos = []
-            seen = set()
-            for vid in Videos.objects.filter(shortlist__in=user_ids).distinct().order_by("-id"):
-                if vid.id not in seen:
-                    videos.append(vid)
-                    seen.add(vid.id)
-            ct = ContentType.objects.get_for_model(Videos)
-            for bm in ParentStudentBookmark.objects.filter(
-                parent=request.user, content_type=ct
-            ).order_by("-created"):
-                obj = Videos.objects.filter(id=bm.object_id).first()
-                if obj and obj.id not in seen:
-                    videos.append(obj)
-                    seen.add(obj.id)
-            items = videos
+            from users.parent_saved_items import build_parent_video_cards
+
+            video_cards = build_parent_video_cards(
+                request.user, user_ids, student=selected_student
+            )
+            items = [c.get("video") for c in video_cards if c.get("video")]
         else:
             raise Http404("Invalid kind")
+
+        if selected_student_id:
+            sep = "&" if "?" in browse_url else "?"
+            browse_url = f"{browse_url}{sep}student_id={selected_student_id}"
 
         ctx = {
             "kind": kind,
             "page_title": page_title,
             "browse_url": browse_url,
+            "browse_url_base": reverse(
+                "careers:career" if kind == "careers" else (
+                    "blog:blogs" if kind == "blogs" else "careers:careervideos"
+                )
+            ),
             "browse_label": "Browse More",
             "items": items,
             "remove_saved_url": reverse("parents_remove_saved", args=[kind]),
+            "linked_students": linked_students,
+            "selected_student_id": selected_student_id,
+            "career_cards": career_cards,
+            "blog_cards": blog_cards,
+            "video_cards": video_cards,
         }
-        if kind == "careers":
-            ctx["career_cards"] = career_cards
-        elif kind == "blogs":
-            from users.parent_saved_items import build_parent_blog_cards
-            ctx["blog_cards"] = build_parent_blog_cards(request.user, user_ids)
-        elif kind == "videos":
-            from users.parent_saved_items import build_parent_video_cards
-            ctx["video_cards"] = build_parent_video_cards(request.user, user_ids)
         return render(request, self.template_name, ctx)
 
 
@@ -1403,11 +1471,16 @@ class ParentRemoveSavedItemView(APIView):
             remove_parent_saved_video,
         )
 
+        student_id = None
+        raw_sid = (request.POST.get("student_id") or "").strip()
+        if raw_sid.isdigit():
+            student_id = int(raw_sid)
+
         if kind == "careers":
             career_slug = (request.POST.get("careerslug") or request.POST.get("career_slug") or "").strip()
             if not career_slug:
                 return Response({"success": False, "message": "Career slug is required"}, status=status.HTTP_400_BAD_REQUEST)
-            ok = remove_parent_saved_career(request.user, career_slug=career_slug)
+            ok = remove_parent_saved_career(request.user, career_slug=career_slug, student_id=student_id)
             msg = "Career removed" if ok else "Career not found"
         elif kind == "blogs":
             blog_id = request.POST.get("blog_id")
@@ -1415,7 +1488,7 @@ class ParentRemoveSavedItemView(APIView):
                 blog_id_int = int(blog_id)
             except (TypeError, ValueError):
                 return Response({"success": False, "message": "Blog id is required"}, status=status.HTTP_400_BAD_REQUEST)
-            ok = remove_parent_saved_blog(request.user, blog_id=blog_id_int)
+            ok = remove_parent_saved_blog(request.user, blog_id=blog_id_int, student_id=student_id)
             msg = "Blog removed" if ok else "Blog not found"
         elif kind == "videos":
             video_id = request.POST.get("video_id")
@@ -1423,7 +1496,7 @@ class ParentRemoveSavedItemView(APIView):
                 video_id_int = int(video_id)
             except (TypeError, ValueError):
                 return Response({"success": False, "message": "Video id is required"}, status=status.HTTP_400_BAD_REQUEST)
-            ok = remove_parent_saved_video(request.user, video_id=video_id_int)
+            ok = remove_parent_saved_video(request.user, video_id=video_id_int, student_id=student_id)
             msg = "Video removed" if ok else "Video not found"
         else:
             return Response({"success": False, "message": "Invalid kind"}, status=status.HTTP_400_BAD_REQUEST)
@@ -1998,6 +2071,39 @@ def _parent_mobile_exists(mobile: str, exclude_user_id: int | None = None) -> bo
     return qs.filter(Q(mobile=digits) | Q(mobile=f"+91{digits}") | Q(mobile=f"91{digits}")).exists()
 
 
+def _login_mode_from_request(request) -> str:
+    """Client login page mode: parent | student | default."""
+    raw = (
+        request.POST.get("login_mode")
+        or request.GET.get("login_mode")
+        or ""
+    )
+    mode = str(raw).strip().lower()
+    if mode in ("parent", "student", "default"):
+        return mode
+    return "default"
+
+
+def _find_parent_user_by_mobile(mobile) -> User | None:
+    """Existing parent account only — no signup on the parent login page."""
+    digits = _normalize_mobile_digits(str(mobile) if mobile is not None else "")
+    if not digits:
+        return None
+    return (
+        User.objects.filter(user_type=choices.UserType.PARENT)
+        .filter(Q(mobile=digits) | Q(mobile=f"+91{digits}") | Q(mobile=f"91{digits}"))
+        .order_by("-id")
+        .first()
+    )
+
+
+_PARENT_LOGIN_NO_ACCOUNT_MSG = (
+    "No parent account found for this mobile number. "
+    "Ask your child to link you from their TopTeen profile. "
+    "Parents cannot sign up directly."
+)
+
+
 def _mobile_conflicts_student_parent(mobile: str, current_user: User | None = None, intended_user_type: int | None = None) -> bool:
     """
     Enforce: Parent and Student mobile numbers must not be the same.
@@ -2435,6 +2541,7 @@ class LoginOTP(APIView):
         cs=ComService()
         otp = request.POST.getlist('otp',[]) 
         username=request.POST.get("user_name")
+        login_mode = _login_mode_from_request(request)
         if username and len(otp)==6:
             ok, err = _validate_login_mobile_max_digits(username, 10)
             if not ok:
@@ -2448,11 +2555,24 @@ class LoginOTP(APIView):
                 mobile=0
                 email=str(username)
                 username=email
+            if login_mode == "parent" and not isinstance(username, int):
+                data["message"] = "Please enter a valid 10-digit mobile number"
+                data["otp_verify"] = False
+                data["success"] = False
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
             otp_type=choices.CommunicationTypeChooices.SMS if isinstance(username, int) else choices.CommunicationTypeChooices.EMAIL
             is_otp_verified=otp and cs.verify_otp(username,''.join(otp),otp_type,delete=False)
             if is_otp_verified:
-                # Find user by email or mobile
-                user = User.objects.filter(Q(mobile=mobile) | Q(email=email)).last()
+                # Find user by email or mobile (parent mode: existing PARENT only)
+                if login_mode == "parent":
+                    user = _find_parent_user_by_mobile(mobile)
+                    if not user or not user.get_user_status():
+                        data["message"] = _PARENT_LOGIN_NO_ACCOUNT_MSG
+                        data["otp_verify"] = False
+                        data["success"] = False
+                        return Response(data, status=status.HTTP_200_OK)
+                else:
+                    user = User.objects.filter(Q(mobile=mobile) | Q(email=email)).last()
                 if user and user.get_user_status():
                     # User exists and is active - log them in
                     from django.contrib.auth import login
@@ -2827,6 +2947,13 @@ class LinkParentMobile(APIView):
 
         ParentStudentLink.objects.get_or_create(parent=parent_user, student=request.user)
 
+        try:
+            from users.parent_dashboard_cache import invalidate_parent_dashboard_cache
+
+            invalidate_parent_dashboard_cache(parent_user.id)
+        except Exception:
+            pass
+
         return Response({'success': True, 'message': 'Parent linked successfully'}, status=status.HTTP_200_OK)
 
 
@@ -2901,6 +3028,12 @@ class VerifyParentOtp(APIView):
             parent_user.save()
 
         ParentStudentLink.objects.get_or_create(parent=parent_user, student=request.user)
+        try:
+            from users.parent_dashboard_cache import invalidate_parent_dashboard_cache
+
+            invalidate_parent_dashboard_cache(parent_user.id)
+        except Exception:
+            pass
         return Response({'success': True, 'message': 'Parent linked successfully'}, status=status.HTTP_200_OK)
 
 
@@ -3153,10 +3286,12 @@ class ResendOtp(APIView):
         data['message']="All fields required"
         cs=ComService()
         username=request.POST.get('user_name')
+        login_mode = _login_mode_from_request(request)
         if username:
             ok, err = _validate_login_mobile_max_digits(username, 10)
             if not ok:
                 data["message"] = err or data["message"]
+                data["success"] = False
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
             try:
                 mobile = int(username)
@@ -3165,7 +3300,19 @@ class ResendOtp(APIView):
             except:
                 mobile=0
                 email=str(username)
-                username=email    
+                username=email
+            # Parent login: never create accounts; only send OTP if parent exists.
+            if login_mode == "parent":
+                if not isinstance(username, int):
+                    data["message"] = "Please enter a valid 10-digit mobile number"
+                    data["success"] = False
+                    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                parent_user = _find_parent_user_by_mobile(mobile)
+                if not parent_user or not parent_user.get_user_status():
+                    data["message"] = _PARENT_LOGIN_NO_ACCOUNT_MSG
+                    data["success"] = False
+                    data["show_otp"] = False
+                    return Response(data, status=status.HTTP_200_OK)
             otp_type=choices.CommunicationTypeChooices.SMS if isinstance(username, int) else choices.CommunicationTypeChooices.EMAIL
             send_otp_mail(username,otp_type)
             otp = cs.get_otp(username, otp_type)
@@ -3780,12 +3927,17 @@ class UserDashboard(TemplateView):
 
             mi_latest = MIAssessmentResult.objects.filter(user=profile_user).order_by("-updated_at").first()
             mi_done = mi_latest is not None
+            mi_url = reverse("core:multiple_intelligences_assessment")
+            # Parent viewing a linked student: open the same interactive report UI
+            # with that student's saved results (not the parent's empty test).
+            if is_parent_view and mi_done:
+                mi_url = f"{mi_url}?student_id={int(profile_user.id)}"
             ctx["dashboard_enrolled_items"].append(
                 {
                     "kind": "psychometric",
                     "title": "Multiple Intelligence",
                     "subtitle": "Know your learning style" if mi_done else "Assessment",
-                    "start_url": reverse("core:multiple_intelligences_assessment"),
+                    "start_url": mi_url,
                     "action_label": "View report" if mi_done else "Start test",
                     "action_variant": "report" if mi_done else "start",
                     "kind_badge": "FREE",
@@ -3803,12 +3955,15 @@ class UserDashboard(TemplateView):
 
             eq_latest = EQAssessmentResult.objects.filter(user=profile_user).order_by("-updated_at").first()
             eq_done = eq_latest is not None
+            eq_url = reverse("core:emotional_intelligences_assessment")
+            if is_parent_view and eq_done:
+                eq_url = f"{eq_url}?student_id={int(profile_user.id)}"
             ctx["dashboard_enrolled_items"].append(
                 {
                     "kind": "psychometric",
                     "title": "Emotional Intelligence",
                     "subtitle": "Know your EQ" if eq_done else "Assessment",
-                    "start_url": reverse("core:emotional_intelligences_assessment"),
+                    "start_url": eq_url,
                     "action_label": "View report" if eq_done else "Start test",
                     "action_variant": "report" if eq_done else "start",
                     "kind_badge": "FREE",
