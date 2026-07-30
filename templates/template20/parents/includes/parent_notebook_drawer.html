@@ -279,7 +279,7 @@
   var isAndroid = /Android/i.test(navigator.userAgent || '');
   var restartTimer = null;
   var silenceTimer = null;
-  var SILENCE_MS = 2000;   // auto-stop mic after 2s pause
+  var SILENCE_MS = 4000;   // auto-stop mic after 4s pause in speech
 
   function setStatus(msg, kind) {
     if (!statusEl) return;
@@ -348,7 +348,7 @@
     silenceTimer = setTimeout(function () {
       silenceTimer = null;
       if (!wantListening) return;
-      // 2s pause → stop; user must tap mic again to continue
+      // 4s pause → stop; user must tap mic again to continue
       stopListening();
       setStatus('Paused. Tap mic to speak more.', 'is-ok');
     }, SILENCE_MS);
@@ -483,19 +483,16 @@
     recognition.onstart = function () {
       if (micUnavailable) return;
       setMicUi(true);
-      setStatus('Listening… pause 2s to stop, or tap mic');
+      setStatus('Listening… pause 4s to stop, or tap mic');
       armSilenceTimer();
     };
 
     recognition.onerror = function (ev) {
       var err = (ev && ev.error) || '';
-      // aborted is normal when we stop; no-speech = treat as pause end
+      // aborted is normal when we stop; no-speech: keep listening until our 4s timer
       if (err === 'aborted') return;
       if (err === 'no-speech') {
-        if (wantListening) {
-          stopListening();
-          setStatus('Paused. Tap mic to speak more.', 'is-ok');
-        }
+        // Browser timed out early — keep session; silence timer / onend restart handle pause
         return;
       }
       wantListening = false;
@@ -519,7 +516,7 @@
     recognition.onend = function () {
       if (micUnavailable) return;
       commitSpeechToPrefix();
-      // Keep listening until 2s silence timer stops us (or user taps stop)
+      // Keep listening until 4s silence timer stops us (or user taps stop)
       if (wantListening) {
         clearRestartTimer();
         restartTimer = setTimeout(function () {
@@ -557,7 +554,7 @@
       }
       if (gotSpeech) {
         writeSpeechToBox(interim);
-        armSilenceTimer(); // reset 2s pause clock on each speech chunk
+        armSilenceTimer(); // reset 4s pause clock on each speech chunk
       }
     };
   }
@@ -565,9 +562,9 @@
   function initRecognition() {
     if (recognition || !speechApiPresent()) return false;
     recognition = new SpeechRecognition();
-    // Android Chrome often mis-handles continuous=true (repeat). Desktop uses
-    // continuous so we can wait out a 2s pause; Android restarts until silence.
-    recognition.continuous = !isAndroid;
+    // continuous so we keep recording until a 4s pause; Android may end early
+    // and we restart in onend while wantListening is true.
+    recognition.continuous = true;
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
     recognition.lang = (navigator.language || 'en-IN');
@@ -605,7 +602,7 @@
       speechFinal = '';
       wantListening = true;
       setMicUi(true);
-      setStatus('Listening… pause 2s to stop, or tap mic');
+      setStatus('Listening… pause 4s to stop, or tap mic');
       // Silence timer starts in onstart (after permission), not here
       try {
         recognition.start();
