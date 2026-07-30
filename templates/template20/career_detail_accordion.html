@@ -896,6 +896,9 @@
     -webkit-overflow-scrolling: touch;
   }
 
+  .car-rel-video.video-vertical .video-box {
+  width: 100%;
+}
 
   }
 </style>
@@ -904,7 +907,7 @@
 {% block content %}
 
 <!-- Hero Section -->
-<section class="career-hero mt-md-18 mt-13 pb-8">
+<section class="career-hero mt-md-18 mt-10 pb-8">
   <div class="container">
     <div class="row">
       <!--breadcrumb-->
@@ -915,7 +918,7 @@
 
       <div class="col-lg-8 single-track-col">
         <div class="track-header">
-          <h1 class="cat-title">{{ career.name }}</h1>
+          <h1 class="cat-title fs-sm-28 fw-bold">{{ career.name }}</h1>
           
           {% if description_intro_html %}
           <div class="blog-summary-box career-intro-content">
@@ -1783,6 +1786,10 @@
           .video-vertical .career-video-thumb-source {
             display: none;
           }
+
+          .blog-sidebar {
+	padding: 15px;
+}
         </style>
         {% endif %}
 
@@ -1801,7 +1808,7 @@
                 {% endif %}
               </div>
               <div class="prf-content">
-                <h3 class="prf-title mt-0">{{ profession.name }}</h3>
+                <h3 class="prf-title mt-0 fs-sm-15">{{ profession.name }}</h3>
                 {% if profession.summary %}
                 <p class="blog-excerpt">{{ profession.summary|truncate(150) }}</p>
                 {% endif %}
