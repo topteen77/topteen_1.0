@@ -1119,6 +1119,8 @@ class ParentEducationLoanCallbackView(APIView):
                 {"success": False, "message": "Not allowed"},
                 status=status.HTTP_403_FORBIDDEN,
             )
+        from datetime import datetime
+
         from django.utils.dateparse import parse_datetime
         from users.education_loan_application import (
             schedule_education_loan_callback,
@@ -1136,7 +1138,24 @@ class ParentEducationLoanCallbackView(APIView):
             or request.POST.get("callback_note")
             or ""
         )
-        dt = parse_datetime(raw_dt.replace("T", " ", 1)) if raw_dt else None
+        dt = None
+        if raw_dt:
+            dt = parse_datetime(raw_dt.replace("T", " ", 1))
+            if dt is None:
+                for fmt in ("%Y-%m-%dT%H:%M", "%Y-%m-%d %H:%M", "%Y-%m-%dT%H:%M:%S"):
+                    try:
+                        dt = datetime.strptime(raw_dt, fmt)
+                        break
+                    except ValueError:
+                        dt = None
+        if raw_dt and dt is None:
+            return Response(
+                {
+                    "success": False,
+                    "message": "Enter a valid preferred date and time.",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         if dt is not None and timezone.is_naive(dt):
             dt = timezone.make_aware(dt, timezone.get_current_timezone())
         app, err = schedule_education_loan_callback(

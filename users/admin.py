@@ -1305,6 +1305,7 @@ class EducationLoanCRMSettingsAdmin(_EducationLoanSingletonAdminMixin, admin.Mod
 
 @admin.register(EducationLoanOpsSettings)
 class EducationLoanOpsSettingsAdmin(_EducationLoanSingletonAdminMixin, admin.ModelAdmin):
+    change_form_template = "admin/users/educationloanopssettings/change_form.html"
     list_display = (
         "pwa_enabled",
         "daily_report_enabled",
@@ -1313,15 +1314,36 @@ class EducationLoanOpsSettingsAdmin(_EducationLoanSingletonAdminMixin, admin.Mod
         "reminder_unfollowed_after_hours",
         "updated_at",
     )
-    fields = (
-        "pwa_enabled",
-        "notify_on_enquiry",
-        "daily_report_enabled",
-        "manager_report_emails",
-        "reminder_enabled",
-        "reminder_unfollowed_after_hours",
-        "instant_login_ttl_hours",
-        "updated_at",
+    fieldsets = (
+        (
+            "Loan Desk PWA",
+            {"fields": ("pwa_enabled", "instant_login_ttl_hours")},
+        ),
+        (
+            "Enquiry notify",
+            {"fields": ("notify_on_enquiry",)},
+        ),
+        (
+            "Daily report",
+            {
+                "fields": (
+                    "daily_report_enabled",
+                    "daily_report_times",
+                    "manager_report_emails",
+                ),
+                "description": (
+                    "Enable the daily loan enquiry email, set one or more IST send times "
+                    "(HH:MM), and recipient emails. Multiple times create multiple Celery "
+                    "Beat schedules. Disable to remove those schedules. Restart Celery Beat "
+                    "after saving so workers pick up the new times."
+                ),
+            },
+        ),
+        (
+            "Follow-up reminders",
+            {"fields": ("reminder_enabled", "reminder_unfollowed_after_hours")},
+        ),
+        ("Meta", {"fields": ("updated_at",)}),
     )
     readonly_fields = ("updated_at",)
 
@@ -1330,6 +1352,23 @@ class EducationLoanOpsSettingsAdmin(_EducationLoanSingletonAdminMixin, admin.Mod
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        times = obj.parsed_daily_report_times()
+        if obj.daily_report_enabled:
+            labels = ", ".join(f"{h:02d}:{m:02d}" for h, m in times)
+            self.message_user(
+                request,
+                f"Daily report Celery times set to {labels} IST. Restart Celery Beat to apply.",
+                messages.WARNING,
+            )
+        else:
+            self.message_user(
+                request,
+                "Daily report disabled — Celery daily-report schedules cleared. Restart Celery Beat to apply.",
+                messages.WARNING,
+            )
 
 
 class EducationLoanRemarkInline(admin.TabularInline):
@@ -1462,7 +1501,31 @@ class EducationLoanApplicationAdmin(_EducationLoanHubAdminMixin, admin.ModelAdmi
 
     lead_follow.short_description = "Lead follow"
 
-    @admin.action(description="Notify loan team (email + instant login)")
+    def save_model(self, request, obj, form, change):
+        prev_assignee_id = None
+        if change and obj.pk:
+            prev_assignee_id = (
+                type(obj)
+                .objects.filter(pk=obj.pk)
+                .values_list("assigned_to_id", flat=True)
+                .first()
+            )
+        super().save_model(request, obj, form, change)
+        new_id = obj.assigned_to_id
+        if new_id and new_id != prev_assignee_id:
+            try:
+                from loan_desk.tasks import send_loan_assignment_notify
+
+                send_loan_assignment_notify.delay(obj.id, request.user.id)
+            except Exception:
+                try:
+                    from loan_desk.services import notify_lead_assignee
+
+                    notify_lead_assignee(obj, request=request, assigned_by=request.user)
+                except Exception:
+                    pass
+
+    @admin.action(description="Notify Loan Managers (email + instant login)")
     def notify_loan_team(self, request, queryset):
         from loan_desk.tasks import send_loan_enquiry_notify
 
@@ -1470,7 +1533,7 @@ class EducationLoanApplicationAdmin(_EducationLoanHubAdminMixin, admin.ModelAdmi
         for app in queryset.exclude(status=choices.EducationLoanApplicationStatus.DRAFT):
             send_loan_enquiry_notify.delay(app.id, "enquiry")
             n += 1
-        self.message_user(request, f"Queued notify for {n} enquiries.")
+        self.message_user(request, f"Queued manager notify for {n} enquiries.")
 
     @admin.display(description="Status", ordering="status")
     def status_display(self, obj):

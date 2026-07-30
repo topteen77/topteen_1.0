@@ -30,10 +30,9 @@
       <div class="parent-nb-input-row">
         <textarea id="parentNbContent" class="form-control parent-nb-textarea" rows="3"
           placeholder="Type or tap mic to speak…" maxlength="4000" enterkeyhint="done"></textarea>
-        <button type="button" class="btn parent-nb-mic-btn is-disabled" id="parentNbMic"
-          title="Checking voice service…"
-          data-mic-tip="Checking voice service…"
-          aria-label="Speak to write" aria-pressed="false" aria-disabled="true">
+        <button type="button" class="btn parent-nb-mic-btn" id="parentNbMic"
+          title="Speak to write"
+          aria-label="Speak to write" aria-pressed="false" aria-disabled="false">
           <i class='bx bx-microphone' aria-hidden="true"></i>
         </button>
       </div>
@@ -381,67 +380,17 @@
   }
 
   function errorMessageForSpeech(err) {
-    if (err === 'network') return 'Voice service unavailable. Check your internet connection.';
+    if (err === 'network') {
+      return 'Voice service briefly unavailable. Tap the mic and try again (needs Chrome/Edge + internet).';
+    }
     if (err === 'not-allowed' || err === 'service-not-allowed') {
-      return 'Microphone blocked. Allow mic access to use voice typing.';
+      return 'Microphone blocked. Allow mic access, then tap the mic again.';
     }
     if (err === 'audio-capture') return 'No microphone found. You can still type.';
-    return 'Voice typing unavailable right now.';
-  }
-
-  function probeSpeechService(done) {
-    if (!speechApiPresent()) {
-      var msg = !SpeechRecognition
-        ? 'Voice typing is not supported in this browser.'
-        : 'Voice typing needs a secure page (https or localhost).';
-      done(false, msg);
-      return;
+    if (err === 'language-not-supported') {
+      return 'This browser language is not supported for voice typing.';
     }
-
-    var probe = new SpeechRecognition();
-    probe.continuous = false;
-    probe.interimResults = false;
-    probe.maxAlternatives = 1;
-    probe.lang = (navigator.language || 'en-IN');
-
-    var finished = false;
-    function finish(ok, msg) {
-      if (finished) return;
-      finished = true;
-      clearTimeout(timer);
-      try { probe.abort(); } catch (e) {}
-      done(ok, msg || '');
-    }
-
-    var timer = setTimeout(function () {
-      // Still running after start → service reachable
-      finish(true, '');
-    }, 1400);
-
-    probe.onstart = function () {
-      finish(true, '');
-    };
-
-    probe.onerror = function (ev) {
-      var err = (ev && ev.error) || '';
-      if (err === 'aborted') return;
-      // no-speech means engine connected
-      if (err === 'no-speech') {
-        finish(true, '');
-        return;
-      }
-      finish(false, errorMessageForSpeech(err));
-    };
-
-    probe.onend = function () {
-      if (!finished) finish(true, '');
-    };
-
-    try {
-      probe.start();
-    } catch (e) {
-      finish(false, 'Voice typing unavailable right now.');
-    }
+    return 'Voice typing unavailable right now. Tap mic to retry.';
   }
 
   function bindRecognitionHandlers() {
@@ -458,8 +407,18 @@
       if (err === 'no-speech' || err === 'aborted') return;
       wantListening = false;
       setMicUi(false);
-      setMicUnavailable(errorMessageForSpeech(err));
-      setStatus('');
+      // Keep mic usable for retry — auto-probe without a user gesture often
+      // falsely reports "network" and used to disable the button permanently.
+      var msg = errorMessageForSpeech(err);
+      if (err === 'audio-capture') {
+        setMicUnavailable(msg);
+      } else {
+        setStatus(msg, 'is-err');
+        if (micBtn) {
+          micBtn.setAttribute('title', msg);
+          micBtn.setAttribute('data-mic-tip', msg);
+        }
+      }
     };
 
     recognition.onend = function () {
@@ -498,6 +457,17 @@
     };
   }
 
+  function initRecognition() {
+    if (recognition || !speechApiPresent()) return false;
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+    recognition.lang = (navigator.language || 'en-IN');
+    bindRecognitionHandlers();
+    return true;
+  }
+
   function setupSpeech() {
     if (!micBtn) return;
 
@@ -508,17 +478,25 @@
     if (!speechApiPresent()) {
       setMicUnavailable(
         !SpeechRecognition
-          ? 'Voice typing is not supported in this browser.'
+          ? 'Voice typing is not supported in this browser. Use Chrome or Edge.'
           : 'Voice typing needs a secure page (https or localhost).'
       );
-    } else {
-      setMicUnavailable('Checking voice service…');
+      return;
     }
+
+    // Enable mic without probing — starting SpeechRecognition without a
+    // user gesture often fails with a false "network" error on Chrome.
+    initRecognition();
+    setMicAvailable();
 
     micBtn.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();
-      if (micUnavailable || !recognition) return;
+      if (micUnavailable) return;
+      if (!recognition && !initRecognition()) {
+        setMicUnavailable('Voice typing is not supported in this browser.');
+        return;
+      }
       if (wantListening) {
         stopListening();
         speechPrefix = contentEl ? contentEl.value : '';
@@ -540,35 +518,10 @@
           try { recognition.start(); } catch (e3) {
             wantListening = false;
             setMicUi(false);
-            setMicUnavailable('Could not start microphone.');
-            setStatus('');
+            setStatus('Could not start microphone. Tap mic to retry.', 'is-err');
           }
         }, 200);
       }
-    });
-  }
-
-  var speechProbed = false;
-  function ensureSpeechProbed() {
-    if (speechProbed) return;
-    if (!speechApiPresent()) {
-      speechProbed = true;
-      return;
-    }
-    speechProbed = true;
-    setMicUnavailable('Checking voice service…');
-    probeSpeechService(function (ok, msg) {
-      if (!ok) {
-        setMicUnavailable(msg);
-        return;
-      }
-      recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.maxAlternatives = 1;
-      recognition.lang = (navigator.language || 'en-IN');
-      bindRecognitionHandlers();
-      setMicAvailable();
     });
   }
 
@@ -749,11 +702,8 @@
   }
 
   setupSpeech();
-  // Probe as soon as parent shell loads so mic is disabled before first open
-  ensureSpeechProbed();
 
   drawer.addEventListener('show.bs.offcanvas', function () {
-    ensureSpeechProbed();
     loadNotes();
     setTimeout(function () { if (contentEl) contentEl.focus(); }, 280);
   });

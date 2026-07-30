@@ -297,6 +297,10 @@ def schedule_education_loan_callback(
     note: str = "",
 ) -> Tuple[Optional[EducationLoanApplication], Optional[str]]:
     """Parent schedules preferred callback datetime on a submitted enquiry."""
+    from datetime import timedelta
+
+    from django.utils import timezone as dj_tz
+
     app = EducationLoanApplication.objects.filter(
         parent=parent,
         id=application_id,
@@ -305,6 +309,8 @@ def schedule_education_loan_callback(
         return None, "Enquiry not found."
     if preferred_at is None:
         return None, "Please choose a preferred date and time."
+    if preferred_at < dj_tz.now() - timedelta(minutes=1):
+        return None, "Preferred callback must be from now onwards."
     from loan_desk.services import schedule_parent_callback
 
     schedule_parent_callback(app, preferred_at=preferred_at, note=note)

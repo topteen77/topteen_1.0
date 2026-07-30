@@ -19,6 +19,24 @@ def send_loan_enquiry_notify(application_id: int, event: str = "enquiry"):
     return notify_team_of_enquiry(app, event=event)
 
 
+@shared_task(name="loan_desk.tasks.send_loan_assignment_notify")
+def send_loan_assignment_notify(application_id: int, assigned_by_id: int | None = None):
+    from loan_desk.services import notify_lead_assignee
+    from users.models import EducationLoanApplication, User
+
+    app = (
+        EducationLoanApplication.objects.select_related("assigned_to")
+        .filter(id=application_id)
+        .first()
+    )
+    if not app or not app.assigned_to_id:
+        return 0
+    assigned_by = None
+    if assigned_by_id:
+        assigned_by = User.objects.filter(id=assigned_by_id).first()
+    return notify_lead_assignee(app, assigned_by=assigned_by)
+
+
 @shared_task(name="loan_desk.tasks.send_loan_daily_report")
 def send_loan_daily_report():
     from communication.com_service import ComService

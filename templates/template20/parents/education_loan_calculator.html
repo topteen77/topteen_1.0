@@ -593,7 +593,8 @@
           <div class="row g-2 align-items-end">
             <div class="col-12 col-md-5">
               <label class="form-label fs-13" for="loanCallbackAt">Preferred date &amp; time</label>
-              <input type="datetime-local" class="form-control" id="loanCallbackAt">
+              <input type="datetime-local" class="form-control" id="loanCallbackAt" required>
+              <div class="invalid-feedback d-none" id="loanCallbackAtError">Choose a date and time from now onwards.</div>
             </div>
             <div class="col-12 col-md-4">
               <label class="form-label fs-13" for="loanCallbackNote">Note (optional)</label>
@@ -1449,16 +1450,68 @@
 
     var loanCallbackBtn = byId('loanCallbackBtn');
     if (loanCallbackBtn) {
+      function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+      function toLocalInputValue(d) {
+        return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate())
+          + 'T' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+      }
+      function applyCallbackMinNow() {
+        var input = byId('loanCallbackAt');
+        if (!input) return;
+        input.min = toLocalInputValue(new Date());
+      }
+      function setCallbackAtError(msg) {
+        var input = byId('loanCallbackAt');
+        var err = byId('loanCallbackAtError');
+        if (input) input.classList.toggle('is-invalid', !!msg);
+        if (err) {
+          err.textContent = msg || 'Choose a date and time from now onwards.';
+          err.classList.toggle('d-none', !msg);
+        }
+      }
+      function validateCallbackAt() {
+        applyCallbackMinNow();
+        var input = byId('loanCallbackAt');
+        var raw = (input && input.value) || '';
+        if (!raw.trim()) {
+          setCallbackAtError('Please choose a preferred date and time.');
+          return false;
+        }
+        var parsed = new Date(raw);
+        if (isNaN(parsed.getTime())) {
+          setCallbackAtError('Enter a valid date and time.');
+          return false;
+        }
+        if (parsed.getTime() < Date.now() - 60000) {
+          setCallbackAtError('Preferred callback must be from now onwards.');
+          if (input) input.value = '';
+          return false;
+        }
+        setCallbackAtError('');
+        return true;
+      }
+
+      applyCallbackMinNow();
+      var loanCallbackAt = byId('loanCallbackAt');
+      if (loanCallbackAt) {
+        ['focus', 'click', 'change'].forEach(function (evt) {
+          loanCallbackAt.addEventListener(evt, function () {
+            applyCallbackMinNow();
+            if (loanCallbackAt.value) validateCallbackAt();
+          });
+        });
+      }
+
       loanCallbackBtn.addEventListener('click', function () {
         if (!loanLatestEnquiry || !loanLatestEnquiry.id) {
           setLoanActionMessage('error', 'Submit an enquiry first, then schedule a callback.');
           return;
         }
-        var at = (byId('loanCallbackAt') && byId('loanCallbackAt').value) || '';
-        if (!at) {
-          setLoanActionMessage('error', 'Please choose a preferred date and time.');
+        if (!validateCallbackAt()) {
+          setLoanActionMessage('error', 'Preferred callback must be from now onwards.');
           return;
         }
+        var at = (byId('loanCallbackAt') && byId('loanCallbackAt').value) || '';
         loanCallbackBtn.disabled = true;
         fetch(loanCallbackUrl, {
           method: 'POST',

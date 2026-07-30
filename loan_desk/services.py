@@ -25,6 +25,15 @@ def loan_desk_team_users(*, enabled_only: bool = True):
     return qs.order_by("user_type", "name", "email")
 
 
+def loan_desk_managers(*, enabled_only: bool = True):
+    from users.models import User
+
+    qs = User.objects.filter(user_type=choices.UserType.LOAN_MANAGER)
+    if enabled_only:
+        qs = qs.filter(user_status=choices.UserStatus.UNBLOCK)
+    return qs.order_by("name", "email")
+
+
 def create_instant_login_token(user, application, *, ttl_hours: int = 48) -> str:
     """Create token row; return raw token string for URL."""
     from users.models import LoanInstantLoginToken
@@ -107,25 +116,14 @@ def schedule_parent_callback(application, *, preferred_at, note: str = "") -> No
 
 
 def notify_team_of_enquiry(application, *, request=None, event: str = "enquiry") -> int:
-    """Email loan team with summary + instant-login links. Returns send count."""
+    """Email Loan Managers with summary + instant-login links. Returns send count."""
     from users.models import EducationLoanOpsSettings
 
     ops = EducationLoanOpsSettings.load()
     if not ops.notify_on_enquiry:
         return 0
 
-    recipients = list(loan_desk_team_users(enabled_only=True))
-    if not recipients:
-        # Fall back to manager report emails
-        for email in ops.manager_email_list():
-            try:
-                _send_enquiry_email_to_address(
-                    email, application, request=request, event=event, instant_url=""
-                )
-            except Exception:
-                logger.exception("Failed loan enquiry notify to %s", email)
-        return len(ops.manager_email_list())
-
+    recipients = list(loan_desk_managers(enabled_only=True))
     sent = 0
     for user in recipients:
         email = (getattr(user, "email", None) or "").strip()
@@ -139,7 +137,78 @@ def notify_team_of_enquiry(application, *, request=None, event: str = "enquiry")
             sent += 1
         except Exception:
             logger.exception("Failed loan enquiry notify to user %s", user.id)
+
+    # Also notify configured manager report emails (if not already covered)
+    already = {
+        (getattr(u, "email", None) or "").strip().lower()
+        for u in recipients
+        if (getattr(u, "email", None) or "").strip()
+    }
+    for email in ops.manager_email_list():
+        if email.lower() in already:
+            continue
+        try:
+            _send_enquiry_email_to_address(
+                email, application, request=request, event=event, instant_url=""
+            )
+            sent += 1
+        except Exception:
+            logger.exception("Failed loan enquiry notify to %s", email)
     return sent
+
+
+def notify_lead_assignee(application, *, request=None, assigned_by=None) -> int:
+    """Email the assigned executive/manager when a lead is assigned to them."""
+    user = getattr(application, "assigned_to", None)
+    if not user:
+        return 0
+    email = (getattr(user, "email", None) or "").strip()
+    if not email or "@" not in email:
+        return 0
+    try:
+        if not bool(user.get_user_status()):
+            return 0
+    except Exception:
+        if getattr(user, "user_status", None) == choices.UserStatus.BLOCK:
+            return 0
+
+    from communication.com_service import ComService
+
+    try:
+        url = instant_login_url(request, user, application)
+    except Exception:
+        logger.exception("Failed to build instant login for assignee %s", user.id)
+        url = reverse("loan_desk:detail", kwargs={"pk": application.id})
+
+    by_name = ""
+    if assigned_by is not None:
+        by_name = (
+            getattr(assigned_by, "name", None)
+            or getattr(assigned_by, "email", None)
+            or ""
+        )
+    subject = f"Loan lead assigned to you — #{application.id}"
+    lines = [
+        f"A loan enquiry has been assigned to you as lead follow.",
+        f"Assigned by: {by_name or '—'}",
+        "",
+    ] + _enquiry_summary_lines(application)
+    lines.append("")
+    lines.append(f"Open enquiry (instant login): {url}")
+    body = "\n".join(lines)
+    html = (
+        "<p>A loan enquiry has been assigned to you as lead follow."
+        + (f"<br>Assigned by: {by_name}" if by_name else "")
+        + "</p><p>"
+        + "<br>".join(_enquiry_summary_lines(application))
+        + f'</p><p><a href="{url}">View enquiry (instant login)</a></p>'
+    )
+    try:
+        ok = ComService().send_mail(subject, [email], body, html)
+        return 1 if ok else 0
+    except Exception:
+        logger.exception("Failed assignment notify to user %s", user.id)
+        return 0
 
 
 def _send_enquiry_email_to_user(user, application, *, instant_url: str, event: str) -> None:

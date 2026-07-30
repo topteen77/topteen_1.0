@@ -270,11 +270,26 @@ class LoanDeskDetailView(View):
             if not ok:
                 messages.error(request, errors.get("assigned_to") or "Invalid assignee.")
                 return redirect("loan_desk:detail", pk=pk)
+            prev_assignee_id = app.assigned_to_id
             if aid is None:
                 app.assigned_to = None
             else:
                 app.assigned_to = User.objects.filter(id=aid).first()
             app.save(update_fields=["assigned_to", "modified"])
+            if aid and aid != prev_assignee_id and app.assigned_to_id:
+                try:
+                    from loan_desk.tasks import send_loan_assignment_notify
+
+                    send_loan_assignment_notify.delay(app.id, request.user.id)
+                except Exception:
+                    try:
+                        from loan_desk.services import notify_lead_assignee
+
+                        notify_lead_assignee(
+                            app, request=request, assigned_by=request.user
+                        )
+                    except Exception:
+                        pass
             messages.success(request, "Lead follow updated.")
         else:
             messages.error(request, "Unknown action.")

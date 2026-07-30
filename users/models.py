@@ -837,7 +837,18 @@ class EducationLoanOpsSettings(models.Model):
         default=True,
         help_text="When disabled, Loan Desk PWA manifest/SW return 404.",
     )
-    daily_report_enabled = models.BooleanField(default=True)
+    daily_report_enabled = models.BooleanField(
+        default=True,
+        help_text="When off, daily loan report emails stop and Celery beat entries are removed (restart Beat).",
+    )
+    daily_report_times = models.TextField(
+        default="09:30",
+        blank=True,
+        help_text=(
+            "Send time(s) in IST (CELERY_TIMEZONE). One HH:MM per line, or comma-separated. "
+            "Example: 09:30 and 17:00. Restart Celery Beat after changing."
+        ),
+    )
     manager_report_emails = models.TextField(
         blank=True,
         help_text="Comma-separated emails for the daily loan enquiry report.",
@@ -853,7 +864,7 @@ class EducationLoanOpsSettings(models.Model):
     )
     notify_on_enquiry = models.BooleanField(
         default=True,
-        help_text="Email enabled Managers/Executives when a parent submits an enquiry.",
+        help_text="Email enabled Loan Managers (and manager report emails) when a parent submits an enquiry.",
     )
     instant_login_ttl_hours = models.PositiveSmallIntegerField(default=48)
     updated_at = models.DateTimeField(auto_now=True)
@@ -867,7 +878,19 @@ class EducationLoanOpsSettings(models.Model):
 
     def save(self, *args, **kwargs):
         self.pk = 1
+        from loan_desk.beat import format_daily_report_times, parse_daily_report_times
+
+        times = parse_daily_report_times(self.daily_report_times or "")
+        if not times:
+            times = [(9, 30)]
+        self.daily_report_times = format_daily_report_times(times)
         super().save(*args, **kwargs)
+        try:
+            from loan_desk.beat import sync_loan_daily_report_beat_schedule
+
+            sync_loan_daily_report_beat_schedule(self)
+        except Exception:
+            pass
 
     @classmethod
     def load(cls):
@@ -877,6 +900,12 @@ class EducationLoanOpsSettings(models.Model):
     def manager_email_list(self):
         raw = self.manager_report_emails or ""
         return [e.strip() for e in raw.replace(";", ",").split(",") if e.strip() and "@" in e]
+
+    def parsed_daily_report_times(self):
+        from loan_desk.beat import parse_daily_report_times
+
+        times = parse_daily_report_times(self.daily_report_times or "")
+        return times or [(9, 30)]
 
 
 class LoanInstantLoginToken(models.Model):
