@@ -764,6 +764,24 @@ class EducationLoanApplication(BaseModel):
     crm_synced_at = models.DateTimeField(null=True, blank=True)
     crm_external_id = models.CharField(max_length=120, blank=True)
     crm_sync_response = models.TextField(blank=True)
+    assigned_to = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="assigned_education_loan_applications",
+        limit_choices_to={
+            "user_type__in": [
+                choices.UserType.LOAN_MANAGER,
+                choices.UserType.LOAN_EXECUTIVE,
+            ]
+        },
+        help_text="Lead follow — loan executive/manager handling this enquiry.",
+    )
+    callback_preferred_at = models.DateTimeField(null=True, blank=True)
+    callback_note = models.CharField(max_length=500, blank=True)
+    next_follow_up_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    last_followed_up_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name = "Education Loan Lead"
@@ -771,10 +789,120 @@ class EducationLoanApplication(BaseModel):
         indexes = [
             models.Index(fields=["parent", "status"]),
             models.Index(fields=["status", "crm_sync_status"]),
+            models.Index(fields=["assigned_to", "status"]),
+            models.Index(fields=["next_follow_up_at"]),
         ]
 
     def __str__(self):
         return f"Loan {self.get_status_display()} — parent {self.parent_id}"
+
+    @property
+    def lead_follow_username(self) -> str:
+        u = self.assigned_to
+        if not u:
+            return "—"
+        return (getattr(u, "name", None) or getattr(u, "email", None) or str(u.id) or "—")
+
+
+class EducationLoanRemark(BaseModel):
+    """Internal loan-desk remark / follow-up note on an enquiry."""
+
+    application = models.ForeignKey(
+        EducationLoanApplication,
+        on_delete=models.CASCADE,
+        related_name="remarks",
+    )
+    author = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="education_loan_remarks",
+    )
+    body = models.TextField()
+
+    class Meta:
+        ordering = ("-created",)
+        verbose_name = "Education Loan Remark"
+        verbose_name_plural = "Education Loan Remarks"
+
+    def __str__(self):
+        return f"Remark on loan #{self.application_id}"
+
+
+class EducationLoanOpsSettings(models.Model):
+    """Singleton: loan desk ops — manager report email, PWA, reminders."""
+
+    pwa_enabled = models.BooleanField(
+        default=True,
+        help_text="When disabled, Loan Desk PWA manifest/SW return 404.",
+    )
+    daily_report_enabled = models.BooleanField(default=True)
+    manager_report_emails = models.TextField(
+        blank=True,
+        help_text="Comma-separated emails for the daily loan enquiry report.",
+    )
+    reminder_enabled = models.BooleanField(default=True)
+    reminder_unfollowed_after_hours = models.PositiveIntegerField(
+        default=24,
+        help_text=(
+            "Hours after a new enquiry is submitted with no follow-up before "
+            "reminder emails. Default 24 (= 1 day). Change to any duration "
+            "(e.g. 12, 48, 72)."
+        ),
+    )
+    notify_on_enquiry = models.BooleanField(
+        default=True,
+        help_text="Email enabled Managers/Executives when a parent submits an enquiry.",
+    )
+    instant_login_ttl_hours = models.PositiveSmallIntegerField(default=48)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Education Loan Ops settings"
+        verbose_name_plural = "Education Loan Ops settings"
+
+    def __str__(self):
+        return "Education Loan Ops settings"
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def manager_email_list(self):
+        raw = self.manager_report_emails or ""
+        return [e.strip() for e in raw.replace(";", ",").split(",") if e.strip() and "@" in e]
+
+
+class LoanInstantLoginToken(models.Model):
+    """Single-use token for loan team instant login into an enquiry."""
+
+    token_hash = models.CharField(max_length=64, unique=True, db_index=True)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="loan_instant_login_tokens",
+    )
+    application = models.ForeignKey(
+        EducationLoanApplication,
+        on_delete=models.CASCADE,
+        related_name="instant_login_tokens",
+    )
+    expires_at = models.DateTimeField(db_index=True)
+    used_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Loan Instant Login Token"
+        verbose_name_plural = "Loan Instant Login Tokens"
+
+    def __str__(self):
+        return f"Instant login user={self.user_id} app={self.application_id}"
 
 
 class EducationLoanCRMSettings(models.Model):

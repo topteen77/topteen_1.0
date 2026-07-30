@@ -1,4 +1,5 @@
 {% set active_nav = request.resolver_match.url_name if request.resolver_match else '' %}
+{% set notebook_active = active_nav in ['mynotepad', 'createnote', 'updatenote'] %}
 <div class="offcanvas offcanvas-start parent-mobile-drawer d-lg-none" tabindex="-1" id="mobileProfileDrawer"
   aria-labelledby="mobileProfileDrawerLabel">
   <div class="offcanvas-header border-bottom">
@@ -76,6 +77,15 @@
         <span class="parent-mobile-nav-label">My Loan Applications</span>
         <i class="bx bx-right-arrow-alt parent-mobile-nav-arrow"></i>
       </a>
+      <a href="{{ url('users:mynotepad') }}" class="parent-mobile-nav-item{% if notebook_active %} is-active{% endif %}"
+        data-parent-notebook-open
+        {% if notebook_active %} aria-current="page"{% endif %}>
+        <span class="parent-mobile-nav-icon">
+          <i class='bx bx-note'></i>
+        </span>
+        <span class="parent-mobile-nav-label">My Notebook</span>
+        <i class="bx bx-right-arrow-alt parent-mobile-nav-arrow"></i>
+      </a>
       <a href="{{ url('users:logout') }}" class="parent-mobile-nav-item parent-mobile-nav-item-logout">
         <span class="parent-mobile-nav-icon">
           <i class='bx bx-log-out-circle'></i>
@@ -86,3 +96,5 @@
     </nav>
   </div>
 </div>
+{% include "template20/parents/includes/parent_notebook_drawer.html" %}
+{% include "template20/parents/includes/parent_swal.html" %}

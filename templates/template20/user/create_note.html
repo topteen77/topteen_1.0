@@ -7,6 +7,9 @@
 
 {% block additionalhead %}
 {{ super() }}
+{% if is_parent_shell|default(false) %}
+<link rel="stylesheet" href="{{ static('css/parent-sidebar.css') }}">
+{% endif %}
 <style>
   .create-note-page {
     padding-top: 47px;
@@ -113,6 +116,30 @@
 {% block student_shell_vars %}
 {{ super() }}
 {% set student_shell_subtitle = 'Note' %}
+{% endblock %}
+
+{% block student_shell_topbar %}
+{% if is_parent_shell|default(false) %}
+{% include "template20/parents/includes/parent_shell_topbar.html" %}
+{% else %}
+{{ super() }}
+{% endif %}
+{% endblock %}
+
+{% block student_sidebar %}
+{% if is_parent_shell|default(false) %}
+{% include "template20/parents/includes/parent_sidebar.html" %}
+{% else %}
+{{ super() }}
+{% endif %}
+{% endblock %}
+
+{% block student_shell_offcanvas %}
+{% if is_parent_shell|default(false) %}
+{% include "template20/parents/includes/parent_offcanvas.html" %}
+{% else %}
+{{ super() }}
+{% endif %}
 {% endblock %}
 
 {% block student_section_class %}create-note-page std-shell-main{% endblock %}

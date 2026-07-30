@@ -67,6 +67,7 @@
 {% block userlinks %}
   <a href="{% url 'admin:hub_configuration' %}" class="admin-quick-link">Configuration</a> /
   <a href="{% url 'admin:hub_operations' %}" class="admin-quick-link">Operations</a> /
+  <a href="{% url 'admin:hub_education_loan' %}" class="admin-quick-link">Education Loan</a> /
   <a href="{% url 'core:home' %}" target="_blank" rel="noopener noreferrer" class="admin-quick-link">Website</a> /
   <a href="{% url 'topteenadmin:topteendashboard' %}" class="admin-quick-link">Dashboard</a> /
   {% if user.is_superuser %}

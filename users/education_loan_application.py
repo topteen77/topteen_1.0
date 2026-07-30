@@ -64,6 +64,11 @@ def serialize_education_loan_application(app: EducationLoanApplication) -> Dict[
         "modified": app.modified.isoformat() if app.modified else None,
         "submitted_at": app.submitted_at.isoformat() if app.submitted_at else None,
         "created": app.created.isoformat() if app.created else None,
+        "callback_preferred_at": (
+            app.callback_preferred_at.isoformat() if app.callback_preferred_at else None
+        ),
+        "callback_note": app.callback_note or "",
+        "assigned_to_name": app.lead_follow_username,
     }
 
 
@@ -148,10 +153,8 @@ def get_parent_education_loan_draft(parent: User) -> Optional[EducationLoanAppli
 
 def get_parent_latest_enquiry(parent: User) -> Optional[EducationLoanApplication]:
     return (
-        EducationLoanApplication.objects.filter(
-            parent=parent,
-            status=choices.EducationLoanApplicationStatus.ENQUIRY_SENT,
-        )
+        EducationLoanApplication.objects.filter(parent=parent)
+        .exclude(status=choices.EducationLoanApplicationStatus.DRAFT)
         .order_by("-submitted_at", "-id")
         .first()
     )
@@ -271,5 +274,49 @@ def save_education_loan_application(
         from users.education_loan_crm import sync_education_loan_lead_to_crm
 
         sync_education_loan_lead_to_crm(app)
+        try:
+            from loan_desk.tasks import send_loan_enquiry_notify
 
+            send_loan_enquiry_notify.delay(app.id, "enquiry")
+        except Exception:
+            try:
+                from loan_desk.services import notify_team_of_enquiry
+
+                notify_team_of_enquiry(app, event="enquiry")
+            except Exception:
+                pass
+
+    return app, None
+
+
+def schedule_education_loan_callback(
+    parent: User,
+    application_id,
+    *,
+    preferred_at,
+    note: str = "",
+) -> Tuple[Optional[EducationLoanApplication], Optional[str]]:
+    """Parent schedules preferred callback datetime on a submitted enquiry."""
+    app = EducationLoanApplication.objects.filter(
+        parent=parent,
+        id=application_id,
+    ).exclude(status=choices.EducationLoanApplicationStatus.DRAFT).first()
+    if not app:
+        return None, "Enquiry not found."
+    if preferred_at is None:
+        return None, "Please choose a preferred date and time."
+    from loan_desk.services import schedule_parent_callback
+
+    schedule_parent_callback(app, preferred_at=preferred_at, note=note)
+    try:
+        from loan_desk.tasks import send_loan_enquiry_notify
+
+        send_loan_enquiry_notify.delay(app.id, "callback")
+    except Exception:
+        try:
+            from loan_desk.services import notify_team_of_enquiry
+
+            notify_team_of_enquiry(app, event="callback")
+        except Exception:
+            pass
     return app, None

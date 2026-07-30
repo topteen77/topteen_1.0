@@ -51,6 +51,7 @@ urlpatterns = [
    path('logout/',views.logout,name="logout"),
    path('scrapbook/',views.Scrapbook.as_view(),name="scrapbook"),
    path('my-notepad/',views.MyNotePad.as_view(),name="mynotepad"),
+   path('quick-notes/', views.QuickNoteAPIView.as_view(), name="quick_notes"),
    path('create-note/',views.CreateNote.as_view(),name="createnote"),
    path('create-note/<int:id>/',views.CreateNote.as_view(),name="updatenote"),
    path('my-hobbies/',views.UserHobbies.as_view(),name="myhobbies"),

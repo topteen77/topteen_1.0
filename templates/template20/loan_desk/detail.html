@@ -1,0 +1,210 @@
+{% extends "template20/loan_desk/base.html" %}
+{% block title %}{{ page_title }} · Loan Desk{% endblock %}
+{% block content %}
+<p class="mb-2"><a href="{{ url('loan_desk:home') }}" class="text-decoration-none">&larr; All enquiries</a></p>
+
+<article class="ld-card">
+  <div class="d-flex justify-content-between gap-2 align-items-start">
+    <div>
+      <h1 class="h5 mb-1">Enquiry #{{ application.id }}</h1>
+      <span class="ld-badge">{{ application.get_status_display() }}</span>
+    </div>
+    <div class="ld-meta text-end">Lead follow<br><strong>{{ application.lead_follow_username }}</strong></div>
+  </div>
+  <hr>
+  <div class="row g-2 small">
+    <div class="col-6"><strong>Student</strong><br>{{ application.student_name or '—' }}</div>
+    <div class="col-6"><strong>Parent</strong><br>{{ application.parent_name or '—' }}</div>
+    <div class="col-6"><strong>Mobile</strong><br>{{ application.mobile or '—' }}</div>
+    <div class="col-6"><strong>Email</strong><br>{{ application.email or '—' }}</div>
+    <div class="col-12"><strong>Institute</strong><br>{{ application.institute_name or '—' }}</div>
+    <div class="col-12"><strong>Course</strong><br>{{ application.course_name or '—' }}</div>
+    <div class="col-6"><strong>Amount</strong><br>{{ application.loan_amount or '—' }}</div>
+    <div class="col-6"><strong>Country</strong><br>{{ application.country_preference or '—' }}</div>
+    <div class="col-12"><strong>Callback</strong><br>
+      {% if application.callback_preferred_at %}{{ date_format(application.callback_preferred_at) }}{% else %}—{% endif %}
+      {% if application.callback_note %}<br><span class="text-muted">{{ application.callback_note }}</span>{% endif %}
+    </div>
+    <div class="col-12"><strong>Details</strong><br>{{ application.additional_details or '—' }}</div>
+  </div>
+</article>
+
+{% if is_manager and team %}
+<form method="post" class="ld-card ld-validate-form" data-validate="assign" novalidate>
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+  <input type="hidden" name="action" value="assign">
+  <h2 class="h6">Assign lead follow</h2>
+  <div class="ld-field mb-2">
+    <label for="assigned_to">Assignee</label>
+    <select name="assigned_to" id="assigned_to" required>
+      <option value="0">Unassigned</option>
+      {% for u in team %}
+      <option value="{{ u.id }}" {% if application.assigned_to_id == u.id %}selected{% endif %}>{{ u.name or u.email }}</option>
+      {% endfor %}
+    </select>
+    <div class="ld-field-error"></div>
+  </div>
+  <button type="submit" class="ld-btn ld-btn-outline">Save assignee</button>
+</form>
+{% endif %}
+
+<form method="post" class="ld-card ld-validate-form" data-validate="status" data-has-schedule="{{ '1' if has_schedule_datetime else '0' }}" data-callback-status="{{ callback_status_value }}" data-followup-status="{{ follow_up_status_value }}" novalidate>
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+  <input type="hidden" name="action" value="status">
+  <h2 class="h6">Update status</h2>
+  <div class="ld-field mb-2">
+    <label for="status">Status</label>
+    <select name="status" id="status" required>
+      <option value="">Select status</option>
+      {% for val, label in status_choices %}
+      <option value="{{ val }}" {% if application.status == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <div class="ld-field-error"></div>
+  </div>
+  {% if not has_schedule_datetime %}
+  <p class="ld-meta mb-2">To set <strong>Callback Scheduled</strong> or <strong>Follow Up</strong>, save a date &amp; time below first.</p>
+  {% endif %}
+  <button type="submit" class="ld-btn ld-btn-outline">Save status</button>
+</form>
+
+<form method="post" class="ld-card ld-validate-form" data-validate="follow_up" novalidate>
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+  <input type="hidden" name="action" value="follow_up">
+  <h2 class="h6">Schedule follow-up</h2>
+  <div class="ld-field mb-2">
+    <label for="next_follow_up_at">Date &amp; time</label>
+    <input type="datetime-local" name="next_follow_up_at" id="next_follow_up_at" required>
+    <div class="ld-field-error"></div>
+  </div>
+  <button type="submit" class="ld-btn ld-btn-outline">Save follow-up</button>
+</form>
+
+<form method="post" class="ld-card ld-validate-form" data-validate="remark" novalidate>
+  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+  <input type="hidden" name="action" value="remark">
+  <h2 class="h6">Add remark</h2>
+  <div class="ld-field mb-2">
+    <label for="remark_body">Notes</label>
+    <textarea name="body" id="remark_body" rows="3" required maxlength="5000" minlength="3" placeholder="Call notes, next steps…"></textarea>
+    <div class="ld-field-error"></div>
+  </div>
+  <button type="submit" class="ld-btn">Save remark</button>
+</form>
+
+<section class="ld-card">
+  <h2 class="h6">Remarks</h2>
+  {% if not remarks %}
+  <p class="ld-meta mb-0">No remarks yet.</p>
+  {% endif %}
+  {% for r in remarks %}
+  <div class="border-bottom py-2">
+    <div class="ld-meta">{% if r.author %}{{ r.author.name or r.author.email }}{% else %}System{% endif %} · {{ date_format(r.created) }}</div>
+    <div>{{ r.body }}</div>
+  </div>
+  {% endfor %}
+</section>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+  if (!window.LoanDeskValidate) return;
+  var V = window.LoanDeskValidate;
+
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function toLocalInputValue(d) {
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
+      + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+  function applyMinNow(input) {
+    if (!input) return;
+    input.min = toLocalInputValue(new Date());
+  }
+
+  var followInput = document.getElementById('next_follow_up_at');
+  applyMinNow(followInput);
+  if (followInput) {
+    ['focus', 'click', 'change'].forEach(function (evt) {
+      followInput.addEventListener(evt, function () {
+        applyMinNow(followInput);
+        if (followInput.value) {
+          var parsed = new Date(followInput.value);
+          if (!isNaN(parsed.getTime()) && parsed.getTime() < Date.now() - 60000) {
+            V.setFieldError(followInput, 'Follow-up must be in the future.');
+            followInput.value = '';
+          }
+        }
+      });
+    });
+  }
+
+  document.querySelectorAll('form.ld-validate-form').forEach(function (form) {
+    form.addEventListener('submit', function (e) {
+      V.clearForm(form);
+      var kind = form.getAttribute('data-validate');
+      var ok = true;
+
+      if (kind === 'remark') {
+        var body = form.querySelector('[name="body"]');
+        var text = (body.value || '').trim();
+        if (!text) {
+          V.setFieldError(body, 'Remark cannot be empty.');
+          ok = false;
+        } else if (text.length < 3) {
+          V.setFieldError(body, 'Remark must be at least 3 characters.');
+          ok = false;
+        } else if (text.length > 5000) {
+          V.setFieldError(body, 'Remark must be at most 5000 characters.');
+          ok = false;
+        }
+      }
+
+      if (kind === 'follow_up') {
+        applyMinNow(followInput);
+        var dt = form.querySelector('[name="next_follow_up_at"]');
+        var raw = (dt.value || '').trim();
+        if (!raw) {
+          V.setFieldError(dt, 'Choose a follow-up date and time.');
+          ok = false;
+        } else {
+          var parsed = new Date(raw);
+          if (isNaN(parsed.getTime())) {
+            V.setFieldError(dt, 'Enter a valid date and time.');
+            ok = false;
+          } else if (parsed.getTime() < Date.now() - 60000) {
+            V.setFieldError(dt, 'Follow-up must be in the future. Past dates are not allowed.');
+            ok = false;
+          }
+        }
+      }
+
+      if (kind === 'status') {
+        var st = form.querySelector('[name="status"]');
+        var val = (st.value || '').trim();
+        if (!val) {
+          V.setFieldError(st, 'Select a valid status.');
+          ok = false;
+        } else {
+          var needsDate = [form.getAttribute('data-callback-status'), form.getAttribute('data-followup-status')];
+          var hasSchedule = form.getAttribute('data-has-schedule') === '1';
+          if (needsDate.indexOf(val) !== -1 && !hasSchedule) {
+            V.setFieldError(st, 'Schedule a date & time first (use Schedule follow-up below), then set this status.');
+            ok = false;
+          }
+        }
+      }
+
+      if (kind === 'assign') {
+        var asg = form.querySelector('[name="assigned_to"]');
+        if (asg.value === '' || asg.value === null) {
+          V.setFieldError(asg, 'Select a valid team member.');
+          ok = false;
+        }
+      }
+
+      if (!ok) e.preventDefault();
+    });
+  });
+})();
+</script>
+{% endblock %}

@@ -84,6 +84,7 @@ INSTALLED_APPS = [
     'invoices',
     'seo_dashboard',
     'notifications.apps.NotificationsConfig',
+    'loan_desk.apps.LoanDeskConfig',
 ]
 
 # Optional services: set False in .env when not running (avoids errors, uses fallbacks)

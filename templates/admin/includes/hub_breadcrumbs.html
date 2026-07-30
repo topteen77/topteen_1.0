@@ -1,0 +1,27 @@
+{% load i18n %}
+{# Shared hub breadcrumb trail: Home › Zone › [Section] › Page › [Extra] #}
+<div class="breadcrumbs tt-hub-breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+  {% if hub_crumb_zone_url %}
+  &rsaquo; <a href="{{ hub_crumb_zone_url }}">{{ hub_crumb_zone_label }}</a>
+  {% else %}
+  &rsaquo; {{ hub_crumb_zone_label }}
+  {% endif %}
+  {% if hub_crumb_section_label %}
+    {% if hub_crumb_section_url %}
+    &rsaquo; <a href="{{ hub_crumb_section_url }}">{{ hub_crumb_section_label }}</a>
+    {% else %}
+    &rsaquo; {{ hub_crumb_section_label }}
+    {% endif %}
+  {% endif %}
+  {% if hub_crumb_page_label %}
+    {% if hub_crumb_page_url %}
+    &rsaquo; <a href="{{ hub_crumb_page_url }}">{{ hub_crumb_page_label }}</a>
+    {% else %}
+    &rsaquo; {{ hub_crumb_page_label }}
+    {% endif %}
+  {% endif %}
+  {% if hub_crumb_extra %}
+  &rsaquo; {{ hub_crumb_extra }}
+  {% endif %}
+</div>

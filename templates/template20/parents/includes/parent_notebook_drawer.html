@@ -1,0 +1,780 @@
+{# In-page notebook drawer — list + quick compose without leaving the page. #}
+<div class="offcanvas parent-notebook-drawer offcanvas-end" tabindex="-1" id="parentNotebookDrawer"
+  aria-labelledby="parentNotebookDrawerLabel"
+  data-quick-notes-url="{{ url('users:quick_notes') }}">
+  <div class="offcanvas-header border-bottom py-2 px-3">
+    <div>
+      <h5 class="offcanvas-title fw-700 mb-0 fs-16" id="parentNotebookDrawerLabel">
+        <i class='bx bx-note text-purple me-1'></i> Notebook
+      </h5>
+      <p class="mb-0 fs-11 text-muted">Stay on this page — jot while you read</p>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+
+  <div class="offcanvas-body p-0 d-flex flex-column">
+    <div class="parent-nb-list-wrap flex-grow-1 overflow-auto px-3 py-2">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="fs-12 fw-600 text-muted text-uppercase" style="letter-spacing:.04em;">Saved notes</span>
+        <span class="badge rounded-pill bg-light text-secondary border" id="parentNbCount">0</span>
+      </div>
+      <div id="parentNbList" class="parent-nb-list" aria-live="polite"></div>
+      <div id="parentNbEmpty" class="parent-nb-empty text-center py-4 d-none">
+        <i class='bx bx-note fs-28 text-muted mb-2 d-block'></i>
+        <p class="fs-13 text-muted mb-0">No notes yet. Add one below.</p>
+      </div>
+    </div>
+
+    <div class="parent-nb-compose border-top px-3 py-2">
+      <label class="visually-hidden" for="parentNbContent">New note</label>
+      <div class="parent-nb-input-row">
+        <textarea id="parentNbContent" class="form-control parent-nb-textarea" rows="3"
+          placeholder="Type or tap mic to speak…" maxlength="4000" enterkeyhint="done"></textarea>
+        <button type="button" class="btn parent-nb-mic-btn is-disabled" id="parentNbMic"
+          title="Checking voice service…"
+          data-mic-tip="Checking voice service…"
+          aria-label="Speak to write" aria-pressed="false" aria-disabled="true">
+          <i class='bx bx-microphone' aria-hidden="true"></i>
+        </button>
+      </div>
+      <input type="hidden" id="parentNbEditId" value="">
+      <div class="d-flex align-items-center gap-2 mt-2">
+        <input type="text" id="parentNbTitle" class="form-control form-control-sm parent-nb-title"
+          placeholder="Title (optional)" maxlength="120">
+        <button type="button" class="btn btn-sm btn-outline-secondary d-none flex-shrink-0" id="parentNbCancelEdit">Cancel</button>
+        <button type="button" class="btn btn-sm custom-button purple-button flex-shrink-0" id="parentNbSave">
+          Save
+        </button>
+      </div>
+      <p class="parent-nb-status fs-11 text-muted mb-0 mt-1" id="parentNbStatus" role="status"></p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .parent-notebook-drawer {
+    width: min(100vw, 380px);
+    border-left: 1px solid #e4e8f6;
+  }
+
+  /* Phone: bottom sheet so page content stays visible above */
+  @media (max-width: 767.98px) {
+    .parent-notebook-drawer.offcanvas-end {
+      top: auto !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      width: 100% !important;
+      height: min(58vh, 480px);
+      max-height: calc(100dvh - 96px - env(safe-area-inset-bottom, 0px));
+      border-radius: 16px 16px 0 0;
+      border-left: 0;
+      border-top: 1px solid #e4e8f6;
+      transform: translateY(100%);
+    }
+
+    .parent-notebook-drawer.offcanvas-end.showing,
+    .parent-notebook-drawer.offcanvas-end.show:not(.hiding) {
+      transform: none;
+    }
+
+    .parent-nb-compose {
+      padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+      background: #fff;
+    }
+  }
+
+  .parent-nb-compose {
+    background: #f8f9ff;
+  }
+
+  .parent-nb-input-row {
+    position: relative;
+  }
+
+  .parent-nb-input-row.has-mic .parent-nb-textarea {
+    padding-right: 48px;
+  }
+
+  .parent-nb-textarea {
+    border-radius: 10px;
+    border-color: #d6ddf6;
+    font-size: 16px; /* avoid iOS zoom */
+    resize: none;
+    min-height: 64px;
+    line-height: 1.35;
+  }
+
+  .parent-nb-mic-btn {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid #d6ddf6;
+    background: #fff;
+    color: #4f46e5;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    line-height: 1;
+    box-shadow: 0 2px 8px rgba(76, 94, 177, 0.1);
+    z-index: 2;
+  }
+
+  .parent-nb-mic-btn:hover,
+  .parent-nb-mic-btn:focus-visible {
+    background: #eef0ff;
+    border-color: #c7cdf8;
+    color: #3f37c9;
+  }
+
+  .parent-nb-mic-btn.is-disabled,
+  .parent-nb-mic-btn.is-disabled:hover,
+  .parent-nb-mic-btn.is-disabled:focus-visible {
+    background: #f3f4f8;
+    border-color: #e2e5ef;
+    color: #a0a6bd;
+    box-shadow: none;
+    cursor: not-allowed;
+    opacity: 0.85;
+  }
+
+  /* Hover error tip (works even when aria-disabled; native title is unreliable) */
+  .parent-nb-mic-btn.is-disabled[data-mic-tip]::before {
+    content: attr(data-mic-tip);
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 8px);
+    width: max-content;
+    max-width: 220px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: #1e2660;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.35;
+    white-space: normal;
+    text-align: left;
+    box-shadow: 0 6px 16px rgba(30, 38, 96, 0.22);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(4px);
+    transition: opacity .15s ease, transform .15s ease, visibility .15s;
+    z-index: 5;
+  }
+
+  .parent-nb-mic-btn.is-disabled[data-mic-tip]:hover::before,
+  .parent-nb-mic-btn.is-disabled[data-mic-tip]:focus-visible::before {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .parent-nb-mic-btn.is-listening {
+    background: #fee2e2;
+    border-color: #fecaca;
+    color: #dc2626;
+    animation: parentNbPulse 1.2s ease-in-out infinite;
+  }
+
+  .parent-nb-textarea.is-listening {
+    border-color: #fca5a5;
+  }
+
+  @keyframes parentNbPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.35); }
+    50% { box-shadow: 0 0 0 8px rgba(220, 38, 38, 0); }
+  }
+
+  .parent-nb-textarea:focus,
+  .parent-nb-title:focus {
+    border-color: #6f7deb;
+    box-shadow: 0 0 0 3px rgba(93, 111, 224, 0.14);
+  }
+
+  .parent-nb-title {
+    border-radius: 8px;
+    border-color: #d6ddf6;
+    font-size: 14px;
+  }
+
+  .parent-nb-item {
+    border: 1px solid #e8ecf8;
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: #fff;
+    margin-bottom: 8px;
+  }
+
+  .parent-nb-item-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e2660;
+    margin: 0 0 2px;
+  }
+
+  .parent-nb-item-body {
+    font-size: 12px;
+    color: #4b516e;
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .parent-nb-item-meta {
+    font-size: 10px;
+    color: #8b92b6;
+    margin-top: 6px;
+  }
+
+  .parent-nb-item-actions .btn {
+    padding: 2px 8px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+
+  .parent-nb-status.is-ok { color: #059669; }
+  .parent-nb-status.is-err { color: #dc2626; }
+</style>
+
+<script>
+(function () {
+  var drawer = document.getElementById('parentNotebookDrawer');
+  if (!drawer || drawer.dataset.nbBound) return;
+  drawer.dataset.nbBound = '1';
+
+  var apiUrl = drawer.getAttribute('data-quick-notes-url') || '';
+  var listEl = document.getElementById('parentNbList');
+  var emptyEl = document.getElementById('parentNbEmpty');
+  var countEl = document.getElementById('parentNbCount');
+  var titleEl = document.getElementById('parentNbTitle');
+  var contentEl = document.getElementById('parentNbContent');
+  var editIdEl = document.getElementById('parentNbEditId');
+  var saveBtn = document.getElementById('parentNbSave');
+  var cancelBtn = document.getElementById('parentNbCancelEdit');
+  var statusEl = document.getElementById('parentNbStatus');
+  var micBtn = document.getElementById('parentNbMic');
+  var csrf = (document.querySelector('[name=csrfmiddlewaretoken]') || {}).value
+    || (document.cookie.match(/csrftoken=([^;]+)/) || [])[1]
+    || '';
+
+  var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var recognition = null;
+  var wantListening = false;
+  var micUnavailable = true;
+  var speechPrefix = '';   // text already in box before this listen session
+  var speechFinal = '';    // finalized speech this session
+
+  function setStatus(msg, kind) {
+    if (!statusEl) return;
+    statusEl.textContent = msg || '';
+    statusEl.classList.remove('is-ok', 'is-err');
+    if (kind) statusEl.classList.add(kind);
+  }
+
+  function escapeHtml(s) {
+    return String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function joinParts(a, b) {
+    a = (a || '').replace(/\s+$/, '');
+    b = (b || '').replace(/^\s+/, '');
+    if (!a) return b;
+    if (!b) return a;
+    return a + ' ' + b;
+  }
+
+  function writeSpeechToBox(interim) {
+    if (!contentEl) return;
+    var text = joinParts(speechPrefix, joinParts(speechFinal, interim || ''));
+    contentEl.value = text;
+    // Keep caret at end so user sees live typing
+    try {
+      contentEl.focus();
+      var len = contentEl.value.length;
+      contentEl.setSelectionRange(len, len);
+      contentEl.scrollTop = contentEl.scrollHeight;
+    } catch (e) {}
+  }
+
+  function setMicUi(listening) {
+    if (!micBtn || micUnavailable) return;
+    micBtn.classList.toggle('is-listening', !!listening);
+    micBtn.setAttribute('aria-pressed', listening ? 'true' : 'false');
+    var icon = micBtn.querySelector('i');
+    if (icon) icon.className = listening ? 'bx bx-stop-circle' : 'bx bx-microphone';
+    if (contentEl) contentEl.classList.toggle('is-listening', !!listening);
+  }
+
+  function setMicUnavailable(message) {
+    if (!micBtn) return;
+    stopListening();
+    micUnavailable = true;
+    micBtn.hidden = false;
+    micBtn.classList.add('is-disabled');
+    micBtn.classList.remove('is-listening');
+    micBtn.setAttribute('aria-disabled', 'true');
+    micBtn.removeAttribute('aria-hidden');
+    var tip = message || 'Voice typing unavailable.';
+    micBtn.setAttribute('data-mic-tip', tip);
+    micBtn.setAttribute('title', tip);
+    var icon = micBtn.querySelector('i');
+    if (icon) {
+      icon.className = /checking/i.test(tip) ? 'bx bx-microphone' : 'bx bx-microphone-off';
+    }
+    var inputRow = contentEl && contentEl.closest('.parent-nb-input-row');
+    if (inputRow) inputRow.classList.add('has-mic');
+    if (contentEl) {
+      contentEl.placeholder = 'Type a quick note…';
+      contentEl.classList.remove('is-listening');
+    }
+  }
+
+  function setMicAvailable() {
+    if (!micBtn) return;
+    micUnavailable = false;
+    micBtn.hidden = false;
+    micBtn.classList.remove('is-disabled', 'is-listening');
+    micBtn.setAttribute('aria-disabled', 'false');
+    micBtn.removeAttribute('aria-hidden');
+    micBtn.setAttribute('data-mic-tip', '');
+    micBtn.removeAttribute('data-mic-tip');
+    micBtn.setAttribute('title', 'Speak to write');
+    var icon = micBtn.querySelector('i');
+    if (icon) icon.className = 'bx bx-microphone';
+    var inputRow = contentEl && contentEl.closest('.parent-nb-input-row');
+    if (inputRow) inputRow.classList.add('has-mic');
+    if (contentEl) contentEl.placeholder = 'Type or tap mic to speak…';
+  }
+
+  function stopListening() {
+    wantListening = false;
+    if (!micUnavailable) setMicUi(false);
+    else if (micBtn) {
+      micBtn.classList.remove('is-listening');
+      if (contentEl) contentEl.classList.remove('is-listening');
+    }
+    if (recognition) {
+      try { recognition.stop(); } catch (e) {}
+    }
+  }
+
+  function speechApiPresent() {
+    if (!SpeechRecognition) return false;
+    if (window.isSecureContext === false) return false;
+    return true;
+  }
+
+  function errorMessageForSpeech(err) {
+    if (err === 'network') return 'Voice service unavailable. Check your internet connection.';
+    if (err === 'not-allowed' || err === 'service-not-allowed') {
+      return 'Microphone blocked. Allow mic access to use voice typing.';
+    }
+    if (err === 'audio-capture') return 'No microphone found. You can still type.';
+    return 'Voice typing unavailable right now.';
+  }
+
+  function probeSpeechService(done) {
+    if (!speechApiPresent()) {
+      var msg = !SpeechRecognition
+        ? 'Voice typing is not supported in this browser.'
+        : 'Voice typing needs a secure page (https or localhost).';
+      done(false, msg);
+      return;
+    }
+
+    var probe = new SpeechRecognition();
+    probe.continuous = false;
+    probe.interimResults = false;
+    probe.maxAlternatives = 1;
+    probe.lang = (navigator.language || 'en-IN');
+
+    var finished = false;
+    function finish(ok, msg) {
+      if (finished) return;
+      finished = true;
+      clearTimeout(timer);
+      try { probe.abort(); } catch (e) {}
+      done(ok, msg || '');
+    }
+
+    var timer = setTimeout(function () {
+      // Still running after start → service reachable
+      finish(true, '');
+    }, 1400);
+
+    probe.onstart = function () {
+      finish(true, '');
+    };
+
+    probe.onerror = function (ev) {
+      var err = (ev && ev.error) || '';
+      if (err === 'aborted') return;
+      // no-speech means engine connected
+      if (err === 'no-speech') {
+        finish(true, '');
+        return;
+      }
+      finish(false, errorMessageForSpeech(err));
+    };
+
+    probe.onend = function () {
+      if (!finished) finish(true, '');
+    };
+
+    try {
+      probe.start();
+    } catch (e) {
+      finish(false, 'Voice typing unavailable right now.');
+    }
+  }
+
+  function bindRecognitionHandlers() {
+    if (!recognition) return;
+
+    recognition.onstart = function () {
+      if (micUnavailable) return;
+      setMicUi(true);
+      setStatus('Listening… speak now — tap mic to stop');
+    };
+
+    recognition.onerror = function (ev) {
+      var err = (ev && ev.error) || '';
+      if (err === 'no-speech' || err === 'aborted') return;
+      wantListening = false;
+      setMicUi(false);
+      setMicUnavailable(errorMessageForSpeech(err));
+      setStatus('');
+    };
+
+    recognition.onend = function () {
+      if (micUnavailable) return;
+      if (wantListening) {
+        if (contentEl) {
+          speechPrefix = contentEl.value;
+          speechFinal = '';
+        }
+        setTimeout(function () {
+          if (!wantListening || !recognition || micUnavailable) return;
+          try {
+            recognition.start();
+          } catch (e) {
+            wantListening = false;
+            setMicUi(false);
+            setStatus('');
+          }
+        }, 80);
+        return;
+      }
+      setMicUi(false);
+    };
+
+    recognition.onresult = function (event) {
+      if (micUnavailable) return;
+      var interim = '';
+      var finals = '';
+      for (var i = 0; i < event.results.length; i++) {
+        var piece = (event.results[i][0] && event.results[i][0].transcript) || '';
+        if (event.results[i].isFinal) finals += piece;
+        else interim += piece;
+      }
+      speechFinal = finals;
+      writeSpeechToBox(interim);
+    };
+  }
+
+  function setupSpeech() {
+    if (!micBtn) return;
+
+    var inputRow = contentEl && contentEl.closest('.parent-nb-input-row');
+    if (inputRow) inputRow.classList.add('has-mic');
+    micBtn.hidden = false;
+
+    if (!speechApiPresent()) {
+      setMicUnavailable(
+        !SpeechRecognition
+          ? 'Voice typing is not supported in this browser.'
+          : 'Voice typing needs a secure page (https or localhost).'
+      );
+    } else {
+      setMicUnavailable('Checking voice service…');
+    }
+
+    micBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (micUnavailable || !recognition) return;
+      if (wantListening) {
+        stopListening();
+        speechPrefix = contentEl ? contentEl.value : '';
+        speechFinal = '';
+        setStatus('');
+        return;
+      }
+      speechPrefix = contentEl ? contentEl.value : '';
+      speechFinal = '';
+      wantListening = true;
+      setMicUi(true);
+      setStatus('Listening… speak now — tap mic to stop');
+      try {
+        recognition.start();
+      } catch (err) {
+        try { recognition.stop(); } catch (e2) {}
+        setTimeout(function () {
+          if (!wantListening || micUnavailable) return;
+          try { recognition.start(); } catch (e3) {
+            wantListening = false;
+            setMicUi(false);
+            setMicUnavailable('Could not start microphone.');
+            setStatus('');
+          }
+        }, 200);
+      }
+    });
+  }
+
+  var speechProbed = false;
+  function ensureSpeechProbed() {
+    if (speechProbed) return;
+    if (!speechApiPresent()) {
+      speechProbed = true;
+      return;
+    }
+    speechProbed = true;
+    setMicUnavailable('Checking voice service…');
+    probeSpeechService(function (ok, msg) {
+      if (!ok) {
+        setMicUnavailable(msg);
+        return;
+      }
+      recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+      recognition.lang = (navigator.language || 'en-IN');
+      bindRecognitionHandlers();
+      setMicAvailable();
+    });
+  }
+
+  function resetCompose() {
+    stopListening();
+    speechPrefix = '';
+    speechFinal = '';
+    if (editIdEl) editIdEl.value = '';
+    if (titleEl) titleEl.value = '';
+    if (contentEl) contentEl.value = '';
+    if (cancelBtn) cancelBtn.classList.add('d-none');
+    if (saveBtn) saveBtn.textContent = 'Save';
+  }
+
+  function renderNotes(notes) {
+    if (!listEl) return;
+    listEl.innerHTML = '';
+    var items = notes || [];
+    if (countEl) countEl.textContent = String(items.length);
+    if (emptyEl) emptyEl.classList.toggle('d-none', items.length > 0);
+    items.forEach(function (n) {
+      var card = document.createElement('article');
+      card.className = 'parent-nb-item';
+      card.setAttribute('data-note-id', n.id);
+      var title = (n.title || '').trim();
+      var body = (n.content || n.preview || '').trim();
+      var titleHtml = title
+        ? '<p class="parent-nb-item-title">' + escapeHtml(title) + '</p>'
+        : '';
+      card.innerHTML =
+        '<div class="d-flex justify-content-between align-items-start gap-2">' +
+          '<div class="min-w-0 flex-grow-1">' +
+            titleHtml +
+            '<p class="parent-nb-item-body">' + escapeHtml(body) + '</p>' +
+            '<div class="parent-nb-item-meta">' + escapeHtml(n.modified || '') + '</div>' +
+          '</div>' +
+          '<div class="parent-nb-item-actions flex-shrink-0 d-flex flex-column gap-1">' +
+            '<button type="button" class="btn btn-outline-secondary parent-nb-edit">Edit</button>' +
+            '<button type="button" class="btn btn-outline-danger parent-nb-del" aria-label="Delete"><i class="bx bx-trash"></i></button>' +
+          '</div>' +
+        '</div>';
+      listEl.appendChild(card);
+    });
+  }
+
+  function loadNotes() {
+    if (!apiUrl) return;
+    setStatus('Loading…');
+    fetch(apiUrl, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data && data.success) {
+          renderNotes(data.notes || []);
+          setStatus('');
+        } else {
+          setStatus((data && data.message) || 'Could not load notes.', 'is-err');
+        }
+      })
+      .catch(function () { setStatus('Could not load notes.', 'is-err'); });
+  }
+
+  function saveNote() {
+    if (!apiUrl) return;
+    var payload = {
+      id: (editIdEl && editIdEl.value) ? editIdEl.value : '',
+      title: titleEl ? titleEl.value : '',
+      content: contentEl ? contentEl.value : '',
+      action: 'save'
+    };
+    if (!(payload.title || '').trim() && !(payload.content || '').trim()) {
+      setStatus('Type something first.', 'is-err');
+      if (contentEl) contentEl.focus();
+      return;
+    }
+    if (saveBtn) saveBtn.disabled = true;
+    setStatus('Saving…');
+    fetch(apiUrl, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrf,
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        if (saveBtn) saveBtn.disabled = false;
+        if (res.ok && res.d && res.d.success) {
+          setStatus('Saved.', 'is-ok');
+          resetCompose();
+          loadNotes();
+          if (contentEl) contentEl.focus();
+        } else {
+          setStatus((res.d && res.d.message) || 'Save failed.', 'is-err');
+        }
+      })
+      .catch(function () {
+        if (saveBtn) saveBtn.disabled = false;
+        setStatus('Save failed.', 'is-err');
+      });
+  }
+
+  function deleteNote(id, noteLabel) {
+    if (!apiUrl || !id) return;
+
+    function runDelete() {
+      fetch(apiUrl, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrf,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ action: 'delete', id: id })
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data && data.success) {
+            setStatus('Deleted.', 'is-ok');
+            if (editIdEl && String(editIdEl.value) === String(id)) resetCompose();
+            loadNotes();
+          } else {
+            setStatus((data && data.message) || 'Delete failed.', 'is-err');
+          }
+        })
+        .catch(function () { setStatus('Delete failed.', 'is-err'); });
+    }
+
+    var ask = (window.parentAlert && parentAlert.confirmDeleteNote)
+      ? parentAlert.confirmDeleteNote(noteLabel)
+      : Promise.resolve({ isConfirmed: window.confirm('Delete this note?') });
+
+    ask.then(function (result) {
+      if (result && result.isConfirmed) runDelete();
+    });
+  }
+
+  if (saveBtn) saveBtn.addEventListener('click', saveNote);
+  if (cancelBtn) cancelBtn.addEventListener('click', function () {
+    resetCompose();
+    setStatus('');
+  });
+
+  if (listEl) {
+    listEl.addEventListener('click', function (e) {
+      var editBtn = e.target.closest('.parent-nb-edit');
+      var delBtn = e.target.closest('.parent-nb-del');
+      var card = e.target.closest('.parent-nb-item');
+      if (!card) return;
+      var id = card.getAttribute('data-note-id');
+      if (delBtn) {
+        var titleElDel = card.querySelector('.parent-nb-item-title');
+        var bodyElDel = card.querySelector('.parent-nb-item-body');
+        var label = (titleElDel && titleElDel.textContent.trim())
+          || (bodyElDel && bodyElDel.textContent.trim().slice(0, 60))
+          || '';
+        deleteNote(id, label);
+        return;
+      }
+      if (editBtn) {
+        var title = card.querySelector('.parent-nb-item-title');
+        var body = card.querySelector('.parent-nb-item-body');
+        stopListening();
+        if (editIdEl) editIdEl.value = id || '';
+        if (titleEl) titleEl.value = title ? title.textContent : '';
+        if (contentEl) contentEl.value = body ? body.textContent : '';
+        speechPrefix = contentEl ? contentEl.value : '';
+        speechFinal = '';
+        if (cancelBtn) cancelBtn.classList.remove('d-none');
+        if (saveBtn) saveBtn.textContent = 'Update';
+        if (contentEl) contentEl.focus();
+        setStatus('Editing…');
+      }
+    });
+  }
+
+  setupSpeech();
+  // Probe as soon as parent shell loads so mic is disabled before first open
+  ensureSpeechProbed();
+
+  drawer.addEventListener('show.bs.offcanvas', function () {
+    ensureSpeechProbed();
+    loadNotes();
+    setTimeout(function () { if (contentEl) contentEl.focus(); }, 280);
+  });
+
+  drawer.addEventListener('hide.bs.offcanvas', function () {
+    stopListening();
+  });
+
+  document.addEventListener('click', function (e) {
+    var trigger = e.target.closest('[data-parent-notebook-open]');
+    if (!trigger) return;
+    e.preventDefault();
+    // Close mobile nav drawer if open so notebook can show
+    var navDrawer = document.getElementById('mobileProfileDrawer');
+    if (navDrawer && window.bootstrap && bootstrap.Offcanvas) {
+      var navInst = bootstrap.Offcanvas.getInstance(navDrawer);
+      if (navInst) navInst.hide();
+    }
+    if (window.bootstrap && bootstrap.Offcanvas) {
+      bootstrap.Offcanvas.getOrCreateInstance(drawer).show();
+    }
+  });
+})();
+</script>

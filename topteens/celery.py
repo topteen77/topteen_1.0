@@ -43,4 +43,12 @@ app.conf.beat_schedule = {
         'task': 'user_analytics.tasks.send_daily_new_user_report',
         'schedule': crontab(minute=0, hour=15),  # 15:00 IST — overridden from DB when Django starts
     },
+    'send-loan-daily-report': {
+        'task': 'loan_desk.tasks.send_loan_daily_report',
+        'schedule': crontab(minute=30, hour=9),  # 09:30 IST
+    },
+    'send-loan-overdue-followup-reminders': {
+        'task': 'loan_desk.tasks.send_loan_overdue_followup_reminders',
+        'schedule': crontab(minute=0),  # hourly
+    },
 }

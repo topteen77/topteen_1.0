@@ -81,6 +81,7 @@ urlpatterns = [
     path("blogs/",include('blog.urls')),
     
     path('user/', include('users.urls',namespace='users')),
+    path('loan-desk/', include('loan_desk.urls', namespace='loan_desk')),
     # Role-specific auth landing pages (Jinja templates)
     path('student/login/', users_views.StudentLoginView.as_view(), name='student_login'),
     path('student/signup/', users_views.StudentSignupView.as_view(), name='student_signup'),
@@ -91,6 +92,7 @@ urlpatterns = [
     path('parents/student/<int:student_id>/buy/skilllab/<slug:slug>/', users_views.ParentStudentBuySkilllabView.as_view(), name='parents_student_buy_skilllab'),
     path('parents/education-loan-calculator/', users_views.ParentsEducationLoanCalculatorView.as_view(), name='parents_education_loan_calculator'),
     path('parents/education-loan-calculator/save/', users_views.ParentEducationLoanApplicationSaveView.as_view(), name='parents_education_loan_save'),
+    path('parents/education-loan-calculator/callback/', users_views.ParentEducationLoanCallbackView.as_view(), name='parents_education_loan_callback'),
     path('parents/education-loan-applications/', users_views.ParentsEducationLoanApplicationsView.as_view(), name='parents_education_loan_applications'),
     path('parents/careers/', users_views.ParentContentListView.as_view(), {'kind': 'careers'}, name='parents_careers'),
     path('parents/blogs/', users_views.ParentContentListView.as_view(), {'kind': 'blogs'}, name='parents_blogs'),

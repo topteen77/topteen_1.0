@@ -1,0 +1,40 @@
+{% extends "template20/loan_desk/base.html" %}
+{% block title %}{{ page_title }} · Loan Desk{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 gap-2 flex-wrap">
+  <h1 class="h5 mb-0">Loan enquiries</h1>
+  <form method="get" class="d-flex gap-2 align-items-center">
+    <select name="status" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+      <option value="">All statuses</option>
+      {% for val, label in status_choices %}
+        {% if val != 0 %}
+        <option value="{{ val }}" {% if filter_status == (val|string) %}selected{% endif %}>{{ label }}</option>
+        {% endif %}
+      {% endfor %}
+    </select>
+    <label class="small mb-0 d-flex align-items-center gap-1">
+      <input type="checkbox" name="overdue" value="1" {% if filter_overdue %}checked{% endif %} onchange="this.form.submit()"> Needs follow-up
+    </label>
+  </form>
+</div>
+
+{% if not applications %}
+<div class="ld-card"><p class="mb-0 text-muted">No enquiries found.</p></div>
+{% endif %}
+
+{% for app in applications %}
+<a href="{{ url('loan_desk:detail', args=[app.id]) }}" class="text-decoration-none text-reset">
+  <article class="ld-card">
+    <div class="d-flex justify-content-between gap-2">
+      <h2>#{{ app.id }} · {{ app.student_name or 'Student' }}</h2>
+      <span class="ld-badge">{{ app.get_status_display() }}</span>
+    </div>
+    <p class="ld-meta mb-1">{{ app.institute_name or '—' }} · {{ app.course_name or '—' }}</p>
+    <p class="ld-meta mb-0">
+      Lead follow: <strong>{{ app.lead_follow_username }}</strong>
+      {% if app.callback_preferred_at %} · Callback {{ date_format(app.callback_preferred_at) }}{% endif %}
+    </p>
+  </article>
+</a>
+{% endfor %}
+{% endblock %}

@@ -179,6 +179,11 @@
   color: var(--tt-ops, #059669);
 }
 
+.tt-sidebar-nav__icon--loan {
+  background: var(--tt-loan-soft, #ede9fe);
+  color: var(--tt-loan, #7c3aed);
+}
+
 .tt-sidebar-nav__item > a:hover,
 .tt-sidebar-nav__group > a:hover {
   background: var(--darkened-bg);
@@ -203,6 +208,11 @@
 .tt-sidebar-nav__group.tt-sidebar-nav__group--ops.is-active > a,
 .tt-sidebar-nav__group.is-active > a[data-sidebar-nav="operations"] {
   background: linear-gradient(135deg, var(--tt-ops, #059669), #0d9488);
+}
+
+.tt-sidebar-nav__group.tt-sidebar-nav__group--loan.is-active > a,
+.tt-sidebar-nav__group.is-active > a[data-sidebar-nav="education_loan"] {
+  background: linear-gradient(135deg, var(--tt-loan, #7c3aed), #a855f7);
 }
 
 .tt-sidebar-nav__group.is-active .tt-sidebar-nav__icon {
@@ -246,6 +256,11 @@
 .tt-sidebar-nav__group.is-active > a[data-sidebar-nav="operations"] ~ .tt-sidebar-nav__children a.is-active {
   color: var(--tt-ops, #059669);
   background: var(--tt-ops-soft, #d1fae5);
+}
+
+.tt-sidebar-nav__group.is-active > a[data-sidebar-nav="education_loan"] ~ .tt-sidebar-nav__children a.is-active {
+  color: var(--tt-loan, #7c3aed);
+  background: var(--tt-loan-soft, #ede9fe);
 }
 
 .tt-sidebar-context {

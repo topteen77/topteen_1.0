@@ -20,6 +20,8 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.urls import NoReverseMatch, path, reverse
 
+from core import choices
+
 
 LinkBuilder = Callable[[HttpRequest], Optional[dict]]
 
@@ -242,7 +244,6 @@ CONFIGURATION_SECTIONS: list[HubSection] = [
         links=[
             _model("Course mindmap config", "course_mindmap", "CourseMindmapConfig", "Mindmap placement and visibility."),
             _model("Resume V2 AI settings", "users", "ResumeV2AISettings", "AI provider options for resume builder."),
-            _model("Education loan CRM settings", "users", "EducationLoanCRMSettings", "Loan enquiry workflow settings."),
             _model("Invoice configuration", "invoices", "InvoiceConfiguration", "GST, numbering, and invoice defaults."),
             _model("Demo dataset config", "demo_data", "DemoDatasetConfig", "Demo account seeding options."),
             _model("Resume HTML templates", "users", "ResumeStudioHtmlTemplate", "Resume studio layout templates."),
@@ -266,15 +267,74 @@ CONFIGURATION_SECTIONS: list[HubSection] = [
     ),
 ]
 
+# Dedicated Education Loan hub (sidebar + /admin/hub/education-loan/)
+EDUCATION_LOAN_SECTIONS: list[HubSection] = [
+    HubSection(
+        title="Loan team",
+        description="Create and manage Loan Managers and Executives for the Loan Desk PWA.",
+        instruction="Open Loan team for one list with Add Manager / Add Executive. Edit and enable/disable inline via AJAX.",
+        links=[
+            _named(
+                "Loan team",
+                "admin:hub_education_loan_team",
+                "CRUD list: add manager/executive, edit, enable/disable. Shows role and name.",
+            ),
+        ],
+    ),
+    HubSection(
+        title="Enquiries & follow-up",
+        description="Parent education loan leads, callbacks, and internal remarks.",
+        instruction="Open applications for lead follow assignment and status. Remarks are the activity timeline from Loan Desk.",
+        links=[
+            _model(
+                "Loan applications / leads",
+                "users",
+                "EducationLoanApplication",
+                "Parent calculator drafts and submitted enquiries.",
+            ),
+            _model(
+                "Loan remarks",
+                "users",
+                "EducationLoanRemark",
+                "Internal follow-up notes from the loan team.",
+            ),
+            _external(
+                "Open Loan Desk PWA",
+                "/loan-desk/",
+                "Installable Loan Desk app for managers and executives.",
+                staff_only=True,
+            ),
+        ],
+    ),
+    HubSection(
+        title="Loan settings",
+        description="Ops emails, PWA toggle, CRM handoff.",
+        instruction="Set manager report emails and notify flags in Ops settings. CRM is optional outbound sync.",
+        links=[
+            _model(
+                "Loan ops settings",
+                "users",
+                "EducationLoanOpsSettings",
+                "PWA, enquiry notify, daily report emails, reminders.",
+            ),
+            _model(
+                "Loan CRM settings",
+                "users",
+                "EducationLoanCRMSettings",
+                "Optional external CRM API for new enquiries.",
+            ),
+        ],
+    ),
+]
+
 OPERATIONS_SECTIONS: list[HubSection] = [
     HubSection(
         title="Users & accounts",
-        description="Students, staff, profiles, and education loan applications.",
-        instruction="Use Users for account CRUD. Profiles and calendars are linked records — edit from the user change page when possible.",
+        description="Students, staff, and profiles.",
+        instruction="Use Users for account CRUD. Profiles and calendars are linked records — edit from the user change page when possible. Education loan tools live under the Education Loan hub.",
         links=[
             _model("Users", "users", "User", "All registered users and staff accounts."),
             _model("User profiles", "users", "UserProfile", "Extended profile data."),
-            _model("Education loan applications", "users", "EducationLoanApplication", "Parent loan calculator submissions."),
             _model("User calendars", "users", "UserCalender", "Student calendar entries."),
             _model("Counselors", "counselor", "Counselor", "Counselor accounts and assignments."),
         ],
@@ -438,19 +498,19 @@ def _normalize_path(path: str) -> str:
 
 
 def _iter_hub_link_entries(request: HttpRequest):
-    for zone, sections_source in (
-        ("configuration", CONFIGURATION_SECTIONS),
-        ("operations", OPERATIONS_SECTIONS),
-    ):
+    zone_map = (
+        ("configuration", CONFIGURATION_SECTIONS, "admin:hub_configuration", "Configuration"),
+        ("operations", OPERATIONS_SECTIONS, "admin:hub_operations", "Operations"),
+        ("education_loan", EDUCATION_LOAN_SECTIONS, "admin:hub_education_loan", "Education Loan"),
+    )
+    for zone, sections_source, hub_name, zone_label in zone_map:
         for section in resolve_hub_sections(request, sections_source):
-            hub_url = reverse(
-                "admin:hub_configuration" if zone == "configuration" else "admin:hub_operations"
-            )
+            hub_url = reverse(hub_name)
             section_url = f"{hub_url}#{section['section_id']}"
             for link in section["links"]:
                 yield {
                     "zone": zone,
-                    "zone_label": "Configuration" if zone == "configuration" else "Operations",
+                    "zone_label": zone_label,
                     "hub_url": hub_url,
                     "section": section,
                     "section_url": section_url,
@@ -463,7 +523,12 @@ def resolve_you_are_here(request: HttpRequest) -> Optional[dict]:
     if not getattr(request, "user", None) or not request.user.is_staff:
         return None
     current = _normalize_path(request.path)
-    if current in ("/admin", "/admin/hub/configuration", "/admin/hub/operations"):
+    if current in (
+        "/admin",
+        "/admin/hub/configuration",
+        "/admin/hub/operations",
+        "/admin/hub/education-loan",
+    ):
         return None
 
     best = None
@@ -486,6 +551,7 @@ def resolve_you_are_here(request: HttpRequest) -> Optional[dict]:
         "section_id": best["section"]["section_id"],
         "section_url": best["section_url"],
         "page_label": best["link"]["label"],
+        "page_url": best["link"]["url"],
     }
 
 
@@ -496,6 +562,8 @@ def get_sidebar_nav(request: HttpRequest) -> dict:
         active = "configuration"
     elif path.startswith("/admin/hub/operations"):
         active = "operations"
+    elif path.startswith("/admin/hub/education-loan"):
+        active = "education_loan"
     else:
         here = resolve_you_are_here(request)
         if here:
@@ -503,23 +571,33 @@ def get_sidebar_nav(request: HttpRequest) -> dict:
 
     config_sections = resolve_hub_sections(request, CONFIGURATION_SECTIONS)
     ops_sections = resolve_hub_sections(request, OPERATIONS_SECTIONS)
+    loan_sections = resolve_hub_sections(request, EDUCATION_LOAN_SECTIONS)
+    loan_links = []
+    for section in loan_sections:
+        for link in section.get("links") or []:
+            loan_links.append(link)
 
     return {
         "sidebar_active": active,
         "sidebar_you_are_here": resolve_you_are_here(request),
         "sidebar_config_sections": config_sections,
         "sidebar_ops_sections": ops_sections,
+        "sidebar_loan_sections": loan_sections,
+        "sidebar_loan_links": loan_links,
     }
 
 
 def get_admin_home_context(request: HttpRequest) -> dict:
     configuration_sections = resolve_hub_sections(request, CONFIGURATION_SECTIONS)
     operations_sections = resolve_hub_sections(request, OPERATIONS_SECTIONS)
+    education_loan_sections = resolve_hub_sections(request, EDUCATION_LOAN_SECTIONS)
     return {
         "hub_configuration_sections": configuration_sections,
         "hub_operations_sections": operations_sections,
+        "hub_education_loan_sections": education_loan_sections,
         "hub_configuration_count": count_hub_links(configuration_sections),
         "hub_operations_count": count_hub_links(operations_sections),
+        "hub_education_loan_count": count_hub_links(education_loan_sections),
     }
 
 
@@ -560,16 +638,37 @@ def configuration_hub_view(request: HttpRequest) -> HttpResponse:
 def operations_hub_view(request: HttpRequest) -> HttpResponse:
     sections = resolve_hub_sections(request, OPERATIONS_SECTIONS)
     sibling = {
-        "label": "Website configuration",
-        "url": reverse("admin:hub_configuration"),
-        "description": "Site settings, SEO, gamification, assessments, and integrations.",
-        "count": count_hub_links(resolve_hub_sections(request, CONFIGURATION_SECTIONS)),
+        "label": "Education Loan",
+        "url": reverse("admin:hub_education_loan"),
+        "description": "Loan team, enquiries, Loan Desk PWA, and loan settings.",
+        "count": count_hub_links(resolve_hub_sections(request, EDUCATION_LOAN_SECTIONS)),
     }
     context = _hub_context(
         request,
         zone="operations",
         title="Operations & content management",
-        intro="Manage users, content, institutes, payments, and support workflows. For site-wide toggles and SEO, use the configuration hub.",
+        intro="Manage users, content, institutes, payments, and support workflows. For site-wide toggles and SEO, use the configuration hub. Education loan tools are in the Education Loan hub.",
+        sections=sections,
+        sibling=sibling,
+    )
+    context.update(admin.site.each_context(request))
+    return render(request, "admin/hub/zone.html", context)
+
+
+@staff_member_required
+def education_loan_hub_view(request: HttpRequest) -> HttpResponse:
+    sections = resolve_hub_sections(request, EDUCATION_LOAN_SECTIONS)
+    sibling = {
+        "label": "Operations & content",
+        "url": reverse("admin:hub_operations"),
+        "description": "Users, courses, payments, institutes, and daily workflows.",
+        "count": count_hub_links(resolve_hub_sections(request, OPERATIONS_SECTIONS)),
+    }
+    context = _hub_context(
+        request,
+        zone="education_loan",
+        title="Education Loan",
+        intro="Manage loan team accounts, parent enquiries, follow-ups, Loan Desk PWA, and loan ops/CRM settings — all in one place.",
         sections=sections,
         sibling=sibling,
     )
@@ -585,6 +684,18 @@ def register_admin_hub_urls() -> None:
     original_get_urls = admin.site.get_urls
 
     def get_urls():
+        from django.shortcuts import redirect as dj_redirect
+
+        from loan_desk.admin_views import (
+            loan_team_get_api,
+            loan_team_list_view,
+            loan_team_save_api,
+            loan_team_toggle_api,
+        )
+
+        def _redirect_team(request):
+            return dj_redirect("admin:hub_education_loan_team")
+
         custom = [
             path(
                 "hub/configuration/",
@@ -595,6 +706,41 @@ def register_admin_hub_urls() -> None:
                 "hub/operations/",
                 admin.site.admin_view(operations_hub_view),
                 name="hub_operations",
+            ),
+            path(
+                "hub/education-loan/",
+                admin.site.admin_view(education_loan_hub_view),
+                name="hub_education_loan",
+            ),
+            path(
+                "hub/education-loan/team/",
+                admin.site.admin_view(loan_team_list_view),
+                name="hub_education_loan_team",
+            ),
+            path(
+                "hub/education-loan/team/save/",
+                admin.site.admin_view(loan_team_save_api),
+                name="hub_education_loan_team_save",
+            ),
+            path(
+                "hub/education-loan/team/<int:user_id>/",
+                admin.site.admin_view(loan_team_get_api),
+                name="hub_education_loan_team_get",
+            ),
+            path(
+                "hub/education-loan/team/<int:user_id>/toggle/",
+                admin.site.admin_view(loan_team_toggle_api),
+                name="hub_education_loan_team_toggle",
+            ),
+            path(
+                "hub/education-loan/add-manager/",
+                admin.site.admin_view(_redirect_team),
+                name="hub_education_loan_add_manager",
+            ),
+            path(
+                "hub/education-loan/add-executive/",
+                admin.site.admin_view(_redirect_team),
+                name="hub_education_loan_add_executive",
             ),
         ]
         return custom + original_get_urls()

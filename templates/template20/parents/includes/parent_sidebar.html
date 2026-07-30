@@ -10,6 +10,7 @@
 </style>
 
 {% set active_nav = request.resolver_match.url_name if request.resolver_match else '' %}
+{% set notebook_active = active_nav in ['mynotepad', 'createnote', 'updatenote'] %}
 
 <div class="student-dash-sidebar-col parent-sidebar-col d-none d-lg-block px-0">
   <div class="profile-sidebar parent-sidebar-scroll h-100">
@@ -88,6 +89,16 @@
         <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light parent-sidebar-item">
           <div>
             <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-file me-2 fs-18 text-purple'></i> My Loan Applications</p>
+          </div>
+          <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
+        </div>
+      </a>
+      <a href="{{ url('users:mynotepad') }}" class="d-block text-decoration-none mb-2 parent-sidebar-link{% if notebook_active %} is-active{% endif %}"
+        data-parent-notebook-open
+        {% if notebook_active %} aria-current="page"{% endif %}>
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light parent-sidebar-item">
+          <div>
+            <p class="fs-14 fw-semibold mb-1 d-flex align-items-center"><i class='bx bx-note me-2 fs-18 text-purple'></i> My Notebook</p>
           </div>
           <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
         </div>

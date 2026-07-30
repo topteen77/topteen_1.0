@@ -679,8 +679,40 @@ text-align: left !important;
       font-size: 16px;
     }
 
+    .parent-dashboard .parent-sticky-panel {
+      padding: 12px 12px;
+      border-radius: 14px;
+    }
+
+    .parent-dashboard .parent-sticky-intro {
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+    }
+
     .parent-dashboard .parent-sticky-meta-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .parent-dashboard .parent-sticky-meta-item {
+      padding: 8px 10px;
+      border-radius: 10px;
+      box-shadow: none;
+    }
+
+    .parent-dashboard .parent-sticky-meta-item::before {
+      height: 2px;
+    }
+
+    .parent-dashboard .parent-sticky-meta-label {
+      font-size: 9px;
+      margin-bottom: 2px;
+      letter-spacing: 0.3px;
+    }
+
+    .parent-dashboard .parent-sticky-meta-value {
+      font-size: 13px;
+      line-height: 1.25;
     }
 
     .parent-dashboard .parent-students-card {
@@ -690,8 +722,20 @@ text-align: left !important;
   }
 
   @media (max-width: 575.98px) {
+    /* Keep 2×2 — never stack one-per-row (wastes half the screen). */
     .parent-dashboard .parent-sticky-meta-grid {
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .parent-dashboard .parent-sticky-meta-item {
+      padding: 7px 8px;
+      border-radius: 8px;
+    }
+
+    .parent-dashboard .parent-sticky-meta-value {
+      font-size: 12px;
+      font-weight: 700;
     }
 
     .parent-dashboard .parent-sticky-select {

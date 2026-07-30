@@ -1,0 +1,37 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls admin_modify %}
+
+{% block breadcrumbs %}
+{% if sidebar_you_are_here %}
+  {% if add %}
+    {% trans "Add" as tt_hub_extra %}
+  {% elif original %}
+    {% firstof original "Change" as tt_hub_extra %}
+  {% else %}
+    {% trans "Change" as tt_hub_extra %}
+  {% endif %}
+  {% include "admin/includes/hub_breadcrumbs.html" with hub_crumb_zone_label=sidebar_you_are_here.zone_label hub_crumb_zone_url=sidebar_you_are_here.hub_url hub_crumb_section_label=sidebar_you_are_here.section_title hub_crumb_section_url=sidebar_you_are_here.section_url hub_crumb_page_label=sidebar_you_are_here.page_label hub_crumb_page_url=sidebar_you_are_here.page_url hub_crumb_extra=tt_hub_extra %}
+{% else %}
+{{ block.super }}
+{% endif %}
+{% endblock %}
+
+{% block submit_buttons_bottom %}
+{% submit_row %}
+<script>
+(function () {
+  var row = document.querySelector("#content-main .submit-row, .submit-row");
+  if (!row || row.querySelector(".tt-loan-cancel")) return;
+  var a = document.createElement("a");
+  a.href = "{% if loan_hub_cancel_url %}{{ loan_hub_cancel_url|escapejs }}{% elif sidebar_you_are_here and sidebar_you_are_here.hub_url %}{{ sidebar_you_are_here.hub_url|escapejs }}{% else %}{% url 'admin:hub_education_loan' %}{% endif %}";
+  a.className = "button cancel-link tt-loan-cancel";
+  a.textContent = "{% trans 'Cancel' %}";
+  var del = row.querySelector(".deletelink");
+  if (del) {
+    row.insertBefore(a, del);
+  } else {
+    row.appendChild(a);
+  }
+})();
+</script>
+{% endblock %}

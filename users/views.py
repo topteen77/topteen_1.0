@@ -903,7 +903,14 @@ class ParentsDashboardView(TemplateView):
         # Keep template vars that expect student objects for the switcher labels.
         psychometric_students = [
             {
-                "student": type("S", (), {"id": s.get("id")})(),
+                "student": type(
+                    "S",
+                    (),
+                    {
+                        "id": s.get("id"),
+                        "name": s.get("name") or "Student",
+                    },
+                )(),
                 "grade_label": s.get("grade_label", "Other"),
                 "grade_bucket": s.get("grade_bucket", "other"),
             }
@@ -1026,6 +1033,7 @@ class ParentsEducationLoanCalculatorView(TemplateView):
                 )
             ),
             "loan_save_url": reverse("parents_education_loan_save"),
+            "loan_callback_url": reverse("parents_education_loan_callback"),
             "loan_applications_url": reverse("parents_education_loan_applications"),
         }
         return render(request, self.template_name, ctx)
@@ -1086,7 +1094,7 @@ class ParentEducationLoanApplicationSaveView(APIView):
         message = (
             "Draft saved successfully."
             if as_draft
-            else "Application enquiry sent successfully. Our team will contact you soon."
+            else "Application enquiry sent successfully. Our team will call you within 2 days."
         )
         return Response(
             {
@@ -1095,6 +1103,55 @@ class ParentEducationLoanApplicationSaveView(APIView):
                 "application": serialize_education_loan_application(app),
                 "status": app.status,
                 "status_label": app.get_status_display(),
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class ParentEducationLoanCallbackView(APIView):
+    """Parent schedules preferred callback date/time after enquiry submit."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        if request.user.user_type != choices.UserType.PARENT:
+            return Response(
+                {"success": False, "message": "Not allowed"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        from django.utils.dateparse import parse_datetime
+        from users.education_loan_application import (
+            schedule_education_loan_callback,
+            serialize_education_loan_application,
+        )
+
+        app_id = request.data.get("application_id") or request.POST.get("application_id")
+        raw_dt = (
+            request.data.get("callback_preferred_at")
+            or request.POST.get("callback_preferred_at")
+            or ""
+        ).strip()
+        note = (
+            request.data.get("callback_note")
+            or request.POST.get("callback_note")
+            or ""
+        )
+        dt = parse_datetime(raw_dt.replace("T", " ", 1)) if raw_dt else None
+        if dt is not None and timezone.is_naive(dt):
+            dt = timezone.make_aware(dt, timezone.get_current_timezone())
+        app, err = schedule_education_loan_callback(
+            request.user, app_id, preferred_at=dt, note=note
+        )
+        if err:
+            return Response(
+                {"success": False, "message": err},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return Response(
+            {
+                "success": True,
+                "message": "Callback scheduled. Our team will call you at your preferred time.",
+                "application": serialize_education_loan_application(app),
             },
             status=status.HTTP_200_OK,
         )
@@ -1963,6 +2020,8 @@ def get_dashboard_url_for_user(request, user, *, apply_mobile_gate=True):
                 return reverse("counselor:CounselorDashboardView", args=[coun.id])
         elif ut == choices.UserType.PARENT:
             return reverse("parents_dashboard")
+        elif ut in choices.UserType.LOAN_DESK_TYPES:
+            return reverse("loan_desk:home")
         elif ut == choices.UserType.STUDENT:
             dest = _compute_student_destination(user)
             if apply_mobile_gate and request is not None:
@@ -4139,13 +4198,97 @@ class MyNotePad(TemplateView):
     def get_context(self,request,*args,**kwargs):
         ctx={}
         ctx["html_head"] = self.html_head()
-        ctx['breadcrumb']=self.__breadcrumb()
+        is_parent = getattr(request.user, "user_type", None) == choices.UserType.PARENT
+        ctx["is_parent_shell"] = is_parent
+        if is_parent:
+            ctx["breadcrumb"] = get_breadcrumb([
+                {"title": "Parent Dashboard", "text": "Parent Dashboard", "url": reverse_lazy("parents_dashboard")},
+                {"title": "My Notebook", "text": "My Notebook", "url": ""},
+            ])
+            ctx["notepad_back_url"] = reverse_lazy("parents_dashboard")
+        else:
+            ctx["breadcrumb"] = self.__breadcrumb()
+            ctx["notepad_back_url"] = reverse_lazy("users:scrapbook")
         ctx['notes'] = _meaningful_user_notes_qs(request.user)
         return ctx
 
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
 
+
+class QuickNoteAPIView(APIView):
+    """JSON list / create / update / delete for the in-page notebook drawer."""
+
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [
+        authentication.SessionAuthentication,
+        authentication.TokenAuthentication,
+    ]
+
+    def _serialize(self, note):
+        from django.utils.html import strip_tags
+        from django.utils.formats import date_format as dj_date_format
+
+        body = strip_tags(note.content or "").replace("\xa0", " ").strip()
+        title = (note.title or "").strip()
+        modified = ""
+        try:
+            modified = dj_date_format(note.modified, "M j, Y, g:i a")
+        except Exception:
+            modified = str(getattr(note, "modified", "") or "")
+        return {
+            "id": note.id,
+            "title": title,
+            "content": body,
+            "preview": (body[:160] + "…") if len(body) > 160 else body,
+            "modified": modified,
+        }
+
+    def get(self, request, *args, **kwargs):
+        notes = [self._serialize(n) for n in _meaningful_user_notes_qs(request.user)]
+        return Response({"success": True, "notes": notes}, status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs):
+        from django.utils.html import strip_tags
+
+        data = request.data if hasattr(request, "data") else request.POST
+        raw_id = data.get("id") if data.get("id") not in (None, "") else data.get("obj_id")
+        try:
+            obj_id = int(raw_id) if raw_id not in (None, "") else None
+        except (TypeError, ValueError):
+            obj_id = None
+        title = (data.get("title") or "").strip()
+        content = strip_tags(str(data.get("content") or "")).replace("\xa0", " ").strip()
+        action = (data.get("action") or "save").strip().lower()
+
+        if action == "delete":
+            if not obj_id:
+                return Response(
+                    {"success": False, "message": "Note id required."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            note = get_object_or_404(UserNote, id=obj_id, user=request.user)
+            note.delete()
+            return Response({"success": True, "message": "Note deleted."}, status=status.HTTP_200_OK)
+
+        if not title and not content:
+            return Response(
+                {"success": False, "message": "Type a note before saving."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if obj_id:
+            note = get_object_or_404(UserNote, id=obj_id, user=request.user)
+        else:
+            note = UserNote(user=request.user)
+
+        note.title = title or None
+        note.content = content
+        note.save()
+        return Response(
+            {"success": True, "message": "Note saved.", "note": self._serialize(note)},
+            status=status.HTTP_200_OK,
+        )
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 class CreateNote(TemplateView):
     template_name="template20/user/create_note.html"
@@ -4157,6 +4300,8 @@ class CreateNote(TemplateView):
     def get_context(self,request,id,*args,**kwargs):
         ctx={}
         ctx["html_head"] = self.html_head()
+        is_parent = getattr(request.user, "user_type", None) == choices.UserType.PARENT
+        ctx["is_parent_shell"] = is_parent
         if id:
             note=get_object_or_404(UserNote,id=id,user=request.user)
         else:

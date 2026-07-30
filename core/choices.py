@@ -453,6 +453,8 @@ class UserType(object):
     COUNSELOR=4
     MARKETINGGROUPADMIN=5
     PARENT=6
+    LOAN_MANAGER=7
+    LOAN_EXECUTIVE=8
     CHOICES=(
         (STUDENT,"Student"),
         (INSTITUTE,"Institute"),
@@ -460,7 +462,11 @@ class UserType(object):
         (COUNSELOR,"Counselor"),
         (MARKETINGGROUPADMIN,"Marketing Group Admin"),
         (PARENT,"Parent"),
+        (LOAN_MANAGER,"Loan Manager"),
+        (LOAN_EXECUTIVE,"Loan Executive"),
     )
+
+    LOAN_DESK_TYPES = (LOAN_MANAGER, LOAN_EXECUTIVE)
 
 class UserStatus(object):
     BLOCK=1
@@ -579,10 +585,25 @@ class ReasoningArea:
 
 class EducationLoanApplicationStatus(object):
     DRAFT = 0
-    ENQUIRY_SENT = 1
+    ENQUIRY_SENT = 1  # legacy label; treated as NEW in loan desk
+    CALLBACK_SCHEDULED = 2
+    IN_PROGRESS = 3
+    FOLLOW_UP = 4
+    CLOSED = 5
     CHOICES = (
         (DRAFT, "Draft"),
-        (ENQUIRY_SENT, "Application Enquiry Sent"),
+        (ENQUIRY_SENT, "New Enquiry"),
+        (CALLBACK_SCHEDULED, "Callback Scheduled"),
+        (IN_PROGRESS, "In Progress"),
+        (FOLLOW_UP, "Follow Up"),
+        (CLOSED, "Closed"),
+    )
+
+    OPEN_STATUSES = (
+        ENQUIRY_SENT,
+        CALLBACK_SCHEDULED,
+        IN_PROGRESS,
+        FOLLOW_UP,
     )
 
 

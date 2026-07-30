@@ -51,6 +51,18 @@
           <span class="tt-admin-home__card-arrow" aria-hidden="true">→</span>
         </span>
       </a>
+
+      <a href="{% url 'admin:hub_education_loan' %}" class="tt-admin-home__card tt-admin-home__card--loan">
+        <span class="tt-admin-home__card-icon" aria-hidden="true">₹</span>
+        <h2>{% translate 'Education Loan' %}</h2>
+        <p>
+          {% translate 'Add loan managers & executives, enquiries, remarks, Loan Desk PWA, and loan ops settings.' %}
+        </p>
+        <span class="tt-admin-home__card-cta">
+          {% blocktranslate with count=hub_education_loan_count %}{{ count }} shortcuts{% endblocktranslate %}
+          <span class="tt-admin-home__card-arrow" aria-hidden="true">→</span>
+        </span>
+      </a>
     </div>
   </div>
 

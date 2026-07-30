@@ -587,6 +587,26 @@
         </form>
         <div class="alert alert-success mt-3 mb-0 d-none" id="loanApplySuccessMsg"></div>
         <div class="alert alert-danger mt-3 mb-0 d-none" id="loanApplyErrorMsg"></div>
+        <div class="border rounded-3 p-3 mt-3 d-none" id="loanCallbackPanel">
+          <h6 class="fw-700 mb-1">Prefer a callback time?</h6>
+          <p class="fs-13 text-muted mb-2">Our team will call within 2 days. Optionally pick a preferred slot.</p>
+          <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-5">
+              <label class="form-label fs-13" for="loanCallbackAt">Preferred date &amp; time</label>
+              <input type="datetime-local" class="form-control" id="loanCallbackAt">
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label fs-13" for="loanCallbackNote">Note (optional)</label>
+              <input type="text" class="form-control" id="loanCallbackNote" maxlength="500" placeholder="Best time to reach you">
+            </div>
+            <div class="col-12 col-md-3">
+              <button type="button" class="loan-btn loan-btn-primary w-100" id="loanCallbackBtn">
+                <i class='bx bx-phone-call'></i> Schedule callback
+              </button>
+            </div>
+          </div>
+          <div class="alert alert-success mt-2 mb-0 d-none" id="loanCallbackSuccessMsg"></div>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="loan-btn loan-btn-outline" data-bs-dismiss="modal">Close</button>
@@ -616,6 +636,7 @@
     var loanCalculated = false;
     var loanApplyBtn = byId('loanApplyBtn');
     var loanSaveUrl = {{ loan_save_url|tojson }};
+    var loanCallbackUrl = {{ loan_callback_url|tojson }};
     var loanApplicationRecord = null;
     var loanLatestEnquiry = null;
     var loanSelectedStudentId = '';
@@ -660,10 +681,16 @@
         return;
       }
 
-      if (loanLatestEnquiry && loanLatestEnquiry.status === 1) {
+      if (loanLatestEnquiry && loanLatestEnquiry.status !== 0) {
         banner.className = 'loan-status-banner is-enquiry mt-3';
-        banner.textContent = 'Application enquiry sent' + (loanLatestEnquiry.submitted_at ? (' on ' + formatLoanDate(loanLatestEnquiry.submitted_at)) : '') + '. Our team will contact you soon.';
+        var msg = 'Application enquiry sent' + (loanLatestEnquiry.submitted_at ? (' on ' + formatLoanDate(loanLatestEnquiry.submitted_at)) : '') + '. Our team will call you within 2 days.';
+        if (loanLatestEnquiry.callback_preferred_at) {
+          msg += ' Preferred callback: ' + formatLoanDate(loanLatestEnquiry.callback_preferred_at) + '.';
+        }
+        banner.textContent = msg;
         banner.classList.remove('d-none');
+        var cbPanel = byId('loanCallbackPanel');
+        if (cbPanel) cbPanel.classList.remove('d-none');
         return;
       }
 
@@ -863,11 +890,12 @@
             loanLatestEnquiry = saved;
             loanApplicationRecord = null;
             if (byId('loanApplicationId')) byId('loanApplicationId').value = '';
-            setLoanActionMessage('success', result.data.message || 'Application enquiry sent successfully.');
+            setLoanActionMessage('success', result.data.message || 'Application enquiry sent successfully. Our team will call you within 2 days.');
             if (byId('loanSubmitBtn')) {
               byId('loanSubmitBtn').disabled = true;
               byId('loanSubmitBtn').textContent = 'Enquiry Sent';
             }
+            if (byId('loanCallbackPanel')) byId('loanCallbackPanel').classList.remove('d-none');
           } else {
             loanApplicationRecord = saved;
             if (saved && byId('loanApplicationId')) byId('loanApplicationId').value = saved.id || '';
@@ -1417,6 +1445,62 @@
       loanSubmitBtn.addEventListener('click', function () {
         saveLoanApplication('submit', true, loanSubmitBtn);
       });
+    }
+
+    var loanCallbackBtn = byId('loanCallbackBtn');
+    if (loanCallbackBtn) {
+      loanCallbackBtn.addEventListener('click', function () {
+        if (!loanLatestEnquiry || !loanLatestEnquiry.id) {
+          setLoanActionMessage('error', 'Submit an enquiry first, then schedule a callback.');
+          return;
+        }
+        var at = (byId('loanCallbackAt') && byId('loanCallbackAt').value) || '';
+        if (!at) {
+          setLoanActionMessage('error', 'Please choose a preferred date and time.');
+          return;
+        }
+        loanCallbackBtn.disabled = true;
+        fetch(loanCallbackUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken') || ''
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify({
+            application_id: loanLatestEnquiry.id,
+            callback_preferred_at: at,
+            callback_note: (byId('loanCallbackNote') && byId('loanCallbackNote').value) || ''
+          })
+        })
+          .then(function (response) {
+            return response.json().then(function (data) {
+              return { ok: response.ok, data: data };
+            });
+          })
+          .then(function (result) {
+            loanCallbackBtn.disabled = false;
+            if (!result.ok || !result.data.success) {
+              setLoanActionMessage('error', (result.data && result.data.message) || 'Could not schedule callback.');
+              return;
+            }
+            loanLatestEnquiry = result.data.application || loanLatestEnquiry;
+            var okEl = byId('loanCallbackSuccessMsg');
+            if (okEl) {
+              okEl.textContent = result.data.message || 'Callback scheduled.';
+              okEl.classList.remove('d-none');
+            }
+            updateLoanStatusBanner();
+          })
+          .catch(function () {
+            loanCallbackBtn.disabled = false;
+            setLoanActionMessage('error', 'Network error while scheduling callback.');
+          });
+      });
+    }
+
+    if (loanLatestEnquiry && loanLatestEnquiry.status !== 0 && byId('loanCallbackPanel')) {
+      byId('loanCallbackPanel').classList.remove('d-none');
     }
   })();
 </script>
