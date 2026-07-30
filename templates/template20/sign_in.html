@@ -510,6 +510,9 @@
     loginOtpEmailValue = email;
     var formData = new FormData();
     formData.append('user_name', email);
+    if (window.LOGIN_MODE) {
+      formData.append('login_mode', window.LOGIN_MODE);
+    }
     
     // Clear error message
     document.getElementById('errorMsgLoginOtp').style.display = 'none';
@@ -607,6 +610,12 @@
       url: usersresendotp,
       data: formData,
       success: function(data) {
+        if (data && data.success === false) {
+          var errorMsgFail = document.getElementById('errorMsgLoginOtp');
+          errorMsgFail.textContent = data.message || 'Unable to send OTP. Please try again.';
+          errorMsgFail.style.display = 'block';
+          return;
+        }
         // Show OTP input step
         document.getElementById('loginOtpEmailStep').style.display = 'none';
         document.getElementById('loginOtpInputStep').style.display = 'block';
@@ -628,7 +637,11 @@
       },
       error: function(xhr, status, error) {
         var errorMsg = document.getElementById('errorMsgLoginOtp');
-        errorMsg.textContent = 'Unable to send OTP. Please check your email/mobile and try again';
+        var serverMsg = '';
+        try {
+          serverMsg = (xhr.responseJSON && xhr.responseJSON.message) || '';
+        } catch (e) {}
+        errorMsg.textContent = serverMsg || 'Unable to send OTP. Please check your email/mobile and try again.';
         errorMsg.style.display = 'block';
       },
       cache: false,
@@ -657,6 +670,9 @@
   function verifyLoginOtp() {
     var formData = new FormData();
     formData.append('user_name', loginOtpEmailValue);
+    if (window.LOGIN_MODE) {
+      formData.append('login_mode', window.LOGIN_MODE);
+    }
     
     // Get OTP values
     var otpInputs = document.querySelectorAll('#loginOtpInputStep input[name="otp"]');

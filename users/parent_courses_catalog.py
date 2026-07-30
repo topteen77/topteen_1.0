@@ -16,11 +16,7 @@ from users.parent_student_insights import resolve_student_grade
 from users.skilllab_dashboard import (
     SKILLLAB_SECTION_SUBTITLE,
     SKILLLAB_SECTION_TITLE,
-    skilllab_completed_user_ids,
     skilllab_course_eligible_for_student,
-    skilllab_owned_user_ids,
-    skilllab_started_user_ids,
-    skilllab_student_status,
 )
 
 
@@ -152,13 +148,30 @@ def _psychometric_item(
             student_data[str(sid)] = {"eligible": False}
             continue
         enrolled = sid in owned_ids
+        started = sid in started_ids
+        completed = sid in completed_ids
+        progress_url = ""
+        action_label = "View progress"
+        if enrolled:
+            if completed:
+                # Parent-safe gateway → Stream Sorter / Career Direction report for this student
+                progress_url = reverse("parents_student_results", args=[sid])
+                action_label = "View report"
+            elif track == "12":
+                progress_url = reverse("post_matric:tests")
+            else:
+                progress_url = reverse("app:dashboard_for_user", args=[sid])
         student_data[str(sid)] = {
             "eligible": True,
             "enrolled": enrolled,
+            "started": started,
+            "completed": completed,
+            "progress_url": progress_url,
+            "action_label": action_label,
             "steps": _journey_steps(
                 enrolled=enrolled,
-                started=sid in started_ids,
-                completed=sid in completed_ids,
+                started=started,
+                completed=completed,
                 final_label="Report",
             ),
         }
@@ -197,6 +210,7 @@ def _assessment_item(
     detail_url_name: str,
     students: List[Dict[str, Any]],
     result_model,
+    report_url_name: str,
 ) -> Dict[str, Any]:
     student_ids = [s["id"] for s in students]
     done_ids = set(
@@ -209,9 +223,18 @@ def _assessment_item(
     for s in students:
         sid = s["id"]
         taken = sid in done_ids
+        progress_url = ""
+        action_label = "View progress"
+        if taken:
+            progress_url = f"{reverse(report_url_name, args=[sid])}?inline=1"
+            action_label = "View report"
         student_data[str(sid)] = {
             "eligible": True,
             "enrolled": taken,
+            "started": taken,
+            "completed": taken,
+            "progress_url": progress_url,
+            "action_label": action_label,
             "steps": _journey_steps(
                 enrolled=taken,
                 started=taken,
@@ -244,14 +267,20 @@ def _assessment_item(
 # ---------------------------------------------------------------------------
 
 def _skilllab_started_ids(student_ids, course) -> Set[int]:
+    from users.skilllab_dashboard import skilllab_started_user_ids
+
     return skilllab_started_user_ids(student_ids, course)
 
 
 def _skilllab_completed_ids(student_ids: List[int], course) -> Set[int]:
+    from users.skilllab_dashboard import skilllab_completed_user_ids
+
     return skilllab_completed_user_ids(student_ids, course)
 
 
 def _skilllab_owned_ids(student_ids, course, is_free) -> Set[int]:
+    from users.skilllab_dashboard import skilllab_owned_user_ids
+
     return skilllab_owned_user_ids(student_ids, course, is_free)
 
 
@@ -260,25 +289,36 @@ def _skilllab_items(
     student_users_by_id: Dict[int, Any],
 ) -> List[Dict[str, Any]]:
     from skilllab.models import SkillLabCourse
+    from users.skilllab_dashboard import (
+        bulk_skilllab_status_for_users,
+        skilllab_course_eligible_for_student,
+        skilllab_cta_from_flags,
+        skilllab_course_certificate_url,
+        skilllab_course_detail_url,
+        skilllab_course_resume_url,
+        skilllab_course_start_url,
+    )
 
-    courses = (
+    courses = list(
         SkillLabCourse.objects.all()
         .select_related("topic_category")
         .prefetch_related("grades")
         .order_by("-modified")
     )
-    items: List[Dict[str, Any]] = []
+    user_ids = [int(sid) for sid in student_users_by_id.keys()]
+    status_by_user = bulk_skilllab_status_for_users(user_ids, courses)
 
+    items: List[Dict[str, Any]] = []
     for course in courses:
         price_label, is_free = _price_label(course.amount)
-        student_ids = [s["id"] for s in students]
-        owned_ids = _skilllab_owned_ids(student_ids, course, is_free)
-        started_ids = _skilllab_started_ids(list(owned_ids), course) if owned_ids else set()
-        completed_ids = _skilllab_completed_ids(list(owned_ids), course) if owned_ids else set()
-
-        # Catalog class + topic from Grades M2M / topic_category (same as listing cards).
         class_label = course.get_grade_label()
         category_label = course.get_topic_category_display()
+        detail_url = reverse(
+            "skilllabcourse:skilllabcoursedetail", args=[course.slug]
+        )
+        cert_url = skilllab_course_certificate_url(course)
+        resume_url = skilllab_course_resume_url(course)
+        start_url = skilllab_course_start_url(course)
 
         student_data: Dict[str, Any] = {}
         for s in students:
@@ -287,20 +327,24 @@ def _skilllab_items(
             grade_match = bool(
                 user and skilllab_course_eligible_for_student(user, course)
             )
-            status = skilllab_student_status(user, course) if user else {}
-            enrolled = status.get("enrolled", sid in owned_ids)
-            started = status.get("started", sid in started_ids)
-            completed = status.get("completed", sid in completed_ids)
+            ustatus = status_by_user.get(int(sid), {})
+            enrolled = bool(ustatus.get("enrolled", {}).get(course.id, False))
+            started = bool(ustatus.get("started", {}).get(course.id, False))
+            completed = bool(ustatus.get("completed", {}).get(course.id, False))
+            progress_pct = int(ustatus.get("progress_pct", {}).get(course.id, 0) or 0)
+            cta = skilllab_cta_from_flags(
+                enrolled=enrolled, started=started, completed=completed
+            )
             student_data[str(sid)] = {
                 "eligible": True,
                 "grade_match": grade_match,
                 "enrolled": enrolled,
                 "started": started,
                 "completed": completed,
-                "progress_pct": status.get("progress_pct", 0),
-                "cta": status.get("cta", "Start" if enrolled else "Enroll"),
-                "start_url": status.get("start_url", ""),
-                "certificate_url": status.get("certificate_url", ""),
+                "progress_pct": progress_pct,
+                "cta": cta,
+                "start_url": resume_url if cta == "Resume" else start_url,
+                "certificate_url": cert_url if completed else "",
                 "student_dashboard_url": reverse("parents_student_dashboard", args=[sid]),
                 "steps": _journey_steps(
                     enrolled=enrolled,
@@ -327,9 +371,7 @@ def _skilllab_items(
                 "icon_bg": "#ecfdf3",
                 "image_url": course.get_image_url(),
                 "image_fallback_url": static("images/skilllab-default.png"),
-                "detail_url": reverse(
-                    "skilllabcourse:skilllabcoursedetail", args=[course.slug]
-                ),
+                "detail_url": detail_url,
                 "student_data": student_data,
             }
         )
@@ -370,6 +412,9 @@ def build_parent_skilllab_suggestions(
                     "progress_pct": sd.get("progress_pct", 0),
                     "enrolled": sd.get("enrolled", False),
                     "student_dashboard_url": sd.get("student_dashboard_url", ""),
+                    "action_url": sd.get("start_url")
+                    or sd.get("certificate_url")
+                    or item.get("detail_url", ""),
                 }
             )
 
@@ -384,72 +429,18 @@ def build_parent_skilllab_suggestions(
 
 
 def build_parent_courses_catalog(parent) -> Dict[str, Any]:
-    """Unified catalog for parent: courses/tests with per-student journey data."""
-    from users.models import ParentStudentLink
-    from core.models import MIAssessmentResult, EQAssessmentResult
+    """Unified catalog for parent: Skill Lab courses with per-student journeys.
 
-    raw_students = [
-        link.student
-        for link in ParentStudentLink.objects.filter(parent=parent).select_related("student")
-        if link.student
-    ]
+    Psychometric / MI / EQ assessments are shown on the parent dashboard, not here.
+    """
+    from users.parent_student_insights import linked_students_for_parent
+
+    raw_students = linked_students_for_parent(parent)
     students = [_student_payload(s) for s in raw_students]
-
-    assessment_candidates = [
-        _psychometric_item(
-            track="10",
-            title="Stream Sorter",
-            subtitle="Aptitude & interest assessment for stream selection",
-            class_label="Up to Class 10",
-            amount=getattr(settings, "STREAM_SORTER_TEST_AMOUNT", 999),
-            students=students,
-        ),
-        _psychometric_item(
-            track="12",
-            title="Career Direction",
-            subtitle="Comprehensive psychometric assessment for senior students",
-            class_label="Class 11+",
-            amount=getattr(settings, "CAREER_DIRECTION_TEST_AMOUNT", 999),
-            students=students,
-        ),
-        _assessment_item(
-            item_id="mi-assessment",
-            kind="mi",
-            title="Multiple Intelligence",
-            subtitle="Discover your child's learning style",
-            icon_src="images_new/icons/multiple-intelligence.png",
-            icon_bg="#fff4e6",
-            detail_url_name="core:multiple_intelligences",
-            students=students,
-            result_model=MIAssessmentResult,
-        ),
-        _assessment_item(
-            item_id="eq-assessment",
-            kind="eq",
-            title="Emotional Intelligence",
-            subtitle="Understand EQ strengths and growth areas",
-            icon_src="images_new/icons/emotions.png",
-            icon_bg="#fdf2f8",
-            detail_url_name="core:emotional_intelligences",
-            students=students,
-            result_model=EQAssessmentResult,
-        ),
-    ]
-    assessments = [item for item in assessment_candidates if _any_eligible(item["student_data"])]
-
     student_users_by_id = {int(s.id): s for s in raw_students if getattr(s, "id", None)}
     career_courses = _skilllab_items(students, student_users_by_id)
 
     sections = []
-    if assessments:
-        sections.append(
-            {
-                "key": "assessments",
-                "title": "Assessments & Tests",
-                "subtitle": "Psychometric, MI, and EQ evaluations",
-                "catalog_items": assessments,
-            }
-        )
     if career_courses:
         sections.append(
             {

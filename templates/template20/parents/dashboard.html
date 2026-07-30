@@ -559,6 +559,9 @@ text-align: left !important;
     margin-top: auto;
     padding-top: 4px;
   }
+  .parent-course-suggest-actions--single {
+    grid-template-columns: 1fr;
+  }
 
   .parent-course-suggest-actions .btn {
     width: 100%;
@@ -785,12 +788,22 @@ text-align: left !important;
       <div class="parent-catalog-banner">
         <div class="min-w-0">
           <h3 class="fs-18 fw-700 mb-1">Courses & Tests</h3>
-          <p class="text-muted fs-13 mb-0">Psychometric tests, MI/EQ assessments, and College &amp; Career Readiness courses — view, pay, and track start, resume, or completion for linked students.</p>
+          <p class="text-muted fs-13 mb-0">MI &amp; EQ assessments for the selected student, plus College &amp; Career Readiness courses.</p>
         </div>
         <a href="{{ url('parents_courses') }}" class="btn custom-button purple-button fw-600">
           <i class='bx bx-book-open me-1'></i>Browse catalog
         </a>
       </div>
+    </div>
+
+    <div class="parent-students-card mb-4" id="parentMieqAssessments" hidden>
+      <div class="parent-section-head">
+        <div>
+          <h3 class="fs-18 fw-700">Free assessments</h3>
+          <p class="fs-12">Multiple Intelligence and Emotional Intelligence for the selected student</p>
+        </div>
+      </div>
+      <div class="row g-3 align-items-stretch" id="parentMieqGrid"></div>
     </div>
 
     <div class="parent-students-card mb-4" id="parentCourseSuggestions" hidden>
@@ -839,6 +852,7 @@ text-align: left !important;
 {{ super() }}
 <script type="application/json" id="studentsDashboardPayload">{{ students_dashboard_payload_json }}</script>
 <script type="application/json" id="courseSuggestionsPayload">{{ course_suggestions_json|default('{}') }}</script>
+<script type="application/json" id="mieqAssessmentsPayload">{{ mieq_assessments_json|default('{}') }}</script>
 <script>
   (function () {
     function parseJsonScript(id) {
@@ -848,6 +862,7 @@ text-align: left !important;
     }
     var studentsPayload = parseJsonScript('studentsDashboardPayload') || [];
     var courseSuggestions = parseJsonScript('courseSuggestionsPayload') || {};
+    var mieqAssessments = parseJsonScript('mieqAssessmentsPayload') || {};
     var studentSelect = document.getElementById('studentFocusSelect');
     var reportHost = document.getElementById('parentAssessmentReportHost');
     var initialStudentId = reportHost
@@ -1059,6 +1074,42 @@ text-align: left !important;
       return studentsPayload[0];
     }
 
+    function renderMieqAssessments(studentId) {
+      var host = document.getElementById('parentMieqAssessments');
+      var grid = document.getElementById('parentMieqGrid');
+      if (!host || !grid) return;
+      var items = mieqAssessments[String(studentId)] || [];
+      if (!items.length) {
+        host.hidden = true;
+        grid.innerHTML = '';
+        return;
+      }
+      host.hidden = false;
+      grid.innerHTML = items.map(function (item) {
+        var icon = item.icon_src
+          ? '<img src="' + item.icon_src + '" alt="" style="width:28px;height:28px;object-fit:contain;" loading="lazy" />'
+          : '<i class="bx bx-brain fs-20"></i>';
+        var ctaClass = item.done
+          ? 'btn btn-sm custom-button blue-button'
+          : 'btn btn-sm custom-button purple-button';
+        return '<div class="col-12 col-md-6 col-xl-3"><div class="parent-course-suggest-card">' +
+          '<div class="parent-course-suggest-top">' +
+          '<div class="parent-course-suggest-thumb d-flex align-items-center justify-content-center" style="background:' + (item.icon_bg || '#eef2ff') + ';">' + icon + '</div>' +
+          '<div class="min-w-0"><p class="parent-course-suggest-title">' + (item.title || '') + '</p>' +
+          '<div class="parent-course-suggest-meta">' +
+          '<span class="parent-course-suggest-badge parent-course-suggest-badge--price">' + (item.kind_badge || 'FREE') + '</span>' +
+          (item.done
+            ? '<span class="parent-course-suggest-badge parent-course-suggest-badge--progress">Completed</span>'
+            : '') +
+          '</div>' +
+          '<p class="fs-12 text-muted mb-0 mt-1">' + (item.subtitle || '') + '</p>' +
+          '</div></div>' +
+          '<div class="parent-course-suggest-actions parent-course-suggest-actions--single">' +
+          '<a href="' + (item.action_url || '#') + '" class="' + ctaClass + '">' + (item.action_label || 'View') + '</a>' +
+          '</div></div></div>';
+      }).join('');
+    }
+
     function renderCourseSuggestions(studentId) {
       var host = document.getElementById('parentCourseSuggestions');
       if (!host) return;
@@ -1077,7 +1128,7 @@ text-align: left !important;
           ? '<img class="parent-course-suggest-thumb" src="' + course.image_url + '" alt="" loading="lazy" />'
           : '<div class="parent-course-suggest-thumb d-flex align-items-center justify-content-center"><i class="bx bx-book-reader fs-20 text-success"></i></div>';
         var cta = course.cta || 'View';
-        var dashUrl = course.student_dashboard_url || '#';
+        var actionUrl = course.action_url || course.student_dashboard_url || course.detail_url || '#';
         var detailUrl = course.detail_url || '#';
         var progress = (typeof course.progress_pct === 'number' && course.enrolled)
           ? '<span class="parent-course-suggest-badge parent-course-suggest-badge--progress">' + course.progress_pct + '% complete</span>' : '';
@@ -1093,8 +1144,8 @@ text-align: left !important;
           '<span class="parent-course-suggest-badge parent-course-suggest-badge--price">' + (course.price_label || '') + '</span>' +
           progress + '</div></div></div>' +
           '<div class="parent-course-suggest-actions">' +
-          '<a href="' + detailUrl + '" class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener noreferrer">Detail</a>' +
-          '<a href="' + dashUrl + '" class="' + ctaBtnClass + '">' + cta + '</a>' +
+          '<a href="' + detailUrl + '" class="btn btn-sm btn-outline-secondary">Detail</a>' +
+          '<a href="' + actionUrl + '" class="' + ctaBtnClass + '">' + cta + '</a>' +
           '</div></div></div>';
       }
 
@@ -1122,6 +1173,7 @@ text-align: left !important;
       var student = getCurrentStudent();
       if (!student) return;
       setFocusHeader(student);
+      renderMieqAssessments(student.id);
       renderCourseSuggestions(student.id);
       showAssessmentReport(parseInt(student.id, 10));
     }
@@ -1130,7 +1182,10 @@ text-align: left !important;
       var student = getCurrentStudent();
       if (student) setFocusHeader(student);
       var sid = initialStudentId || (student ? parseInt(student.id, 10) : null);
-      if (sid) renderCourseSuggestions(sid);
+      if (sid) {
+        renderMieqAssessments(sid);
+        renderCourseSuggestions(sid);
+      }
       if (sid && getReportPane(sid)) {
         showAssessmentReport(sid);
         return;

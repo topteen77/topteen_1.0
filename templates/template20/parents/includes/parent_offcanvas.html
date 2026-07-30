@@ -1,3 +1,4 @@
+{% set active_nav = request.resolver_match.url_name if request.resolver_match else '' %}
 <div class="offcanvas offcanvas-start parent-mobile-drawer d-lg-none" tabindex="-1" id="mobileProfileDrawer"
   aria-labelledby="mobileProfileDrawerLabel">
   <div class="offcanvas-header border-bottom">
@@ -26,49 +27,49 @@
     </div>
 
     <nav class="d-flex flex-column gap-2" aria-label="Parent mobile menu">
-      <a href="{{ url('parents_dashboard') }}" class="parent-mobile-nav-item">
+      <a href="{{ url('parents_dashboard') }}" class="parent-mobile-nav-item{% if active_nav == 'parents_dashboard' %} is-active{% endif %}"{% if active_nav == 'parents_dashboard' %} aria-current="page"{% endif %}>
         <span class="parent-mobile-nav-icon">
           <i class='bx bx-home'></i>
         </span>
         <span class="parent-mobile-nav-label">Dashboard</span>
         <i class="bx bx-right-arrow-alt parent-mobile-nav-arrow"></i>
       </a>
-      <a href="{{ url('parents_courses') }}" class="parent-mobile-nav-item">
+      <a href="{{ url('parents_courses') }}" class="parent-mobile-nav-item{% if active_nav == 'parents_courses' %} is-active{% endif %}"{% if active_nav == 'parents_courses' %} aria-current="page"{% endif %}>
         <span class="parent-mobile-nav-icon">
           <i class='bx bx-book-open'></i>
         </span>
         <span class="parent-mobile-nav-label">Courses & Tests</span>
         <i class="bx bx-right-arrow-alt parent-mobile-nav-arrow"></i>
       </a>
-      <a href="{{ url('parents_careers') }}" class="parent-mobile-nav-item">
+      <a href="{{ url('parents_careers') }}" class="parent-mobile-nav-item{% if active_nav == 'parents_careers' %} is-active{% endif %}"{% if active_nav == 'parents_careers' %} aria-current="page"{% endif %}>
         <span class="parent-mobile-nav-icon">
           <i class='bx bx-briefcase'></i>
         </span>
         <span class="parent-mobile-nav-label">Careers</span>
         <i class="bx bx-right-arrow-alt parent-mobile-nav-arrow"></i>
       </a>
-      <a href="{{ url('parents_blogs') }}" class="parent-mobile-nav-item">
+      <a href="{{ url('parents_blogs') }}" class="parent-mobile-nav-item{% if active_nav == 'parents_blogs' %} is-active{% endif %}"{% if active_nav == 'parents_blogs' %} aria-current="page"{% endif %}>
         <span class="parent-mobile-nav-icon">
           <i class='bx bx-news'></i>
         </span>
         <span class="parent-mobile-nav-label">Blogs</span>
         <i class="bx bx-right-arrow-alt parent-mobile-nav-arrow"></i>
       </a>
-      <a href="{{ url('parents_videos') }}" class="parent-mobile-nav-item">
+      <a href="{{ url('parents_videos') }}" class="parent-mobile-nav-item{% if active_nav == 'parents_videos' %} is-active{% endif %}"{% if active_nav == 'parents_videos' %} aria-current="page"{% endif %}>
         <span class="parent-mobile-nav-icon">
           <i class='bx bx-play-circle'></i>
         </span>
         <span class="parent-mobile-nav-label">Videos</span>
         <i class="bx bx-right-arrow-alt parent-mobile-nav-arrow"></i>
       </a>
-      <a href="{{ url('parents_education_loan_calculator') }}" class="parent-mobile-nav-item">
+      <a href="{{ url('parents_education_loan_calculator') }}" class="parent-mobile-nav-item{% if active_nav == 'parents_education_loan_calculator' %} is-active{% endif %}"{% if active_nav == 'parents_education_loan_calculator' %} aria-current="page"{% endif %}>
         <span class="parent-mobile-nav-icon">
           <i class='bx bx-calculator'></i>
         </span>
         <span class="parent-mobile-nav-label">Education Loan Calculator</span>
         <i class="bx bx-right-arrow-alt parent-mobile-nav-arrow"></i>
       </a>
-      <a href="{{ url('parents_education_loan_applications') }}" class="parent-mobile-nav-item">
+      <a href="{{ url('parents_education_loan_applications') }}" class="parent-mobile-nav-item{% if active_nav == 'parents_education_loan_applications' %} is-active{% endif %}"{% if active_nav == 'parents_education_loan_applications' %} aria-current="page"{% endif %}>
         <span class="parent-mobile-nav-icon">
           <i class='bx bx-file'></i>
         </span>

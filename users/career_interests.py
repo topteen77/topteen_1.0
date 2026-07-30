@@ -44,6 +44,8 @@ def _career_card_payload(
         "parent_bookmark_id": parent_bookmark_id,
         "student_reaction": student_reaction or "",
         "student_name": student_name,
+        "student_ids": [],
+        "student_names": [],
         "is_disliked": bool(is_disliked),
         "sort_ts": sort_ts,
         "badge_label": badge_label,
@@ -65,13 +67,20 @@ def _badge_label(
                 return f"Shortlisted by {parent_name}"
             return "Shortlisted by parent"
         return ""
-    # Parent viewer: only show who shortlisted among linked students — never "by you".
+    # Parent viewer: always show which linked student(s) the item relates to.
+    names = (student_name or "").strip()
     if source == "parent":
+        if names:
+            return f"For {names}"
         return ""
-    if source in ("student", "both"):
-        if student_name:
-            return f"Shortlisted by {student_name}"
+    if source == "student":
+        if names:
+            return f"Shortlisted by {names}"
         return "Shortlisted by student"
+    if source == "both":
+        if names:
+            return f"For {names} · also shortlisted by them"
+        return "You and student"
     return ""
 
 
@@ -81,6 +90,33 @@ def _badge_class(source: str) -> str:
     if source == "both":
         return "career-source-badge career-source-badge--both"
     return "career-source-badge career-source-badge--student"
+
+
+def _attach_linked_student(card: Dict[str, Any], student) -> None:
+    """Accumulate student ids/names on a parent-facing shortlist card."""
+    if not student:
+        return
+    sid = int(getattr(student, "id", 0) or 0)
+    if not sid:
+        return
+    name = (getattr(student, "name", None) or "").strip() or "Student"
+    ids = card.setdefault("student_ids", [])
+    names = card.setdefault("student_names", [])
+    if sid not in ids:
+        ids.append(sid)
+        names.append(name)
+    card["student_name"] = ", ".join(names)
+
+
+def _refresh_parent_badge(card: Dict[str, Any]) -> None:
+    source = card.get("source") or "parent"
+    card["badge_label"] = _badge_label(
+        source,
+        card.get("parent_name") or "",
+        card.get("student_name") or "",
+        viewer="parent",
+    )
+    card["badge_class"] = _badge_class(source) if card["badge_label"] else ""
 
 
 def _linked_students_for_parent(parent, *, student_id=None):
@@ -267,24 +303,33 @@ def build_parent_career_shortlist_cards(parent, user_ids, *, student=None) -> Li
     ):
         if not cs.career_id or not cs.career:
             continue
-        if cs.career_id in cards_by_career:
-            continue
         if cs.user_id == parent.id:
-            cards_by_career[cs.career_id] = _career_card_payload(
-                cs.career,
-                source="parent",
-                sort_ts=getattr(cs, "created", None) or getattr(cs, "modified", None),
-                viewer="parent",
-            )
+            if cs.career_id not in cards_by_career:
+                cards_by_career[cs.career_id] = _career_card_payload(
+                    cs.career,
+                    source="parent",
+                    sort_ts=getattr(cs, "created", None) or getattr(cs, "modified", None),
+                    viewer="parent",
+                )
             continue
-        student_name = getattr(cs.user, "name", "") or "Student"
-        cards_by_career[cs.career_id] = _career_card_payload(
+        student_user = cs.user
+        existing = cards_by_career.get(cs.career_id)
+        if existing:
+            if existing.get("source") == "parent":
+                existing["source"] = "both"
+            _attach_linked_student(existing, student_user)
+            _refresh_parent_badge(existing)
+            continue
+        card = _career_card_payload(
             cs.career,
             source="student",
-            student_name=student_name,
+            student_name=getattr(student_user, "name", "") or "Student",
             sort_ts=getattr(cs, "created", None) or getattr(cs, "modified", None),
             viewer="parent",
         )
+        _attach_linked_student(card, student_user)
+        _refresh_parent_badge(card)
+        cards_by_career[cs.career_id] = card
 
     bm_qs = ParentStudentBookmark.objects.filter(parent=parent, content_type=ct)
     if student is not None:
@@ -295,32 +340,49 @@ def build_parent_career_shortlist_cards(parent, user_ids, *, student=None) -> Li
         career = Career.objects.filter(id=bm.object_id).first()
         if not career:
             continue
-        student_name = getattr(bm.student, "name", "") or "Student"
         reaction = (bm.student_reaction or "").strip()
         is_disliked = reaction == ParentStudentBookmark.REACTION_DISLIKED
         existing = cards_by_career.get(career.id)
         if existing:
-            existing["source"] = "both"
-            existing["parent_bookmark_id"] = bm.id
-            existing["student_reaction"] = reaction
-            existing["student_name"] = student_name
-            existing["is_disliked"] = is_disliked
-            existing["badge_label"] = _badge_label("both", student_name=student_name, viewer="parent")
-            existing["badge_class"] = _badge_class("student") if existing["badge_label"] else ""
+            if existing.get("source") == "student":
+                existing["source"] = "both"
+            elif existing.get("source") != "both":
+                existing["source"] = "parent"
+            existing["parent_bookmark_id"] = existing.get("parent_bookmark_id") or bm.id
+            existing["student_reaction"] = reaction or existing.get("student_reaction") or ""
+            existing["is_disliked"] = bool(is_disliked or existing.get("is_disliked"))
+            _attach_linked_student(existing, bm.student)
+            _refresh_parent_badge(existing)
         else:
-            cards_by_career[career.id] = _career_card_payload(
+            card = _career_card_payload(
                 career,
                 source="parent",
                 parent_name=getattr(bm.parent, "name", "") or "You",
                 parent_bookmark_id=bm.id,
                 student_reaction=reaction,
-                student_name=student_name,
+                student_name=getattr(bm.student, "name", "") or "Student",
                 is_disliked=is_disliked,
                 sort_ts=getattr(bm, "created", None) or getattr(bm, "reacted_at", None),
                 viewer="parent",
             )
+            _attach_linked_student(card, bm.student)
+            _refresh_parent_badge(card)
+            cards_by_career[career.id] = card
 
     cards = list(cards_by_career.values())
+    if student is not None:
+        sid = int(getattr(student, "id", 0) or 0)
+        sname = (getattr(student, "name", None) or "").strip() or "Student"
+        scoped = []
+        for c in cards:
+            if sid not in (c.get("student_ids") or []):
+                continue
+            c["student_ids"] = [sid]
+            c["student_names"] = [sname]
+            c["student_name"] = sname
+            _refresh_parent_badge(c)
+            scoped.append(c)
+        cards = scoped
     cards.sort(key=lambda c: (-(c.get("sort_ts").timestamp() if c.get("sort_ts") else 0),))
     return cards
 

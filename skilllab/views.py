@@ -1825,6 +1825,12 @@ class UpdateSkilllabCoursePaymentWithEazyPay(APIView):
                     redirect_url = sp.get_payment_success_fail_url().get("success_url")
                     sp.is_success = choices.YesNoChoices.YES
                     sp.save()
+                    try:
+                        from users.skilllab_dashboard import invalidate_skilllab_dashboard_items_cache
+
+                        invalidate_skilllab_dashboard_items_cache(sp.user_id)
+                    except Exception:
+                        pass
                     send_skillabcourse_payment_success_mail.delay(sp.id)
                     return Response({'success': True, 'redirect_url': redirect_url}, status=status.HTTP_200_OK)
                 else:
@@ -1878,6 +1884,12 @@ class UpdateSkilllabCoursePaymentWithEazyPay(APIView):
             redirect_url=sp.get_payment_success_fail_url().get("success_url")
             sp.is_success=choices.YesNoChoices.YES
             sp.save()
+            try:
+                from users.skilllab_dashboard import invalidate_skilllab_dashboard_items_cache
+
+                invalidate_skilllab_dashboard_items_cache(sp.user_id)
+            except Exception:
+                pass
             send_skillabcourse_payment_success_mail.delay(sp.id)
         else:
             redirect_url=sp.get_payment_success_fail_url().get("fail_url")

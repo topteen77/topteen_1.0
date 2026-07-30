@@ -6,7 +6,12 @@ from typing import Any, Dict, List, Optional
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 
-from users.career_interests import _badge_class, _badge_label
+from users.career_interests import (
+    _attach_linked_student,
+    _badge_class,
+    _badge_label,
+    _refresh_parent_badge,
+)
 from users.models import ParentStudentBookmark
 
 
@@ -185,7 +190,7 @@ def toggle_parent_video_bookmark(parent, video, *, student_id=None) -> Dict[str,
     return {"success": True, "bookmarked": True, "message": "Video shortlisted"}
 
 
-def remove_parent_saved_career(parent, *, career_slug: str) -> bool:
+def remove_parent_saved_career(parent, *, career_slug: str, student_id: Optional[int] = None) -> bool:
     from careers.models import Career, CareerShortlist
     from users.models import ParentStudentBookmark
 
@@ -193,16 +198,22 @@ def remove_parent_saved_career(parent, *, career_slug: str) -> bool:
     if not career:
         return False
     ct = ContentType.objects.get_for_model(Career)
-    ParentStudentBookmark.objects.filter(
+    bm_qs = ParentStudentBookmark.objects.filter(
         parent=parent, content_type=ct, object_id=career.id
-    ).delete()
+    )
+    if student_id:
+        bm_qs = bm_qs.filter(student_id=int(student_id))
+        bm_qs.delete()
+        CareerShortlist.objects.filter(user_id=int(student_id), career_id=career.id).delete()
+        return True
+    bm_qs.delete()
     CareerShortlist.objects.filter(
         user_id__in=_linked_family_user_ids(parent), career_id=career.id
     ).delete()
     return True
 
 
-def remove_parent_saved_blog(parent, *, blog_id: int) -> bool:
+def remove_parent_saved_blog(parent, *, blog_id: int, student_id: Optional[int] = None) -> bool:
     from blog.models import Blog, BlogShortlist
     from users.models import ParentStudentBookmark
 
@@ -210,16 +221,22 @@ def remove_parent_saved_blog(parent, *, blog_id: int) -> bool:
     if not blog:
         return False
     ct = ContentType.objects.get_for_model(Blog)
-    ParentStudentBookmark.objects.filter(
+    bm_qs = ParentStudentBookmark.objects.filter(
         parent=parent, content_type=ct, object_id=blog.id
-    ).delete()
+    )
+    if student_id:
+        bm_qs = bm_qs.filter(student_id=int(student_id))
+        bm_qs.delete()
+        BlogShortlist.objects.filter(user_id=int(student_id), blog_id=blog.id).delete()
+        return True
+    bm_qs.delete()
     BlogShortlist.objects.filter(
         user_id__in=_linked_family_user_ids(parent), blog_id=blog.id
     ).delete()
     return True
 
 
-def remove_parent_saved_video(parent, *, video_id: int) -> bool:
+def remove_parent_saved_video(parent, *, video_id: int, student_id: Optional[int] = None) -> bool:
     from careers.models import Videos
     from users.models import ParentStudentBookmark
 
@@ -227,15 +244,21 @@ def remove_parent_saved_video(parent, *, video_id: int) -> bool:
     if not video:
         return False
     ct = ContentType.objects.get_for_model(Videos)
-    ParentStudentBookmark.objects.filter(
+    bm_qs = ParentStudentBookmark.objects.filter(
         parent=parent, content_type=ct, object_id=video.id
-    ).delete()
+    )
+    if student_id:
+        bm_qs = bm_qs.filter(student_id=int(student_id))
+        bm_qs.delete()
+        video.shortlist.remove(int(student_id))
+        return True
+    bm_qs.delete()
     for uid in _linked_family_user_ids(parent):
         video.shortlist.remove(uid)
     return True
 
 
-def build_parent_blog_cards(parent, user_ids) -> List[Dict[str, Any]]:
+def build_parent_blog_cards(parent, user_ids, *, student=None) -> List[Dict[str, Any]]:
     from blog.models import Blog as BlogModel, BlogShortlist
     from users.models import ParentStudentBookmark
 
@@ -247,46 +270,91 @@ def build_parent_blog_cards(parent, user_ids) -> List[Dict[str, Any]]:
     for bs in BlogShortlist.objects.filter(
         user_id__in=user_ids, blog__isnull=False
     ).select_related("blog", "user").order_by("-id"):
-        if not bs.blog_id or not bs.blog or bs.blog_id in cards_by_id:
+        if not bs.blog_id or not bs.blog:
             continue
         if bs.user_id == parent.id:
-            cards_by_id[bs.blog_id] = {
-                "blog": bs.blog,
-                "blog_id": bs.blog_id,
-                "badge_label": "",
-                "badge_class": "",
-                "remove_blog_id": bs.blog_id,
-            }
+            if bs.blog_id not in cards_by_id:
+                cards_by_id[bs.blog_id] = {
+                    "blog": bs.blog,
+                    "blog_id": bs.blog_id,
+                    "source": "parent",
+                    "badge_label": "",
+                    "badge_class": "",
+                    "student_ids": [],
+                    "student_names": [],
+                    "student_name": "",
+                    "remove_blog_id": bs.blog_id,
+                }
             continue
-        owner_name = getattr(bs.user, "name", "") or "Student"
-        cards_by_id[bs.blog_id] = {
+        existing = cards_by_id.get(bs.blog_id)
+        if existing:
+            if existing.get("source") == "parent":
+                existing["source"] = "both"
+            _attach_linked_student(existing, bs.user)
+            _refresh_parent_badge(existing)
+            continue
+        card = {
             "blog": bs.blog,
             "blog_id": bs.blog_id,
-            "badge_label": f"Shortlisted by {owner_name}",
-            "badge_class": "career-source-badge career-source-badge--student",
+            "source": "student",
+            "badge_label": "",
+            "badge_class": "",
+            "student_ids": [],
+            "student_names": [],
+            "student_name": "",
             "remove_blog_id": bs.blog_id,
         }
+        _attach_linked_student(card, bs.user)
+        _refresh_parent_badge(card)
+        cards_by_id[bs.blog_id] = card
 
     ct = ContentType.objects.get_for_model(BlogModel)
-    for bm in ParentStudentBookmark.objects.filter(parent=parent, content_type=ct).order_by("-created"):
+    bm_qs = ParentStudentBookmark.objects.filter(parent=parent, content_type=ct)
+    if student is not None:
+        bm_qs = bm_qs.filter(student=student)
+    for bm in bm_qs.select_related("student").order_by("-created"):
         blog = BlogModel.get_published_objects().filter(id=bm.object_id).first()
         if not blog:
             continue
-        student_name = getattr(bm.student, "name", "") or "Student"
         existing = cards_by_id.get(blog.id)
         if existing:
-            existing["badge_label"] = f"Shortlisted by {student_name}"
-            existing["badge_class"] = "career-source-badge career-source-badge--student"
+            if existing.get("source") == "student":
+                existing["source"] = "both"
+            elif existing.get("source") != "both":
+                existing["source"] = "parent"
+            _attach_linked_student(existing, bm.student)
+            _refresh_parent_badge(existing)
         else:
-            cards_by_id[blog.id] = {
+            card = {
                 "blog": blog,
                 "blog_id": blog.id,
+                "source": "parent",
                 "badge_label": "",
                 "badge_class": "",
+                "student_ids": [],
+                "student_names": [],
+                "student_name": "",
                 "remove_blog_id": blog.id,
             }
+            _attach_linked_student(card, bm.student)
+            _refresh_parent_badge(card)
+            cards_by_id[blog.id] = card
 
-    return list(cards_by_id.values())
+    cards = list(cards_by_id.values())
+    if student is not None:
+        sid = int(getattr(student, "id", 0) or 0)
+        sname = (getattr(student, "name", None) or "").strip() or "Student"
+        scoped = []
+        for c in cards:
+            if sid not in (c.get("student_ids") or []):
+                continue
+            c["student_ids"] = [sid]
+            c["student_names"] = [sname]
+            c["student_name"] = sname
+            _refresh_parent_badge(c)
+            scoped.append(c)
+        cards = scoped
+    return cards
 
 
 def _merge_student_reaction(card: Dict[str, Any], reaction: str, student) -> None:
@@ -319,23 +387,24 @@ def build_parent_video_cards(parent, user_ids, *, student=None) -> List[Dict[str
     # Step 1: independent shortlists via the Videos.shortlist M2M. A student appearing
     # here shortlisted the video themselves (not because the parent picked it for them).
     for vid in Videos.objects.filter(shortlist__in=user_ids).distinct().order_by("-id"):
-        if vid.id in cards_by_id:
-            continue
-        student_owner = (
-            User.objects.filter(id__in=student_ids, video_shortlist=vid).first()
-            if student_ids
-            else None
-        )
-        if student_owner is not None:
+        student_owners = list(
+            User.objects.filter(id__in=student_ids, video_shortlist=vid)
+        ) if student_ids else []
+        if student_owners:
             student_direct_ids.add(vid.id)
-            cards_by_id[vid.id] = _video_card_payload(
-                vid,
-                source="student",
-                student_name=getattr(student_owner, "name", "") or "Student",
-                sort_ts=getattr(vid, "created", None) or getattr(vid, "modified", None),
-                viewer="parent",
-            )
-        elif vid.shortlist.filter(id=parent.id).exists():
+            card = cards_by_id.get(vid.id)
+            if not card:
+                card = _video_card_payload(
+                    vid,
+                    source="student",
+                    sort_ts=getattr(vid, "created", None) or getattr(vid, "modified", None),
+                    viewer="parent",
+                )
+                cards_by_id[vid.id] = card
+            for owner in student_owners:
+                _attach_linked_student(card, owner)
+            _refresh_parent_badge(card)
+        elif vid.shortlist.filter(id=parent.id).exists() and vid.id not in cards_by_id:
             cards_by_id[vid.id] = _video_card_payload(
                 vid,
                 source="parent",
@@ -364,11 +433,11 @@ def build_parent_video_cards(parent, user_ids, *, student=None) -> List[Dict[str
             # Only a genuine student-initiated shortlist upgrades the card to "both".
             if video.id in student_direct_ids and existing.get("source") != "both":
                 existing["source"] = "both"
-                existing["badge_label"] = _badge_label(
-                    "both", student_name=existing.get("student_name", ""), viewer="parent"
-                )
-                existing["badge_class"] = _badge_class("student") if existing["badge_label"] else ""
+            elif existing.get("source") != "both" and existing.get("source") != "student":
+                existing["source"] = "parent"
+            _attach_linked_student(existing, bm.student)
             _merge_student_reaction(existing, reaction, bm.student)
+            _refresh_parent_badge(existing)
         else:
             card = _video_card_payload(
                 video,
@@ -378,10 +447,25 @@ def build_parent_video_cards(parent, user_ids, *, student=None) -> List[Dict[str
                 sort_ts=getattr(bm, "created", None) or getattr(bm, "reacted_at", None),
                 viewer="parent",
             )
+            _attach_linked_student(card, bm.student)
             _merge_student_reaction(card, reaction, bm.student)
+            _refresh_parent_badge(card)
             cards_by_id[video.id] = card
 
     cards = list(cards_by_id.values())
+    if student is not None:
+        sid = int(getattr(student, "id", 0) or 0)
+        sname = (getattr(student, "name", None) or "").strip() or "Student"
+        scoped = []
+        for c in cards:
+            if sid not in (c.get("student_ids") or []):
+                continue
+            c["student_ids"] = [sid]
+            c["student_names"] = [sname]
+            c["student_name"] = sname
+            _refresh_parent_badge(c)
+            scoped.append(c)
+        cards = scoped
     cards.sort(key=lambda c: (-(c.get("sort_ts").timestamp() if c.get("sort_ts") else 0),))
     return cards
 
@@ -415,6 +499,8 @@ def _video_card_payload(
         "parent_bookmark_id": parent_bookmark_id,
         "student_reaction": student_reaction or "",
         "student_name": student_name,
+        "student_ids": [],
+        "student_names": [],
         "is_disliked": bool(is_disliked),
         "sort_ts": sort_ts,
         "badge_label": badge_label,
