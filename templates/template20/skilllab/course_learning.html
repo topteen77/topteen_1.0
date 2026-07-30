@@ -82,6 +82,9 @@
   right: 0;
   z-index: 1000;
   width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 .course-header-inner {
@@ -335,6 +338,11 @@
   font-size: 13px;
 }
 
+
+.section-content-intro.introduction-content.skilllab-lesson-prose ul ul {
+	padding: 0 0 0 27px;
+}
+
 @media (min-width: 1200px) {
   .course-header-grid {
     grid-template-columns: auto minmax(0, 1fr) minmax(220px, 280px) auto;
@@ -354,14 +362,29 @@
 }
 
 @media (max-width: 767.98px) {
+  .course-header-inner {
+    padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+  }
+
   .course-header-grid {
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
-      "brand . actions"
-      "info info info"
-      "progress progress progress";
-    gap: 8px 12px;
+      "brand actions"
+      "info info"
+      "progress progress";
+    gap: 8px 10px;
     padding: 10px 0 12px;
+  }
+
+  .course-header-brand {
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .course-header-actions {
+    gap: 6px;
+    flex-shrink: 0;
   }
 
   .course-header-back span,
@@ -374,35 +397,69 @@
     padding: 8px 10px;
   }
 
+  .mobile-sidebar-toggle {
+    padding: 8px 10px;
+  }
+
+  .course-header-logo img {
+    height: 30px;
+  }
+
   .course-title {
-    font-size: 1rem;
+    font-size: 1.05rem;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   .course-header-label {
     font-size: 12px;
   }
 
+  .course-progress-title {
+    font-size: 13px;
+  }
+
+  .course-progress-percentage {
+    font-size: 14px;
+  }
+
+  .full-course-section .container-fluid {
+    padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+  }
+
   /* PWA / mobile readability */
   .content-section {
-    font-size: 16px;
-    line-height: 1.55;
+    font-size: 17px;
+    line-height: 1.6;
+  }
+  .content-section .skilllab-lesson-prose,
+  .content-section .introduction-content,
+  .content-section .section-content-intro,
+  .skilllab-section-tabs .section-content-intro {
+    font-size: 17px;
+    line-height: 1.6;
   }
   .content-section p,
   .content-section li,
   .section-content-intro p,
   .section-content-intro li {
-    font-size: 16px;
-    line-height: 1.55;
+    font-size: inherit;
+    line-height: 1.6;
   }
   .content-chapter-title {
-    font-size: 1.35rem;
+    font-size: 1.4rem;
   }
   .content-section-title {
-    font-size: 1rem;
+    font-size: 1.05rem;
   }
   .skilllab-section-tabs .lesson-content-tabs .nav-link {
     font-size: 0.875rem;
   }
+
 }
 .skilllab-saved-panel { display: none; position: absolute; top: 100%; right: 0; margin-top: 6px; min-width: 280px; max-width: 360px; max-height: 70vh; overflow-y: auto; background: #fff; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12); border: 1px solid #e0e0e0; z-index: 1100; }
 .skilllab-saved-panel.show { display: block; }
@@ -1531,9 +1588,10 @@ body.skilllab-course-learning-page #cb-fab-wrap {
 .skilllab-tabs-toolbar-slot {
   display: flex;
   align-items: center;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   justify-content: flex-end;
   min-width: 0;
+  max-width: 100%;
   padding: 6px 0;
 }
 .skilllab-tabs-toolbar-slot::before {
@@ -1670,30 +1728,46 @@ body.skilllab-course-learning-page #cb-fab-wrap {
     padding-bottom: 0.75rem;
   }
   .skilllab-section-tabs .skilllab-section-tabs-header {
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     flex-direction: row;
-    align-items: center;
-    min-height: 44px;
-    padding: 0 6px 0 0;
-    gap: 4px;
+    align-items: stretch;
+    min-height: 0;
+    padding: 0;
+    gap: 0;
   }
   .skilllab-section-tabs .skilllab-section-tabs-header .lesson-content-tabs.nav-tabs {
-    flex: 1 1 auto;
+    flex: 1 1 100%;
+    width: 100%;
     min-width: 0;
+    padding: 0 8px;
+    box-sizing: border-box;
+    border-bottom: 1px solid #eaecf0;
   }
   .skilllab-section-tabs .lesson-content-tabs .nav-link {
-    padding: 10px 10px;
-    font-size: 0.8125rem;
+    padding: 10px 12px;
+    font-size: 0.875rem;
   }
   .skilllab-tabs-toolbar-slot::before {
     display: none;
   }
   .skilllab-tabs-toolbar-slot {
-    width: auto;
-    flex: 0 0 auto;
-    justify-content: flex-end;
-    padding: 4px 0;
-    margin-left: auto;
+    flex: 1 1 100%;
+    width: 100%;
+    justify-content: center;
+    padding: 8px 10px;
+    margin-left: 0;
+    box-sizing: border-box;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .skilllab-toolbar--inline {
+    flex-wrap: nowrap;
+    max-width: 100%;
+  }
+  .skilllab-toolbar--inline .btn-tool {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
   }
   .skilllab-toolbar--inline .btn-tool-label {
     display: none;
@@ -1717,9 +1791,13 @@ body.skilllab-course-learning-page #cb-fab-wrap {
   }
 }
 @media (max-width: 576px) {
-  .content-section { padding: 1rem; padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px)) !important; }
-  .content-chapter-title { font-size: 1.3rem; }
-  .content-section-title { font-size: 1rem; }
+  .mobile-sidebar-toggle__label {
+    display: none;
+  }
+
+  .content-section { padding: 1rem 0.85rem; padding-bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px)) !important; }
+  .content-chapter-title { font-size: 1.35rem; }
+  .content-section-title { font-size: 1.05rem; }
   .section-navigation {
     padding: 0.5rem 0.75rem;
     padding-bottom: max(0.4rem, env(safe-area-inset-bottom, 0px));
@@ -1727,16 +1805,16 @@ body.skilllab-course-learning-page #cb-fab-wrap {
   }
   .section-navigation .nav-btn {
     padding: 0.75rem 0.85rem;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     max-width: none;
   }
   .skilllab-section-tabs #sl-content-pane {
-    padding: 0.5rem 0.6rem 0.75rem;
+    padding: 0.75rem 0.85rem 0.85rem;
   }
   .skilllab-section-tabs .lesson-content-tabs .nav-link {
-    padding: 8px 8px;
-    font-size: 0.75rem;
-    gap: 4px;
+    padding: 10px 10px;
+    font-size: 0.8125rem;
+    gap: 5px;
   }
 }
 /* Mobile portrait: Previous/Next as chevron-only; label via title tooltip */
@@ -1769,6 +1847,10 @@ body.skilllab-course-learning-page #cb-fab-wrap {
     font-size: 1.5rem;
     margin: 0;
   }
+
+  .course-chapters-sidebar {
+  padding: 1rem 0.85rem 6.25rem;
+}
 }
 </style>
 
