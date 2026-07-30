@@ -224,7 +224,7 @@
 }
 </style>
 
-<section class="hero-section-inner pt-md-18 pt-14 pb-5">
+<section class="hero-section-inner pt-md-18 pt-10">
   <div class="container">
     <div class="row">
       <div class="col-md-12">
@@ -251,7 +251,7 @@
           <img src="{{ static('images_new/short-courses/course-placeholder.png') }}" alt="{{ skilllab.name }}" />
           {% endif %}
         </div>
-        <div class="course-meta">
+        <div class="course-meta d-md-flex d-none">
           <div class="meta-item"><i class='bx bx-category'></i><span>{{ course_topic_category }}</span></div>
           <div class="meta-item"><i class='bx bx-book-open'></i><span>{{ course_grade_label }}</span></div>
           <div class="meta-item"><i class='bx bx-book'></i><span>{{ skilllab.skilllabcoursechapter.all()|length }} Chapters</span></div>

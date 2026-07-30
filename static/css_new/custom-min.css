@@ -16473,6 +16473,9 @@ a.list-group-item .bx {
     max-height: 240px;
   }
 
+  .four-pillars-hero-section {
+    overflow: hidden;
+}
 }
 
 

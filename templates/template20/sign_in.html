@@ -101,13 +101,26 @@
   .otp-inputs-container {
     max-width: 400px;
     margin: 0 auto;
+    display: flex;
+    gap: clamp(4px, 1.5vw, 8px);
+    flex-wrap: nowrap;
+    width: 100%;
+  }
+
+  .otp-inputs-container input {
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto !important;
+    max-width: 50px;
+    padding: 0;
+    box-sizing: border-box;
   }
   
   @media (max-width: 576px) {
     .otp-inputs-container input {
-      width: 45px !important;
       height: 45px !important;
       font-size: 18px !important;
+      max-width: none;
     }
   }
   
@@ -280,13 +293,13 @@
                     <p class="text-gray fs-15 mb-3">
                       OTP sent to <span class="text-purple fw-600" id="loginOtpEmailDisplay"></span>
                     </p>
-                    <div class="d-flex justify-content-between gap-2 mb-4 otp-inputs-container" style="max-width: 400px; margin: 0 auto;">
-                      <input name="otp" class="form-control otpSource oinputs otpIp text-center" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{1}" minlength="1" maxlength="1" min="0" max="9" style="width: 50px; height: 50px; font-size: 20px; font-weight: 600;" />
-                      <input name="otp" class="form-control oinputs otpIp text-center" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{1}" minlength="1" maxlength="1" min="0" max="9" style="width: 50px; height: 50px; font-size: 20px; font-weight: 600;" />
-                      <input name="otp" class="form-control oinputs otpIp text-center" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{1}" minlength="1" maxlength="1" min="0" max="9" style="width: 50px; height: 50px; font-size: 20px; font-weight: 600;" />
-                      <input name="otp" class="form-control oinputs otpIp text-center" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{1}" minlength="1" maxlength="1" min="0" max="9" style="width: 50px; height: 50px; font-size: 20px; font-weight: 600;" />
-                      <input name="otp" class="form-control oinputs otpIp text-center" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{1}" minlength="1" maxlength="1" min="0" max="9" style="width: 50px; height: 50px; font-size: 20px; font-weight: 600;" />
-                      <input name="otp" class="form-control oinputs otpIp text-center" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{1}" minlength="1" maxlength="1" min="0" max="9" style="width: 50px; height: 50px; font-size: 20px; font-weight: 600;" />
+                    <div class="d-flex justify-content-between gap-2 mb-4 otp-inputs-container">
+                      <input name="otp" class="form-control otpSource oinputs otpIp otp-digit-input text-center" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{1}" minlength="1" maxlength="1" min="0" max="9" />
+                      <input name="otp" class="form-control oinputs otpIp otp-digit-input text-center" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{1}" minlength="1" maxlength="1" min="0" max="9" />
+                      <input name="otp" class="form-control oinputs otpIp otp-digit-input text-center" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{1}" minlength="1" maxlength="1" min="0" max="9" />
+                      <input name="otp" class="form-control oinputs otpIp otp-digit-input text-center" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{1}" minlength="1" maxlength="1" min="0" max="9" />
+                      <input name="otp" class="form-control oinputs otpIp otp-digit-input text-center" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{1}" minlength="1" maxlength="1" min="0" max="9" />
+                      <input name="otp" class="form-control oinputs otpIp otp-digit-input text-center" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{1}" minlength="1" maxlength="1" min="0" max="9" />
                     </div>
                     <p class="text-gray fs-14 text-center mb-4">
                       Didn't receive it?
