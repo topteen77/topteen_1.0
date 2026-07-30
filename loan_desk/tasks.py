@@ -88,7 +88,9 @@ def send_loan_overdue_followup_reminders():
             if not emails:
                 continue
             email = emails[0]
-        path = reverse("loan_desk:detail", kwargs={"pk": app.id})
+        from loan_desk.services import absolute_public_url
+
+        path = absolute_public_url(reverse("loan_desk:detail", kwargs={"pk": app.id}))
         if app.last_followed_up_at is None and not (
             app.next_follow_up_at and app.next_follow_up_at < timezone.now()
         ):

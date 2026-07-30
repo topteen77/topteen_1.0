@@ -80,6 +80,46 @@ def consume_instant_login_token(raw_token: str):
     return user, row.application
 
 
+def _public_site_base_url() -> str:
+    """Canonical public site origin for email links (never relative / internal hosts)."""
+    from django.conf import settings
+
+    base = (
+        getattr(settings, "TOPTEEN_SITE_URL", None)
+        or getattr(settings, "SITE_URL", None)
+        or getattr(settings, "BASE_URL", None)
+        or getattr(settings, "SITE_BASE_URL", None)
+        or ""
+    )
+    base = str(base or "").strip().rstrip("/")
+    if base:
+        return base
+    try:
+        from communication.email_layout import _email_site_url
+
+        return (_email_site_url() or "").rstrip("/")
+    except Exception:
+        return "https://www.topteen.in"
+
+
+def absolute_public_url(path: str, *, request=None) -> str:
+    """Build an absolute URL on the public base domain."""
+    path = path or "/"
+    if path.startswith("http://") or path.startswith("https://"):
+        return path
+    if not path.startswith("/"):
+        path = f"/{path}"
+    base = _public_site_base_url()
+    if base:
+        return f"{base}{path}"
+    if request is not None:
+        try:
+            return request.build_absolute_uri(path)
+        except Exception:
+            pass
+    return path
+
+
 def instant_login_url(request, user, application) -> str:
     from users.models import EducationLoanOpsSettings
 
@@ -88,12 +128,7 @@ def instant_login_url(request, user, application) -> str:
         user, application, ttl_hours=ops.instant_login_ttl_hours
     )
     path = reverse("loan_desk:instant_login", kwargs={"token": raw})
-    if request is not None:
-        return request.build_absolute_uri(path)
-    from django.conf import settings
-
-    base = getattr(settings, "SITE_URL", "") or getattr(settings, "BASE_URL", "") or ""
-    return f"{base.rstrip('/')}{path}" if base else path
+    return absolute_public_url(path, request=request)
 
 
 def schedule_parent_callback(application, *, preferred_at, note: str = "") -> None:
@@ -178,8 +213,9 @@ def notify_lead_assignee(application, *, request=None, assigned_by=None) -> int:
         url = instant_login_url(request, user, application)
     except Exception:
         logger.exception("Failed to build instant login for assignee %s", user.id)
-        url = reverse("loan_desk:detail", kwargs={"pk": application.id})
-
+        url = absolute_public_url(
+            reverse("loan_desk:detail", kwargs={"pk": application.id}), request=request
+        )
     by_name = ""
     if assigned_by is not None:
         by_name = (
@@ -246,9 +282,7 @@ def _send_enquiry_email_to_address(
         if event == "callback"
         else f"New loan enquiry — #{application.id}"
     )
-    desk = reverse("loan_desk:home")
-    if request is not None:
-        desk = request.build_absolute_uri(desk)
+    desk = absolute_public_url(reverse("loan_desk:home"), request=request)
     lines = _enquiry_summary_lines(application)
     lines.append("")
     lines.append(f"Loan Desk: {instant_url or desk}")

@@ -29,17 +29,18 @@
       <label class="visually-hidden" for="parentNbContent">New note</label>
       <div class="parent-nb-input-row">
         <textarea id="parentNbContent" class="form-control parent-nb-textarea" rows="3"
-          placeholder="Type or tap mic to speak…" maxlength="4000" enterkeyhint="done"></textarea>
-        <button type="button" class="btn parent-nb-mic-btn" id="parentNbMic"
+          placeholder="Type a quick note…" maxlength="4000" enterkeyhint="done"></textarea>
+        <button type="button" class="btn parent-nb-mic-btn" id="parentNbMic" hidden
           title="Speak to write"
-          aria-label="Speak to write" aria-pressed="false" aria-disabled="false">
+          aria-label="Speak to write" aria-pressed="false" aria-disabled="false" aria-hidden="true">
           <i class='bx bx-microphone' aria-hidden="true"></i>
         </button>
       </div>
       <input type="hidden" id="parentNbEditId" value="">
-      <div class="d-flex align-items-center gap-2 mt-2">
-        <input type="text" id="parentNbTitle" class="form-control form-control-sm parent-nb-title"
-          placeholder="Title (optional)" maxlength="120">
+      <input type="hidden" id="parentNbTitle" value="" maxlength="120">
+      <div class="d-flex align-items-center justify-content-end gap-2 mt-2">
+        <button type="button" class="btn btn-sm btn-outline-secondary flex-shrink-0" id="parentNbClear"
+          title="Clear note text">Clear</button>
         <button type="button" class="btn btn-sm btn-outline-secondary d-none flex-shrink-0" id="parentNbCancelEdit">Cancel</button>
         <button type="button" class="btn btn-sm custom-button purple-button flex-shrink-0" id="parentNbSave">
           Save
@@ -261,6 +262,7 @@
   var contentEl = document.getElementById('parentNbContent');
   var editIdEl = document.getElementById('parentNbEditId');
   var saveBtn = document.getElementById('parentNbSave');
+  var clearBtn = document.getElementById('parentNbClear');
   var cancelBtn = document.getElementById('parentNbCancelEdit');
   var statusEl = document.getElementById('parentNbStatus');
   var micBtn = document.getElementById('parentNbMic');
@@ -272,8 +274,12 @@
   var recognition = null;
   var wantListening = false;
   var micUnavailable = true;
-  var speechPrefix = '';   // text already in box before this listen session
-  var speechFinal = '';    // finalized speech this session
+  var speechPrefix = '';   // committed text before/during this listen session
+  var speechFinal = '';    // finalized speech not yet folded into prefix
+  var isAndroid = /Android/i.test(navigator.userAgent || '');
+  var restartTimer = null;
+  var silenceTimer = null;
+  var SILENCE_MS = 2000;   // auto-stop mic after 2s pause
 
   function setStatus(msg, kind) {
     if (!statusEl) return;
@@ -302,7 +308,6 @@
     if (!contentEl) return;
     var text = joinParts(speechPrefix, joinParts(speechFinal, interim || ''));
     contentEl.value = text;
-    // Keep caret at end so user sees live typing
     try {
       contentEl.focus();
       var len = contentEl.value.length;
@@ -311,8 +316,56 @@
     } catch (e) {}
   }
 
+  function commitSpeechToPrefix() {
+    // Fold finals into prefix and drop interim from the textarea.
+    // Never copy contentEl.value when finals exist — on Android the box still
+    // holds interim and re-finalizing the same words causes duplication.
+    // If there are no finals, do nothing so manually typed text is not wiped
+    // (Save used to clear the box via writeSpeechToBox('') with empty prefix).
+    if (!speechFinal) return;
+    speechPrefix = joinParts(speechPrefix, speechFinal);
+    speechFinal = '';
+    writeSpeechToBox('');
+  }
+
+  function clearSilenceTimer() {
+    if (silenceTimer) {
+      clearTimeout(silenceTimer);
+      silenceTimer = null;
+    }
+  }
+
+  function clearRestartTimer() {
+    if (restartTimer) {
+      clearTimeout(restartTimer);
+      restartTimer = null;
+    }
+  }
+
+  function armSilenceTimer() {
+    clearSilenceTimer();
+    if (!wantListening) return;
+    silenceTimer = setTimeout(function () {
+      silenceTimer = null;
+      if (!wantListening) return;
+      // 2s pause → stop; user must tap mic again to continue
+      stopListening();
+      setStatus('Paused. Tap mic to speak more.', 'is-ok');
+    }, SILENCE_MS);
+  }
+
+  function refreshCsrf() {
+    var fromCookie = (document.cookie.match(/csrftoken=([^;]+)/) || [])[1];
+    if (fromCookie) {
+      try { csrf = decodeURIComponent(fromCookie); } catch (e) { csrf = fromCookie; }
+    }
+    var fromInput = (document.querySelector('[name=csrfmiddlewaretoken]') || {}).value;
+    if (fromInput) csrf = fromInput;
+    return csrf || '';
+  }
+
   function setMicUi(listening) {
-    if (!micBtn || micUnavailable) return;
+    if (!micBtn || micUnavailable || micBtn.hidden) return;
     micBtn.classList.toggle('is-listening', !!listening);
     micBtn.setAttribute('aria-pressed', listening ? 'true' : 'false');
     var icon = micBtn.querySelector('i');
@@ -320,28 +373,56 @@
     if (contentEl) contentEl.classList.toggle('is-listening', !!listening);
   }
 
+  function hideMic() {
+    // API not available — do not show mic or error tip on open
+    micUnavailable = true;
+    wantListening = false;
+    clearSilenceTimer();
+    clearRestartTimer();
+    if (micBtn) {
+      micBtn.hidden = true;
+      micBtn.classList.remove('is-listening', 'is-disabled');
+      micBtn.setAttribute('aria-hidden', 'true');
+      micBtn.removeAttribute('data-mic-tip');
+      micBtn.removeAttribute('title');
+    }
+    var inputRow = contentEl && contentEl.closest('.parent-nb-input-row');
+    if (inputRow) inputRow.classList.remove('has-mic');
+    if (contentEl) {
+      contentEl.placeholder = 'Type a quick note…';
+      contentEl.classList.remove('is-listening');
+    }
+  }
+
   function setMicUnavailable(message) {
+    // Keep mic visible but disabled (permission / hardware errors after user action)
     if (!micBtn) return;
-    stopListening();
+    wantListening = false;
+    clearSilenceTimer();
+    clearRestartTimer();
+    if (recognition) {
+      try { recognition.stop(); } catch (e) {}
+      try { recognition.abort(); } catch (e2) {}
+    }
+    commitSpeechToPrefix();
     micUnavailable = true;
     micBtn.hidden = false;
     micBtn.classList.add('is-disabled');
     micBtn.classList.remove('is-listening');
     micBtn.setAttribute('aria-disabled', 'true');
     micBtn.removeAttribute('aria-hidden');
-    var tip = message || 'Voice typing unavailable.';
+    var tip = message || 'Microphone unavailable.';
     micBtn.setAttribute('data-mic-tip', tip);
     micBtn.setAttribute('title', tip);
     var icon = micBtn.querySelector('i');
-    if (icon) {
-      icon.className = /checking/i.test(tip) ? 'bx bx-microphone' : 'bx bx-microphone-off';
-    }
+    if (icon) icon.className = 'bx bx-microphone-off';
     var inputRow = contentEl && contentEl.closest('.parent-nb-input-row');
     if (inputRow) inputRow.classList.add('has-mic');
     if (contentEl) {
       contentEl.placeholder = 'Type a quick note…';
       contentEl.classList.remove('is-listening');
     }
+    setStatus(tip, 'is-err');
   }
 
   function setMicAvailable() {
@@ -351,7 +432,6 @@
     micBtn.classList.remove('is-disabled', 'is-listening');
     micBtn.setAttribute('aria-disabled', 'false');
     micBtn.removeAttribute('aria-hidden');
-    micBtn.setAttribute('data-mic-tip', '');
     micBtn.removeAttribute('data-mic-tip');
     micBtn.setAttribute('title', 'Speak to write');
     var icon = micBtn.querySelector('i');
@@ -363,14 +443,18 @@
 
   function stopListening() {
     wantListening = false;
-    if (!micUnavailable) setMicUi(false);
+    clearSilenceTimer();
+    clearRestartTimer();
+    if (!micUnavailable && micBtn && !micBtn.hidden) setMicUi(false);
     else if (micBtn) {
       micBtn.classList.remove('is-listening');
       if (contentEl) contentEl.classList.remove('is-listening');
     }
     if (recognition) {
       try { recognition.stop(); } catch (e) {}
+      try { recognition.abort(); } catch (e2) {}
     }
+    commitSpeechToPrefix();
   }
 
   function speechApiPresent() {
@@ -381,16 +465,16 @@
 
   function errorMessageForSpeech(err) {
     if (err === 'network') {
-      return 'Voice service briefly unavailable. Tap the mic and try again (needs Chrome/Edge + internet).';
+      return 'Voice service unavailable. Check your connection, then tap mic again.';
     }
     if (err === 'not-allowed' || err === 'service-not-allowed') {
-      return 'Microphone blocked. Allow mic access, then tap the mic again.';
+      return 'Microphone permission blocked. Allow mic access in browser settings.';
     }
     if (err === 'audio-capture') return 'No microphone found. You can still type.';
     if (err === 'language-not-supported') {
       return 'This browser language is not supported for voice typing.';
     }
-    return 'Voice typing unavailable right now. Tap mic to retry.';
+    return 'Could not use microphone. Tap mic to try again.';
   }
 
   function bindRecognitionHandlers() {
@@ -399,68 +483,91 @@
     recognition.onstart = function () {
       if (micUnavailable) return;
       setMicUi(true);
-      setStatus('Listening… speak now — tap mic to stop');
+      setStatus('Listening… pause 2s to stop, or tap mic');
+      armSilenceTimer();
     };
 
     recognition.onerror = function (ev) {
       var err = (ev && ev.error) || '';
-      if (err === 'no-speech' || err === 'aborted') return;
+      // aborted is normal when we stop; no-speech = treat as pause end
+      if (err === 'aborted') return;
+      if (err === 'no-speech') {
+        if (wantListening) {
+          stopListening();
+          setStatus('Paused. Tap mic to speak more.', 'is-ok');
+        }
+        return;
+      }
       wantListening = false;
+      clearSilenceTimer();
+      clearRestartTimer();
       setMicUi(false);
-      // Keep mic usable for retry — auto-probe without a user gesture often
-      // falsely reports "network" and used to disable the button permanently.
+      commitSpeechToPrefix();
       var msg = errorMessageForSpeech(err);
-      if (err === 'audio-capture') {
+      if (err === 'not-allowed' || err === 'service-not-allowed' || err === 'audio-capture') {
         setMicUnavailable(msg);
       } else {
+        // Keep mic enabled for retry (e.g. transient network) — never on popup open
         setStatus(msg, 'is-err');
-        if (micBtn) {
-          micBtn.setAttribute('title', msg);
-          micBtn.setAttribute('data-mic-tip', msg);
+        if (micBtn && !micBtn.hidden) {
+          micBtn.setAttribute('title', 'Speak to write');
+          micBtn.removeAttribute('data-mic-tip');
         }
       }
     };
 
     recognition.onend = function () {
       if (micUnavailable) return;
+      commitSpeechToPrefix();
+      // Keep listening until 2s silence timer stops us (or user taps stop)
       if (wantListening) {
-        if (contentEl) {
-          speechPrefix = contentEl.value;
-          speechFinal = '';
-        }
-        setTimeout(function () {
+        clearRestartTimer();
+        restartTimer = setTimeout(function () {
+          restartTimer = null;
           if (!wantListening || !recognition || micUnavailable) return;
           try {
             recognition.start();
           } catch (e) {
             wantListening = false;
+            clearSilenceTimer();
             setMicUi(false);
             setStatus('');
           }
-        }, 80);
+        }, isAndroid ? 280 : 100);
         return;
       }
+      clearSilenceTimer();
       setMicUi(false);
     };
 
     recognition.onresult = function (event) {
       if (micUnavailable) return;
       var interim = '';
-      var finals = '';
-      for (var i = 0; i < event.results.length; i++) {
-        var piece = (event.results[i][0] && event.results[i][0].transcript) || '';
-        if (event.results[i].isFinal) finals += piece;
-        else interim += piece;
+      var gotSpeech = false;
+      // Only process new results — looping from 0 rebuilds and can re-append on some Android WebViews
+      for (var i = event.resultIndex; i < event.results.length; i++) {
+        var piece = ((event.results[i][0] && event.results[i][0].transcript) || '').replace(/\s+/g, ' ').trim();
+        if (!piece) continue;
+        gotSpeech = true;
+        if (event.results[i].isFinal) {
+          speechFinal = joinParts(speechFinal, piece);
+        } else {
+          interim = joinParts(interim, piece);
+        }
       }
-      speechFinal = finals;
-      writeSpeechToBox(interim);
+      if (gotSpeech) {
+        writeSpeechToBox(interim);
+        armSilenceTimer(); // reset 2s pause clock on each speech chunk
+      }
     };
   }
 
   function initRecognition() {
     if (recognition || !speechApiPresent()) return false;
     recognition = new SpeechRecognition();
-    recognition.continuous = true;
+    // Android Chrome often mis-handles continuous=true (repeat). Desktop uses
+    // continuous so we can wait out a 2s pause; Android restarts until silence.
+    recognition.continuous = !isAndroid;
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
     recognition.lang = (navigator.language || 'en-IN');
@@ -471,44 +578,35 @@
   function setupSpeech() {
     if (!micBtn) return;
 
-    var inputRow = contentEl && contentEl.closest('.parent-nb-input-row');
-    if (inputRow) inputRow.classList.add('has-mic');
-    micBtn.hidden = false;
-
+    // No probe / no error on notebook open. Hide mic if API missing.
     if (!speechApiPresent()) {
-      setMicUnavailable(
-        !SpeechRecognition
-          ? 'Voice typing is not supported in this browser. Use Chrome or Edge.'
-          : 'Voice typing needs a secure page (https or localhost).'
-      );
+      hideMic();
       return;
     }
 
-    // Enable mic without probing — starting SpeechRecognition without a
-    // user gesture often fails with a false "network" error on Chrome.
     initRecognition();
     setMicAvailable();
 
     micBtn.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();
-      if (micUnavailable) return;
+      if (micUnavailable || micBtn.hidden) return;
       if (!recognition && !initRecognition()) {
-        setMicUnavailable('Voice typing is not supported in this browser.');
+        hideMic();
         return;
       }
       if (wantListening) {
         stopListening();
-        speechPrefix = contentEl ? contentEl.value : '';
-        speechFinal = '';
         setStatus('');
         return;
       }
+      // Start from whatever is already typed (manual text only at session start)
       speechPrefix = contentEl ? contentEl.value : '';
       speechFinal = '';
       wantListening = true;
       setMicUi(true);
-      setStatus('Listening… speak now — tap mic to stop');
+      setStatus('Listening… pause 2s to stop, or tap mic');
+      // Silence timer starts in onstart (after permission), not here
       try {
         recognition.start();
       } catch (err) {
@@ -517,12 +615,24 @@
           if (!wantListening || micUnavailable) return;
           try { recognition.start(); } catch (e3) {
             wantListening = false;
+            clearSilenceTimer();
             setMicUi(false);
             setStatus('Could not start microphone. Tap mic to retry.', 'is-err');
           }
         }, 200);
       }
     });
+  }
+
+  function clearComposeText() {
+    stopListening();
+    speechPrefix = '';
+    speechFinal = '';
+    if (contentEl) {
+      contentEl.value = '';
+      contentEl.focus();
+    }
+    setStatus('');
   }
 
   function resetCompose() {
@@ -585,6 +695,10 @@
 
   function saveNote() {
     if (!apiUrl) return;
+    // Stop mic first so interim speech is committed cleanly before save
+    if (wantListening) stopListening();
+    else commitSpeechToPrefix();
+
     var payload = {
       id: (editIdEl && editIdEl.value) ? editIdEl.value : '',
       title: titleEl ? titleEl.value : '',
@@ -603,12 +717,18 @@
       credentials: 'same-origin',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRFToken': csrf,
+        'X-CSRFToken': refreshCsrf(),
         'Accept': 'application/json'
       },
       body: JSON.stringify(payload)
     })
-      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (r) {
+        return r.text().then(function (text) {
+          var data = null;
+          try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
+          return { ok: r.ok, status: r.status, d: data };
+        });
+      })
       .then(function (res) {
         if (saveBtn) saveBtn.disabled = false;
         if (res.ok && res.d && res.d.success) {
@@ -616,13 +736,21 @@
           resetCompose();
           loadNotes();
           if (contentEl) contentEl.focus();
-        } else {
-          setStatus((res.d && res.d.message) || 'Save failed.', 'is-err');
+          return;
         }
+        if (res.status === 403) {
+          setStatus('Session expired. Refresh the page and try again.', 'is-err');
+          return;
+        }
+        if (res.status === 401) {
+          setStatus('Please sign in again to save notes.', 'is-err');
+          return;
+        }
+        setStatus((res.d && res.d.message) || 'Save failed.', 'is-err');
       })
       .catch(function () {
         if (saveBtn) saveBtn.disabled = false;
-        setStatus('Save failed.', 'is-err');
+        setStatus('Save failed. Check your connection and try again.', 'is-err');
       });
   }
 
@@ -663,6 +791,10 @@
   }
 
   if (saveBtn) saveBtn.addEventListener('click', saveNote);
+  if (clearBtn) clearBtn.addEventListener('click', function (e) {
+    e.preventDefault();
+    clearComposeText();
+  });
   if (cancelBtn) cancelBtn.addEventListener('click', function () {
     resetCompose();
     setStatus('');
@@ -704,6 +836,8 @@
   setupSpeech();
 
   drawer.addEventListener('show.bs.offcanvas', function () {
+    // Never show voice errors just because the notebook opened
+    if (!wantListening) setStatus('');
     loadNotes();
     setTimeout(function () { if (contentEl) contentEl.focus(); }, 280);
   });
