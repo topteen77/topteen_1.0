@@ -16,7 +16,7 @@
   {% endif %}
   <meta name="facebook-domain-verification" content="80fczxf7zf2ysu54gokd497v0b09zu" />
   {% endblock %}
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="apple-touch-icon" sizes="180x180" href="{{ static('images_new/fav-icon/apple-icon-114x114.png') }}">
   <link rel="icon" type="image/png" sizes="32x32" href="{{ static('images_new/fav-icon/favicon-32x32.png') }}">
   <link rel="icon" type="image/png" sizes="16x16" href="{{ static('images_new/fav-icon/favicon-16x16.png') }}">
@@ -29,9 +29,9 @@
 
   {% block title %}
   {% if html_head and html_head.title %}
-  <title>{{ html_head.title }} | Top Teen</title>
+  <title>{{ html_head.title }} | TopTeen</title>
   {% else %}
-  <title>{% block title_content %}Every Student, Career Ready | Top Teen{% endblock %}</title>
+  <title>{% block title_content %}Every Student, Career Ready | TopTeen{% endblock %}</title>
   {% endif %}
   {% endblock %}
 
@@ -58,14 +58,14 @@
   {% if not _seo_url and request %}{% set _seo_url = request.build_absolute_uri(request.path) %}{% endif %}
   {% if _seo_url %}<link rel="canonical" href="{{ _seo_url }}">{% endif %}
   <meta property="og:type" content="{{ html_head.og_type if (html_head and html_head.og_type) else 'website' }}">
-  <meta property="og:site_name" content="Top Teen">
-  <meta property="og:title" content="{{ _seo_title }} | Top Teen">
+  <meta property="og:site_name" content="TopTeen">
+  <meta property="og:title" content="{{ _seo_title }} | TopTeen">
   <meta property="og:description" content="{{ _seo_desc }}">
   <meta property="og:image" content="{{ _seo_image }}">
   {% if _seo_url %}<meta property="og:url" content="{{ _seo_url }}">{% endif %}
   <meta property="og:locale" content="en_IN">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="{{ _seo_title }} | Top Teen">
+  <meta name="twitter:title" content="{{ _seo_title }} | TopTeen">
   <meta name="twitter:description" content="{{ _seo_desc }}">
   <meta name="twitter:image" content="{{ _seo_image }}">
   {% endblock %}
@@ -81,7 +81,7 @@
   {% block chatbot_css %}
   {% if show_chatbot %}<link rel="stylesheet" href="{{ static('css_new/chatbot.css') }}" type="text/css" media="all" />{% endif %}
   {% endblock %}
-  <link rel="stylesheet" href="{{ static('css_new/pwa-safe-area.css') }}?v=4" type="text/css" media="all" />
+  <link rel="stylesheet" href="{{ static('css_new/pwa-safe-area.css') }}?v=6" type="text/css" media="all" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">

@@ -15,7 +15,7 @@ def _ensure_absolute_url(url, base_url):
     return base + ('/' + url.lstrip('/') if url else '')
 
 
-def get_organization_schema(site_base_url, site_name='Top Teen', logo_url=None):
+def get_organization_schema(site_base_url, site_name='TopTeen', logo_url=None):
     """
     Build Organization schema (schema.org) for the site.
     Used once per site; include on every page for brand recognition.
@@ -24,7 +24,7 @@ def get_organization_schema(site_base_url, site_name='Top Teen', logo_url=None):
     schema = {
         '@context': 'https://schema.org',
         '@type': 'Organization',
-        'name': site_name or 'Top Teen',
+        'name': site_name or 'TopTeen',
         'url': base or 'https://www.topteen.in',
         'description': (
             'TopTeen helps students find their perfect career path with confidence. '
@@ -37,7 +37,7 @@ def get_organization_schema(site_base_url, site_name='Top Teen', logo_url=None):
     return schema
 
 
-def get_website_schema(site_base_url, site_name='Top Teen', search_url=None):
+def get_website_schema(site_base_url, site_name='TopTeen', search_url=None):
     """
     Build WebSite schema with optional SearchAction (for sitelinks search box).
     """
@@ -45,7 +45,7 @@ def get_website_schema(site_base_url, site_name='Top Teen', search_url=None):
     schema = {
         '@context': 'https://schema.org',
         '@type': 'WebSite',
-        'name': site_name or 'Top Teen',
+        'name': site_name or 'TopTeen',
         'url': base,
         'description': (
             'TopTeen helps students find their perfect career path with confidence. '
@@ -53,7 +53,7 @@ def get_website_schema(site_base_url, site_name='Top Teen', search_url=None):
         ),
         'publisher': {
             '@type': 'Organization',
-            'name': site_name or 'Top Teen',
+            'name': site_name or 'TopTeen',
             'url': base,
         },
     }
@@ -105,7 +105,7 @@ def get_breadcrumb_schema(breadcrumb_list, base_url, current_page_url=None):
     }
 
 
-def get_webpage_schema(html_head, page_url, site_name='Top Teen', schema_type='WebPage', extra=None):
+def get_webpage_schema(html_head, page_url, site_name='TopTeen', schema_type='WebPage', extra=None):
     """
     Build WebPage or Article schema from html_head and current page URL.
     html_head: dict with title, description, image, url (optional).
@@ -157,7 +157,7 @@ def get_webpage_schema(html_head, page_url, site_name='Top Teen', schema_type='W
         if extra.get('publisher'):
             schema['publisher'] = extra['publisher']
         else:
-            schema['publisher'] = {'@type': 'Organization', 'name': site_name or 'Top Teen', 'url': base}
+            schema['publisher'] = {'@type': 'Organization', 'name': site_name or 'TopTeen', 'url': base}
     # Remove None values
     schema = {k: v for k, v in schema.items() if v is not None}
     return schema

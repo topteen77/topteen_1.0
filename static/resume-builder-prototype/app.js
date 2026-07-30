@@ -1795,7 +1795,7 @@
         const fromServer = window.__TT_RESUME_INITIAL && typeof window.__TT_RESUME_INITIAL === "object";
         const ok = confirm(
           fromServer
-            ? "Restore all fields from your saved Top Teen resume? Preview will match your account data again."
+            ? "Restore all fields from your saved TopTeen resume? Preview will match your account data again."
             : "Replace all fields with the built-in sample resume?"
         );
         if (!ok) return;

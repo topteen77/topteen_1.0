@@ -137,14 +137,14 @@ def _careervideos_count():
 def _seo_organization_schema():
     """SEO Organization JSON-LD schema (site-wide)."""
     base = getattr(settings, "ENQUIRY_SOURCE_BASE_URL", "https://www.topteen.in").rstrip("/")
-    return get_organization_schema(base, site_name="Top Teen")
+    return get_organization_schema(base, site_name="TopTeen")
 
 
 def _seo_website_schema():
     """SEO WebSite JSON-LD schema with optional search URL."""
     base = getattr(settings, "ENQUIRY_SOURCE_BASE_URL", "https://www.topteen.in").rstrip("/")
     search_url = getattr(settings, "SEO_WEBSITE_SEARCH_URL", None)  # e.g. "/search/?q={search_term_string}"
-    return get_website_schema(base, site_name="Top Teen", search_url=search_url)
+    return get_website_schema(base, site_name="TopTeen", search_url=search_url)
 
 
 def _config_bool(key, settings_default=True):

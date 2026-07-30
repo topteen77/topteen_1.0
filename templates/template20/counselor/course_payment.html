@@ -1,7 +1,7 @@
 {% extends 'template20/base.html' %}
 {% set _cp = course_page|default({}) %}
 
-{% block title_content %}{{ _cp.hero_heading|default('Career Counseling Course') }} | Top Teen{% endblock %}
+{% block title_content %}{{ _cp.hero_heading|default('Career Counseling Course') }} | TopTeen{% endblock %}
 {% block description_content %}{{ _cp.hero_description|default('Enroll in the Career Counseling Course and enhance your counseling skills.') }}{% endblock %}
 
 {% block bodyclass %}course-payment-page{% endblock %}
@@ -371,7 +371,7 @@
     "key": "{{ key }}",
     "amount": "{{ payment.amount }}",
     "currency": "{{ razorpay_currency|default('INR') }}",
-    "name": "Top Teen",
+    "name": "TopTeen",
     "description": "Career Counseling Course",
     "image": "{% if request %}{{ request.build_absolute_uri(static('images_new/logos/logo.svg')) }}{% endif %}",
     "order_id": "{{ payment.id }}",

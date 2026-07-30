@@ -49,7 +49,6 @@ urlpatterns = [
    path('dashboard/',views.UserDashboard.as_view(),name="userdashboard"),
    path('user-feeds/',views.UserFeeds.as_view(),name="userfeeds"),
    path('logout/',views.logout,name="logout"),
-   path('welcome/',views.Welcomepage.as_view(),name="welcome"),  
    path('scrapbook/',views.Scrapbook.as_view(),name="scrapbook"),
    path('my-notepad/',views.MyNotePad.as_view(),name="mynotepad"),
    path('create-note/',views.CreateNote.as_view(),name="createnote"),

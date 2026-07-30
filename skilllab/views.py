@@ -39,7 +39,11 @@ from skilllab.learner_header import (
     related_skilllab_courses,
     skilllab_course_queryset,
 )
-from skilllab.certificate import issue_skilllab_certificate_if_eligible, is_skilllab_course_completed
+from skilllab.certificate import (
+    issue_skilllab_certificate_if_eligible,
+    is_skilllab_course_completed,
+    skilllab_completion_payload,
+)
 import logging
 
 logger = logging.getLogger(__name__)
@@ -725,7 +729,10 @@ class SkillLabSaveResumeView(APIView):
         summary = SkillLabCourseProgressSummary.objects.get(
             user=request.user, skilllab_course=skilllab_course
         )
-        return Response({'success': True, 'progress_percentage': summary.progress_percentage})
+        payload = skilllab_completion_payload(
+            request.user, skilllab_course, summary.progress_percentage
+        )
+        return Response({'success': True, **payload})
 
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
@@ -751,8 +758,16 @@ class SkillLabMarkChapterCompleteView(APIView):
             chapter=chapter,
             defaults={'completed': True, 'completed_at': timezone.now()}
         )
-        issue_skilllab_certificate_if_eligible(request.user, skilllab_course)
-        return Response({'success': True, 'completed': progress.completed})
+        update_skilllab_course_progress_summary(request.user, skilllab_course)
+        summary = SkillLabCourseProgressSummary.objects.filter(
+            user=request.user, skilllab_course=skilllab_course
+        ).first()
+        payload = skilllab_completion_payload(
+            request.user,
+            skilllab_course,
+            summary.progress_percentage if summary else None,
+        )
+        return Response({'success': True, 'completed': progress.completed, **payload})
 
 
 def _get_course_and_check_access(request, course_slug):
@@ -1433,7 +1448,10 @@ class SkillLabMarkWorksheetDownloadedView(View):
         summary = SkillLabCourseProgressSummary.objects.get(
             user=request.user, skilllab_course=skilllab_course
         )
-        return JsonResponse({'success': True, 'progress_percentage': summary.progress_percentage})
+        payload = skilllab_completion_payload(
+            request.user, skilllab_course, summary.progress_percentage
+        )
+        return JsonResponse({'success': True, **payload})
 
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
@@ -1491,13 +1509,16 @@ class SkillLabSubmitMCQView(View):
         summary = SkillLabCourseProgressSummary.objects.get(
             user=request.user, skilllab_course=skilllab_course
         )
+        payload = skilllab_completion_payload(
+            request.user, skilllab_course, summary.progress_percentage
+        )
         return JsonResponse({
             'success': True,
-            'progress_percentage': summary.progress_percentage,
             'score': score,
             'total': total,
             'percentage': int((score / total * 100)) if total else 0,
             'result_detail': result_detail,
+            **payload,
         })
 
 

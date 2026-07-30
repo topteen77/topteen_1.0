@@ -1,6 +1,6 @@
 {% extends 'template20/base.html' %}
 
-{% block title_content %}{{ skilllab_course.name }} - Course Learning | Top Teen{% endblock %}
+{% block title_content %}{{ skilllab_course.name }} - Course Learning | TopTeen{% endblock %}
 {% block description_content %}{{ skilllab_course.description|striptags|truncate(160) if skilllab_course.description else skilllab_course.name }}{% endblock %}
 
 {% block bodyclass %}skilllab-course-learning-page{% endblock %}
@@ -16,8 +16,8 @@
           <i class='bx bx-menu'></i>
           <span class="mobile-sidebar-toggle__label">Chapters</span>
         </button>
-        <a href="{{ url('core:home') }}" class="course-header-logo" aria-label="Top Teen home">
-          <img src="{{ static('images_new/logos/logo.svg') }}" alt="Top Teen" />
+        <a href="{{ url('core:home') }}" class="course-header-logo" aria-label="TopTeen home">
+          <img src="{{ static('images_new/logos/logo.svg') }}" alt="TopTeen" />
         </a>
       </div>
 
@@ -1306,6 +1306,85 @@ body.skilllab-course-learning-page #cb-fab-wrap {
 .quiz-question.quiz-question-unanswered { border-color: #dc3545 !important; border-width: 2px !important; background: #fff5f5 !important; box-shadow: 0 0 0 2px rgba(220,53,69,0.2); }
 .certificate-section { text-align: center; padding: 3rem; background: linear-gradient(135deg, #f0eaff 0%, #e8e0ff 100%); border-radius: 12px; margin-top: 2rem; }
 .certificate-section h3 { color: #5249DF; margin-bottom: 1rem; }
+
+.skilllab-course-complete-banner {
+  margin: 0 0 1rem;
+  border-radius: 16px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #5249DF 0%, #6438d0 55%, #7c3aed 100%);
+  color: #fff;
+  box-shadow: 0 10px 28px rgba(82, 73, 223, 0.28);
+}
+.skilllab-course-complete-banner__inner {
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+}
+.skilllab-course-complete-banner__icon {
+  font-size: 2.5rem;
+  color: #fcd34d;
+  display: block;
+  margin-bottom: 0.35rem;
+  line-height: 1;
+}
+.skilllab-course-complete-banner__title {
+  margin: 0 0 0.4rem;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #fff;
+}
+.skilllab-course-complete-banner__text {
+  margin: 0 auto 0.85rem;
+  max-width: 34rem;
+  font-size: 0.98rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.94);
+}
+.skilllab-course-complete-banner__code {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.88);
+}
+.skilllab-course-complete-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem;
+}
+.skilllab-course-complete-banner__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 42px;
+  padding: 0.55rem 1.15rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+}
+.skilllab-course-complete-banner__btn--primary {
+  background: #fff;
+  color: #5249DF;
+}
+.skilllab-course-complete-banner__btn--primary:hover {
+  background: #f5f3ff;
+  color: #4338ca;
+}
+.skilllab-course-complete-banner__btn--ghost {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+.skilllab-course-complete-banner__btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+@media (max-width: 576px) {
+  .skilllab-course-complete-banner__title { font-size: 1.2rem; }
+  .skilllab-course-complete-banner__inner { padding: 1.25rem 1rem; }
+}
 /* Saved notification - top right */
 .skilllab-saved-toast { position: fixed; top: calc(var(--header-height, 88px) + 12px); right: 20px; z-index: 1100; background: #11b377; color: #fff; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none; align-items: center; gap: 8px; animation: skilllab-toast-in 0.25s ease; }
 .skilllab-saved-toast.show { display: flex; }
@@ -1813,26 +1892,55 @@ body.skilllab-course-learning-page #cb-fab-wrap {
               </div>
               {% endfor %}
               </div>
-              {% if all_completed %}
-              <div class="skilllab-certificate-sidebar">
+              <div class="skilllab-certificate-sidebar{% if not all_completed %} d-none{% endif %}" id="skilllab-certificate-sidebar">
                 <div class="skilllab-certificate-sidebar__inner">
                   <i class='bx bx-award skilllab-certificate-sidebar__icon'></i>
-                  <h6 class="skilllab-certificate-sidebar__title">Certificate Earned!</h6>
-                  {% if certification and certification.certificate_code %}
-                  <p class="skilllab-certificate-sidebar__code">Code: {{ certification.certificate_code }}</p>
-                  {% endif %}
-                  <a href="{{ url('skilllabcourse:skilllab_certificate', args=[skilllab_course.slug]) }}" class="skilllab-certificate-sidebar__btn">
+                  <h6 class="skilllab-certificate-sidebar__title">Congratulations!</h6>
+                  <p class="skilllab-certificate-sidebar__code mb-2">Course completed</p>
+                  <p class="skilllab-certificate-sidebar__code{% if not (certification and certification.certificate_code) %} d-none{% endif %}" id="skilllab-sidebar-cert-code">
+                    Code: <span>{{ certification.certificate_code if certification and certification.certificate_code else '' }}</span>
+                  </p>
+                  <a href="{{ url('skilllabcourse:skilllab_certificate', args=[skilllab_course.slug]) }}"
+                     class="skilllab-certificate-sidebar__btn" id="skilllab-sidebar-cert-link">
                     View Certificate
                   </a>
                 </div>
               </div>
-              {% endif %}
             </div>
           </aside>
         </div>
 
         <div class="course-content-area">
           <div class="course-content-wrapper">
+            <div id="skilllab-course-complete-banner"
+                 class="skilllab-course-complete-banner{% if not all_completed %} d-none{% endif %}"
+                 role="status"
+                 aria-live="polite">
+              <div class="skilllab-course-complete-banner__inner">
+                <i class='bx bxs-graduation skilllab-course-complete-banner__icon' aria-hidden="true"></i>
+                <h2 class="skilllab-course-complete-banner__title">Congratulations!</h2>
+                <p class="skilllab-course-complete-banner__text">
+                  You have successfully completed <strong>{{ skilllab_course.name }}</strong>.
+                  Your certificate of completion is ready.
+                </p>
+                <p class="skilllab-course-complete-banner__code{% if not (certification and certification.certificate_code) %} d-none{% endif %}"
+                   id="skilllab-complete-cert-code">
+                  Certificate code:
+                  <strong>{{ certification.certificate_code if certification and certification.certificate_code else '' }}</strong>
+                </p>
+                <div class="skilllab-course-complete-banner__actions">
+                  <a href="{{ url('skilllabcourse:skilllab_certificate', args=[skilllab_course.slug]) }}"
+                     class="skilllab-course-complete-banner__btn skilllab-course-complete-banner__btn--primary"
+                     id="skilllab-complete-cert-link">
+                    <i class='bx bx-award'></i> View Certificate
+                  </a>
+                  <a href="{{ url('skilllabcourse:skilllabcoursedetail', args=[skilllab_course.slug]) }}"
+                     class="skilllab-course-complete-banner__btn skilllab-course-complete-banner__btn--ghost">
+                    Back to Course Details
+                  </a>
+                </div>
+              </div>
+            </div>
             {% if current_chapter %}
             <div class="content-section">
               <div class="content-header">
@@ -1920,9 +2028,59 @@ body.skilllab-course-learning-page #cb-fab-wrap {
   var completedSectionIndices = {{ completed_section_indices|tojson }};
   var serverHasResume = {{ server_has_resume|tojson }};
   var resumeEntryMode = {{ resume_entry_mode|tojson }};
+  var courseCompleted = {{ all_completed|tojson }};
+  var certificateUrl = "{{ url('skilllabcourse:skilllab_certificate', args=[skilllab_course.slug])|escapejs }}";
+  var courseDetailUrl = "{{ url('skilllabcourse:skilllabcoursedetail', args=[skilllab_course.slug])|escapejs }}";
   var currentSectionIdx = 0;
   var RESUME_STORAGE_KEY = 'skilllab_resume_';
   var currentSectionInfo = { type: '', id: '', step: null };
+
+  function showCourseCompleteUI(data) {
+    data = data || {};
+    var wasComplete = courseCompleted;
+    courseCompleted = true;
+    if (data.certificate_url) certificateUrl = data.certificate_url;
+    var banner = document.getElementById('skilllab-course-complete-banner');
+    if (banner) banner.classList.remove('d-none');
+    var sidebar = document.getElementById('skilllab-certificate-sidebar');
+    if (sidebar) sidebar.classList.remove('d-none');
+    var code = data.certificate_code || '';
+    var codeEl = document.getElementById('skilllab-complete-cert-code');
+    if (codeEl && code) {
+      codeEl.classList.remove('d-none');
+      var strong = codeEl.querySelector('strong');
+      if (strong) strong.textContent = code;
+      else codeEl.innerHTML = 'Certificate code: <strong>' + code + '</strong>';
+    }
+    var sideCode = document.getElementById('skilllab-sidebar-cert-code');
+    if (sideCode && code) {
+      sideCode.classList.remove('d-none');
+      var span = sideCode.querySelector('span');
+      if (span) span.textContent = code;
+      else sideCode.textContent = 'Code: ' + code;
+    }
+    var certLink = document.getElementById('skilllab-complete-cert-link');
+    if (certLink && certificateUrl) certLink.setAttribute('href', certificateUrl);
+    var sideLink = document.getElementById('skilllab-sidebar-cert-link');
+    if (sideLink && certificateUrl) sideLink.setAttribute('href', certificateUrl);
+    var el = document.getElementById('progress-percentage');
+    var fill = document.getElementById('progress-fill');
+    if (el) el.textContent = '100%';
+    if (fill) fill.style.width = '100%';
+    if (!wasComplete) {
+      try {
+        if (banner) banner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (e) {}
+    }
+  }
+
+  function handleProgressResponse(data) {
+    if (!data) return;
+    if (data.progress_percentage !== undefined) updateProgressBar(data.progress_percentage);
+    if (data.course_completed || (data.progress_percentage !== undefined && data.progress_percentage >= 100)) {
+      showCourseCompleteUI(data);
+    }
+  }
 
   function isSectionIndexCompleted(idx) {
     if (idx < 0 || idx >= sectionsFlat.length) return false;
@@ -2008,7 +2166,7 @@ body.skilllab-course-learning-page #cb-fab-wrap {
         body: JSON.stringify({ course_slug: courseSlug, section_idx: idx }),
         credentials: 'same-origin'
       }).then(function(r) { return r.json(); }).then(function(data) {
-        if (data && data.progress_percentage !== undefined) updateProgressBar(data.progress_percentage);
+        handleProgressResponse(data);
       }).catch(function() {});
     } catch (e) {}
   }
@@ -2418,6 +2576,9 @@ body.skilllab-course-learning-page #cb-fab-wrap {
     var fill = document.getElementById('progress-fill');
     if (el) el.textContent = pct + '%';
     if (fill) fill.style.width = pct + '%';
+    if (pct >= 100 && !courseCompleted) {
+      showCourseCompleteUI({ progress_percentage: 100, certificate_url: certificateUrl });
+    }
   }
 
   function updateNavButtonLabels() {
@@ -2441,7 +2602,7 @@ body.skilllab-course-learning-page #cb-fab-wrap {
         ? 'Next: ' + (nextSec.chapterName || 'Chapter')
         : 'Next: ' + nextLabel;
     } else {
-      nextLabelText = 'Back to Course';
+      nextLabelText = courseCompleted ? 'View Certificate' : 'Finish Course';
     }
     if (prevText) prevText.textContent = prevLabelText;
     if (nextText) nextText.textContent = nextLabelText;
@@ -2501,7 +2662,7 @@ body.skilllab-course-learning-page #cb-fab-wrap {
               var wsEl = container.querySelector('.section-worksheet');
               if (wsEl) wsEl.setAttribute('data-downloaded', 'true');
               markSectionIndexCompleted(currentSectionIdx);
-              if (data.progress_percentage !== undefined) updateProgressBar(data.progress_percentage);
+              handleProgressResponse(data);
               updateNextButton();
               updateSectionFutureState();
             }
@@ -2581,7 +2742,7 @@ body.skilllab-course-learning-page #cb-fab-wrap {
                 updateNextButton();
               });
             }
-            if (data.progress_percentage !== undefined) updateProgressBar(data.progress_percentage);
+            handleProgressResponse(data);
             updateNextButton();
             updateSectionFutureState();
           }
@@ -3233,6 +3394,15 @@ body.skilllab-course-learning-page #cb-fab-wrap {
 
     var nextBtn = document.getElementById('btn-next-section');
     var prevBtn = document.getElementById('btn-prev-section');
+    function finishCourseAndShowCertificate(data) {
+      saveState();
+      handleProgressResponse(data || { course_completed: true, progress_percentage: 100, certificate_url: certificateUrl });
+      updateNextButton();
+      var banner = document.getElementById('skilllab-course-complete-banner');
+      if (banner) {
+        try { banner.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+      }
+    }
     function markChapterCompleteAndProceed(chapterId, nextSectionIdx, isLastSection) {
       if (!chapterId) {
         doNextNav(nextSectionIdx, isLastSection);
@@ -3244,9 +3414,8 @@ body.skilllab-course-learning-page #cb-fab-wrap {
         body: JSON.stringify({ chapter_id: chapterId }),
         credentials: 'same-origin'
       }).then(function(r) { return r.json(); }).then(function(data) {
-        if (isLastSection) {
-          saveState();
-          window.location.href = "{{ url('skilllabcourse:skilllabcoursedetail', args=[skilllab_course.slug])|escapejs }}";
+        if (isLastSection || (data && data.course_completed)) {
+          finishCourseAndShowCertificate(data);
         } else {
           saveStateWithIndex(nextSectionIdx);
           var nextChapterIndex = sectionsFlat[nextSectionIdx].chapterIndex;
@@ -3258,8 +3427,16 @@ body.skilllab-course-learning-page #cb-fab-wrap {
     }
     function doNextNav(nextSectionIdx, isLastSection) {
       if (isLastSection) {
-        saveState();
-        window.location.href = "{{ url('skilllabcourse:skilllabcoursedetail', args=[skilllab_course.slug])|escapejs }}";
+        if (courseCompleted) {
+          finishCourseAndShowCertificate({ course_completed: true, certificate_url: certificateUrl });
+          return;
+        }
+        var currentSec = sectionsFlat[currentSectionIdx];
+        if (currentSec && currentSec.chapterId) {
+          markChapterCompleteAndProceed(currentSec.chapterId, nextSectionIdx, true);
+          return;
+        }
+        finishCourseAndShowCertificate({ course_completed: true, certificate_url: certificateUrl });
       } else {
         currentSectionIdx = nextSectionIdx;
         saveState();
@@ -3279,6 +3456,14 @@ body.skilllab-course-learning-page #cb-fab-wrap {
         var currentSec = sectionsFlat[currentSectionIdx];
         var nextSectionIdx = currentSectionIdx + 1;
         var isLastSection = nextSectionIdx >= sectionsFlat.length;
+        if (isLastSection && courseCompleted) {
+          if (certificateUrl) {
+            window.location.href = certificateUrl;
+          } else {
+            finishCourseAndShowCertificate({ course_completed: true, certificate_url: certificateUrl });
+          }
+          return;
+        }
         var nextSec = !isLastSection ? sectionsFlat[nextSectionIdx] : null;
         var leavingChapter = nextSec ? (nextSec.chapterId !== currentSec.chapterId) : true;
         var chapterToMark = leavingChapter && currentSec ? currentSec.chapterId : null;

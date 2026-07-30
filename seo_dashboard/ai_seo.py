@@ -95,10 +95,10 @@ def generate_seo_with_ai(
     safe_title = (current_title or "(none)").replace("---", "")
     safe_desc = (current_description or "(none)").replace("---", "")
     safe_kw = (current_keywords or "(none)").replace("---", "")
-    prompt = """You are an SEO expert for "Top Teen", a career guidance and college counselling platform for students in India (classes 9–12).
+    prompt = """You are an SEO expert for "TopTeen", a career guidance and college counselling platform for students in India (classes 9–12).
 
 Generate meta title, meta description, and meta keywords for a web page. Rules:
-- Title: max 70 characters, include main keyword and "Top Teen" or the site context where natural.
+- Title: max 70 characters, include main keyword and "TopTeen" or the site context where natural.
 - Description: max 160 characters, compelling for search snippets, include a call-to-action or value proposition.
 - Keywords: comma-separated, 5–12 relevant keywords/phrases (e.g. career guidance, stream selection, India, students).
 
@@ -111,7 +111,7 @@ Current SEO (user may leave these empty):
     if page_content:
         prompt += "\nPage content (for context; use to align SEO with actual content):\n---\n{}\n---\n".format(page_content[:3500])
     else:
-        prompt += "\nNo page content was provided; base suggestions on the current SEO and Top Teen's focus (career, stream, college, India, students).\n"
+        prompt += "\nNo page content was provided; base suggestions on the current SEO and TopTeen's focus (career, stream, college, India, students).\n"
 
     prompt += """
 Reply with exactly three lines, no labels or bullets:

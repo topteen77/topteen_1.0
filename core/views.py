@@ -836,7 +836,7 @@ class EntranceTestPrepListView(TemplateView):
         ctx = {}
         ctx["html_head"] = get_page_seo_html_head(
             self.url_key,
-            "Entrance Exam | Top Teen",
+            "Entrance Exam | TopTeen",
             "Expert guidance and trusted resources to help you confidently prepare for entrance exams after 10th, 12th, or graduation.",
             request=request,
         )
@@ -1637,7 +1637,7 @@ class EbookListView(TemplateView):
     template_name = "template20/ebook.html"
 
     def html_head(self):
-        name = "E-Books | Top Teen"
+        name = "E-Books | TopTeen"
         return build_html_head(title=name, description="Explore our collection of career guidance e-books")
 
     def get_context(self, request, *args, **kwargs):
@@ -1673,7 +1673,7 @@ class EbookDetailView(FreetrailContentMixin, TemplateView):
     freetrail_back_url = "core:ebook_list"
 
     def html_head(self):
-        name = "E-Book Reader | Top Teen"
+        name = "E-Book Reader | TopTeen"
         return build_html_head(title=name, description="Read our interactive career guidance e-book")
 
     def get(self, request, *args, **kwargs):
