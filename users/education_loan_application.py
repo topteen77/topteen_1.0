@@ -1,13 +1,37 @@
 """Persist parent education loan calculator drafts and enquiry submissions."""
 from __future__ import annotations
 
+from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
 from typing import Any, Dict, List, Optional, Tuple
 
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
 from core import choices
 from users.models import EducationLoanApplication, ParentStudentLink, User
+
+
+def _parse_callback_datetime(raw_value: str):
+    """Parse datetime-local / ISO-ish strings into an aware datetime, or (None, error)."""
+    raw = str(raw_value or "").strip()
+    if not raw:
+        return None, None
+    dt = parse_datetime(raw.replace("T", " ", 1))
+    if dt is None:
+        for fmt in ("%Y-%m-%dT%H:%M", "%Y-%m-%d %H:%M", "%Y-%m-%dT%H:%M:%S"):
+            try:
+                dt = datetime.strptime(raw, fmt)
+                break
+            except ValueError:
+                dt = None
+    if dt is None:
+        return None, "Enter a valid preferred date and time."
+    if timezone.is_naive(dt):
+        dt = timezone.make_aware(dt, timezone.get_current_timezone())
+    if dt < timezone.now() - timedelta(minutes=1):
+        return None, "Preferred callback must be from now onwards."
+    return dt, None
 
 
 def _to_decimal(value) -> Optional[Decimal]:
@@ -81,6 +105,73 @@ def _format_inr(value) -> str:
         return "—"
 
 
+def parent_visible_status(app: EducationLoanApplication) -> Dict[str, Any]:
+    """
+    What parents see for enquiry progress.
+    - Decision (Qualified / Not qualified) when set
+    - Otherwise pipeline status, except "New Enquiry" (shown as received / under review)
+    - Never includes internal comments, remarks, or disqualify notes
+    """
+    St = choices.EducationLoanApplicationStatus
+    status = app.status
+
+    if status == St.DRAFT:
+        return {
+            "kind": "draft",
+            "badge_class": "is-draft",
+            "label": "Draft",
+            "subtitle": "Draft in progress",
+            "show_status_line": False,
+        }
+    if status == St.QUALIFIED:
+        return {
+            "kind": "decision",
+            "badge_class": "is-qualified",
+            "label": "Qualified",
+            "subtitle": "Your enquiry was qualified by our loan team",
+            "show_status_line": True,
+            "status_line": "Decision: Qualified",
+        }
+    if status == St.NOT_QUALIFIED:
+        return {
+            "kind": "decision",
+            "badge_class": "is-not-qualified",
+            "label": "Not qualified",
+            "subtitle": "Your enquiry was marked not qualified",
+            "show_status_line": True,
+            "status_line": "Decision: Not qualified",
+        }
+    if status == St.ENQUIRY_SENT:
+        # Do not show "New Enquiry" wording to parents
+        return {
+            "kind": "received",
+            "badge_class": "is-enquiry",
+            "label": "Received",
+            "subtitle": "Enquiry submitted — our team will contact you",
+            "show_status_line": False,
+        }
+    if status == St.CLOSED:
+        return {
+            "kind": "status",
+            "badge_class": "is-closed",
+            "label": "Closed",
+            "subtitle": "This enquiry is closed",
+            "show_status_line": True,
+            "status_line": "Status: Closed",
+        }
+
+    # Callback / In progress / Follow up — show status, never comments
+    label = app.get_status_display()
+    return {
+        "kind": "status",
+        "badge_class": "is-progress",
+        "label": label,
+        "subtitle": "Update from our loan team",
+        "show_status_line": True,
+        "status_line": f"Status: {label}",
+    }
+
+
 def serialize_education_loan_application_for_parent_list(app: EducationLoanApplication) -> Dict[str, Any]:
     data = serialize_education_loan_application(app)
     calc = data.get("calculator") or {}
@@ -95,6 +186,7 @@ def serialize_education_loan_application_for_parent_list(app: EducationLoanAppli
         except Exception:
             return str(value)
 
+    parent_status = parent_visible_status(app)
     data["display_modified"] = _display_dt(app.modified)
     data["display_submitted"] = _display_dt(app.submitted_at)
     data["display_loan_amount"] = _format_inr(calc.get("loan_amount"))
@@ -109,6 +201,10 @@ def serialize_education_loan_application_for_parent_list(app: EducationLoanAppli
     data["interest_label"] = (
         f"{calc.get('interest_rate')}%" if calc.get("interest_rate") is not None else "—"
     )
+    # Parent-safe status (no comments / no "New Enquiry" label)
+    data["parent_status"] = parent_status
+    data["status_label"] = parent_status["label"]
+    data["card_class"] = parent_status["badge_class"]
     return data
 
 
@@ -188,7 +284,7 @@ def validate_education_loan_submission(payload: Dict[str, Any]) -> Tuple[bool, L
 
     mobile = _clean_text(application.get("mobile"), 20)
     digits = "".join(ch for ch in mobile if ch.isdigit())
-    if mobile and len(digits) != 10:
+    if len(digits) != 10:
         errors.append("Enter a valid 10-digit mobile number.")
 
     amount = _to_decimal(calculator.get("loan_amount"))
@@ -221,6 +317,15 @@ def save_education_loan_application(
         ok, errors = validate_education_loan_submission(payload)
         if not ok:
             return None, errors
+
+    preferred_at = None
+    callback_note = _clean_text(payload.get("callback_note"), 500)
+    if not as_draft:
+        preferred_at, callback_err = _parse_callback_datetime(
+            payload.get("callback_preferred_at") or ""
+        )
+        if callback_err:
+            return None, [callback_err]
 
     application = payload.get("application") or {}
     calculator = payload.get("calculator") or {}
@@ -270,19 +375,31 @@ def save_education_loan_application(
 
     app.save()
 
-    if not as_draft:
-        from users.education_loan_crm import sync_education_loan_lead_to_crm
+    notify_event = "enquiry"
+    if not as_draft and preferred_at is not None:
+        from loan_desk.services import schedule_parent_callback
 
-        sync_education_loan_lead_to_crm(app)
+        schedule_parent_callback(app, preferred_at=preferred_at, note=callback_note)
+        app.refresh_from_db()
+        notify_event = "callback"
+
+    if not as_draft:
+        from users.models import EducationLoanOpsSettings
+
+        ops = EducationLoanOpsSettings.load()
+        if ops.auto_crm_on_enquiry:
+            from users.education_loan_crm import sync_education_loan_lead_to_crm
+
+            sync_education_loan_lead_to_crm(app)
         try:
             from loan_desk.tasks import send_loan_enquiry_notify
 
-            send_loan_enquiry_notify.delay(app.id, "enquiry")
+            send_loan_enquiry_notify.delay(app.id, notify_event)
         except Exception:
             try:
                 from loan_desk.services import notify_team_of_enquiry
 
-                notify_team_of_enquiry(app, event="enquiry")
+                notify_team_of_enquiry(app, event=notify_event)
             except Exception:
                 pass
 

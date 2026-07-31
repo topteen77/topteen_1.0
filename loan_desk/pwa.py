@@ -30,12 +30,12 @@ def loan_desk_manifest_response(request):
         "name": "TopTeen Loan Desk",
         "short_name": "Loan Desk",
         "description": "Follow up education loan enquiries for TopTeen.",
-        "start_url": "/loan-desk/",
+        "start_url": "/loan-desk/login/",
         "scope": "/loan-desk/",
         "display": "standalone",
         "orientation": "portrait-primary",
-        "background_color": "#0f172a",
-        "theme_color": "#4f46e5",
+        "background_color": "#eef3f4",
+        "theme_color": "#0b3d4a",
         "icons": [
             {
                 "src": _icon_url(request, "images_new/fav-icon/pwa-icon-192x192.png"),

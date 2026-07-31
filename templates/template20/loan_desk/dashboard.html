@@ -1,0 +1,218 @@
+{% extends "template20/loan_desk/base.html" %}
+{% block title %}Dashboard · Loan Desk{% endblock %}
+{% block content %}
+<div class="ld-page-head">
+  <div>
+    <h1>{% if is_manager %}Manager dashboard{% else %}Executive dashboard{% endif %}</h1>
+    <p class="ld-page-sub">
+      Counts are unique leads in your scope. Open a tile to work that queue.
+    </p>
+  </div>
+  <a class="ld-btn" href="{{ url('loan_desk:home') }}?queue=today">Today’s follow-ups</a>
+</div>
+
+<section class="ld-kpi-section" aria-label="Lead overview">
+  <h2 class="ld-kpi-section-title">Overview</h2>
+  <div class="ld-kpi-row ld-kpi-row-4">
+    <a class="ld-kpi ld-kpi-emphasis" href="{{ url('loan_desk:home') }}?queue=all">
+      <span class="ld-kpi-label">Total leads</span>
+      <span class="ld-kpi-value">{{ queue_counts.total }}</span>
+    </a>
+    <a class="ld-kpi" href="{{ url('loan_desk:home') }}?queue=qualified">
+      <span class="ld-kpi-label">Qualified</span>
+      <span class="ld-kpi-value">{{ queue_counts.qualified }}</span>
+    </a>
+    <a class="ld-kpi" href="{{ url('loan_desk:home') }}?queue=not_qualified">
+      <span class="ld-kpi-label">Not qualified</span>
+      <span class="ld-kpi-value">{{ queue_counts.not_qualified }}</span>
+    </a>
+    <a class="ld-kpi" href="{{ url('loan_desk:home') }}?queue=pending">
+      <span class="ld-kpi-label">In progress</span>
+      <span class="ld-kpi-value">{{ queue_counts.pending }}</span>
+    </a>
+  </div>
+</section>
+
+<section class="ld-kpi-section" aria-label="Action needed">
+  <h2 class="ld-kpi-section-title">Action needed</h2>
+  <div class="ld-kpi-row ld-kpi-row-4">
+    <a class="ld-kpi" href="{{ url('loan_desk:home') }}?queue=not_started">
+      <span class="ld-kpi-label">Not started</span>
+      <span class="ld-kpi-value">{{ queue_counts.not_started }}</span>
+      <span class="ld-kpi-hint">New enquiry — no work yet</span>
+    </a>
+    <a class="ld-kpi" href="{{ url('loan_desk:home') }}?queue=not_followed_up">
+      <span class="ld-kpi-label">Not followed up</span>
+      <span class="ld-kpi-value">{{ queue_counts.not_followed_up }}</span>
+      <span class="ld-kpi-hint">In pipeline, never followed up</span>
+    </a>
+    <a class="ld-kpi{% if queue_counts.today %} ld-kpi-hot{% endif %}" href="{{ url('loan_desk:home') }}?queue=today">
+      <span class="ld-kpi-label">Today follow-up</span>
+      <span class="ld-kpi-value">{{ queue_counts.today }}</span>
+      <span class="ld-kpi-hint">Due today</span>
+    </a>
+    <a class="ld-kpi{% if queue_counts.missed_yesterday %} ld-kpi-warn{% endif %}" href="{{ url('loan_desk:home') }}?queue=missed_yesterday">
+      <span class="ld-kpi-label">Missed yesterday</span>
+      <span class="ld-kpi-value">{{ queue_counts.missed_yesterday }}</span>
+      <span class="ld-kpi-hint">Due yesterday, still open</span>
+    </a>
+  </div>
+</section>
+
+<div class="ld-dash-grid">
+  <section class="ld-card">
+    <div class="d-flex justify-content-between align-items-center mb-1">
+      <h2 class="ld-section-title mb-0">Today follow-up</h2>
+      <a class="ld-meta" href="{{ url('loan_desk:home') }}?queue=today">View all ({{ queue_counts.today }})</a>
+    </div>
+    {% if today_leads %}
+    <div class="ld-dash-list">
+      {% for app in today_leads %}
+      <a href="{{ url('loan_desk:detail', args=[app.id]) }}">
+        <div>
+          <div class="ld-dash-name">{{ app.student_name or 'Student' }}</div>
+          <p class="ld-meta mb-0">
+            {% if app.next_follow_up_at %}Due {{ date_format(app.next_follow_up_at) }}
+            {% elif app.callback_preferred_at %}Callback {{ date_format(app.callback_preferred_at) }}
+            {% else %}Due today{% endif %}
+            {% if app.mobile %} · {{ app.mobile }}{% endif %}
+          </p>
+        </div>
+        <span class="ld-badge ld-badge-pending">{{ app.get_status_display() }}</span>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="ld-meta mb-0">No follow-ups due today.</p>
+    {% endif %}
+  </section>
+
+  <section class="ld-card">
+    <div class="d-flex justify-content-between align-items-center mb-1">
+      <h2 class="ld-section-title mb-0">Missed yesterday</h2>
+      <a class="ld-meta" href="{{ url('loan_desk:home') }}?queue=missed_yesterday">View all ({{ queue_counts.missed_yesterday }})</a>
+    </div>
+    {% if missed_leads %}
+    <div class="ld-dash-list">
+      {% for app in missed_leads %}
+      <a href="{{ url('loan_desk:detail', args=[app.id]) }}">
+        <div>
+          <div class="ld-dash-name">{{ app.student_name or 'Student' }}</div>
+          <p class="ld-meta mb-0">
+            {% if app.next_follow_up_at %}Was due {{ date_format(app.next_follow_up_at) }}
+            {% elif app.callback_preferred_at %}Callback {{ date_format(app.callback_preferred_at) }}
+            {% else %}Missed{% endif %}
+            {% if app.mobile %} · {{ app.mobile }}{% endif %}
+          </p>
+        </div>
+        <span class="ld-chip ld-chip-warn">Missed</span>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="ld-meta mb-0">No missed follow-ups from yesterday.</p>
+    {% endif %}
+  </section>
+
+  <section class="ld-card">
+    <div class="d-flex justify-content-between align-items-center mb-1">
+      <h2 class="ld-section-title mb-0">Not started</h2>
+      <a class="ld-meta" href="{{ url('loan_desk:home') }}?queue=not_started">View all ({{ queue_counts.not_started }})</a>
+    </div>
+    {% if not_started_leads %}
+    <div class="ld-dash-list">
+      {% for app in not_started_leads %}
+      <a href="{{ url('loan_desk:detail', args=[app.id]) }}">
+        <div>
+          <div class="ld-dash-name">{{ app.student_name or 'Student' }}</div>
+          <p class="ld-meta mb-0">
+            {{ app.institute_name or 'Institute —' }}
+            {% if app.loan_amount %} · ₹{{ '{:,.0f}'.format(app.loan_amount|float) }}{% endif %}
+          </p>
+        </div>
+        {% if not app.assigned_to_id %}
+        <span class="ld-chip ld-chip-warn">Unassigned</span>
+        {% else %}
+        <span class="ld-badge ld-badge-new">Not started</span>
+        {% endif %}
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="ld-meta mb-0">No new enquiries waiting to be started.</p>
+    {% endif %}
+  </section>
+
+  <section class="ld-card">
+    <div class="d-flex justify-content-between align-items-center mb-1">
+      <h2 class="ld-section-title mb-0">Not followed up</h2>
+      <a class="ld-meta" href="{{ url('loan_desk:home') }}?queue=not_followed_up">View all ({{ queue_counts.not_followed_up }})</a>
+    </div>
+    {% if not_followed_leads %}
+    <div class="ld-dash-list">
+      {% for app in not_followed_leads %}
+      <a href="{{ url('loan_desk:detail', args=[app.id]) }}">
+        <div>
+          <div class="ld-dash-name">{{ app.student_name or 'Student' }}</div>
+          <p class="ld-meta mb-0">
+            {% if app.assigned_to_id %}<i class='bx bx-user'></i> {{ app.lead_follow_username }}
+            {% else %}Needs owner{% endif %}
+            · {{ app.get_status_display() }}
+          </p>
+        </div>
+        <span class="ld-chip ld-chip-warn">No follow-up</span>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="ld-meta mb-0">Every in-progress lead has a follow-up logged.</p>
+    {% endif %}
+  </section>
+
+  <section class="ld-card">
+    <div class="d-flex justify-content-between align-items-center mb-1">
+      <h2 class="ld-section-title mb-0">Qualified</h2>
+      <a class="ld-meta" href="{{ url('loan_desk:home') }}?queue=qualified">View all ({{ queue_counts.qualified }})</a>
+    </div>
+    {% if qualified_leads %}
+    <div class="ld-dash-list">
+      {% for app in qualified_leads %}
+      <a href="{{ url('loan_desk:detail', args=[app.id]) }}">
+        <div>
+          <div class="ld-dash-name">{{ app.student_name or 'Student' }}</div>
+          <p class="ld-meta mb-0">{{ app.institute_name or '—' }}{% if app.mobile %} · {{ app.mobile }}{% endif %}</p>
+        </div>
+        <span class="ld-badge ld-badge-ok">Qualified</span>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="ld-meta mb-0">No qualified leads yet.</p>
+    {% endif %}
+  </section>
+
+  {% if is_manager %}
+  <section class="ld-card">
+    <div class="d-flex justify-content-between align-items-center mb-1">
+      <h2 class="ld-section-title mb-0">Unassigned</h2>
+      <a class="ld-meta" href="{{ url('loan_desk:home') }}?queue=unassigned">View all ({{ queue_counts.unassigned }})</a>
+    </div>
+    {% if unassigned_leads %}
+    <div class="ld-dash-list">
+      {% for app in unassigned_leads %}
+      <a href="{{ url('loan_desk:detail', args=[app.id]) }}">
+        <div>
+          <div class="ld-dash-name">{{ app.student_name or 'Student' }}</div>
+          <p class="ld-meta mb-0">{{ app.parent_name or app.email or '—' }}{% if app.mobile %} · {{ app.mobile }}{% endif %}</p>
+        </div>
+        <span class="ld-chip ld-chip-warn">Assign</span>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="ld-meta mb-0">All open leads have an owner.</p>
+    {% endif %}
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

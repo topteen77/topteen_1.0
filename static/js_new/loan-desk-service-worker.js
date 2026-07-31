@@ -2,7 +2,6 @@
 const CACHE_VERSION = '__PWA_CACHE_VERSION__';
 const STATIC_CACHE = 'loan-desk-static-' + CACHE_VERSION;
 const OFFLINE_ASSETS = [
-  '/loan-desk/',
   '/loan-desk/login/',
 ];
 

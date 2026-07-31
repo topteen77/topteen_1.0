@@ -264,6 +264,50 @@
     border: 1px solid #a7f3d0;
   }
 
+  .loan-app-badge.is-progress {
+    background: #ffedd5;
+    color: #9a3412;
+    border: 1px solid #fed7aa;
+  }
+
+  .loan-app-badge.is-qualified {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #6ee7b7;
+  }
+
+  .loan-app-badge.is-not-qualified {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+  }
+
+  .loan-app-badge.is-closed {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+  }
+
+  .loan-app-card.is-progress .loan-app-card-accent,
+  .loan-app-card.is-qualified .loan-app-card-accent {
+    background: linear-gradient(180deg, #14b8a6 0%, #0f766e 100%);
+  }
+
+  .loan-app-card.is-not-qualified .loan-app-card-accent {
+    background: linear-gradient(180deg, #f87171 0%, #b91c1c 100%);
+  }
+
+  .loan-status-line {
+    margin: 0 0 12px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #334155;
+  }
+
   .loan-metric-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -448,7 +492,8 @@
       {% if loan_applications and loan_applications|length %}
       <div class="loan-app-grid">
         {% for app in loan_applications %}
-        <article class="loan-app-card {% if app.status == 0 %}is-draft{% else %}is-enquiry{% endif %}">
+        {% set ps = app.parent_status if app.parent_status is defined else none %}
+        <article class="loan-app-card {{ app.card_class if app.card_class is defined else ('is-draft' if app.status == 0 else 'is-enquiry') }}">
           <div class="loan-app-card-accent"></div>
           <div class="loan-app-card-body">
             <div class="loan-app-head">
@@ -457,16 +502,28 @@
                 <div class="min-w-0">
                   <div class="loan-app-title text-truncate">{{ app.application.student_name or 'Student not set' }}</div>
                   <div class="loan-app-subtitle">
-                    {% if app.status == 0 %}Draft in progress{% else %}Enquiry submitted to team{% endif %}
+                    {% if ps %}{{ ps.subtitle }}{% elif app.status == 0 %}Draft in progress{% else %}Enquiry submitted to team{% endif %}
                   </div>
                 </div>
               </div>
-              {% if app.status == 0 %}
+              {% if ps %}
+              <span class="loan-app-badge {{ ps.badge_class }}">
+                {% if ps.kind == 'draft' %}<i class='bx bx-edit'></i>
+                {% elif ps.kind == 'decision' and ps.label == 'Qualified' %}<i class='bx bx-check-shield'></i>
+                {% elif ps.kind == 'decision' %}<i class='bx bx-x-circle'></i>
+                {% else %}<i class='bx bx-info-circle'></i>{% endif %}
+                {{ ps.label }}
+              </span>
+              {% elif app.status == 0 %}
               <span class="loan-app-badge is-draft"><i class='bx bx-edit'></i>Draft</span>
               {% else %}
-              <span class="loan-app-badge is-enquiry"><i class='bx bx-check-circle'></i>Sent</span>
+              <span class="loan-app-badge is-enquiry"><i class='bx bx-check-circle'></i>Received</span>
               {% endif %}
             </div>
+
+            {% if ps and ps.show_status_line and ps.status_line %}
+            <div class="loan-status-line">{{ ps.status_line }}</div>
+            {% endif %}
 
             {% if app.has_calculator %}
             <div class="loan-metric-grid">
@@ -531,7 +588,7 @@
                 </a>
                 {% else %}
                 <span class="btn btn-outline-secondary btn-sm disabled" aria-disabled="true">
-                  <i class='bx bx-check me-1'></i>Enquiry Sent
+                  <i class='bx bx-check me-1'></i>{{ ps.label if ps else 'Received' }}
                 </span>
                 {% endif %}
               </div>

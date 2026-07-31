@@ -300,16 +300,22 @@ EDUCATION_LOAN_SECTIONS: list[HubSection] = [
             ),
             _external(
                 "Open Loan Desk PWA",
-                "/loan-desk/",
-                "Installable Loan Desk app for managers and executives.",
+                "/loan-desk/?queue=new",
+                "Queues: New, Pending, Today follow-ups, Qualified / Not qualified, bank handoff.",
+                staff_only=True,
+            ),
+            _external(
+                "Hard delete ALL enquiries",
+                "/admin/users/educationloanapplication/hard-delete-all/",
+                "Permanently wipe all loan enquiries, remarks, and login tokens (confirmation required).",
                 staff_only=True,
             ),
         ],
     ),
     HubSection(
         title="Loan settings",
-        description="Ops emails, PWA toggle, CRM handoff.",
-        instruction="Set manager report emails and notify flags in Ops settings. CRM is optional outbound sync.",
+        description="Ops emails, PWA toggle, CRM handoff, client email templates.",
+        instruction="Set manager report emails and notify flags in Ops settings. CRM is optional outbound sync. Email templates can also be managed in Loan Desk by managers.",
         links=[
             _model(
                 "Loan ops settings",
@@ -318,10 +324,22 @@ EDUCATION_LOAN_SECTIONS: list[HubSection] = [
                 "PWA, enquiry notify, daily report emails, reminders.",
             ),
             _model(
-                "Loan CRM settings",
+                "Bank API settings",
                 "users",
                 "EducationLoanCRMSettings",
-                "Optional external CRM API for new enquiries.",
+                "Bank API URL, HTTP method, and parameters with {{variable}} placeholders.",
+            ),
+            _model(
+                "Client email templates",
+                "users",
+                "EducationLoanClientEmailTemplate",
+                "Reusable subject/body templates for Loan Desk → client emails.",
+            ),
+            _external(
+                "Manage templates in Loan Desk",
+                "/loan-desk/email-templates/",
+                "Manager UI to create and edit client email templates.",
+                staff_only=True,
             ),
         ],
     ),

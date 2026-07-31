@@ -1,0 +1,48 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+  &rsaquo; <a href="{% url 'admin:hub_education_loan' %}">Education Loan</a>
+  &rsaquo; <a href="{% url 'admin:users_educationloanapplication_changelist' %}">Loan applications</a>
+  &rsaquo; {% translate 'Hard delete' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>{% if delete_all %}{% translate "Hard delete ALL loan enquiries" %}{% else %}{% translate "Hard delete selected loan enquiries" %}{% endif %}</h1>
+
+<div class="messagelist">
+  <div class="warning" style="padding:12px 16px;border:1px solid #f59e0b;background:#fffbeb;border-radius:8px;margin-bottom:16px;">
+    <p style="margin:0 0 8px;"><strong>This cannot be undone.</strong> Rows are permanently removed from the database (not soft-deleted).</p>
+    <ul style="margin:0;padding-left:1.2rem;">
+      <li>Enquiries / applications: <strong>{{ counts.applications }}</strong></li>
+      <li>Remarks / activity notes: <strong>{{ counts.remarks }}</strong></li>
+      <li>Instant login tokens: <strong>{{ counts.tokens }}</strong></li>
+    </ul>
+    <p style="margin:10px 0 0;">Ops settings, Bank API settings, email templates, and loan team users are <strong>not</strong> deleted.</p>
+  </div>
+</div>
+
+<form method="post">
+  {% csrf_token %}
+  {% if delete_all %}
+  <input type="hidden" name="confirm_phrase" value="DELETE ALL">
+  <p>
+    <label for="id_confirm_typed">Type <code>DELETE ALL</code> to confirm:</label><br>
+    <input type="text" name="confirm_typed" id="id_confirm_typed" autocomplete="off" required style="min-width:220px;margin-top:6px;">
+  </p>
+  {% else %}
+  <input type="hidden" name="action" value="hard_delete_selected_enquiries">
+  <input type="hidden" name="post" value="yes">
+  {% for obj in queryset %}
+  <input type="hidden" name="{{ action_checkbox_name }}" value="{{ obj.pk }}">
+  {% endfor %}
+  {% endif %}
+  <div style="display:flex;gap:10px;margin-top:16px;">
+    <input type="submit" class="default" style="background:#b91c1c;" value="{% if delete_all %}Permanently delete all enquiries{% else %}Permanently delete selected{% endif %}">
+    <a href="{{ cancel_url }}" class="button cancel-link">{% translate 'Cancel' %}</a>
+  </div>
+</form>
+{% endblock %}
