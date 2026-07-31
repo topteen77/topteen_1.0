@@ -274,12 +274,17 @@
   var recognition = null;
   var wantListening = false;
   var micUnavailable = true;
-  var speechPrefix = '';   // committed text before/during this listen session
-  var speechFinal = '';    // finalized speech not yet folded into prefix
+  var speechPrefix = '';
+  var speechFinal = '';
+  var sessionBase = '';
+  var androidCommitted = '';
   var isAndroid = /Android/i.test(navigator.userAgent || '');
+  var isDesktop = !isAndroid && !/iPhone|iPad|iPod/i.test(navigator.userAgent || '');
   var restartTimer = null;
   var silenceTimer = null;
-  var SILENCE_MS = 4000;   // auto-stop mic after 4s pause in speech
+  var SILENCE_MS = 4000;
+  var networkRetryUsed = false;
+  var ignoreEndRestart = false;
 
   function setStatus(msg, kind) {
     if (!statusEl) return;
@@ -304,9 +309,39 @@
     return a + ' ' + b;
   }
 
+  function normSpeech(s) {
+    return String(s || '').replace(/\s+/g, ' ').trim();
+  }
+
+  // Append speech without stuttering (handles echoes + cumulative chunks).
+  function appendUniqueSpeech(existing, piece) {
+    var c = normSpeech(existing);
+    var p = normSpeech(piece);
+    if (!p) return c;
+    if (!c) return p;
+    var cL = c.toLowerCase();
+    var pL = p.toLowerCase();
+    if (cL === pL || cL.endsWith(' ' + pL) || cL.endsWith(pL)) return c;
+    if (pL.startsWith(cL)) return p; // cumulative growth of same utterance
+    if (cL.startsWith(pL)) return c; // stale shorter echo
+    // Overlap end-of-existing with start-of-piece
+    var max = Math.min(c.length, p.length);
+    for (var n = max; n >= 3; n--) {
+      if (cL.slice(-n) === pL.slice(0, n)) {
+        return normSpeech(c + p.slice(n));
+      }
+    }
+    return joinParts(c, p);
+  }
+
   function writeSpeechToBox(interim) {
     if (!contentEl) return;
-    var text = joinParts(speechPrefix, joinParts(speechFinal, interim || ''));
+    var text;
+    if (isAndroid) {
+      text = joinParts(sessionBase, androidCommitted);
+    } else {
+      text = joinParts(speechPrefix, joinParts(speechFinal, interim || ''));
+    }
     contentEl.value = text;
     try {
       contentEl.focus();
@@ -317,15 +352,25 @@
   }
 
   function commitSpeechToPrefix() {
-    // Fold finals into prefix and drop interim from the textarea.
-    // Never copy contentEl.value when finals exist — on Android the box still
-    // holds interim and re-finalizing the same words causes duplication.
-    // If there are no finals, do nothing so manually typed text is not wiped
-    // (Save used to clear the box via writeSpeechToBox('') with empty prefix).
+    if (isAndroid) {
+      speechPrefix = joinParts(sessionBase, androidCommitted);
+      speechFinal = '';
+      writeSpeechToBox('');
+      return;
+    }
     if (!speechFinal) return;
     speechPrefix = joinParts(speechPrefix, speechFinal);
     speechFinal = '';
     writeSpeechToBox('');
+  }
+
+  function resetSpeechSessionFromBox() {
+    sessionBase = contentEl ? contentEl.value : '';
+    androidCommitted = '';
+    speechPrefix = sessionBase;
+    speechFinal = '';
+    networkRetryUsed = false;
+    ignoreEndRestart = false;
   }
 
   function clearSilenceTimer() {
@@ -348,7 +393,6 @@
     silenceTimer = setTimeout(function () {
       silenceTimer = null;
       if (!wantListening) return;
-      // 4s pause → stop; user must tap mic again to continue
       stopListening();
       setStatus('Paused. Tap mic to speak more.', 'is-ok');
     }, SILENCE_MS);
@@ -374,7 +418,6 @@
   }
 
   function hideMic() {
-    // API not available — do not show mic or error tip on open
     micUnavailable = true;
     wantListening = false;
     clearSilenceTimer();
@@ -395,9 +438,9 @@
   }
 
   function setMicUnavailable(message) {
-    // Keep mic visible but disabled (permission / hardware errors after user action)
     if (!micBtn) return;
     wantListening = false;
+    ignoreEndRestart = true;
     clearSilenceTimer();
     clearRestartTimer();
     if (recognition) {
@@ -443,6 +486,7 @@
 
   function stopListening() {
     wantListening = false;
+    ignoreEndRestart = true;
     clearSilenceTimer();
     clearRestartTimer();
     if (!micUnavailable && micBtn && !micBtn.hidden) setMicUi(false);
@@ -465,7 +509,7 @@
 
   function errorMessageForSpeech(err) {
     if (err === 'network') {
-      return 'Voice service unavailable. Check your connection, then tap mic again.';
+      return 'Voice service unavailable. Use Chrome/Edge with internet, or type your note.';
     }
     if (err === 'not-allowed' || err === 'service-not-allowed') {
       return 'Microphone permission blocked. Allow mic access in browser settings.';
@@ -477,11 +521,22 @@
     return 'Could not use microphone. Tap mic to try again.';
   }
 
+  function destroyRecognition() {
+    if (!recognition) return;
+    try { recognition.onstart = null; } catch (e) {}
+    try { recognition.onerror = null; } catch (e2) {}
+    try { recognition.onend = null; } catch (e3) {}
+    try { recognition.onresult = null; } catch (e4) {}
+    try { recognition.abort(); } catch (e5) {}
+    recognition = null;
+  }
+
   function bindRecognitionHandlers() {
     if (!recognition) return;
 
     recognition.onstart = function () {
       if (micUnavailable) return;
+      ignoreEndRestart = false;
       setMicUi(true);
       setStatus('Listening… pause 4s to stop, or tap mic');
       armSilenceTimer();
@@ -489,13 +544,39 @@
 
     recognition.onerror = function (ev) {
       var err = (ev && ev.error) || '';
-      // aborted is normal when we stop; no-speech: keep listening until our 4s timer
       if (err === 'aborted') return;
-      if (err === 'no-speech') {
-        // Browser timed out early — keep session; silence timer / onend restart handle pause
+      if (err === 'no-speech') return; // silence timer / onend restart decide
+
+      if (err === 'network') {
+        // Desktop Chrome often throws a one-off network error — retry once with a fresh engine
+        ignoreEndRestart = true;
+        clearRestartTimer();
+        commitSpeechToPrefix();
+        if (wantListening && !networkRetryUsed) {
+          networkRetryUsed = true;
+          setStatus('Reconnecting voice…');
+          destroyRecognition();
+          setTimeout(function () {
+            if (!wantListening || micUnavailable) return;
+            if (!initRecognition()) {
+              wantListening = false;
+              setMicUi(false);
+              setStatus(errorMessageForSpeech('network'), 'is-err');
+              return;
+            }
+            startRecognitionEngine();
+          }, 450);
+          return;
+        }
+        wantListening = false;
+        clearSilenceTimer();
+        setMicUi(false);
+        setStatus(errorMessageForSpeech('network'), 'is-err');
         return;
       }
+
       wantListening = false;
+      ignoreEndRestart = true;
       clearSilenceTimer();
       clearRestartTimer();
       setMicUi(false);
@@ -504,125 +585,178 @@
       if (err === 'not-allowed' || err === 'service-not-allowed' || err === 'audio-capture') {
         setMicUnavailable(msg);
       } else {
-        // Keep mic enabled for retry (e.g. transient network) — never on popup open
         setStatus(msg, 'is-err');
-        if (micBtn && !micBtn.hidden) {
-          micBtn.setAttribute('title', 'Speak to write');
-          micBtn.removeAttribute('data-mic-tip');
-        }
       }
     };
 
     recognition.onend = function () {
       if (micUnavailable) return;
       commitSpeechToPrefix();
-      // Keep listening until 4s silence timer stops us (or user taps stop)
-      if (wantListening) {
-        clearRestartTimer();
-        restartTimer = setTimeout(function () {
-          restartTimer = null;
-          if (!wantListening || !recognition || micUnavailable) return;
-          try {
-            recognition.start();
-          } catch (e) {
-            wantListening = false;
-            clearSilenceTimer();
-            setMicUi(false);
-            setStatus('');
-          }
-        }, isAndroid ? 280 : 100);
+      if (!wantListening || ignoreEndRestart) {
+        clearSilenceTimer();
+        setMicUi(false);
         return;
       }
-      clearSilenceTimer();
-      setMicUi(false);
+      // Keep listening until 4s silence (Android/desktop one-shot engines end early)
+      clearRestartTimer();
+      restartTimer = setTimeout(function () {
+        restartTimer = null;
+        if (!wantListening || micUnavailable || ignoreEndRestart) return;
+        startRecognitionEngine();
+      }, isAndroid ? 320 : 160);
     };
 
     recognition.onresult = function (event) {
       if (micUnavailable) return;
+
+      if (isAndroid) {
+        // Finals only — interimResults is off on Android to prevent stutter loops
+        var chunk = '';
+        for (var a = 0; a < event.results.length; a++) {
+          if (!event.results[a].isFinal) continue;
+          var ap = normSpeech((event.results[a][0] && event.results[a][0].transcript) || '');
+          if (ap) chunk = appendUniqueSpeech(chunk, ap);
+        }
+        if (!chunk && event.results.length) {
+          chunk = normSpeech((event.results[event.results.length - 1][0] &&
+            event.results[event.results.length - 1][0].transcript) || '');
+        }
+        if (!chunk) return;
+        androidCommitted = appendUniqueSpeech(androidCommitted, chunk);
+        writeSpeechToBox('');
+        armSilenceTimer();
+        return;
+      }
+
       var interim = '';
       var gotSpeech = false;
-      // Only process new results — looping from 0 rebuilds and can re-append on some Android WebViews
       for (var i = event.resultIndex; i < event.results.length; i++) {
-        var piece = ((event.results[i][0] && event.results[i][0].transcript) || '').replace(/\s+/g, ' ').trim();
+        var piece = normSpeech((event.results[i][0] && event.results[i][0].transcript) || '');
         if (!piece) continue;
         gotSpeech = true;
         if (event.results[i].isFinal) {
-          speechFinal = joinParts(speechFinal, piece);
+          speechFinal = appendUniqueSpeech(speechFinal, piece);
         } else {
-          interim = joinParts(interim, piece);
+          interim = piece;
         }
       }
       if (gotSpeech) {
+        // Avoid "final + overlapping interim" stutter on desktop too
+        if (interim && speechFinal) {
+          var sf = speechFinal.toLowerCase();
+          var im = interim.toLowerCase();
+          if (im.startsWith(sf) || sf.endsWith(im)) interim = im.startsWith(sf) ? interim : '';
+        }
         writeSpeechToBox(interim);
-        armSilenceTimer(); // reset 4s pause clock on each speech chunk
+        armSilenceTimer();
       }
     };
   }
 
   function initRecognition() {
-    if (recognition || !speechApiPresent()) return false;
+    if (!speechApiPresent()) return false;
+    destroyRecognition();
     recognition = new SpeechRecognition();
-    // continuous so we keep recording until a 4s pause; Android may end early
-    // and we restart in onend while wantListening is true.
-    recognition.continuous = true;
-    recognition.interimResults = true;
+    // Both platforms: one-shot + restart until 4s pause.
+    // Android: no interim (main cause of repeated words).
+    recognition.continuous = false;
+    recognition.interimResults = !isAndroid;
     recognition.maxAlternatives = 1;
     recognition.lang = (navigator.language || 'en-IN');
     bindRecognitionHandlers();
     return true;
   }
 
+  function startRecognitionEngine() {
+    if (!recognition && !initRecognition()) return;
+    try {
+      recognition.start();
+    } catch (err) {
+      destroyRecognition();
+      if (!initRecognition()) {
+        wantListening = false;
+        setMicUi(false);
+        setStatus('Could not start microphone. Tap mic to retry.', 'is-err');
+        return;
+      }
+      try {
+        recognition.start();
+      } catch (e2) {
+        wantListening = false;
+        setMicUi(false);
+        setStatus('Could not start microphone. Tap mic to retry.', 'is-err');
+      }
+    }
+  }
+
+  function beginListening() {
+    resetSpeechSessionFromBox();
+    wantListening = true;
+    ignoreEndRestart = false;
+    networkRetryUsed = false;
+    setMicUi(true);
+    setStatus(isDesktop ? 'Starting microphone…' : 'Listening… pause 4s to stop, or tap mic');
+
+    // Desktop: unlock mic permission first — reduces false "network" errors in Chrome
+    if (isDesktop && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(function (stream) {
+          try {
+            stream.getTracks().forEach(function (t) { t.stop(); });
+          } catch (e) {}
+          if (!wantListening || micUnavailable) return;
+          if (!initRecognition()) {
+            wantListening = false;
+            setMicUi(false);
+            hideMic();
+            return;
+          }
+          startRecognitionEngine();
+        })
+        .catch(function () {
+          wantListening = false;
+          setMicUi(false);
+          setMicUnavailable('Microphone permission blocked. Allow mic access, then tap mic again.');
+        });
+      return;
+    }
+
+    if (!initRecognition()) {
+      wantListening = false;
+      setMicUi(false);
+      hideMic();
+      return;
+    }
+    startRecognitionEngine();
+  }
+
   function setupSpeech() {
     if (!micBtn) return;
 
-    // No probe / no error on notebook open. Hide mic if API missing.
     if (!speechApiPresent()) {
       hideMic();
       return;
     }
 
-    initRecognition();
     setMicAvailable();
 
     micBtn.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();
       if (micUnavailable || micBtn.hidden) return;
-      if (!recognition && !initRecognition()) {
-        hideMic();
-        return;
-      }
       if (wantListening) {
         stopListening();
         setStatus('');
         return;
       }
-      // Start from whatever is already typed (manual text only at session start)
-      speechPrefix = contentEl ? contentEl.value : '';
-      speechFinal = '';
-      wantListening = true;
-      setMicUi(true);
-      setStatus('Listening… pause 4s to stop, or tap mic');
-      // Silence timer starts in onstart (after permission), not here
-      try {
-        recognition.start();
-      } catch (err) {
-        try { recognition.stop(); } catch (e2) {}
-        setTimeout(function () {
-          if (!wantListening || micUnavailable) return;
-          try { recognition.start(); } catch (e3) {
-            wantListening = false;
-            clearSilenceTimer();
-            setMicUi(false);
-            setStatus('Could not start microphone. Tap mic to retry.', 'is-err');
-          }
-        }, 200);
-      }
+      beginListening();
     });
   }
 
   function clearComposeText() {
     stopListening();
+    sessionBase = '';
+    androidCommitted = '';
     speechPrefix = '';
     speechFinal = '';
     if (contentEl) {
@@ -634,6 +768,8 @@
 
   function resetCompose() {
     stopListening();
+    sessionBase = '';
+    androidCommitted = '';
     speechPrefix = '';
     speechFinal = '';
     if (editIdEl) editIdEl.value = '';
@@ -820,7 +956,9 @@
         if (editIdEl) editIdEl.value = id || '';
         if (titleEl) titleEl.value = title ? title.textContent : '';
         if (contentEl) contentEl.value = body ? body.textContent : '';
-        speechPrefix = contentEl ? contentEl.value : '';
+        sessionBase = contentEl ? contentEl.value : '';
+        androidCommitted = '';
+        speechPrefix = sessionBase;
         speechFinal = '';
         if (cancelBtn) cancelBtn.classList.remove('d-none');
         if (saveBtn) saveBtn.textContent = 'Update';

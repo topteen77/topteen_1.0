@@ -897,6 +897,13 @@
               byId('loanSubmitBtn').textContent = 'Enquiry Sent';
             }
             if (byId('loanCallbackPanel')) byId('loanCallbackPanel').classList.remove('d-none');
+            // Close apply modal shortly after success so the page banner remains visible
+            window.setTimeout(function () {
+              var modalEl = byId('educationLoanApplyModal');
+              if (!modalEl || !window.bootstrap || !bootstrap.Modal) return;
+              var inst = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
+              if (inst) inst.hide();
+            }, 900);
           } else {
             loanApplicationRecord = saved;
             if (saved && byId('loanApplicationId')) byId('loanApplicationId').value = saved.id || '';
