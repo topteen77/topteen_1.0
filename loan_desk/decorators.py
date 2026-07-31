@@ -4,8 +4,6 @@ from __future__ import annotations
 from functools import wraps
 
 from django.contrib.auth.views import redirect_to_login
-from django.http import HttpResponseForbidden
-from django.shortcuts import redirect
 from django.urls import reverse
 
 from core import choices
@@ -37,10 +35,12 @@ def is_loan_manager(user) -> bool:
 def loan_desk_user_only(view_func):
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
+        login_url = reverse("loan_desk:login")
         if not request.user.is_authenticated:
-            return redirect_to_login(request.get_full_path(), login_url=reverse("loan_desk:login"))
+            return redirect_to_login(request.get_full_path(), login_url=login_url)
         if not is_loan_desk_user(request.user):
-            return HttpResponseForbidden("Loan Desk access required.")
+            # Wrong account type (e.g. parent session) — show Loan Desk login, not a blank/403 page.
+            return redirect_to_login(request.get_full_path(), login_url=login_url)
         return view_func(request, *args, **kwargs)
 
     return _wrapped

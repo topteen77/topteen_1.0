@@ -93,31 +93,63 @@ class ComService:
 
     def send_mail(self,subject,to,text_content, html_content,attachment=None,attachment_name=None,attachment_type=None):
         status = False
-        to_list = [to] if not isinstance(to, list) else to
+        to_list = [to] if not isinstance(to, list) else list(to)
+        to_list = [str(addr).strip() for addr in to_list if str(addr or "").strip()]
         html_content = ensure_email_html_wrapped(html_content, preheader=subject)
         if not text_content or text_content == html_content:
             text_content = strip_tags(html_content) or html_content
+        send_error = None
         try:
+            if not to_list:
+                raise ValueError("No email recipients provided.")
             msg = EmailMultiAlternatives(subject, text_content, self.from_email, to_list)
             msg.attach_alternative(html_content, "text/html")
             if attachment and attachment_name and attachment_type:
                 msg.attach(attachment_name, attachment, attachment_type)
+            # Prefer ComService JSONL audit; logging mail backends skip when this is set.
+            setattr(msg, "_topteen_logged_by_comservice", True)
             msg.send(fail_silently=False)
             status = True
             logger.info("Email sent to %s subject=%s", to_list, subject[:50] if subject else "")
         except Exception as e:
+            send_error = str(e)
             logger.warning("Email sending failed to %s subject=%s: %s", to_list, subject[:50] if subject else "", e)
+        self._append_email_send_audit(
+            to_list=to_list,
+            subject=subject,
+            status="sent" if status else "failed",
+            error=send_error,
+        )
         # Convert to string if it's a list for logging purposes
         # log_to = to if isinstance(to, str) else ", ".join(to)
-        self.make_log_entry(to, html_content, choices.CommunicationTypeChooices.EMAIL, status)
+        self.make_log_entry(to_list, html_content, choices.CommunicationTypeChooices.EMAIL, status)
         return status
+
+    def _append_email_send_audit(self, *, to_list, subject, status, error=None):
+        """Write to logs/email_send.jsonl (Email logs admin page), especially on failure."""
+        try:
+            from topteens.email_logging import append_email_send_log
+
+            append_email_send_log(
+                to_emails=to_list or [],
+                subject=subject or "",
+                from_email=self.from_email or "",
+                status=status,
+                error=error,
+            )
+        except Exception as exc:
+            logger.warning("email_send.jsonl append from ComService failed: %s", exc)
 
     def make_log_entry(self,to,body,com_type,response):
         from communication.utils import mysql_text_safe
         try:
             log_response = response if isinstance(response, str) else ('success' if response else 'failed')
+            if isinstance(to, (list, tuple)):
+                to_value = ", ".join(str(x) for x in to if x)
+            else:
+                to_value = str(to or "")
             CommunicationLog.objects.create(
-                to=mysql_text_safe(to) if isinstance(to, str) else to,
+                to=mysql_text_safe(to_value)[:500],
                 body=mysql_text_safe(body),
                 type=com_type,
                 response=log_response,

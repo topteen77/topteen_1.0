@@ -300,8 +300,8 @@ EDUCATION_LOAN_SECTIONS: list[HubSection] = [
             ),
             _external(
                 "Open Loan Desk PWA",
-                "/loan-desk/",
-                "Installable Loan Desk app for managers and executives.",
+                "/loan-desk/?queue=new",
+                "Queues: New, Pending, Today follow-ups, Qualified / Not qualified, bank handoff.",
                 staff_only=True,
             ),
         ],
@@ -318,10 +318,10 @@ EDUCATION_LOAN_SECTIONS: list[HubSection] = [
                 "PWA, enquiry notify, daily report emails, reminders.",
             ),
             _model(
-                "Loan CRM settings",
+                "Bank API settings",
                 "users",
                 "EducationLoanCRMSettings",
-                "Optional external CRM API for new enquiries.",
+                "Bank API URL, HTTP method, and parameters with {{variable}} placeholders.",
             ),
         ],
     ),

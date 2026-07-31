@@ -508,17 +508,20 @@
   }
 
   function errorMessageForSpeech(err) {
+    // Chrome Web Speech uses Google cloud STT. error "network" often appears even
+    // when the site/internet works — it means Chrome could not complete speech
+    // recognition (blocked Google STT, Chromium without Google keys, firewall, etc.).
     if (err === 'network') {
-      return 'Voice service unavailable. Use Chrome/Edge with internet, or type your note.';
+      return 'Voice engine error (network): Chrome could not reach Google speech servers. Your site internet can still work. Try Google Chrome (not Chromium), allow mic, or type the note.';
     }
     if (err === 'not-allowed' || err === 'service-not-allowed') {
-      return 'Microphone permission blocked. Allow mic access in browser settings.';
+      return 'Microphone permission blocked (not-allowed). Allow mic access in browser settings.';
     }
-    if (err === 'audio-capture') return 'No microphone found. You can still type.';
+    if (err === 'audio-capture') return 'No microphone found (audio-capture). You can still type.';
     if (err === 'language-not-supported') {
-      return 'This browser language is not supported for voice typing.';
+      return 'Voice language not supported (language-not-supported).';
     }
-    return 'Could not use microphone. Tap mic to try again.';
+    return 'Could not use microphone (' + (err || 'unknown') + '). Tap mic to try again.';
   }
 
   function destroyRecognition() {
@@ -544,6 +547,9 @@
 
     recognition.onerror = function (ev) {
       var err = (ev && ev.error) || '';
+      try {
+        console.warn('[notebook-speech] error:', err, ev);
+      } catch (eLog) {}
       if (err === 'aborted') return;
       if (err === 'no-speech') return; // silence timer / onend restart decide
 
@@ -554,7 +560,7 @@
         commitSpeechToPrefix();
         if (wantListening && !networkRetryUsed) {
           networkRetryUsed = true;
-          setStatus('Reconnecting voice…');
+          setStatus('Voice error (network) — retrying…');
           destroyRecognition();
           setTimeout(function () {
             if (!wantListening || micUnavailable) return;

@@ -1091,11 +1091,18 @@ class ParentEducationLoanApplicationSaveView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        message = (
-            "Draft saved successfully."
-            if as_draft
-            else "Application enquiry sent successfully. Our team will call you within 2 days."
-        )
+        if as_draft:
+            message = "Draft saved successfully."
+        elif getattr(app, "callback_preferred_at", None):
+            message = (
+                "Application enquiry sent and callback scheduled. "
+                "Our team will call you at your preferred time."
+            )
+        else:
+            message = (
+                "Application enquiry sent successfully. "
+                "Our team will call you within 2 days."
+            )
         return Response(
             {
                 "success": True,
@@ -2040,7 +2047,7 @@ def get_dashboard_url_for_user(request, user, *, apply_mobile_gate=True):
         elif ut == choices.UserType.PARENT:
             return reverse("parents_dashboard")
         elif ut in choices.UserType.LOAN_DESK_TYPES:
-            return reverse("loan_desk:home")
+            return reverse("loan_desk:dashboard")
         elif ut == choices.UserType.STUDENT:
             dest = _compute_student_destination(user)
             if apply_mobile_gate and request is not None:

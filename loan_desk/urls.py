@@ -10,6 +10,7 @@ urlpatterns = [
     path("login/", views.LoanDeskLoginView.as_view(), name="login"),
     path("logout/", views.LoanDeskLogoutView.as_view(), name="logout"),
     path("instant/<str:token>/", views.LoanDeskInstantLoginView.as_view(), name="instant_login"),
-    path("", views.LoanDeskHomeView.as_view(), name="home"),
+    path("", views.LoanDeskDashboardView.as_view(), name="dashboard"),
+    path("enquiries/", views.LoanDeskHomeView.as_view(), name="home"),
     path("applications/<int:pk>/", views.LoanDeskDetailView.as_view(), name="detail"),
 ]

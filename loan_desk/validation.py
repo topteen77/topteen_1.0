@@ -29,6 +29,48 @@ def validate_login(email: str, password: str) -> Tuple[bool, Dict[str, str]]:
     return (not errors, errors)
 
 
+CALL_OUTCOME_CONNECTED = "connected"
+CALL_OUTCOME_NOT_CONNECTED = "not_connected"
+CALL_OUTCOME_CHOICES = (
+    (CALL_OUTCOME_CONNECTED, "Call connected"),
+    (CALL_OUTCOME_NOT_CONNECTED, "Call not connected"),
+)
+CALL_OUTCOME_LABELS = dict(CALL_OUTCOME_CHOICES)
+
+
+def validate_call_outcome(raw: str) -> Tuple[bool, Dict[str, str], Optional[str]]:
+    errors: Dict[str, str] = {}
+    value = (raw or "").strip().lower()
+    if value not in CALL_OUTCOME_LABELS:
+        errors["call_outcome"] = "Select whether the call connected."
+        return False, errors, None
+    return True, errors, value
+
+
+def format_remark_with_call_outcome(body: str, outcome: str) -> str:
+    """Prefix call notes with connected / not-connected status."""
+    label = CALL_OUTCOME_LABELS.get(outcome) or "Call"
+    note = (body or "").strip()
+    if note:
+        return f"{label}. {note}"[:5000]
+    return f"{label}."[:5000]
+
+
+def parse_call_outcome_from_remark(body: str) -> Tuple[Optional[str], Optional[str], str]:
+    """
+    Return (outcome_key, outcome_label, note_without_prefix).
+    """
+    text = (body or "").strip()
+    lower = text.lower()
+    if lower.startswith("call not connected"):
+        rest = text[len("Call not connected") :].lstrip(" .:-")
+        return CALL_OUTCOME_NOT_CONNECTED, CALL_OUTCOME_LABELS[CALL_OUTCOME_NOT_CONNECTED], rest
+    if lower.startswith("call connected"):
+        rest = text[len("Call connected") :].lstrip(" .:-")
+        return CALL_OUTCOME_CONNECTED, CALL_OUTCOME_LABELS[CALL_OUTCOME_CONNECTED], rest
+    return None, None, text
+
+
 def validate_remark(body: str) -> Tuple[bool, Dict[str, str]]:
     errors: Dict[str, str] = {}
     body = (body or "").strip()
@@ -113,3 +155,27 @@ def validate_assignee(raw, *, team_ids: Optional[List[int]] = None) -> Tuple[boo
         errors["assigned_to"] = "Assignee must be an enabled Loan Manager or Executive."
         return False, errors, None
     return True, errors, aid
+
+
+def validate_disqualify(
+    reason: str, reason_text: str = ""
+) -> Tuple[bool, Dict[str, str]]:
+    errors: Dict[str, str] = {}
+    reason = (reason or "").strip()
+    reason_text = (reason_text or "").strip()
+    valid = {c[0] for c in choices.EducationLoanDisqualifyReason.CHOICES}
+    if reason not in valid:
+        errors["disqualify_reason"] = "Select a disqualify reason."
+    elif reason == choices.EducationLoanDisqualifyReason.OTHER and len(reason_text) < 3:
+        errors["disqualify_reason_text"] = "Add a short note for reason Other."
+    elif len(reason_text) > 500:
+        errors["disqualify_reason_text"] = "Note must be at most 500 characters."
+    return (not errors, errors)
+
+
+def validate_qualify_note(note: str = "") -> Tuple[bool, Dict[str, str]]:
+    errors: Dict[str, str] = {}
+    note = (note or "").strip()
+    if len(note) > 500:
+        errors["qualification_note"] = "Note must be at most 500 characters."
+    return (not errors, errors)

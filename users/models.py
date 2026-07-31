@@ -783,6 +783,39 @@ class EducationLoanApplication(BaseModel):
     next_follow_up_at = models.DateTimeField(null=True, blank=True, db_index=True)
     last_followed_up_at = models.DateTimeField(null=True, blank=True)
 
+    # Manager qualification decision
+    qualification_decision_at = models.DateTimeField(null=True, blank=True)
+    qualification_decided_by = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="qualified_education_loan_applications",
+        limit_choices_to={
+            "user_type__in": [
+                choices.UserType.LOAN_MANAGER,
+                choices.UserType.LOAN_EXECUTIVE,
+            ]
+        },
+    )
+    qualification_note = models.CharField(max_length=500, blank=True)
+    disqualify_reason = models.CharField(
+        max_length=40,
+        blank=True,
+        choices=choices.EducationLoanDisqualifyReason.CHOICES,
+    )
+    disqualify_reason_text = models.CharField(max_length=500, blank=True)
+
+    # Bank email handoff (separate from Bank API / crm_sync_*)
+    bank_email_status = models.PositiveSmallIntegerField(
+        choices=choices.EducationLoanBankEmailStatus.CHOICES,
+        default=choices.EducationLoanBankEmailStatus.NONE,
+        db_index=True,
+    )
+    bank_email_sent_at = models.DateTimeField(null=True, blank=True)
+    bank_email_last_error = models.TextField(blank=True)
+    bank_email_message_id = models.CharField(max_length=120, blank=True)
+
     class Meta:
         verbose_name = "Education Loan Lead"
         verbose_name_plural = "Education Loan Leads"
@@ -791,6 +824,7 @@ class EducationLoanApplication(BaseModel):
             models.Index(fields=["status", "crm_sync_status"]),
             models.Index(fields=["assigned_to", "status"]),
             models.Index(fields=["next_follow_up_at"]),
+            models.Index(fields=["status", "bank_email_status"]),
         ]
 
     def __str__(self):
@@ -866,6 +900,23 @@ class EducationLoanOpsSettings(models.Model):
         default=True,
         help_text="Email enabled Loan Managers (and manager report emails) when a parent submits an enquiry.",
     )
+    auto_crm_on_enquiry = models.BooleanField(
+        default=False,
+        help_text=(
+            "When enabled, push the lead to the Bank API automatically on parent submit. "
+            "Leave off so managers push only after Qualify from Loan Desk."
+        ),
+    )
+    bank_email_recipients = models.TextField(
+        blank=True,
+        help_text="Comma-separated bank emails for qualified-lead email push from Loan Desk.",
+    )
+    bank_email_subject_template = models.CharField(
+        max_length=200,
+        blank=True,
+        default="Qualified education loan lead — #{id}",
+        help_text="Subject for bank email push. Use {id} for enquiry id.",
+    )
     instant_login_ttl_hours = models.PositiveSmallIntegerField(default=48)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -899,6 +950,10 @@ class EducationLoanOpsSettings(models.Model):
 
     def manager_email_list(self):
         raw = self.manager_report_emails or ""
+        return [e.strip() for e in raw.replace(";", ",").split(",") if e.strip() and "@" in e]
+
+    def bank_email_list(self):
+        raw = self.bank_email_recipients or ""
         return [e.strip() for e in raw.replace(";", ",").split(",") if e.strip() and "@" in e]
 
     def parsed_daily_report_times(self):
@@ -935,16 +990,51 @@ class LoanInstantLoginToken(models.Model):
 
 
 class EducationLoanCRMSettings(models.Model):
-    """Singleton admin-editable CRM API settings for education loan leads."""
+    """Singleton: Bank API configuration (URL, method, parameters with {{variables}})."""
+
+    DEFAULT_PARAMETERS_TEMPLATE = (
+        "{\n"
+        '  "lead_id": "{{lead_id}}",\n'
+        '  "source": "topteen_education_loan",\n'
+        '  "student_name": "{{student_name}}",\n'
+        '  "parent_name": "{{parent_name}}",\n'
+        '  "mobile": "{{mobile}}",\n'
+        '  "email": "{{email}}",\n'
+        '  "institute_name": "{{institute_name}}",\n'
+        '  "course_name": "{{course_name}}",\n'
+        '  "country_preference": "{{country_preference}}",\n'
+        '  "loan_amount": "{{loan_amount}}",\n'
+        '  "interest_rate": "{{interest_rate}}",\n'
+        '  "tenure_years": "{{tenure_years}}",\n'
+        '  "estimated_emi": "{{estimated_emi}}",\n'
+        '  "additional_details": "{{additional_details}}",\n'
+        '  "status": "{{status}}"\n'
+        "}"
+    )
 
     is_enabled = models.BooleanField(
         default=False,
-        help_text="When enabled, enquiry submissions are POSTed to the CRM API.",
+        help_text="When enabled, Loan Desk can push qualified leads to this Bank API.",
     )
-    api_url = models.URLField(
+    api_url = models.CharField(
         max_length=500,
         blank=True,
-        help_text="CRM endpoint URL that accepts lead JSON payloads.",
+        help_text="Bank API endpoint URL. You may include variables, e.g. https://bank.example/leads/{{lead_id}}/",
+    )
+    http_method = models.CharField(
+        max_length=10,
+        choices=choices.EducationLoanBankApiHttpMethod.CHOICES,
+        default=choices.EducationLoanBankApiHttpMethod.POST,
+        help_text="HTTP method used for the Bank API call.",
+    )
+    parameters_template = models.TextField(
+        blank=True,
+        help_text=(
+            "JSON object for request parameters. Use {{variable}} placeholders "
+            "(e.g. {{student_name}}, {{loan_amount}}). "
+            "GET sends these as query params; POST/PUT/PATCH send as JSON body. "
+            "Leave blank to send the full default lead payload."
+        ),
     )
     auth_header_name = models.CharField(
         max_length=120,
@@ -961,17 +1051,22 @@ class EducationLoanCRMSettings(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = "Education Loan CRM settings"
-        verbose_name_plural = "Education Loan CRM settings"
+        verbose_name = "Education Loan Bank API settings"
+        verbose_name_plural = "Education Loan Bank API settings"
 
     def __str__(self):
-        return "Education Loan CRM settings"
+        return "Education Loan Bank API settings"
 
     def save(self, *args, **kwargs):
         self.pk = 1
+        if not (self.parameters_template or "").strip():
+            self.parameters_template = self.DEFAULT_PARAMETERS_TEMPLATE
         super().save(*args, **kwargs)
 
     @classmethod
     def load(cls):
         obj, _ = cls.objects.get_or_create(pk=1)
+        if not (obj.parameters_template or "").strip():
+            obj.parameters_template = cls.DEFAULT_PARAMETERS_TEMPLATE
+            obj.save(update_fields=["parameters_template", "updated_at"])
         return obj

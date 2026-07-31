@@ -590,6 +590,8 @@ class EducationLoanApplicationStatus(object):
     IN_PROGRESS = 3
     FOLLOW_UP = 4
     CLOSED = 5
+    QUALIFIED = 6
+    NOT_QUALIFIED = 7
     CHOICES = (
         (DRAFT, "Draft"),
         (ENQUIRY_SENT, "New Enquiry"),
@@ -597,8 +599,11 @@ class EducationLoanApplicationStatus(object):
         (IN_PROGRESS, "In Progress"),
         (FOLLOW_UP, "Follow Up"),
         (CLOSED, "Closed"),
+        (QUALIFIED, "Qualified"),
+        (NOT_QUALIFIED, "Not Qualified"),
     )
 
+    # Pre-qualification working pipeline (reminders / pending work)
     OPEN_STATUSES = (
         ENQUIRY_SENT,
         CALLBACK_SCHEDULED,
@@ -606,8 +611,16 @@ class EducationLoanApplicationStatus(object):
         FOLLOW_UP,
     )
 
+    PENDING_STATUSES = (
+        CALLBACK_SCHEDULED,
+        IN_PROGRESS,
+        FOLLOW_UP,
+    )
+
 
 class EducationLoanCRMSyncStatus(object):
+    """Bank API push state (DB column crm_sync_*; UI label: Bank API)."""
+
     PENDING = 0
     SENT = 1
     SUCCESS = 2
@@ -617,6 +630,49 @@ class EducationLoanCRMSyncStatus(object):
         (SENT, "Sent"),
         (SUCCESS, "Success"),
         (ERROR, "Error"),
+    )
+
+
+class EducationLoanBankEmailStatus(object):
+    NONE = 0
+    PENDING = 1
+    SENT = 2
+    ERROR = 3
+    CHOICES = (
+        (NONE, "Not sent"),
+        (PENDING, "Pending"),
+        (SENT, "Sent"),
+        (ERROR, "Error"),
+    )
+
+
+class EducationLoanBankApiHttpMethod(object):
+    GET = "GET"
+    POST = "POST"
+    PUT = "PUT"
+    PATCH = "PATCH"
+    CHOICES = (
+        (GET, "GET"),
+        (POST, "POST"),
+        (PUT, "PUT"),
+        (PATCH, "PATCH"),
+    )
+
+
+class EducationLoanDisqualifyReason(object):
+    INCOMPLETE = "incomplete"
+    NOT_ELIGIBLE = "not_eligible"
+    DUPLICATE = "duplicate"
+    WITHDRAWN = "withdrawn"
+    LOW_AMOUNT = "low_amount"
+    OTHER = "other"
+    CHOICES = (
+        (INCOMPLETE, "Incomplete documents / details"),
+        (NOT_ELIGIBLE, "Not eligible"),
+        (DUPLICATE, "Duplicate enquiry"),
+        (WITHDRAWN, "Parent withdrew"),
+        (LOW_AMOUNT, "Amount / profile not suitable"),
+        (OTHER, "Other"),
     )
 
 

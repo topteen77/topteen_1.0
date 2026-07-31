@@ -1,109 +1,370 @@
 {% extends "template20/loan_desk/base.html" %}
 {% block title %}{{ page_title }} · Loan Desk{% endblock %}
 {% block content %}
-<p class="mb-2"><a href="{{ url('loan_desk:home') }}" class="text-decoration-none">&larr; All enquiries</a></p>
+<a class="ld-back" href="{{ url('loan_desk:dashboard') }}"><i class='bx bx-arrow-back'></i> Back to dashboard</a>
 
 <article class="ld-card">
-  <div class="d-flex justify-content-between gap-2 align-items-start">
+  <div class="ld-lead-top">
     <div>
-      <h1 class="h5 mb-1">Enquiry #{{ application.id }}</h1>
-      <span class="ld-badge">{{ application.get_status_display() }}</span>
+      <div class="ld-lead-id">Enquiry #{{ application.id }}</div>
+      <h1 class="ld-lead-title" style="font-size:1.35rem;">{{ application.student_name or 'Student' }}</h1>
+      <p class="ld-meta mb-0">{{ application.parent_name or 'Parent' }} · Lead: <strong>{{ application.lead_follow_username }}</strong></p>
     </div>
-    <div class="ld-meta text-end">Lead follow<br><strong>{{ application.lead_follow_username }}</strong></div>
+    <div class="text-end">
+      {% set st = application.status %}
+      <span class="ld-badge
+        {% if st == 1 %}ld-badge-new
+        {% elif st in (2,3,4) %}ld-badge-pending
+        {% elif st == 6 %}ld-badge-ok
+        {% elif st == 7 %}ld-badge-bad
+        {% elif st == 5 %}ld-badge-closed
+        {% endif %}">{{ application.get_status_display() }}</span>
+      <div class="d-flex flex-wrap gap-1 justify-content-end mt-2">
+        {% if is_reenquired %}
+        <span class="ld-chip ld-chip-warn">Re-enquired · {{ enquiry_count }}x</span>
+        {% endif %}
+        {% if application.bank_email_status == bank_email_sent %}
+        <span class="ld-chip ld-chip-ok">Email sent</span>
+        {% elif application.bank_email_status == bank_email_error %}
+        <span class="ld-chip ld-chip-err">Email error</span>
+        {% endif %}
+        {% if application.crm_sync_status == crm_success %}
+        <span class="ld-chip ld-chip-ok">API ok</span>
+        {% elif application.crm_sync_status == crm_error %}
+        <span class="ld-chip ld-chip-err">API error</span>
+        {% elif application.crm_sync_status == crm_sent %}
+        <span class="ld-chip">API sent…</span>
+        {% endif %}
+      </div>
+    </div>
   </div>
-  <hr>
-  <div class="row g-2 small">
-    <div class="col-6"><strong>Student</strong><br>{{ application.student_name or '—' }}</div>
-    <div class="col-6"><strong>Parent</strong><br>{{ application.parent_name or '—' }}</div>
-    <div class="col-6"><strong>Mobile</strong><br>{{ application.mobile or '—' }}</div>
-    <div class="col-6"><strong>Email</strong><br>{{ application.email or '—' }}</div>
-    <div class="col-12"><strong>Institute</strong><br>{{ application.institute_name or '—' }}</div>
-    <div class="col-12"><strong>Course</strong><br>{{ application.course_name or '—' }}</div>
-    <div class="col-6"><strong>Amount</strong><br>{{ application.loan_amount or '—' }}</div>
-    <div class="col-6"><strong>Country</strong><br>{{ application.country_preference or '—' }}</div>
-    <div class="col-12"><strong>Callback</strong><br>
-      {% if application.callback_preferred_at %}{{ date_format(application.callback_preferred_at) }}{% else %}—{% endif %}
-      {% if application.callback_note %}<br><span class="text-muted">{{ application.callback_note }}</span>{% endif %}
-    </div>
-    <div class="col-12"><strong>Details</strong><br>{{ application.additional_details or '—' }}</div>
+
+  {% if application.loan_amount %}
+  <div class="ld-amount">₹{{ '{:,.0f}'.format(application.loan_amount|float) }}</div>
+  <p class="ld-meta mb-0">
+    {% if application.estimated_emi %}EMI ≈ ₹{{ '{:,.0f}'.format(application.estimated_emi|float) }}{% endif %}
+    {% if application.tenure_years %} · {{ application.tenure_years }} yrs{% endif %}
+    {% if application.interest_rate %} · {{ application.interest_rate }}%{% endif %}
+    {% if application.country_preference %} · {{ application.country_preference }}{% endif %}
+  </p>
+  {% endif %}
+
+  <div class="ld-contact-bar">
+    {% if whatsapp_url %}
+    <a href="{{ whatsapp_url }}" target="_blank" rel="noopener noreferrer"><i class='bx bxl-whatsapp'></i> Call</a>
+    {% elif application.mobile %}
+    <a href="tel:{{ application.mobile }}"><i class='bx bx-phone'></i> Call</a>
+    {% else %}
+    <a href="#" style="opacity:.45;pointer-events:none;"><i class='bx bx-phone'></i> No mobile</a>
+    {% endif %}
+    {% if application.email %}
+    <a href="mailto:{{ application.email }}"><i class='bx bx-envelope'></i> Email</a>
+    {% else %}
+    <a href="#" style="opacity:.45;pointer-events:none;"><i class='bx bx-envelope'></i> No email</a>
+    {% endif %}
   </div>
 </article>
 
-{% if is_manager and team %}
-<form method="post" class="ld-card ld-validate-form" data-validate="assign" novalidate>
-  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-  <input type="hidden" name="action" value="assign">
-  <h2 class="h6">Assign lead follow</h2>
-  <div class="ld-field mb-2">
-    <label for="assigned_to">Assignee</label>
-    <select name="assigned_to" id="assigned_to" required>
-      <option value="0">Unassigned</option>
-      {% for u in team %}
-      <option value="{{ u.id }}" {% if application.assigned_to_id == u.id %}selected{% endif %}>{{ u.name or u.email }}</option>
-      {% endfor %}
-    </select>
-    <div class="ld-field-error"></div>
+{% if can_decide and is_qualified %}
+<section class="ld-card ld-decision">
+  <h2 class="ld-section-title">Bank handoff</h2>
+  <p class="ld-meta mb-3">Send this qualified lead to the bank — email and API are separate.</p>
+
+  <div class="ld-handoff-item">
+    <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-2">
+      <strong>Bank email</strong>
+      {% if application.bank_email_status == bank_email_sent %}
+      <span class="ld-chip ld-chip-ok">Sent{% if application.bank_email_sent_at %} · {{ date_format(application.bank_email_sent_at) }}{% endif %}</span>
+      {% elif application.bank_email_status == bank_email_error %}
+      <span class="ld-chip ld-chip-err">Failed</span>
+      {% else %}
+      <span class="ld-chip">Not sent</span>
+      {% endif %}
+    </div>
+    {% if application.bank_email_last_error %}
+    <p class="ld-meta mb-2" style="color:var(--ld-danger);">{{ application.bank_email_last_error }}</p>
+    {% endif %}
+    <form method="post">
+      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+      <input type="hidden" name="action" value="bank_email">
+      <button type="submit" class="ld-btn ld-btn-outline ld-btn-block">
+        <i class='bx bx-mail-send'></i>
+        {% if application.bank_email_status == bank_email_sent or application.bank_email_status == bank_email_error %}Resend bank email{% else %}Push to bank (email){% endif %}
+      </button>
+    </form>
   </div>
-  <button type="submit" class="ld-btn ld-btn-outline">Save assignee</button>
-</form>
+
+  <div class="ld-handoff-item">
+    <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-2">
+      <strong>Bank API</strong>
+      {% if application.crm_sync_status == crm_success %}
+      <span class="ld-chip ld-chip-ok">Success</span>
+      {% elif application.crm_sync_status == crm_error %}
+      <span class="ld-chip ld-chip-err">Failure</span>
+      {% elif application.crm_sync_status == crm_sent %}
+      <span class="ld-chip">Sent…</span>
+      {% else %}
+      <span class="ld-chip">Pending</span>
+      {% endif %}
+    </div>
+    {% if application.crm_external_id %}
+    <p class="ld-meta mb-1">External id: {{ application.crm_external_id }}</p>
+    {% endif %}
+    {% if application.crm_sync_response %}
+    <p class="ld-meta mb-2" style="word-break:break-word;">{{ application.crm_sync_response[:280] }}{% if application.crm_sync_response|length > 280 %}…{% endif %}</p>
+    {% endif %}
+    <form method="post">
+      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+      {% if application.crm_sync_status == crm_success %}
+      <input type="hidden" name="action" value="bank_api_resend">
+      <button type="submit" class="ld-btn ld-btn-outline ld-btn-block"><i class='bx bx-refresh'></i> Resend Bank API</button>
+      {% elif application.crm_sync_status == crm_error or application.crm_sync_status == crm_sent %}
+      <input type="hidden" name="action" value="bank_api_resend">
+      <button type="submit" class="ld-btn ld-btn-block"><i class='bx bx-refresh'></i> Resend Bank API</button>
+      {% else %}
+      <input type="hidden" name="action" value="bank_api">
+      <button type="submit" class="ld-btn ld-btn-block"><i class='bx bx-cloud-upload'></i> Push to bank (API)</button>
+      {% endif %}
+    </form>
+  </div>
+</section>
 {% endif %}
 
-<form method="post" class="ld-card ld-validate-form" data-validate="status" data-has-schedule="{{ '1' if has_schedule_datetime else '0' }}" data-callback-status="{{ callback_status_value }}" data-followup-status="{{ follow_up_status_value }}" novalidate>
-  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-  <input type="hidden" name="action" value="status">
-  <h2 class="h6">Update status</h2>
-  <div class="ld-field mb-2">
-    <label for="status">Status</label>
-    <select name="status" id="status" required>
-      <option value="">Select status</option>
-      {% for val, label in status_choices %}
-      <option value="{{ val }}" {% if application.status == val %}selected{% endif %}>{{ label }}</option>
-      {% endfor %}
-    </select>
-    <div class="ld-field-error"></div>
-  </div>
-  {% if not has_schedule_datetime %}
-  <p class="ld-meta mb-2">To set <strong>Callback Scheduled</strong> or <strong>Follow Up</strong>, save a date &amp; time below first.</p>
-  {% endif %}
-  <button type="submit" class="ld-btn ld-btn-outline">Save status</button>
-</form>
+{% if can_decide and (pipeline_open or application.status == closed_status_value) %}
+<section class="ld-card ld-decision">
+  <h2 class="ld-section-title">Manager decision</h2>
+  <p class="ld-meta mb-3">Qualify to unlock bank handoff, or mark not qualified with a reason.</p>
+  <form method="post" class="mb-3 ld-validate-form" data-validate="qualify" novalidate>
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+    <input type="hidden" name="action" value="qualify">
+    <div class="ld-field mb-2">
+      <label for="qualification_note">Qualify note (optional)</label>
+      <input type="text" name="qualification_note" id="qualification_note" maxlength="500" placeholder="Why this lead is eligible">
+      <div class="ld-field-error"></div>
+    </div>
+    <button type="submit" class="ld-btn ld-btn-block"><i class='bx bx-check-circle'></i> Qualify lead</button>
+  </form>
+  <form method="post" class="ld-validate-form" data-validate="disqualify" novalidate>
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+    <input type="hidden" name="action" value="disqualify">
+    <div class="ld-field mb-2">
+      <label for="disqualify_reason">Not qualify — reason</label>
+      <select name="disqualify_reason" id="disqualify_reason" required>
+        <option value="">Select reason</option>
+        {% for val, label in disqualify_reasons %}
+        <option value="{{ val }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+      <div class="ld-field-error"></div>
+    </div>
+    <div class="ld-field mb-2">
+      <label for="disqualify_reason_text">Note</label>
+      <input type="text" name="disqualify_reason_text" id="disqualify_reason_text" maxlength="500" placeholder="Required if reason is Other">
+      <div class="ld-field-error"></div>
+    </div>
+    <button type="submit" class="ld-btn ld-btn-danger ld-btn-block"><i class='bx bx-x-circle'></i> Not qualify</button>
+  </form>
+</section>
+{% endif %}
 
-<form method="post" class="ld-card ld-validate-form" data-validate="follow_up" novalidate>
+{% if is_reenquired and previous_enquiries %}
+<section class="ld-card">
+  <h2 class="ld-section-title">Previous enquiries</h2>
+  <p class="ld-meta mb-2">Same lead contacted again — showing earlier applications.</p>
+  {% for prev in previous_enquiries %}
+  <a href="{{ url('loan_desk:detail', args=[prev.id]) }}" class="d-flex justify-content-between align-items-center gap-2 text-decoration-none py-2{% if not loop.last %} border-bottom{% endif %}" style="color:inherit;">
+    <div>
+      <strong>#{{ prev.id }}</strong>
+      <span class="ld-meta"> · {{ prev.get_status_display() }}</span>
+      {% if prev.loan_amount %}<span class="ld-meta"> · ₹{{ prev.loan_amount }}</span>{% endif %}
+    </div>
+    <span class="ld-meta">{% if prev.submitted_at %}{{ date_format(prev.submitted_at) }}{% else %}—{% endif %}</span>
+  </a>
+  {% endfor %}
+</section>
+{% endif %}
+
+<article class="ld-card">
+  <h2 class="ld-section-title">Lead details</h2>
+  <dl class="ld-dl">
+    <div>
+      <dt>Mobile</dt>
+      <dd>{% if whatsapp_url %}<a href="{{ whatsapp_url }}" target="_blank" rel="noopener noreferrer">{{ application.mobile }}</a>{% elif application.mobile %}{{ application.mobile }}{% else %}—{% endif %}</dd>
+    </div>
+    <div>
+      <dt>Email</dt>
+      <dd>{% if application.email %}<a href="mailto:{{ application.email }}">{{ application.email }}</a>{% else %}—{% endif %}</dd>
+    </div>
+    <div class="span-2">
+      <dt>Institute</dt>
+      <dd>{{ application.institute_name or '—' }}</dd>
+    </div>
+    <div class="span-2">
+      <dt>Course</dt>
+      <dd>{{ application.course_name or '—' }}</dd>
+    </div>
+    <div>
+      <dt>Submitted</dt>
+      <dd>{% if application.submitted_at %}{{ date_format(application.submitted_at) }}{% else %}—{% endif %}</dd>
+    </div>
+    <div>
+      <dt>Next follow-up</dt>
+      <dd>{% if application.next_follow_up_at %}{{ date_format(application.next_follow_up_at) }}{% else %}—{% endif %}</dd>
+    </div>
+    <div class="span-2">
+      <dt>Callback</dt>
+      <dd>
+        {% if application.callback_preferred_at %}{{ date_format(application.callback_preferred_at) }}{% else %}—{% endif %}
+        {% if application.callback_note %}<br><span class="ld-meta">{{ application.callback_note }}</span>{% endif %}
+      </dd>
+    </div>
+    {% if application.additional_details %}
+    <div class="span-2">
+      <dt>Additional details</dt>
+      <dd>{{ application.additional_details }}</dd>
+    </div>
+    {% endif %}
+    {% if application.qualification_decision_at %}
+    <div class="span-2">
+      <dt>Qualification</dt>
+      <dd>
+        {{ application.get_status_display() }}
+        · {% if application.qualification_decided_by %}{{ application.qualification_decided_by.name or application.qualification_decided_by.email }}{% else %}—{% endif %}
+        · {{ date_format(application.qualification_decision_at) }}
+        {% if application.qualification_note %}<br><span class="ld-meta">{{ application.qualification_note }}</span>{% endif %}
+        {% if application.disqualify_reason %}<br><span class="ld-meta">{{ application.get_disqualify_reason_display() }}{% if application.disqualify_reason_text %}: {{ application.disqualify_reason_text }}{% endif %}</span>{% endif %}
+      </dd>
+    </div>
+    {% endif %}
+  </dl>
+</article>
+
+<form method="post" id="follow-up" class="ld-card ld-validate-form" data-validate="follow_up" novalidate>
   <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
   <input type="hidden" name="action" value="follow_up">
-  <h2 class="h6">Schedule follow-up</h2>
+  <h2 class="ld-section-title">Schedule follow-up</h2>
   <div class="ld-field mb-2">
-    <label for="next_follow_up_at">Date &amp; time</label>
-    <input type="datetime-local" name="next_follow_up_at" id="next_follow_up_at" required>
+    <span class="ld-field-label">Date &amp; time</span>
+    <div class="ld-dt-picker" data-ld-dt-picker data-ld-dt-required="1">
+      <input type="hidden" name="next_follow_up_at" id="next_follow_up_at" value="" required>
+      <button type="button" class="ld-dt-toggle is-placeholder" data-ld-dt-toggle aria-expanded="false">
+        <span data-ld-dt-label>Select date &amp; time</span>
+        <i class='bx bx-calendar'></i>
+      </button>
+      <div class="ld-dt-panel" data-ld-dt-panel hidden>
+        <div class="ld-dt-grid">
+          <div class="ld-field mb-0">
+            <label for="ld_fu_date">Date</label>
+            <input type="date" id="ld_fu_date" data-ld-dt-date>
+          </div>
+          <div class="ld-field mb-0">
+            <label for="ld_fu_time">Time</label>
+            <input type="time" id="ld_fu_time" data-ld-dt-time>
+          </div>
+        </div>
+        <div class="ld-dt-actions">
+          <button type="button" class="ld-btn ld-btn-outline" data-ld-dt-clear>Clear</button>
+          <button type="button" class="ld-btn" data-ld-dt-set><i class='bx bx-check'></i> Set</button>
+        </div>
+      </div>
+    </div>
     <div class="ld-field-error"></div>
   </div>
-  <button type="submit" class="ld-btn ld-btn-outline">Save follow-up</button>
+  <button type="submit" class="ld-btn ld-btn-outline ld-btn-block"><i class='bx bx-calendar-plus'></i> Save follow-up</button>
 </form>
 
 <form method="post" class="ld-card ld-validate-form" data-validate="remark" novalidate>
   <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
   <input type="hidden" name="action" value="remark">
-  <h2 class="h6">Add remark</h2>
+  <h2 class="ld-section-title">Add remark</h2>
   <div class="ld-field mb-2">
-    <label for="remark_body">Notes</label>
-    <textarea name="body" id="remark_body" rows="3" required maxlength="5000" minlength="3" placeholder="Call notes, next steps…"></textarea>
+    <span class="ld-field-label">Call status</span>
+    <div class="ld-outcome-row" role="radiogroup" aria-label="Call status">
+      <label class="ld-outcome-opt">
+        <input type="radio" name="call_outcome" value="connected" required>
+        <span>Call connected</span>
+      </label>
+      <label class="ld-outcome-opt">
+        <input type="radio" name="call_outcome" value="not_connected" required>
+        <span>Call not connected</span>
+      </label>
+    </div>
     <div class="ld-field-error"></div>
   </div>
-  <button type="submit" class="ld-btn">Save remark</button>
+  <div class="ld-field mb-2">
+    <label for="remark_body">Call notes / next steps</label>
+    <textarea name="body" id="remark_body" rows="3" required maxlength="5000" minlength="3" placeholder="What did you discuss? What’s next?"></textarea>
+    <div class="ld-field-error"></div>
+  </div>
+  <button type="submit" class="ld-btn ld-btn-block"><i class='bx bx-message-square-add'></i> Save remark</button>
 </form>
 
 <section class="ld-card">
-  <h2 class="h6">Remarks</h2>
+  <h2 class="ld-section-title">Activity</h2>
   {% if not remarks %}
-  <p class="ld-meta mb-0">No remarks yet.</p>
+  <p class="ld-meta mb-0">No remarks yet — add notes after each call.</p>
   {% endif %}
   {% for r in remarks %}
-  <div class="border-bottom py-2">
+  <div class="ld-timeline-item">
     <div class="ld-meta">{% if r.author %}{{ r.author.name or r.author.email }}{% else %}System{% endif %} · {{ date_format(r.created) }}</div>
-    <div>{{ r.body }}</div>
+    {% if r.call_outcome_label %}
+    <div class="mb-1">
+      <span class="ld-chip {% if r.call_outcome == 'connected' %}ld-chip-ok{% else %}ld-chip-warn{% endif %}">{{ r.call_outcome_label }}</span>
+    </div>
+    {% endif %}
+    {% if r.display_body %}
+    <div style="font-weight:550;">{{ r.display_body }}</div>
+    {% endif %}
   </div>
   {% endfor %}
 </section>
+
+{% if is_manager and team %}
+<details class="ld-details">
+  <summary>Assign lead follow</summary>
+  <div class="ld-details-body">
+    <form method="post" class="ld-validate-form" data-validate="assign" novalidate>
+      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+      <input type="hidden" name="action" value="assign">
+      <div class="ld-field mb-2">
+        <label for="assigned_to">Assignee</label>
+        <select name="assigned_to" id="assigned_to" required>
+          <option value="0">Unassigned</option>
+          {% for u in team %}
+          <option value="{{ u.id }}" {% if application.assigned_to_id == u.id %}selected{% endif %}>{{ u.name or u.email }}</option>
+          {% endfor %}
+        </select>
+        <div class="ld-field-error"></div>
+      </div>
+      <button type="submit" class="ld-btn ld-btn-outline ld-btn-block">Save assignee</button>
+    </form>
+  </div>
+</details>
+{% endif %}
+
+<details class="ld-details">
+  <summary>Update status</summary>
+  <div class="ld-details-body">
+    <form method="post" class="ld-validate-form" data-validate="status" data-has-schedule="{{ '1' if has_schedule_datetime else '0' }}" data-callback-status="{{ callback_status_value }}" data-followup-status="{{ follow_up_status_value }}" novalidate>
+      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+      <input type="hidden" name="action" value="status">
+      <div class="ld-field mb-2">
+        <label for="status">Status</label>
+        <select name="status" id="status" required>
+          <option value="">Select status</option>
+          {% for val, label in status_choices %}
+          <option value="{{ val }}" {% if application.status == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <div class="ld-field-error"></div>
+      </div>
+      {% if not has_schedule_datetime %}
+      <p class="ld-meta mb-2">To set <strong>Callback Scheduled</strong> or <strong>Follow Up</strong>, save a follow-up date first.</p>
+      {% endif %}
+      <button type="submit" class="ld-btn ld-btn-outline ld-btn-block">Save status</button>
+    </form>
+  </div>
+</details>
 {% endblock %}
 {% block extra_js %}
 <script>
@@ -112,31 +373,98 @@
   var V = window.LoanDeskValidate;
 
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
-  function toLocalInputValue(d) {
-    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
-      + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  function toDateValue(d) {
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
   }
-  function applyMinNow(input) {
-    if (!input) return;
-    input.min = toLocalInputValue(new Date());
+  function toTimeValue(d) {
+    return pad(d.getHours()) + ':' + pad(d.getMinutes());
   }
-
-  var followInput = document.getElementById('next_follow_up_at');
-  applyMinNow(followInput);
-  if (followInput) {
-    ['focus', 'click', 'change'].forEach(function (evt) {
-      followInput.addEventListener(evt, function () {
-        applyMinNow(followInput);
-        if (followInput.value) {
-          var parsed = new Date(followInput.value);
-          if (!isNaN(parsed.getTime()) && parsed.getTime() < Date.now() - 60000) {
-            V.setFieldError(followInput, 'Follow-up must be in the future.');
-            followInput.value = '';
-          }
-        }
-      });
+  function formatDisplay(raw) {
+    if (!raw) return 'Select date & time';
+    var parsed = new Date(raw);
+    if (isNaN(parsed.getTime())) return raw;
+    return parsed.toLocaleString('en-IN', {
+      day: 'numeric', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
     });
   }
+
+  document.querySelectorAll('[data-ld-dt-picker]').forEach(function (root) {
+    var hidden = root.querySelector('input[name="next_follow_up_at"]');
+    var toggle = root.querySelector('[data-ld-dt-toggle]');
+    var panel = root.querySelector('[data-ld-dt-panel]');
+    var label = root.querySelector('[data-ld-dt-label]');
+    var dateInput = root.querySelector('[data-ld-dt-date]');
+    var timeInput = root.querySelector('[data-ld-dt-time]');
+    var clearBtn = root.querySelector('[data-ld-dt-clear]');
+    var setBtn = root.querySelector('[data-ld-dt-set]');
+
+    function applyMinNow() {
+      var now = new Date();
+      if (dateInput) dateInput.min = toDateValue(now);
+      if (timeInput && dateInput && dateInput.value === toDateValue(now)) {
+        timeInput.min = toTimeValue(now);
+      } else if (timeInput) {
+        timeInput.removeAttribute('min');
+      }
+    }
+    function syncDisplay() {
+      var raw = (hidden && hidden.value) || '';
+      if (label) label.textContent = formatDisplay(raw);
+      if (toggle) toggle.classList.toggle('is-placeholder', !raw);
+    }
+    function setOpen(open) {
+      if (!panel || !toggle) return;
+      panel.hidden = !open;
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) {
+        applyMinNow();
+        var soon = new Date(Date.now() + 60 * 60 * 1000);
+        if (dateInput && !dateInput.value) dateInput.value = toDateValue(soon);
+        if (timeInput && !timeInput.value) timeInput.value = toTimeValue(soon);
+      }
+    }
+    function clearValue() {
+      if (hidden) hidden.value = '';
+      if (dateInput) dateInput.value = '';
+      if (timeInput) timeInput.value = '';
+      if (hidden) V.setFieldError(hidden, '');
+      syncDisplay();
+      setOpen(false);
+    }
+    function setValue() {
+      applyMinNow();
+      var dateVal = (dateInput && dateInput.value) || '';
+      var timeVal = (timeInput && timeInput.value) || '';
+      if (!dateVal || !timeVal) {
+        if (hidden) V.setFieldError(hidden, 'Choose both a date and a time, then press Set.');
+        return false;
+      }
+      var combined = dateVal + 'T' + timeVal;
+      var parsed = new Date(combined);
+      if (isNaN(parsed.getTime())) {
+        if (hidden) V.setFieldError(hidden, 'Enter a valid date and time.');
+        return false;
+      }
+      if (parsed.getTime() < Date.now() - 60000) {
+        if (hidden) V.setFieldError(hidden, 'Follow-up must be from now onwards.');
+        return false;
+      }
+      if (hidden) {
+        hidden.value = combined;
+        V.setFieldError(hidden, '');
+      }
+      syncDisplay();
+      setOpen(false);
+      return true;
+    }
+
+    if (toggle) toggle.addEventListener('click', function () { setOpen(panel && panel.hidden); });
+    if (clearBtn) clearBtn.addEventListener('click', clearValue);
+    if (setBtn) setBtn.addEventListener('click', setValue);
+    if (dateInput) dateInput.addEventListener('change', applyMinNow);
+    syncDisplay();
+  });
 
   document.querySelectorAll('form.ld-validate-form').forEach(function (form) {
     form.addEventListener('submit', function (e) {
@@ -145,6 +473,12 @@
       var ok = true;
 
       if (kind === 'remark') {
+        var outcome = form.querySelector('input[name="call_outcome"]:checked');
+        var outcomeInput = form.querySelector('input[name="call_outcome"]');
+        if (!outcome) {
+          V.setFieldError(outcomeInput, 'Select whether the call connected.');
+          ok = false;
+        }
         var body = form.querySelector('[name="body"]');
         var text = (body.value || '').trim();
         if (!text) {
@@ -160,11 +494,10 @@
       }
 
       if (kind === 'follow_up') {
-        applyMinNow(followInput);
         var dt = form.querySelector('[name="next_follow_up_at"]');
         var raw = (dt.value || '').trim();
         if (!raw) {
-          V.setFieldError(dt, 'Choose a follow-up date and time.');
+          V.setFieldError(dt, 'Choose a date & time, then press Set.');
           ok = false;
         } else {
           var parsed = new Date(raw);
@@ -188,7 +521,7 @@
           var needsDate = [form.getAttribute('data-callback-status'), form.getAttribute('data-followup-status')];
           var hasSchedule = form.getAttribute('data-has-schedule') === '1';
           if (needsDate.indexOf(val) !== -1 && !hasSchedule) {
-            V.setFieldError(st, 'Schedule a date & time first (use Schedule follow-up below), then set this status.');
+            V.setFieldError(st, 'Schedule a date & time first (use Schedule follow-up), then set this status.');
             ok = false;
           }
         }
@@ -198,6 +531,26 @@
         var asg = form.querySelector('[name="assigned_to"]');
         if (asg.value === '' || asg.value === null) {
           V.setFieldError(asg, 'Select a valid team member.');
+          ok = false;
+        }
+      }
+
+      if (kind === 'disqualify') {
+        var reason = form.querySelector('[name="disqualify_reason"]');
+        var note = form.querySelector('[name="disqualify_reason_text"]');
+        if (!(reason.value || '').trim()) {
+          V.setFieldError(reason, 'Select a disqualify reason.');
+          ok = false;
+        } else if (reason.value === 'other' && (note.value || '').trim().length < 3) {
+          V.setFieldError(note, 'Add a short note for reason Other.');
+          ok = false;
+        }
+      }
+
+      if (kind === 'qualify') {
+        var qn = form.querySelector('[name="qualification_note"]');
+        if (qn && (qn.value || '').length > 500) {
+          V.setFieldError(qn, 'Note must be at most 500 characters.');
           ok = false;
         }
       }

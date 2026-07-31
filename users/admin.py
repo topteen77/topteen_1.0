@@ -1283,16 +1283,33 @@ class _EducationLoanSingletonAdminMixin(_EducationLoanHubAdminMixin):
 
 @admin.register(EducationLoanCRMSettings)
 class EducationLoanCRMSettingsAdmin(_EducationLoanSingletonAdminMixin, admin.ModelAdmin):
-    """Singleton: external CRM API for education loan enquiry leads."""
+    """Singleton: Bank API URL, method, and parameter template with {{variables}}."""
 
-    list_display = ("is_enabled", "api_url", "updated_at")
-    fields = (
-        "is_enabled",
-        "api_url",
-        "auth_header_name",
-        "auth_header_value",
-        "timeout_seconds",
-        "updated_at",
+    change_form_template = "admin/users/educationloancrmsettings/change_form.html"
+    list_display = ("is_enabled", "http_method", "api_url", "updated_at")
+    fieldsets = (
+        (
+            "Bank API connection",
+            {
+                "fields": (
+                    "is_enabled",
+                    "api_url",
+                    "http_method",
+                    "parameters_template",
+                    "timeout_seconds",
+                ),
+                "description": (
+                    "Configure the bank endpoint. Use {{variable}} placeholders in the URL "
+                    "and in Parameters JSON. Click variables below the form to insert them. "
+                    "GET sends parameters as query string; POST/PUT/PATCH as JSON body."
+                ),
+            },
+        ),
+        (
+            "Authentication",
+            {"fields": ("auth_header_name", "auth_header_value")},
+        ),
+        ("Meta", {"fields": ("updated_at",)}),
     )
     readonly_fields = ("updated_at",)
 
@@ -1302,6 +1319,35 @@ class EducationLoanCRMSettingsAdmin(_EducationLoanSingletonAdminMixin, admin.Mod
     def has_delete_permission(self, request, obj=None):
         return False
 
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        from users.education_loan_crm import validate_parameters_template
+
+        form = super().get_form(request, obj, change=change, **kwargs)
+
+        class BankApiSettingsForm(form):
+            def clean_parameters_template(self):
+                raw = self.cleaned_data.get("parameters_template") or ""
+                ok, err = validate_parameters_template(raw)
+                if not ok:
+                    from django.core.exceptions import ValidationError
+
+                    raise ValidationError(err)
+                return raw
+
+        return BankApiSettingsForm
+
+    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
+        from users.education_loan_crm import BANK_API_VARIABLES
+
+        extra_context = extra_context or {}
+        extra_context["bank_api_variables"] = BANK_API_VARIABLES
+        return super().changeform_view(request, object_id, form_url, extra_context=extra_context)
+
+    def save_model(self, request, obj, form, change):
+        if not (obj.parameters_template or "").strip():
+            obj.parameters_template = EducationLoanCRMSettings.DEFAULT_PARAMETERS_TEMPLATE
+        super().save_model(request, obj, form, change)
+
 
 @admin.register(EducationLoanOpsSettings)
 class EducationLoanOpsSettingsAdmin(_EducationLoanSingletonAdminMixin, admin.ModelAdmin):
@@ -1310,6 +1356,7 @@ class EducationLoanOpsSettingsAdmin(_EducationLoanSingletonAdminMixin, admin.Mod
         "pwa_enabled",
         "daily_report_enabled",
         "notify_on_enquiry",
+        "auto_crm_on_enquiry",
         "reminder_enabled",
         "reminder_unfollowed_after_hours",
         "updated_at",
@@ -1322,6 +1369,21 @@ class EducationLoanOpsSettingsAdmin(_EducationLoanSingletonAdminMixin, admin.Mod
         (
             "Enquiry notify",
             {"fields": ("notify_on_enquiry",)},
+        ),
+        (
+            "Bank handoff",
+            {
+                "fields": (
+                    "auto_crm_on_enquiry",
+                    "bank_email_recipients",
+                    "bank_email_subject_template",
+                ),
+                "description": (
+                    "Bank email recipients receive qualified-lead packets from Loan Desk. "
+                    "Bank API uses Education Loan CRM settings; leave auto push off so "
+                    "managers push only after Qualify."
+                ),
+            },
         ),
         (
             "Daily report",
@@ -1406,11 +1468,20 @@ class EducationLoanApplicationAdmin(_EducationLoanHubAdminMixin, admin.ModelAdmi
         "status_display",
         "lead_follow",
         "callback_preferred_at",
+        "bank_email_status_display",
         "crm_sync_status_display",
         "submitted_at",
         "modified",
     )
-    list_filter = ("status", "crm_sync_status", "country_preference", "created", "submitted_at")
+    list_filter = (
+        "status",
+        "bank_email_status",
+        "crm_sync_status",
+        "disqualify_reason",
+        "country_preference",
+        "created",
+        "submitted_at",
+    )
     search_fields = (
         "id",
         "student_name",
@@ -1428,11 +1499,15 @@ class EducationLoanApplicationAdmin(_EducationLoanHubAdminMixin, admin.ModelAdmi
         "created",
         "modified",
         "submitted_at",
+        "qualification_decision_at",
         "crm_synced_at",
         "crm_external_id",
         "crm_sync_response",
+        "bank_email_sent_at",
+        "bank_email_last_error",
+        "bank_email_message_id",
     )
-    raw_id_fields = ("parent", "student", "assigned_to")
+    raw_id_fields = ("parent", "student", "assigned_to", "qualification_decided_by")
     ordering = ("-modified", "-id")
     actions = ("retry_crm_sync", "notify_loan_team")
     inlines = (EducationLoanRemarkInline,)
@@ -1454,6 +1529,18 @@ class EducationLoanApplicationAdmin(_EducationLoanHubAdminMixin, admin.ModelAdmi
                     "course_name",
                     "country_preference",
                     "additional_details",
+                )
+            },
+        ),
+        (
+            "Qualification",
+            {
+                "fields": (
+                    "qualification_decision_at",
+                    "qualification_decided_by",
+                    "qualification_note",
+                    "disqualify_reason",
+                    "disqualify_reason_text",
                 )
             },
         ),
@@ -1483,14 +1570,26 @@ class EducationLoanApplicationAdmin(_EducationLoanHubAdminMixin, admin.ModelAdmi
             },
         ),
         (
-            "CRM sync",
+            "Bank email handoff",
+            {
+                "fields": (
+                    "bank_email_status",
+                    "bank_email_sent_at",
+                    "bank_email_last_error",
+                    "bank_email_message_id",
+                )
+            },
+        ),
+        (
+            "Bank API handoff",
             {
                 "fields": (
                     "crm_sync_status",
                     "crm_synced_at",
                     "crm_external_id",
                     "crm_sync_response",
-                )
+                ),
+                "description": "Stored in crm_* columns; shown as Bank API in Loan Desk.",
             },
         ),
         ("Timestamps", {"fields": ("submitted_at", "created", "modified")}),
@@ -1544,6 +1643,8 @@ class EducationLoanApplicationAdmin(_EducationLoanHubAdminMixin, admin.ModelAdmi
             choices.EducationLoanApplicationStatus.IN_PROGRESS: "#7c3aed",
             choices.EducationLoanApplicationStatus.FOLLOW_UP: "#b45309",
             choices.EducationLoanApplicationStatus.CLOSED: "#334155",
+            choices.EducationLoanApplicationStatus.QUALIFIED: "#0f766e",
+            choices.EducationLoanApplicationStatus.NOT_QUALIFIED: "#9f1239",
         }
         color = colors.get(obj.status, "#334155")
         return format_html(
@@ -1552,7 +1653,24 @@ class EducationLoanApplicationAdmin(_EducationLoanHubAdminMixin, admin.ModelAdmi
             obj.get_status_display(),
         )
 
-    @admin.display(description="CRM sync", ordering="crm_sync_status")
+    @admin.display(description="Bank email", ordering="bank_email_status")
+    def bank_email_status_display(self, obj):
+        if obj.status == choices.EducationLoanApplicationStatus.DRAFT:
+            return "—"
+        colors = {
+            choices.EducationLoanBankEmailStatus.NONE: "#64748b",
+            choices.EducationLoanBankEmailStatus.PENDING: "#92400e",
+            choices.EducationLoanBankEmailStatus.SENT: "#15803d",
+            choices.EducationLoanBankEmailStatus.ERROR: "#b91c1c",
+        }
+        color = colors.get(obj.bank_email_status, "#334155")
+        return format_html(
+            '<span style="font-weight:600;color:{};">{}</span>',
+            color,
+            obj.get_bank_email_status_display(),
+        )
+
+    @admin.display(description="Bank API", ordering="crm_sync_status")
     def crm_sync_status_display(self, obj):
         if obj.status == choices.EducationLoanApplicationStatus.DRAFT:
             return "—"
@@ -1569,7 +1687,7 @@ class EducationLoanApplicationAdmin(_EducationLoanHubAdminMixin, admin.ModelAdmi
             obj.get_crm_sync_status_display(),
         )
 
-    @action(description="Retry CRM sync for selected leads", permissions=["change"])
+    @action(description="Retry Bank API push for selected leads", permissions=["change"])
     def retry_crm_sync(self, request, queryset):
         from users.education_loan_crm import sync_education_loan_lead_to_crm
 
@@ -1585,7 +1703,7 @@ class EducationLoanApplicationAdmin(_EducationLoanHubAdminMixin, admin.ModelAdmi
             else:
                 err_n += 1
         if ok_n:
-            self.message_user(request, f"CRM sync succeeded for {ok_n} lead(s).", messages.SUCCESS)
+            self.message_user(request, f"Bank API push succeeded for {ok_n} lead(s).", messages.SUCCESS)
         if err_n:
-            self.message_user(request, f"CRM sync failed or skipped for {err_n} lead(s).", messages.WARNING)
+            self.message_user(request, f"Bank API push failed or skipped for {err_n} lead(s).", messages.WARNING)
 

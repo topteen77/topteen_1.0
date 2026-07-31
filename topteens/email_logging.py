@@ -1,11 +1,13 @@
 """
 Append-only JSONL log for outbound email (used by logging mail backends + Email logs admin page).
 Each line: ts, subject, from_email, to, status, error.
+
+Retention: drop entries older than 30 days, but always keep the newest 10 rows.
 """
 import json
 import logging
 import threading
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from django.conf import settings
@@ -13,6 +15,8 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 _lock = threading.Lock()
 _MAX_FILE_LINES_SCAN = 40000
+_RETENTION_DAYS = 30
+_KEEP_MIN_ENTRIES = 10
 
 
 def _log_path():
@@ -30,6 +34,77 @@ def get_email_send_log_path():
     return str(_log_path().resolve())
 
 
+def _parse_ts(ts_iso):
+    if not ts_iso:
+        return None
+    try:
+        from django.utils.dateparse import parse_datetime
+
+        dt = parse_datetime(str(ts_iso))
+        if dt is None:
+            return None
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt
+    except Exception:
+        return None
+
+
+def _read_entries(path):
+    if not path.is_file():
+        return []
+    try:
+        with open(path, encoding='utf-8', errors='replace') as fh:
+            lines = fh.readlines()
+    except OSError:
+        return []
+    out = []
+    for line in lines[-_MAX_FILE_LINES_SCAN:]:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            out.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    return out
+
+
+def _entries_newest_first(entries):
+    return sorted(entries, key=lambda r: (r.get('ts') or ''), reverse=True)
+
+
+def prune_email_send_log_entries(entries):
+    """
+    Keep entries newer than 30 days, and always keep the newest 10
+    (even if those 10 are older than a month).
+    Returns oldest-first list suitable for rewriting the JSONL file.
+    """
+    if not entries:
+        return []
+    newest_first = _entries_newest_first(entries)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=_RETENTION_DAYS)
+    kept = []
+    for index, entry in enumerate(newest_first):
+        if index < _KEEP_MIN_ENTRIES:
+            kept.append(entry)
+            continue
+        ts = _parse_ts(entry.get('ts'))
+        if ts is not None and ts >= cutoff:
+            kept.append(entry)
+    # Rewrite oldest-first so append order stays chronological.
+    kept.reverse()
+    return kept
+
+
+def _rewrite_log_file(path, entries_oldest_first):
+    tmp = path.with_suffix(path.suffix + '.tmp')
+    with open(tmp, 'w', encoding='utf-8') as fh:
+        for rec in entries_oldest_first:
+            fh.write(json.dumps(rec, ensure_ascii=False) + '\n')
+    tmp.replace(path)
+
+
 def append_email_send_log(*, to_emails, subject, from_email, status, error=None):
     try:
         path = _log_path()
@@ -42,10 +117,11 @@ def append_email_send_log(*, to_emails, subject, from_email, status, error=None)
             'status': status,
             'error': (error or '')[:4000] if error else '',
         }
-        line = json.dumps(rec, ensure_ascii=False) + '\n'
         with _lock:
-            with open(path, 'a', encoding='utf-8') as fh:
-                fh.write(line)
+            entries = _read_entries(path)
+            entries.append(rec)
+            kept = prune_email_send_log_entries(entries)
+            _rewrite_log_file(path, kept)
     except Exception as exc:
         logger.warning('email_send.jsonl append failed: %s', exc)
 
@@ -76,27 +152,17 @@ def log_from_email_message(message, status, error=None):
 
 
 def load_email_log_entries_newest_first():
-    """Parse JSONL (last N lines), return list newest-first."""
+    """Parse JSONL, prune retention, return list newest-first."""
     path = _log_path()
-    if not path.is_file():
-        return []
-    try:
-        with open(path, encoding='utf-8', errors='replace') as fh:
-            lines = fh.readlines()
-    except OSError:
-        return []
-    tail = lines[-_MAX_FILE_LINES_SCAN:]
-    out = []
-    for line in tail:
-        line = line.strip()
-        if not line:
-            continue
-        try:
-            out.append(json.loads(line))
-        except json.JSONDecodeError:
-            continue
-    out.sort(key=lambda r: (r.get('ts') or ''), reverse=True)
-    return out
+    with _lock:
+        entries = _read_entries(path)
+        kept = prune_email_send_log_entries(entries)
+        if len(kept) != len(entries) and path.is_file():
+            try:
+                _rewrite_log_file(path, kept)
+            except OSError as exc:
+                logger.warning('email_send.jsonl prune rewrite failed: %s', exc)
+        return _entries_newest_first(kept)
 
 
 def format_ts_for_display(ts_iso):
