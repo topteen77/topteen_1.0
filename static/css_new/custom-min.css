@@ -16476,6 +16476,8 @@ a.list-group-item .bx {
   .four-pillars-hero-section {
     overflow: hidden;
 }
+
+
 }
 
 
@@ -16626,6 +16628,10 @@ a.list-group-item .bx {
   .learning-approach {
     padding: 17px;
   }
+
+  .grid-3 {
+     grid-template-columns: repeat(1, 1fr);
+    }
 }
 
 /*** four pillar main page ***/
