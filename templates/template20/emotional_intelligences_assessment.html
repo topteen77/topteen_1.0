@@ -64,18 +64,204 @@
   .ei-scale-row.ei-has-selection .ei-scale-option:not(.lsd-selected) .lsd-option-letter { border-color: #e5e7eb; background: #f9fafb; color: #9ca3af; }
   .ei-scale-row.ei-has-selection .ei-scale-option:not(.lsd-selected) .lsd-option-text { color: #9ca3af; }
   .ei-scale-row.ei-has-selection .ei-scale-option:not(.lsd-selected):hover { opacity: 0.62; border-color: #c7d2fe; background: #f5f3ff; transform: none; }
+  /* Hidden on desktop; shown as badge grid on tablet/mobile (rules below). */
+  .ei-scale-legend {
+    display: none;
+  }
+  @media (max-width: 991.98px) {
+    .ei-scale-legend {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+      margin: 0 0 16px;
+      padding: 14px 12px 12px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #f5f3ff 100%);
+      border: 1px solid #e0e7ff;
+      box-shadow: 0 6px 20px rgba(79, 70, 229, 0.08);
+    }
+    .ei-scale-legend-heading {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin: 0 0 4px;
+      padding: 0;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #6366f1;
+    }
+    .ei-scale-legend-heading i {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    .ei-legend-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-width: 0;
+      min-height: 72px;
+      padding: 8px 4px;
+      border-radius: 12px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+    }
+    .ei-legend-abbr {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2.25rem;
+      height: 30px;
+      padding: 0 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      line-height: 1;
+      border: 1.5px solid transparent;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+    }
+    .ei-legend-badge--sd .ei-legend-abbr { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+    .ei-legend-badge--d .ei-legend-abbr { background: #fff7ed; border-color: #fed7aa; color: #c2410c; }
+    .ei-legend-badge--n .ei-legend-abbr { background: #f3f4f6; border-color: #d1d5db; color: #4b5563; }
+    .ei-legend-badge--a .ei-legend-abbr { background: #ecfdf5; border-color: #a7f3d0; color: #047857; }
+    .ei-legend-badge--sa .ei-legend-abbr { background: #d1fae5; border-color: #6ee7b7; color: #065f46; }
+    .ei-legend-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1px;
+      width: 100%;
+      margin: 0;
+      padding: 0 2px;
+      font-size: 9px;
+      line-height: 1.15;
+      font-weight: 600;
+      color: #64748b;
+      text-align: center;
+    }
+    .ei-legend-label span {
+      display: block;
+      max-width: 100%;
+    }
+    .ei-scale-row { gap: 8px; }
+    .ei-scale-option {
+      min-height: 52px;
+      padding: 8px 4px;
+      justify-content: center;
+      align-items: center;
+      gap: 0;
+      border-radius: 12px;
+    }
+    .ei-scale-option .lsd-option-letter {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: auto;
+      height: 30px;
+      min-width: 2.25rem;
+      padding: 0 8px;
+      border-radius: 999px;
+      border: 1.5px solid transparent;
+      background: #f3f4f6 !important;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06) !important;
+      font-size: 0;
+      line-height: 0;
+    }
+    .ei-scale-option:nth-child(1) .lsd-option-letter { background: #fef2f2 !important; border-color: #fecaca; }
+    .ei-scale-option:nth-child(2) .lsd-option-letter { background: #fff7ed !important; border-color: #fed7aa; }
+    .ei-scale-option:nth-child(3) .lsd-option-letter { background: #f3f4f6 !important; border-color: #d1d5db; }
+    .ei-scale-option:nth-child(4) .lsd-option-letter { background: #ecfdf5 !important; border-color: #a7f3d0; }
+    .ei-scale-option:nth-child(5) .lsd-option-letter { background: #d1fae5 !important; border-color: #6ee7b7; }
+    .ei-scale-option .lsd-option-letter::before {
+      content: attr(data-abbr);
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: 0.03em;
+      color: inherit;
+    }
+    .ei-scale-option:nth-child(1) .lsd-option-letter::before { color: #b91c1c; }
+    .ei-scale-option:nth-child(2) .lsd-option-letter::before { color: #c2410c; }
+    .ei-scale-option:nth-child(3) .lsd-option-letter::before { color: #4b5563; }
+    .ei-scale-option:nth-child(4) .lsd-option-letter::before { color: #047857; }
+    .ei-scale-option:nth-child(5) .lsd-option-letter::before { color: #065f46; }
+    .ei-scale-option.lsd-selected {
+      border-color: #7755EE;
+      background: linear-gradient(160deg, rgba(119, 85, 238, 0.12) 0%, rgba(63, 55, 201, 0.08) 100%);
+      box-shadow: 0 4px 14px rgba(119, 85, 238, 0.2);
+    }
+    .ei-scale-option.lsd-selected .lsd-option-letter {
+      background: linear-gradient(135deg, #7755EE 0%, #3F37C9 100%) !important;
+      border-color: #7755EE !important;
+      box-shadow: 0 2px 8px rgba(119, 85, 238, 0.35) !important;
+    }
+    .ei-scale-option.lsd-selected .lsd-option-letter::before {
+      color: #fff !important;
+      font-weight: 800;
+    }
+    .ei-scale-row.ei-has-selection .ei-scale-option:not(.lsd-selected) .lsd-option-letter {
+      opacity: 0.55;
+    }
+    .ei-scale-row.ei-has-selection .ei-scale-option:not(.lsd-selected) .lsd-option-letter::before {
+      color: #9ca3af !important;
+    }
+    .ei-scale-option .lsd-option-text {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  }
   @media (max-width: 767px) {
-    .ei-scale-row { gap: 6px; }
-    .ei-scale-option { min-height: 58px; padding: 8px 4px 6px; }
-    .ei-scale-option .lsd-option-letter { width: 30px; height: 30px; min-width: 30px; font-size: 13px; }
-    .ei-scale-option .lsd-option-text { font-size: 0; line-height: 0; }
-    .ei-scale-option .lsd-option-text::before { content: attr(data-short); font-size: 9px; line-height: 1.2; display: block; color: inherit; }
-    .ei-scale-option.lsd-selected .lsd-option-text::before { color: #312e81; }
+    .ei-scale-legend {
+      gap: 6px;
+      padding: 12px 8px 10px;
+    }
+    .ei-scale-legend-heading {
+      font-size: 10px;
+    }
+    .ei-legend-badge {
+      min-height: 64px;
+      padding: 6px 2px;
+    }
+    .ei-legend-abbr {
+      min-width: 2rem;
+      height: 28px;
+      font-size: 11px;
+      padding: 0 6px;
+    }
+    .ei-legend-label {
+      font-size: 8px;
+      line-height: 1.1;
+    }
+    .ei-scale-option {
+      min-height: 48px;
+    }
+    .ei-scale-option .lsd-option-letter {
+      min-width: 2rem;
+      height: 28px;
+    }
+    .ei-scale-option .lsd-option-letter::before {
+      font-size: 11px;
+    }
   }
   .lsd-wizard-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
   .lsd-wizard-buttons { display: flex; gap: 8px; }
   .lsd-complete-badge { font-size: 13px; color: #059669; font-weight: 600; display: none; align-items: center; gap: 6px; }
-  .lsd-complete-badge.lsd-visible { display: inline-flex; }
+  .lsd-complete-badge.lsd-visible { display: inline-flex; line-height:21px; align-items: start; }
   .lsd-results-section { margin-top: 4px; }
   .lsd-results-card { background: #fff; border-radius: 20px; padding: 20px 20px 24px; box-shadow: 0 10px 35px rgba(15,23,42,0.08); margin-bottom: 20px; }
   .lsd-results-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: rgba(79,70,229,0.06); color: #4338ca; font-size: 13px; font-weight: 600; margin-bottom: 10px; }
@@ -309,6 +495,164 @@
   .ei-score-highlight .ei-score-value { font-size: 42px; line-height: 1.1; font-weight: 800; color: #312e81; }
   .ei-score-highlight .ei-score-band { display: inline-block; margin-top: 10px; padding: 6px 16px; border-radius: 999px; font-size: 14px; font-weight: 700; color: #047857; background: #d1fae5; border: 1px solid #6ee7b7; }
   .ei-score-highlight .ei-score-desc { margin-top: 12px; font-size: 14px; color: #4b5563; line-height: 1.55; max-width: 520px; margin-left: auto; margin-right: auto; }
+
+  /* Tablet + mobile: stack EQ area results as cards (desktop keeps table) */
+  @media (max-width: 991.98px) {
+    .lsd-tabs-row {
+      gap: 6px;
+      padding: 3px;
+    }
+    .lsd-tab {
+      padding: 11px 10px;
+      font-size: 14px;
+      min-width: 0;
+    }
+    .lsd-header-card,
+    .lsd-card,
+    .lsd-wizard-card {
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+    .lsd-assessment-section,
+    .lsd-assessment-section .container,
+    .lsd-main-area,
+    .lsd-results-section,
+    .lsd-results-card,
+    #eiResultsSummary,
+    .ei-score-highlight,
+    .ei-subscale-section,
+    .ei-subscale-table-wrap,
+    .ei-tips-card {
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+    .ei-subscale-heading { font-size: 15px; margin-bottom: 10px; }
+    .ei-subscale-table-wrap {
+      overflow: visible;
+      border-radius: 14px;
+    }
+    .ei-subscale-table,
+    .ei-subscale-table tbody {
+      display: block;
+      width: 100%;
+    }
+    .ei-subscale-table thead { display: none; }
+    .ei-subscale-table tbody tr {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-areas:
+        "area area"
+        "score level";
+      gap: 10px 16px;
+      align-items: center;
+      padding: 14px 16px;
+      border-bottom: 1px solid #eef2ff;
+    }
+    .ei-subscale-table tbody tr:last-child { border-bottom: none; }
+    .ei-subscale-table td {
+      display: block;
+      padding: 0;
+      border: none;
+      width: auto !important;
+      text-align: left !important;
+    }
+    .ei-td-area {
+      grid-area: area;
+      min-width: 0;
+    }
+    .ei-area-cell {
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .ei-area-name {
+      font-size: 14px;
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+    .ei-td-score {
+      grid-area: score;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+      min-width: 0;
+    }
+    .ei-td-level {
+      grid-area: level;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      min-width: 0;
+    }
+    .ei-td-score::before,
+    .ei-td-level::before {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #9ca3af;
+      line-height: 1.2;
+    }
+    .ei-td-score::before { content: 'Score'; }
+    .ei-td-level::before { content: 'Level'; }
+    .ei-score-pill {
+      min-width: 44px;
+      height: 34px;
+      font-size: 14px;
+    }
+    .ei-band-pill {
+      min-width: 0;
+      max-width: 100%;
+      width: auto;
+      font-size: 11px;
+      padding: 6px 10px;
+      white-space: normal;
+      text-align: center;
+      line-height: 1.25;
+    }
+    .ei-td-level .ei-band-pill {
+      margin-left: auto;
+    }
+    .ei-score-highlight {
+      padding: 18px 16px;
+      margin: 10px 0 16px;
+      border-radius: 14px;
+    }
+    .ei-score-highlight .ei-score-value { font-size: 34px; }
+    .ei-score-highlight .ei-score-band { font-size: 13px; padding: 5px 14px; }
+    .ei-score-highlight .ei-score-desc { font-size: 13px; }
+    .ei-tips-header { padding: 16px; gap: 12px; }
+    .ei-tips-icon { width: 42px; height: 42px; font-size: 20px; }
+    .ei-tips-title { font-size: 16px; }
+    .ei-tips-subtitle { font-size: 12px; }
+    .ei-tips-body { padding: 14px 14px 18px; }
+    .ei-tips-area-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+    }
+    .ei-tips-area-badge { width: 100%; max-width: 140px; }
+    .ei-tip-item { padding: 12px; }
+    .lsd-results-card { padding: 16px 14px; }
+    .lsd-results-badge {
+      display: flex;
+      max-width: 100%;
+      white-space: normal;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .lsd-results-type { font-size: 18px; }
+    .lsd-download-buttons { width: 100%; }
+    .lsd-download-buttons .lsd-download-btn { width: 100%; justify-content: center; }
+    .ei-tips-grid { grid-template-columns: 1fr; }
+    .lsd-download-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
   @media (max-width: 767px) {
     .lsd-assessment-section,
     .lsd-assessment-section .container,
@@ -334,61 +678,18 @@
     .lsd-download-buttons { width: 100%; }
     .lsd-download-buttons .lsd-download-btn { width: 100%; justify-content: center; }
     .ei-subscale-heading { font-size: 15px; margin-bottom: 10px; }
-    .ei-subscale-table-wrap {
-      overflow: visible;
-      border-radius: 14px;
-    }
-    .ei-subscale-table,
-    .ei-subscale-table tbody {
-      display: block;
-      width: 100%;
-    }
-    .ei-subscale-table thead { display: none; }
+    .ei-area-name { font-size: 13px; }
     .ei-subscale-table tbody tr {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 10px 12px;
-      padding: 14px;
-      border-bottom: 1px solid #eef2ff;
+      padding: 12px 14px;
+      gap: 8px 12px;
     }
-    .ei-subscale-table tbody tr:last-child { border-bottom: none; }
-    .ei-subscale-table td {
-      display: block;
-      padding: 0;
-      border: none;
-      width: auto !important;
-      text-align: left !important;
-    }
-    .ei-td-area { flex: 1 1 100%; }
-    .ei-area-cell { align-items: flex-start; }
-    .ei-area-name { font-size: 13px; line-height: 1.4; }
-    .ei-td-score,
     .ei-td-level {
-      flex: 1 1 calc(50% - 6px);
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
+      align-items: flex-start;
     }
-    .ei-td-score { align-items: flex-start; }
-    .ei-td-level { align-items: flex-end; }
-    .ei-td-score::before,
-    .ei-td-level::before {
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #9ca3af;
-    }
-    .ei-td-score::before { content: 'Score'; }
-    .ei-td-level::before { content: 'Level'; }
-    .ei-band-pill {
-      min-width: 0;
+    .ei-td-level .ei-band-pill {
+      margin-left: 0;
       width: 100%;
-      max-width: 132px;
-      font-size: 11px;
-      padding: 6px 10px;
+      max-width: none;
     }
     .ei-score-highlight {
       padding: 18px 16px;
@@ -415,6 +716,12 @@
     .lsd-wizard-footer { flex-direction: column; align-items: stretch; gap: 12px; }
     .lsd-wizard-buttons { width: 100%; justify-content: space-between; }
     .lsd-wizard-buttons .lsd-btn { flex: 1; justify-content: center; }
+    .lsd-wizard-buttons .lsd-btn span,
+    .lsd-wizard-buttons .lsd-btn {
+      font-size: 13px;
+      padding-left: 10px;
+      padding-right: 10px;
+    }
   }
 </style>
 {% endblock %}
@@ -477,6 +784,8 @@
             <div class="lsd-question-nav-label">Quick level navigator (1–6)</div>
             <div class="lsd-question-nav-buttons" id="eiLevelNav"></div>
           </div>
+
+       
           <div id="eiLevelContainer"></div>
           <div id="eiValidationMessage" class="lsd-validation-message" role="alert" aria-live="polite" hidden></div>
           <div class="lsd-wizard-footer">
@@ -871,10 +1180,13 @@
     var badge = document.createElement("span");
     badge.className = "lsd-option-letter";
     badge.textContent = String(value);
+    badge.setAttribute("data-abbr", shortLabels[value - 1]);
+    badge.setAttribute("title", label);
     var textSpan = document.createElement("span");
     textSpan.className = "lsd-option-text";
     textSpan.textContent = label;
     textSpan.setAttribute("data-short", shortLabels[value - 1]);
+    wrapper.setAttribute("aria-label", label + " (" + shortLabels[value - 1] + ")");
     wrapper.appendChild(input);
     wrapper.appendChild(badge);
     wrapper.appendChild(textSpan);
@@ -911,6 +1223,41 @@
     descEl.textContent = level.description;
     levelContainer.appendChild(titleEl);
     levelContainer.appendChild(descEl);
+    var legendLineLabels = [
+      ["Strongly", "Disagree"],
+      ["Disagree"],
+      ["Neutral"],
+      ["Agree"],
+      ["Strongly", "Agree"]
+    ];
+    var legendBadgeClasses = ["ei-legend-badge--sd", "ei-legend-badge--d", "ei-legend-badge--n", "ei-legend-badge--a", "ei-legend-badge--sa"];
+    var legend = document.createElement("div");
+    legend.className = "ei-scale-legend";
+    legend.setAttribute("role", "note");
+    legend.setAttribute("aria-label", "Response scale abbreviations");
+    var legendHeading = document.createElement("p");
+    legendHeading.className = "ei-scale-legend-heading";
+    legendHeading.innerHTML = "<i class='bx bx-info-circle' aria-hidden='true'></i> Response scale";
+    legend.appendChild(legendHeading);
+    for (var lx = 0; lx < shortLabels.length; lx++) {
+      var legendBadge = document.createElement("span");
+      legendBadge.className = "ei-legend-badge " + legendBadgeClasses[lx];
+      var legendAbbr = document.createElement("span");
+      legendAbbr.className = "ei-legend-abbr";
+      legendAbbr.textContent = shortLabels[lx];
+      var legendLabel = document.createElement("span");
+      legendLabel.className = "ei-legend-label";
+      var lines = legendLineLabels[lx];
+      for (var ly = 0; ly < lines.length; ly++) {
+        var lineSpan = document.createElement("span");
+        lineSpan.textContent = lines[ly];
+        legendLabel.appendChild(lineSpan);
+      }
+      legendBadge.appendChild(legendAbbr);
+      legendBadge.appendChild(legendLabel);
+      legend.appendChild(legendBadge);
+    }
+    levelContainer.appendChild(legend);
     var labels = ["Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"];
     for (var i = 0; i < level.items.length; i++) {
       var item = level.items[i];
