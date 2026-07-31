@@ -81,6 +81,38 @@
     .ld-sidebar {
       display: none;
     }
+    .ld-search {
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--ld-line);
+    }
+    .ld-search-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border: 1px solid var(--ld-line);
+      border-radius: 12px;
+      background: #fff;
+    }
+    .ld-search-row i { color: var(--ld-muted); font-size: 1.1rem; }
+    .ld-search-row input {
+      border: 0;
+      outline: none;
+      width: 100%;
+      font: inherit;
+      font-size: 0.88rem;
+      background: transparent;
+      color: var(--ld-ink);
+    }
+    .ld-search-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      align-items: stretch;
+    }
+    .ld-search-bar .ld-search-row { flex: 1; }
+    .ld-search-bar .ld-btn { flex: 0 0 auto; min-height: 42px; padding: 8px 14px; }
     .ld-sidebar-nav {
       display: flex;
       flex-direction: column;
@@ -667,7 +699,8 @@
       gap: 8px;
       margin: 12px 0 4px;
     }
-    .ld-contact-bar a {
+    .ld-contact-bar a,
+    .ld-contact-bar .ld-contact-btn {
       display: flex;
       align-items: center;
       justify-content: center;
@@ -677,10 +710,52 @@
       text-decoration: none;
       font-weight: 700;
       font-size: 0.9rem;
+      font-family: inherit;
       background: var(--ld-accent-soft);
       color: #0b4f59;
       border: 1px solid #b7d5da;
+      cursor: pointer;
+      width: 100%;
     }
+    .ld-email-compose {
+      margin-top: 12px;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid #b7dbe1;
+      background: #f3fbfc;
+    }
+    .ld-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 4px 0 12px;
+      padding: 4px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.7);
+      border: 1px solid var(--ld-line);
+    }
+    .ld-tab {
+      flex: 1 1 auto;
+      min-height: 40px;
+      padding: 8px 12px;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: #2f464d;
+      font: inherit;
+      font-size: 0.86rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .ld-tab:hover { background: rgba(15, 110, 124, 0.08); }
+    .ld-tab.is-active {
+      background: var(--ld-accent);
+      color: #fff;
+      box-shadow: 0 6px 14px rgba(15, 110, 124, 0.22);
+    }
+    .ld-tab-panel { display: none; }
+    .ld-tab-panel.is-active { display: block; }
     .ld-dl {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -908,6 +983,14 @@
   <div class="ld-layout">
     {% if loan_user and queue_counts %}
     <aside class="ld-sidebar" aria-label="Loan Desk navigation">
+      <form class="ld-search" method="get" action="{{ url('loan_desk:home') }}" role="search">
+        <label class="visually-hidden" for="ldClientSearch">Search client</label>
+        <div class="ld-search-row">
+          <i class='bx bx-search'></i>
+          <input id="ldClientSearch" type="search" name="q" value="{{ search_q or '' }}" placeholder="Search client…" autocomplete="off">
+        </div>
+        <button type="submit" class="ld-btn ld-btn-outline" style="width:100%;margin-top:8px;min-height:38px;padding:8px 10px;font-size:0.82rem;">Search</button>
+      </form>
       <nav class="ld-sidebar-nav">
         <a class="ld-sidebar-link{% if active_nav == 'dashboard' %} is-active{% endif %}" href="{{ url('loan_desk:dashboard') }}"{% if active_nav == 'dashboard' %} aria-current="page"{% endif %}>
           <span class="ld-side-left"><i class='bx bx-home-alt-2'></i> Dashboard</span>
@@ -954,6 +1037,10 @@
         <a class="ld-sidebar-link{% if active_nav == 'enquiries' and queue == 'unassigned' %} is-active{% endif %}" href="{{ url('loan_desk:home') }}?queue=unassigned">
           <span class="ld-side-left"><i class='bx bx-user-plus'></i> Unassigned</span>
           <span class="ld-count">{{ queue_counts.unassigned or 0 }}</span>
+        </a>
+        <div class="ld-sidebar-label">Settings</div>
+        <a class="ld-sidebar-link{% if active_nav == 'email_templates' %} is-active{% endif %}" href="{{ url('loan_desk:email_templates') }}"{% if active_nav == 'email_templates' %} aria-current="page"{% endif %}>
+          <span class="ld-side-left"><i class='bx bx-envelope'></i> Email templates</span>
         </a>
         {% endif %}
 

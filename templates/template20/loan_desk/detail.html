@@ -1,6 +1,10 @@
 {% extends "template20/loan_desk/base.html" %}
 {% block title %}{{ page_title }} · Loan Desk{% endblock %}
 {% block content %}
+{% set show_decision = can_decide and (is_qualified or pipeline_open or application.status == closed_status_value) %}
+{% set default_tab = 'decision' if show_decision else 'activity' %}
+{% set tab = active_tab if active_tab in ('decision', 'followup', 'activity', 'assign', 'status') else default_tab %}
+{# Follow-up & remarks tab is intentionally hidden from the bar (still openable via ?tab=followup) #}
 <a class="ld-back" href="{{ url('loan_desk:dashboard') }}"><i class='bx bx-arrow-back'></i> Back to dashboard</a>
 
 <article class="ld-card">
@@ -39,15 +43,48 @@
     </div>
   </div>
 
-  {% if application.loan_amount %}
-  <div class="ld-amount">₹{{ '{:,.0f}'.format(application.loan_amount|float) }}</div>
-  <p class="ld-meta mb-0">
-    {% if application.estimated_emi %}EMI ≈ ₹{{ '{:,.0f}'.format(application.estimated_emi|float) }}{% endif %}
-    {% if application.tenure_years %} · {{ application.tenure_years }} yrs{% endif %}
-    {% if application.interest_rate %} · {{ application.interest_rate }}%{% endif %}
-    {% if application.country_preference %} · {{ application.country_preference }}{% endif %}
-  </p>
-  {% endif %}
+  <dl class="ld-loan-details">
+    <div>
+      <dt>Loan amount</dt>
+      <dd>{% if application.loan_amount %}₹{{ '{:,.0f}'.format(application.loan_amount|float) }}{% else %}Not set{% endif %}</dd>
+    </div>
+    <div>
+      <dt>Estimated EMI</dt>
+      <dd>{% if application.estimated_emi %}₹{{ '{:,.0f}'.format(application.estimated_emi|float) }}{% else %}—{% endif %}</dd>
+    </div>
+    <div>
+      <dt>Tenure</dt>
+      <dd>{% if application.tenure_years %}{{ application.tenure_years }} yrs{% else %}—{% endif %}</dd>
+    </div>
+    <div>
+      <dt>Interest</dt>
+      <dd>{% if application.interest_rate %}{{ application.interest_rate }}%{% else %}—{% endif %}</dd>
+    </div>
+    <div>
+      <dt>Institute</dt>
+      <dd>{{ application.institute_name or '—' }}</dd>
+    </div>
+    <div>
+      <dt>Course</dt>
+      <dd>{{ application.course_name or '—' }}</dd>
+    </div>
+    <div>
+      <dt>Country</dt>
+      <dd>{{ application.country_preference or '—' }}</dd>
+    </div>
+    <div>
+      <dt>Mobile</dt>
+      <dd>{% if whatsapp_url %}<a href="{{ whatsapp_url }}" target="_blank" rel="noopener noreferrer">{{ application.mobile }}</a>{% elif application.mobile %}{{ application.mobile }}{% else %}—{% endif %}</dd>
+    </div>
+    <div>
+      <dt>Email</dt>
+      <dd>{{ application.email or '—' }}</dd>
+    </div>
+    <div>
+      <dt>Next follow-up</dt>
+      <dd>{% if application.next_follow_up_at %}{{ date_format(application.next_follow_up_at) }}{% else %}—{% endif %}</dd>
+    </div>
+  </dl>
 
   <div class="ld-contact-bar">
     {% if whatsapp_url %}
@@ -58,274 +95,328 @@
     <a href="#" style="opacity:.45;pointer-events:none;"><i class='bx bx-phone'></i> No mobile</a>
     {% endif %}
     {% if application.email %}
-    <a href="mailto:{{ application.email }}"><i class='bx bx-envelope'></i> Email</a>
+    <button type="button" class="ld-contact-btn" id="ldEmailToggle" aria-expanded="false"><i class='bx bx-envelope'></i> Email</button>
     {% else %}
     <a href="#" style="opacity:.45;pointer-events:none;"><i class='bx bx-envelope'></i> No email</a>
     {% endif %}
   </div>
-</article>
 
-{% if can_decide and is_qualified %}
-<section class="ld-card ld-decision">
-  <h2 class="ld-section-title">Bank handoff</h2>
-  <p class="ld-meta mb-3">Send this qualified lead to the bank — email and API are separate.</p>
-
-  <div class="ld-handoff-item">
-    <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-2">
-      <strong>Bank email</strong>
-      {% if application.bank_email_status == bank_email_sent %}
-      <span class="ld-chip ld-chip-ok">Sent{% if application.bank_email_sent_at %} · {{ date_format(application.bank_email_sent_at) }}{% endif %}</span>
-      {% elif application.bank_email_status == bank_email_error %}
-      <span class="ld-chip ld-chip-err">Failed</span>
-      {% else %}
-      <span class="ld-chip">Not sent</span>
-      {% endif %}
-    </div>
-    {% if application.bank_email_last_error %}
-    <p class="ld-meta mb-2" style="color:var(--ld-danger);">{{ application.bank_email_last_error }}</p>
-    {% endif %}
-    <form method="post">
-      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-      <input type="hidden" name="action" value="bank_email">
-      <button type="submit" class="ld-btn ld-btn-outline ld-btn-block">
-        <i class='bx bx-mail-send'></i>
-        {% if application.bank_email_status == bank_email_sent or application.bank_email_status == bank_email_error %}Resend bank email{% else %}Push to bank (email){% endif %}
-      </button>
-    </form>
-  </div>
-
-  <div class="ld-handoff-item">
-    <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-2">
-      <strong>Bank API</strong>
-      {% if application.crm_sync_status == crm_success %}
-      <span class="ld-chip ld-chip-ok">Success</span>
-      {% elif application.crm_sync_status == crm_error %}
-      <span class="ld-chip ld-chip-err">Failure</span>
-      {% elif application.crm_sync_status == crm_sent %}
-      <span class="ld-chip">Sent…</span>
-      {% else %}
-      <span class="ld-chip">Pending</span>
-      {% endif %}
-    </div>
-    {% if application.crm_external_id %}
-    <p class="ld-meta mb-1">External id: {{ application.crm_external_id }}</p>
-    {% endif %}
-    {% if application.crm_sync_response %}
-    <p class="ld-meta mb-2" style="word-break:break-word;">{{ application.crm_sync_response[:280] }}{% if application.crm_sync_response|length > 280 %}…{% endif %}</p>
-    {% endif %}
-    <form method="post">
-      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-      {% if application.crm_sync_status == crm_success %}
-      <input type="hidden" name="action" value="bank_api_resend">
-      <button type="submit" class="ld-btn ld-btn-outline ld-btn-block"><i class='bx bx-refresh'></i> Resend Bank API</button>
-      {% elif application.crm_sync_status == crm_error or application.crm_sync_status == crm_sent %}
-      <input type="hidden" name="action" value="bank_api_resend">
-      <button type="submit" class="ld-btn ld-btn-block"><i class='bx bx-refresh'></i> Resend Bank API</button>
-      {% else %}
-      <input type="hidden" name="action" value="bank_api">
-      <button type="submit" class="ld-btn ld-btn-block"><i class='bx bx-cloud-upload'></i> Push to bank (API)</button>
-      {% endif %}
-    </form>
-  </div>
-</section>
-{% endif %}
-
-{% if can_decide and (pipeline_open or application.status == closed_status_value) %}
-<section class="ld-card ld-decision">
-  <h2 class="ld-section-title">Manager decision</h2>
-  <p class="ld-meta mb-3">Qualify to unlock bank handoff, or mark not qualified with a reason.</p>
-  <form method="post" class="mb-3 ld-validate-form" data-validate="qualify" novalidate>
+  {% if application.email %}
+  <form method="post" class="ld-email-compose ld-validate-form" id="ldEmailCompose" data-validate="client_email" hidden novalidate>
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-    <input type="hidden" name="action" value="qualify">
+    <input type="hidden" name="action" value="client_email">
+    <input type="hidden" name="tab" value="activity">
+    <h3 class="ld-section-title">Write email to client</h3>
+    <p class="ld-meta mb-2">To: <strong>{{ application.email }}</strong></p>
+    {% if client_email_templates %}
     <div class="ld-field mb-2">
-      <label for="qualification_note">Qualify note (optional)</label>
-      <input type="text" name="qualification_note" id="qualification_note" maxlength="500" placeholder="Why this lead is eligible">
-      <div class="ld-field-error"></div>
-    </div>
-    <button type="submit" class="ld-btn ld-btn-block"><i class='bx bx-check-circle'></i> Qualify lead</button>
-  </form>
-  <form method="post" class="ld-validate-form" data-validate="disqualify" novalidate>
-    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-    <input type="hidden" name="action" value="disqualify">
-    <div class="ld-field mb-2">
-      <label for="disqualify_reason">Not qualify — reason</label>
-      <select name="disqualify_reason" id="disqualify_reason" required>
-        <option value="">Select reason</option>
-        {% for val, label in disqualify_reasons %}
-        <option value="{{ val }}">{{ label }}</option>
+      <label for="client_email_template">Template</label>
+      <select id="client_email_template" name="email_template_id">
+        <option value="" selected>Custom email</option>
+        {% for tpl in client_email_templates %}
+        <option value="{{ tpl.id }}">{{ tpl.name }}</option>
         {% endfor %}
       </select>
+      <script type="application/json" id="ldEmailTemplatesData">{{ client_email_templates_json|safe }}</script>
+      <div class="ld-field-error"></div>
+    </div>
+    {% endif %}
+    <div class="ld-field mb-2">
+      <label for="client_email_subject">Subject</label>
+      <input type="text" name="subject" id="client_email_subject" required maxlength="200" value="{{ client_email_default_subject }}" data-default-subject="{{ client_email_default_subject }}">
       <div class="ld-field-error"></div>
     </div>
     <div class="ld-field mb-2">
-      <label for="disqualify_reason_text">Note</label>
-      <input type="text" name="disqualify_reason_text" id="disqualify_reason_text" maxlength="500" placeholder="Required if reason is Other">
+      <label for="client_email_body">Message</label>
+      <textarea name="body" id="client_email_body" rows="5" required minlength="3" maxlength="8000" placeholder="Write your message to the parent / client…"></textarea>
       <div class="ld-field-error"></div>
     </div>
-    <button type="submit" class="ld-btn ld-btn-danger ld-btn-block"><i class='bx bx-x-circle'></i> Not qualify</button>
+    <div class="ld-btn-row">
+      <button type="submit" class="ld-btn"><i class='bx bx-send'></i> Send email</button>
+      <button type="button" class="ld-btn ld-btn-outline" id="ldEmailCancel">Cancel</button>
+    </div>
   </form>
-</section>
-{% endif %}
-
-{% if is_reenquired and previous_enquiries %}
-<section class="ld-card">
-  <h2 class="ld-section-title">Previous enquiries</h2>
-  <p class="ld-meta mb-2">Same lead contacted again — showing earlier applications.</p>
-  {% for prev in previous_enquiries %}
-  <a href="{{ url('loan_desk:detail', args=[prev.id]) }}" class="d-flex justify-content-between align-items-center gap-2 text-decoration-none py-2{% if not loop.last %} border-bottom{% endif %}" style="color:inherit;">
-    <div>
-      <strong>#{{ prev.id }}</strong>
-      <span class="ld-meta"> · {{ prev.get_status_display() }}</span>
-      {% if prev.loan_amount %}<span class="ld-meta"> · ₹{{ prev.loan_amount }}</span>{% endif %}
-    </div>
-    <span class="ld-meta">{% if prev.submitted_at %}{{ date_format(prev.submitted_at) }}{% else %}—{% endif %}</span>
-  </a>
-  {% endfor %}
-</section>
-{% endif %}
-
-<article class="ld-card">
-  <h2 class="ld-section-title">Lead details</h2>
-  <dl class="ld-dl">
-    <div>
-      <dt>Mobile</dt>
-      <dd>{% if whatsapp_url %}<a href="{{ whatsapp_url }}" target="_blank" rel="noopener noreferrer">{{ application.mobile }}</a>{% elif application.mobile %}{{ application.mobile }}{% else %}—{% endif %}</dd>
-    </div>
-    <div>
-      <dt>Email</dt>
-      <dd>{% if application.email %}<a href="mailto:{{ application.email }}">{{ application.email }}</a>{% else %}—{% endif %}</dd>
-    </div>
-    <div class="span-2">
-      <dt>Institute</dt>
-      <dd>{{ application.institute_name or '—' }}</dd>
-    </div>
-    <div class="span-2">
-      <dt>Course</dt>
-      <dd>{{ application.course_name or '—' }}</dd>
-    </div>
-    <div>
-      <dt>Submitted</dt>
-      <dd>{% if application.submitted_at %}{{ date_format(application.submitted_at) }}{% else %}—{% endif %}</dd>
-    </div>
-    <div>
-      <dt>Next follow-up</dt>
-      <dd>{% if application.next_follow_up_at %}{{ date_format(application.next_follow_up_at) }}{% else %}—{% endif %}</dd>
-    </div>
-    <div class="span-2">
-      <dt>Callback</dt>
-      <dd>
-        {% if application.callback_preferred_at %}{{ date_format(application.callback_preferred_at) }}{% else %}—{% endif %}
-        {% if application.callback_note %}<br><span class="ld-meta">{{ application.callback_note }}</span>{% endif %}
-      </dd>
-    </div>
-    {% if application.additional_details %}
-    <div class="span-2">
-      <dt>Additional details</dt>
-      <dd>{{ application.additional_details }}</dd>
-    </div>
-    {% endif %}
-    {% if application.qualification_decision_at %}
-    <div class="span-2">
-      <dt>Qualification</dt>
-      <dd>
-        {{ application.get_status_display() }}
-        · {% if application.qualification_decided_by %}{{ application.qualification_decided_by.name or application.qualification_decided_by.email }}{% else %}—{% endif %}
-        · {{ date_format(application.qualification_decision_at) }}
-        {% if application.qualification_note %}<br><span class="ld-meta">{{ application.qualification_note }}</span>{% endif %}
-        {% if application.disqualify_reason %}<br><span class="ld-meta">{{ application.get_disqualify_reason_display() }}{% if application.disqualify_reason_text %}: {{ application.disqualify_reason_text }}{% endif %}</span>{% endif %}
-      </dd>
-    </div>
-    {% endif %}
-  </dl>
+  {% endif %}
 </article>
 
-<form method="post" id="follow-up" class="ld-card ld-validate-form" data-validate="follow_up" novalidate>
-  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-  <input type="hidden" name="action" value="follow_up">
-  <h2 class="ld-section-title">Schedule follow-up</h2>
-  <div class="ld-field mb-2">
-    <span class="ld-field-label">Date &amp; time</span>
-    <div class="ld-dt-picker" data-ld-dt-picker data-ld-dt-required="1">
-      <input type="hidden" name="next_follow_up_at" id="next_follow_up_at" value="" required>
-      <button type="button" class="ld-dt-toggle is-placeholder" data-ld-dt-toggle aria-expanded="false">
-        <span data-ld-dt-label>Select date &amp; time</span>
-        <i class='bx bx-calendar'></i>
-      </button>
-      <div class="ld-dt-panel" data-ld-dt-panel hidden>
-        <div class="ld-dt-grid">
-          <div class="ld-field mb-0">
-            <label for="ld_fu_date">Date</label>
-            <input type="date" id="ld_fu_date" data-ld-dt-date>
+<nav class="ld-tabs" aria-label="Enquiry sections">
+  {% if show_decision %}
+  <button type="button" class="ld-tab{% if tab == 'decision' %} is-active{% endif %}" data-ld-tab="decision">Decision</button>
+  {% endif %}
+  <button type="button" class="ld-tab ld-tab-hidden{% if tab == 'followup' %} is-active{% endif %}" data-ld-tab="followup" hidden>Follow-up &amp; remarks</button>
+  <button type="button" class="ld-tab{% if tab == 'activity' %} is-active{% endif %}" data-ld-tab="activity">Activity</button>
+  {% if is_manager and team %}
+  <button type="button" class="ld-tab{% if tab == 'assign' %} is-active{% endif %}" data-ld-tab="assign">Assign lead</button>
+  {% endif %}
+  <button type="button" class="ld-tab{% if tab == 'status' %} is-active{% endif %}" data-ld-tab="status">Update status</button>
+</nav>
+
+{% if show_decision %}
+<section class="ld-tab-panel{% if tab == 'decision' %} is-active{% endif %}" data-ld-panel="decision">
+  {% if can_decide and is_qualified %}
+  <div class="ld-card ld-decision">
+    <h2 class="ld-section-title">Bank handoff</h2>
+    <p class="ld-meta mb-3">Send this qualified lead to the bank — email and API are separate.</p>
+    <div class="ld-handoff-item">
+      <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-2">
+        <strong>Bank email</strong>
+        {% if application.bank_email_status == bank_email_sent %}
+        <span class="ld-chip ld-chip-ok">Sent{% if application.bank_email_sent_at %} · {{ date_format(application.bank_email_sent_at) }}{% endif %}</span>
+        {% elif application.bank_email_status == bank_email_error %}
+        <span class="ld-chip ld-chip-err">Failed</span>
+        {% else %}
+        <span class="ld-chip">Not sent</span>
+        {% endif %}
+      </div>
+      {% if application.bank_email_last_error %}
+      <p class="ld-meta mb-2" style="color:var(--ld-danger);">{{ application.bank_email_last_error }}</p>
+      {% endif %}
+      <form method="post">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="action" value="bank_email">
+        <input type="hidden" name="tab" value="decision">
+        <button type="submit" class="ld-btn ld-btn-outline ld-btn-block">
+          <i class='bx bx-mail-send'></i>
+          {% if application.bank_email_status == bank_email_sent or application.bank_email_status == bank_email_error %}Resend bank email{% else %}Push to bank (email){% endif %}
+        </button>
+      </form>
+    </div>
+    <div class="ld-handoff-item">
+      <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-2">
+        <strong>Bank API</strong>
+        {% if application.crm_sync_status == crm_success %}
+        <span class="ld-chip ld-chip-ok">Success</span>
+        {% elif application.crm_sync_status == crm_error %}
+        <span class="ld-chip ld-chip-err">Failure</span>
+        {% elif application.crm_sync_status == crm_sent %}
+        <span class="ld-chip">Sent…</span>
+        {% else %}
+        <span class="ld-chip">Pending</span>
+        {% endif %}
+      </div>
+      {% if application.crm_external_id %}
+      <p class="ld-meta mb-1">External id: {{ application.crm_external_id }}</p>
+      {% endif %}
+      {% if application.crm_sync_response %}
+      <p class="ld-meta mb-2" style="word-break:break-word;">{{ application.crm_sync_response[:280] }}{% if application.crm_sync_response|length > 280 %}…{% endif %}</p>
+      {% endif %}
+      <form method="post">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="tab" value="decision">
+        {% if application.crm_sync_status == crm_success %}
+        <input type="hidden" name="action" value="bank_api_resend">
+        <button type="submit" class="ld-btn ld-btn-outline ld-btn-block"><i class='bx bx-refresh'></i> Resend Bank API</button>
+        {% elif application.crm_sync_status == crm_error or application.crm_sync_status == crm_sent %}
+        <input type="hidden" name="action" value="bank_api_resend">
+        <button type="submit" class="ld-btn ld-btn-block"><i class='bx bx-refresh'></i> Resend Bank API</button>
+        {% else %}
+        <input type="hidden" name="action" value="bank_api">
+        <button type="submit" class="ld-btn ld-btn-block"><i class='bx bx-cloud-upload'></i> Push to bank (API)</button>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if can_decide and (pipeline_open or application.status == closed_status_value) %}
+  <div class="ld-card ld-decision">
+    <h2 class="ld-section-title">Manager decision</h2>
+    <p class="ld-meta mb-3">Qualify to unlock bank handoff, or mark not qualified with a reason.</p>
+    <form method="post" class="mb-3 ld-validate-form" data-validate="qualify" novalidate>
+      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+      <input type="hidden" name="action" value="qualify">
+      <input type="hidden" name="tab" value="decision">
+      <div class="ld-field mb-2">
+        <label for="qualification_note">Qualify note (optional)</label>
+        <input type="text" name="qualification_note" id="qualification_note" maxlength="500" placeholder="Why this lead is eligible">
+        <div class="ld-field-error"></div>
+      </div>
+      <button type="submit" class="ld-btn ld-btn-block"><i class='bx bx-check-circle'></i> Qualify lead</button>
+    </form>
+    <form method="post" class="ld-validate-form" data-validate="disqualify" novalidate>
+      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+      <input type="hidden" name="action" value="disqualify">
+      <input type="hidden" name="tab" value="decision">
+      <div class="ld-field mb-2">
+        <label for="disqualify_reason">Not qualify — reason</label>
+        <select name="disqualify_reason" id="disqualify_reason" required>
+          <option value="">Select reason</option>
+          {% for val, label in disqualify_reasons %}
+          <option value="{{ val }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+        <div class="ld-field-error"></div>
+      </div>
+      <div class="ld-field mb-2">
+        <label for="disqualify_reason_text">Note</label>
+        <input type="text" name="disqualify_reason_text" id="disqualify_reason_text" maxlength="500" placeholder="Required if reason is Other">
+        <div class="ld-field-error"></div>
+      </div>
+      <button type="submit" class="ld-btn ld-btn-danger ld-btn-block"><i class='bx bx-x-circle'></i> Not qualify</button>
+    </form>
+  </div>
+  {% endif %}
+
+  {% if not is_qualified and not (pipeline_open or application.status == closed_status_value) %}
+  <div class="ld-card">
+    <p class="ld-meta mb-0">No decision actions for this lead right now.</p>
+  </div>
+  {% endif %}
+</section>
+{% endif %}
+
+<section class="ld-tab-panel{% if tab == 'followup' %} is-active{% endif %}" data-ld-panel="followup" {% if tab != 'followup' %}hidden{% endif %}>
+  <form method="post" id="follow-up" class="ld-card ld-validate-form" data-validate="follow_up" novalidate>
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+    <input type="hidden" name="action" value="follow_up">
+    <input type="hidden" name="tab" value="followup">
+    <h2 class="ld-section-title">Schedule follow-up</h2>
+    <div class="ld-field mb-2">
+      <span class="ld-field-label">Date &amp; time</span>
+      <div class="ld-dt-picker" data-ld-dt-picker data-ld-dt-required="1">
+        <input type="hidden" name="next_follow_up_at" id="next_follow_up_at" value="" required>
+        <button type="button" class="ld-dt-toggle is-placeholder" data-ld-dt-toggle aria-expanded="false">
+          <span data-ld-dt-label>Select date &amp; time</span>
+          <i class='bx bx-calendar'></i>
+        </button>
+        <div class="ld-dt-panel" data-ld-dt-panel hidden>
+          <div class="ld-dt-grid">
+            <div class="ld-field mb-0">
+              <label for="ld_fu_date">Date</label>
+              <input type="date" id="ld_fu_date" data-ld-dt-date>
+            </div>
+            <div class="ld-field mb-0">
+              <label for="ld_fu_time">Time</label>
+              <input type="time" id="ld_fu_time" data-ld-dt-time>
+            </div>
           </div>
-          <div class="ld-field mb-0">
-            <label for="ld_fu_time">Time</label>
-            <input type="time" id="ld_fu_time" data-ld-dt-time>
+          <div class="ld-dt-actions">
+            <button type="button" class="ld-btn ld-btn-outline" data-ld-dt-clear>Clear</button>
+            <button type="button" class="ld-btn" data-ld-dt-set><i class='bx bx-check'></i> Set</button>
           </div>
-        </div>
-        <div class="ld-dt-actions">
-          <button type="button" class="ld-btn ld-btn-outline" data-ld-dt-clear>Clear</button>
-          <button type="button" class="ld-btn" data-ld-dt-set><i class='bx bx-check'></i> Set</button>
         </div>
       </div>
+      <div class="ld-field-error"></div>
     </div>
-    <div class="ld-field-error"></div>
-  </div>
-  <button type="submit" class="ld-btn ld-btn-outline ld-btn-block"><i class='bx bx-calendar-plus'></i> Save follow-up</button>
-</form>
+    <button type="submit" class="ld-btn ld-btn-outline ld-btn-block"><i class='bx bx-calendar-plus'></i> Save follow-up</button>
+  </form>
 
-<form method="post" class="ld-card ld-validate-form" data-validate="remark" novalidate>
-  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-  <input type="hidden" name="action" value="remark">
-  <h2 class="ld-section-title">Add remark</h2>
-  <div class="ld-field mb-2">
-    <span class="ld-field-label">Call status</span>
-    <div class="ld-outcome-row" role="radiogroup" aria-label="Call status">
-      <label class="ld-outcome-opt">
-        <input type="radio" name="call_outcome" value="connected" required>
-        <span>Call connected</span>
-      </label>
-      <label class="ld-outcome-opt">
-        <input type="radio" name="call_outcome" value="not_connected" required>
-        <span>Call not connected</span>
-      </label>
+  <form method="post" class="ld-card ld-validate-form" data-validate="remark" novalidate>
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+    <input type="hidden" name="action" value="remark">
+    <input type="hidden" name="tab" value="followup">
+    <h2 class="ld-section-title">Add remark</h2>
+    <div class="ld-field mb-2">
+      <span class="ld-field-label">Call status</span>
+      <div class="ld-outcome-row" role="radiogroup" aria-label="Call status">
+        <label class="ld-outcome-opt">
+          <input type="radio" name="call_outcome" value="connected" required>
+          <span>Call connected</span>
+        </label>
+        <label class="ld-outcome-opt">
+          <input type="radio" name="call_outcome" value="not_connected" required>
+          <span>Call not connected</span>
+        </label>
+      </div>
+      <div class="ld-field-error"></div>
     </div>
-    <div class="ld-field-error"></div>
-  </div>
-  <div class="ld-field mb-2">
-    <label for="remark_body">Call notes / next steps</label>
-    <textarea name="body" id="remark_body" rows="3" required maxlength="5000" minlength="3" placeholder="What did you discuss? What’s next?"></textarea>
-    <div class="ld-field-error"></div>
-  </div>
-  <button type="submit" class="ld-btn ld-btn-block"><i class='bx bx-message-square-add'></i> Save remark</button>
-</form>
+    <div class="ld-field mb-2">
+      <label for="remark_body">Call notes / next steps</label>
+      <textarea name="body" id="remark_body" rows="3" required maxlength="5000" minlength="3" placeholder="What did you discuss? What’s next?"></textarea>
+      <div class="ld-field-error"></div>
+    </div>
+    <button type="submit" class="ld-btn ld-btn-block"><i class='bx bx-message-square-add'></i> Save remark</button>
+  </form>
+</section>
 
-<section class="ld-card">
-  <h2 class="ld-section-title">Activity</h2>
-  {% if not remarks %}
-  <p class="ld-meta mb-0">No remarks yet — add notes after each call.</p>
+<section class="ld-tab-panel{% if tab == 'activity' %} is-active{% endif %}" data-ld-panel="activity" {% if tab != 'activity' %}hidden{% endif %}>
+  {% if is_reenquired and previous_enquiries %}
+  <div class="ld-card">
+    <h2 class="ld-section-title">Previous enquiries</h2>
+    <p class="ld-meta mb-2">Same lead contacted again — showing earlier applications.</p>
+    {% for prev in previous_enquiries %}
+    <a href="{{ url('loan_desk:detail', args=[prev.id]) }}" class="d-flex justify-content-between align-items-center gap-2 text-decoration-none py-2{% if not loop.last %} border-bottom{% endif %}" style="color:inherit;">
+      <div>
+        <strong>#{{ prev.id }}</strong>
+        <span class="ld-meta"> · {{ prev.get_status_display() }}</span>
+        {% if prev.loan_amount %}<span class="ld-meta"> · ₹{{ prev.loan_amount }}</span>{% endif %}
+      </div>
+      <span class="ld-meta">{% if prev.submitted_at %}{{ date_format(prev.submitted_at) }}{% else %}—{% endif %}</span>
+    </a>
+    {% endfor %}
+  </div>
   {% endif %}
-  {% for r in remarks %}
-  <div class="ld-timeline-item">
-    <div class="ld-meta">{% if r.author %}{{ r.author.name or r.author.email }}{% else %}System{% endif %} · {{ date_format(r.created) }}</div>
-    {% if r.call_outcome_label %}
-    <div class="mb-1">
-      <span class="ld-chip {% if r.call_outcome == 'connected' %}ld-chip-ok{% else %}ld-chip-warn{% endif %}">{{ r.call_outcome_label }}</span>
+
+  <div class="ld-card">
+    <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+      <h2 class="ld-section-title mb-0">Activity</h2>
+      <button type="button" class="ld-btn ld-btn-soft" style="flex:0 0 auto;min-height:36px;padding:6px 12px;font-size:0.82rem;" data-ld-open-tab="followup">
+        <i class='bx bx-plus'></i> Add remark
+      </button>
     </div>
+    {% if not remarks %}
+    <p class="ld-meta mb-0">No activity yet — add a remark or send an email.</p>
     {% endif %}
-    {% if r.display_body %}
-    <div style="font-weight:550;">{{ r.display_body }}</div>
-    {% endif %}
+    {% for r in remarks %}
+    <div class="ld-timeline-item">
+      <div class="ld-meta">{% if r.author %}{{ r.author.name or r.author.email }}{% else %}System{% endif %} · {{ date_format(r.created) }}</div>
+      {% if r.call_outcome_label %}
+      <div class="mb-1">
+        <span class="ld-chip {% if r.call_outcome == 'connected' %}ld-chip-ok{% else %}ld-chip-warn{% endif %}">{{ r.call_outcome_label }}</span>
+      </div>
+      {% endif %}
+      {% if r.display_body %}
+      <div style="font-weight:550;">{{ r.display_body }}</div>
+      {% endif %}
+    </div>
+    {% endfor %}
   </div>
-  {% endfor %}
+
+  {% if application.additional_details or application.callback_preferred_at or application.qualification_decision_at %}
+  <div class="ld-card">
+    <h2 class="ld-section-title">More details</h2>
+    <dl class="ld-dl">
+      {% if application.callback_preferred_at or application.callback_note %}
+      <div class="span-2">
+        <dt>Callback</dt>
+        <dd>
+          {% if application.callback_preferred_at %}{{ date_format(application.callback_preferred_at) }}{% else %}—{% endif %}
+          {% if application.callback_note %}<br><span class="ld-meta">{{ application.callback_note }}</span>{% endif %}
+        </dd>
+      </div>
+      {% endif %}
+      {% if application.additional_details %}
+      <div class="span-2">
+        <dt>Additional details</dt>
+        <dd>{{ application.additional_details }}</dd>
+      </div>
+      {% endif %}
+      {% if application.qualification_decision_at %}
+      <div class="span-2">
+        <dt>Qualification</dt>
+        <dd>
+          {{ application.get_status_display() }}
+          · {% if application.qualification_decided_by %}{{ application.qualification_decided_by.name or application.qualification_decided_by.email }}{% else %}—{% endif %}
+          · {{ date_format(application.qualification_decision_at) }}
+          {% if application.qualification_note %}<br><span class="ld-meta">{{ application.qualification_note }}</span>{% endif %}
+          {% if application.disqualify_reason %}<br><span class="ld-meta">{{ application.get_disqualify_reason_display() }}{% if application.disqualify_reason_text %}: {{ application.disqualify_reason_text }}{% endif %}</span>{% endif %}
+        </dd>
+      </div>
+      {% endif %}
+    </dl>
+  </div>
+  {% endif %}
 </section>
 
 {% if is_manager and team %}
-<details class="ld-details">
-  <summary>Assign lead follow</summary>
-  <div class="ld-details-body">
+<section class="ld-tab-panel{% if tab == 'assign' %} is-active{% endif %}" data-ld-panel="assign" {% if tab != 'assign' %}hidden{% endif %}>
+  <div class="ld-card">
+    <h2 class="ld-section-title">Assign lead</h2>
+    <p class="ld-meta mb-3">Choose who will follow this enquiry.</p>
     <form method="post" class="ld-validate-form" data-validate="assign" novalidate>
       <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
       <input type="hidden" name="action" value="assign">
+      <input type="hidden" name="tab" value="assign">
       <div class="ld-field mb-2">
         <label for="assigned_to">Assignee</label>
         <select name="assigned_to" id="assigned_to" required>
@@ -339,15 +430,16 @@
       <button type="submit" class="ld-btn ld-btn-outline ld-btn-block">Save assignee</button>
     </form>
   </div>
-</details>
+</section>
 {% endif %}
 
-<details class="ld-details">
-  <summary>Update status</summary>
-  <div class="ld-details-body">
+<section class="ld-tab-panel{% if tab == 'status' %} is-active{% endif %}" data-ld-panel="status" {% if tab != 'status' %}hidden{% endif %}>
+  <div class="ld-card">
+    <h2 class="ld-section-title">Update status</h2>
     <form method="post" class="ld-validate-form" data-validate="status" data-has-schedule="{{ '1' if has_schedule_datetime else '0' }}" data-callback-status="{{ callback_status_value }}" data-followup-status="{{ follow_up_status_value }}" novalidate>
       <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
       <input type="hidden" name="action" value="status">
+      <input type="hidden" name="tab" value="status">
       <div class="ld-field mb-2">
         <label for="status">Status</label>
         <select name="status" id="status" required>
@@ -359,16 +451,100 @@
         <div class="ld-field-error"></div>
       </div>
       {% if not has_schedule_datetime %}
-      <p class="ld-meta mb-2">To set <strong>Callback Scheduled</strong> or <strong>Follow Up</strong>, save a follow-up date first.</p>
+      <p class="ld-meta mb-2">To set <strong>Callback Scheduled</strong> or <strong>Follow Up</strong>, schedule a follow-up date first (from the queue Follow up form).</p>
       {% endif %}
       <button type="submit" class="ld-btn ld-btn-outline ld-btn-block">Save status</button>
     </form>
   </div>
-</details>
+</section>
 {% endblock %}
 {% block extra_js %}
 <script>
 (function () {
+  function activateTab(name) {
+    if (!name) return;
+    document.querySelectorAll('.ld-tab').forEach(function (btn) {
+      var on = btn.getAttribute('data-ld-tab') === name;
+      btn.classList.toggle('is-active', on);
+      if (on && btn.hasAttribute('hidden')) {
+        btn.hidden = false;
+      }
+    });
+    document.querySelectorAll('.ld-tab-panel').forEach(function (panel) {
+      var on = panel.getAttribute('data-ld-panel') === name;
+      panel.classList.toggle('is-active', on);
+      panel.hidden = !on;
+    });
+    try {
+      var url = new URL(window.location.href);
+      url.searchParams.set('tab', name);
+      window.history.replaceState({}, '', url.toString());
+    } catch (e) {}
+  }
+
+  document.querySelectorAll('[data-ld-tab]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      activateTab(btn.getAttribute('data-ld-tab'));
+    });
+  });
+  document.querySelectorAll('[data-ld-open-tab]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var name = btn.getAttribute('data-ld-open-tab');
+      var tabBtn = document.querySelector('.ld-tab[data-ld-tab="' + name + '"]');
+      if (tabBtn) tabBtn.hidden = false;
+      activateTab(name);
+    });
+  });
+
+  var emailToggle = document.getElementById('ldEmailToggle');
+  var emailForm = document.getElementById('ldEmailCompose');
+  var emailCancel = document.getElementById('ldEmailCancel');
+  var emailTplSelect = document.getElementById('client_email_template');
+  var emailSubject = document.getElementById('client_email_subject');
+  var emailBody = document.getElementById('client_email_body');
+  var emailTplMap = {};
+  (function loadEmailTemplates() {
+    var el = document.getElementById('ldEmailTemplatesData');
+    if (!el) return;
+    try {
+      var list = JSON.parse(el.textContent || '[]');
+      (list || []).forEach(function (tpl) {
+        if (tpl && tpl.id != null) emailTplMap[String(tpl.id)] = tpl;
+      });
+    } catch (err) { /* ignore */ }
+  })();
+  function applyEmailTemplateChoice() {
+    if (!emailSubject || !emailBody) return;
+    if (!emailTplSelect || !emailTplSelect.value) {
+      emailSubject.value = emailSubject.getAttribute('data-default-subject') || '';
+      emailBody.value = '';
+      return;
+    }
+    var tpl = emailTplMap[String(emailTplSelect.value)];
+    if (!tpl) return;
+    emailSubject.value = tpl.subject || '';
+    emailBody.value = tpl.body || '';
+  }
+  if (emailTplSelect) {
+    emailTplSelect.addEventListener('change', applyEmailTemplateChoice);
+  }
+  function setEmailOpen(open) {
+    if (!emailForm || !emailToggle) return;
+    emailForm.hidden = !open;
+    emailToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) {
+      if (emailTplSelect) {
+        emailTplSelect.value = '';
+        applyEmailTemplateChoice();
+      }
+      if (emailBody) emailBody.focus();
+    }
+  }
+  if (emailToggle) emailToggle.addEventListener('click', function () {
+    setEmailOpen(emailForm && emailForm.hidden);
+  });
+  if (emailCancel) emailCancel.addEventListener('click', function () { setEmailOpen(false); });
+
   if (!window.LoanDeskValidate) return;
   var V = window.LoanDeskValidate;
 
@@ -472,6 +648,23 @@
       var kind = form.getAttribute('data-validate');
       var ok = true;
 
+      if (kind === 'client_email') {
+        var sub = form.querySelector('[name="subject"]');
+        var body = form.querySelector('[name="body"]');
+        if (!(sub.value || '').trim()) {
+          V.setFieldError(sub, 'Subject is required.');
+          ok = false;
+        }
+        var text = (body.value || '').trim();
+        if (!text) {
+          V.setFieldError(body, 'Message is required.');
+          ok = false;
+        } else if (text.length < 3) {
+          V.setFieldError(body, 'Message must be at least 3 characters.');
+          ok = false;
+        }
+      }
+
       if (kind === 'remark') {
         var outcome = form.querySelector('input[name="call_outcome"]:checked');
         var outcomeInput = form.querySelector('input[name="call_outcome"]');
@@ -479,16 +672,16 @@
           V.setFieldError(outcomeInput, 'Select whether the call connected.');
           ok = false;
         }
-        var body = form.querySelector('[name="body"]');
-        var text = (body.value || '').trim();
-        if (!text) {
-          V.setFieldError(body, 'Remark cannot be empty.');
+        var rbody = form.querySelector('[name="body"]');
+        var rtext = (rbody.value || '').trim();
+        if (!rtext) {
+          V.setFieldError(rbody, 'Remark cannot be empty.');
           ok = false;
-        } else if (text.length < 3) {
-          V.setFieldError(body, 'Remark must be at least 3 characters.');
+        } else if (rtext.length < 3) {
+          V.setFieldError(rbody, 'Remark must be at least 3 characters.');
           ok = false;
-        } else if (text.length > 5000) {
-          V.setFieldError(body, 'Remark must be at most 5000 characters.');
+        } else if (rtext.length > 5000) {
+          V.setFieldError(rbody, 'Remark must be at most 5000 characters.');
           ok = false;
         }
       }
@@ -521,7 +714,7 @@
           var needsDate = [form.getAttribute('data-callback-status'), form.getAttribute('data-followup-status')];
           var hasSchedule = form.getAttribute('data-has-schedule') === '1';
           if (needsDate.indexOf(val) !== -1 && !hasSchedule) {
-            V.setFieldError(st, 'Schedule a date & time first (use Schedule follow-up), then set this status.');
+            V.setFieldError(st, 'Schedule a date & time first, then set this status.');
             ok = false;
           }
         }

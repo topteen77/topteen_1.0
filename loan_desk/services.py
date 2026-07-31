@@ -551,6 +551,195 @@ def disqualify_lead(
     return True, "Lead marked as Not Qualified."
 
 
+def education_loan_enquiry_delete_counts(*, application_ids=None) -> dict:
+    """Counts for hard-delete confirmation (includes soft-deleted rows)."""
+    from users.models import (
+        EducationLoanApplication,
+        EducationLoanRemark,
+        LoanInstantLoginToken,
+    )
+
+    apps = EducationLoanApplication.objects.complete()
+    if application_ids is not None:
+        apps = apps.filter(pk__in=list(application_ids))
+    app_ids = list(apps.values_list("pk", flat=True))
+    if not app_ids:
+        return {"applications": 0, "remarks": 0, "tokens": 0}
+    return {
+        "applications": len(app_ids),
+        "remarks": EducationLoanRemark.objects.complete()
+        .filter(application_id__in=app_ids)
+        .count(),
+        "tokens": LoanInstantLoginToken.objects.filter(application_id__in=app_ids).count(),
+    }
+
+
+def hard_delete_education_loan_enquiries(*, application_ids=None) -> dict:
+    """
+    Permanently remove loan enquiries and related remarks / instant-login tokens.
+    Uses the complete manager so soft-deleted rows are removed too.
+    Pass application_ids=None to wipe all enquiries.
+    """
+    from django.db import transaction
+
+    from users.models import (
+        EducationLoanApplication,
+        EducationLoanRemark,
+        LoanInstantLoginToken,
+    )
+
+    apps = EducationLoanApplication.objects.complete()
+    if application_ids is not None:
+        apps = apps.filter(pk__in=list(application_ids))
+    app_ids = list(apps.values_list("pk", flat=True))
+    if not app_ids:
+        return {"applications": 0, "remarks": 0, "tokens": 0}
+
+    with transaction.atomic():
+        remarks_deleted, _ = (
+            EducationLoanRemark.objects.complete()
+            .filter(application_id__in=app_ids)
+            .delete()
+        )
+        tokens_deleted, _ = LoanInstantLoginToken.objects.filter(
+            application_id__in=app_ids
+        ).delete()
+        apps_deleted, _ = (
+            EducationLoanApplication.objects.complete()
+            .filter(pk__in=app_ids)
+            .delete()
+        )
+
+    return {
+        "applications": apps_deleted,
+        "remarks": remarks_deleted,
+        "tokens": tokens_deleted,
+    }
+
+
+CLIENT_EMAIL_TEMPLATE_VARIABLES = (
+    ("student_name", "Student name"),
+    ("parent_name", "Parent name"),
+    ("mobile", "Mobile"),
+    ("email", "Client email"),
+    ("institute_name", "Institute / college"),
+    ("course_name", "Course"),
+    ("loan_amount", "Loan amount"),
+    ("enquiry_id", "Enquiry id"),
+    ("manager_name", "Sender name (logged-in user)"),
+)
+
+SAMPLE_CLIENT_EMAIL_SUBJECT = (
+    "Education Loan Enquiry update (ID: {{enquiry_id}}) for {{student_name}}"
+)
+
+SAMPLE_CLIENT_EMAIL_BODY = """Dear {{parent_name}},
+
+Thank you for reaching out regarding an education loan for {{student_name}}.
+
+We have received your enquiry for the {{course_name}} program at {{institute_name}} for a requested loan amount of INR {{loan_amount}}. Your Enquiry ID is {{enquiry_id}}.
+
+Our team is currently reviewing your request. We will contact you shortly on {{mobile}} or via {{email}} to discuss the next steps, required documentation, and customized repayment options.
+
+If you have any immediate questions, please feel free to reply directly to this email.
+
+Best regards,
+{{manager_name}}
+Loan Operations Manager
+{{institute_name}} Financial Services Team"""
+
+
+def client_email_template_variables(application, *, actor=None) -> dict:
+    """String values for {{variable}} substitution in client email templates."""
+    amount = getattr(application, "loan_amount", None)
+    who = ""
+    if actor is not None:
+        who = (
+            getattr(actor, "name", None)
+            or getattr(actor, "email", None)
+            or ""
+        )
+    return {
+        "student_name": (getattr(application, "student_name", None) or "").strip(),
+        "parent_name": (getattr(application, "parent_name", None) or "").strip(),
+        "mobile": (getattr(application, "mobile", None) or "").strip(),
+        "email": (getattr(application, "email", None) or "").strip(),
+        "institute_name": (getattr(application, "institute_name", None) or "").strip(),
+        "course_name": (getattr(application, "course_name", None) or "").strip(),
+        "loan_amount": str(amount) if amount is not None else "",
+        "enquiry_id": str(getattr(application, "id", "") or ""),
+        "manager_name": str(who).strip(),
+    }
+
+
+def render_client_email_template_text(template: str, variables: dict) -> str:
+    from users.education_loan_crm import substitute_template
+
+    return substitute_template(template or "", variables or {})
+
+
+def active_client_email_templates():
+    from users.models import EducationLoanClientEmailTemplate
+
+    return list(
+        EducationLoanClientEmailTemplate.objects.filter(is_active=True).order_by(
+            "sort_order", "name", "id"
+        )
+    )
+
+
+def rendered_client_email_templates_for(application, *, actor=None) -> list:
+    """Active templates with subject/body already substituted for this lead."""
+    variables = client_email_template_variables(application, actor=actor)
+    out = []
+    for tpl in active_client_email_templates():
+        out.append(
+            {
+                "id": tpl.id,
+                "name": tpl.name,
+                "subject": render_client_email_template_text(tpl.subject, variables)[:200],
+                "body": render_client_email_template_text(tpl.body, variables),
+            }
+        )
+    return out
+
+
+def send_client_email(application, *, actor, subject: str, body: str) -> tuple:
+    """Write and send an email to the enquiry client (parent email)."""
+    from communication.com_service import ComService
+
+    to_email = (getattr(application, "email", None) or "").strip()
+    if not to_email or "@" not in to_email:
+        return False, "This lead has no client email address."
+    subject = (subject or "").strip()[:200]
+    body = (body or "").strip()
+    if not subject or not body:
+        return False, "Subject and message are required."
+
+    who = getattr(actor, "name", None) or getattr(actor, "email", None) or "Loan Desk"
+    html = "<p>" + "<br>".join(
+        line.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        for line in body.splitlines()
+    ) + "</p>"
+    html += f"<p style='color:#5b7178;font-size:12px;'>Sent by {who} via TopTeen Loan Desk</p>"
+
+    try:
+        ok = ComService().send_mail(subject, [to_email], body, html)
+    except Exception as exc:
+        logger.exception("Client email failed for lead %s", application.id)
+        return False, str(exc)[:500]
+
+    if not ok:
+        return False, "Mail service returned failure."
+
+    _add_system_remark(
+        application,
+        f"Email sent to client ({to_email}): {subject}",
+        author=actor,
+    )
+    return True, f"Email sent to {to_email}."
+
+
 def push_lead_to_bank_email(application, *, actor) -> tuple:
     """Email qualified lead packet to bank recipients. Returns (ok, message)."""
     from communication.com_service import ComService
@@ -685,6 +874,32 @@ def desk_base_queryset(user):
     if not is_loan_manager(user) and not getattr(user, "is_superuser", False):
         qs = qs.filter(Q(assigned_to=user) | Q(assigned_to__isnull=True))
     return qs
+
+
+def desk_search_clients(qs, query: str):
+    """Filter leads by client name, mobile, email, institute, or enquiry id."""
+    from django.db.models import Q
+
+    q = (query or "").strip()
+    if not q:
+        return qs
+    digits = "".join(ch for ch in q if ch.isdigit())
+    filt = (
+        Q(student_name__icontains=q)
+        | Q(parent_name__icontains=q)
+        | Q(email__icontains=q)
+        | Q(institute_name__icontains=q)
+        | Q(course_name__icontains=q)
+        | Q(mobile__icontains=q)
+    )
+    if digits:
+        filt |= Q(mobile__icontains=digits)
+    if q.isdigit():
+        try:
+            filt |= Q(id=int(q))
+        except (TypeError, ValueError):
+            pass
+    return qs.filter(filt)
 
 
 def _local_day_bounds(day=None):

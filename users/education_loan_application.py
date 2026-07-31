@@ -105,6 +105,73 @@ def _format_inr(value) -> str:
         return "—"
 
 
+def parent_visible_status(app: EducationLoanApplication) -> Dict[str, Any]:
+    """
+    What parents see for enquiry progress.
+    - Decision (Qualified / Not qualified) when set
+    - Otherwise pipeline status, except "New Enquiry" (shown as received / under review)
+    - Never includes internal comments, remarks, or disqualify notes
+    """
+    St = choices.EducationLoanApplicationStatus
+    status = app.status
+
+    if status == St.DRAFT:
+        return {
+            "kind": "draft",
+            "badge_class": "is-draft",
+            "label": "Draft",
+            "subtitle": "Draft in progress",
+            "show_status_line": False,
+        }
+    if status == St.QUALIFIED:
+        return {
+            "kind": "decision",
+            "badge_class": "is-qualified",
+            "label": "Qualified",
+            "subtitle": "Your enquiry was qualified by our loan team",
+            "show_status_line": True,
+            "status_line": "Decision: Qualified",
+        }
+    if status == St.NOT_QUALIFIED:
+        return {
+            "kind": "decision",
+            "badge_class": "is-not-qualified",
+            "label": "Not qualified",
+            "subtitle": "Your enquiry was marked not qualified",
+            "show_status_line": True,
+            "status_line": "Decision: Not qualified",
+        }
+    if status == St.ENQUIRY_SENT:
+        # Do not show "New Enquiry" wording to parents
+        return {
+            "kind": "received",
+            "badge_class": "is-enquiry",
+            "label": "Received",
+            "subtitle": "Enquiry submitted — our team will contact you",
+            "show_status_line": False,
+        }
+    if status == St.CLOSED:
+        return {
+            "kind": "status",
+            "badge_class": "is-closed",
+            "label": "Closed",
+            "subtitle": "This enquiry is closed",
+            "show_status_line": True,
+            "status_line": "Status: Closed",
+        }
+
+    # Callback / In progress / Follow up — show status, never comments
+    label = app.get_status_display()
+    return {
+        "kind": "status",
+        "badge_class": "is-progress",
+        "label": label,
+        "subtitle": "Update from our loan team",
+        "show_status_line": True,
+        "status_line": f"Status: {label}",
+    }
+
+
 def serialize_education_loan_application_for_parent_list(app: EducationLoanApplication) -> Dict[str, Any]:
     data = serialize_education_loan_application(app)
     calc = data.get("calculator") or {}
@@ -119,6 +186,7 @@ def serialize_education_loan_application_for_parent_list(app: EducationLoanAppli
         except Exception:
             return str(value)
 
+    parent_status = parent_visible_status(app)
     data["display_modified"] = _display_dt(app.modified)
     data["display_submitted"] = _display_dt(app.submitted_at)
     data["display_loan_amount"] = _format_inr(calc.get("loan_amount"))
@@ -133,6 +201,10 @@ def serialize_education_loan_application_for_parent_list(app: EducationLoanAppli
     data["interest_label"] = (
         f"{calc.get('interest_rate')}%" if calc.get("interest_rate") is not None else "—"
     )
+    # Parent-safe status (no comments / no "New Enquiry" label)
+    data["parent_status"] = parent_status
+    data["status_label"] = parent_status["label"]
+    data["card_class"] = parent_status["badge_class"]
     return data
 
 

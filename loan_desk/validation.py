@@ -71,6 +71,59 @@ def parse_call_outcome_from_remark(body: str) -> Tuple[Optional[str], Optional[s
     return None, None, text
 
 
+def validate_client_email(subject: str, body: str) -> Tuple[bool, Dict[str, str]]:
+    errors: Dict[str, str] = {}
+    subject = (subject or "").strip()
+    body = (body or "").strip()
+    if not subject:
+        errors["subject"] = "Subject is required."
+    elif len(subject) > 200:
+        errors["subject"] = "Subject must be at most 200 characters."
+    if not body:
+        errors["body"] = "Message is required."
+    elif len(body) < 3:
+        errors["body"] = "Message must be at least 3 characters."
+    elif len(body) > 8000:
+        errors["body"] = "Message must be at most 8000 characters."
+    return (not errors, errors)
+
+
+def validate_email_template(
+    name: str, subject: str, body: str, sort_order: str = "0"
+) -> Tuple[bool, Dict[str, str], Dict[str, object]]:
+    errors: Dict[str, str] = {}
+    name = (name or "").strip()
+    subject = (subject or "").strip()
+    body = (body or "").strip()
+    if not name:
+        errors["name"] = "Template name is required."
+    elif len(name) > 120:
+        errors["name"] = "Name must be at most 120 characters."
+    if not subject:
+        errors["subject"] = "Subject is required."
+    elif len(subject) > 200:
+        errors["subject"] = "Subject must be at most 200 characters."
+    if not body:
+        errors["body"] = "Message body is required."
+    elif len(body) > 8000:
+        errors["body"] = "Body must be at most 8000 characters."
+    order = 0
+    raw_order = (sort_order or "0").strip()
+    try:
+        order = int(raw_order)
+        if order < 0 or order > 9999:
+            errors["sort_order"] = "Sort order must be between 0 and 9999."
+    except ValueError:
+        errors["sort_order"] = "Sort order must be a number."
+    cleaned = {
+        "name": name[:120],
+        "subject": subject[:200],
+        "body": body[:8000],
+        "sort_order": order,
+    }
+    return (not errors, errors, cleaned)
+
+
 def validate_remark(body: str) -> Tuple[bool, Dict[str, str]]:
     errors: Dict[str, str] = {}
     body = (body or "").strip()

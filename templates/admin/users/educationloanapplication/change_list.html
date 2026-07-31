@@ -1,0 +1,13 @@
+{% extends "admin/hub/loan_model_change_list.html" %}
+{% load i18n %}
+
+{% block object-tools-items %}
+  {% if hard_delete_all_url %}
+  <li>
+    <a href="{{ hard_delete_all_url }}" class="deletelink" style="background:#b91c1c;">
+      {% translate "Hard delete ALL enquiries" %}
+    </a>
+  </li>
+  {% endif %}
+  {{ block.super }}
+{% endblock %}

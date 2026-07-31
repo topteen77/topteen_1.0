@@ -44,3 +44,24 @@ def loan_desk_user_only(view_func):
         return view_func(request, *args, **kwargs)
 
     return _wrapped
+
+
+def loan_manager_only(view_func):
+    """Loan Desk managers (and superusers) only."""
+
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        login_url = reverse("loan_desk:login")
+        if not request.user.is_authenticated:
+            return redirect_to_login(request.get_full_path(), login_url=login_url)
+        if not is_loan_desk_user(request.user):
+            return redirect_to_login(request.get_full_path(), login_url=login_url)
+        if not is_loan_manager(request.user):
+            from django.contrib import messages
+            from django.shortcuts import redirect
+
+            messages.error(request, "Only managers can manage email templates.")
+            return redirect("loan_desk:dashboard")
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped

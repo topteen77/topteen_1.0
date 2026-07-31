@@ -13,4 +13,9 @@ urlpatterns = [
     path("", views.LoanDeskDashboardView.as_view(), name="dashboard"),
     path("enquiries/", views.LoanDeskHomeView.as_view(), name="home"),
     path("applications/<int:pk>/", views.LoanDeskDetailView.as_view(), name="detail"),
+    path(
+        "email-templates/",
+        views.LoanDeskEmailTemplatesView.as_view(),
+        name="email_templates",
+    ),
 ]

@@ -16,7 +16,12 @@ from django.views.decorators.http import require_http_methods
 from django.views.generic import TemplateView
 
 from core import choices
-from loan_desk.decorators import is_loan_desk_user, is_loan_manager, loan_desk_user_only
+from loan_desk.decorators import (
+    is_loan_desk_user,
+    is_loan_manager,
+    loan_desk_user_only,
+    loan_manager_only,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +44,7 @@ def _base_ctx(request, **extra):
     return {
         "is_manager": is_loan_manager(request.user),
         "loan_user": request.user,
+        "search_q": (request.GET.get("q") or "").strip(),
         **extra,
     }
 
@@ -145,11 +151,13 @@ class LoanDeskHomeView(TemplateView):
             desk_base_queryset,
             desk_queue_counts,
             desk_queue_filter,
+            desk_search_clients,
             unique_leads_latest,
         )
 
         ctx = super().get_context_data(**kwargs)
         request = self.request
+        search_q = (request.GET.get("q") or "").strip()
         queue = (request.GET.get("queue") or "not_started").strip().lower()
         if queue not in VALID_QUEUES:
             queue = "not_started"
@@ -158,9 +166,14 @@ class LoanDeskHomeView(TemplateView):
         status = (request.GET.get("status") or "").strip()
 
         base = desk_base_queryset(request.user)
-        qs = desk_queue_filter(base, queue)
-        if queue == "all" and status.isdigit():
-            qs = qs.filter(status=int(status))
+        # Client search looks across all queues in the user's scope
+        if search_q:
+            qs = desk_search_clients(base, search_q)
+            queue = "all"
+        else:
+            qs = desk_queue_filter(base, queue)
+            if queue == "all" and status.isdigit():
+                qs = qs.filter(status=int(status))
 
         # One card per person (mobile/email); latest enquiry wins; mark re-enquiries.
         unique_apps = unique_leads_latest(qs)
@@ -171,11 +184,16 @@ class LoanDeskHomeView(TemplateView):
             remark_limit=3,
         )
         counts = desk_queue_counts(request.user)
-        return_q = f"?queue={queue}"
-        if status:
-            return_q += f"&status={status}"
+        from urllib.parse import urlencode
+
+        return_params = {"queue": queue}
+        if search_q:
+            return_params["q"] = search_q
+        if status and not search_q:
+            return_params["status"] = status
         if page_obj.number > 1:
-            return_q += f"&page={page_obj.number}"
+            return_params["page"] = page_obj.number
+        return_q = "?" + urlencode(return_params)
 
         ctx.update(
             _base_ctx(
@@ -183,6 +201,7 @@ class LoanDeskHomeView(TemplateView):
                 applications=applications,
                 page_obj=page_obj,
                 queue=queue,
+                search_q=search_q,
                 queue_counts=counts,
                 status_choices=choices.EducationLoanApplicationStatus.CHOICES,
                 filter_status=status,
@@ -191,7 +210,7 @@ class LoanDeskHomeView(TemplateView):
                 crm_success=choices.EducationLoanCRMSyncStatus.SUCCESS,
                 crm_error=choices.EducationLoanCRMSyncStatus.ERROR,
                 active_nav="enquiries",
-                page_title="Enquiries",
+                page_title="Search clients" if search_q else "Enquiries",
                 queue_return_url=reverse("loan_desk:home") + return_q,
                 open_statuses=choices.EducationLoanApplicationStatus.OPEN_STATUSES,
             )
@@ -205,12 +224,16 @@ def models_Q_assigned_or_unassigned(user):
     return Q(assigned_to=user) | Q(assigned_to__isnull=True)
 
 
-def _desk_safe_next(request, pk: int):
-    """Prefer posted next path under /loan-desk/, else detail."""
+def _desk_safe_next(request, pk: int, *, default_tab: str = ""):
+    """Prefer posted next path under /loan-desk/, else detail (?tab=)."""
     next_url = (request.POST.get("next") or "").strip()
     if next_url.startswith("/loan-desk/") and "://" not in next_url:
         return redirect(next_url)
-    return redirect("loan_desk:detail", pk=pk)
+    tab = (request.POST.get("tab") or default_tab or "").strip()
+    url = reverse("loan_desk:detail", kwargs={"pk": pk})
+    if tab:
+        url = f"{url}?tab={tab}"
+    return redirect(url)
 
 
 def _can_access_application(request, app) -> bool:
@@ -259,6 +282,7 @@ class LoanDeskDetailView(View):
         from loan_desk.services import (
             desk_queue_counts,
             related_enquiries_for,
+            rendered_client_email_templates_for,
             whatsapp_api_url,
         )
 
@@ -269,6 +293,12 @@ class LoanDeskDetailView(View):
         is_reenquired = len(previous_enquiries) > 0
         enquiry_count = len(previous_enquiries) + 1
         whatsapp_url = whatsapp_api_url(app.mobile or "")
+        import json
+
+        client_email_templates = rendered_client_email_templates_for(
+            app, actor=request.user
+        )
+        client_email_templates_json = json.dumps(client_email_templates)
 
         # Status dropdown: executives stay in open pipeline + closed; managers see all non-draft
         if can_decide:
@@ -297,6 +327,12 @@ class LoanDeskDetailView(View):
                 remarks=remarks,
                 team=team,
                 whatsapp_url=whatsapp_url,
+                active_tab=(request.GET.get("tab") or "").strip(),
+                client_email_default_subject=(
+                    f"Regarding your education loan enquiry #{app.id}"
+                ),
+                client_email_templates=client_email_templates,
+                client_email_templates_json=client_email_templates_json,
                 status_choices=status_choices,
                 has_schedule_datetime=bool(
                     app.callback_preferred_at or app.next_follow_up_at
@@ -331,9 +367,11 @@ class LoanDeskDetailView(View):
             push_lead_to_bank_api,
             push_lead_to_bank_email,
             qualify_lead,
+            send_client_email,
         )
         from loan_desk.validation import (
             validate_assignee,
+            validate_client_email,
             validate_disqualify,
             validate_follow_up,
             validate_qualify_note,
@@ -378,6 +416,29 @@ class LoanDeskDetailView(View):
             app.last_followed_up_at = timezone.now()
             app.save(update_fields=["last_followed_up_at", "modified"])
             messages.success(request, "Remark added.")
+        elif action == "client_email":
+            ok, errors = validate_client_email(
+                request.POST.get("subject") or "",
+                request.POST.get("body") or "",
+            )
+            if not ok:
+                messages.error(
+                    request,
+                    errors.get("subject")
+                    or errors.get("body")
+                    or "Invalid email.",
+                )
+                return _desk_safe_next(request, pk, default_tab="activity")
+            ok, msg = send_client_email(
+                app,
+                actor=request.user,
+                subject=request.POST.get("subject") or "",
+                body=request.POST.get("body") or "",
+            )
+            if ok:
+                messages.success(request, msg)
+            else:
+                messages.error(request, msg)
         elif action == "log_follow_up":
             # Caller logs this call + optional next schedule (from queue cards)
             from loan_desk.validation import (
@@ -455,21 +516,21 @@ class LoanDeskDetailView(View):
             )
             if not ok:
                 messages.error(request, errors.get("status") or "Invalid status.")
-                return redirect("loan_desk:detail", pk=pk)
+                return _desk_safe_next(request, pk, default_tab="status")
             # Executives cannot set qualify statuses via dropdown
             if not can_decide and st in (
                 choices.EducationLoanApplicationStatus.QUALIFIED,
                 choices.EducationLoanApplicationStatus.NOT_QUALIFIED,
             ):
                 messages.error(request, "Only managers can set qualification status.")
-                return redirect("loan_desk:detail", pk=pk)
+                return _desk_safe_next(request, pk, default_tab="status")
             app.status = st
             app.save(update_fields=["status", "modified"])
             messages.success(request, "Status updated.")
         elif action == "assign":
             if not can_decide:
                 messages.error(request, "Only managers can assign lead follow.")
-                return redirect("loan_desk:detail", pk=pk)
+                return _desk_safe_next(request, pk, default_tab="assign")
             from loan_desk.services import loan_desk_team_users
 
             team_ids = [int(u.id) for u in loan_desk_team_users(enabled_only=True)]
@@ -478,7 +539,7 @@ class LoanDeskDetailView(View):
             )
             if not ok:
                 messages.error(request, errors.get("assigned_to") or "Invalid assignee.")
-                return redirect("loan_desk:detail", pk=pk)
+                return _desk_safe_next(request, pk, default_tab="assign")
             prev_assignee_id = app.assigned_to_id
             if aid is None:
                 app.assigned_to = None
@@ -578,6 +639,152 @@ class LoanDeskInstantLoginView(View):
             return redirect("loan_desk:login")
         login(request, user, backend="django.contrib.auth.backends.ModelBackend")
         return redirect("loan_desk:detail", pk=application.id)
+
+
+@method_decorator(loan_manager_only, name="dispatch")
+class LoanDeskEmailTemplatesView(View):
+    """Manager CRUD for client email message templates."""
+
+    template_name = "template20/loan_desk/email_templates.html"
+
+    def get(self, request):
+        from loan_desk.services import (
+            CLIENT_EMAIL_TEMPLATE_VARIABLES,
+            SAMPLE_CLIENT_EMAIL_BODY,
+            SAMPLE_CLIENT_EMAIL_SUBJECT,
+            desk_queue_counts,
+        )
+        from users.models import EducationLoanClientEmailTemplate
+
+        edit_id = (request.GET.get("edit") or "").strip()
+        edit_tpl = None
+        if edit_id.isdigit():
+            edit_tpl = EducationLoanClientEmailTemplate.objects.filter(
+                pk=int(edit_id)
+            ).first()
+
+        templates = list(
+            EducationLoanClientEmailTemplate.objects.order_by(
+                "sort_order", "name", "id"
+            )
+        )
+        return render(
+            request,
+            self.template_name,
+            _base_ctx(
+                request,
+                templates=templates,
+                edit_template=edit_tpl,
+                placeholder_vars=CLIENT_EMAIL_TEMPLATE_VARIABLES,
+                sample_email_subject=SAMPLE_CLIENT_EMAIL_SUBJECT,
+                sample_email_body=SAMPLE_CLIENT_EMAIL_BODY,
+                queue_counts=desk_queue_counts(request.user),
+                queue="",
+                active_nav="email_templates",
+                page_title="Email templates",
+            ),
+        )
+
+    def post(self, request):
+        from loan_desk.validation import validate_email_template
+        from users.models import EducationLoanClientEmailTemplate
+
+        action = (request.POST.get("action") or "").strip()
+
+        if action == "delete":
+            pk = (request.POST.get("template_id") or "").strip()
+            tpl = (
+                EducationLoanClientEmailTemplate.objects.filter(pk=int(pk)).first()
+                if pk.isdigit()
+                else None
+            )
+            if not tpl:
+                messages.error(request, "Template not found.")
+            else:
+                tpl.delete()
+                messages.success(request, f"Template “{tpl.name}” deleted.")
+            return redirect("loan_desk:email_templates")
+
+        if action == "toggle":
+            pk = (request.POST.get("template_id") or "").strip()
+            tpl = (
+                EducationLoanClientEmailTemplate.objects.filter(pk=int(pk)).first()
+                if pk.isdigit()
+                else None
+            )
+            if not tpl:
+                messages.error(request, "Template not found.")
+            else:
+                tpl.is_active = not tpl.is_active
+                tpl.save(update_fields=["is_active", "modified"])
+                state = "active" if tpl.is_active else "inactive"
+                messages.success(request, f"Template “{tpl.name}” is now {state}.")
+            return redirect("loan_desk:email_templates")
+
+        if action in ("create", "update"):
+            ok, errors, cleaned = validate_email_template(
+                request.POST.get("name") or "",
+                request.POST.get("subject") or "",
+                request.POST.get("body") or "",
+                request.POST.get("sort_order") or "0",
+            )
+            if not ok:
+                messages.error(
+                    request,
+                    errors.get("name")
+                    or errors.get("subject")
+                    or errors.get("body")
+                    or errors.get("sort_order")
+                    or "Invalid template.",
+                )
+                edit_q = ""
+                if action == "update":
+                    pk = (request.POST.get("template_id") or "").strip()
+                    if pk.isdigit():
+                        edit_q = f"?edit={pk}"
+                return redirect(reverse("loan_desk:email_templates") + edit_q)
+
+            is_active = (request.POST.get("is_active") or "") == "1"
+            if action == "create":
+                EducationLoanClientEmailTemplate.objects.create(
+                    name=cleaned["name"],
+                    subject=cleaned["subject"],
+                    body=cleaned["body"],
+                    sort_order=cleaned["sort_order"],
+                    is_active=is_active,
+                    created_by=request.user,
+                )
+                messages.success(request, "Email template created.")
+            else:
+                pk = (request.POST.get("template_id") or "").strip()
+                tpl = (
+                    EducationLoanClientEmailTemplate.objects.filter(pk=int(pk)).first()
+                    if pk.isdigit()
+                    else None
+                )
+                if not tpl:
+                    messages.error(request, "Template not found.")
+                else:
+                    tpl.name = cleaned["name"]
+                    tpl.subject = cleaned["subject"]
+                    tpl.body = cleaned["body"]
+                    tpl.sort_order = cleaned["sort_order"]
+                    tpl.is_active = is_active
+                    tpl.save(
+                        update_fields=[
+                            "name",
+                            "subject",
+                            "body",
+                            "sort_order",
+                            "is_active",
+                            "modified",
+                        ]
+                    )
+                    messages.success(request, "Email template updated.")
+            return redirect("loan_desk:email_templates")
+
+        messages.error(request, "Unknown action.")
+        return redirect("loan_desk:email_templates")
 
 
 @require_http_methods(["GET"])

@@ -864,6 +864,40 @@ class EducationLoanRemark(BaseModel):
         return f"Remark on loan #{self.application_id}"
 
 
+class EducationLoanClientEmailTemplate(BaseModel):
+    """Manager-defined email templates for Loan Desk → client emails."""
+
+    name = models.CharField(max_length=120)
+    subject = models.CharField(
+        max_length=200,
+        help_text="Supports {{student_name}}, {{parent_name}}, {{enquiry_id}}, etc.",
+    )
+    body = models.TextField(
+        help_text=(
+            "Message body. Placeholders: {{student_name}}, {{parent_name}}, "
+            "{{mobile}}, {{email}}, {{institute_name}}, {{course_name}}, "
+            "{{loan_amount}}, {{enquiry_id}}, {{manager_name}}."
+        ),
+    )
+    is_active = models.BooleanField(default=True, db_index=True)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+    created_by = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="created_loan_email_templates",
+    )
+
+    class Meta:
+        ordering = ("sort_order", "name", "id")
+        verbose_name = "Education Loan Email Template"
+        verbose_name_plural = "Education Loan Email Templates"
+
+    def __str__(self):
+        return self.name or f"Template #{self.pk}"
+
+
 class EducationLoanOpsSettings(models.Model):
     """Singleton: loan desk ops — manager report email, PWA, reminders."""
 

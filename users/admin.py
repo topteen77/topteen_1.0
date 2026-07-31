@@ -15,6 +15,7 @@ from .models import (
     EducationLoanCRMSettings,
     EducationLoanOpsSettings,
     EducationLoanRemark,
+    EducationLoanClientEmailTemplate,
     LoanInstantLoginToken,
 )
 from django.urls import reverse, path
@@ -1458,8 +1459,42 @@ class EducationLoanRemarkAdmin(_EducationLoanHubAdminMixin, admin.ModelAdmin):
         return text[:80] + ("…" if len(text) > 80 else "")
 
 
+@admin.register(EducationLoanClientEmailTemplate)
+class EducationLoanClientEmailTemplateAdmin(_EducationLoanHubAdminMixin, admin.ModelAdmin):
+    list_display = ("name", "subject", "is_active", "sort_order", "created_by", "modified")
+    list_filter = ("is_active",)
+    search_fields = ("name", "subject", "body")
+    list_editable = ("is_active", "sort_order")
+    raw_id_fields = ("created_by",)
+    readonly_fields = ("created", "modified")
+    ordering = ("sort_order", "name", "id")
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "name",
+                    "subject",
+                    "body",
+                    "is_active",
+                    "sort_order",
+                    "created_by",
+                    "created",
+                    "modified",
+                ),
+                "description": (
+                    "Placeholders: {{student_name}}, {{parent_name}}, {{mobile}}, "
+                    "{{email}}, {{institute_name}}, {{course_name}}, {{loan_amount}}, "
+                    "{{enquiry_id}}, {{manager_name}}."
+                ),
+            },
+        ),
+    )
+
+
 @admin.register(EducationLoanApplication)
 class EducationLoanApplicationAdmin(_EducationLoanHubAdminMixin, admin.ModelAdmin):
+    change_list_template = "admin/users/educationloanapplication/change_list.html"
     list_display = (
         "id",
         "parent",
@@ -1509,8 +1544,136 @@ class EducationLoanApplicationAdmin(_EducationLoanHubAdminMixin, admin.ModelAdmi
     )
     raw_id_fields = ("parent", "student", "assigned_to", "qualification_decided_by")
     ordering = ("-modified", "-id")
-    actions = ("retry_crm_sync", "notify_loan_team")
+    actions = (
+        "retry_crm_sync",
+        "notify_loan_team",
+        "hard_delete_selected_enquiries",
+    )
     inlines = (EducationLoanRemarkInline,)
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom = [
+            path(
+                "hard-delete-all/",
+                self.admin_site.admin_view(self.hard_delete_all_view),
+                name="users_educationloanapplication_hard_delete_all",
+            ),
+        ]
+        return custom + urls
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        if self.has_delete_permission(request):
+            extra_context["hard_delete_all_url"] = reverse(
+                "admin:users_educationloanapplication_hard_delete_all"
+            )
+        return super().changelist_view(request, extra_context=extra_context)
+
+    def delete_model(self, request, obj):
+        from loan_desk.services import hard_delete_education_loan_enquiries
+
+        hard_delete_education_loan_enquiries(application_ids=[obj.pk])
+
+    def delete_queryset(self, request, queryset):
+        from loan_desk.services import hard_delete_education_loan_enquiries
+
+        hard_delete_education_loan_enquiries(
+            application_ids=list(queryset.values_list("pk", flat=True))
+        )
+
+    def hard_delete_all_view(self, request):
+        from loan_desk.services import (
+            education_loan_enquiry_delete_counts,
+            hard_delete_education_loan_enquiries,
+        )
+
+        if not self.has_delete_permission(request):
+            from django.core.exceptions import PermissionDenied
+
+            raise PermissionDenied
+
+        cancel_url = reverse("admin:users_educationloanapplication_changelist")
+        counts = education_loan_enquiry_delete_counts(application_ids=None)
+
+        if request.method == "POST":
+            typed = (request.POST.get("confirm_typed") or "").strip()
+            if typed != "DELETE ALL":
+                messages.error(
+                    request,
+                    'Type DELETE ALL exactly to confirm wiping all loan enquiries.',
+                )
+            elif counts["applications"] == 0:
+                messages.info(request, "No loan enquiries to delete.")
+                return redirect(cancel_url)
+            else:
+                result = hard_delete_education_loan_enquiries(application_ids=None)
+                messages.success(
+                    request,
+                    (
+                        f"Hard-deleted {result['applications']} enquiry(ies), "
+                        f"{result['remarks']} remark(s), "
+                        f"{result['tokens']} login token(s)."
+                    ),
+                )
+                return redirect(cancel_url)
+
+        return render(
+            request,
+            "admin/users/educationloanapplication/hard_delete_confirmation.html",
+            {
+                **self.admin_site.each_context(request),
+                "opts": self.model._meta,
+                "title": "Hard delete ALL loan enquiries",
+                "delete_all": True,
+                "counts": counts,
+                "cancel_url": cancel_url,
+            },
+        )
+
+    @admin.action(description="Hard delete selected enquiries (permanent)")
+    def hard_delete_selected_enquiries(self, request, queryset):
+        from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
+        from loan_desk.services import (
+            education_loan_enquiry_delete_counts,
+            hard_delete_education_loan_enquiries,
+        )
+
+        ids = list(queryset.values_list("pk", flat=True))
+        if not ids:
+            self.message_user(request, "No enquiries selected.", messages.WARNING)
+            return
+
+        if request.POST.get("post") == "yes":
+            result = hard_delete_education_loan_enquiries(application_ids=ids)
+            self.message_user(
+                request,
+                (
+                    f"Hard-deleted {result['applications']} enquiry(ies), "
+                    f"{result['remarks']} remark(s), "
+                    f"{result['tokens']} login token(s)."
+                ),
+                messages.SUCCESS,
+            )
+            return
+
+        counts = education_loan_enquiry_delete_counts(application_ids=ids)
+        return render(
+            request,
+            "admin/users/educationloanapplication/hard_delete_confirmation.html",
+            {
+                **self.admin_site.each_context(request),
+                "opts": self.model._meta,
+                "title": "Hard delete selected loan enquiries",
+                "delete_all": False,
+                "counts": counts,
+                "queryset": queryset,
+                "action_checkbox_name": ACTION_CHECKBOX_NAME,
+                "cancel_url": reverse(
+                    "admin:users_educationloanapplication_changelist"
+                ),
+            },
+        )
 
     fieldsets = (
         (
