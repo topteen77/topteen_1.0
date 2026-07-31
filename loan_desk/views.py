@@ -300,6 +300,12 @@ class LoanDeskDetailView(View):
         )
         client_email_templates_json = json.dumps(client_email_templates)
 
+        bank_email_recipients = []
+        if can_decide and is_qualified:
+            from users.models import EducationLoanOpsSettings
+
+            bank_email_recipients = EducationLoanOpsSettings.load().bank_email_list()
+
         # Status dropdown: executives stay in open pipeline + closed; managers see all non-draft
         if can_decide:
             status_choices = [
@@ -347,6 +353,7 @@ class LoanDeskDetailView(View):
                 bank_email_none=choices.EducationLoanBankEmailStatus.NONE,
                 bank_email_sent=choices.EducationLoanBankEmailStatus.SENT,
                 bank_email_error=choices.EducationLoanBankEmailStatus.ERROR,
+                bank_email_recipients=bank_email_recipients,
                 crm_pending=choices.EducationLoanCRMSyncStatus.PENDING,
                 crm_sent=choices.EducationLoanCRMSyncStatus.SENT,
                 crm_success=choices.EducationLoanCRMSyncStatus.SUCCESS,

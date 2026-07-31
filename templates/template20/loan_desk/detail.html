@@ -171,11 +171,16 @@
       {% if application.bank_email_last_error %}
       <p class="ld-meta mb-2" style="color:var(--ld-danger);">{{ application.bank_email_last_error }}</p>
       {% endif %}
+      {% if bank_email_recipients %}
+      <p class="ld-meta mb-2">To: <strong>{{ bank_email_recipients|join(', ') }}</strong></p>
+      {% else %}
+      <p class="ld-meta mb-2" style="color:var(--ld-warn);">No bank recipients configured in Ops settings.</p>
+      {% endif %}
       <form method="post">
         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
         <input type="hidden" name="action" value="bank_email">
         <input type="hidden" name="tab" value="decision">
-        <button type="submit" class="ld-btn ld-btn-outline ld-btn-block">
+        <button type="submit" class="ld-btn ld-btn-outline ld-btn-block"{% if not bank_email_recipients %} disabled{% endif %}>
           <i class='bx bx-mail-send'></i>
           {% if application.bank_email_status == bank_email_sent or application.bank_email_status == bank_email_error %}Resend bank email{% else %}Push to bank (email){% endif %}
         </button>
