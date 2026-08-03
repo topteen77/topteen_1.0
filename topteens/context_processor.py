@@ -23,6 +23,7 @@ from django.conf import settings
 from django.urls import reverse
 from django.db import connection
 from django.core.cache import cache
+from django.utils import timezone
 import json
 import logging
 import re
@@ -687,7 +688,7 @@ def globals(request):
         "popular_categories": BlogCategory.objects.filter(id__in=nav["popular_category_ids"]),
         "popular_tags": CareerTags.objects.filter(id__in=nav["popular_tag_ids"]),
         "blogs": Blog.get_published_objects().filter(id__in=nav["blog_ids"]),
-        "seo_year":"2025",
+        "seo_year": str(timezone.now().year),
         "recentcareer":career_list,
         "recentcollege":college_list,
         "recentexam":exam_list,

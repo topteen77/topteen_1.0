@@ -1,7 +1,17 @@
 <!-- Footer Section -->
 <footer class="footer-area">
   {% block footer_cta %}
-  {% if not has_payment and not request.path.startswith('/colleges/') %}
+  {# Includes cannot override this block from login pages — hide CTA on auth routes. #}
+  {% set _fp = (request.path or '')|lower %}
+  {% set _hide_footer_cta = (
+    has_payment
+    or _fp.startswith('/colleges/')
+    or '/login' in _fp
+    or '/signup' in _fp
+    or '/register' in _fp
+    or _fp.startswith('/marketing-auth/')
+  ) %}
+  {% if not _hide_footer_cta %}
   <div class="footer-cta border-bottom-t pb-md-8 pb-5">
     <div class="container">
       <div class="row">
@@ -14,7 +24,7 @@
             Discover your true potential, explore the world of careers, and design a future full of opportunity and success.
           </p>
           {% if not request.user.is_authenticated %}
-          <a href="#" class="btn custom-button purple-button align-items-center mx-auto student-login-popup-trigger" role="button">
+          <a href="#" class="btn custom-button purple-button align-items-center mx-auto student-signup-popup-trigger" role="button">
             Get Started
           </a>
           {% endif %}
@@ -41,7 +51,7 @@
                 <a class="facebook-icon me-md-2" href="https://www.facebook.com/topteen.in" target="_blank" rel="noopener noreferrer" aria-label="TopTeen on Facebook"></a>
               </li>
               <li>
-                <a class="twitter-icon me-md-2" href="https://www.instagram.com/topteen.careers/" target="_blank" rel="noopener noreferrer" aria-label="TopTeen on Instagram"></a>
+                <a class="twitter-icon me-md-2" href="https://x.com/topteencareers" target="_blank" rel="noopener noreferrer" aria-label="TopTeen on X"></a>
               </li>
               <li>
                 <a class="insta-icon me-md-2" href="https://www.instagram.com/topteen.careers/" target="_blank" rel="noopener noreferrer" aria-label="TopTeen on Instagram"></a>
@@ -65,7 +75,7 @@
 
         </div>
 
-        <div class="col-6 col-md-2 col-sm-12  mt-md-0 mt-5">
+        <div class="col-6 col-md-2 col-sm-12 mt-md-0 mt-5">
           <p class="ft-title">About Topteen</p>
           <ul class="list-group tp-footer-text">
             <li><a href="{{ url('core:aboutus') }}">About Us</a></li>
@@ -74,10 +84,12 @@
             <li><a href="{{ url('core:terms&condition') }}">Terms and Conditions</a></li>
                     <li><a href="{{ url('blog:blogs') }}">Blog</a></li>
             <li><a href="{{ url('core:allfaq') }}">FAQs</a></li>
+            <li><a href="{{ url('users:login') }}">Sign In</a></li>
+            <li><a href="{{ url('student_signup') }}">Create Student Account</a></li>
+            <li><a href="{{ url('parents_login') }}">Parent Login</a></li>
             <li><a href="{{ url('institute:login') }}">Institute Login</a></li>
             <li><a href="{{ url('counselor:login') }}">Counselor Login</a></li>
-            <li><a href="{{ url('parents_login') }}">Parent Login</a></li>
-            <li><a href="#" class="student-login-popup-trigger" role="button">Student Login</a></li>
+            <li><a href="{{ url('marketing:login') }}">Marketing Login</a></li>
           </ul>
         </div>
         
@@ -112,7 +124,7 @@
   <div class="copyright py-3">
     <div class="container">
       <div class="row">
-        <p class="text-center text-gray fs-14 mb-0">© {{ now.year }} TopTeen. All rights reserved.</p>
+        <p class="text-center text-gray fs-14 mb-0">© {{ seo_year }} TopTeen. All rights reserved.</p>
       </div>
     </div>
   </div>
