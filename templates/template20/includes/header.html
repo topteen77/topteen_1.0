@@ -75,8 +75,13 @@
       .tt-header-mobile-account.dropdown .dropdown-content.login-content {
         position: absolute;
         right: 0;
-        top: calc(100% + 8px) !important;
-        width: min(302px, calc(100vw - 24px));
+        left: auto !important;
+        top: calc(100% + 6px) !important;
+        width: min(280px, calc(100vw - 20px));
+        max-width: calc(100vw - 20px);
+        max-height: min(72vh, 480px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
         z-index: 1060;
         box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
         border-radius: 12px;
@@ -92,6 +97,213 @@
       .tt-header-mobile-toolbar {
         display: none !important;
       }
+    }
+
+    /* Guest account menu (A+C hybrid) */
+    .tt-account-menu.login-content {
+      width: min(300px, calc(100vw - 20px));
+      max-width: calc(100vw - 20px);
+      padding: 12px 12px 10px;
+      border-radius: 12px;
+      border: 1px solid #5350f72e;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+      box-sizing: border-box;
+    }
+    .tt-account-menu__guest {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      min-width: 0;
+    }
+    .tt-account-menu__title {
+      margin: 0 0 2px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #1e1e1e;
+      line-height: 1.25;
+    }
+    .tt-account-menu__lede {
+      margin: 0 0 8px;
+      font-size: 12px;
+      line-height: 1.35;
+      color: #6b7280;
+    }
+    .tt-account-menu__actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e8e7f5;
+    }
+    .tt-account-menu__btn {
+      width: 100%;
+      justify-content: center;
+      font-size: 13px !important;
+      padding: 9px 14px !important;
+      line-height: 1.2 !important;
+      text-align: center;
+    }
+    .tt-account-menu__section {
+      padding: 8px 0 4px;
+    }
+    .tt-account-menu__section-label {
+      margin: 0 0 4px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #9ca3af;
+      line-height: 1.2;
+    }
+    .tt-account-menu__row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: #f4f3ff;
+      border: 1px solid #5350f71a;
+      text-decoration: none !important;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .tt-account-menu__row:hover {
+      background: #efecff;
+      border-color: #5350f74d;
+    }
+    .tt-account-menu__row-main {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      min-width: 0;
+    }
+    .tt-account-menu__row-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #3b37c9;
+      line-height: 1.25;
+    }
+    .tt-account-menu__row-sub {
+      font-size: 11px;
+      color: #6b7280;
+      line-height: 1.25;
+    }
+    .tt-account-menu__row-chevron {
+      font-size: 16px;
+      color: #6b7280;
+      flex-shrink: 0;
+    }
+    .tt-account-menu__partners {
+      margin: 2px 0 0;
+      border-top: 1px solid #e8e7f5;
+      padding-top: 4px;
+    }
+    .tt-account-menu__partners-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      list-style: none;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      color: #4b5563;
+      padding: 4px 2px;
+      line-height: 1.2;
+      user-select: none;
+    }
+    .tt-account-menu__partners-summary::-webkit-details-marker {
+      display: none;
+    }
+    .tt-account-menu__partners-summary .bx {
+      font-size: 14px;
+      transition: transform 0.15s ease;
+    }
+    .tt-account-menu__partners[open] .tt-account-menu__partners-summary .bx {
+      transform: rotate(180deg);
+    }
+    .tt-account-menu__partner-list {
+      list-style: none;
+      margin: 0;
+      padding: 0 0 2px;
+    }
+    .tt-account-menu__partner-list li {
+      margin: 0;
+    }
+    .tt-account-menu__partner-list a {
+      display: block;
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.25;
+      color: #3b37c9;
+      text-decoration: none !important;
+    }
+    .tt-account-menu__partner-list a:hover {
+      background: #f4f3ff;
+    }
+
+    /* Tighter spacing on phone + iPad (below desktop nav breakpoint) */
+    @media (max-width: 61.99875rem) {
+      .tt-account-menu.login-content {
+        width: min(268px, calc(100vw - 20px));
+        padding: 8px 8px 6px;
+      }
+      .tt-account-menu__title {
+        font-size: 14px;
+        margin-bottom: 1px;
+      }
+      .tt-account-menu__lede {
+        margin-bottom: 6px;
+        font-size: 11px;
+        line-height: 1.3;
+      }
+      .tt-account-menu__actions {
+        gap: 5px;
+        padding-bottom: 6px;
+      }
+      .tt-account-menu__btn {
+        font-size: 12px !important;
+        padding: 7px 12px !important;
+      }
+      .tt-account-menu__section {
+        padding: 6px 0 2px;
+      }
+      .tt-account-menu__section-label {
+        margin-bottom: 3px;
+        font-size: 9px;
+      }
+      .tt-account-menu__row {
+        padding: 6px 8px;
+      }
+      .tt-account-menu__row-title {
+        font-size: 12px;
+      }
+      .tt-account-menu__row-sub {
+        font-size: 10px;
+      }
+      .tt-account-menu__partners {
+        padding-top: 2px;
+        margin-top: 0;
+      }
+      .tt-account-menu__partners-summary {
+        padding: 3px 2px;
+        font-size: 11px;
+      }
+      .tt-account-menu__partner-list a {
+        padding: 4px 6px;
+        font-size: 11px;
+      }
+      .login-content .hero-button .btn {
+        font-size: 12px;
+        padding: 8px 12px;
+      }
+    }
+
+    /* For partners nav item */
+    .tt-header .tt-partners-nav .dropdown-content a {
+      white-space: nowrap;
     }
   </style>
   <nav class="navbar container px-md-5 px-3">
@@ -189,6 +401,17 @@
             <a href="https://www.testprepgpt.ai/" target="_blank" rel="noopener noreferrer">IELTS</a>
             <a href="https://www.testprepgpt.ai/pte-voucher" target="_blank" rel="noopener noreferrer">PTE</a>
             <a href="https://www.testprepgpt.ai/toefl-voucher" target="_blank" rel="noopener noreferrer">TOEFL</a>
+          </div>
+        </li>
+
+        <li class="menu-item dropdown tt-partners-nav">
+          <span class="dropdown-toggle menu-link">
+            For partners <i class='bx bx-chevron-down fs-20 d-md-none d-block'></i>
+          </span>
+          <div class="dropdown-content tabs-auto-fit">
+            <a href="{{ url('institute:login') }}">Institute login</a>
+            <a href="{{ url('counselor:login') }}">Counselor login</a>
+            <a href="{{ url('marketing:login') }}">Marketing login</a>
           </div>
         </li>
         

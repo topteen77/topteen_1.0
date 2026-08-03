@@ -175,8 +175,8 @@
                 <div class="logo-header text-center my-4">
                   <img src="{{ static('images_new/logos/topteen-haticon.svg') }}" alt="Logo" />
                 </div>
-                <h2 class="fs-22 mt-2 mb-2 fw-700 text-purple">{% if login_embed_heading %}{{ login_embed_heading }}{% else %}Enter your details{% endif %}</h2>
-                <p class="text-gray fs-15">{% if login_embed_subtitle %}{{ login_embed_subtitle }}{% else %}Sign in or create an account to access your dashboard and save your progress.{% endif %}</p>
+                <h2 class="fs-22 mt-2 mb-2 fw-700 text-purple">{% if login_embed_heading %}{{ login_embed_heading }}{% else %}Sign in to TopTeen{% endif %}</h2>
+                <p class="text-gray fs-15">{% if login_embed_subtitle %}{{ login_embed_subtitle }}{% else %}Enter your email or mobile. We’ll take you to the right dashboard for your role.{% endif %}</p>
                 
                 <div id="errorMsg" class="text-danger fs-12 mb-2" style="display: none;"></div>
                 <div id="errorMsgSinguplogin" class="text-danger fs-12 mb-2" style="display: none;"></div>
@@ -200,7 +200,7 @@
                             class="btn custom-button purple-button mb-3 fw-600"
                             id="continueBtn"
                             onclick="return loginsingup()">
-                      Continue
+                      Sign In
                     </button>
                     <button type="button"
                             class="btn custom-button outline-button mb-3 fw-600"
@@ -227,9 +227,26 @@
                     </a>
                   </div>
 
+                  {% if login_mode == 'smart' or login_only %}
+                  <div class="smart-login-links text-start mt-3 mb-2">
+                    <p class="text-gray fs-13 mb-2">
+                      New student?
+                      <a href="{{ student_signup_url|default(url('student_signup')) }}" class="text-purple fw-600 text-decoration-none">Create student account</a>
+                    </p>
+                    <p class="text-gray fs-12 mb-1">Partner login</p>
+                    <p class="fs-13 mb-0">
+                      <a href="{{ institute_login_url|default('/institute/auth/login/') }}" class="text-purple text-decoration-none me-2">Institute</a>
+                      <span class="text-gray">·</span>
+                      <a href="{{ counselor_login_url|default('/counselor/auth/login/') }}" class="text-purple text-decoration-none mx-2">Counselor</a>
+                      <span class="text-gray">·</span>
+                      <a href="{{ marketing_login_url|default('/marketing-auth/login/') }}" class="text-purple text-decoration-none ms-2">Marketing</a>
+                    </p>
+                  </div>
+                  {% endif %}
+
                   <div class="privacy-test">
                     <p class="text-gray fs-12 mt-2">
-                      By signing up for TopTeen, you agree to the
+                      By signing in to TopTeen, you agree to the
                       <a href="{{ url('core:terms&condition') }}" class="text-purple">Terms and Conditions</a>
                       and
                       <a href="{{ url('core:privacypolicy') }}" class="text-purple">Privacy Policy</a>
@@ -433,10 +450,13 @@
   var usersresendotp = "{{ url('users:resendotp') }}";
   var userssetpassword = "{{ url('users:setpassword') }}";
   var loginNextUrl = "{{ next_url|default('') }}";
+  window.LOGIN_MODE = "{{ login_mode|default('smart') }}";
+  window.LOGIN_ONLY = {% if login_only %}true{% else %}false{% endif %};
+  window.STUDENT_SIGNUP_URL = "{{ student_signup_url|default(url('student_signup')) }}";
 </script>
 
 <!-- Load external JavaScript for login/signup functionality -->
-<script type="text/javascript" src="{{ static('topteenfrontend/assets/js/loginsignup.js') }}"></script>
+<script type="text/javascript" src="{{ static('topteenfrontend/assets/js/loginsignup.js') }}?v=20260803-smart1"></script>
 
 <script>
   // If user has an active Django session, prompt to logout first.
@@ -465,7 +485,12 @@
 
   // Login with OTP functions
   var loginOtpEmailValue = '';
-  window.LOGIN_MODE = "{{ login_mode|default('default') }}";
+  if (typeof window.LOGIN_MODE === 'undefined' || !window.LOGIN_MODE) {
+    window.LOGIN_MODE = "{{ login_mode|default('smart') }}";
+  }
+  if (typeof window.LOGIN_ONLY === 'undefined') {
+    window.LOGIN_ONLY = {% if login_only %}true{% else %}false{% endif %};
+  }
   
   function showLoginWithOtp() {
     document.getElementById('loginSignupFormSection').style.display = 'none';
@@ -604,50 +629,83 @@
       return false;
     }
 
-    // Parent/default mode: send OTP directly
-    $.ajax({
-      type: 'POST',
-      url: usersresendotp,
-      data: formData,
-      success: function(data) {
-        if (data && data.success === false) {
-          var errorMsgFail = document.getElementById('errorMsgLoginOtp');
-          errorMsgFail.textContent = data.message || 'Unable to send OTP. Please try again.';
-          errorMsgFail.style.display = 'block';
-          return;
-        }
-        // Show OTP input step
-        document.getElementById('loginOtpEmailStep').style.display = 'none';
-        document.getElementById('loginOtpInputStep').style.display = 'block';
-        document.getElementById('loginOtpEmailDisplay').textContent = email;
-        
-        // Reset OTP inputs
-        var otpInputs = document.querySelectorAll('#loginOtpInputStep input[name="otp"]');
-        otpInputs.forEach(function(input) {
-          input.value = '';
-        });
-        
-        // Auto-focus on first OTP input
-        setTimeout(function() {
-          const firstOtpInput = document.querySelector('#loginOtpInputStep .otpSource');
-          if (firstOtpInput) {
-            firstOtpInput.focus();
+    function _sendOtpAfterAccountCheck() {
+      $.ajax({
+        type: 'POST',
+        url: usersresendotp,
+        data: formData,
+        success: function(data) {
+          if (data && data.success === false) {
+            var errorMsgFail = document.getElementById('errorMsgLoginOtp');
+            errorMsgFail.textContent = data.message || 'Unable to send OTP. Please try again.';
+            errorMsgFail.style.display = 'block';
+            return;
           }
-        }, 100);
-      },
-      error: function(xhr, status, error) {
-        var errorMsg = document.getElementById('errorMsgLoginOtp');
-        var serverMsg = '';
-        try {
-          serverMsg = (xhr.responseJSON && xhr.responseJSON.message) || '';
-        } catch (e) {}
-        errorMsg.textContent = serverMsg || 'Unable to send OTP. Please check your email/mobile and try again.';
-        errorMsg.style.display = 'block';
-      },
-      cache: false,
-      contentType: false,
-      processData: false
-    });
+          document.getElementById('loginOtpEmailStep').style.display = 'none';
+          document.getElementById('loginOtpInputStep').style.display = 'block';
+          document.getElementById('loginOtpEmailDisplay').textContent = email;
+          var otpInputs = document.querySelectorAll('#loginOtpInputStep input[name="otp"]');
+          otpInputs.forEach(function(input) { input.value = ''; });
+          setTimeout(function() {
+            const firstOtpInput = document.querySelector('#loginOtpInputStep .otpSource');
+            if (firstOtpInput) firstOtpInput.focus();
+          }, 100);
+        },
+        error: function(xhr) {
+          var errorMsg = document.getElementById('errorMsgLoginOtp');
+          var serverMsg = '';
+          try { serverMsg = (xhr.responseJSON && xhr.responseJSON.message) || ''; } catch (e) {}
+          errorMsg.textContent = serverMsg || 'Unable to send OTP. Please check your email/mobile and try again.';
+          errorMsg.style.display = 'block';
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+      });
+    }
+
+    // Smart Sign In: confirm account exists before sending OTP (no silent signup).
+    if (window.LOGIN_ONLY || window.LOGIN_MODE === 'smart') {
+      formData.append('login_only', '1');
+      $.ajax({
+        type: 'POST',
+        url: usersloginsignup,
+        data: formData,
+        success: function(data) {
+          if (data.account_not_found) {
+            var errorMsgNf = document.getElementById('errorMsgLoginOtp');
+            errorMsgNf.textContent = data.message || 'No account found for this email or mobile.';
+            errorMsgNf.style.display = 'block';
+            return;
+          }
+          if (data.show_password && data.enc_user_name) {
+            try {
+              if (typeof loginremoveunusetag === 'function') loginremoveunusetag();
+              var x = document.createElement('input');
+              x.setAttribute('type', 'hidden');
+              x.setAttribute('value', data.enc_user_name);
+              x.setAttribute('id', 'encloginusername');
+              x.setAttribute('name', 'enc_user_name');
+              document.getElementById('loginpwd').appendChild(x);
+              document.getElementById('loginpwdname').textContent = data.user_name;
+              document.getElementById('loginpwdDiv').classList.remove('hideModal');
+              return;
+            } catch (e) {}
+          }
+          _sendOtpAfterAccountCheck();
+        },
+        error: function() {
+          _sendOtpAfterAccountCheck();
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+      });
+      return false;
+    }
+
+    // Parent/default mode: send OTP directly
+    _sendOtpAfterAccountCheck();
     return false;
   }
   
@@ -757,6 +815,16 @@
 
   // Submit form on Enter key and handle modal interactions
   document.addEventListener('DOMContentLoaded', function() {
+    // Prefill from ?u= (e.g. redirected from Create account when user already exists)
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const u = (params.get('u') || '').trim();
+      if (u) {
+        const emailInputPrefill = document.getElementById('mobileEmail');
+        if (emailInputPrefill && !emailInputPrefill.value) emailInputPrefill.value = u;
+      }
+    } catch (e) {}
+
     // Email input enter key
     const emailInput = document.getElementById('mobileEmail');
     if (emailInput) {

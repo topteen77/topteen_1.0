@@ -293,6 +293,19 @@
     }
   };
 
+  window.showStudentSignupPopup = function(nextUrl) {
+    window.showLoginRequiredPopup(nextUrl);
+    var panel = document.getElementById('studentSignupPanel');
+    if (panel) {
+      document.querySelectorAll('.student-popup-panel').forEach(function(p) { p.classList.remove('active'); });
+      panel.classList.add('active');
+      var inp = document.getElementById('studentSignupInput');
+      if (inp) {
+        try { inp.focus(); } catch (e) {}
+      }
+    }
+  };
+
   window.closeLoginRequiredPopup = function() {
     var popup = document.getElementById('loginRequiredPopup');
     if (popup) {
@@ -493,8 +506,21 @@
         }, function(data) { if (errEl) errEl.textContent = data.message || 'Failed to send OTP'; });
         return;
       }
-      var fd = new FormData(); fd.append('user_name', input);
+      var fd = new FormData();
+      fd.append('user_name', input);
+      fd.append('login_only', '1');
+      fd.append('login_mode', 'smart');
       ajaxPost(urls.loginsingup, fd, function(data) {
+        if (data.account_not_found) {
+          if (errEl) errEl.textContent = data.message || 'No account found. Create a student account instead.';
+          var signupInp = document.getElementById('studentSignupInput');
+          if (signupInp) signupInp.value = input;
+          if (typeof window.showStudentSignupPopup === 'function') {
+            /* keep popup open; switch panel */
+          }
+          showPanel('studentSignupPanel');
+          return;
+        }
         if (data.message && !data.show_password && !data.show_otp) {
           if (errEl) errEl.textContent = data.message;
           return;
@@ -636,10 +662,23 @@
     document.querySelectorAll('#header-signin-btn, .student-login-popup-trigger').forEach(function(el) {
       if (el) el.addEventListener('click', function(e) { e.preventDefault(); showLoginRequiredPopup(); });
     });
+    document.querySelectorAll('.student-signup-popup-trigger').forEach(function(el) {
+      if (el) el.addEventListener('click', function(e) {
+        e.preventDefault();
+        if (typeof window.showStudentSignupPopup === 'function') window.showStudentSignupPopup();
+      });
+    });
   });
 
   // Document-level delegation so top nav / any popup trigger always opens popup (never navigates to /student/login/)
   document.addEventListener('click', function(e) {
+    var signupTrigger = e.target && (e.target.closest ? e.target.closest('.student-signup-popup-trigger') : null);
+    if (signupTrigger) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (typeof window.showStudentSignupPopup === 'function') window.showStudentSignupPopup();
+      return;
+    }
     var t = e.target && (e.target.closest ? e.target.closest('#header-signin-btn, .student-login-popup-trigger') : null);
     if (!t || !t.matches || (!t.matches('#header-signin-btn') && !t.matches('.student-login-popup-trigger'))) return;
     e.preventDefault();

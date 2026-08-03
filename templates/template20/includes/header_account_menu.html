@@ -2,10 +2,10 @@
 <span class="dropdown-toggle menu-link tt-header-account-toggle" role="button" tabindex="0" aria-label="Account menu">
   <img src="{{ static('images_new/icons/user-icon.svg') }}" alt="user" width="40" height="40" />
 </span>
-<div class="dropdown-content login-content">
+<div class="dropdown-content login-content tt-account-menu">
   {% if hdr_user.is_authenticated %}
-  <h6 class="pt-2">{% if hdr_user.user_type == 1 %}Dashboard{% else %}User Dashboard{% endif %}</h6>
-  <p class="text-gray fs-14">Welcome, {% if hdr_user.name and hdr_user.name != 'None' %}{{ hdr_user.name }}{% elif hdr_user.mobile %}{{ hdr_user.mobile }}{% elif hdr_user.first_name %}{{ hdr_user.first_name }}{% elif hdr_user.email %}{{ hdr_user.email|truncate(20) }}{% else %}User{% endif %}</p>
+  <h6 class="pt-2 tt-account-menu__title">{% if hdr_user.user_type == 1 %}Dashboard{% else %}User Dashboard{% endif %}</h6>
+  <p class="text-gray fs-14 tt-account-menu__lede">Welcome, {% if hdr_user.name and hdr_user.name != 'None' %}{{ hdr_user.name }}{% elif hdr_user.mobile %}{{ hdr_user.mobile }}{% elif hdr_user.first_name %}{{ hdr_user.first_name }}{% elif hdr_user.email %}{{ hdr_user.email|truncate(20) }}{% else %}User{% endif %}</p>
   {% if hdr_user.user_type == 1 and hdr_user.get_display_student_id() %}
   <p class="text-gray fs-12 mb-0">Student ID: <strong>{{ hdr_user.get_display_student_id() }}</strong></p>
   {% endif %}
@@ -43,11 +43,37 @@
     <a href="{{ url('users:logout') }}" class="btn custom-button blue-button d-flex align-items-center">Logout</a>
   </div>
   {% else %}
-  <h6 class="pt-2">Dashboard</h6>
-  <p class="text-gray fs-14">Login and Sign Up to access your dashboard</p>
-  <div class="hero-button d-flex flex-row border-top border-bottom py-3 justify-content-center">
-    <a href="{{ url('student_login') }}" class="btn custom-button purple-button me-3" role="button">Sign In</a>
-    <a href="{{ url('student_signup') }}" class="btn custom-button blue-button d-flex align-items-center">Sign Up</a>
+  <div class="tt-account-menu__guest">
+    <h6 class="tt-account-menu__title">Welcome to TopTeen</h6>
+    <p class="tt-account-menu__lede">Sign in or create a student account. We’ll open the right dashboard for your role.</p>
+
+    <div class="tt-account-menu__actions">
+      <a href="{{ url('users:login') }}" class="btn custom-button purple-button tt-account-menu__btn" role="button">Sign In</a>
+      <a href="{{ url('student_signup') }}" class="btn custom-button blue-button tt-account-menu__btn">Create student account</a>
+    </div>
+
+    <div class="tt-account-menu__section">
+      <p class="tt-account-menu__section-label">I am a parent</p>
+      <a href="{{ url('parents_login') }}" class="tt-account-menu__row">
+        <span class="tt-account-menu__row-main">
+          <span class="tt-account-menu__row-title">Parent login</span>
+          <span class="tt-account-menu__row-sub">Mobile OTP · linked by your child</span>
+        </span>
+        <i class="bx bx-chevron-right tt-account-menu__row-chevron" aria-hidden="true"></i>
+      </a>
+    </div>
+
+    <details class="tt-account-menu__partners" open>
+      <summary class="tt-account-menu__partners-summary">
+        <span>For schools &amp; partners</span>
+        <i class="bx bx-chevron-down" aria-hidden="true"></i>
+      </summary>
+      <ul class="tt-account-menu__partner-list">
+        <li><a href="{{ url('institute:login') }}">Institute login</a></li>
+        <li><a href="{{ url('counselor:login') }}">Counselor login</a></li>
+        <li><a href="{{ url('marketing:login') }}">Marketing login</a></li>
+      </ul>
+    </details>
   </div>
   {% endif %}
 </div>
