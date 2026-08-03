@@ -42,6 +42,7 @@
 {% endblock %}
 
 {% block content %}
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 <section class="llm-payment-page pb-5">
   <div class="container">
     <div class="row justify-content-center">
@@ -132,13 +133,25 @@
     }
     return cookieValue;
   }
+  function getCsrfToken() {
+    var input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (input && input.value) return input.value;
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.getAttribute('content')) return meta.getAttribute('content');
+    return getCookie('csrftoken') || '{{ csrf_token }}';
+  }
+  function paymentCsrfHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-CSRFToken': getCsrfToken()
+    };
+  }
   function updatePayment(response) {
     fetch('{{ url("core:llm_package_payment_update") }}', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCookie('csrftoken')
-      },
+      headers: paymentCsrfHeaders(),
       body: JSON.stringify({
         gateway_order_id: response.razorpay_order_id,
         gateway_payment_id: response.razorpay_payment_id,

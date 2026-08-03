@@ -9,13 +9,25 @@ checkoutcourse.forEach(elm=>{
 
 
 
+function getPaymentCsrfToken(){
+    var input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (input && input.value) return input.value;
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.getAttribute('content')) return meta.getAttribute('content');
+    var match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : '';
+}
+
 function createOrder(course_slug){
+    var csrf = getPaymentCsrfToken();
     var formData = new FormData();
     formData.append("skilllabcourse",course_slug);
+    if (csrf) formData.append("csrfmiddlewaretoken", csrf);
     $.ajax({
         url: create_skillabcourse_payment,
         type: 'POST',
         data: formData,
+        headers: csrf ? { 'X-CSRFToken': csrf, 'X-Requested-With': 'XMLHttpRequest' } : { 'X-Requested-With': 'XMLHttpRequest' },
         success: function (data) {
             try{
                     openRazorpay(data);
@@ -27,7 +39,7 @@ function createOrder(course_slug){
         },
         error: function (xhr, ajaxOptions, thrownError) {
             if(xhr.status==403) {
-                fireAlert("You must be logged in, proceed?","error");
+                fireAlert("Security check failed. Please refresh and try again.","error");
             }
             if(xhr.status==400) {
                 fireAlert("The payment cannot process at the moment.","error");
@@ -40,12 +52,15 @@ function createOrder(course_slug){
 }
 
 function updatePayment(sp_id,pay_id,response,success_url,fail_url){
+    var csrf = getPaymentCsrfToken();
     var data = {gateway_order_id:response.razorpay_order_id,gateway_payment_id:response.razorpay_payment_id,gateway_signature:response.razorpay_signature,sp_id:sp_id,payment_id:pay_id};
     $.ajax({
         url: update_skillabcourse_payment,
         headers: { 
             'Accept': 'application/json',
-            'Content-Type': 'application/json' 
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrf
         },
         type: 'POST',
         data:JSON.stringify(data),

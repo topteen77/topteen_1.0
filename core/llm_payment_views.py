@@ -13,6 +13,8 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.decorators import method_decorator
 from django.views import View
+from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.generic import TemplateView
 from rest_framework.views import APIView
 
@@ -238,6 +240,8 @@ class LLMTokenPackagesView(TemplateView):
         return ctx
 
 
+@method_decorator(never_cache, name="dispatch")
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 @method_decorator(login_required(login_url="/user/login/"), name="dispatch")
 class LLMPackageCheckoutView(View):
     """Create domain + gateway payment and open Razorpay or redirect to Eazypay."""

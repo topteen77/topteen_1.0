@@ -820,12 +820,13 @@ def push_lead_to_bank_email(application, *, actor) -> tuple:
             "modified",
         ]
     )
+    recipients_label = ", ".join(recipients)
     _add_system_remark(
         application,
-        f"Bank email sent to {', '.join(recipients)}.",
+        f"Bank email sent to {recipients_label}.",
         author=actor,
     )
-    return True, f"Bank email sent to {len(recipients)} recipient(s)."
+    return True, f"Bank email sent to {recipients_label}."
 
 
 def push_lead_to_bank_api(application, *, actor, force: bool = True) -> tuple:
