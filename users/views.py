@@ -619,13 +619,22 @@ def csrf_failure(request, reason=""):
         login_path = settings.LOGIN_URL
 
     message = "Your session has expired. Please sign in again."
+    content_type = (request.headers.get("Content-Type") or "").lower()
     wants_json = (
         request.headers.get("X-Requested-With") == "XMLHttpRequest"
         or "application/json" in (request.headers.get("Accept") or "")
+        or "application/json" in content_type
     )
     if wants_json:
         return JsonResponse(
-            {"success": False, "message": message, "redirect": login_path, "session_expired": True},
+            {
+                "success": False,
+                "error": message,
+                "message": message,
+                "detail": message,
+                "redirect": login_path,
+                "session_expired": True,
+            },
             status=401,
         )
     try:

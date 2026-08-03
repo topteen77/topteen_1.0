@@ -25,7 +25,8 @@ from django.db.models import Q
 from django.urls import reverse
 from django.shortcuts import redirect,HttpResponseRedirect
 from payments.payment.icicieazypay import IciciEazyPayService
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+from django.views.decorators.cache import never_cache
 from django.conf import settings
 from colleges.models import College
 from core.models import Country
@@ -34,6 +35,8 @@ from institute.models import StudentManagement
 from django.http import JsonResponse
 
 
+@method_decorator(never_cache, name="dispatch")
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class PsychometricTest(TemplateView):
     template_name = "template20/psychometric_test.html"
     def html_head(self):
@@ -106,6 +109,8 @@ class PsychometricTest(TemplateView):
 
 
 
+@method_decorator(never_cache, name="dispatch")
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class PsychometricTest12(TemplateView):
     template_name = "template20/psychometric_test_12.html"
     def html_head(self):
