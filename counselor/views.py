@@ -29,7 +29,8 @@ from django.views import View
 from django.views.generic import TemplateView
 from .models import Counselor, FollowUpStatus
 from django.contrib.auth import get_user_model
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+from django.views.decorators.cache import never_cache
 
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 
@@ -1781,6 +1782,8 @@ def Students_follow_up(request, coun_id):
     )
     return render(request, tpl, context)
 
+@never_cache
+@ensure_csrf_cookie
 def CounselorCoursepayment(request):
     from django.conf import settings
     import razorpay

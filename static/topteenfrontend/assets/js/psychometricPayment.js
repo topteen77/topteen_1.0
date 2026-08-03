@@ -12,13 +12,25 @@ if(checkoutadvanced){checkoutadvanced.onclick = function(e){
     e.preventDefault();
 }}
 
+function getPaymentCsrfToken(){
+    var input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (input && input.value) return input.value;
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.getAttribute('content')) return meta.getAttribute('content');
+    var match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : '';
+}
+
 function createOrder(test_type){
+    var csrf = getPaymentCsrfToken();
     var formData = new FormData();
     formData.append("test_type",test_type);
+    if (csrf) formData.append("csrfmiddlewaretoken", csrf);
     $.ajax({
         url: create_pyschometric_payment,
         type: 'POST',
         data: formData,
+        headers: csrf ? { 'X-CSRFToken': csrf, 'X-Requested-With': 'XMLHttpRequest' } : { 'X-Requested-With': 'XMLHttpRequest' },
         success: function (data) {
             try{
                     openRazorpay(data);
@@ -30,7 +42,8 @@ function createOrder(test_type){
         },
         error: function(data){
             try{
-                fireAlert(data.responseJSON.message,"error");
+                var payload = data.responseJSON || {};
+                fireAlert(payload.message || payload.error || payload.detail || "Internal Server Error","error");
             }
             catch(e){
                 fireAlert("Internal Server Error","error");
@@ -43,12 +56,15 @@ function createOrder(test_type){
 }
 
 function updatePayment(test_id,pay_id,test_type,response,success_url,fail_url){
+    var csrf = getPaymentCsrfToken();
     var data = {gateway_order_id:response.razorpay_order_id,gateway_payment_id:response.razorpay_payment_id,gateway_signature:response.razorpay_signature,test_id:test_id,payment_id:pay_id,test_type:test_type};
     $.ajax({
         url: update_pyschometric_payment,
         headers: { 
             'Accept': 'application/json',
-            'Content-Type': 'application/json' 
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrf
         },
         type: 'POST',
         data:JSON.stringify(data),
@@ -65,12 +81,15 @@ function updatePayment(test_id,pay_id,test_type,response,success_url,fail_url){
   }
 
 function createCentralTest(test_id,test_type){
+    var csrf = getPaymentCsrfToken();
     var data = {test_id:test_id,test_type:test_type};
     $.ajax({
         url: create_central_test,
         headers: { 
             'Accept': 'application/json',
-            'Content-Type': 'application/json' 
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrf
         },
         type: 'POST',
         data:JSON.stringify(data),

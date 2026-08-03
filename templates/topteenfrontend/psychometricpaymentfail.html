@@ -54,6 +54,7 @@
 </style>
 {%endblock%}
 {% block main %}
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 <main class="payment-fail-shell lg:container lg:mx-auto mx-[12px] lg:mx-auto pt-[36px] pb-[56px] lg:pb-[84px] p-3">
     <section class="mb-[15px]">
       <h2 class="text-xl text-[#131415] semibold lg:mb-[20px] px-3">
@@ -225,10 +226,19 @@
     return cookieValue;
   }
 
+  function getCsrfToken() {
+    var input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (input && input.value) return input.value;
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.getAttribute('content')) return meta.getAttribute('content');
+    return getCookie('csrftoken') || '{{ csrf_token }}';
+  }
+
   function tryPaymentAgain(button) {
     // Get test type and payment URL from button data attributes
     var testType = button.getAttribute('data-test-type');
     var paymentUrl = button.getAttribute('data-payment-url');
+    var csrf = getCsrfToken();
     
     console.log('Retrying payment for test type:', testType);
     console.log('Payment URL:', paymentUrl);
@@ -241,13 +251,15 @@
     // Make AJAX call to create payment with same test type
     var formData = new FormData();
     formData.append("test_type", testType);
-    formData.append("csrfmiddlewaretoken", getCookie('csrftoken'));
+    formData.append("csrfmiddlewaretoken", csrf);
 
     fetch(paymentUrl, {
       method: 'POST',
       body: formData,
       headers: {
-        'X-CSRFToken': getCookie('csrftoken')
+        'X-CSRFToken': csrf,
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
       },
       credentials: 'same-origin'
     })
@@ -255,7 +267,7 @@
       var responseClone = response.clone();
       if (!response.ok) {
         return response.json().then(errorData => {
-          var errorMsg = errorData.error || errorData.message || 'HTTP ' + response.status;
+          var errorMsg = errorData.error || errorData.detail || errorData.message || 'HTTP ' + response.status;
           throw new Error(errorMsg);
         }).catch(() => {
           return responseClone.text().then(text => {
@@ -352,7 +364,9 @@
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-CSRFToken': getCookie('csrftoken')
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': getCsrfToken()
       },
       body: JSON.stringify(data),
       credentials: 'same-origin'

@@ -687,6 +687,8 @@ class UserPyschometricTestPaymentSuccess(TemplateView):
     def get(self, request,enc_id,*args, **kwargs):
         return render(request, self.template_name, self.get_context(request,enc_id,*args, **kwargs))
 
+@method_decorator(never_cache, name="dispatch")
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 class UserPyschometricTestPaymentFail(TemplateView):
     template_name ="topteenfrontend/psychometricpaymentfail.html"

@@ -1090,6 +1090,13 @@ function setTranslateComplexity(level) {
 }
 
 function getCsrfToken() {
+  var input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+  if (input && input.value) return input.value;
+  var meta = document.querySelector('meta[name="csrf-token"]');
+  if (meta && meta.getAttribute('content')) return meta.getAttribute('content');
+  if (window.AIFeatureQuotaConfig && window.AIFeatureQuotaConfig.csrfToken) {
+    return window.AIFeatureQuotaConfig.csrfToken;
+  }
   var match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
   return match ? decodeURIComponent(match[1]) : '';
 }

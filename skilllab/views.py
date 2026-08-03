@@ -24,6 +24,8 @@ from core import choices
 from django.shortcuts import redirect,HttpResponseRedirect
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import ensure_csrf_cookie
 from .task import send_skillabcourse_payment_success_mail
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -1636,6 +1638,8 @@ class SkilllabCoursePaymentFail(TemplateView):
     def get(self, request,enc_id,*args, **kwargs):
         return render(request, self.template_name, self.get_context(request,enc_id,*args, **kwargs))
     
+@method_decorator(never_cache, name="dispatch")
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 class CreateSkilllabCoursePaymentWithEazyPay(View):
     def get_payment_url(self,request,slug,*args, **kwargs):
