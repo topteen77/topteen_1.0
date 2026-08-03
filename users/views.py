@@ -2523,9 +2523,12 @@ class SignUpPassword(APIView):
             data['message'] = "Passwords do not match. Please make sure both passwords are the same."
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
         
-        # Validate grade for direct signups (allow classes 6 through 12)
+        # Require class/grade for direct student signups (classes 6–12)
         allowed = [str(v) for v in range(6, 13)]
-        if grade and grade not in allowed:
+        if not grade:
+            data['message'] = "Please select your class"
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+        if str(grade) not in allowed:
             data['message'] = "Please select a valid class (6 to 12)"
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
         
@@ -2608,11 +2611,7 @@ class SignUpPassword(APIView):
                     try:
                         # Create or update UserProfile with grade
                         user_profile, created = UserProfile.objects.get_or_create(user=user)
-                        # Set default to "10" if not provided
-                        if grade:
-                            user_profile.grade = grade
-                        else:
-                            user_profile.grade = "10"  # Default to class 10
+                        user_profile.grade = str(grade)
                         user_profile.save()
                     except Exception as profile_error:
                         # Log but don't fail - user is already created

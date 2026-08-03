@@ -1,4 +1,4 @@
-{# Shared student login/signup popup – in-page, AJAX, no redirect; close and reload on success so user remains on same page #}
+{# Shared student login/signup popup – in-page, AJAX; keep full /user/login/ pages separate #}
 <style>
   .profile-completion-popup.student-login-popup-global {
     display: none;
@@ -7,11 +7,15 @@
     top: 0;
     width: 100%;
     height: 100%;
+    height: 100dvh;
     background: rgba(0, 0, 0, 0.5);
     z-index: 10000;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 16px;
+    padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    box-sizing: border-box;
+    -webkit-overflow-scrolling: touch;
   }
   .profile-completion-popup.student-login-popup-global#loginRequiredPopup {
     background: rgba(235, 242, 255, 0.94);
@@ -20,64 +24,77 @@
   .profile-completion-popup.student-login-popup-global.show {
     display: flex;
   }
+  body.student-login-popup-open {
+    overflow: hidden !important;
+    touch-action: none;
+  }
   .profile-completion-popup.student-login-popup-global .profile-completion-content {
     position: relative;
     background: white;
     border-radius: 20px;
     max-width: 450px;
-    width: 90%;
-    max-height: 90vh;
+    width: 100%;
+    max-height: min(90vh, 90dvh);
     overflow-y: auto;
+    overscroll-behavior: contain;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   }
   .profile-completion-popup.student-login-popup-global .profile-completion-content.student-login-popup-content {
     box-shadow: 0 24px 56px rgba(63, 55, 201, 0.15);
     border: 1px solid rgba(63, 55, 201, 0.08);
     max-width: 400px;
-    padding: 28px 24px 20px;
+    padding: 24px 22px 16px;
   }
   .profile-completion-popup.student-login-popup-global .profile-completion-close {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: none;
+    position: sticky;
+    float: right;
+    top: 0;
+    margin: -4px -4px 0 0;
+    background: #f3f4f6;
     border: none;
     font-size: 22px;
-    color: #888;
+    color: #6b7280;
     cursor: pointer;
     padding: 6px;
-    z-index: 1;
+    z-index: 2;
     border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
   .profile-completion-popup.student-login-popup-global .profile-completion-close:hover {
-    color: #333;
-    background: rgba(0, 0, 0, 0.05);
+    color: #111;
+    background: #e5e7eb;
   }
   .student-popup-panel { display: none; }
-  .student-popup-panel.active { display: block; }
+  .student-popup-panel.active { display: block; clear: both; }
+  .logo-popup img { max-height: 36px; width: auto; }
   .student-popup-icon {
-    width: 64px; height: 64px;
-    margin: 0 auto 16px;
+    width: 56px; height: 56px;
+    margin: 0 auto 12px;
     display: flex; align-items: center; justify-content: center;
     background: rgba(63, 55, 201, 0.1);
     border-radius: 50%;
     color: #3f37c9;
-    font-size: 32px;
+    font-size: 28px;
   }
-  .student-popup-title { font-size: 1.35rem; font-weight: 700; color: #1a1a1a; margin: 0 0 4px; }
-  .student-popup-sub { font-size: 0.9375rem; color: #6b7280; margin: 0 0 20px; line-height: 1.4; }
+  .student-popup-title { font-size: 1.25rem; font-weight: 700; color: #1a1a1a; margin: 0 0 4px; }
+  .student-popup-sub { font-size: 0.875rem; color: #6b7280; margin: 0 0 16px; line-height: 1.4; }
   .student-popup-tabs {
     display: flex; gap: 0;
     border-bottom: 1px solid #e5e7eb;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
   }
   .student-popup-tab {
-    flex: 1; padding: 12px 16px;
-    text-align: center; font-size: 15px; font-weight: 600;
+    flex: 1; padding: 10px 12px;
+    text-align: center; font-size: 14px; font-weight: 600;
     color: #9ca3af;
     background: none; border: none; cursor: pointer;
     border-bottom: 3px solid transparent;
     margin-bottom: -1px;
+    min-height: 44px;
   }
   .student-popup-tab:hover { color: #6b7280; }
   .student-popup-tab.active { color: #3f37c9; border-bottom-color: #3f37c9; }
@@ -87,18 +104,48 @@
     padding: 0 14px 0 44px;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
-    font-size: 15px;
+    /* 16px avoids iOS Safari auto-zoom on focus */
+    font-size: 16px;
+    background: #fff;
   }
-  .student-popup-input:focus { outline: none; border-color: #3f37c9; }
-  .student-popup-input-wrap { position: relative; margin-bottom: 18px; }
-  .student-popup-input-wrap i {
+  .student-popup-input:focus { outline: none; border-color: #3f37c9; box-shadow: 0 0 0 3px rgba(63, 55, 201, 0.12); }
+  .student-popup-input-wrap { position: relative; margin-bottom: 14px; }
+  .student-popup-input-wrap i:not(.student-popup-eye) {
     position: absolute; left: 14px; top: 50%;
     transform: translateY(-50%);
     color: #9ca3af;
     font-size: 20px;
+    pointer-events: none;
   }
+  .student-popup-eye {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: none;
+    color: #9ca3af;
+    font-size: 20px;
+    padding: 6px;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .student-popup-eye:hover { color: #3f37c9; }
+  .student-popup-input.has-toggle { padding-right: 44px; }
+  select.student-popup-select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%239ca3af' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+    cursor: pointer;
+    color: #1a1a1a;
+  }
+  select.student-popup-select:invalid { color: #9ca3af; }
   .student-popup-btn {
     width: 100%;
+    min-height: 48px;
     height: 48px;
     padding: 0 24px;
     border-radius: 12px;
@@ -106,16 +153,21 @@
     font-size: 15px;
     border: none;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s, opacity 0.2s;
   }
   .student-popup-btn-primary { background: #3f37c9; color: #fff; }
   .student-popup-btn-primary:hover { background: #3430a8; }
+  .student-popup-btn-primary:disabled {
+    opacity: 0.65;
+    cursor: wait;
+  }
   .student-popup-btn-outline {
     background: transparent;
     color: #3f37c9;
     border: 2px solid #3f37c9;
     margin-top: 10px;
     height: 44px;
+    min-height: 44px;
   }
   .student-popup-btn-outline:hover { background: rgba(63, 55, 201, 0.06); }
   .student-popup-otp-row {
@@ -145,91 +197,113 @@
   }
   .student-popup-otp-row .student-popup-otp-digit:focus,
   .student-popup-otp-row input:focus { outline: none; border-color: #3f37c9; }
-  @media (max-width: 420px) {
-    .profile-completion-popup.student-login-popup-global .profile-completion-content.student-login-popup-content {
-      padding: 24px 16px 16px;
+  .student-popup-switch { margin-top: 14px; text-align: center; }
+  .student-popup-switch a { color: #3f37c9; font-weight: 600; font-size: 14px; text-decoration: none; }
+  .student-popup-switch a:hover { text-decoration: underline; }
+  .student-popup-err { font-size: 13px; color: #dc2626; margin-bottom: 8px; min-height: 18px; }
+  .student-login-skip { margin-top: 12px; text-align: center; }
+  .student-login-skip button { font-size: 13px; color: #6b7280; background: none; border: none; cursor: pointer; min-height: 40px; padding: 8px 12px; }
+  .student-login-skip button:hover { color: #374151; }
+
+  /* Phones / PWA: bottom sheet for easier reach + keyboard */
+  @media (max-width: 640px) {
+    .profile-completion-popup.student-login-popup-global {
+      align-items: flex-end;
+      padding-left: max(10px, env(safe-area-inset-left));
+      padding-right: max(10px, env(safe-area-inset-right));
+      padding-bottom: max(0px, env(safe-area-inset-bottom));
+      padding-top: max(8px, env(safe-area-inset-top));
     }
+    .profile-completion-popup.student-login-popup-global .profile-completion-content.student-login-popup-content {
+      max-width: 100%;
+      width: 100%;
+      border-radius: 16px 16px 0 0;
+      max-height: min(92vh, 92dvh);
+      padding: 18px 16px calc(14px + env(safe-area-inset-bottom));
+    }
+    .student-popup-title { font-size: 1.15rem; }
     .student-popup-otp-row .student-popup-otp-digit,
     .student-popup-otp-row input {
-      height: 42px;
+      height: 44px;
       font-size: 16px;
       max-width: none;
     }
   }
-  .student-popup-switch { margin-top: 18px; text-align: center; }
-  .student-popup-switch a { color: #3f37c9; font-weight: 600; font-size: 14px; text-decoration: none; }
-  .student-popup-switch a:hover { text-decoration: underline; }
-  .student-popup-err { font-size: 13px; color: #dc2626; margin-bottom: 8px; min-height: 18px; }
-  .student-login-skip { margin-top: 16px; text-align: center; }
-  .student-login-skip button { font-size: 13px; color: #6b7280; background: none; border: none; cursor: pointer; }
-  .student-login-skip button:hover { color: #374151; }
+
+  @media (display-mode: standalone), (display-mode: fullscreen) {
+    .profile-completion-popup.student-login-popup-global {
+      padding-top: max(16px, env(safe-area-inset-top));
+      padding-bottom: max(12px, env(safe-area-inset-bottom));
+    }
+  }
 </style>
 
-<div id="loginRequiredPopup" class="profile-completion-popup student-login-popup-global" aria-hidden="true">
+<div id="loginRequiredPopup" class="profile-completion-popup student-login-popup-global" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="studentLoginPopupTitle">
   <div class="profile-completion-content student-login-popup-content">
     <button type="button" class="profile-completion-close" onclick="closeLoginRequiredPopup()" aria-label="Close">
       <i class='bx bx-x'></i>
     </button>
-   
 
     <div id="studentLoginPanel" class="student-popup-panel active">
-
-      <div class="logo-popup d-flex justify-content-center align-items-center"> <img src="{{ static('images_new/logos/logo.svg') }}" alt="Logo" /></div>
- 
-      <h2 class="student-popup-title text-center mt-4">Student Login</h2>
-      <p class="student-popup-sub text-center">Login using your email or mobile number.</p>
-      <div class="student-popup-tabs">
-        <button type="button" class="student-popup-tab active" data-tab="email">Email Login</button>
-        <button type="button" class="student-popup-tab" data-tab="otp">Mobile OTP</button>
+      <div class="logo-popup d-flex justify-content-center align-items-center">
+        <img src="{{ static('images_new/logos/logo.svg') }}" alt="TopTeen" />
+      </div>
+      <h2 class="student-popup-title text-center mt-3" id="studentLoginPopupTitle">Sign in</h2>
+      <p class="student-popup-sub text-center">Use your email or mobile to continue on this page.</p>
+      <div class="student-popup-tabs" role="tablist">
+        <button type="button" class="student-popup-tab active" data-tab="email" role="tab" aria-selected="true">Password</button>
+        <button type="button" class="student-popup-tab" data-tab="otp" role="tab" aria-selected="false">OTP</button>
       </div>
       <div id="studentLoginEmailStep">
-        <p id="studentLoginErr" class="student-popup-err"></p>
+        <p id="studentLoginErr" class="student-popup-err" role="alert"></p>
         <div class="student-popup-input-wrap">
           <i class='bx bx-envelope'></i>
-          <input type="text" id="studentLoginInput" class="student-popup-input" placeholder="Enter Email or Mobile" autocomplete="username">
+          <input type="text" id="studentLoginInput" class="student-popup-input" placeholder="Email or mobile number" autocomplete="username" enterkeyhint="go">
         </div>
         <button type="button" class="student-popup-btn student-popup-btn-primary" id="studentLoginContinueBtn">Continue</button>
       </div>
       <div id="studentLoginOtpStep" style="display: none;">
         <p class="text-gray fs-14 mb-2">OTP sent to <span id="studentLoginOtpTo" class="fw-600 text-purple"></span></p>
-        <p id="studentLoginOtpErr" class="student-popup-err"></p>
+        <p id="studentLoginOtpErr" class="student-popup-err" role="alert"></p>
         <div class="student-popup-otp-row" id="studentLoginOtpInputs"></div>
         <p class="text-gray fs-14 mb-2">Didn't receive it? <button type="button" class="btn btn-link p-0 text-purple fw-600" id="studentLoginResendOtp">Resend code</button></p>
         <button type="button" class="student-popup-btn student-popup-btn-primary" id="studentLoginVerifyOtp">Verify OTP</button>
         <button type="button" class="student-popup-btn student-popup-btn-outline mt-2" id="studentLoginOtpBack">Back</button>
       </div>
       <div class="student-popup-switch">
-        <a href="#" id="studentShowSignup">Create account</a>
+        <a href="#" id="studentShowSignup">New here? Create student account</a>
       </div>
     </div>
 
     <div id="studentPasswordPanel" class="student-popup-panel">
       <div class="student-popup-icon"><i class='bx bx-lock-alt'></i></div>
       <h2 class="student-popup-title text-center">Enter password</h2>
-      <p class="student-popup-sub text-center">For <span id="studentPasswordEmail" class="fw-600 text-purple"></span></p>
-      <p id="studentPasswordErr" class="student-popup-err"></p>
+      <p class="student-popup-sub text-center">Signing in as <span id="studentPasswordEmail" class="fw-600 text-purple"></span></p>
+      <p id="studentPasswordErr" class="student-popup-err" role="alert"></p>
       <input type="hidden" id="studentPasswordEncUser" value="">
       <div class="student-popup-input-wrap mb-3">
         <i class='bx bx-lock'></i>
-        <input type="password" id="studentPasswordInput" class="student-popup-input" placeholder="Enter password" autocomplete="current-password">
+        <input type="password" id="studentPasswordInput" class="student-popup-input has-toggle" placeholder="Password" autocomplete="current-password" enterkeyhint="done">
+        <button type="button" class="student-popup-eye" id="studentPasswordToggle" aria-label="Show password"><i class='bx bx-hide'></i></button>
       </div>
-      <button type="button" class="student-popup-btn student-popup-btn-primary" id="studentPasswordSubmit">Continue</button>
+      <button type="button" class="student-popup-btn student-popup-btn-primary" id="studentPasswordSubmit">Sign in</button>
       <button type="button" class="student-popup-btn student-popup-btn-outline" id="studentPasswordBack">Back</button>
     </div>
 
     <div id="studentSignupPanel" class="student-popup-panel">
-      <div class="logo-popup d-flex justify-content-center align-items-center"> <img src="{{ static('images_new/logos/logo.svg') }}" alt="Logo" /></div>
- 
-      <h2 class="student-popup-title text-center mt-4">Create Account</h2>
-      <p class="student-popup-sub text-center">Sign up using your email or mobile number.</p>
-      <p id="studentSignupErr" class="student-popup-err"></p>
+      <div class="logo-popup d-flex justify-content-center align-items-center">
+        <img src="{{ static('images_new/logos/logo.svg') }}" alt="TopTeen" />
+      </div>
+      <h2 class="student-popup-title text-center mt-3">Create student account</h2>
+      <p class="student-popup-sub text-center">Sign up with email or mobile. We’ll verify with OTP.</p>
+      <p id="studentSignupErr" class="student-popup-err" role="alert"></p>
       <div class="student-popup-input-wrap">
         <i class='bx bx-envelope'></i>
-        <input type="text" id="studentSignupInput" class="student-popup-input" placeholder="Enter Email or Mobile" autocomplete="username">
+        <input type="text" id="studentSignupInput" class="student-popup-input" placeholder="Email or mobile number" autocomplete="username" enterkeyhint="go">
       </div>
       <button type="button" class="student-popup-btn student-popup-btn-primary" id="studentSignupContinueBtn">Continue</button>
       <div class="student-popup-switch">
-        <a href="#" id="studentShowLogin">Already have an account? Login</a>
+        <a href="#" id="studentShowLogin">Already have an account? Sign in</a>
       </div>
     </div>
 
@@ -248,9 +322,23 @@
     <div id="studentSignupPwdPanel" class="student-popup-panel">
       <div class="student-popup-icon"><i class='bx bx-lock-alt'></i></div>
       <h2 class="student-popup-title text-center">Set password</h2>
-      <p class="student-popup-sub text-center">Choose a password for your account.</p>
+      <p class="student-popup-sub text-center">Choose your class and a password for your account.</p>
       <p id="studentSignupPwdErr" class="student-popup-err"></p>
       <input type="hidden" id="studentSignupPwdEncUser" value="">
+      <div class="student-popup-input-wrap mb-2">
+        <i class='bx bx-book'></i>
+        <select id="studentSignupGrade" class="student-popup-input student-popup-select" name="grade" required aria-label="Select your class">
+          <option value="" selected disabled>Select your class</option>
+          {% if master_classes is defined %}
+            {% set signup_classes = master_classes() %}
+          {% else %}
+            {% set signup_classes = MASTER_CLASSES %}
+          {% endif %}
+          {% for cls in signup_classes %}
+          <option value="{{ cls.value }}">{{ cls.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
       <div class="student-popup-input-wrap mb-2">
         <i class='bx bx-lock'></i>
         <input type="password" id="studentSignupPwdInput" class="student-popup-input" placeholder="Password" autocomplete="new-password">
@@ -283,13 +371,52 @@
     next: ""
   };
 
+  function _setStudentPopupScrollLock(locked) {
+    try {
+      document.body.classList.toggle('student-login-popup-open', !!locked);
+    } catch (e) {}
+  }
+  function _focusStudentPopupField(id) {
+    setTimeout(function() {
+      try {
+        var el = document.getElementById(id);
+        if (el) el.focus({ preventScroll: false });
+      } catch (e) {}
+    }, 80);
+  }
+  function _setBtnBusy(btn, busy, idleLabel) {
+    if (!btn) return;
+    if (busy) {
+      if (!btn.dataset.idleLabel) btn.dataset.idleLabel = btn.textContent || idleLabel || 'Continue';
+      btn.disabled = true;
+      btn.textContent = 'Please wait…';
+    } else {
+      btn.disabled = false;
+      btn.textContent = btn.dataset.idleLabel || idleLabel || 'Continue';
+      delete btn.dataset.idleLabel;
+    }
+  }
+
   window.showLoginRequiredPopup = function(nextUrl) {
     window.studentLoginNextUrl = (nextUrl && typeof nextUrl === 'string') ? nextUrl : '';
+    // Suppress Career Battle promo while user is signing in / creating account
+    window.__ttStudentLoginActive = true;
+    if (typeof window.__ttHideCareerBattlePopup === 'function') {
+      try { window.__ttHideCareerBattlePopup(); } catch (e) {}
+    }
+    var cb = document.getElementById('careerBattleExitPopup');
+    if (cb) {
+      cb.classList.add('d-none');
+      cb.classList.add('hidden');
+      cb.setAttribute('aria-hidden', 'true');
+    }
     var popup = document.getElementById('loginRequiredPopup');
     if (popup && !popup.classList.contains('show')) {
       if (typeof window.studentPopupReset === 'function') window.studentPopupReset();
       popup.classList.add('show');
       popup.setAttribute('aria-hidden', 'false');
+      _setStudentPopupScrollLock(true);
+      _focusStudentPopupField('studentLoginInput');
     }
   };
 
@@ -299,10 +426,7 @@
     if (panel) {
       document.querySelectorAll('.student-popup-panel').forEach(function(p) { p.classList.remove('active'); });
       panel.classList.add('active');
-      var inp = document.getElementById('studentSignupInput');
-      if (inp) {
-        try { inp.focus(); } catch (e) {}
-      }
+      _focusStudentPopupField('studentSignupInput');
     }
   };
 
@@ -312,6 +436,7 @@
       popup.classList.remove('show');
       popup.setAttribute('aria-hidden', 'true');
     }
+    _setStudentPopupScrollLock(false);
     if (typeof window.studentPopupReset === 'function') window.studentPopupReset();
     if (typeof window.ttv2ClearLoginPromptFlag === 'function') window.ttv2ClearLoginPromptFlag();
   };
@@ -320,6 +445,29 @@
   function getCookie(name) {
     var v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
     return v ? v.pop() : '';
+  }
+  function isValidEmailOrMobile(value) {
+    var v = (value || '').trim();
+    if (!v) return false;
+    if (/^[6-9]\d{9}$/.test(v)) return true;
+    return /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(v);
+  }
+  function syncSignupIdentityIcon() {
+    var inp = document.getElementById('studentSignupInput');
+    var wrap = inp && inp.closest('.student-popup-input-wrap');
+    if (!inp || !wrap) return;
+    var v = (inp.value || '').trim();
+    var isMobile = /^\d+$/.test(v);
+    var icon = wrap.querySelector('i');
+    if (icon) icon.className = isMobile ? 'bx bx-mobile-alt' : 'bx bx-envelope';
+    if (isMobile) {
+      if (v.length > 10) inp.value = v.slice(0, 10);
+      inp.setAttribute('maxlength', '10');
+      inp.setAttribute('inputmode', 'numeric');
+    } else {
+      inp.removeAttribute('maxlength');
+      inp.removeAttribute('inputmode');
+    }
   }
   function showPanel(panelId) {
     document.querySelectorAll('.student-popup-panel').forEach(function(p) { p.classList.remove('active'); });
@@ -334,11 +482,23 @@
     if (otpStep) otpStep.style.display = 'none';
     document.querySelectorAll('.student-popup-tab').forEach(function(t) { t.classList.toggle('active', t.getAttribute('data-tab') === 'email'); });
     var inp = document.getElementById('studentLoginInput');
-    if (inp) inp.placeholder = 'Enter Email or Mobile';
+    if (inp) inp.placeholder = 'Email or mobile number';
     var continueBtn = document.getElementById('studentLoginContinueBtn');
-    if (continueBtn) continueBtn.textContent = 'Continue';
+    if (continueBtn) {
+      continueBtn.disabled = false;
+      continueBtn.textContent = 'Continue';
+      delete continueBtn.dataset.idleLabel;
+    }
     var wrap = inp && inp.closest('.student-popup-input-wrap');
-    if (wrap) { var icon = wrap.querySelector('i'); if (icon) icon.className = 'bx bx-envelope'; }
+    if (wrap) {
+      var icon = wrap.querySelector('i:not(.student-popup-eye)');
+      if (icon) icon.className = 'bx bx-envelope';
+    }
+    document.querySelectorAll('.student-popup-tab').forEach(function(t) {
+      var on = t.getAttribute('data-tab') === 'email';
+      t.classList.toggle('active', on);
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
   }
   window.studentPopupReset = function() {
     showLoginPanel();
@@ -354,6 +514,9 @@
     if (el = document.getElementById('studentSignupPwdEncUser')) el.value = '';
     if (el = document.getElementById('studentSignupPwdInput')) el.value = '';
     if (el = document.getElementById('studentSignupPwdConfirm')) el.value = '';
+    if (el = document.getElementById('studentSignupGrade')) el.selectedIndex = 0;
+    if (el = document.getElementById('studentSignupPwdErr')) el.textContent = '';
+    syncSignupIdentityIcon();
   };
   function onLoginSuccess(redirectUrl) {
     if (window.pendingCareerBookmarkSlug) {
@@ -459,8 +622,12 @@
   document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.student-popup-tab').forEach(function(tab) {
       tab.addEventListener('click', function() {
-        document.querySelectorAll('.student-popup-tab').forEach(function(t) { t.classList.remove('active'); });
+        document.querySelectorAll('.student-popup-tab').forEach(function(t) {
+          t.classList.remove('active');
+          t.setAttribute('aria-selected', 'false');
+        });
         this.classList.add('active');
+        this.setAttribute('aria-selected', 'true');
         var isOtp = this.getAttribute('data-tab') === 'otp';
         var emailStep = document.getElementById('studentLoginEmailStep');
         var otpStep = document.getElementById('studentLoginOtpStep');
@@ -469,12 +636,25 @@
         var inp = document.getElementById('studentLoginInput');
         var wrap = inp && inp.closest('.student-popup-input-wrap');
         var continueBtn = document.getElementById('studentLoginContinueBtn');
-        if (inp) inp.placeholder = isOtp ? 'Enter Mobile Number' : 'Enter Email or Mobile';
+        if (inp) inp.placeholder = isOtp ? '10-digit mobile number' : 'Email or mobile number';
         if (continueBtn) continueBtn.textContent = isOtp ? 'Send OTP' : 'Continue';
-        if (wrap) { var icon = wrap.querySelector('i'); if (icon) icon.className = isOtp ? 'bx bx-mobile-alt' : 'bx bx-envelope'; }
+        if (wrap) {
+          var icon = wrap.querySelector('i:not(.student-popup-eye)');
+          if (icon) icon.className = isOtp ? 'bx bx-mobile-alt' : 'bx bx-envelope';
+        }
+        _focusStudentPopupField('studentLoginInput');
       });
     });
     var el;
+    if (el = document.getElementById('studentPasswordToggle')) el.addEventListener('click', function() {
+      var inp = document.getElementById('studentPasswordInput');
+      var icon = this.querySelector('i');
+      if (!inp) return;
+      var show = inp.type === 'password';
+      inp.type = show ? 'text' : 'password';
+      if (icon) icon.className = show ? 'bx bx-show' : 'bx bx-hide';
+      this.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+    });
     if (el = document.getElementById('studentShowSignup')) el.addEventListener('click', function(e) { e.preventDefault(); showPanel('studentSignupPanel'); });
     if (el = document.getElementById('studentShowLogin')) el.addEventListener('click', function(e) { e.preventDefault(); showLoginPanel(); });
     if (el = document.getElementById('studentPasswordBack')) el.addEventListener('click', showLoginPanel);
@@ -488,14 +668,21 @@
     if (el = document.getElementById('studentSignupPwdBack')) el.addEventListener('click', function() { showPanel('studentSignupOtpPanel'); });
 
     if (el = document.getElementById('studentLoginContinueBtn')) el.addEventListener('click', function() {
+      var btn = this;
       var input = (document.getElementById('studentLoginInput') || {}).value.trim();
       var errEl = document.getElementById('studentLoginErr');
       if (errEl) errEl.textContent = '';
       var isOtpTab = document.querySelector('.student-popup-tab[data-tab="otp"]') && document.querySelector('.student-popup-tab[data-tab="otp"]').classList.contains('active');
-      if (!input) { if (errEl) errEl.textContent = isOtpTab ? 'Enter mobile number' : 'Enter email or mobile'; return; }
+      if (!input) { if (errEl) errEl.textContent = isOtpTab ? 'Enter your mobile number' : 'Enter your email or mobile number'; return; }
+      if (isOtpTab && !/^[6-9]\d{9}$/.test(input)) {
+        if (errEl) errEl.textContent = 'Enter a valid 10-digit mobile number';
+        return;
+      }
+      _setBtnBusy(btn, true, isOtpTab ? 'Send OTP' : 'Continue');
       if (isOtpTab) {
         var f = new FormData(); f.append('user_name', input);
         ajaxPost(urls.resendotp, f, function(data) {
+          _setBtnBusy(btn, false, 'Send OTP');
           if (data.success !== true && data.message) { if (errEl) errEl.textContent = data.message; return; }
           var to = document.getElementById('studentLoginOtpTo'); if (to) to.textContent = input;
           var es = document.getElementById('studentLoginEmailStep'); var os = document.getElementById('studentLoginOtpStep');
@@ -503,7 +690,12 @@
           var oe = document.getElementById('studentLoginOtpErr'); if (oe) oe.textContent = '';
           var container = document.getElementById('studentLoginOtpInputs');
           if (container && container._getOtp) container.querySelectorAll('input').forEach(function(i) { i.value = ''; });
-        }, function(data) { if (errEl) errEl.textContent = data.message || 'Failed to send OTP'; });
+          var firstOtp = document.querySelector('#studentLoginOtpInputs .student-popup-otp-digit');
+          if (firstOtp) try { firstOtp.focus(); } catch (e) {}
+        }, function(data) {
+          _setBtnBusy(btn, false, 'Send OTP');
+          if (errEl) errEl.textContent = data.message || 'Failed to send OTP';
+        });
         return;
       }
       var fd = new FormData();
@@ -511,14 +703,13 @@
       fd.append('login_only', '1');
       fd.append('login_mode', 'smart');
       ajaxPost(urls.loginsingup, fd, function(data) {
+        _setBtnBusy(btn, false, 'Continue');
         if (data.account_not_found) {
           if (errEl) errEl.textContent = data.message || 'No account found. Create a student account instead.';
           var signupInp = document.getElementById('studentSignupInput');
           if (signupInp) signupInp.value = input;
-          if (typeof window.showStudentSignupPopup === 'function') {
-            /* keep popup open; switch panel */
-          }
           showPanel('studentSignupPanel');
+          _focusStudentPopupField('studentSignupInput');
           return;
         }
         if (data.message && !data.show_password && !data.show_otp) {
@@ -531,6 +722,7 @@
           var pe = document.getElementById('studentPasswordErr'); if (pe) pe.textContent = '';
           var pwdInp = document.getElementById('studentPasswordInput'); if (pwdInp) pwdInp.value = '';
           showPanel('studentPasswordPanel');
+          _focusStudentPopupField('studentPasswordInput');
           return;
         }
         if (data.show_otp) {
@@ -540,23 +732,34 @@
           var oe = document.getElementById('studentLoginOtpErr'); if (oe) oe.textContent = '';
           var container = document.getElementById('studentLoginOtpInputs');
           if (container) container.querySelectorAll('input').forEach(function(i) { i.value = ''; });
+          var firstOtp2 = document.querySelector('#studentLoginOtpInputs .student-popup-otp-digit');
+          if (firstOtp2) try { firstOtp2.focus(); } catch (e) {}
           return;
         }
         if (errEl) errEl.textContent = data.message || data.errMsg || 'Unable to continue';
-      }, function(data) { if (errEl) errEl.textContent = (data && (data.message || data.errMsg)) || 'Request failed'; });
+      }, function(data) {
+        _setBtnBusy(btn, false, 'Continue');
+        if (errEl) errEl.textContent = (data && (data.message || data.errMsg)) || 'Request failed';
+      });
     });
 
     if (el = document.getElementById('studentPasswordSubmit')) el.addEventListener('click', function() {
+      var btn = this;
       var enc = (document.getElementById('studentPasswordEncUser') || {}).value;
       var pwd = (document.getElementById('studentPasswordInput') || {}).value;
       var errEl = document.getElementById('studentPasswordErr');
       if (errEl) errEl.textContent = '';
-      if (!enc || !pwd) { if (errEl) errEl.textContent = 'Enter password'; return; }
+      if (!enc || !pwd) { if (errEl) errEl.textContent = 'Enter your password'; return; }
+      _setBtnBusy(btn, true, 'Sign in');
       var fd = new FormData(); fd.append('enc_user_name', enc); fd.append('password', pwd);
       ajaxPost(urls.loginpwd, fd, function(data) {
         if (data.success) { onLoginSuccess(data.redirect_url); return; }
+        _setBtnBusy(btn, false, 'Sign in');
         if (errEl) errEl.textContent = data.errMsg || data.message || 'Login failed';
-      }, function(data) { if (errEl) errEl.textContent = (data && (data.errMsg || data.message)) || 'Login failed'; });
+      }, function(data) {
+        _setBtnBusy(btn, false, 'Sign in');
+        if (errEl) errEl.textContent = (data && (data.errMsg || data.message)) || 'Login failed';
+      });
     });
 
     if (el = document.getElementById('studentLoginVerifyOtp')) el.addEventListener('click', function() {
@@ -587,6 +790,10 @@
       var errEl = document.getElementById('studentSignupErr');
       if (errEl) errEl.textContent = '';
       if (!input) { if (errEl) errEl.textContent = 'Enter email or mobile'; return; }
+      if (!isValidEmailOrMobile(input)) {
+        if (errEl) errEl.textContent = 'Enter a valid email or 10-digit mobile number';
+        return;
+      }
       var fd = new FormData(); fd.append('user_name', input); fd.append('is_signup', 'true');
       ajaxPost(urls.loginsingup, fd, function(data) {
         if (data.message && data.show_otp !== true) { if (errEl) errEl.textContent = data.message; return; }
@@ -621,8 +828,10 @@
           var enc = document.getElementById('studentSignupPwdEncUser'); if (enc) enc.value = data.enc_user_name;
           var p1 = document.getElementById('studentSignupPwdInput'); var p2 = document.getElementById('studentSignupPwdConfirm');
           if (p1) p1.value = ''; if (p2) p2.value = '';
+          var gradeEl = document.getElementById('studentSignupGrade'); if (gradeEl) gradeEl.selectedIndex = 0;
           var pe = document.getElementById('studentSignupPwdErr'); if (pe) pe.textContent = '';
           showPanel('studentSignupPwdPanel');
+          _focusStudentPopupField('studentSignupGrade');
           return;
         }
         var oe = document.getElementById('studentSignupOtpErr'); if (oe) oe.textContent = data.message || 'Invalid OTP';
@@ -641,11 +850,17 @@
       var enc = (document.getElementById('studentSignupPwdEncUser') || {}).value;
       var pwd = (document.getElementById('studentSignupPwdInput') || {}).value;
       var confirm = (document.getElementById('studentSignupPwdConfirm') || {}).value;
+      var grade = (document.getElementById('studentSignupGrade') || {}).value;
       var errEl = document.getElementById('studentSignupPwdErr');
       if (errEl) errEl.textContent = '';
+      if (!grade) { if (errEl) errEl.textContent = 'Please select your class'; return; }
       if (!pwd || pwd.length < 6) { if (errEl) errEl.textContent = 'Password must be at least 6 characters'; return; }
       if (pwd !== confirm) { if (errEl) errEl.textContent = 'Passwords do not match'; return; }
-      var fd = new FormData(); fd.append('enc_user_name', enc); fd.append('password', pwd); fd.append('confirm_password', confirm);
+      var fd = new FormData();
+      fd.append('enc_user_name', enc);
+      fd.append('password', pwd);
+      fd.append('confirm_password', confirm);
+      fd.append('grade', grade);
       ajaxPost(urls.signuppwd, fd, function(data) {
         if (data.success) { onLoginSuccess(data.redirect_url); return; }
         if (errEl) errEl.textContent = data.message || 'Signup failed';
@@ -657,7 +872,10 @@
     var inpPwd = document.getElementById('studentPasswordInput');
     if (inpPwd) inpPwd.addEventListener('keypress', function(e) { if (e.key === 'Enter') document.getElementById('studentPasswordSubmit').click(); });
     var inpSignup = document.getElementById('studentSignupInput');
-    if (inpSignup) inpSignup.addEventListener('keypress', function(e) { if (e.key === 'Enter') document.getElementById('studentSignupContinueBtn').click(); });
+    if (inpSignup) {
+      inpSignup.addEventListener('input', syncSignupIdentityIcon);
+      inpSignup.addEventListener('keypress', function(e) { if (e.key === 'Enter') document.getElementById('studentSignupContinueBtn').click(); });
+    }
 
     document.querySelectorAll('#header-signin-btn, .student-login-popup-trigger').forEach(function(el) {
       if (el) el.addEventListener('click', function(e) { e.preventDefault(); showLoginRequiredPopup(); });
@@ -689,6 +907,11 @@
   var popupEl = document.getElementById('loginRequiredPopup');
   if (popupEl) popupEl.addEventListener('click', function(e) {
     if (e.target.id === 'loginRequiredPopup') closeLoginRequiredPopup();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Escape') return;
+    var p = document.getElementById('loginRequiredPopup');
+    if (p && p.classList.contains('show')) closeLoginRequiredPopup();
   });
 })();
 </script>

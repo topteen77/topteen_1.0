@@ -48,8 +48,8 @@
     <p class="tt-account-menu__lede">Sign in or create a student account. We’ll open the right dashboard for your role.</p>
 
     <div class="tt-account-menu__actions">
-      <a href="{{ url('users:login') }}" class="btn custom-button purple-button tt-account-menu__btn" role="button">Sign In</a>
-      <a href="{{ url('student_signup') }}" class="btn custom-button blue-button tt-account-menu__btn">Create student account</a>
+      <a href="{{ url('users:login') }}" id="header-signin-btn" class="btn custom-button purple-button tt-account-menu__btn student-login-popup-trigger" role="button">Sign In</a>
+      <a href="{{ url('student_signup') }}" class="btn custom-button blue-button tt-account-menu__btn student-signup-popup-trigger">Create student account</a>
     </div>
 
     <div class="tt-account-menu__section">
