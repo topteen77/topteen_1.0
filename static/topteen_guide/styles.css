@@ -1970,7 +1970,6 @@ section[id^="section-"] {
   border-left: 4px solid var(--tt-purple);
 }
 .tt-closing-cta {
-  margin-bottom: 1.75rem;
   padding: 1.75rem 1.5rem;
   background: linear-gradient(165deg, #f8f9ff 0%, #f5f0ff 100%);
   border: 1px solid rgba(63, 55, 201, 0.1);
