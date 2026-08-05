@@ -433,6 +433,16 @@
     state.micBtn.setAttribute('aria-label', 'Speak to fill');
     var icon = state.micBtn.querySelector('i');
     if (icon) icon.className = 'bx bx-microphone';
+    if (state.input) {
+      var wrap = state.input.closest('.student-popup-input-wrap, .tt-speech-wrap');
+      if (wrap) {
+        wrap.classList.add('has-speech');
+        if (state.input.classList.contains('has-toggle') || wrap.querySelector('.student-popup-eye')) {
+          wrap.classList.add('has-eye-speech');
+        }
+      }
+      state.input.classList.add('has-speech');
+    }
   }
 
   function stopCloudTracks(state) {
@@ -473,13 +483,15 @@
     destroyRecognition(state);
     destroyCloudRecorder(state, true);
     state.micBtn.hidden = true;
+    state.micBtn.setAttribute('hidden', 'hidden');
     state.micBtn.setAttribute('aria-hidden', 'true');
     state.micBtn.classList.remove('is-listening', 'is-disabled', 'is-unavailable');
     state.micBtn.style.display = 'none';
     if (state.input) {
       state.input.classList.remove('has-speech', 'is-speech-listening');
-      var wrap = state.input.closest('.student-popup-input-wrap');
-      if (wrap) wrap.classList.remove('has-speech', 'has-eye-speech');
+      var wrap = state.input.closest('.student-popup-input-wrap, .tt-speech-wrap');
+      // Keep has-eye-speech so the eye toggle stays correctly padded; only drop mic spacing.
+      if (wrap) wrap.classList.remove('has-speech');
     }
     if (active === state) active = null;
   }

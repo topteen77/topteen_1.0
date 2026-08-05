@@ -161,7 +161,7 @@
     width: 36px;
     height: 36px;
     border-radius: 10px;
-    display: inline-flex;
+    display: none; /* shown only when speech engine is ready */
     align-items: center;
     justify-content: center;
     font-size: 20px;
@@ -178,18 +178,32 @@
     animation: tt-speech-pulse 1.2s ease-in-out infinite;
   }
   .student-popup-mic.is-unavailable { opacity: 0.85; }
-  .student-popup-mic[hidden] { display: none !important; }
+  .student-popup-mic[hidden] { display: none !important; visibility: hidden !important; }
   @keyframes tt-speech-pulse {
     0%, 100% { box-shadow: 0 0 0 0 rgba(63, 55, 201, 0.35); }
     50% { box-shadow: 0 0 0 6px rgba(63, 55, 201, 0); }
   }
   .student-popup-input-wrap.has-speech .student-popup-input,
   .student-popup-input.has-speech { padding-right: 52px; }
-  /* Mic + eye: shift mic left; eye stays inset at right: 8px */
-  .student-popup-input-wrap.has-eye-speech .student-popup-mic:not([hidden]) { right: 46px; }
+  /*
+   * Mic + eye must never share the same slot.
+   * Eye stays at right:8px; mic sits to its left whenever both exist.
+   */
+  .student-popup-input-wrap.has-eye-speech .student-popup-eye { right: 8px; z-index: 3; }
+  .student-popup-input-wrap.has-eye-speech .student-popup-mic:not([hidden]) {
+    right: 48px;
+    display: inline-flex;
+  }
   .student-popup-input-wrap.has-eye-speech .student-popup-input.has-toggle { padding-right: 48px; }
   .student-popup-input-wrap.has-eye-speech:has(.student-popup-mic:not([hidden])) .student-popup-input.has-toggle {
-    padding-right: 90px;
+    padding-right: 96px;
+  }
+  /* Fallback when :has() missing — still keep mic left of eye if wrap marked has-speech */
+  .student-popup-input-wrap.has-eye-speech.has-speech .student-popup-mic:not([hidden]) {
+    right: 48px;
+  }
+  .student-popup-input-wrap.has-eye-speech.has-speech .student-popup-input.has-toggle {
+    padding-right: 96px;
   }
   .student-popup-input.is-speech-listening { border-color: #3f37c9; box-shadow: 0 0 0 3px rgba(63, 55, 201, 0.12); }
   .tt-speech-tip {
@@ -331,7 +345,7 @@
         <div class="student-popup-input-wrap has-speech">
           <i class='bx bx-envelope'></i>
           <input type="text" id="studentLoginInput" class="student-popup-input has-speech" placeholder="Email or mobile number" autocomplete="username" enterkeyhint="go" data-tt-speech="identity" inputmode="email">
-          <button type="button" class="student-popup-mic tt-speech-mic" data-tt-speech-for="studentLoginInput" aria-label="Speak to fill" title="Speak to fill"><i class='bx bx-microphone' aria-hidden="true"></i></button>
+          <button type="button" class="student-popup-mic tt-speech-mic" data-tt-speech-for="studentLoginInput" hidden aria-hidden="true" aria-label="Speak to fill" title="Speak to fill"><i class='bx bx-microphone' aria-hidden="true"></i></button>
         </div>
         <button type="button" class="student-popup-btn student-popup-btn-primary" id="studentLoginContinueBtn">Continue</button>
       </div>
@@ -364,7 +378,7 @@
         <div class="student-popup-input-wrap mb-3 has-speech has-eye-speech">
           <i class='bx bx-lock'></i>
           <input type="password" id="studentPasswordInput" class="student-popup-input has-toggle has-speech" name="password" placeholder="Password" autocomplete="current-password" enterkeyhint="done" data-tt-speech="password">
-          <button type="button" class="student-popup-mic tt-speech-mic" data-tt-speech-for="studentPasswordInput" aria-label="Speak to fill" title="Speak to fill"><i class='bx bx-microphone' aria-hidden="true"></i></button>
+          <button type="button" class="student-popup-mic tt-speech-mic" data-tt-speech-for="studentPasswordInput" hidden aria-hidden="true" aria-label="Speak to fill" title="Speak to fill"><i class='bx bx-microphone' aria-hidden="true"></i></button>
           <button type="button" class="student-popup-eye" id="studentPasswordToggle" aria-label="Show password"><i class='bx bx-hide'></i></button>
         </div>
         <button type="submit" class="student-popup-btn student-popup-btn-primary" id="studentPasswordSubmit">Sign in</button>
@@ -382,7 +396,7 @@
       <div class="student-popup-input-wrap has-speech">
         <i class='bx bx-envelope'></i>
         <input type="text" id="studentSignupInput" class="student-popup-input has-speech" placeholder="Email or mobile number" autocomplete="username" enterkeyhint="go" data-tt-speech="identity" inputmode="email">
-        <button type="button" class="student-popup-mic tt-speech-mic" data-tt-speech-for="studentSignupInput" aria-label="Speak to fill" title="Speak to fill"><i class='bx bx-microphone' aria-hidden="true"></i></button>
+        <button type="button" class="student-popup-mic tt-speech-mic" data-tt-speech-for="studentSignupInput" hidden aria-hidden="true" aria-label="Speak to fill" title="Speak to fill"><i class='bx bx-microphone' aria-hidden="true"></i></button>
       </div>
       <button type="button" class="student-popup-btn student-popup-btn-primary" id="studentSignupContinueBtn">Continue</button>
       <div class="student-popup-switch">
@@ -425,12 +439,12 @@
       <div class="student-popup-input-wrap mb-2 has-speech">
         <i class='bx bx-lock'></i>
         <input type="password" id="studentSignupPwdInput" class="student-popup-input has-speech" placeholder="Password" autocomplete="new-password" data-tt-speech="password">
-        <button type="button" class="student-popup-mic tt-speech-mic" data-tt-speech-for="studentSignupPwdInput" aria-label="Speak to fill" title="Speak to fill"><i class='bx bx-microphone' aria-hidden="true"></i></button>
+        <button type="button" class="student-popup-mic tt-speech-mic" data-tt-speech-for="studentSignupPwdInput" hidden aria-hidden="true" aria-label="Speak to fill" title="Speak to fill"><i class='bx bx-microphone' aria-hidden="true"></i></button>
       </div>
       <div class="student-popup-input-wrap mb-3 has-speech">
         <i class='bx bx-lock'></i>
         <input type="password" id="studentSignupPwdConfirm" class="student-popup-input has-speech" placeholder="Confirm password" autocomplete="new-password" data-tt-speech="password">
-        <button type="button" class="student-popup-mic tt-speech-mic" data-tt-speech-for="studentSignupPwdConfirm" aria-label="Speak to fill" title="Speak to fill"><i class='bx bx-microphone' aria-hidden="true"></i></button>
+        <button type="button" class="student-popup-mic tt-speech-mic" data-tt-speech-for="studentSignupPwdConfirm" hidden aria-hidden="true" aria-label="Speak to fill" title="Speak to fill"><i class='bx bx-microphone' aria-hidden="true"></i></button>
       </div>
       <button type="button" class="student-popup-btn student-popup-btn-primary" id="studentSignupPwdSubmit">Create account</button>
       <button type="button" class="student-popup-btn student-popup-btn-outline" id="studentSignupPwdBack">Back</button>
@@ -455,7 +469,7 @@
     window.TT_VOICE_TRANSCRIBE_API = {{ voice_transcribe_api_url | default('/api/voice/transcribe/') | tojson }};
   }
 </script>
-<script src="{{ static('js_new/tt-speech-input.js') }}?v=20260805-speech8"></script>
+<script src="{{ static('js_new/tt-speech-input.js') }}?v=20260805-speech9"></script>
 <script>
 (function() {
   var STUDENT_POPUP_URLS = {
@@ -555,11 +569,11 @@
       } catch (e) {}
       return;
     }
-    // Helper missing: keep HTML mics visible so layout does not jump
+    // Helper missing: keep mics hidden so they never sit on top of the eye toggle
     root.querySelectorAll('.student-popup-mic').forEach(function(btn) {
-      btn.hidden = false;
-      btn.removeAttribute('hidden');
-      btn.style.display = 'inline-flex';
+      btn.hidden = true;
+      btn.setAttribute('hidden', 'hidden');
+      btn.style.display = 'none';
     });
   }
 
