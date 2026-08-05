@@ -606,11 +606,29 @@
     if (el = document.getElementById('studentSignupPwdErr')) el.textContent = '';
     syncSignupIdentityIcon();
   };
+  function normalizePostLoginUrl(redirectUrl) {
+    var url = (redirectUrl && String(redirectUrl).trim()) || '';
+    if (!url) return '';
+    try {
+      // Behind ngrok HTTPS, server sometimes returned http://… which breaks iPhone Chrome.
+      if (window.location.protocol === 'https:' && url.indexOf('http://') === 0) {
+        url = 'https://' + url.slice('http://'.length);
+      }
+      var parsed = new URL(url, window.location.href);
+      // Keep user on the same host they logged in on (ngrok vs LAN IP).
+      if (parsed.host && parsed.host !== window.location.host) {
+        return parsed.pathname + parsed.search + parsed.hash;
+      }
+      return parsed.href;
+    } catch (e) {
+      return url;
+    }
+  }
   function onLoginSuccess(redirectUrl) {
     if (window.pendingCareerBookmarkSlug) {
       var slug = window.pendingCareerBookmarkSlug;
       window.pendingCareerBookmarkSlug = '';
-      var nextUrl = window.studentLoginNextUrl || '';
+      var nextUrl = normalizePostLoginUrl(window.studentLoginNextUrl || '');
       window.studentLoginNextUrl = '';
       closeLoginRequiredPopup();
       var fd = new FormData();
@@ -631,7 +649,7 @@
       return;
     }
     closeLoginRequiredPopup();
-    var url = (redirectUrl && String(redirectUrl).trim()) || window.studentLoginNextUrl || '';
+    var url = normalizePostLoginUrl(redirectUrl) || normalizePostLoginUrl(window.studentLoginNextUrl || '');
     window.studentLoginNextUrl = '';
     if (document.body && document.body.classList.contains('ttv2-shell')) {
       window.location.reload();

@@ -31,6 +31,11 @@ SECRET_KEY = config('SECRET_KEY', default='(&yw*5eqsx-tkz^&kvlxx8donayimg&kee=*1
 DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,testserver,www.topteen.in,test.topteen.in').split(',')
+# Dev tunnels (iPhone Safari testing when LAN/AP isolation blocks http://10.x:8002)
+if str(config('ENVIRONMENT', default='production')).lower() in ('development', 'staging', 'demo'):
+    for _h in ('.ngrok-free.app', '.ngrok-free.dev', '.ngrok.app', '.ngrok.io', '.loca.lt'):
+        if _h not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(_h)
 
 # Student localStorage payload encryption (for chatbot decryption use same key)
 # Generate a key: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
@@ -232,8 +237,41 @@ CSRF_TRUSTED_ORIGINS = [
     'https://demo.topteen.in',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
+    'http://localhost:8002',
+    'http://127.0.0.1:8002',
     'http://10.0.0.93:8000',
+    'http://10.0.0.93:8002',
+    'http://10.0.0.118:8000',
+    'http://10.0.0.118:8002',
 ]
+# Extra CSRF origins from env (comma-separated full origins), e.g. http://192.168.1.10:8002
+_extra_csrf = config('CSRF_TRUSTED_ORIGINS_EXTRA', default='', cast=str) or ''
+for _origin in [o.strip() for o in _extra_csrf.split(',') if o.strip()]:
+    if _origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(_origin)
+# In development, also trust http(s)://<ALLOWED_HOST> on common local ports (login from phones/LAN).
+if str(config('ENVIRONMENT', default='production')).lower() in ('development', 'staging', 'demo'):
+    for _host in ALLOWED_HOSTS:
+        _host = (_host or '').strip()
+        if not _host or _host.startswith('.') or _host == '*':
+            continue
+        for _port in ('8000', '8002', '8005', '8080'):
+            for _scheme in ('http', 'https'):
+                _o = f'{_scheme}://{_host}:{_port}'
+                if _o not in CSRF_TRUSTED_ORIGINS:
+                    CSRF_TRUSTED_ORIGINS.append(_o)
+                _o2 = f'{_scheme}://{_host}'
+                if _o2 not in CSRF_TRUSTED_ORIGINS:
+                    CSRF_TRUSTED_ORIGINS.append(_o2)
+    # Wildcard CSRF for ngrok tunnels (Django 4.1+)
+    for _wild in (
+        'https://*.ngrok-free.app',
+        'https://*.ngrok-free.dev',
+        'https://*.ngrok.app',
+        'https://*.ngrok.io',
+    ):
+        if _wild not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(_wild)
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True # If needed for cookies or auth
@@ -274,9 +312,11 @@ DEFAULT_LOGIN_SESSION_AGE = SESSION_COOKIE_AGE
 REMEMBER_ME_SESSION_AGE = config('REMEMBER_ME_SESSION_AGE', default=2592000, cast=int)  # 30 days
 DEMO_LOGIN_SESSION_AGE = config('DEMO_LOGIN_SESSION_AGE', default=SESSION_COOKIE_AGE, cast=int)
 CSRF_FAILURE_VIEW = 'users.views.csrf_failure'
-# When behind reverse proxy (nginx, etc.) that terminates SSL
-if USE_HTTPS:
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# Honor X-Forwarded-Proto from reverse proxies / ngrok so build_absolute_uri()
+# returns https://… after login (iPhone Chrome was getting http:// and failing).
+# Safe when only trusted proxies set this header (ngrok, nginx).
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = config('USE_X_FORWARDED_HOST', default=True, cast=bool)
 
 ROOT_URLCONF = 'topteens.urls'
 # Trailing slash: our AppendSlashRedirectMiddleware redirects /path -> /path/ when /path/ resolves.
