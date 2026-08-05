@@ -702,16 +702,40 @@ class DemoLoginView(View):
     def _login_fallback_url(self, request):
         return redirect(self._login_fallback_path(request))
 
+    def _safe_client_redirect(self, request, redirect_url):
+        """
+        Prefer a same-origin path for the PWA/AJAX client.
+        Never hand the browser an http:// absolute URL on an HTTPS site (iPhone PWA).
+        """
+        url = (redirect_url or '').strip() or self._login_fallback_path(request)
+        if url.startswith('http://') or url.startswith('https://'):
+            url = _force_https_absolute_url(request, url)
+            try:
+                from urllib.parse import urlparse
+
+                parsed = urlparse(url)
+                if parsed.netloc and parsed.netloc == request.get_host():
+                    return parsed.path + (f'?{parsed.query}' if parsed.query else '') + (
+                        f'#{parsed.fragment}' if parsed.fragment else ''
+                    )
+            except Exception:
+                pass
+            return url
+        if not url.startswith('/'):
+            url = '/' + url
+        return url
+
     def _ajax_or_redirect(self, request, redirect_url, *, success=False, message=''):
+        client_url = self._safe_client_redirect(request, redirect_url)
         if self._is_ajax(request):
-            payload = {'success': success, 'redirect': redirect_url}
+            payload = {'success': success, 'redirect': client_url}
             if message:
                 payload['message'] = message
             return JsonResponse(payload, status=200 if success else 400)
         if success:
-            return redirect(redirect_url)
+            return redirect(client_url)
         messages.error(request, message or 'Unable to sign in with this demo account.')
-        return redirect(redirect_url)
+        return redirect(client_url)
 
     def post(self, request):
         from .demo_accounts import should_show_demo_accounts
@@ -2220,12 +2244,13 @@ def _login_only_from_request(request) -> bool:
 
 
 def _force_https_absolute_url(request, url: str) -> str:
-    """If the browser reached us via HTTPS proxy (ngrok), never return http:// redirects."""
+    """If the site is HTTPS (proxy/ngrok/USE_HTTPS), never return http:// redirects."""
     url = (url or "").strip()
     if not url:
         return url
     forwarded = (request.META.get("HTTP_X_FORWARDED_PROTO") or "").split(",")[0].strip().lower()
-    if forwarded == "https" or request.is_secure():
+    use_https = bool(getattr(settings, "USE_HTTPS", False))
+    if forwarded == "https" or request.is_secure() or use_https:
         if url.startswith("http://"):
             return "https://" + url[len("http://"):]
     return url

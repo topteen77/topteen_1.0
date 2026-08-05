@@ -260,6 +260,12 @@ class WebsiteSettingsForm(forms.Form):
             "When disabled, pages still load in the background with no overlay."
         ),
     )
+
+
+
+class VoiceToTextSettingsForm(forms.Form):
+    """Dedicated admin form for site-wide voice-to-text mode."""
+
     VOICE_TO_TEXT_MODE = forms.ChoiceField(
         choices=[],  # filled in __init__
         required=True,
@@ -451,6 +457,11 @@ class ConfigurationAdmin(admin.ModelAdmin):
             ),
             path('student-id-settings/', self.admin_site.admin_view(self.student_id_settings_view), name='core_configuration_student_id_settings'),
             path('website-settings/', self.admin_site.admin_view(self.website_settings_view), name='core_configuration_website_settings'),
+            path(
+                'voice-to-text-settings/',
+                self.admin_site.admin_view(self.voice_to_text_settings_view),
+                name='core_configuration_voice_to_text_settings',
+            ),
             path('language-bar-settings/', self.admin_site.admin_view(self.language_bar_settings_view), name='core_configuration_language_bar_settings'),
             path('dashboard-statistics/', self.admin_site.admin_view(self.dashboard_statistics_view), name='core_configuration_dashboard_statistics'),
             path('llm-billing/', self.admin_site.admin_view(self.llm_billing_view), name='core_configuration_llm_billing'),
@@ -694,33 +705,9 @@ class ConfigurationAdmin(admin.ModelAdmin):
                 config.value = val
                 config.save()
 
-                from core.voice_to_text import (
-                    ENABLE_VOICE_TO_TEXT_KEY,
-                    VOICE_TO_TEXT_MODE_KEY,
-                    VOICE_TO_TEXT_MODES,
-                    VOICE_TO_TEXT_OFF,
-                    normalize_voice_to_text_mode,
-                )
-                mode = normalize_voice_to_text_mode(form.cleaned_data.get('VOICE_TO_TEXT_MODE'))
-                if mode not in VOICE_TO_TEXT_MODES:
-                    mode = VOICE_TO_TEXT_OFF
-                config, _ = Configuration.objects.get_or_create(
-                    key=VOICE_TO_TEXT_MODE_KEY, defaults={'value': mode, 'editable': True}
-                )
-                config.value = mode
-                config.save()
-                # Keep legacy boolean in sync for older templates / caches.
-                legacy_val = 'false' if mode == VOICE_TO_TEXT_OFF else 'true'
-                config, _ = Configuration.objects.get_or_create(
-                    key=ENABLE_VOICE_TO_TEXT_KEY, defaults={'value': legacy_val, 'editable': True}
-                )
-                config.value = legacy_val
-                config.save()
-
                 messages.success(request, 'Core website settings saved successfully.')
                 return redirect('admin:core_configuration_website_settings')
         else:
-            from core.voice_to_text import get_voice_to_text_mode
             default_type = coerce_default_mindmap_type(
                 Configuration.get('DEFAULT_MINDMAP_TYPE', '6', editable=True) or '6'
             )
@@ -738,7 +725,6 @@ class ConfigurationAdmin(admin.ModelAdmin):
                 'CHATBOT_PAGE_RULES': Configuration.get('CHATBOT_PAGE_RULES', '[]', editable=True) or '[]',
                 'DASHBOARD_TEMPLATE_VERSION': dashboard_template_version,
                 'TTV2_PAGE_LOADER_ENABLED': _config_bool('TTV2_PAGE_LOADER_ENABLED'),
-                'VOICE_TO_TEXT_MODE': get_voice_to_text_mode(),
             })
 
         context = {
@@ -748,6 +734,51 @@ class ConfigurationAdmin(admin.ModelAdmin):
             'opts': self.model._meta,
         }
         return render(request, 'admin/core/configuration/website_settings.html', context)
+
+    def voice_to_text_settings_view(self, request):
+        """Admin UI for site-wide voice-to-text mode (hub → Voice to text settings)."""
+        from core.models import Configuration
+        from core.voice_to_text import (
+            ENABLE_VOICE_TO_TEXT_KEY,
+            VOICE_TO_TEXT_MODE_KEY,
+            VOICE_TO_TEXT_MODES,
+            VOICE_TO_TEXT_OFF,
+            get_voice_to_text_mode,
+            normalize_voice_to_text_mode,
+            openai_transcribe_available,
+        )
+
+        if request.method == 'POST':
+            form = VoiceToTextSettingsForm(request.POST)
+            if form.is_valid():
+                mode = normalize_voice_to_text_mode(form.cleaned_data.get('VOICE_TO_TEXT_MODE'))
+                if mode not in VOICE_TO_TEXT_MODES:
+                    mode = VOICE_TO_TEXT_OFF
+                config, _ = Configuration.objects.get_or_create(
+                    key=VOICE_TO_TEXT_MODE_KEY, defaults={'value': mode, 'editable': True}
+                )
+                config.value = mode
+                config.save()
+                legacy_val = 'false' if mode == VOICE_TO_TEXT_OFF else 'true'
+                config, _ = Configuration.objects.get_or_create(
+                    key=ENABLE_VOICE_TO_TEXT_KEY, defaults={'value': legacy_val, 'editable': True}
+                )
+                config.value = legacy_val
+                config.save()
+                messages.success(request, 'Voice-to-text settings saved successfully.')
+                return redirect('admin:core_configuration_voice_to_text_settings')
+        else:
+            form = VoiceToTextSettingsForm(initial={'VOICE_TO_TEXT_MODE': get_voice_to_text_mode()})
+
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'Voice to text settings',
+            'form': form,
+            'opts': self.model._meta,
+            'openai_key_configured': openai_transcribe_available(),
+            'current_mode': get_voice_to_text_mode(),
+        }
+        return render(request, 'admin/core/configuration/voice_to_text_settings.html', context)
 
     def language_bar_settings_view(self, request):
         """Admin UI to enable/disable languages shown in the site header translate bar."""

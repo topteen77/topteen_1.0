@@ -1,5 +1,6 @@
 """
-Site-wide voice-to-text mode (Admin → Core website settings).
+Site-wide voice-to-text mode
+(Admin → Configuration hub → Voice to text settings).
 
 Modes:
   off      — hide mic / voice UI everywhere

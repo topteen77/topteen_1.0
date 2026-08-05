@@ -183,6 +183,21 @@ CONFIGURATION_SECTIONS: list[HubSection] = [
         ],
     ),
     HubSection(
+        title="Voice to text settings",
+        description="Site-wide microphone speech-to-text for Notebook, login fields, profile voice bar, and notes.",
+        instruction=(
+            "Choose Disabled, Browser speech (free Chrome/Edge), or OpenAI gpt-4o-mini-transcribe "
+            "(cloud; needs OPENAI_API_KEY; works on iPhone). Changes apply immediately."
+        ),
+        links=[
+            _named(
+                "Voice-to-text mode",
+                "admin:core_configuration_voice_to_text_settings",
+                "Switch off / browser Web Speech / OpenAI cloud transcription.",
+            ),
+        ],
+    ),
+    HubSection(
         title="Student dashboard & gamification",
         description="Dashboard stats, student IDs, and reward mechanics.",
         instruction="Set student ID prefixes first, then tune level bands, points, trophies, and streaks on one screen each.",
