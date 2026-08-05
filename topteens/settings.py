@@ -186,6 +186,9 @@ QUERY_EMBEDDING_CACHE_TTL = config('QUERY_EMBEDDING_CACHE_TTL', default=3600, ca
 ENABLE_ANSWERING_CAREFULLY_WIDGET = config('ENABLE_ANSWERING_CAREFULLY_WIDGET', default=True, cast=bool)
 # ENABLE_AUTO_FORWARD: Auto-advance to next question when user selects an answer (default: True)
 ENABLE_AUTO_FORWARD = config('ENABLE_AUTO_FORWARD', default=True, cast=bool)
+# ENABLE_VOICE_TO_TEXT: Site-wide speech-to-text (Notebook / login fields / note editors).
+# Admin can override via Configuration key ENABLE_VOICE_TO_TEXT (Core website settings).
+ENABLE_VOICE_TO_TEXT = config('ENABLE_VOICE_TO_TEXT', default=True, cast=bool)
 
 # Allow same-origin iframes (e.g. Career Battle wrapper embedding /career-battle/app/).
 # Still blocks embedding from other sites (clickjacking protection).

@@ -675,6 +675,7 @@ def globals(request):
         "enable_auto_forward": _config_bool('ENABLE_AUTO_FORWARD', getattr(settings, 'ENABLE_AUTO_FORWARD', True)),
         "show_missing_answers_validation": _config_bool('SHOW_MISSING_ANSWERS_VALIDATION', getattr(settings, 'SHOW_MISSING_ANSWERS_VALIDATION', True)),
         "enable_career_mindmap": _config_bool('ENABLE_CAREER_MINDMAP', True),
+        "enable_voice_to_text": _config_bool('ENABLE_VOICE_TO_TEXT', getattr(settings, 'ENABLE_VOICE_TO_TEXT', True)),
         "default_mindmap_type": coerce_default_mindmap_type(
             Configuration.get('DEFAULT_MINDMAP_TYPE', '6', editable=True) or '6'
         ),

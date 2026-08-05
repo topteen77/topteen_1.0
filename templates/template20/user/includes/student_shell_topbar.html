@@ -33,6 +33,10 @@
     {% endif %}
     <div class="std-shell-spacer" aria-hidden="true"></div>
     <div class="d-flex align-items-center gap-2">
+      <button type="button" class="std-shell-icon-btn" data-parent-notebook-open
+        aria-label="Notebook" title="Notebook — notes with voice, without leaving this page">
+        <i class='bx bx-note' aria-hidden="true"></i>
+      </button>
       {% with icon_only=true, shell=true %}
       {% include "template20/includes/language_selector_trigger.html" %}
       {% endwith %}
