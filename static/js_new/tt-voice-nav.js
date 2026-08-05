@@ -343,9 +343,81 @@
     }
   }
 
+  function getCurrentField(state) {
+    if (!state.formCtx || !state.formCtx.active || !state.formCtx.cfg) return null;
+    var fields = getFormFields(state.formCtx.cfg);
+    var idx = state.formCtx.index || 0;
+    return fields[idx] || null;
+  }
+
+  function isLastField(state) {
+    if (!state.formCtx || !state.formCtx.active || !state.formCtx.cfg) return false;
+    var fields = getFormFields(state.formCtx.cfg);
+    if (!fields.length) return false;
+    return (state.formCtx.index || 0) >= fields.length - 1;
+  }
+
+  function optionSpeakChips(field) {
+    if (!field) return [];
+    var el = document.getElementById(field.id);
+    if (!el) return [];
+    var out = [];
+    if (el.tagName === 'SELECT') {
+      for (var i = 0; i < el.options.length && out.length < 5; i++) {
+        var o = el.options[i];
+        if (!o.value) continue;
+        var label = String(o.textContent || '').replace(/\s+/g, ' ').trim();
+        if (label) out.push(label);
+      }
+      return out;
+    }
+    if (el.type === 'radio' || field.type === 'radio') {
+      var name = el.name || field.name || field.id;
+      var radios = document.querySelectorAll('input[type="radio"][name="' + name + '"]');
+      for (var r = 0; r < radios.length && out.length < 5; r++) {
+        var lab = '';
+        try {
+          var id = radios[r].id;
+          var labEl = id ? document.querySelector('label[for="' + id + '"]') : null;
+          lab = labEl ? labEl.textContent : (radios[r].value || '');
+        } catch (e) { lab = radios[r].value || ''; }
+        lab = String(lab || '').replace(/\s+/g, ' ').trim();
+        if (lab) out.push(lab);
+      }
+    }
+    return out;
+  }
+
+  function fieldSpeakHint(field) {
+    if (!field) return '';
+    if (field.type === 'date') {
+      return 'Say date like 15 January 2005 or 15/01/2005';
+    }
+    if (field.type === 'gender' || field.type === 'select' || field.type === 'radio' || field.type === 'grade') {
+      var opts = optionSpeakChips(field);
+      if (opts.length) return 'Say one of: ' + opts.slice(0, 4).join(', ');
+      return 'Say the option name clearly';
+    }
+    if (field.type === 'mobile') return 'Say the 10-digit mobile number';
+    if (field.type === 'email') return 'Say email like name at gmail dot com';
+    return 'Speak the value, then say Next';
+  }
+
   function currentSuggestions(state) {
     if (state.formCtx && state.formCtx.active) {
-      return ['Next', 'Back', 'Save', 'Cancel', 'Help'];
+      // After finishing the last field (said Next), show finish actions only.
+      if (state.formCtx.atEnd) {
+        return ['Save', 'Cancel', 'Reset', 'Back', 'Help'];
+      }
+      var chips = isLastField(state)
+        ? ['Next', 'Back', 'Save', 'Help']
+        : ['Next', 'Back', 'Help'];
+      var field = getCurrentField(state);
+      var opts = optionSpeakChips(field);
+      for (var i = 0; i < opts.length && chips.length < 8; i++) {
+        if (chips.indexOf(opts[i]) === -1) chips.push(opts[i]);
+      }
+      return chips;
     }
     return ['Edit contact', 'Help'];
   }
@@ -356,16 +428,25 @@
       ? '<br><br><strong>Why no mic?</strong><br>' + reason
       : '';
     if (state.formCtx && state.formCtx.active) {
+      var field = getCurrentField(state);
+      var fieldTip = field
+        ? '<br><br><strong>This field (' + (field.label || field.id) + ')</strong><br>' + fieldSpeakHint(field)
+        : '';
       return [
-        '<strong>Form commands</strong>',
+        '<strong>How to speak</strong>',
+        '• Text: say the value, then Next',
+        '• Date: “15 January 2005” or “15/01/2005”',
+        '• Dropdown / gender / class: say the option (“Male”, “Class 10”)',
+        '• Radio: say the choice label',
+        '• Or “Gender female”, “Class 10”, “Birthday 15/01/2005”',
+        '<br><strong>Navigate</strong>',
         '• Next / Back — move fields',
-        '• Name … / Mobile … / Email … / School …',
-        '• Gender male|female · Class 10',
-        '• Save · Cancel · Help',
-        'Invalid values stay on the field until fixed.',
+        '• On last field: Save · Cancel · Reset',
+        '• Help — show this list',
+        fieldTip,
         iosTip,
         isAppleMobileSafari()
-          ? '<br><br>On iPhone: tap a field, then use the keyboard microphone for dictation.'
+          ? '<br><br>On iPhone: use OpenAI voice mode, chips, or the keyboard mic.'
           : ''
       ].join('<br>');
     }
@@ -695,6 +776,130 @@
 
   /* ---------- validation & field ops ---------- */
 
+  var MONTH_MAP = {
+    january: 1, jan: 1, february: 2, feb: 2, march: 3, mar: 3,
+    april: 4, apr: 4, may: 5, june: 6, jun: 6, july: 7, jul: 7,
+    august: 8, aug: 8, september: 9, sep: 9, sept: 9,
+    october: 10, oct: 10, november: 11, nov: 11, december: 12, dec: 12
+  };
+
+  var DAY_WORDS = {
+    first: 1, second: 2, third: 3, fourth: 4, fifth: 5, sixth: 6, seventh: 7,
+    eighth: 8, ninth: 9, tenth: 10, eleventh: 11, twelfth: 12, thirteenth: 13,
+    fourteenth: 14, fifteenth: 15, sixteenth: 16, seventeenth: 17, eighteenth: 18,
+    nineteenth: 19, twentieth: 20, twenty: 20, thirtieth: 30, thirty: 30
+  };
+
+  var GRADE_WORDS = {
+    sixth: 6, '6th': 6, seventh: 7, '7th': 7, eighth: 8, '8th': 8,
+    ninth: 9, '9th': 9, tenth: 10, '10th': 10, eleventh: 11, '11th': 11,
+    twelfth: 12, '12th': 12
+  };
+
+  function pad2(n) {
+    return ('0' + String(n)).slice(-2);
+  }
+
+  function isValidYmd(y, m, d) {
+    y = Number(y); m = Number(m); d = Number(d);
+    if (!y || m < 1 || m > 12 || d < 1 || d > 31) return false;
+    var dt = new Date(y, m - 1, d);
+    return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
+  }
+
+  function parseSpokenDate(text) {
+    var raw = String(text || '').replace(/\s+/g, ' ').trim();
+    if (!raw) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+
+    var m = raw.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
+    if (m && isValidYmd(m[3], m[2], m[1])) {
+      return m[3] + '-' + pad2(m[2]) + '-' + pad2(m[1]);
+    }
+    m = raw.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})$/);
+    if (m && isValidYmd(m[1], m[2], m[3])) {
+      return m[1] + '-' + pad2(m[2]) + '-' + pad2(m[3]);
+    }
+
+    var t = norm(raw).replace(/(\d+)(st|nd|rd|th)\b/g, '$1');
+    var parts = t.split(' ').filter(Boolean);
+    var day = 0;
+    var month = 0;
+    var year = 0;
+
+    for (var i = 0; i < parts.length; i++) {
+      var p = parts[i];
+      if (MONTH_MAP[p]) {
+        month = MONTH_MAP[p];
+        continue;
+      }
+      if (/^\d{4}$/.test(p)) {
+        year = Number(p);
+        continue;
+      }
+      if (/^\d{1,2}$/.test(p)) {
+        var num = Number(p);
+        if (!day && num >= 1 && num <= 31) day = num;
+        else if (!year && String(p).length === 4) year = num;
+        continue;
+      }
+      if (DAY_WORDS[p] && !day) {
+        day = DAY_WORDS[p];
+        // "twenty first" / "twenty one"
+        var nxt = parts[i + 1];
+        if ((p === 'twenty' || p === 'thirty') && nxt && DAY_WORDS[nxt] && DAY_WORDS[nxt] < 10) {
+          day = (p === 'twenty' ? 20 : 30) + DAY_WORDS[nxt];
+          i += 1;
+        } else if ((p === 'twenty' || p === 'thirty') && nxt && /^\d$/.test(nxt)) {
+          day = (p === 'twenty' ? 20 : 30) + Number(nxt);
+          i += 1;
+        }
+      }
+    }
+
+    if (day && month && year && isValidYmd(year, month, day)) {
+      return year + '-' + pad2(month) + '-' + pad2(day);
+    }
+    return '';
+  }
+
+  function parseGrade(text) {
+    var t = norm(text);
+    if (!t) return text;
+    if (GRADE_WORDS[t] != null) return String(GRADE_WORDS[t]);
+    var m = t.match(/\b(?:class|grade|std|standard)?\s*([6-9]|1[0-2]|6th|7th|8th|9th|10th|11th|12th)\b/);
+    if (m) {
+      var g = m[1];
+      if (GRADE_WORDS[g] != null) return String(GRADE_WORDS[g]);
+      return String(parseInt(g, 10));
+    }
+    for (var key in GRADE_WORDS) {
+      if (Object.prototype.hasOwnProperty.call(GRADE_WORDS, key) && t.indexOf(key) !== -1) {
+        return String(GRADE_WORDS[key]);
+      }
+    }
+    return text;
+  }
+
+  function parseGender(text) {
+    var t = norm(text);
+    if (/\b(female|girl|woman)\b/.test(t)) return 'Female';
+    if (/\b(male|boy|man)\b/.test(t) && !/female/.test(t)) return 'Male';
+    if (/\b(trans|transgender)\b/.test(t)) return 'Transgender';
+    return text;
+  }
+
+  function normalizeFillValue(field, value) {
+    if (!field) return value;
+    if (field.type === 'date') {
+      return parseSpokenDate(value) || String(value || '').trim();
+    }
+    if (field.type === 'gender') return parseGender(value);
+    if (field.type === 'grade') return parseGrade(value);
+    if (field.type === 'mobile') return spokenToDigits(value);
+    return value;
+  }
+
   function validateField(field, value) {
     var v = String(value == null ? '' : value).trim();
     if (field.required && !v) {
@@ -714,16 +919,28 @@
       return { ok: true, value: d };
     }
     if (field.type === 'date') {
-      // accept YYYY-MM-DD or spoken-ish dd/mm/yyyy
-      var iso = v;
-      var m = v.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
-      if (m) {
-        iso = m[3] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[1]).slice(-2);
-      }
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
-        return { ok: false, message: 'Say date as day month year, or pick it on screen.' };
+      var iso = parseSpokenDate(v);
+      if (!iso) {
+        return {
+          ok: false,
+          message: 'Say date like 15 January 2005 or 15/01/2005, or pick it on screen.'
+        };
       }
       return { ok: true, value: iso };
+    }
+    if (field.type === 'gender') {
+      var g = parseGender(v);
+      if (!/^(male|female|transgender)$/i.test(g)) {
+        return { ok: false, message: 'Say Male, Female, or Transgender.' };
+      }
+      return { ok: true, value: g };
+    }
+    if (field.type === 'grade') {
+      var gr = parseGrade(v);
+      if (!/^(6|7|8|9|10|11|12)$/.test(String(gr))) {
+        return { ok: false, message: 'Say Class 6 to Class 12 (e.g. Class 10).' };
+      }
+      return { ok: true, value: String(gr) };
     }
     return { ok: true, value: v };
   }
@@ -741,51 +958,99 @@
     } catch (e) {
       try { el.focus(); } catch (e2) {}
     }
-    state.formCtx.index = getFormFields(state.formCtx.cfg).indexOf(field);
-    setStatus(state, 'Editing ' + (field.label || field.id));
+    if (state.formCtx) {
+      state.formCtx.index = getFormFields(state.formCtx.cfg).indexOf(field);
+      state.formCtx.atEnd = false;
+    }
+    var hint = fieldSpeakHint(field);
+    var last = isLastField(state);
+    setStatus(
+      state,
+      'Editing ' + (field.label || field.id) +
+        (hint ? ' — ' + hint : '') +
+        (last ? ' · Last field: say Save, Cancel, or Reset' : '')
+    );
+    renderChips(state);
+  }
+
+  function matchSelectOption(el, value, field) {
+    var want = norm(value);
+    var opts = el.options;
+    var matched = null;
+    for (var i = 0; i < opts.length; i++) {
+      var o = opts[i];
+      var label = norm(o.textContent);
+      var val = norm(o.value);
+      if (!o.value && !label) continue;
+      if (label === want || val === want) {
+        matched = o;
+        break;
+      }
+    }
+    if (!matched) {
+      for (var i2 = 0; i2 < opts.length; i2++) {
+        var o2 = opts[i2];
+        var label2 = norm(o2.textContent);
+        if (!o2.value && !label2) continue;
+        if (want && label2.indexOf(want) !== -1) {
+          matched = o2;
+          break;
+        }
+      }
+    }
+    if (!matched && (field.type === 'grade' || field.type === 'select')) {
+      var g = want.replace(/\b(class|grade|std|standard)\b/g, '').trim();
+      for (var j = 0; j < opts.length; j++) {
+        var gl = norm(opts[j].textContent);
+        var gv = String(opts[j].value || '');
+        if (!gv && !gl) continue;
+        if (gl === g || gv === g || gl.indexOf(g) !== -1 || ('class ' + g) === gl) {
+          matched = opts[j];
+          break;
+        }
+      }
+    }
+    return matched;
   }
 
   function setFieldValue(field, value) {
     var el = document.getElementById(field.id);
     if (!el) return false;
-    if (el.tagName === 'SELECT') {
+
+    // Radio group: field.id is one radio, or field.name is the group name
+    if (el.type === 'radio' || field.type === 'radio') {
+      var name = el.name || field.name || field.id;
       var want = norm(value);
-      var opts = el.options;
-      var matched = null;
-      // Pass 1: exact label/value match (avoids "female" matching "male")
-      for (var i = 0; i < opts.length; i++) {
-        var o = opts[i];
-        var label = norm(o.textContent);
-        var val = norm(o.value);
-        if (!o.value && !label) continue;
-        if (label === want || val === want) {
-          matched = o;
+      var radios = document.querySelectorAll('input[type="radio"][name="' + name + '"]');
+      var hit = null;
+      for (var r = 0; r < radios.length; r++) {
+        var radio = radios[r];
+        var lab = '';
+        try {
+          var labEl = radio.id ? document.querySelector('label[for="' + radio.id + '"]') : null;
+          if (!labEl) labEl = radio.closest('label');
+          lab = labEl ? labEl.textContent : '';
+        } catch (eLab) {}
+        var l = norm(lab);
+        var v = norm(radio.value);
+        if (l === want || v === want || (want && l.indexOf(want) !== -1)) {
+          hit = radio;
           break;
         }
       }
-      // Pass 2: safer partial match — only label contains full want (not want contains label)
-      if (!matched) {
-        for (var i2 = 0; i2 < opts.length; i2++) {
-          var o2 = opts[i2];
-          var label2 = norm(o2.textContent);
-          if (!o2.value && !label2) continue;
-          if (label2.indexOf(want) !== -1) {
-            matched = o2;
-            break;
-          }
-        }
-      }
-      // class shortcuts: "class 10" / "10"
-      if (!matched && field.type === 'grade') {
-        var g = want.replace(/class|grade|std|standard/g, '').trim();
-        for (var j = 0; j < opts.length; j++) {
-          var gl = norm(opts[j].textContent);
-          if (gl === g || gl.indexOf(g) !== -1 || String(opts[j].value) === g) {
-            matched = opts[j];
-            break;
-          }
-        }
-      }
+      if (!hit) return false;
+      hit.checked = true;
+      try {
+        hit.dispatchEvent(new Event('input', { bubbles: true }));
+        hit.dispatchEvent(new Event('change', { bubbles: true }));
+        var tab = hit.closest('.profile-choice-tab');
+        if (tab) tab.click();
+      } catch (eRadio) {}
+      return true;
+    }
+
+    if (el.tagName === 'SELECT') {
+      var matched = matchSelectOption(el, value, field);
       if (!matched) return false;
       el.value = matched.value;
     } else {
@@ -801,28 +1066,42 @@
   function findFieldByAlias(fields, spoken) {
     var raw = String(spoken || '').trim();
     var t = norm(raw);
+    // Prefer longer keys first so "date of birth" wins over "date"
+    var ranked = [];
     for (var i = 0; i < fields.length; i++) {
       var f = fields[i];
       var keys = f.keys || [];
       for (var k = 0; k < keys.length; k++) {
-        var key = norm(keys[k]);
-        if (t === key || t.indexOf(key + ' ') === 0) {
-          // Preserve original casing/spacing for the value portion
-          var re = new RegExp('^' + key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[\\s:]+', 'i');
-          var rest = raw.replace(re, '').trim();
-          return { field: f, rest: rest };
-        }
+        ranked.push({ field: f, key: norm(keys[k]) });
+      }
+    }
+    ranked.sort(function (a, b) { return b.key.length - a.key.length; });
+    for (var r = 0; r < ranked.length; r++) {
+      var key = ranked[r].key;
+      if (!key) continue;
+      if (t === key || t.indexOf(key + ' ') === 0 || t.indexOf(key + ':') === 0) {
+        var re = new RegExp('^' + key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[\\s:]+', 'i');
+        var rest = raw.replace(re, '').trim();
+        return { field: ranked[r].field, rest: rest };
       }
     }
     return null;
   }
 
-  function parseGender(text) {
-    var t = norm(text);
-    if (/\b(male|boy|man)\b/.test(t) && !/female/.test(t)) return 'Male';
-    if (/\b(female|girl|woman)\b/.test(t)) return 'Female';
-    if (/\b(trans|transgender)\b/.test(t)) return 'Transgender';
-    return text;
+  function resumeListeningSoon(state) {
+    if (!state || state.commandsOnly || !micAllowed(state)) return;
+    if (state._resumeTimer) {
+      clearTimeout(state._resumeTimer);
+      state._resumeTimer = null;
+    }
+    state._resumeTimer = setTimeout(function () {
+      state._resumeTimer = null;
+      if (!state || state.busy || state.wantListening) return;
+      if (!shouldShowVoiceUi() || !micAllowed(state)) return;
+      setHeard(state, 'Listening…');
+      setStatus(state, 'Speak mode on — pause to stop if you don’t speak');
+      startListening(state);
+    }, 450);
   }
 
   /* ---------- command handling ---------- */
@@ -836,6 +1115,8 @@
       setBusy(state, false);
       if (okMsg) setStatus(state, okMsg, kind === 'err' ? 'err' : null);
       renderChips(state);
+      // After a command, turn speak mode back on; silence / no speech turns it off.
+      resumeListeningSoon(state);
     }
     try {
       var result = fn(done);
@@ -856,16 +1137,18 @@
     state.formCtx = {
       active: true,
       cfg: formCfg,
-      index: 0
+      index: 0,
+      atEnd: false
     };
     var fields = getFormFields(formCfg);
     if (fields[0]) focusField(state, fields[0]);
-    renderChips(state);
+    else renderChips(state);
     if (state.helpEl) state.helpEl.classList.remove('is-open');
+    resumeListeningSoon(state);
   }
 
   function deactivateForm(state) {
-    state.formCtx = { active: false, cfg: null, index: 0 };
+    state.formCtx = { active: false, cfg: null, index: 0, atEnd: false };
     renderChips(state);
   }
 
@@ -942,6 +1225,23 @@
       return;
     }
 
+    if (t === 'reset' || t === 'clear' || t === 'clear form' || t === 'start over') {
+      runCommand(state, function (done) {
+        var form = cfg.form ? document.querySelector(cfg.form) : null;
+        if (form && typeof form.reset === 'function') {
+          form.reset();
+          try {
+            form.dispatchEvent(new Event('change', { bubbles: true }));
+          } catch (eReset) {}
+        }
+        state.formCtx.atEnd = false;
+        var fieldsReset = getFormFields(cfg);
+        if (fieldsReset[0]) focusField(state, fieldsReset[0]);
+        done('Form reset. Start from the first field.');
+      }, 'Resetting…');
+      return;
+    }
+
     if (t === 'save' || t === 'save changes' || t === 'submit') {
       runCommand(state, function (done) {
         // validate all required fields first
@@ -981,6 +1281,10 @@
       runCommand(state, function (done) {
         var idx = state.formCtx.index || 0;
         var cur = fields[idx];
+        if (state.formCtx.atEnd) {
+          done('Already at the end. Say Save, Cancel, or Reset.');
+          return 'async';
+        }
         if (cur) {
           var el = document.getElementById(cur.id);
           var check = validateField(cur, el ? el.value : '');
@@ -992,31 +1296,47 @@
           }
           if (el) el.classList.remove('is-invalid');
         }
-        var next = fields[Math.min(idx + 1, fields.length - 1)];
+        if (idx >= fields.length - 1) {
+          state.formCtx.atEnd = true;
+          renderChips(state);
+          done('Last field done. Say Save, Cancel, or Reset.');
+          return 'async';
+        }
+        var next = fields[idx + 1];
         if (next) focusField(state, next);
-        done(next ? ('Moved to ' + (next.label || next.id)) : 'Last field');
+        var msg = 'Moved to ' + (next.label || next.id);
+        if (isLastField(state)) {
+          msg += '. Last field — after this say Save, Cancel, or Reset.';
+        } else {
+          msg += '. ' + fieldSpeakHint(next);
+        }
+        done(msg);
       }, 'Next field…');
       return;
     }
 
     if (t === 'back' || t === 'previous' || t === 'previous field') {
       runCommand(state, function (done) {
+        if (state.formCtx.atEnd) {
+          state.formCtx.atEnd = false;
+          var last = fields[fields.length - 1];
+          if (last) focusField(state, last);
+          done('Back to ' + ((last && last.label) || 'last field'));
+          return 'async';
+        }
         var idx = state.formCtx.index || 0;
         var prev = fields[Math.max(idx - 1, 0)];
         if (prev) focusField(state, prev);
-        done(prev ? ('Moved to ' + (prev.label || prev.id)) : 'First field');
+        done(prev ? ('Moved to ' + (prev.label || prev.id) + '. ' + fieldSpeakHint(prev)) : 'First field');
       }, 'Previous field…');
       return;
     }
 
-    // Field-targeted fill: "name Rahul" / "mobile 987..."
-    // Use original text so values keep spoken casing.
+    // Field-targeted fill: "name Rahul" / "mobile 987..." / "birthday 15 january 2005"
     var hit = findFieldByAlias(fields, text);
     if (hit && hit.rest) {
       runCommand(state, function (done) {
-        var value = hit.rest;
-        if (hit.field.type === 'gender') value = parseGender(value);
-        if (hit.field.type === 'mobile') value = spokenToDigits(value);
+        var value = normalizeFillValue(hit.field, hit.rest);
         var check = validateField(hit.field, value);
         if (!check.ok) {
           focusField(state, hit.field);
@@ -1025,52 +1345,67 @@
         }
         var ok = setFieldValue(hit.field, check.value);
         if (!ok) {
-          done('Could not set ' + (hit.field.label || 'field'), 'err');
+          done(
+            'Could not set ' + (hit.field.label || 'field') + '. ' + fieldSpeakHint(hit.field),
+            'err'
+          );
           return 'async';
         }
         focusField(state, hit.field);
         var el = document.getElementById(hit.field.id);
         if (el) el.classList.remove('is-invalid');
-        done((hit.field.label || 'Field') + ' updated');
+        var nextHint = isLastField(state)
+          ? 'Say Next for Save/Cancel/Reset, or Save now.'
+          : 'Say Next to continue.';
+        done((hit.field.label || 'Field') + ' updated. ' + nextHint);
       }, 'Filling…');
       return;
     }
 
-    // Bare gender / class utterances while on that field
+    // Bare value for the current field (date / select / radio / text)
     var curField = fields[state.formCtx.index || 0];
-    if (curField) {
-      var fillVal = text;
-      if (curField.type === 'gender') fillVal = parseGender(text);
-      if (curField.type === 'mobile') fillVal = spokenToDigits(text);
-      if (curField.type === 'grade' && /class|grade|\b\d{1,2}\b/.test(t)) fillVal = text;
-
+    if (curField && !state.formCtx.atEnd) {
       // Only auto-fill current field if it doesn't look like a navigation command
-      if (!/^(next|back|save|cancel|help)/.test(t)) {
+      if (!/^(next|back|save|cancel|reset|clear|help|close)/.test(t)) {
         runCommand(state, function (done) {
+          var fillVal = normalizeFillValue(curField, text);
           var check = validateField(curField, fillVal);
           if (!check.ok) {
             var elBad = document.getElementById(curField.id);
             if (elBad) elBad.classList.add('is-invalid');
-            done(check.message, 'err');
+            done(check.message + ' ' + fieldSpeakHint(curField), 'err');
             return 'async';
           }
           if (!setFieldValue(curField, check.value)) {
-            done('Could not set ' + (curField.label || 'field') + '. Try Help.', 'err');
+            done(
+              'Could not set ' + (curField.label || 'field') + '. ' + fieldSpeakHint(curField),
+              'err'
+            );
             return 'async';
           }
           var elOk = document.getElementById(curField.id);
           if (elOk) elOk.classList.remove('is-invalid');
-          done((curField.label || 'Field') + ' set. Say Next or Save.');
+          var nextMsg = isLastField(state)
+            ? 'Say Next for Save/Cancel/Reset, or Save now.'
+            : 'Say Next to continue.';
+          done((curField.label || 'Field') + ' set. ' + nextMsg);
         }, 'Filling…');
         return;
       }
     }
 
-    setStatus(state, 'Didn’t catch that. Try Next, Save, or Help.', 'err');
+    setStatus(
+      state,
+      state.formCtx.atEnd || isLastField(state)
+        ? 'Try Save, Cancel, Reset, Back, or Help.'
+        : 'Didn’t catch that. Try Next, or say Help for how to speak.',
+      'err'
+    );
     if (state.helpEl) {
       state.helpEl.innerHTML = helpText(state);
       state.helpEl.classList.add('is-open');
     }
+    resumeListeningSoon(state);
   }
 
   function bindFormLifecycle(state) {
@@ -1090,16 +1425,19 @@
           setStatus(
             state,
             isAppleMobileSafari()
-              ? 'Safari has no web speech mic — tap Next/Save, or dictate in a field'
+              ? 'Safari has no web speech mic — tap Next/Save, or use chips'
               : (speechUnavailableReason() || 'Mic unavailable — tap Next, Save, or Help')
           );
-        } else {
-          setHeard(state, 'Tap mic to speak');
-          setStatus(state, 'Say Next, Save, or a field value');
         }
+        // When mic works, activateForm already resumes speak mode + field hint.
       });
       modal.addEventListener('hidden.bs.modal', function () {
         if (state.formCtx && state.formCtx.cfg === formCfg) {
+          if (state._resumeTimer) {
+            clearTimeout(state._resumeTimer);
+            state._resumeTimer = null;
+          }
+          stopListening(state);
           deactivateForm(state);
           if (state.commandsOnly || !micAllowed(state)) {
             setHeard(state, isAppleMobileSafari() ? 'iPhone chips mode' : 'Voice engine unavailable');
@@ -1128,8 +1466,9 @@
       busy: false,
       wantListening: false,
       commandsOnly: !speechEngineReady(),
-      formCtx: { active: false, cfg: null, index: 0 },
+      formCtx: { active: false, cfg: null, index: 0, atEnd: false },
       recognition: null,
+      _resumeTimer: null,
       silenceTimer: null,
       networkRetry: false,
       ignoreEnd: false
@@ -1177,6 +1516,10 @@
 
   function detach() {
     if (!active) return;
+    if (active._resumeTimer) {
+      clearTimeout(active._resumeTimer);
+      active._resumeTimer = null;
+    }
     stopListening(active);
     hideBar(active);
     if (active.bar && active.bar.parentNode) {
@@ -1192,6 +1535,8 @@
     var value = spoken;
     if (fieldType === 'mobile') value = spokenToDigits(spoken);
     if (fieldType === 'gender') value = parseGender(spoken);
+    if (fieldType === 'date') value = parseSpokenDate(spoken) || spoken;
+    if (fieldType === 'grade') value = parseGrade(spoken);
     return validateField(field, value);
   }
 
@@ -1211,6 +1556,8 @@
     _validateField: validateField,
     _spokenToDigits: spokenToDigits,
     _parseGender: parseGender,
+    _parseSpokenDate: parseSpokenDate,
+    _parseGrade: parseGrade,
     _parseAndValidateDemo: _parseAndValidateDemo,
     _active: function () { return active; }
   };

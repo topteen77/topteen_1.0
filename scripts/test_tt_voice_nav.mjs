@@ -226,6 +226,21 @@ assert(!vBad.ok, 'short mobile rejected');
 const g = loadApi()._parseGender('I am female');
 assert(g === 'Female', 'gender parse female');
 
+const d1 = loadApi()._parseSpokenDate('15 January 2005');
+assert(d1 === '2005-01-15', 'spoken month date parses');
+
+const d2 = loadApi()._parseSpokenDate('15/01/2005');
+assert(d2 === '2005-01-15', 'numeric dd/mm/yyyy date parses');
+
+const d3 = loadApi()._validateField(
+  { type: 'date', required: false, label: 'DOB' },
+  '15th Jan 2005'
+);
+assert(d3.ok && d3.value === '2005-01-15', 'date field validates spoken form');
+
+const gr = loadApi()._parseGrade('class 10');
+assert(gr === '10', 'grade parse class 10');
+
 const emailBad = loadApi()._validateField(
   { type: 'email', required: false, label: 'Email' },
   'not-an-email'

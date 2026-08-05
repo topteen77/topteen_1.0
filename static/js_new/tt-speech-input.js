@@ -360,8 +360,19 @@
     writeSpeechToBox(state, '');
   }
 
+  function isTextareaInput(el) {
+    return !!(el && String(el.tagName || '').toUpperCase() === 'TEXTAREA');
+  }
+
   function resetSpeechSessionFromBox(state) {
-    state.sessionBase = state.input ? state.input.value : '';
+    // Inputs: each mic session replaces with fresh speech.
+    // Textareas (notes): keep existing text and append new speech.
+    if (isTextareaInput(state.input)) {
+      state.sessionBase = state.input.value || '';
+    } else {
+      state.sessionBase = '';
+      if (state.input) state.input.value = '';
+    }
     state.androidCommitted = '';
     state.speechPrefix = state.sessionBase;
     state.speechFinal = '';
