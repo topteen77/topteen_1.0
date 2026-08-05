@@ -13,6 +13,12 @@ function loginsingup() {
   }
   var formData = new FormData();
   formData.append("user_name", phoneEmail);
+  if (window.LOGIN_MODE) {
+    formData.append("login_mode", window.LOGIN_MODE);
+  }
+  if (window.LOGIN_ONLY || window.LOGIN_MODE === "smart") {
+    formData.append("login_only", "1");
+  }
   console.log("formData",formData)
   
   $.ajax({
@@ -21,6 +27,20 @@ function loginsingup() {
     data: formData,
     
     success: function (data) {
+      if (data.account_not_found) {
+        var msg =
+          data.message ||
+          "No account found for this email or mobile.";
+        var errEl = document.getElementById("errorMsgSinguplogin");
+        if (errEl) {
+          errEl.innerHTML = msg;
+          errEl.style.display = "block";
+        }
+        if (typeof fireAlert === "function") {
+          fireAlert(msg, "error");
+        }
+        return;
+      }
       if (data.show_otp) {
         loginsingupremoveunusetag();
         var x = document.createElement("input");

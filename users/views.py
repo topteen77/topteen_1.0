@@ -535,62 +535,95 @@ class LoginView(TemplateView):
         return get_breadcrumb(l)
 
     def __html_head(self):
-        name='Login Signup'
+        name = "Sign In"
         return build_html_head(title=name, description=name)
 
-    def get_context(self,request,enc_id=None,*args,**kwargs):
-        ctx={}
-        ctx['html_head']=self.__html_head()
-        ctx['breadcrumb']=self.__breadcrumb()
+    def get_context(self, request, enc_id=None, *args, **kwargs):
+        ctx = {}
+        ctx["html_head"] = self.__html_head()
+        ctx["breadcrumb"] = self.__breadcrumb()
+        # Smart Sign In: one entry for students, parents, and partner roles (via password/OTP).
+        ctx["login_mode"] = "smart"
+        ctx["login_only"] = True
         # If user is already authenticated and still hits a login URL, the UI should
         # prompt for logout instead of showing the login form.
-        ctx["already_logged_in"] = bool(getattr(request, "user", None) and request.user.is_authenticated)
+        ctx["already_logged_in"] = bool(
+            getattr(request, "user", None) and request.user.is_authenticated
+        )
         try:
             ctx["logout_url"] = reverse("users:logout")
         except Exception:
             ctx["logout_url"] = "/user/logout/"
         try:
-            ctx["dashboard_url"] = reverse("users:userdashboard")
+            u = getattr(request, "user", None)
+            if u and u.is_authenticated:
+                ctx["dashboard_url"] = get_dashboard_url_for_user(request, u)
+            else:
+                ctx["dashboard_url"] = reverse("users:userdashboard")
         except Exception:
             ctx["dashboard_url"] = "/user/dashboard/"
         try:
             u = getattr(request, "user", None)
-            ctx["logged_in_as"] = (getattr(u, "name", None) or getattr(u, "email", None) or "").strip()
+            ctx["logged_in_as"] = (
+                getattr(u, "name", None) or getattr(u, "email", None) or ""
+            ).strip()
         except Exception:
             ctx["logged_in_as"] = ""
         if enc_id:
-            ctx['enc_referral_user']=enc_id
+            ctx["enc_referral_user"] = enc_id
         else:
-            ctx['enc_referral_user']=False
+            ctx["enc_referral_user"] = False
         # Preserve ?next= for redirect after login (e.g. back to psychometric payment page)
-        next_url = (request.GET.get('next') or '').strip()
+        next_url = (request.GET.get("next") or "").strip()
         if next_url:
             from django.utils.http import url_has_allowed_host_and_scheme
+
             full_url = request.build_absolute_uri(next_url)
             if not url_has_allowed_host_and_scheme(full_url, request.get_host()):
-                next_url = ''
+                next_url = ""
             elif not is_safe_post_login_redirect_path(next_url):
-                next_url = ''
+                next_url = ""
             else:
                 # Store in session as fallback if client doesn't send next in login POST
-                request.session['login_next_url'] = next_url
-        ctx['next_url'] = next_url
+                request.session["login_next_url"] = next_url
+        ctx["next_url"] = next_url
         # When login is shown in an iframe (e.g. career swipe), show context-specific copy
-        if request.GET.get('embed') == '1':
-            if 'career_swipe' in (next_url or ''):
-                ctx['login_embed_heading'] = 'Sign in to save your careers'
-                ctx['login_embed_subtitle'] = 'Enter your email or mobile below. After you sign in, this window will close and your choices will be saved.'
+        if request.GET.get("embed") == "1":
+            if "career_swipe" in (next_url or ""):
+                ctx["login_embed_heading"] = "Sign in to save your careers"
+                ctx["login_embed_subtitle"] = (
+                    "Enter your email or mobile below. After you sign in, this window will close and your choices will be saved."
+                )
             else:
-                ctx['login_embed_heading'] = 'Sign in'
-                ctx['login_embed_subtitle'] = 'Enter your details below to continue.'
+                ctx["login_embed_heading"] = "Sign in"
+                ctx["login_embed_subtitle"] = "Enter your details below to continue."
         else:
-            ctx['login_embed_heading'] = None
-            ctx['login_embed_subtitle'] = None
+            ctx["login_embed_heading"] = "Sign in to TopTeen"
+            ctx["login_embed_subtitle"] = (
+                "One Sign In for students, parents, schools, counselors, and partners. We’ll take you to the right dashboard."
+            )
+        try:
+            ctx["student_signup_url"] = reverse("student_signup")
+        except Exception:
+            ctx["student_signup_url"] = "/student/signup/"
+        try:
+            ctx["institute_login_url"] = reverse("institute:login")
+        except Exception:
+            ctx["institute_login_url"] = "/institute/auth/login/"
+        try:
+            ctx["counselor_login_url"] = reverse("counselor:login")
+        except Exception:
+            ctx["counselor_login_url"] = "/counselor/auth/login/"
+        try:
+            ctx["marketing_login_url"] = reverse("marketing:login")
+        except Exception:
+            ctx["marketing_login_url"] = "/marketing-auth/login/"
         # Demo accounts: never on ENVIRONMENT=production; gated elsewhere via Configuration.
         from .demo_accounts import get_demo_login_context
+
         ctx.update(get_demo_login_context(request))
-        ctx['show_demo_credentials'] = False
-        ctx['demo_credentials'] = []
+        ctx["show_demo_credentials"] = False
+        ctx["demo_credentials"] = []
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -734,21 +767,9 @@ class DemoLoginView(View):
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class StudentLoginView(LoginView):
     """
-    Student login landing page (/student/login/).
-    OTP-first by default via template context.
-    Demo accounts: only Student role.
+    Legacy /student/login/ — redirects to unified smart Sign In.
     """
     template_name = "template20/student_login.html"
-
-    def get_context(self, request, enc_id=None, *args, **kwargs):
-        ctx = super().get_context(request, enc_id, *args, **kwargs)
-        from .demo_accounts import get_demo_login_context, empty_demo_login_context, should_show_demo_accounts
-
-        if should_show_demo_accounts():
-            ctx.update(get_demo_login_context(request, user_types=[choices.UserType.STUDENT]))
-        else:
-            ctx.update(empty_demo_login_context())
-        return ctx
 
     def get(self, request, *args, **kwargs):
         if (
@@ -757,9 +778,11 @@ class StudentLoginView(LoginView):
             and request.session.pop("fresh_login", False)
         ):
             return redirect(get_dashboard_url_for_user(request, request.user))
-        ctx = self.get_context(request, *args, **kwargs)
-        ctx['login_mode'] = 'student'
-        return render(request, self.template_name, ctx)
+        url = reverse("users:login")
+        qs = request.GET.urlencode()
+        if qs:
+            url = f"{url}?{qs}"
+        return redirect(url)
 
 
 class StudentSignupView(LoginView):
@@ -771,7 +794,12 @@ class StudentSignupView(LoginView):
 
     def get(self, request, *args, **kwargs):
         ctx = self.get_context(request, *args, **kwargs)
-        ctx['login_mode'] = 'student'
+        ctx["login_mode"] = "student"
+        ctx["login_only"] = False
+        ctx["login_embed_heading"] = "Create your student account"
+        ctx["login_embed_subtitle"] = (
+            "Sign up with email or mobile. After verifying OTP, set a password to continue."
+        )
         return render(request, self.template_name, ctx)
 
 
@@ -801,7 +829,12 @@ class ParentsLoginView(LoginView):
         ):
             return redirect(get_dashboard_url_for_user(request, request.user))
         ctx = self.get_context(request, *args, **kwargs)
-        ctx['login_mode'] = 'parent'
+        ctx["login_mode"] = "parent"
+        ctx["login_only"] = True
+        ctx["login_embed_heading"] = "Parent Sign In"
+        ctx["login_embed_subtitle"] = (
+            "Enter the mobile number linked by your child. Parents cannot create accounts here."
+        )
         return render(request, self.template_name, ctx)
 
 
@@ -2166,16 +2199,43 @@ def _parent_mobile_exists(mobile: str, exclude_user_id: int | None = None) -> bo
 
 
 def _login_mode_from_request(request) -> str:
-    """Client login page mode: parent | student | default."""
+    """Client login page mode: parent | student | smart | default."""
     raw = (
         request.POST.get("login_mode")
         or request.GET.get("login_mode")
         or ""
     )
     mode = str(raw).strip().lower()
-    if mode in ("parent", "student", "default"):
+    if mode in ("parent", "student", "smart", "default"):
         return mode
     return "default"
+
+
+def _login_only_from_request(request) -> bool:
+    """True when the client wants Sign In only (no auto student signup)."""
+    raw = (request.POST.get("login_only") or request.GET.get("login_only") or "").strip().lower()
+    if raw in ("1", "true", "yes"):
+        return True
+    return _login_mode_from_request(request) == "smart"
+
+
+def _absolute_post_login_url(request, user) -> str:
+    """Prefer safe ?next=, else role dashboard. Always absolute."""
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    next_path = (request.POST.get("next") or request.GET.get("next") or "").strip()
+    if not next_path:
+        next_path = request.session.pop("login_next_url", "") or ""
+    if next_path and is_safe_post_login_redirect_path(next_path):
+        full_url = request.build_absolute_uri(next_path)
+        if url_has_allowed_host_and_scheme(full_url, request.get_host()):
+            if "/psychometrictest/" in full_url:
+                full_url = full_url + ("&" if "?" in full_url else "?") + "auto_buy=1"
+            return full_url
+    redirect_url = get_dashboard_url_for_user(request, user)
+    if not str(redirect_url).startswith("http"):
+        return request.build_absolute_uri(redirect_url)
+    return redirect_url
 
 
 def _find_parent_user_by_mobile(mobile) -> User | None:
@@ -2330,7 +2390,23 @@ class LoginSignUp(APIView):
                     print(traceback.format_exc())
                     data['message'] = f"An error occurred while processing your request. Please try again."
                     return Response(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            else:   
+            else:
+                # Smart / login-only Sign In: do not start student signup OTP for unknown users.
+                if _login_only_from_request(request):
+                    data["account_not_found"] = True
+                    data["show_otp"] = False
+                    data["show_password"] = False
+                    data["success"] = False
+                    data["message"] = (
+                        "No account found for this email or mobile. "
+                        "Create a student account, or use Partner login if you are a school, counselor, or marketer."
+                    )
+                    try:
+                        data["student_signup_url"] = request.build_absolute_uri(reverse("student_signup"))
+                    except Exception:
+                        data["student_signup_url"] = "/student/signup/"
+                    return Response(data, status=status.HTTP_200_OK)
+
                 otp_type=choices.CommunicationTypeChooices.SMS if isinstance(username, int) else choices.CommunicationTypeChooices.EMAIL
                 print()
                 print(f"From Views",">"*30,username)
@@ -2390,37 +2466,28 @@ class SignUpVerifyOTP(APIView):
                     return Response(data, status=status.HTTP_200_OK)
                 if user:
                     # User exists and is active - log them in directly
-                    from django.contrib.auth import login
-                    from django.utils.http import url_has_allowed_host_and_scheme
-                    # Use CustomUserBackend for login
                     login_user_with_session(request, user)
                     _link_current_analytics_session(request, user)
                     data["otp_verify"]=True
                     data["user_exists"]=True
                     data["success"]=True
-                    # If ?next= was provided (e.g. from Proceed to Buy), redirect there
-                    next_path = (request.POST.get('next') or request.GET.get('next') or '').strip()
-                    if not next_path:
-                        next_path = request.session.pop('login_next_url', '')
-                    if next_path and is_safe_post_login_redirect_path(next_path):
-                        full_url = request.build_absolute_uri(next_path)
-                        if url_has_allowed_host_and_scheme(full_url, request.get_host()):
-                            if '/psychometrictest/' in full_url:
-                                full_url = full_url + ('&' if '?' in full_url else '?') + 'auto_buy=1'
-                            data['redirect_url'] = full_url
-                            return Response(data, status=status.HTTP_200_OK)
-                    if user.is_staff or user.is_superuser:
-                        redirect_url = reverse('user_analytics:business_dashboard')
-                    elif user.user_type == choices.UserType.PARENT:
-                        redirect_url = reverse('parents_dashboard')
-                    elif user.user_type == choices.UserType.STUDENT:
-                        redirect_url = _compute_student_destination(user)
-                    else:
-                        redirect_url = reverse('users:userdashboard')
-                    redirect_url = _apply_institute_student_mobile_gate(request, user, redirect_url)
-                    data['redirect_url'] = request.build_absolute_uri(redirect_url)
+                    data["redirect_url"] = _absolute_post_login_url(request, user)
                     return Response(data, status=status.HTTP_200_OK)
                 else:
+                    if _login_only_from_request(request):
+                        data["account_not_found"] = True
+                        data["otp_verify"] = False
+                        data["user_exists"] = False
+                        data["success"] = False
+                        data["message"] = (
+                            "No account found for this email or mobile. "
+                            "Create a student account to get started."
+                        )
+                        try:
+                            data["student_signup_url"] = request.build_absolute_uri(reverse("student_signup"))
+                        except Exception:
+                            data["student_signup_url"] = "/student/signup/"
+                        return Response(data, status=status.HTTP_200_OK)
                     # New user - proceed to password form
                     sign = Signer()
                     enc_user_name=sign.sign_object(({"enc_user_name":username}))
@@ -2456,9 +2523,12 @@ class SignUpPassword(APIView):
             data['message'] = "Passwords do not match. Please make sure both passwords are the same."
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
         
-        # Validate grade for direct signups (allow classes 6 through 12)
+        # Require class/grade for direct student signups (classes 6–12)
         allowed = [str(v) for v in range(6, 13)]
-        if grade and grade not in allowed:
+        if not grade:
+            data['message'] = "Please select your class"
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+        if str(grade) not in allowed:
             data['message'] = "Please select a valid class (6 to 12)"
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
         
@@ -2541,11 +2611,7 @@ class SignUpPassword(APIView):
                     try:
                         # Create or update UserProfile with grade
                         user_profile, created = UserProfile.objects.get_or_create(user=user)
-                        # Set default to "10" if not provided
-                        if grade:
-                            user_profile.grade = grade
-                        else:
-                            user_profile.grade = "10"  # Default to class 10
+                        user_profile.grade = str(grade)
                         user_profile.save()
                     except Exception as profile_error:
                         # Log but don't fail - user is already created
@@ -2569,49 +2635,7 @@ class SignUpPassword(APIView):
                     # User is created successfully, so return success even if profile/login had minor issues
                     data['success'] = True
                     data['message'] = "Account created successfully"
-
-                    # If ?next= was provided (e.g. from Proceed to Buy), redirect there after signup
-                    from django.utils.http import url_has_allowed_host_and_scheme
-                    next_path = (request.POST.get('next') or request.GET.get('next') or '').strip()
-                    if not next_path:
-                        next_path = request.session.pop('login_next_url', '')
-                    if next_path and is_safe_post_login_redirect_path(next_path):
-                        full_url = request.build_absolute_uri(next_path)
-                        if url_has_allowed_host_and_scheme(full_url, request.get_host()):
-                            if '/psychometrictest/' in full_url:
-                                full_url = full_url + ('&' if '?' in full_url else '?') + 'auto_buy=1'
-                            data['redirect_url'] = full_url
-                            return Response(data, status=status.HTTP_200_OK)
-                    
-                    # Redirect based on user type
-                    if user.user_type == choices.UserType.COUNSELOR:
-                        coun = primary_counselor_for_user(user)
-                        if coun:
-                            data['redirect_url'] = request.build_absolute_uri(reverse('counselor:CounselorDashboardView', args=[coun.id]))
-                        else:
-                            data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
-                    elif user.user_type == choices.UserType.INSTITUTE:
-                        from institute.models import Institute
-                        institute = Institute.objects.filter(created_by=user).last()
-                        if institute and institute.institute_status == choices.InstituteStatus.APPROVED:
-                            data['redirect_url'] = request.build_absolute_uri(reverse('institute:institute_masterdashboard', args=[institute.slug]))
-                        else:
-                            data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
-                    elif user.user_type == choices.UserType.INSTITUTEGROUPADMIN:
-                        from institute.models import InstituteGroup
-                        if InstituteGroup.objects.filter(institute_group_admin=user).exists():
-                            data['redirect_url'] = request.build_absolute_uri(reverse('institute:institutegroupdashboard'))
-                        else:
-                            data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
-                    elif user.user_type == choices.UserType.MARKETINGGROUPADMIN:
-                        from institute.models import Institute
-                        if Institute.objects.filter(marketing_group__marketing_group_admin=user).exists():
-                            data['redirect_url'] = request.build_absolute_uri(reverse('institute:marketinggroupdashboard'))
-                        else:
-                            data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
-                    else:
-                        data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
-                    
+                    data['redirect_url'] = _absolute_post_login_url(request, user)
                     return Response(data, status=status.HTTP_200_OK)
                 else:
                     data['success'] = False
@@ -2669,38 +2693,11 @@ class LoginOTP(APIView):
                     user = User.objects.filter(Q(mobile=mobile) | Q(email=email)).last()
                 if user and user.get_user_status():
                     # User exists and is active - log them in
-                    from django.contrib.auth import login
-                    from django.utils.http import url_has_allowed_host_and_scheme
-                    # Use CustomUserBackend for login
                     login_user_with_session(request, user)
                     _link_current_analytics_session(request, user)
                     data["otp_verify"]=True
                     data["success"]=True
-
-                    # If ?next= was provided (e.g. from Proceed to Buy), redirect there after login
-                    next_path = (request.POST.get('next') or request.GET.get('next') or '').strip()
-                    if not next_path:
-                        next_path = request.session.pop('login_next_url', '')
-                    if next_path and is_safe_post_login_redirect_path(next_path):
-                        full_url = request.build_absolute_uri(next_path)
-                        if url_has_allowed_host_and_scheme(full_url, request.get_host()):
-                            if '/psychometrictest/' in full_url:
-                                full_url = full_url + ('&' if '?' in full_url else '?') + 'auto_buy=1'
-                            data['redirect_url'] = full_url
-                            return Response(data, status=status.HTTP_200_OK)
-
-                    # Check if user is staff or superuser - redirect to business analytics
-                    if user.is_staff or user.is_superuser:
-                        redirect_url = reverse('user_analytics:business_dashboard')
-                    elif user.user_type == choices.UserType.PARENT:
-                        redirect_url = reverse('parents_dashboard')
-                    elif user.user_type == choices.UserType.STUDENT:
-                        redirect_url = _compute_student_destination(user)
-                    else:
-                        redirect_url = reverse('users:userdashboard')
-
-                    redirect_url = _apply_institute_student_mobile_gate(request, user, redirect_url)
-                    data['redirect_url'] = request.build_absolute_uri(redirect_url)
+                    data["redirect_url"] = _absolute_post_login_url(request, user)
                     return Response(data, status=status.HTTP_200_OK)
                 else:
                     data["message"]="User not found or inactive"
@@ -2790,77 +2787,7 @@ class LoginPassword(APIView):
                     data['success'] = True
                 # If master password was used, data['success'] is already set above
 
-                # If ?next= was provided (e.g. from Proceed to Buy), redirect there after login
-                from django.utils.http import url_has_allowed_host_and_scheme
-                next_path = (request.POST.get('next') or request.GET.get('next') or '').strip()
-                if not next_path:
-                    next_path = request.session.pop('login_next_url', '')
-                if next_path and is_safe_post_login_redirect_path(next_path):
-                    full_url = request.build_absolute_uri(next_path)
-                    if url_has_allowed_host_and_scheme(full_url, request.get_host()):
-                        if '/psychometrictest/' in full_url:
-                            full_url = full_url + ('&' if '?' in full_url else '?') + 'auto_buy=1'
-                        data['redirect_url'] = full_url
-                        return Response(data, status=status.HTTP_200_OK)
-
-                # Check if user is staff or superuser - redirect to business analytics first
-                if user.is_staff or user.is_superuser:
-                    data['redirect_url'] = request.build_absolute_uri(reverse('user_analytics:business_dashboard'))
-                    return Response(data, status=status.HTTP_200_OK)
-                
-                # Redirect based on user type
-                # Check for counselor first
-                if user.user_type == choices.UserType.COUNSELOR:
-                    coun = primary_counselor_for_user(user)
-                    if coun:
-                        data['redirect_url'] = reverse('counselor:CounselorDashboardView', args=[coun.id])
-                    else:
-                        data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
-                # Check for institute users
-                elif user.user_type == choices.UserType.INSTITUTE:
-                    from institute.models import Institute
-                    institute = Institute.objects.filter(created_by=user).last()
-                    if institute and institute.institute_status == choices.InstituteStatus.APPROVED:
-                        data['redirect_url'] = reverse('institute:institute_masterdashboard', args=[institute.slug])
-                    else:
-                        data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
-                # Check for parent users - redirect to parents dashboard
-                elif user.user_type == choices.UserType.PARENT:
-                    data['redirect_url'] = request.build_absolute_uri(reverse('parents_dashboard'))
-                # Check for institute group admin
-                elif user.user_type == choices.UserType.INSTITUTEGROUPADMIN:
-                    from institute.models import InstituteGroup
-                    if InstituteGroup.objects.filter(institute_group_admin=user).exists():
-                        data['redirect_url'] = reverse('institute:institutegroupdashboard')
-                    else:
-                        data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
-                # Check for marketing group admin
-                elif user.user_type == choices.UserType.MARKETINGGROUPADMIN:
-                    from institute.models import Institute
-                    if Institute.objects.filter(marketing_group__marketing_group_admin=user).exists():
-                        data['redirect_url'] = reverse('institute:marketinggroupdashboard')
-                    else:
-                        data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
-                else:
-                    # For students, use _compute_student_destination to determine correct dashboard
-                    # This will redirect 11th/12th grade students to post_matric:tests (student dashboard)
-                    # and others to users:userdashboard
-                    if user.user_type == choices.UserType.STUDENT:
-                        redirect_url = _compute_student_destination(user)
-                        data['redirect_url'] = request.build_absolute_uri(redirect_url)
-                    else:
-                        # Default redirect to user dashboard for other user types
-                        data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
-                
-                # Apply institute student mobile gate if needed
-                if user.user_type == choices.UserType.STUDENT:
-                    redirect_url = data.get('redirect_url', reverse('users:userdashboard'))
-                    if isinstance(redirect_url, str) and not redirect_url.startswith('http'):
-                        redirect_url = reverse('users:userdashboard') if redirect_url == reverse('users:userdashboard') else redirect_url
-                    data['redirect_url'] = _apply_institute_student_mobile_gate(request, user, redirect_url)
-                    if not str(data['redirect_url']).startswith('http'):
-                        data['redirect_url'] = request.build_absolute_uri(data['redirect_url'])
-                
+                data['redirect_url'] = _absolute_post_login_url(request, user)
                 return Response(data, status=status.HTTP_200_OK)
                 
             # Password authentication failed - for students, offer OTP as fallback

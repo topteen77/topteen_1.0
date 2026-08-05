@@ -76,8 +76,8 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
 
           <div class="hero-button d-flex flex-row mt-md-8 mt-5">
             {% if not request.user.is_authenticated %}
-            <button onclick="window.location.href='{{ url('student_login') }}'" type="button"
-              class="btn custom-button purple-button me-3">Get
+            <button type="button"
+              class="btn custom-button purple-button me-3 student-signup-popup-trigger">Get
               Started</button>
             {% endif %}
             <button type="button" class=" btn custom-button  blue-button d-flex align-items-center"
@@ -1331,5 +1331,5 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
     }
   });
 </script>
-<script src="{{ static('js_new/careerBattlePopup.js') }}"></script>
+<script src="{{ static('js_new/careerBattlePopup.js') }}?v=20260803-login1"></script>
 {% endblock %}

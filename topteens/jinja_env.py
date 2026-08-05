@@ -453,7 +453,7 @@ def environment(**options):
         'format_duration':format_duration,
         'DEBUG':settings.DEBUG,
         'checkinstance':checkinstance,
-        'seo_year':seo_year,
+        # seo_year comes from topteens.context_processor.globals ({{ seo_year }})
         'my_url': my_url,
         'csrf_input': csrf_input,
         'csrf_input_tag': csrf_input,  # alias to avoid context shadowing (e.g. __proxy__)
