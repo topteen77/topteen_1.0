@@ -1,0 +1,54 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:hub_configuration' %}">Website &amp; platform configuration</a>
+&rsaquo; <a href="{% url 'admin:hub_configuration' %}#voice-to-text-settings">Voice to text settings</a>
+&rsaquo; {{ title }}
+</div>
+{% endblock %}
+
+{% block content %}
+<p style="margin-bottom: 16px; color: var(--tt-text-muted, #666);">
+  Control speech-to-text across Notebook, login/signup fields, profile voice bar, and note editors.
+  Changes take effect on the next page load.
+</p>
+
+{% if current_mode == 'openai' and not openai_key_configured %}
+<p class="errornote" style="margin-bottom: 16px;">
+  OpenAI mode is selected, but <code>OPENAI_API_KEY</code> is not set in the server environment.
+  Cloud transcription will fail until the key is configured.
+</p>
+{% elif current_mode == 'openai' and openai_key_configured %}
+<p style="margin-bottom: 16px; padding: 10px 12px; background: #e8f8ef; border: 1px solid #8fd3a8; border-radius: 6px; color: #14532d;">
+  OpenAI mode is active. <code>OPENAI_API_KEY</code> is configured (~$0.003/min for gpt-4o-mini-transcribe).
+</p>
+{% endif %}
+
+<form method="post" id="voice-to-text-settings-form">
+  {% csrf_token %}
+  <fieldset class="module aligned">
+    <h2>Voice to text settings</h2>
+    {% for field in form %}
+    <div class="form-row">
+      <div>
+        <label for="{{ field.id_for_label }}" style="font-weight: 600; display: block; margin-bottom: 6px;">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}
+        <p class="help" style="margin: 8px 0 0 0; font-size: 12px; max-width: 640px;">{{ field.help_text }}</p>
+        {% endif %}
+        {% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </fieldset>
+  <div class="submit-row" style="margin-top: 20px;">
+    <input type="submit" value="Save settings" class="default">
+    <a href="{% url 'admin:hub_configuration' %}#voice-to-text-settings" class="button cancel-link">Back to hub</a>
+  </div>
+</form>
+{% endblock %}

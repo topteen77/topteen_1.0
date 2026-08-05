@@ -21,14 +21,29 @@
     {% for field in form %}
     <div class="form-row">
       <div>
+        {% if field.name == 'DASHBOARD_TEMPLATE_VERSION' or field.name == 'DEFAULT_MINDMAP_TYPE' or field.name == 'DEFAULT_course_MINDMAP_TYPE' or field.name == 'CHATBOT_DEFAULT_MODE' or field.name == 'CHATBOT_PAGE_RULES' %}
+        <label for="{{ field.id_for_label }}" style="font-weight: 600; display: block; margin-bottom: 6px;">{{ field.label }}</label>
+        {{ field }}
+        {% else %}
         {{ field }}
         <label for="{{ field.id_for_label }}" style="font-weight: normal; margin-left: 8px;">{{ field.label }}</label>
+        {% endif %}
         {% if field.help_text %}
         <p class="help" style="margin: 5px 0 0 24px; font-size: 12px;">{{ field.help_text }}</p>
         {% endif %}
+        {% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
       </div>
     </div>
     {% endfor %}
+    <div class="form-row">
+      <div>
+        <p class="help" style="margin: 8px 0 0 0; font-size: 12px;">
+          Voice-to-text mode moved to
+          <a href="{% url 'admin:core_configuration_voice_to_text_settings' %}">Voice to text settings</a>
+          (also listed on the Configuration hub).
+        </p>
+      </div>
+    </div>
   </fieldset>
   <div class="submit-row" style="margin-top: 20px;">
     <input type="submit" value="Save settings" class="default">

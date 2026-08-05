@@ -610,6 +610,21 @@
 {% block additionaljs %}
 {{ super() }}
 <script src="{{ static('js/school-name-search.js') }}"></script>
+{% if enable_voice_to_text|default(true) %}
+<script>
+  if (typeof window.TT_VOICE_TO_TEXT_ENABLED === 'undefined') {
+    window.TT_VOICE_TO_TEXT_ENABLED = {{ enable_voice_to_text | default(true) | tojson }};
+  }
+  if (typeof window.TT_VOICE_TO_TEXT_MODE === 'undefined') {
+    window.TT_VOICE_TO_TEXT_MODE = {{ voice_to_text_mode | default('browser') | tojson }};
+  }
+  if (typeof window.TT_VOICE_TRANSCRIBE_API === 'undefined') {
+    window.TT_VOICE_TRANSCRIBE_API = {{ voice_transcribe_api_url | default('/api/voice/transcribe/') | tojson }};
+  }
+</script>
+<script src="{{ static('js_new/tt-speech-input.js') }}?v=20260805-speech10"></script>
+<script src="{{ static('js_new/tt-voice-nav.js') }}?v=20260805-voicenav5"></script>
+{% endif %}
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const csrfToken = '{{ csrf_token }}';
@@ -973,6 +988,58 @@
         }
       }).catch(function() { setErr(errEl, 'Unable to verify OTP'); });
     });
+
+    // Voice navigation + form fill (mic / green bar only when admin + browser ready)
+    if (window.TTVoiceNav && window.TT_VOICE_TO_TEXT_ENABLED !== false) {
+      try {
+        window.TTVoiceNav.attach({
+          pageCommands: [
+            {
+              match: /^(edit contact|open contact|edit personal|edit profile)$/i,
+              run: function (done) {
+                var btn = document.getElementById('openPersonalInfoModal');
+                if (!btn) { done('Contact editor not available', 'err'); return 'async'; }
+                btn.click();
+                setTimeout(function () { done('Opened personal information'); }, 350);
+                return 'async';
+              }
+            }
+          ],
+          forms: [
+            {
+              id: 'personal',
+              form: '#personalInfoForm',
+              modal: '#personalInfoModal',
+              fields: [
+                { id: 'piName', label: 'Full name', keys: ['name', 'full name'], type: 'text', required: true },
+                { id: 'piEmail', label: 'Email', keys: ['email', 'mail'], type: 'email', required: false },
+                { id: 'piMobile', label: 'Mobile', keys: ['mobile', 'phone', 'mobile number', 'phone number'], type: 'mobile', required: true },
+                { id: 'piBirthday', label: 'Date of birth', keys: ['birthday', 'date of birth', 'dob', 'birth date'], type: 'date', required: false },
+                { id: 'piGender', label: 'Gender', keys: ['gender'], type: 'gender', required: false },
+                { id: 'piSchool', label: 'School', keys: ['school', 'school name'], type: 'text', required: false },
+                { id: 'piGrade', label: 'Class', keys: ['class', 'grade', 'grade class'], type: 'grade', required: false }
+              ],
+              onSave: function (done) {
+                var form = document.getElementById('personalInfoForm');
+                var errEl = document.getElementById('personalInfoErr');
+                var saveBtn = document.getElementById('personalInfoSaveBtn');
+                if (!form) { done('Form missing', 'err'); return 'async'; }
+                submitProfileSection(form, 'personal', errEl, saveBtn)
+                  .then(function () {
+                    var msg = (errEl && errEl.style.display !== 'none') ? (errEl.textContent || '') : '';
+                    if (msg) done(msg, 'err');
+                    else done('Saving…');
+                  })
+                  .catch(function () { done('Unable to save changes', 'err'); });
+                return 'async';
+              }
+            }
+          ]
+        });
+      } catch (eVoice) {
+        try { console.warn('[tt-voice-nav] attach failed', eVoice); } catch (e2) {}
+      }
+    }
   });
 </script>
 {% endblock %}

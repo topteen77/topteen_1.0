@@ -99,6 +99,7 @@
   .student-popup-tab:hover { color: #6b7280; }
   .student-popup-tab.active { color: #3f37c9; border-bottom-color: #3f37c9; }
   .student-popup-input {
+    box-sizing: border-box;
     width: 100%;
     height: 48px;
     padding: 0 14px 0 44px;
@@ -109,41 +110,58 @@
     background: #fff;
   }
   .student-popup-input:focus { outline: none; border-color: #3f37c9; box-shadow: 0 0 0 3px rgba(63, 55, 201, 0.12); }
-  .student-popup-input-wrap { position: relative; margin-bottom: 14px; }
+  .student-popup-input-wrap {
+    position: relative;
+    margin-bottom: 14px;
+    width: 100%;
+    box-sizing: border-box;
+  }
   .student-popup-input-wrap > i {
     position: absolute; left: 14px; top: 50%;
     transform: translateY(-50%);
     color: #9ca3af;
     font-size: 20px;
     pointer-events: none;
+    z-index: 1;
   }
+  /* Keep show/hide eye fully inside the input border */
   .student-popup-eye {
     position: absolute;
-    right: 12px;
+    right: 8px;
     top: 50%;
     transform: translateY(-50%);
+    box-sizing: border-box;
+    width: 36px;
+    height: 36px;
+    margin: 0;
     border: none;
-    background: none;
+    background: transparent;
     color: #9ca3af;
     font-size: 20px;
-    padding: 6px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
     line-height: 1;
+    z-index: 3;
+    -webkit-tap-highlight-color: transparent;
   }
   .student-popup-eye:hover { color: #3f37c9; }
-  .student-popup-input.has-toggle { padding-right: 44px; }
+  .student-popup-input.has-toggle { padding-right: 48px; }
   .student-popup-mic {
     position: absolute;
-    right: 10px;
+    right: 8px;
     top: 50%;
     transform: translateY(-50%);
+    box-sizing: border-box;
     border: none;
     background: #f3f4f6;
     color: #6b7280;
     width: 36px;
     height: 36px;
     border-radius: 10px;
-    display: inline-flex;
+    display: none; /* shown only when speech engine is ready */
     align-items: center;
     justify-content: center;
     font-size: 20px;
@@ -160,14 +178,33 @@
     animation: tt-speech-pulse 1.2s ease-in-out infinite;
   }
   .student-popup-mic.is-unavailable { opacity: 0.85; }
+  .student-popup-mic[hidden] { display: none !important; visibility: hidden !important; }
   @keyframes tt-speech-pulse {
     0%, 100% { box-shadow: 0 0 0 0 rgba(63, 55, 201, 0.35); }
     50% { box-shadow: 0 0 0 6px rgba(63, 55, 201, 0); }
   }
   .student-popup-input-wrap.has-speech .student-popup-input,
   .student-popup-input.has-speech { padding-right: 52px; }
-  .student-popup-input-wrap.has-eye-speech .student-popup-mic { right: 42px; }
-  .student-popup-input-wrap.has-eye-speech .student-popup-input.has-toggle { padding-right: 84px; }
+  /*
+   * Mic + eye must never share the same slot.
+   * Eye stays at right:8px; mic sits to its left whenever both exist.
+   */
+  .student-popup-input-wrap.has-eye-speech .student-popup-eye { right: 8px; z-index: 3; }
+  .student-popup-input-wrap.has-eye-speech .student-popup-mic:not([hidden]) {
+    right: 48px;
+    display: inline-flex;
+  }
+  .student-popup-input-wrap.has-eye-speech .student-popup-input.has-toggle { padding-right: 48px; }
+  .student-popup-input-wrap.has-eye-speech:has(.student-popup-mic:not([hidden])) .student-popup-input.has-toggle {
+    padding-right: 96px;
+  }
+  /* Fallback when :has() missing — still keep mic left of eye if wrap marked has-speech */
+  .student-popup-input-wrap.has-eye-speech.has-speech .student-popup-mic:not([hidden]) {
+    right: 48px;
+  }
+  .student-popup-input-wrap.has-eye-speech.has-speech .student-popup-input.has-toggle {
+    padding-right: 96px;
+  }
   .student-popup-input.is-speech-listening { border-color: #3f37c9; box-shadow: 0 0 0 3px rgba(63, 55, 201, 0.12); }
   .tt-speech-tip {
     display: none;
@@ -308,7 +345,7 @@
         <div class="student-popup-input-wrap has-speech">
           <i class='bx bx-envelope'></i>
           <input type="text" id="studentLoginInput" class="student-popup-input has-speech" placeholder="Email or mobile number" autocomplete="username" enterkeyhint="go" data-tt-speech="identity" inputmode="email">
-          <button type="button" class="student-popup-mic tt-speech-mic" data-tt-speech-for="studentLoginInput" aria-label="Speak to fill" title="Speak to fill"><i class='bx bx-microphone' aria-hidden="true"></i></button>
+          <button type="button" class="student-popup-mic tt-speech-mic" data-tt-speech-for="studentLoginInput" hidden aria-hidden="true" aria-label="Speak to fill" title="Speak to fill"><i class='bx bx-microphone' aria-hidden="true"></i></button>
         </div>
         <button type="button" class="student-popup-btn student-popup-btn-primary" id="studentLoginContinueBtn">Continue</button>
       </div>
@@ -330,15 +367,23 @@
       <h2 class="student-popup-title text-center">Enter password</h2>
       <p class="student-popup-sub text-center">Signing in as <span id="studentPasswordEmail" class="fw-600 text-purple"></span></p>
       <p id="studentPasswordErr" class="student-popup-err" role="alert"></p>
-      <input type="hidden" id="studentPasswordEncUser" value="">
-      <div class="student-popup-input-wrap mb-3 has-speech has-eye-speech">
-        <i class='bx bx-lock'></i>
-        <input type="password" id="studentPasswordInput" class="student-popup-input has-toggle has-speech" placeholder="Password" autocomplete="current-password" enterkeyhint="done" data-tt-speech="password">
-        <button type="button" class="student-popup-mic tt-speech-mic" data-tt-speech-for="studentPasswordInput" aria-label="Speak to fill" title="Speak to fill"><i class='bx bx-microphone' aria-hidden="true"></i></button>
-        <button type="button" class="student-popup-eye" id="studentPasswordToggle" aria-label="Show password"><i class='bx bx-hide'></i></button>
-      </div>
-      <button type="button" class="student-popup-btn student-popup-btn-primary" id="studentPasswordSubmit">Sign in</button>
-      <button type="button" class="student-popup-btn student-popup-btn-outline" id="studentPasswordBack">Back</button>
+      <form id="studentPasswordForm" action="#" method="post" autocomplete="on" onsubmit="return false;">
+        <input type="hidden" id="studentPasswordEncUser" value="" autocomplete="off">
+        <div class="student-popup-input-wrap mb-2">
+          <i class='bx bx-envelope'></i>
+          <input type="text" id="studentPasswordUsername" class="student-popup-input" name="username"
+                 autocomplete="username" readonly inputmode="email" aria-label="Email or mobile"
+                 style="background:#f8fafc;color:#374151;">
+        </div>
+        <div class="student-popup-input-wrap mb-3 has-speech has-eye-speech">
+          <i class='bx bx-lock'></i>
+          <input type="password" id="studentPasswordInput" class="student-popup-input has-toggle has-speech" name="password" placeholder="Password" autocomplete="current-password" enterkeyhint="done" data-tt-speech="password">
+          <button type="button" class="student-popup-mic tt-speech-mic" data-tt-speech-for="studentPasswordInput" hidden aria-hidden="true" aria-label="Speak to fill" title="Speak to fill"><i class='bx bx-microphone' aria-hidden="true"></i></button>
+          <button type="button" class="student-popup-eye" id="studentPasswordToggle" aria-label="Show password"><i class='bx bx-hide'></i></button>
+        </div>
+        <button type="submit" class="student-popup-btn student-popup-btn-primary" id="studentPasswordSubmit">Sign in</button>
+        <button type="button" class="student-popup-btn student-popup-btn-outline" id="studentPasswordBack">Back</button>
+      </form>
     </div>
 
     <div id="studentSignupPanel" class="student-popup-panel">
@@ -351,7 +396,7 @@
       <div class="student-popup-input-wrap has-speech">
         <i class='bx bx-envelope'></i>
         <input type="text" id="studentSignupInput" class="student-popup-input has-speech" placeholder="Email or mobile number" autocomplete="username" enterkeyhint="go" data-tt-speech="identity" inputmode="email">
-        <button type="button" class="student-popup-mic tt-speech-mic" data-tt-speech-for="studentSignupInput" aria-label="Speak to fill" title="Speak to fill"><i class='bx bx-microphone' aria-hidden="true"></i></button>
+        <button type="button" class="student-popup-mic tt-speech-mic" data-tt-speech-for="studentSignupInput" hidden aria-hidden="true" aria-label="Speak to fill" title="Speak to fill"><i class='bx bx-microphone' aria-hidden="true"></i></button>
       </div>
       <button type="button" class="student-popup-btn student-popup-btn-primary" id="studentSignupContinueBtn">Continue</button>
       <div class="student-popup-switch">
@@ -394,12 +439,12 @@
       <div class="student-popup-input-wrap mb-2 has-speech">
         <i class='bx bx-lock'></i>
         <input type="password" id="studentSignupPwdInput" class="student-popup-input has-speech" placeholder="Password" autocomplete="new-password" data-tt-speech="password">
-        <button type="button" class="student-popup-mic tt-speech-mic" data-tt-speech-for="studentSignupPwdInput" aria-label="Speak to fill" title="Speak to fill"><i class='bx bx-microphone' aria-hidden="true"></i></button>
+        <button type="button" class="student-popup-mic tt-speech-mic" data-tt-speech-for="studentSignupPwdInput" hidden aria-hidden="true" aria-label="Speak to fill" title="Speak to fill"><i class='bx bx-microphone' aria-hidden="true"></i></button>
       </div>
       <div class="student-popup-input-wrap mb-3 has-speech">
         <i class='bx bx-lock'></i>
         <input type="password" id="studentSignupPwdConfirm" class="student-popup-input has-speech" placeholder="Confirm password" autocomplete="new-password" data-tt-speech="password">
-        <button type="button" class="student-popup-mic tt-speech-mic" data-tt-speech-for="studentSignupPwdConfirm" aria-label="Speak to fill" title="Speak to fill"><i class='bx bx-microphone' aria-hidden="true"></i></button>
+        <button type="button" class="student-popup-mic tt-speech-mic" data-tt-speech-for="studentSignupPwdConfirm" hidden aria-hidden="true" aria-label="Speak to fill" title="Speak to fill"><i class='bx bx-microphone' aria-hidden="true"></i></button>
       </div>
       <button type="button" class="student-popup-btn student-popup-btn-primary" id="studentSignupPwdSubmit">Create account</button>
       <button type="button" class="student-popup-btn student-popup-btn-outline" id="studentSignupPwdBack">Back</button>
@@ -417,8 +462,14 @@
   if (typeof window.TT_VOICE_TO_TEXT_ENABLED === 'undefined') {
     window.TT_VOICE_TO_TEXT_ENABLED = {{ enable_voice_to_text | default(true) | tojson }};
   }
+  if (typeof window.TT_VOICE_TO_TEXT_MODE === 'undefined') {
+    window.TT_VOICE_TO_TEXT_MODE = {{ voice_to_text_mode | default('browser') | tojson }};
+  }
+  if (typeof window.TT_VOICE_TRANSCRIBE_API === 'undefined') {
+    window.TT_VOICE_TRANSCRIBE_API = {{ voice_transcribe_api_url | default('/api/voice/transcribe/') | tojson }};
+  }
 </script>
-<script src="{{ static('js_new/tt-speech-input.js') }}?v=20260805-speech7"></script>
+<script src="{{ static('js_new/tt-speech-input.js') }}?v=20260805-speech10"></script>
 <script>
 (function() {
   var STUDENT_POPUP_URLS = {
@@ -518,11 +569,11 @@
       } catch (e) {}
       return;
     }
-    // Helper missing: keep HTML mics visible so layout does not jump
+    // Helper missing: keep mics hidden so they never sit on top of the eye toggle
     root.querySelectorAll('.student-popup-mic').forEach(function(btn) {
-      btn.hidden = false;
-      btn.removeAttribute('hidden');
-      btn.style.display = 'inline-flex';
+      btn.hidden = true;
+      btn.setAttribute('hidden', 'hidden');
+      btn.style.display = 'none';
     });
   }
 
@@ -606,11 +657,29 @@
     if (el = document.getElementById('studentSignupPwdErr')) el.textContent = '';
     syncSignupIdentityIcon();
   };
+  function normalizePostLoginUrl(redirectUrl) {
+    var url = (redirectUrl && String(redirectUrl).trim()) || '';
+    if (!url) return '';
+    try {
+      // Behind ngrok HTTPS, server sometimes returned http://… which breaks iPhone Chrome.
+      if (window.location.protocol === 'https:' && url.indexOf('http://') === 0) {
+        url = 'https://' + url.slice('http://'.length);
+      }
+      var parsed = new URL(url, window.location.href);
+      // Keep user on the same host they logged in on (ngrok vs LAN IP).
+      if (parsed.host && parsed.host !== window.location.host) {
+        return parsed.pathname + parsed.search + parsed.hash;
+      }
+      return parsed.href;
+    } catch (e) {
+      return url;
+    }
+  }
   function onLoginSuccess(redirectUrl) {
     if (window.pendingCareerBookmarkSlug) {
       var slug = window.pendingCareerBookmarkSlug;
       window.pendingCareerBookmarkSlug = '';
-      var nextUrl = window.studentLoginNextUrl || '';
+      var nextUrl = normalizePostLoginUrl(window.studentLoginNextUrl || '');
       window.studentLoginNextUrl = '';
       closeLoginRequiredPopup();
       var fd = new FormData();
@@ -631,7 +700,7 @@
       return;
     }
     closeLoginRequiredPopup();
-    var url = (redirectUrl && String(redirectUrl).trim()) || window.studentLoginNextUrl || '';
+    var url = normalizePostLoginUrl(redirectUrl) || normalizePostLoginUrl(window.studentLoginNextUrl || '');
     window.studentLoginNextUrl = '';
     if (document.body && document.body.classList.contains('ttv2-shell')) {
       window.location.reload();
@@ -808,6 +877,8 @@
         if (data.show_password && data.enc_user_name) {
           var enc = document.getElementById('studentPasswordEncUser'); if (enc) enc.value = data.enc_user_name;
           var emailSpan = document.getElementById('studentPasswordEmail'); if (emailSpan) emailSpan.textContent = data.user_name || input;
+          var userField = document.getElementById('studentPasswordUsername');
+          if (userField) userField.value = data.user_name || input || '';
           var pe = document.getElementById('studentPasswordErr'); if (pe) pe.textContent = '';
           var pwdInp = document.getElementById('studentPasswordInput'); if (pwdInp) pwdInp.value = '';
           showPanel('studentPasswordPanel');
@@ -832,23 +903,45 @@
       });
     });
 
-    if (el = document.getElementById('studentPasswordSubmit')) el.addEventListener('click', function() {
-      var btn = this;
+    function _submitStudentPasswordLogin(btn) {
       var enc = (document.getElementById('studentPasswordEncUser') || {}).value;
       var pwd = (document.getElementById('studentPasswordInput') || {}).value;
+      var uname = (document.getElementById('studentPasswordUsername') || {}).value ||
+        (document.getElementById('studentPasswordEmail') || {}).textContent || '';
       var errEl = document.getElementById('studentPasswordErr');
       if (errEl) errEl.textContent = '';
       if (!enc || !pwd) { if (errEl) errEl.textContent = 'Enter your password'; return; }
       _setBtnBusy(btn, true, 'Sign in');
       var fd = new FormData(); fd.append('enc_user_name', enc); fd.append('password', pwd);
       ajaxPost(urls.loginpwd, fd, function(data) {
-        if (data.success) { onLoginSuccess(data.redirect_url); return; }
+        if (data.success) {
+          try {
+            if (window.PasswordCredential && navigator.credentials && navigator.credentials.store) {
+              navigator.credentials.store(new PasswordCredential({
+                id: String(uname || ''),
+                name: String(uname || ''),
+                password: String(pwd)
+              })).catch(function () {});
+            }
+          } catch (eCred) {}
+          onLoginSuccess(data.redirect_url);
+          return;
+        }
         _setBtnBusy(btn, false, 'Sign in');
         if (errEl) errEl.textContent = data.errMsg || data.message || 'Login failed';
       }, function(data) {
         _setBtnBusy(btn, false, 'Sign in');
         if (errEl) errEl.textContent = (data && (data.errMsg || data.message)) || 'Login failed';
       });
+    }
+    if (el = document.getElementById('studentPasswordSubmit')) el.addEventListener('click', function(e) {
+      e.preventDefault();
+      _submitStudentPasswordLogin(this);
+    });
+    if (el = document.getElementById('studentPasswordForm')) el.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var btn = document.getElementById('studentPasswordSubmit');
+      if (btn) _submitStudentPasswordLogin(btn);
     });
 
     if (el = document.getElementById('studentLoginVerifyOtp')) el.addEventListener('click', function() {
