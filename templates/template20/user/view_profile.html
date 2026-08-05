@@ -615,8 +615,15 @@
   if (typeof window.TT_VOICE_TO_TEXT_ENABLED === 'undefined') {
     window.TT_VOICE_TO_TEXT_ENABLED = {{ enable_voice_to_text | default(true) | tojson }};
   }
+  if (typeof window.TT_VOICE_TO_TEXT_MODE === 'undefined') {
+    window.TT_VOICE_TO_TEXT_MODE = {{ voice_to_text_mode | default('browser') | tojson }};
+  }
+  if (typeof window.TT_VOICE_TRANSCRIBE_API === 'undefined') {
+    window.TT_VOICE_TRANSCRIBE_API = {{ voice_transcribe_api_url | default('/api/voice/transcribe/') | tojson }};
+  }
 </script>
-<script src="{{ static('js_new/tt-voice-nav.js') }}?v=20260805-voicenav3"></script>
+<script src="{{ static('js_new/tt-speech-input.js') }}?v=20260805-speech8"></script>
+<script src="{{ static('js_new/tt-voice-nav.js') }}?v=20260805-voicenav4"></script>
 {% endif %}
 <script>
   document.addEventListener('DOMContentLoaded', function() {

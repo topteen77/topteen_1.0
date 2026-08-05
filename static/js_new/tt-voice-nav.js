@@ -1,12 +1,12 @@
 /**
  * TopTeen voice navigation + form fill (mobile-first).
  *
- * Visibility gate (all required):
- *   1) Admin ENABLE_VOICE_TO_TEXT / window.TT_VOICE_TO_TEXT_ENABLED
- *   2) Browser speech usable (SpeechRecognition + secure context)
- *   3) No prior session engine failure (sessionStorage tt_voice_stt_ok !== '0')
+ * Visibility gate:
+ *   1) Admin VOICE_TO_TEXT_MODE / window.TT_VOICE_TO_TEXT_ENABLED (off hides all)
+ *   2) Mic: browser STT when mode=browser; MediaRecorder+OpenAI when mode=openai
+ *   3) Chips still show when STT unavailable (commands-only)
  *
- * Only then: mic, green status box, and command suggestion chips are shown.
+ * Mic + green bar + chips when voice is enabled.
  *
  * Usage:
  *   TTVoiceNav.attach({ pageCommands, forms });
@@ -22,13 +22,30 @@
 
   var active = null; // { recognition, wantListening, busy, formCtx, ... }
 
-  function voiceFeatureEnabled() {
+  function getVoiceMode() {
+    try {
+      if (global.TTSpeechInput && typeof global.TTSpeechInput.getVoiceMode === 'function') {
+        return global.TTSpeechInput.getVoiceMode();
+      }
+    } catch (e0) {}
+    try {
+      var mode = String(global.TT_VOICE_TO_TEXT_MODE || '').toLowerCase();
+      if (mode === 'off' || mode === 'browser' || mode === 'openai') return mode;
+    } catch (e) {}
     try {
       if (typeof global.TT_VOICE_TO_TEXT_ENABLED !== 'undefined' && !global.TT_VOICE_TO_TEXT_ENABLED) {
-        return false;
+        return 'off';
       }
-    } catch (e) {}
-    return true;
+    } catch (e2) {}
+    return 'browser';
+  }
+
+  function isCloudMode() {
+    return getVoiceMode() === 'openai';
+  }
+
+  function voiceFeatureEnabled() {
+    return getVoiceMode() !== 'off';
   }
 
   function getSpeechCtor() {
@@ -47,7 +64,17 @@
     }
   }
 
+  function canUseMicHardware() {
+    if (insecureContextBlocked()) return false;
+    try {
+      return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+    } catch (e) {
+      return false;
+    }
+  }
+
   function canUseSpeechNow() {
+    if (isCloudMode()) return canUseMicHardware();
     return !!getSpeechCtor() && !insecureContextBlocked();
   }
 
@@ -68,11 +95,15 @@
     if (insecureContextBlocked()) {
       return 'This page is not a secure context (use HTTPS or localhost).';
     }
+    if (isCloudMode()) {
+      if (!canUseMicHardware()) return 'Microphone not available for cloud voice-to-text.';
+      return '';
+    }
     if (!getSpeechCtor()) {
       if (isAppleMobileSafari()) {
-        return 'iPhone Safari has no browser speech-to-text. Use the green chips, or tap a field and use the iOS keyboard mic.';
+        return 'iPhone Safari has no browser speech-to-text. Switch admin voice mode to OpenAI, or use chips / keyboard mic.';
       }
-      return 'This browser has no speech engine. Try Chrome or Edge on desktop/Android.';
+      return 'This browser has no speech engine. Try Chrome/Edge, or set admin voice mode to OpenAI.';
     }
     if (getProbeCache() === '0') {
       return 'Speech engine failed earlier this session. Refresh or clear site data, then try again.';
@@ -96,6 +127,7 @@
 
   function speechEngineReady() {
     if (!canUseSpeechNow()) return false;
+    if (isCloudMode()) return true;
     if (getProbeCache() === '0') return false;
     return true;
   }
@@ -375,7 +407,67 @@
     state.recognition = null;
   }
 
+  function stopCloudTracks(state) {
+    try {
+      if (state.mediaStream) {
+        state.mediaStream.getTracks().forEach(function (t) { t.stop(); });
+      }
+    } catch (e) {}
+    state.mediaStream = null;
+  }
+
+  function finishCloudListening(state) {
+    if (!state) return;
+    if (state.silenceTimer) {
+      clearTimeout(state.silenceTimer);
+      state.silenceTimer = null;
+    }
+    var chunks = state.cloudChunks || [];
+    var mime = (state.mediaRecorder && state.mediaRecorder.mimeType) || 'audio/webm';
+    var rec = state.mediaRecorder;
+    state.mediaRecorder = null;
+    if (rec) {
+      try { rec.ondataavailable = rec.onstop = rec.onerror = null; } catch (e0) {}
+    }
+    stopCloudTracks(state);
+    state.cloudChunks = null;
+    state.wantListening = false;
+    if (state.micBtn) {
+      state.micBtn.classList.remove('is-listening');
+      var icon = state.micBtn.querySelector('i');
+      if (icon) icon.className = 'bx bx-microphone';
+    }
+    if (!chunks.length) {
+      setStatus(state, 'No audio captured. Tap mic to try again.', 'err');
+      return;
+    }
+    var blob = new Blob(chunks, { type: mime });
+    setStatus(state, 'Transcribing…');
+    var transcribe = global.TTSpeechInput && global.TTSpeechInput.transcribeBlob;
+    if (typeof transcribe !== 'function') {
+      setStatus(state, 'Cloud voice helper missing. Reload the page.', 'err');
+      return;
+    }
+    transcribe(blob).then(function (text) {
+      setProbeCache(true);
+      if (!text) {
+        setStatus(state, 'No speech detected. Tap mic to try again.', 'err');
+        return;
+      }
+      handleUtterance(state, text);
+    }).catch(function (err) {
+      try { console.warn('[tt-voice-nav] cloud transcribe failed', err); } catch (e) {}
+      setStatus(state, (err && err.message) || 'Transcription failed', 'err');
+    });
+  }
+
   function stopListening(state, statusMsg, keepBusy) {
+    if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
+      state.wantListening = false;
+      state.ignoreEnd = true;
+      try { state.mediaRecorder.stop(); } catch (e) { finishCloudListening(state); }
+      return;
+    }
     state.wantListening = false;
     state.ignoreEnd = true;
     if (state.silenceTimer) {
@@ -383,6 +475,7 @@
       state.silenceTimer = null;
     }
     destroyRecognition(state);
+    stopCloudTracks(state);
     if (state.micBtn) {
       state.micBtn.classList.remove('is-listening');
       var icon = state.micBtn.querySelector('i');
@@ -434,10 +527,76 @@
     }, SILENCE_MS);
   }
 
+  function startCloudListening(state) {
+    if (!canUseMicHardware() || typeof MediaRecorder === 'undefined') {
+      markBroken(state, 'Cloud mic / MediaRecorder unavailable');
+      return;
+    }
+    state.wantListening = true;
+    state.ignoreEnd = false;
+    state.cloudChunks = [];
+    setHeard(state, 'Starting…');
+    setStatus(state, 'Allow microphone, then speak');
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+      if (!state.wantListening || state.busy) {
+        try { stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
+        return;
+      }
+      state.mediaStream = stream;
+      var mime = '';
+      try {
+        if (global.TTSpeechInput && MediaRecorder.isTypeSupported) {
+          if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) mime = 'audio/webm;codecs=opus';
+          else if (MediaRecorder.isTypeSupported('audio/mp4')) mime = 'audio/mp4';
+          else if (MediaRecorder.isTypeSupported('audio/webm')) mime = 'audio/webm';
+        }
+      } catch (eMime) {}
+      var rec;
+      try {
+        rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+      } catch (eRec) {
+        try { stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e2) {}
+        markBroken(state, 'MediaRecorder failed');
+        return;
+      }
+      state.mediaRecorder = rec;
+      rec.ondataavailable = function (ev) {
+        if (ev && ev.data && ev.data.size) state.cloudChunks.push(ev.data);
+      };
+      rec.onstop = function () { finishCloudListening(state); };
+      try { rec.start(250); } catch (eStart) {
+        markBroken(state, 'Could not start recorder');
+        return;
+      }
+      setProbeCache(true);
+      if (state.micBtn) {
+        state.micBtn.classList.add('is-listening');
+        var icon = state.micBtn.querySelector('i');
+        if (icon) icon.className = 'bx bx-stop-circle';
+      }
+      setHeard(state, 'Listening…');
+      setStatus(state, 'Speak a command — tap mic to stop');
+      if (state.silenceTimer) clearTimeout(state.silenceTimer);
+      state.silenceTimer = setTimeout(function () {
+        state.silenceTimer = null;
+        if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
+          try { state.mediaRecorder.stop(); } catch (e) {}
+        }
+      }, Math.max(SILENCE_MS, 8000));
+    }).catch(function (err) {
+      state.wantListening = false;
+      markBroken(state, (err && err.name) || 'mic-denied');
+    });
+  }
+
   function startListening(state) {
     if (state.busy || !shouldShowVoiceUi()) return;
     if (!micAllowed(state)) {
       setStatus(state, 'Mic unavailable here — tap a suggestion chip instead.');
+      return;
+    }
+    if (isCloudMode()) {
+      startCloudListening(state);
       return;
     }
     var Ctor = getSpeechCtor();
@@ -959,7 +1118,7 @@
     detach();
     if (!shouldShowVoiceUi()) {
       try {
-        console.warn('[tt-voice-nav] UI hidden — admin disabled ENABLE_VOICE_TO_TEXT');
+        console.warn('[tt-voice-nav] UI hidden — admin VOICE_TO_TEXT_MODE=off');
       } catch (e) {}
       return null;
     }

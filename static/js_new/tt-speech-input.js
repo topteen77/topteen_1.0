@@ -66,13 +66,100 @@
     return true;
   }
 
-  function voiceFeatureEnabled() {
+  function getVoiceMode() {
+    try {
+      var mode = String(global.TT_VOICE_TO_TEXT_MODE || '').toLowerCase();
+      if (mode === 'off' || mode === 'browser' || mode === 'openai') return mode;
+    } catch (e) {}
     try {
       if (typeof global.TT_VOICE_TO_TEXT_ENABLED !== 'undefined' && !global.TT_VOICE_TO_TEXT_ENABLED) {
-        return false;
+        return 'off';
       }
-    } catch (e) {}
-    return true;
+    } catch (e2) {}
+    return 'browser';
+  }
+
+  function isCloudMode() {
+    return getVoiceMode() === 'openai';
+  }
+
+  function voiceFeatureEnabled() {
+    return getVoiceMode() !== 'off';
+  }
+
+  function canUseMicHardware() {
+    if (insecureContextBlocked()) return false;
+    try {
+      return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function getCsrfToken() {
+    try {
+      var m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+      return m ? decodeURIComponent(m[1]) : '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function getTranscribeUrl() {
+    try {
+      return global.TT_VOICE_TRANSCRIBE_API || '/api/voice/transcribe/';
+    } catch (e) {
+      return '/api/voice/transcribe/';
+    }
+  }
+
+  function pickRecorderMime() {
+    if (typeof MediaRecorder === 'undefined') return '';
+    var candidates = [
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/mp4',
+      'audio/ogg;codecs=opus'
+    ];
+    for (var i = 0; i < candidates.length; i++) {
+      try {
+        if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(candidates[i])) {
+          return candidates[i];
+        }
+      } catch (e) {}
+    }
+    return '';
+  }
+
+  function transcribeBlob(blob) {
+    return new Promise(function (resolve, reject) {
+      if (!blob || !blob.size) {
+        reject(new Error('Empty recording'));
+        return;
+      }
+      var fd = new FormData();
+      var ext = (blob.type || '').indexOf('mp4') !== -1 ? 'mp4' : 'webm';
+      fd.append('audio', blob, 'speech.' + ext);
+      var lang = '';
+      try { lang = String(navigator.language || '').split('-')[0] || ''; } catch (e) {}
+      if (lang) fd.append('language', lang);
+      fetch(getTranscribeUrl(), {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCsrfToken(),
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: fd,
+        credentials: 'same-origin'
+      }).then(function (res) {
+        return res.json().then(function (data) {
+          if (!res.ok || !data || !data.ok) {
+            throw new Error((data && data.error) || ('HTTP ' + res.status));
+          }
+          return data.text || '';
+        });
+      }).then(resolve).catch(reject);
+    });
   }
 
   function getSpeechProbeCache() {
@@ -84,7 +171,9 @@
   }
 
   function isSupported() {
-    return voiceFeatureEnabled() && canUseSpeechNow();
+    if (!voiceFeatureEnabled()) return false;
+    if (isCloudMode()) return canUseMicHardware();
+    return canUseSpeechNow();
   }
 
   function localDevHelpMessage() {
@@ -346,6 +435,35 @@
     if (icon) icon.className = 'bx bx-microphone';
   }
 
+  function stopCloudTracks(state) {
+    if (!state) return;
+    try {
+      if (state.mediaStream) {
+        state.mediaStream.getTracks().forEach(function (t) { t.stop(); });
+      }
+    } catch (e) {}
+    state.mediaStream = null;
+  }
+
+  function destroyCloudRecorder(state, discard) {
+    if (!state) return;
+    clearSilenceTimer(state);
+    var rec = state.mediaRecorder;
+    state.mediaRecorder = null;
+    if (rec) {
+      try {
+        rec.ondataavailable = null;
+        rec.onstop = null;
+        rec.onerror = null;
+      } catch (e0) {}
+      try {
+        if (rec.state !== 'inactive') rec.stop();
+      } catch (e) {}
+    }
+    stopCloudTracks(state);
+    if (discard) state.cloudChunks = null;
+  }
+
   function hideMic(state) {
     if (!state || !state.micBtn) return;
     state.micUnavailable = true;
@@ -353,6 +471,7 @@
     clearSilenceTimer(state);
     clearRestartTimer(state);
     destroyRecognition(state);
+    destroyCloudRecorder(state, true);
     state.micBtn.hidden = true;
     state.micBtn.setAttribute('aria-hidden', 'true');
     state.micBtn.classList.remove('is-listening', 'is-disabled', 'is-unavailable');
@@ -365,8 +484,49 @@
     if (active === state) active = null;
   }
 
+  function finishCloudRecording(state) {
+    if (!state) return;
+    clearSilenceTimer(state);
+    var chunks = state.cloudChunks || [];
+    var mime = (state.mediaRecorder && state.mediaRecorder.mimeType) || pickRecorderMime() || 'audio/webm';
+    destroyCloudRecorder(state, false);
+    state.cloudChunks = null;
+    state.wantListening = false;
+    if (!state.micUnavailable && state.micBtn && !state.micBtn.hidden) setMicUi(state, false);
+    if (active === state) active = null;
+    if (!chunks.length) {
+      flashTip(state, 'No audio captured. Tap mic to try again.', 'is-err');
+      return;
+    }
+    var blob = new Blob(chunks, { type: mime });
+    flashTip(state, 'Transcribing…', 'is-ok');
+    transcribeBlob(blob).then(function (text) {
+      setSpeechProbeCache(true);
+      var piece = normalizeByMode(text, state.mode);
+      if (!piece) {
+        flashTip(state, 'No speech detected. Tap mic to try again.', 'is-err');
+        return;
+      }
+      state.speechPrefix = joinParts(state.sessionBase, piece);
+      state.speechFinal = '';
+      state.androidCommitted = piece;
+      writeSpeechToBox(state, '');
+      flashTip(state, 'Added. Tap mic to speak more.', 'is-ok');
+    }).catch(function (err) {
+      try { console.warn('[tt-speech] cloud transcribe failed', err); } catch (e) {}
+      flashTip(state, (err && err.message) || 'Transcription failed. Tap mic to retry.', 'is-err');
+    });
+  }
+
   function stopListening(state) {
     if (!state) return;
+    if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
+      // onstop → finishCloudRecording
+      state.wantListening = false;
+      state.ignoreEndRestart = true;
+      try { state.mediaRecorder.stop(); } catch (e) { finishCloudRecording(state); }
+      return;
+    }
     state.wantListening = false;
     state.ignoreEndRestart = true;
     clearSilenceTimer(state);
@@ -382,6 +542,85 @@
     }
     commitSpeechToPrefix(state);
     if (active === state) active = null;
+  }
+
+  function beginCloudListening(state) {
+    if (!canUseMicHardware()) {
+      markSpeechBroken(state, localDevHelpMessage());
+      return;
+    }
+    if (typeof MediaRecorder === 'undefined') {
+      markSpeechBroken(state, 'This browser cannot record audio for cloud voice-to-text.');
+      return;
+    }
+    if (active && active !== state) stopListening(active);
+    resetSpeechSessionFromBox(state);
+    state.wantListening = true;
+    state.ignoreEndRestart = false;
+    state.cloudChunks = [];
+    active = state;
+    setMicUi(state, true);
+    flashTip(state, 'Starting microphone…', 'is-ok');
+
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+      if (!state.wantListening || state.micUnavailable) {
+        try { stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
+        return;
+      }
+      state.mediaStream = stream;
+      var mime = pickRecorderMime();
+      var rec;
+      try {
+        rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+      } catch (eRec) {
+        try { stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e2) {}
+        state.wantListening = false;
+        markSpeechBroken(state, 'Could not start audio recorder.');
+        return;
+      }
+      state.mediaRecorder = rec;
+      rec.ondataavailable = function (ev) {
+        if (ev && ev.data && ev.data.size) state.cloudChunks.push(ev.data);
+      };
+      rec.onstop = function () {
+        finishCloudRecording(state);
+      };
+      rec.onerror = function () {
+        state.wantListening = false;
+        destroyCloudRecorder(state, true);
+        flashTip(state, 'Recording error. Tap mic to retry.', 'is-err');
+        if (active === state) active = null;
+        setMicUi(state, false);
+      };
+      try {
+        rec.start(250);
+      } catch (eStart) {
+        state.wantListening = false;
+        destroyCloudRecorder(state, true);
+        markSpeechBroken(state, 'Could not start recording.');
+        return;
+      }
+      setSpeechProbeCache(true);
+      setMicUi(state, true);
+      flashTip(state, 'Listening… tap mic to stop', 'is-ok');
+      // Auto-stop after silence window (no VAD — fixed max listen slice)
+      clearSilenceTimer(state);
+      state.silenceTimer = setTimeout(function () {
+        state.silenceTimer = null;
+        if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
+          try { state.mediaRecorder.stop(); } catch (e) {}
+        }
+      }, Math.max(SILENCE_MS, 8000));
+    }).catch(function (err) {
+      state.wantListening = false;
+      if (active === state) active = null;
+      var name = (err && err.name) || '';
+      if (name === 'SecurityError' || insecureContextBlocked()) {
+        markSpeechBroken(state, localDevHelpMessage());
+      } else {
+        markSpeechBroken(state, 'Microphone permission blocked (not-allowed).');
+      }
+    });
   }
 
   function stopAll() {
@@ -546,12 +785,16 @@
 
   function beginListening(state) {
     if (!voiceFeatureEnabled()) {
-      markSpeechBroken(state, 'disabled by admin (ENABLE_VOICE_TO_TEXT)');
+      markSpeechBroken(state, 'disabled by admin (VOICE_TO_TEXT_MODE=off)');
       return;
     }
     // Hard browser block: http://10.x is not a secure context
     if (insecureContextBlocked()) {
       markSpeechBroken(state, localDevHelpMessage());
+      return;
+    }
+    if (isCloudMode()) {
+      beginCloudListening(state);
       return;
     }
     if (!speechApiPresent()) {
@@ -606,7 +849,20 @@
     if (!state || !state.micBtn) return;
     hideMic(state);
     if (!voiceFeatureEnabled()) {
-      try { console.warn('[tt-speech] disabled by admin (ENABLE_VOICE_TO_TEXT)'); } catch (e) {}
+      try { console.warn('[tt-speech] disabled by admin (VOICE_TO_TEXT_MODE=off)'); } catch (e) {}
+      return;
+    }
+    if (isCloudMode()) {
+      if (!canUseMicHardware()) {
+        try { console.warn('[tt-speech] cloud mode unavailable:', localDevHelpMessage()); } catch (eCloud) {}
+        return;
+      }
+      if (state.input) {
+        var wrapCloud = state.input.closest('.student-popup-input-wrap, .tt-speech-wrap');
+        if (wrapCloud) wrapCloud.classList.add('has-speech');
+        state.input.classList.add('has-speech');
+      }
+      setMicAvailable(state);
       return;
     }
     if (!canUseSpeechNow()) {
@@ -798,7 +1054,11 @@
     isSupported: isSupported,
     speechApiPresent: speechApiPresent,
     canUseSpeechNow: canUseSpeechNow,
+    canUseMicHardware: canUseMicHardware,
     voiceFeatureEnabled: voiceFeatureEnabled,
+    getVoiceMode: getVoiceMode,
+    isCloudMode: isCloudMode,
+    transcribeBlob: transcribeBlob,
     localDevHelpMessage: localDevHelpMessage,
     bind: bind,
     enhance: enhance,

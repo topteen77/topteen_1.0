@@ -187,8 +187,9 @@
                            class="form-control custom-input" 
                            id="mobileEmail"
                            name="user_name"
+                           autocomplete="username"
                            placeholder="{% if login_mode == 'parent' %}Enter Mobile Number{% else %}Enter Email or Mobile{% endif %}"
-                           {% if login_mode == 'parent' %}inputmode="numeric" pattern="[0-9]*" maxlength="10"{% endif %}
+                           {% if login_mode == 'parent' %}inputmode="numeric" pattern="[0-9]*" maxlength="10"{% else %}inputmode="email"{% endif %}
                            required>
                     <div class="invalid-feedback float-start text-start mt-0 py-1" style="display: none;">
                       Please Enter Correct Email Id.
@@ -456,7 +457,7 @@
 </script>
 
 <!-- Load external JavaScript for login/signup functionality -->
-<script type="text/javascript" src="{{ static('topteenfrontend/assets/js/loginsignup.js') }}?v=20260803-smart1"></script>
+<script type="text/javascript" src="{{ static('topteenfrontend/assets/js/loginsignup.js') }}?v=20260805-autofill1"></script>
 
 <script>
   // If user has an active Django session, prompt to logout first.
@@ -552,18 +553,10 @@
           if (data.show_password && data.is_institute_student) {
             // Open password modal instead of OTP for institute students
             try {
-              if (typeof loginremoveunusetag === 'function') {
-                loginremoveunusetag();
+              if (typeof openLoginPasswordModal === 'function') {
+                openLoginPasswordModal(data.enc_user_name, data.user_name);
+                return;
               }
-              var x = document.createElement("input");
-              x.setAttribute("type", "hidden");
-              x.setAttribute("value", data.enc_user_name);
-              x.setAttribute("id", "encloginusername");
-              x.setAttribute("name", "enc_user_name");
-              document.getElementById("loginpwd").appendChild(x);
-              document.getElementById("loginpwdname").textContent = data.user_name;
-              document.getElementById("loginpwdDiv").classList.remove("hideModal");
-              return;
             } catch (e) {
               // fallback to OTP send below
             }
@@ -680,16 +673,10 @@
           }
           if (data.show_password && data.enc_user_name) {
             try {
-              if (typeof loginremoveunusetag === 'function') loginremoveunusetag();
-              var x = document.createElement('input');
-              x.setAttribute('type', 'hidden');
-              x.setAttribute('value', data.enc_user_name);
-              x.setAttribute('id', 'encloginusername');
-              x.setAttribute('name', 'enc_user_name');
-              document.getElementById('loginpwd').appendChild(x);
-              document.getElementById('loginpwdname').textContent = data.user_name;
-              document.getElementById('loginpwdDiv').classList.remove('hideModal');
-              return;
+              if (typeof openLoginPasswordModal === 'function') {
+                openLoginPasswordModal(data.enc_user_name, data.user_name);
+                return;
+              }
             } catch (e) {}
           }
           _sendOtpAfterAccountCheck();
@@ -1027,6 +1014,19 @@
         data: formData,
         success: function (data) {
           if (data.success) {
+            try {
+              var _uname =
+                (document.getElementById("loginpwdUsername") || {}).value ||
+                (document.getElementById("loginpwdname") || {}).textContent ||
+                data.user_name ||
+                "";
+              var _pwd = (document.getElementById("loginpwdPassword") ||
+                document.querySelector("#loginpwd input[name='password']") ||
+                {}).value || "";
+              if (typeof storeLoginCredentialsIfPossible === "function") {
+                storeLoginCredentialsIfPossible(_uname, _pwd);
+              }
+            } catch (eCred) {}
             // Check if user needs to set password
             if (data.need_set_password) {
               // Show set password popup
@@ -1046,6 +1046,12 @@
                 loginPwdDiv.classList.add("hideModal");
               }
               var redirectUrl = data.redirect_url || "{{ url('users:userdashboard') }}";
+              // Prefer https when page is https (ngrok / staging)
+              if (typeof normalizePostLoginUrl === "function") {
+                redirectUrl = normalizePostLoginUrl(redirectUrl) || redirectUrl;
+              } else if (window.location.protocol === "https:" && String(redirectUrl).indexOf("http://") === 0) {
+                redirectUrl = "https://" + String(redirectUrl).slice(7);
+              }
               // Use window.location.replace for immediate redirect (no back button)
               if (redirectUrl) {
                 window.location.replace(redirectUrl);

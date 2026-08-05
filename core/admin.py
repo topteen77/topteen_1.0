@@ -260,16 +260,22 @@ class WebsiteSettingsForm(forms.Form):
             "When disabled, pages still load in the background with no overlay."
         ),
     )
-    ENABLE_VOICE_TO_TEXT = forms.BooleanField(
-        required=False,
-        label="Enable voice-to-text (microphone)",
+    VOICE_TO_TEXT_MODE = forms.ChoiceField(
+        choices=[],  # filled in __init__
+        required=True,
+        label="Voice-to-text mode",
         help_text=(
-            "Site-wide switch for speech-to-text on Notebook, login/signup fields, and note editors. "
-            "When disabled, microphone buttons are hidden everywhere. "
-            "When enabled, the mic icon still appears only if the browser speech engine is available "
-            "(errors are logged to the browser console; the mic stays hidden)."
+            "Site-wide speech-to-text for Notebook, login/signup fields, profile voice bar, and note editors. "
+            "Disabled: hide all mics. "
+            "Browser: free Web Speech API (Chrome/Edge; not Safari on iPhone). "
+            "OpenAI: gpt-4o-mini-transcribe via server (~$0.003/min; needs OPENAI_API_KEY; works on iPhone)."
         ),
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from core.voice_to_text import VOICE_TO_TEXT_MODE_CHOICES
+        self.fields['VOICE_TO_TEXT_MODE'].choices = VOICE_TO_TEXT_MODE_CHOICES
 
 
 DEFAULT_MINDMAP_CONFIG_KEY = 'DEFAULT_MINDMAP_TYPE'
@@ -688,15 +694,33 @@ class ConfigurationAdmin(admin.ModelAdmin):
                 config.value = val
                 config.save()
 
-                key = 'ENABLE_VOICE_TO_TEXT'
-                val = 'true' if form.cleaned_data.get(key, False) else 'false'
-                config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
-                config.value = val
+                from core.voice_to_text import (
+                    ENABLE_VOICE_TO_TEXT_KEY,
+                    VOICE_TO_TEXT_MODE_KEY,
+                    VOICE_TO_TEXT_MODES,
+                    VOICE_TO_TEXT_OFF,
+                    normalize_voice_to_text_mode,
+                )
+                mode = normalize_voice_to_text_mode(form.cleaned_data.get('VOICE_TO_TEXT_MODE'))
+                if mode not in VOICE_TO_TEXT_MODES:
+                    mode = VOICE_TO_TEXT_OFF
+                config, _ = Configuration.objects.get_or_create(
+                    key=VOICE_TO_TEXT_MODE_KEY, defaults={'value': mode, 'editable': True}
+                )
+                config.value = mode
+                config.save()
+                # Keep legacy boolean in sync for older templates / caches.
+                legacy_val = 'false' if mode == VOICE_TO_TEXT_OFF else 'true'
+                config, _ = Configuration.objects.get_or_create(
+                    key=ENABLE_VOICE_TO_TEXT_KEY, defaults={'value': legacy_val, 'editable': True}
+                )
+                config.value = legacy_val
                 config.save()
 
                 messages.success(request, 'Core website settings saved successfully.')
                 return redirect('admin:core_configuration_website_settings')
         else:
+            from core.voice_to_text import get_voice_to_text_mode
             default_type = coerce_default_mindmap_type(
                 Configuration.get('DEFAULT_MINDMAP_TYPE', '6', editable=True) or '6'
             )
@@ -714,7 +738,7 @@ class ConfigurationAdmin(admin.ModelAdmin):
                 'CHATBOT_PAGE_RULES': Configuration.get('CHATBOT_PAGE_RULES', '[]', editable=True) or '[]',
                 'DASHBOARD_TEMPLATE_VERSION': dashboard_template_version,
                 'TTV2_PAGE_LOADER_ENABLED': _config_bool('TTV2_PAGE_LOADER_ENABLED'),
-                'ENABLE_VOICE_TO_TEXT': _config_bool('ENABLE_VOICE_TO_TEXT'),
+                'VOICE_TO_TEXT_MODE': get_voice_to_text_mode(),
             })
 
         context = {

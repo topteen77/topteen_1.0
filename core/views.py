@@ -3038,3 +3038,78 @@ def translate_complexity_api(request):
         'level': level,
         'cache': stats,
     })
+
+
+@require_POST
+def voice_transcribe_api(request):
+    """
+    Transcribe short mic audio via OpenAI gpt-4o-mini-transcribe.
+    Only available when Admin voice mode is 'openai'.
+    POST multipart: audio=<file>, optional language=
+    """
+    from core.voice_to_text import (
+        OPENAI_TRANSCRIBE_MODEL,
+        VOICE_TO_TEXT_OPENAI,
+        get_voice_to_text_mode,
+        openai_transcribe_available,
+    )
+
+    if get_voice_to_text_mode() != VOICE_TO_TEXT_OPENAI:
+        return JsonResponse({'ok': False, 'error': 'Cloud voice-to-text is disabled'}, status=403)
+    if not openai_transcribe_available():
+        return JsonResponse({'ok': False, 'error': 'OpenAI API key is not configured'}, status=503)
+
+    # Light rate limit (anonymous login fields + logged-in notebook)
+    client_ip = (
+        (request.META.get('HTTP_X_FORWARDED_FOR') or '').split(',')[0].strip()
+        or request.META.get('REMOTE_ADDR')
+        or 'unknown'
+    )
+    rate_key = f'tt_voice_stt:{client_ip}'
+    hits = cache.get(rate_key) or 0
+    if hits >= 60:
+        return JsonResponse({'ok': False, 'error': 'Too many voice requests. Try again later.'}, status=429)
+    cache.set(rate_key, hits + 1, timeout=3600)
+
+    audio = request.FILES.get('audio')
+    if not audio:
+        return JsonResponse({'ok': False, 'error': 'Missing audio file'}, status=400)
+
+    max_bytes = 5 * 1024 * 1024  # 5 MB
+    if getattr(audio, 'size', 0) and audio.size > max_bytes:
+        return JsonResponse({'ok': False, 'error': 'Audio too large (max 5 MB)'}, status=400)
+
+    language = (request.POST.get('language') or '').strip() or None
+    model = getattr(settings, 'OPENAI_TRANSCRIBE_MODEL', None) or OPENAI_TRANSCRIBE_MODEL
+    filename = getattr(audio, 'name', None) or 'audio.webm'
+
+    try:
+        import io
+        import openai
+
+        client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+        try:
+            audio.seek(0)
+        except Exception:
+            pass
+        raw = audio.read()
+        if not raw:
+            return JsonResponse({'ok': False, 'error': 'Empty audio'}, status=400)
+        if len(raw) > max_bytes:
+            return JsonResponse({'ok': False, 'error': 'Audio too large (max 5 MB)'}, status=400)
+        bio = io.BytesIO(raw)
+        bio.name = filename
+        kwargs = {'model': model, 'file': bio}
+        if language:
+            kwargs['language'] = language[:16]
+        result = client.audio.transcriptions.create(**kwargs)
+        text = (getattr(result, 'text', None) or str(result) or '').strip()
+    except Exception as exc:
+        logger.exception('voice_transcribe_api failed: %s', exc)
+        return JsonResponse({'ok': False, 'error': 'Transcription failed. Please try again.'}, status=502)
+
+    return JsonResponse({
+        'ok': True,
+        'text': text,
+        'model': model,
+    })
