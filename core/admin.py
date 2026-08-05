@@ -260,6 +260,16 @@ class WebsiteSettingsForm(forms.Form):
             "When disabled, pages still load in the background with no overlay."
         ),
     )
+    ENABLE_VOICE_TO_TEXT = forms.BooleanField(
+        required=False,
+        label="Enable voice-to-text (microphone)",
+        help_text=(
+            "Site-wide switch for speech-to-text on Notebook, login/signup fields, and note editors. "
+            "When disabled, microphone buttons are hidden everywhere. "
+            "When enabled, the mic icon still appears only if the browser speech engine is available "
+            "(errors are logged to the browser console; the mic stays hidden)."
+        ),
+    )
 
 
 DEFAULT_MINDMAP_CONFIG_KEY = 'DEFAULT_MINDMAP_TYPE'
@@ -678,6 +688,12 @@ class ConfigurationAdmin(admin.ModelAdmin):
                 config.value = val
                 config.save()
 
+                key = 'ENABLE_VOICE_TO_TEXT'
+                val = 'true' if form.cleaned_data.get(key, False) else 'false'
+                config, _ = Configuration.objects.get_or_create(key=key, defaults={'value': val, 'editable': True})
+                config.value = val
+                config.save()
+
                 messages.success(request, 'Core website settings saved successfully.')
                 return redirect('admin:core_configuration_website_settings')
         else:
@@ -698,6 +714,7 @@ class ConfigurationAdmin(admin.ModelAdmin):
                 'CHATBOT_PAGE_RULES': Configuration.get('CHATBOT_PAGE_RULES', '[]', editable=True) or '[]',
                 'DASHBOARD_TEMPLATE_VERSION': dashboard_template_version,
                 'TTV2_PAGE_LOADER_ENABLED': _config_bool('TTV2_PAGE_LOADER_ENABLED'),
+                'ENABLE_VOICE_TO_TEXT': _config_bool('ENABLE_VOICE_TO_TEXT'),
             })
 
         context = {

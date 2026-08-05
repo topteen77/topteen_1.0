@@ -302,6 +302,21 @@
       </a>
       {% set quick_links.urls = quick_links.urls + [tasks_href] %}
       {% endif %}
+      <a href="{{ url_('users:mynotepad') }}" class="d-block text-decoration-none mb-2" data-parent-notebook-open>
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
+          <div>
+            <p class="fs-14 fw-semibold mb-0 d-flex align-items-center">
+              <i class="bx bx-note me-2 fs-18 text-purple" aria-hidden="true"></i> My Notebook
+            </p>
+            <p class="fs-11 text-muted mb-0 ms-4 ps-1">{% if enable_voice_to_text|default(true) %}Voice notes without leaving the page{% else %}Quick notes without leaving the page{% endif %}</p>
+          </div>
+          {% if enable_voice_to_text|default(true) %}
+          <i class="bx bx-microphone text-purple fs-18" aria-hidden="true"></i>
+          {% else %}
+          <i class="bx bx-chevron-right text-muted fs-18" aria-hidden="true"></i>
+          {% endif %}
+        </div>
+      </a>
     </div>
 
     <div class="profile-sidebar-hub-nav mb-2">
