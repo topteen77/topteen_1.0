@@ -702,16 +702,40 @@ class DemoLoginView(View):
     def _login_fallback_url(self, request):
         return redirect(self._login_fallback_path(request))
 
+    def _safe_client_redirect(self, request, redirect_url):
+        """
+        Prefer a same-origin path for the PWA/AJAX client.
+        Never hand the browser an http:// absolute URL on an HTTPS site (iPhone PWA).
+        """
+        url = (redirect_url or '').strip() or self._login_fallback_path(request)
+        if url.startswith('http://') or url.startswith('https://'):
+            url = _force_https_absolute_url(request, url)
+            try:
+                from urllib.parse import urlparse
+
+                parsed = urlparse(url)
+                if parsed.netloc and parsed.netloc == request.get_host():
+                    return parsed.path + (f'?{parsed.query}' if parsed.query else '') + (
+                        f'#{parsed.fragment}' if parsed.fragment else ''
+                    )
+            except Exception:
+                pass
+            return url
+        if not url.startswith('/'):
+            url = '/' + url
+        return url
+
     def _ajax_or_redirect(self, request, redirect_url, *, success=False, message=''):
+        client_url = self._safe_client_redirect(request, redirect_url)
         if self._is_ajax(request):
-            payload = {'success': success, 'redirect': redirect_url}
+            payload = {'success': success, 'redirect': client_url}
             if message:
                 payload['message'] = message
             return JsonResponse(payload, status=200 if success else 400)
         if success:
-            return redirect(redirect_url)
+            return redirect(client_url)
         messages.error(request, message or 'Unable to sign in with this demo account.')
-        return redirect(redirect_url)
+        return redirect(client_url)
 
     def post(self, request):
         from .demo_accounts import should_show_demo_accounts
@@ -2219,6 +2243,19 @@ def _login_only_from_request(request) -> bool:
     return _login_mode_from_request(request) == "smart"
 
 
+def _force_https_absolute_url(request, url: str) -> str:
+    """If the site is HTTPS (proxy/ngrok/USE_HTTPS), never return http:// redirects."""
+    url = (url or "").strip()
+    if not url:
+        return url
+    forwarded = (request.META.get("HTTP_X_FORWARDED_PROTO") or "").split(",")[0].strip().lower()
+    use_https = bool(getattr(settings, "USE_HTTPS", False))
+    if forwarded == "https" or request.is_secure() or use_https:
+        if url.startswith("http://"):
+            return "https://" + url[len("http://"):]
+    return url
+
+
 def _absolute_post_login_url(request, user) -> str:
     """Prefer safe ?next=, else role dashboard. Always absolute."""
     from django.utils.http import url_has_allowed_host_and_scheme
@@ -2231,11 +2268,11 @@ def _absolute_post_login_url(request, user) -> str:
         if url_has_allowed_host_and_scheme(full_url, request.get_host()):
             if "/psychometrictest/" in full_url:
                 full_url = full_url + ("&" if "?" in full_url else "?") + "auto_buy=1"
-            return full_url
+            return _force_https_absolute_url(request, full_url)
     redirect_url = get_dashboard_url_for_user(request, user)
     if not str(redirect_url).startswith("http"):
-        return request.build_absolute_uri(redirect_url)
-    return redirect_url
+        redirect_url = request.build_absolute_uri(redirect_url)
+    return _force_https_absolute_url(request, redirect_url)
 
 
 def _find_parent_user_by_mobile(mobile) -> User | None:
@@ -2765,7 +2802,9 @@ class LoginPassword(APIView):
                         data['need_set_password'] = True
                         data['message'] = "Please set your password"
                         # Set redirect URL but user needs to set password first
-                        data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
+                        data['redirect_url'] = _force_https_absolute_url(
+                            request, request.build_absolute_uri(reverse('users:userdashboard'))
+                        )
                         return Response(data, status=status.HTTP_200_OK)
                     # Continue with redirect logic below for master password login
                 else:

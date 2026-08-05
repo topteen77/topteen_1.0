@@ -103,9 +103,11 @@ def get_demo_login_context(request, user_types=None):
     """
     if not should_show_demo_accounts():
         return empty_demo_login_context()
+    # Relative URL only — absolute http://… (missing X-Forwarded-Proto) breaks
+    # iPhone PWA (mixed-content fetch); Android often auto-upgrades via HSTS.
     return {
         'demo_accounts': get_demo_accounts_list(user_types=user_types),
-        'demo_login_url': request.build_absolute_uri(reverse('users:demo_login')),
+        'demo_login_url': reverse('users:demo_login'),
         'demo_csrf_token': get_token(request),
         'show_demo_accounts': True,
     }
@@ -132,7 +134,7 @@ def get_demo_institute_login_context(request):
             })
     return {
         'demo_accounts': demo_accounts,
-        'demo_login_url': request.build_absolute_uri(reverse('institute:demo_login')),
+        'demo_login_url': reverse('institute:demo_login'),
         'demo_csrf_token': get_token(request),
         'show_demo_accounts': True,
     }

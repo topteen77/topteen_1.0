@@ -660,6 +660,14 @@ def globals(request):
         chatbot_widget_body_class = ' '.join(body_class_parts)
 
     from core.seo_indexing import resolve_allow_search_engine_index
+    from core.voice_to_text import get_voice_to_text_mode, voice_to_text_enabled
+
+    _voice_mode = get_voice_to_text_mode()
+    _voice_enabled = voice_to_text_enabled(_voice_mode)
+    try:
+        _voice_transcribe_url = reverse("api_voice_transcribe")
+    except Exception:
+        _voice_transcribe_url = "/api/voice/transcribe/"
 
     kwargs = {
         "allow_search_engine_index": resolve_allow_search_engine_index(request),
@@ -675,6 +683,10 @@ def globals(request):
         "enable_auto_forward": _config_bool('ENABLE_AUTO_FORWARD', getattr(settings, 'ENABLE_AUTO_FORWARD', True)),
         "show_missing_answers_validation": _config_bool('SHOW_MISSING_ANSWERS_VALIDATION', getattr(settings, 'SHOW_MISSING_ANSWERS_VALIDATION', True)),
         "enable_career_mindmap": _config_bool('ENABLE_CAREER_MINDMAP', True),
+        "enable_voice_to_text": _voice_enabled,
+        "voice_to_text_mode": _voice_mode,
+        "voice_transcribe_api_url": _voice_transcribe_url,
+        "openai_transcribe_model": getattr(settings, 'OPENAI_TRANSCRIBE_MODEL', 'gpt-4o-mini-transcribe'),
         "default_mindmap_type": coerce_default_mindmap_type(
             Configuration.get('DEFAULT_MINDMAP_TYPE', '6', editable=True) or '6'
         ),

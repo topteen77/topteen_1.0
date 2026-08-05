@@ -70,5 +70,11 @@
 {% block student_shell_offcanvas %}
 {% include 'template20/user/includes/student_shell_offcanvas.html' %}
 {% endblock %}
+
+{# Same in-page notebook + voice-to-text as parent role (QuickNoteAPIView).
+   Skip when parent shell already includes the drawer via parent_offcanvas. #}
+{% if not (is_parent_shell|default(false)) %}
+{% include "template20/parents/includes/parent_notebook_drawer.html" %}
+{% endif %}
 {% endblock %}
 

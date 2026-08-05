@@ -114,6 +114,7 @@ urlpatterns = [
     path('parents/student/<int:student_id>/suggestions/<str:kind>/', users_views.ParentStudentSuggestedListView.as_view(), name='parents_student_suggestions'),
     path('api/loan/calculate', users_views.LoanCalculatorAPIView.as_view(), name='api_loan_calculate'),
     path('api/translate-complexity/', core_views.translate_complexity_api, name='api_translate_complexity'),
+    path('api/voice/transcribe/', core_views.voice_transcribe_api, name='api_voice_transcribe'),
     path('oauth/', include('social_django.urls', namespace='social')),
     path('api/v1/', include('apis.urls')),
     path("institute/",include('institute.urls', namespace='institute')),

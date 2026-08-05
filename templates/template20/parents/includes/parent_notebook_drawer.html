@@ -1,7 +1,9 @@
 {# In-page notebook drawer — list + quick compose without leaving the page. #}
 <div class="offcanvas parent-notebook-drawer offcanvas-end" tabindex="-1" id="parentNotebookDrawer"
   aria-labelledby="parentNotebookDrawerLabel"
-  data-quick-notes-url="{{ url('users:quick_notes') }}">
+  data-quick-notes-url="{{ url('users:quick_notes') }}"
+  data-voice-enabled="{% if enable_voice_to_text|default(true) %}1{% else %}0{% endif %}"
+  data-voice-mode="{{ voice_to_text_mode|default('browser') }}">
   <div class="offcanvas-header border-bottom py-2 px-3">
     <div>
       <h5 class="offcanvas-title fw-700 mb-0 fs-16" id="parentNotebookDrawerLabel">
@@ -272,6 +274,9 @@
 
   var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   var recognition = null;
+  var mediaRecorder = null;
+  var mediaStream = null;
+  var cloudChunks = null;
   var wantListening = false;
   var micUnavailable = true;
   var speechPrefix = '';
@@ -285,6 +290,25 @@
   var SILENCE_MS = 4000;
   var networkRetryUsed = false;
   var ignoreEndRestart = false;
+
+  function getVoiceMode() {
+    try {
+      if (window.TTSpeechInput && typeof window.TTSpeechInput.getVoiceMode === 'function') {
+        return window.TTSpeechInput.getVoiceMode();
+      }
+    } catch (e0) {}
+    var attr = (drawer.getAttribute('data-voice-mode') || '').toLowerCase();
+    if (attr === 'off' || attr === 'browser' || attr === 'openai') return attr;
+    try {
+      var mode = String(window.TT_VOICE_TO_TEXT_MODE || '').toLowerCase();
+      if (mode === 'off' || mode === 'browser' || mode === 'openai') return mode;
+    } catch (e) {}
+    return voiceFeatureEnabled() ? 'browser' : 'off';
+  }
+
+  function isCloudMode() {
+    return getVoiceMode() === 'openai';
+  }
 
   function setStatus(msg, kind) {
     if (!statusEl) return;
@@ -437,35 +461,41 @@
     }
   }
 
+  function voiceFeatureEnabled() {
+    try {
+      var mode = String(window.TT_VOICE_TO_TEXT_MODE || '').toLowerCase();
+      if (mode === 'off') return false;
+      if (mode === 'browser' || mode === 'openai') return true;
+    } catch (e0) {}
+    try {
+      if (typeof window.TT_VOICE_TO_TEXT_ENABLED !== 'undefined' && !window.TT_VOICE_TO_TEXT_ENABLED) {
+        return false;
+      }
+    } catch (e) {}
+    var flag = drawer.getAttribute('data-voice-enabled');
+    if (flag === '0' || flag === 'false') return false;
+    return true;
+  }
+
+  function getSpeechProbeCache() {
+    try { return sessionStorage.getItem('tt_voice_stt_ok'); } catch (e) { return null; }
+  }
+
+  function setSpeechProbeCache(ok) {
+    try { sessionStorage.setItem('tt_voice_stt_ok', ok ? '1' : '0'); } catch (e) {}
+  }
+
+  /** Hide mic + clear UI status; log reason to console only. */
+  function markSpeechBroken(reason) {
+    try { console.warn('[notebook-speech] unavailable:', reason || 'unknown'); } catch (e) {}
+    setSpeechProbeCache(false);
+    hideMic();
+    setStatus('');
+  }
+
   function setMicUnavailable(message) {
-    if (!micBtn) return;
-    wantListening = false;
-    ignoreEndRestart = true;
-    clearSilenceTimer();
-    clearRestartTimer();
-    if (recognition) {
-      try { recognition.stop(); } catch (e) {}
-      try { recognition.abort(); } catch (e2) {}
-    }
-    commitSpeechToPrefix();
-    micUnavailable = true;
-    micBtn.hidden = false;
-    micBtn.classList.add('is-disabled');
-    micBtn.classList.remove('is-listening');
-    micBtn.setAttribute('aria-disabled', 'true');
-    micBtn.removeAttribute('aria-hidden');
-    var tip = message || 'Microphone unavailable.';
-    micBtn.setAttribute('data-mic-tip', tip);
-    micBtn.setAttribute('title', tip);
-    var icon = micBtn.querySelector('i');
-    if (icon) icon.className = 'bx bx-microphone-off';
-    var inputRow = contentEl && contentEl.closest('.parent-nb-input-row');
-    if (inputRow) inputRow.classList.add('has-mic');
-    if (contentEl) {
-      contentEl.placeholder = 'Type a quick note…';
-      contentEl.classList.remove('is-listening');
-    }
-    setStatus(tip, 'is-err');
+    // Do not leave a broken/disabled mic visible — hide and log only.
+    markSpeechBroken(message || 'microphone unavailable');
   }
 
   function setMicAvailable() {
@@ -484,7 +514,81 @@
     if (contentEl) contentEl.placeholder = 'Type or tap mic to speak…';
   }
 
+  function stopCloudTracks() {
+    try {
+      if (mediaStream) mediaStream.getTracks().forEach(function (t) { t.stop(); });
+    } catch (e) {}
+    mediaStream = null;
+  }
+
+  function finishCloudRecording() {
+    clearSilenceTimer();
+    var chunks = cloudChunks || [];
+    var mime = (mediaRecorder && mediaRecorder.mimeType) || 'audio/webm';
+    var rec = mediaRecorder;
+    mediaRecorder = null;
+    if (rec) {
+      try { rec.ondataavailable = rec.onstop = rec.onerror = null; } catch (e0) {}
+    }
+    stopCloudTracks();
+    cloudChunks = null;
+    wantListening = false;
+    if (!micUnavailable && micBtn && !micBtn.hidden) setMicUi(false);
+    if (!chunks.length) {
+      setStatus('No audio captured. Tap mic to try again.', 'is-err');
+      return;
+    }
+    var blob = new Blob(chunks, { type: mime });
+    setStatus('Transcribing…', 'is-ok');
+    function transcribeLocal(blob) {
+      if (window.TTSpeechInput && typeof window.TTSpeechInput.transcribeBlob === 'function') {
+        return window.TTSpeechInput.transcribeBlob(blob);
+      }
+      var fd = new FormData();
+      var ext = (blob.type || '').indexOf('mp4') !== -1 ? 'mp4' : 'webm';
+      fd.append('audio', blob, 'speech.' + ext);
+      return fetch(window.TT_VOICE_TRANSCRIBE_API || '/api/voice/transcribe/', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': refreshCsrf(), 'X-Requested-With': 'XMLHttpRequest' },
+        body: fd,
+        credentials: 'same-origin'
+      }).then(function (res) {
+        return res.json().then(function (data) {
+          if (!res.ok || !data || !data.ok) throw new Error((data && data.error) || ('HTTP ' + res.status));
+          return data.text || '';
+        });
+      });
+    }
+    transcribeLocal(blob).then(function (text) {
+      setSpeechProbeCache(true);
+      var piece = String(text || '').replace(/\s+/g, ' ').trim();
+      if (!piece) {
+        setStatus('No speech detected. Tap mic to try again.', 'is-err');
+        return;
+      }
+      speechPrefix = (sessionBase ? (sessionBase.replace(/\s+$/, '') + ' ') : '') + piece;
+      speechFinal = '';
+      androidCommitted = piece;
+      if (contentEl) {
+        contentEl.value = speechPrefix;
+        try {
+          contentEl.dispatchEvent(new Event('input', { bubbles: true }));
+        } catch (eDisp) {}
+      }
+      setStatus('Added. Tap mic to speak more.', 'is-ok');
+    }).catch(function (err) {
+      try { console.warn('[notebook-speech] cloud transcribe failed', err); } catch (e) {}
+      setStatus((err && err.message) || 'Transcription failed', 'is-err');
+    });
+  }
+
   function stopListening() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      wantListening = false;
+      ignoreEndRestart = true;
+      try { mediaRecorder.stop(); } catch (e) { finishCloudRecording(); }
+      return;
+    }
     wantListening = false;
     ignoreEndRestart = true;
     clearSilenceTimer();
@@ -498,6 +602,7 @@
       try { recognition.stop(); } catch (e) {}
       try { recognition.abort(); } catch (e2) {}
     }
+    stopCloudTracks();
     commitSpeechToPrefix();
   }
 
@@ -540,6 +645,7 @@
     recognition.onstart = function () {
       if (micUnavailable) return;
       ignoreEndRestart = false;
+      setSpeechProbeCache(true);
       setMicUi(true);
       setStatus('Listening… pause 4s to stop, or tap mic');
       armSilenceTimer();
@@ -566,8 +672,7 @@
             if (!wantListening || micUnavailable) return;
             if (!initRecognition()) {
               wantListening = false;
-              setMicUi(false);
-              setStatus(errorMessageForSpeech('network'), 'is-err');
+              markSpeechBroken(errorMessageForSpeech('network'));
               return;
             }
             startRecognitionEngine();
@@ -576,8 +681,7 @@
         }
         wantListening = false;
         clearSilenceTimer();
-        setMicUi(false);
-        setStatus(errorMessageForSpeech('network'), 'is-err');
+        markSpeechBroken(errorMessageForSpeech('network'));
         return;
       }
 
@@ -585,13 +689,18 @@
       ignoreEndRestart = true;
       clearSilenceTimer();
       clearRestartTimer();
-      setMicUi(false);
       commitSpeechToPrefix();
       var msg = errorMessageForSpeech(err);
-      if (err === 'not-allowed' || err === 'service-not-allowed' || err === 'audio-capture') {
-        setMicUnavailable(msg);
+      if (
+        err === 'not-allowed' ||
+        err === 'service-not-allowed' ||
+        err === 'audio-capture' ||
+        err === 'language-not-supported'
+      ) {
+        markSpeechBroken(msg);
       } else {
-        setStatus(msg, 'is-err');
+        // Unexpected engine error: hide mic so users are not stuck with a broken control
+        markSpeechBroken(msg);
       }
     };
 
@@ -695,7 +804,69 @@
     }
   }
 
+  function beginCloudListening() {
+    if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) || typeof MediaRecorder === 'undefined') {
+      markSpeechBroken('Cloud mic / MediaRecorder unavailable');
+      return;
+    }
+    resetSpeechSessionFromBox();
+    wantListening = true;
+    ignoreEndRestart = false;
+    cloudChunks = [];
+    setMicUi(true);
+    setStatus('Starting microphone…', 'is-ok');
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+      if (!wantListening || micUnavailable) {
+        try { stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e) {}
+        return;
+      }
+      mediaStream = stream;
+      var mime = '';
+      try {
+        if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) mime = 'audio/webm;codecs=opus';
+        else if (MediaRecorder.isTypeSupported('audio/mp4')) mime = 'audio/mp4';
+        else if (MediaRecorder.isTypeSupported('audio/webm')) mime = 'audio/webm';
+      } catch (eMime) {}
+      try {
+        mediaRecorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+      } catch (eRec) {
+        try { stream.getTracks().forEach(function (t) { t.stop(); }); } catch (e2) {}
+        wantListening = false;
+        markSpeechBroken('MediaRecorder failed');
+        return;
+      }
+      mediaRecorder.ondataavailable = function (ev) {
+        if (ev && ev.data && ev.data.size) cloudChunks.push(ev.data);
+      };
+      mediaRecorder.onstop = function () { finishCloudRecording(); };
+      try { mediaRecorder.start(250); } catch (eStart) {
+        wantListening = false;
+        stopCloudTracks();
+        markSpeechBroken('Could not start recording');
+        return;
+      }
+      setSpeechProbeCache(true);
+      setMicUi(true);
+      setStatus('Listening… tap mic to stop', 'is-ok');
+      clearSilenceTimer();
+      silenceTimer = setTimeout(function () {
+        silenceTimer = null;
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+          try { mediaRecorder.stop(); } catch (e) {}
+        }
+      }, Math.max(SILENCE_MS, 8000));
+    }).catch(function () {
+      wantListening = false;
+      setMicUi(false);
+      markSpeechBroken('Microphone permission blocked (not-allowed).');
+    });
+  }
+
   function beginListening() {
+    if (isCloudMode()) {
+      beginCloudListening();
+      return;
+    }
     resetSpeechSessionFromBox();
     wantListening = true;
     ignoreEndRestart = false;
@@ -722,29 +893,124 @@
         .catch(function () {
           wantListening = false;
           setMicUi(false);
-          setMicUnavailable('Microphone permission blocked. Allow mic access, then tap mic again.');
+          markSpeechBroken('Microphone permission blocked (not-allowed).');
         });
       return;
     }
 
     if (!initRecognition()) {
       wantListening = false;
-      setMicUi(false);
-      hideMic();
+      markSpeechBroken('SpeechRecognition unavailable');
       return;
     }
     startRecognitionEngine();
   }
 
-  function setupSpeech() {
-    if (!micBtn) return;
+  function runEngineProbe() {
+    if (!SpeechRecognition) {
+      markSpeechBroken('SpeechRecognition missing');
+      return;
+    }
+    destroyRecognition();
+    var r = new SpeechRecognition();
+    var settled = false;
+    function finish(ok, reason) {
+      if (settled) return;
+      settled = true;
+      try { r.onstart = r.onerror = r.onend = null; } catch (e) {}
+      try { r.abort(); } catch (e2) {}
+      if (ok) {
+        setSpeechProbeCache(true);
+        setMicAvailable();
+      } else {
+        markSpeechBroken(reason || 'probe-failed');
+      }
+    }
+    r.continuous = false;
+    r.interimResults = false;
+    r.maxAlternatives = 1;
+    r.lang = (navigator.language || 'en-IN');
+    r.onstart = function () { finish(true); };
+    r.onerror = function (ev) {
+      var err = (ev && ev.error) || '';
+      if (err === 'aborted' || err === 'no-speech') {
+        finish(true);
+        return;
+      }
+      try { console.warn('[notebook-speech] probe error:', err, ev); } catch (eLog) {}
+      finish(false, err || 'probe-error');
+    };
+    r.onend = function () {
+      if (!settled) finish(true);
+    };
+    try {
+      r.start();
+    } catch (eStart) {
+      try { console.warn('[notebook-speech] probe start failed', eStart); } catch (e2) {}
+      finish(false, 'probe-start-failed');
+    }
+    setTimeout(function () {
+      if (!settled) finish(false, 'probe-timeout');
+    }, 3500);
+  }
 
+  function probeAndMaybeShowMic() {
+    if (!micBtn) return;
+    hideMic();
+    if (!voiceFeatureEnabled()) {
+      try { console.warn('[notebook-speech] disabled by admin (VOICE_TO_TEXT_MODE=off)'); } catch (e) {}
+      return;
+    }
+    if (isCloudMode()) {
+      if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) || window.isSecureContext === false) {
+        markSpeechBroken('Cloud mic needs HTTPS (or localhost) and getUserMedia');
+        return;
+      }
+      setMicAvailable();
+      return;
+    }
     if (!speechApiPresent()) {
-      hideMic();
+      markSpeechBroken('SpeechRecognition missing or insecure context');
+      return;
+    }
+    var cached = getSpeechProbeCache();
+    if (cached === '0') {
+      try { console.warn('[notebook-speech] skipped — previous engine failure this session'); } catch (e) {}
+      return;
+    }
+    if (cached === '1') {
+      setMicAvailable();
       return;
     }
 
+    // If mic permission is already denied, never show the button.
+    if (navigator.permissions && navigator.permissions.query) {
+      try {
+        navigator.permissions.query({ name: 'microphone' }).then(function (status) {
+          if (!voiceFeatureEnabled()) return;
+          if (status.state === 'denied') {
+            markSpeechBroken('microphone permission denied');
+            return;
+          }
+          if (status.state === 'granted') {
+            // Permission already granted — probe Google STT before showing mic
+            runEngineProbe();
+            return;
+          }
+          // "prompt": show mic; first tap validates the engine (hide on failure)
+          setMicAvailable();
+        }).catch(function () {
+          setMicAvailable();
+        });
+        return;
+      } catch (ePerm) {}
+    }
     setMicAvailable();
+  }
+
+  function setupSpeech() {
+    if (!micBtn) return;
+    hideMic();
 
     micBtn.addEventListener('click', function (e) {
       e.preventDefault();
@@ -980,6 +1246,7 @@
     // Never show voice errors just because the notebook opened
     if (!wantListening) setStatus('');
     loadNotes();
+    probeAndMaybeShowMic();
     setTimeout(function () { if (contentEl) contentEl.focus(); }, 280);
   });
 

@@ -202,11 +202,20 @@
       <h1 class="fs-24 fw-semibold mb-0 d-flex align-items-center">
         <i class='bx bx-note text-purple me-2 fs-26'></i> My Notebook
       </h1>
-      <!-- <div class="d-none d-lg-block">
-        <a href="{{ url('users:createnote') }}" class="btn custom-button purple-button d-flex align-items-center gap-2">
-          <i class='bx bx-message-alt-add fs-21 me-1'></i>Add New Note
+      <div class="d-flex align-items-center gap-2">
+        {% if enable_voice_to_text|default(true) %}
+        <button type="button" class="btn custom-button purple-button d-flex align-items-center gap-2" data-parent-notebook-open>
+          <i class='bx bx-microphone fs-18'></i> Voice note
+        </button>
+        {% else %}
+        <button type="button" class="btn custom-button purple-button d-flex align-items-center gap-2" data-parent-notebook-open>
+          <i class='bx bx-note fs-18'></i> Quick note
+        </button>
+        {% endif %}
+        <a href="{{ url('users:createnote') }}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+          <i class='bx bx-plus fs-18'></i> New note
         </a>
-      </div> -->
+      </div>
     </div>
 
     <!-- Mobile Header -->

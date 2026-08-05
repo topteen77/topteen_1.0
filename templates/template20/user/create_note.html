@@ -109,6 +109,40 @@
 	padding: 0px;
 }
 
+  .note-content-wrap {
+    position: relative;
+  }
+  .note-content-wrap .note-content-textarea {
+    padding-right: 52px;
+  }
+  .note-mic-btn {
+    position: absolute;
+    right: 0;
+    bottom: 8px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid #d6ddf6;
+    background: #fff;
+    color: #4f46e5;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    z-index: 2;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .note-mic-btn:hover { background: rgba(79, 70, 229, 0.08); }
+  .note-mic-btn.is-listening {
+    color: #fff;
+    background: #4f46e5;
+    border-color: #4f46e5;
+  }
+  .note-content-textarea.is-speech-listening {
+    border-bottom-color: #5d3fd3;
+  }
+
   
 </style>
 {% endblock %}
@@ -184,11 +218,19 @@
                id="noteTitle" />
       </div>
 
-      <div class="mt-3 note-field">
+      <div class="mt-3 note-field note-content-wrap{% if enable_voice_to_text|default(true) %} tt-speech-wrap{% endif %}">
         <textarea name="content" 
                   id="noteContent"
                   class="note-content-textarea" 
-                  placeholder="Tap here to continue...">{% if note.content %}{{ note.content }}{% endif %}</textarea>
+                  placeholder="{% if enable_voice_to_text|default(true) %}Tap here to continue… or use the mic to speak{% else %}Tap here to continue…{% endif %}"
+                  {% if enable_voice_to_text|default(true) %}data-tt-speech="text"{% endif %}>{% if note.content %}{{ note.content }}{% endif %}</textarea>
+        {% if enable_voice_to_text|default(true) %}
+        <button type="button" class="btn note-mic-btn student-popup-mic tt-speech-mic" id="noteContentMic" hidden
+          title="Speak to write"
+          aria-label="Speak to write" aria-pressed="false" aria-hidden="true">
+          <i class='bx bx-microphone' aria-hidden="true"></i>
+        </button>
+        {% endif %}
       </div>
     </form>
 
@@ -207,8 +249,24 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{% if enable_voice_to_text|default(true) %}
+<script src="{{ static('js_new/tt-speech-input.js') }}?v=20260805-speech9"></script>
 
 <script>
+  // Voice-to-text on note body (same Web Speech approach as parent notebook)
+  document.addEventListener('DOMContentLoaded', function () {
+    var ta = document.getElementById('noteContent');
+    var mic = document.getElementById('noteContentMic');
+    if (!ta || !mic || !window.TTSpeechInput) return;
+    if (window.TTSpeechInput.voiceFeatureEnabled && !window.TTSpeechInput.voiceFeatureEnabled()) return;
+    try {
+      window.TTSpeechInput.bind(ta, { mode: 'text', micBtn: mic });
+    } catch (e) {}
+  });
+</script>
+{% endif %}
+<script>
+
   // Sweet Alert Helper
   const fireAlert = async function (
     title,
