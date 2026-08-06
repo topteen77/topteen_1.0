@@ -1202,6 +1202,16 @@ PSYCHOMETRIC_COURSE_FREE_ID=3
 DEMO_EMAIL=[]
 CREDIT_LIMIT=5000
 
+# Forum: credit AI tokens when authenticated users post career-relevant questions.
+# Defaults match one average forum answer (see core.llm_quota STUDENT_AVG_FORUM_ANSWER_TOKENS).
+# Staff/superuser have unlimited AI and are not credited.
+FORUM_RELEVANT_QUESTION_REWARD_TOKENS = config(
+    'FORUM_RELEVANT_QUESTION_REWARD_TOKENS', default=3000, cast=int
+)
+FORUM_RELEVANT_QUESTION_REWARD_DAILY_CAP = config(
+    'FORUM_RELEVANT_QUESTION_REWARD_DAILY_CAP', default=5, cast=int
+)
+
 # User id of the marketing admin who owns self-serve ("direct") institute signups when no partner is chosen.
 # Set to 0 in .env to leave marketing_group unset for direct registrations.
 DEFAULT_DIRECT_INSTITUTE_MARKETING_ADMIN_USER_ID = config(

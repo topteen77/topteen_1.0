@@ -18,7 +18,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'forum/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'forum/css/style.css' %}?v=20260806b">
     {% csrf_token %}
 </head>
 <body>
@@ -34,15 +34,13 @@
                             <i class="fas fa-user"></i>
                         </div>
                         <h2 class="profile-name text-purple">{% if user.is_authenticated and user_data %}{{ user_data.name }}{% else %}Guest{% endif %}</h2>
-                        <div class="profile-id"><span class="fw-800">ID:</span> {% if user.is_authenticated and user_data %}STD0000256{% else %}—{% endif %}</span></div>
+                        <div class="profile-id"><span class="fw-800">ID:</span> {% if user.is_authenticated and display_student_id %}{{ display_student_id }}{% elif user.is_authenticated %}—{% else %}—{% endif %}</div>
                     </div>
                     <div class="card-body">
                         {% if user.is_authenticated and user_data %}
                         <div class="profile-details">
-                            <div class="profile-details-item"> <span class="fw-800 text-purple">Grade: </span> {{ user_data.grade }}</span></div>
-                          
-                                <div class="profile-details-item"> {% if user_data.school %}<span class="fw-800 text-purple">School: </span> {{ user_data.school }}</span>{% endif %}</div>
-                            <div class="profile-details-item"> {% if user_data.email %}<span class="fw-800 text-purple">Email: </span> {{ user.email|default:user_data.email }}</span>{% endif %}</div>  
+                            <div class="profile-details-item"><span class="fw-800 text-purple">Grade:</span> {{ user_data.grade|default:"—" }}</div>
+                            <div class="profile-details-item">{% if user_data.school %}<span class="fw-800 text-purple">School:</span> {{ user_data.school }}{% endif %}</div>
                         </div>
                         {% if user_data.top_matches %}
                         <div class="top-matches">Top Matches: {{ user_data.top_matches|join:", " }}</div>
@@ -50,6 +48,7 @@
                         {% else %}
                         <div class="profile-details"><span>Sign in to see your profile</span></div>
                         {% endif %}
+
                         <div class="profile-auth-actions">
                             {% if user.is_authenticated %}
                             <a href="{{ dashboard_url }}" class="btn btn-profile-action btn-profile-dashboard"><i class="fas fa-th-large"></i> Dashboard</a>
@@ -57,6 +56,49 @@
                             {% else %}
                             <button type="button" class="btn btn-profile-action btn-profile-login" onclick="if (typeof showLoginRequiredPopup === 'function') { showLoginRequiredPopup(window.location.href); }"><i class="fas fa-sign-in-alt"></i> Login</button>
                             {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {# Standalone quota card — matches stacked PWA card layout #}
+                <div class="card forum-quota-shell" id="forumQuotaShell">
+                    <div class="card-header new-card-header-gradient forum-quota-shell-header">
+                        <h3><i class="fas fa-robot" aria-hidden="true"></i> AI Career Guidance</h3>
+                    </div>
+                    <div class="card-body forum-quota-shell-body">
+                        <div class="forum-quota-card forum-quota-card--{{ forum_quota.tone|default:'ok' }}" id="forumQuotaCard" data-unlimited="{% if forum_quota.unlimited %}1{% else %}0{% endif %}" data-tone="{{ forum_quota.tone|default:'ok' }}">
+                            {% if forum_quota.unlimited %}
+                            <div class="forum-quota-hero">
+                                <div class="forum-quota-hero-value" id="forumQuotaWeeklyHeadline">{{ forum_quota.weekly_headline|default:"Unlimited" }}</div>
+                                <div class="forum-quota-hero-sub" id="forumQuotaWeeklySub">{{ forum_quota.weekly_sub|default:forum_quota.detail }}</div>
+                            </div>
+                            <div class="forum-quota-badge forum-quota-badge--unlimited">Admin / Staff</div>
+                            {% else %}
+                            <div class="forum-quota-meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ forum_quota.meter_percent|default:0 }}" aria-label="Weekly question usage">
+                                <div class="forum-quota-meter-fill" id="forumQuotaMeter" style="width: {{ forum_quota.meter_percent|default:0 }}%;"></div>
+                            </div>
+                            <div class="forum-quota-rows">
+                                <div class="forum-quota-row">
+                                    <span class="forum-quota-row-label">This week</span>
+                                    <span class="forum-quota-row-value" id="forumQuotaWeeklyHeadline">{{ forum_quota.weekly_headline }}</span>
+                                    <span class="forum-quota-row-sub" id="forumQuotaWeeklySub">{{ forum_quota.weekly_sub }}</span>
+                                </div>
+                                <div class="forum-quota-row">
+                                    <span class="forum-quota-row-label">AI balance</span>
+                                    <span class="forum-quota-row-value" id="forumQuotaAnswersHeadline">{{ forum_quota.answers_headline }}</span>
+                                    <span class="forum-quota-row-sub" id="forumQuotaAnswersSub">{{ forum_quota.answers_sub }}</span>
+                                </div>
+                            </div>
+                            <div class="forum-quota-footer">
+                                <span id="forumQuotaBalance">{{ forum_quota.balance_display|default:"0" }} tokens</span>
+                                <span class="forum-quota-footer-sep" aria-hidden="true">·</span>
+                                <span id="forumQuotaHint">Used only when AI replies</span>
+                            </div>
+                            {% endif %}
+                            <span id="forumQuotaLabel" hidden>{{ forum_quota.label }}</span>
+                            <span id="forumQuotaDetail" hidden>{{ forum_quota.detail }}</span>
+                            <span id="forumQuotaRemaining" hidden>{{ forum_quota.remaining_this_week|default:0 }}</span>
+                            <span id="forumQuotaApprox" hidden>{{ forum_quota.approx_questions_left|default:0 }}</span>
                         </div>
                     </div>
                 </div>
@@ -140,6 +182,12 @@
                 <!-- Career Exploration Zones Card -->
                 <div class="card exploration-card">
                     <h3 class="card-title-plain"><i class="fas fa-graduation-cap"></i> Career <span class="text-purple"> Exploration</span> Zones</h3>
+                    {% if can_moderate_forum %}
+                    <div class="forum-mod-banner">
+                        <span><i class="fas fa-shield-alt"></i> Moderator mode — hide, edit, or delete posts below</span>
+                        <a href="{{ forum_admin_url }}" target="_blank" rel="noopener">Open Django admin</a>
+                    </div>
+                    {% endif %}
                     <div class="category-tabs" id="categoryTabs">
                         <button type="button" class="category-tab active" onclick="switchCategory('all', this)">All Career</button>
                         <button type="button" class="category-tab" onclick="switchCategory('stem', this)"> <img class="img-fluid" src="{% static 'forum/images/stem.png' %}" alt="stem" /> STEM</button>
@@ -202,6 +250,9 @@
     </div>
 
     {{ login_popup_html|safe }}
-    <script src="{% static 'forum/js/main.js' %}"></script>
+    <script>
+        window.FORUM_CAN_MODERATE = {{ can_moderate_forum|yesno:"true,false" }};
+    </script>
+    <script src="{% static 'forum/js/main.js' %}?v=20260806b"></script>
 </body>
 </html>

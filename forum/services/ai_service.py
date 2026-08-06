@@ -9,6 +9,34 @@ from collections import Counter
 import math
 
 
+# Paywall / error payloads must never be stored or shown as answered forum posts.
+_NON_ANSWER_MARKERS = (
+    'sign in to keep using ai',
+    'free guest ai allowance',
+    'ai token limit reached',
+    'your free ai boost just ran out',
+    'needs_recharge',
+    'llm_quota_exceeded',
+    'recharge ai tokens',
+    'staff ai quota not set',
+    'error: openai api key',
+    'error calling openai',
+    'i apologize, but i can only assist',
+)
+
+
+def is_non_answer_response(response_text: str) -> bool:
+    """True when text is a paywall, quota, or error message — not a real AI answer."""
+    if not response_text or not str(response_text).strip():
+        return True
+    lower = str(response_text).lower()
+    if any(marker in lower for marker in _NON_ANSWER_MARKERS):
+        return True
+    if 'error:' in lower and ('api key' in lower or 'openai' in lower):
+        return True
+    return False
+
+
 def extract_entities(query):
     """Extract country, course, and category from query"""
     query_lower = query.lower()
@@ -294,18 +322,14 @@ def find_similar_query(query_text, similarity_threshold=None):
     try:
         exact_match = Query.objects.filter(
             question_text__iexact=query_text,
-            status='completed'
+            status='completed',
+            is_hidden=False,
         ).select_related('response').first()
         
         if exact_match and hasattr(exact_match, 'response'):
             response_text = exact_match.response.response_text
-            # Skip error responses - regenerate them
-            if response_text and (
-                ('Error:' in response_text and 'API key' in response_text) or
-                ('I apologize, but I can only assist' in response_text)
-            ):
-                pass  # Skip this error response, continue to AI generation
-            else:
+            # Skip paywall / error responses — regenerate a real answer
+            if response_text and not is_non_answer_response(response_text):
                 return response_text, 0.0  # Free - from database
     except Exception:
         pass
@@ -314,7 +338,8 @@ def find_similar_query(query_text, similarity_threshold=None):
     try:
         # Get recent completed queries with responses (limit to last 1000 for performance)
         completed_queries = Query.objects.filter(
-            status='completed'
+            status='completed',
+            is_hidden=False,
         ).select_related('response').exclude(
             response=None
         ).order_by('-created_at')[:1000]  # Limit to recent queries for performance
@@ -329,13 +354,7 @@ def find_similar_query(query_text, similarity_threshold=None):
             if normalized_query == normalized_existing:
                 if hasattr(query, 'response'):
                     response_text = query.response.response_text
-                    # Skip error responses - regenerate them
-                    if response_text and (
-                        ('Error:' in response_text and 'API key' in response_text) or
-                        ('I apologize, but I can only assist' in response_text)
-                    ):
-                        continue  # Skip this error response
-                    else:
+                    if response_text and not is_non_answer_response(response_text):
                         return response_text, 0.0  # Free - from database
                 continue
             
@@ -358,15 +377,11 @@ def find_similar_query(query_text, similarity_threshold=None):
             # Calculate semantic similarity (combines multiple methods)
             similarity = calculate_semantic_similarity(query_text, query.question_text)
             
-            # Track best match (but skip error responses)
+            # Track best match (but skip paywall / error responses)
             if similarity > best_similarity:
                 if hasattr(query, 'response'):
                     response_text = query.response.response_text
-                    # Skip error responses when tracking best match
-                    if response_text and not (
-                        ('Error:' in response_text and 'API key' in response_text) or
-                        ('I apologize, but I can only assist' in response_text)
-                    ):
+                    if response_text and not is_non_answer_response(response_text):
                         best_similarity = similarity
                         best_match = response_text
             
@@ -374,43 +389,30 @@ def find_similar_query(query_text, similarity_threshold=None):
             if similarity >= 0.95:  # Very high similarity
                 if hasattr(query, 'response'):
                     response_text = query.response.response_text
-                    # Skip error responses - regenerate them
-                    if response_text and (
-                        ('Error:' in response_text and 'API key' in response_text) or
-                        ('I apologize, but I can only assist' in response_text)
-                    ):
-                        continue  # Skip this error response
-                    else:
+                    if response_text and not is_non_answer_response(response_text):
                         return response_text, 0.0  # Free - from database
         
-        # Return best match if it meets threshold (but skip error responses)
+        # Return best match if it meets threshold (but skip paywall / error responses)
         # Also verify subjects match for strict matching
-        if best_match and best_similarity >= similarity_threshold:
-            # Skip error responses - regenerate them
-            if (
-                ('Error:' in best_match and 'API key' in best_match) or
-                ('I apologize, but I can only assist' in best_match)
-            ):
-                pass  # Skip this error response, continue to AI generation
-            else:
-                # For strict matching, verify subjects match if both queries have subjects
-                current_subject = extract_subject_or_course(query_text)
-                # Find the query that gave us best_match to check its subject
-                best_match_query = None
-                for q in completed_queries:
-                    if hasattr(q, 'response') and q.response.response_text == best_match:
-                        best_match_query = q
-                        break
-                
-                if best_match_query:
-                    existing_subject = extract_subject_or_course(best_match_query.question_text)
-                    # If both have subjects, they must match
-                    if current_subject and existing_subject:
-                        if current_subject.lower().strip() != existing_subject.lower().strip():
-                            # Subjects don't match - don't return cached response
-                            return None, 0.0
-                
-                return best_match, 0.0  # Free - from database
+        if best_match and best_similarity >= similarity_threshold and not is_non_answer_response(best_match):
+            # For strict matching, verify subjects match if both queries have subjects
+            current_subject = extract_subject_or_course(query_text)
+            # Find the query that gave us best_match to check its subject
+            best_match_query = None
+            for q in completed_queries:
+                if hasattr(q, 'response') and q.response.response_text == best_match:
+                    best_match_query = q
+                    break
+            
+            if best_match_query:
+                existing_subject = extract_subject_or_course(best_match_query.question_text)
+                # If both have subjects, they must match
+                if current_subject and existing_subject:
+                    if current_subject.lower().strip() != existing_subject.lower().strip():
+                        # Subjects don't match - don't return cached response
+                        return None, 0.0
+            
+            return best_match, 0.0  # Free - from database
             
     except Exception as e:
         # If there's an error, log it but continue to AI generation
@@ -727,12 +729,15 @@ def remove_duplicate_query_headers(response_text, query):
     return cleaned
 
 
-def generate_ai_response(query, country=None, category=None, user=None):
+def generate_ai_response(query, country=None, category=None, user=None, request=None):
     """
     Generate AI response using GPT-4o-mini with knowledge base context
     Only responds to career/education-related queries
     Checks database first (if enabled) to avoid duplicate AI calls
     Adapts response style based on user's age/class
+
+    Pass ``request`` so quota checks use the real session for guests and
+    authenticated users (staff/admin have unlimited AI credits).
     """
     # Get user's class for personalized message
     user_class, age_range, class_display = get_user_class_and_age(user)
@@ -1193,18 +1198,11 @@ Only answer questions related to career choices, education for careers, or skill
         from core.llm_quota import LLMQuotaExceeded, ensure_can_use_llm
 
         try:
-            ensure_can_use_llm(user, feature="forum")
-        except LLMQuotaExceeded as exc:
-            # Surface as a friendly HTML answer so existing forum UI can show it
-            pay = exc.payload or {}
-            cta = pay.get("cta_url") or "/ai-tokens/"
-            label = pay.get("cta_label") or "Recharge AI tokens"
-            return (
-                f"<h4>{pay.get('headline') or 'AI token limit reached'}</h4>"
-                f"<p>{pay.get('body') or pay.get('detail') or ''}</p>"
-                f"<p><a href=\"{cta}\">{label}</a></p>",
-                0.0,
-            )
+            ensure_can_use_llm(user, feature="forum", request=request)
+        except LLMQuotaExceeded:
+            # Do NOT return HTML that gets saved as a forum answer — re-raise so
+            # the view can show the paywall ephemerally without persisting it.
+            raise
 
         response = client.chat.completions.create(
             model=model,
@@ -1227,6 +1225,10 @@ Only answer questions related to career choices, education for careers, or skill
         if ai_response.endswith('```'):
             ai_response = ai_response.rsplit('```', 1)[0]
         ai_response = ai_response.strip()
+
+        # No usable answer → do not charge tokens
+        if not ai_response or is_non_answer_response(ai_response):
+            return (ai_response or "", 0.0)
         
         # Remove any existing query header from AI response to prevent duplication
         ai_response = remove_duplicate_query_headers(ai_response, query)
@@ -1243,20 +1245,24 @@ Only answer questions related to career choices, education for careers, or skill
         input_tokens = response.usage.prompt_tokens
         output_tokens = response.usage.completion_tokens
         cost = (input_tokens * 0.15 / 1_000_000) + (output_tokens * 0.60 / 1_000_000)
+        total_tokens = int(getattr(response.usage, "total_tokens", 0) or (input_tokens + output_tokens))
 
-        try:
-            from core.llm_billing import log_openai_response
-            log_openai_response(
-                feature='forum',
-                response=response,
-                model=model,
-                call_type='chat',
-                user=user,
-                consume=True,
-                metadata={'source': 'forum.generate_ai_response'},
-            )
-        except Exception:
-            pass
+        # Debit wallet only after a real AI answer with measured token usage.
+        if total_tokens > 0:
+            try:
+                from core.llm_billing import log_openai_response
+                log_openai_response(
+                    feature='forum',
+                    response=response,
+                    model=model,
+                    call_type='chat',
+                    user=user,
+                    consume=True,
+                    request=request,
+                    metadata={'source': 'forum.generate_ai_response'},
+                )
+            except Exception:
+                pass
         
         # Cache response for 24 hours (save money on similar queries)
         cache.set(cache_key, (ai_response, cost), 86400)
@@ -1312,6 +1318,12 @@ Only answer questions related to career choices, education for careers, or skill
         
         return error_msg, 0.0
     except Exception as e:
+        # Quota / paywall must bubble to the view — never convert into a fake answer.
+        from core.llm_quota import LLMQuotaExceeded
+
+        if isinstance(e, LLMQuotaExceeded):
+            raise
+
         error_msg = f"Error generating response: {str(e)}"
         
         # Show full traceback in server console when DEBUG is True

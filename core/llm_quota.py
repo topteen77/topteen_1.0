@@ -20,8 +20,10 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 # Conservative pre-check estimates when call size is unknown.
+# Forum answers: long system prompt + KB context (~1.8–2.5k prompt) + up to 800
+# completion tokens → ~2.5–3.2k total. Use 3,000 as the planning average.
 FEATURE_ESTIMATE_TOKENS = {
-    "forum": 2500,
+    "forum": 3000,
     "resume_v2": 4000,
     "resume_guided": 6000,
     "seo": 3000,
@@ -30,6 +32,17 @@ FEATURE_ESTIMATE_TOKENS = {
     "translation": 1500,
     "other": 2000,
 }
+
+# Student free allowance sized for at least 5 forum Q&A per week:
+#   5 questions/week × ~4.5 weeks/month × 3,000 tokens/answer ≈ 67,500
+# Rounded up to 70,000 for slightly longer answers and light non-forum AI use.
+STUDENT_FORUM_QUESTIONS_PER_WEEK = 5
+STUDENT_AVG_FORUM_ANSWER_TOKENS = FEATURE_ESTIMATE_TOKENS["forum"]
+STUDENT_MONTHLY_FREE_TOKENS = int(
+    STUDENT_FORUM_QUESTIONS_PER_WEEK * 4.5 * STUDENT_AVG_FORUM_ANSWER_TOKENS
+)
+# 5 * 4.5 * 3000 = 67,500 → round to a clean 70,000 floor.
+STUDENT_MONTHLY_FREE_TOKENS = max(STUDENT_MONTHLY_FREE_TOKENS, 70000)
 
 FEATURE_LABELS = {
     "forum": "AI tutor / career chat",
@@ -57,8 +70,8 @@ USER_TYPE_TO_ROLE_KEY = {
 
 DEFAULT_ROLE_SEEDS = {
     "student": {
-        "monthly_free_tokens": 50000,
-        "estimated_call_tokens": 2500,
+        "monthly_free_tokens": STUDENT_MONTHLY_FREE_TOKENS,
+        "estimated_call_tokens": STUDENT_AVG_FORUM_ANSWER_TOKENS,
         "marketing_headline": "Your free AI boost just ran out",
         "marketing_body": (
             "You've used this month's free AI tokens. Recharge a small pack and keep "
@@ -96,14 +109,16 @@ DEFAULT_ROLE_SEEDS = {
         "marketing_body": "Request an admin grant or recharge a token pack to continue.",
     },
     "staff": {
+        # Staff / superuser bypass quota entirely via is_unlimited_llm_user().
         "monthly_free_tokens": 0,
         "estimated_call_tokens": 3000,
-        "marketing_headline": "Staff AI quota not set",
-        "marketing_body": "Ask a superuser to grant AI tokens for SEO and internal tools.",
+        "marketing_headline": "Staff AI is unlimited",
+        "marketing_body": "Staff and admin accounts have unlimited AI access.",
     },
     "anonymous": {
-        "monthly_free_tokens": 10000,
-        "estimated_call_tokens": 2000,
+        # Guests: ~3 forum answers before sign-in prompt (3 × 3,000).
+        "monthly_free_tokens": 9000,
+        "estimated_call_tokens": 3000,
         "marketing_headline": "Sign in to keep using AI",
         "marketing_body": (
             "You've used the free guest AI allowance. Create a free TopTeen account to get "
@@ -111,6 +126,12 @@ DEFAULT_ROLE_SEEDS = {
         ),
     },
 }
+
+# Reward ≈ one average forum answer so relevant posts replenish the cost of asking.
+FORUM_REWARD_TOKENS_DEFAULT = STUDENT_AVG_FORUM_ANSWER_TOKENS
+# Allow a student to earn rewards for a full week of questions in one day if needed.
+FORUM_REWARD_DAILY_CAP_DEFAULT = STUDENT_FORUM_QUESTIONS_PER_WEEK
+UNLIMITED_BALANCE_DISPLAY = 9_999_999_999
 
 
 class LLMQuotaExceeded(Exception):
@@ -142,11 +163,20 @@ def resolve_role_key(user=None) -> str:
     return USER_TYPE_TO_ROLE_KEY.get(getattr(user, "user_type", 1), "student")
 
 
+def is_unlimited_llm_user(user=None) -> bool:
+    """Staff and superusers get unlimited AI tokens (no wallet debit / paywall)."""
+    if user is None or not getattr(user, "is_authenticated", False):
+        return False
+    return bool(
+        getattr(user, "is_staff", False) or getattr(user, "is_superuser", False)
+    )
+
+
 def seed_role_defaults() -> None:
     from core.models import LLMRoleQuotaDefault
 
     for role_key, conf in DEFAULT_ROLE_SEEDS.items():
-        LLMRoleQuotaDefault.objects.get_or_create(
+        obj, created = LLMRoleQuotaDefault.objects.get_or_create(
             role_key=role_key,
             defaults={
                 "monthly_free_tokens": conf["monthly_free_tokens"],
@@ -156,6 +186,26 @@ def seed_role_defaults() -> None:
                 "is_enabled": True,
             },
         )
+        if created:
+            continue
+        # Raise floors for student/anonymous when code defaults increase (never lower
+        # an admin-raised allotment). Keep staff marketing text in sync.
+        updates = []
+        if int(obj.monthly_free_tokens or 0) < int(conf["monthly_free_tokens"]):
+            obj.monthly_free_tokens = conf["monthly_free_tokens"]
+            updates.append("monthly_free_tokens")
+        if int(obj.estimated_call_tokens or 0) < int(conf["estimated_call_tokens"]):
+            obj.estimated_call_tokens = conf["estimated_call_tokens"]
+            updates.append("estimated_call_tokens")
+        if role_key == "staff":
+            if obj.marketing_headline != conf["marketing_headline"]:
+                obj.marketing_headline = conf["marketing_headline"]
+                updates.append("marketing_headline")
+            if obj.marketing_body != conf["marketing_body"]:
+                obj.marketing_body = conf["marketing_body"]
+                updates.append("marketing_body")
+        if updates:
+            obj.save(update_fields=updates + ["updated_at"])
 
 
 def get_role_default(role_key: str):
@@ -406,6 +456,8 @@ def check_and_notify_if_cannot_afford_next(
     """True when balance is below the next-call estimate; may emit 24h recharge notification."""
     if user is None or not getattr(user, "is_authenticated", False):
         return False
+    if is_unlimited_llm_user(user):
+        return False
     role_key = resolve_role_key(user)
     cost = estimate_tokens_for_feature(feature or "other", role_key)
     if balance is None:
@@ -479,9 +531,62 @@ def _apply_monthly_free_if_needed(wallet, user) -> None:
     role_key = resolve_role_key(user)
     role = get_role_default(role_key)
     period = current_period_key()
-    if wallet.free_period_key == period:
-        return
     free_tokens = int(role.monthly_free_tokens or 0)
+
+    # Already credited this period — top up if role default was raised after a
+    # bad/short grant (e.g. wallets that only received 5 tokens).
+    if wallet.free_period_key == period:
+        if free_tokens <= 0 or not role.is_enabled or is_unlimited_llm_user(user):
+            return
+        ref = f"free:{user.id}:{period}"
+        granted = (
+            LLMWalletLedger.objects.filter(
+                wallet=wallet,
+                source=LLMWalletLedger.SOURCE_FREE_MONTHLY,
+                reference=ref,
+                entry_type=LLMWalletLedger.ENTRY_CREDIT,
+            )
+            .order_by("-id")
+            .first()
+        )
+        already = int(granted.tokens) if granted else 0
+        # Also count explicit top-ups for this period.
+        topup_ref = f"free:{user.id}:{period}:topup"
+        topup = (
+            LLMWalletLedger.objects.filter(
+                wallet=wallet,
+                source=LLMWalletLedger.SOURCE_FREE_MONTHLY,
+                reference=topup_ref,
+                entry_type=LLMWalletLedger.ENTRY_CREDIT,
+            )
+            .order_by("-id")
+            .first()
+        )
+        already += int(topup.tokens) if topup else 0
+        shortfall = free_tokens - already
+        if shortfall <= 0:
+            return
+        wallet.balance_tokens = F("balance_tokens") + shortfall
+        wallet.lifetime_credited = F("lifetime_credited") + shortfall
+        wallet.save(update_fields=["balance_tokens", "lifetime_credited", "updated_at"])
+        wallet.refresh_from_db()
+        LLMWalletLedger.objects.create(
+            wallet=wallet,
+            entry_type=LLMWalletLedger.ENTRY_CREDIT,
+            source=LLMWalletLedger.SOURCE_FREE_MONTHLY,
+            tokens=shortfall,
+            balance_after=wallet.balance_tokens,
+            note=f"Monthly free top-up ({period})",
+            reference=topup_ref,
+            metadata={
+                "role_key": role_key,
+                "period": period,
+                "reason": "role_default_raised",
+                "previous_granted": already,
+            },
+        )
+        return
+
     wallet.free_period_key = period
     if free_tokens > 0 and role.is_enabled:
         wallet.balance_tokens = F("balance_tokens") + free_tokens
@@ -569,6 +674,10 @@ def consume_llm_tokens(
         if user is None or not getattr(user, "is_authenticated", False):
             return debit_anonymous(request, tokens)
 
+        # Staff / admin: unlimited — never debit.
+        if is_unlimited_llm_user(user):
+            return UNLIMITED_BALANCE_DISPLAY
+
         if reference:
             existing = LLMWalletLedger.objects.filter(
                 source=LLMWalletLedger.SOURCE_USAGE,
@@ -614,6 +723,8 @@ def consume_llm_tokens(
 def get_balance(user, request=None) -> int:
     if user is None or not getattr(user, "is_authenticated", False):
         return get_anonymous_balance(request)
+    if is_unlimited_llm_user(user):
+        return UNLIMITED_BALANCE_DISPLAY
     wallet = get_or_create_wallet(user)
     return int(wallet.balance_tokens)
 
@@ -634,6 +745,10 @@ def ensure_can_use_llm(
     role_key = resolve_role_key(user)
     role = get_role_default(role_key)
     cost = int(estimated_tokens or estimate_tokens_for_feature(feature, role_key))
+
+    # Staff / superuser: unlimited AI access.
+    if is_unlimited_llm_user(user):
+        return QuotaStatus(True, UNLIMITED_BALANCE_DISPLAY, role_key, cost, None)
 
     if not role.is_enabled:
         paywall = build_paywall(
@@ -771,15 +886,17 @@ def fulfill_package_payment(package_payment) -> int:
 def wallet_summary_for_user(user, request=None) -> dict[str, Any]:
     role_key = resolve_role_key(user)
     role = get_role_default(role_key)
+    unlimited = is_unlimited_llm_user(user)
     balance = get_balance(user, request=request)
     next_cost = estimate_tokens_for_feature("other", role_key)
     # Prefer role default so admin-tuned estimated_call_tokens drives soft low.
     next_cost = max(int(next_cost), int(role.estimated_call_tokens or 0) or next_cost)
-    needs_recharge = balance < next_cost
-    is_low = needs_recharge or balance < max(next_cost * 2, next_cost)
+    needs_recharge = (not unlimited) and balance < next_cost
+    is_low = (not unlimited) and (needs_recharge or balance < max(next_cost * 2, next_cost))
     return {
         "balance_tokens": balance,
         "role_key": role_key,
+        "unlimited": unlimited,
         "monthly_free_tokens": int(role.monthly_free_tokens or 0),
         "estimated_next_call_tokens": int(next_cost),
         "needs_recharge": needs_recharge,
@@ -787,6 +904,332 @@ def wallet_summary_for_user(user, request=None) -> dict[str, Any]:
         "shop_url": shop_url(),
         "cta_label": "Recharge AI tokens" if needs_recharge or is_low else "",
         "cta_url": shop_url() if needs_recharge or is_low else "",
+    }
+
+
+def _forum_reward_settings() -> tuple[int, int]:
+    from django.conf import settings as dj_settings
+
+    tokens = int(
+        getattr(dj_settings, "FORUM_RELEVANT_QUESTION_REWARD_TOKENS", FORUM_REWARD_TOKENS_DEFAULT)
+        or FORUM_REWARD_TOKENS_DEFAULT
+    )
+    daily_cap = int(
+        getattr(
+            dj_settings,
+            "FORUM_RELEVANT_QUESTION_REWARD_DAILY_CAP",
+            FORUM_REWARD_DAILY_CAP_DEFAULT,
+        )
+        or FORUM_REWARD_DAILY_CAP_DEFAULT
+    )
+    return max(0, tokens), max(0, daily_cap)
+
+
+def credit_forum_relevant_question(
+    user,
+    *,
+    query_id: Optional[int] = None,
+    question_text: str = "",
+) -> int:
+    """
+    Credit AI tokens when an authenticated user posts a career-relevant forum question.
+
+    Idempotent per query_id. Staff/admin are unlimited (no credit needed).
+    Respects a per-user daily cap to limit farming.
+    Returns tokens credited (0 when skipped).
+    """
+    if user is None or not getattr(user, "is_authenticated", False):
+        return 0
+    if is_unlimited_llm_user(user):
+        return 0
+
+    reward_tokens, daily_cap = _forum_reward_settings()
+    if reward_tokens <= 0:
+        return 0
+
+    # Only reward career/education-relevant questions.
+    try:
+        from forum.services.ai_service import is_education_related_query
+
+        if question_text and not is_education_related_query(question_text):
+            return 0
+    except Exception:
+        logger.exception("Forum reward: relevance check failed")
+        return 0
+
+    from core.models import LLMWalletLedger
+
+    reference = f"forum_q:{int(query_id)}" if query_id else ""
+    if reference:
+        existing = LLMWalletLedger.objects.filter(
+            source=LLMWalletLedger.SOURCE_ADJUSTMENT,
+            reference=reference,
+            entry_type=LLMWalletLedger.ENTRY_CREDIT,
+        ).first()
+        if existing:
+            return 0
+
+    if daily_cap > 0:
+        day_key = timezone.localdate().isoformat()
+        day_count = LLMWalletLedger.objects.filter(
+            wallet__user_id=user.id,
+            source=LLMWalletLedger.SOURCE_ADJUSTMENT,
+            entry_type=LLMWalletLedger.ENTRY_CREDIT,
+            reference__startswith="forum_q:",
+            created_at__date=timezone.localdate(),
+        ).count()
+        if day_count >= daily_cap:
+            logger.info(
+                "Forum reward skipped: daily cap reached user=%s day=%s",
+                user.id,
+                day_key,
+            )
+            return 0
+
+    note = "Forum relevant question reward"
+    if query_id:
+        note = f"Forum relevant question reward (query #{query_id})"
+
+    try:
+        credit_tokens(
+            user,
+            reward_tokens,
+            source=LLMWalletLedger.SOURCE_ADJUSTMENT,
+            note=note,
+            reference=reference or f"forum_reward:{user.id}:{timezone.now().timestamp()}",
+            feature="forum",
+            metadata={
+                "reason": "forum_relevant_question",
+                "query_id": query_id,
+                "reward_tokens": reward_tokens,
+            },
+        )
+        return reward_tokens
+    except Exception:
+        logger.exception(
+            "Failed to credit forum reward for user=%s query=%s",
+            getattr(user, "id", None),
+            query_id,
+        )
+        return 0
+
+
+def _forum_week_posts_cache_key(user_id: int) -> str:
+    return f"forum_week_posts:{int(user_id)}"
+
+
+def record_forum_question_post(user, query_id: Optional[int] = None) -> int:
+    """
+    Track a forum question for the rolling 7-day post counter (students/parents).
+    Staff/admin are unlimited and are not tracked.
+
+    Uses a durable ledger reference ``forum_q:<id>`` (works even when Django
+    cache is DummyCache). Returns posts in the last 7 days.
+    """
+    if user is None or not getattr(user, "is_authenticated", False):
+        return 0
+    if is_unlimited_llm_user(user):
+        return 0
+    if not query_id:
+        return _count_forum_posts_this_week(user)
+
+    from core.models import LLMWalletLedger
+
+    reference = f"forum_q:{int(query_id)}"
+    try:
+        already = LLMWalletLedger.objects.filter(
+            wallet__user_id=user.id,
+            reference=reference,
+            source=LLMWalletLedger.SOURCE_ADJUSTMENT,
+        ).exists()
+        if not already:
+            wallet = get_or_create_wallet(user)
+            LLMWalletLedger.objects.create(
+                wallet=wallet,
+                entry_type=LLMWalletLedger.ENTRY_CREDIT,
+                source=LLMWalletLedger.SOURCE_ADJUSTMENT,
+                tokens=0,
+                balance_after=int(wallet.balance_tokens),
+                feature="forum",
+                note="Forum question post (tracking)",
+                reference=reference,
+                metadata={"reason": "forum_post_track", "query_id": int(query_id)},
+            )
+    except Exception:
+        logger.exception(
+            "Failed recording forum question post user=%s query=%s",
+            getattr(user, "id", None),
+            query_id,
+        )
+
+    # Best-effort cache mirror for environments with a real cache backend.
+    try:
+        now_ts = timezone.now().timestamp()
+        cutoff = now_ts - (7 * 24 * 60 * 60)
+        key = _forum_week_posts_cache_key(user.id)
+        raw = cache.get(key) or []
+        entries: list[dict] = []
+        if isinstance(raw, list):
+            for item in raw:
+                if isinstance(item, dict) and float(item.get("ts", 0) or 0) >= cutoff:
+                    entries.append({"id": str(item.get("id")), "ts": float(item.get("ts", 0))})
+        qid = str(int(query_id))
+        if qid not in {e["id"] for e in entries}:
+            entries.append({"id": qid, "ts": now_ts})
+        cache.set(key, entries, timeout=8 * 24 * 60 * 60)
+    except Exception:
+        pass
+
+    return _count_forum_posts_this_week(user)
+
+
+def _count_forum_posts_this_week(user, cache_entries: Optional[list] = None) -> int:
+    """Rolling 7-day forum question count from cache + ledger rewards."""
+    if user is None or not getattr(user, "is_authenticated", False):
+        return 0
+
+    now_ts = timezone.now().timestamp()
+    cutoff = now_ts - (7 * 24 * 60 * 60)
+    ids: set[str] = set()
+
+    if cache_entries is None:
+        try:
+            raw = cache.get(_forum_week_posts_cache_key(user.id)) or []
+            if isinstance(raw, list):
+                cache_entries = raw
+        except Exception:
+            cache_entries = []
+
+    for item in cache_entries or []:
+        if isinstance(item, dict) and float(item.get("ts", 0) or 0) >= cutoff:
+            ids.add(str(item.get("id")))
+        elif not isinstance(item, dict):
+            ids.add(str(item))
+
+    try:
+        from datetime import timedelta
+
+        from core.models import LLMWalletLedger
+
+        since = timezone.now() - timedelta(days=7)
+        for ref in LLMWalletLedger.objects.filter(
+            wallet__user_id=user.id,
+            source=LLMWalletLedger.SOURCE_ADJUSTMENT,
+            entry_type=LLMWalletLedger.ENTRY_CREDIT,
+            reference__startswith="forum_q:",
+            created_at__gte=since,
+        ).values_list("reference", flat=True):
+            # forum_q:123 → 123
+            ids.add(str(ref).replace("forum_q:", "", 1))
+    except Exception:
+        logger.exception("Failed counting forum ledger posts user=%s", getattr(user, "id", None))
+
+    return len(ids)
+
+
+def _format_token_count(n: int) -> str:
+    try:
+        return f"{int(n):,}"
+    except (TypeError, ValueError):
+        return "0"
+
+
+def forum_question_limit_status(user=None, request=None) -> dict[str, Any]:
+    """
+    Account question post limit for forum / PWA UI.
+
+    Students/parents: weekly allowance (5) + answers available from AI token balance.
+    Staff/admin: unlimited.
+    Guests: sign-in CTA with guest remaining estimate.
+    """
+    weekly_limit = STUDENT_FORUM_QUESTIONS_PER_WEEK
+    role_key = resolve_role_key(user)
+    cost = max(1, estimate_tokens_for_feature("forum", role_key))
+
+    if user is None or not getattr(user, "is_authenticated", False):
+        balance = get_anonymous_balance(request)
+        approx_left = int(balance) // cost
+        tone = "ok" if approx_left > 0 else "empty"
+        return {
+            "is_authenticated": False,
+            "unlimited": False,
+            "weekly_limit": weekly_limit,
+            "posted_this_week": 0,
+            "remaining_this_week": weekly_limit,
+            "approx_questions_left": approx_left,
+            "balance_tokens": int(balance),
+            "balance_display": _format_token_count(balance),
+            "cost_per_question": cost,
+            "tone": tone,
+            "label": "Guest access",
+            "detail": "Sign in for your weekly AI allowance and monthly tokens.",
+            "weekly_headline": f"{weekly_limit} questions / week after sign-in",
+            "weekly_sub": "Create a free account to track your limit",
+            "answers_headline": f"{approx_left} guest answers left",
+            "answers_sub": "Tokens are used only when AI replies",
+            "meter_percent": 0,
+        }
+
+    if is_unlimited_llm_user(user):
+        return {
+            "is_authenticated": True,
+            "unlimited": True,
+            "weekly_limit": None,
+            "posted_this_week": None,
+            "remaining_this_week": None,
+            "approx_questions_left": None,
+            "balance_tokens": UNLIMITED_BALANCE_DISPLAY,
+            "balance_display": "Unlimited",
+            "cost_per_question": cost,
+            "tone": "unlimited",
+            "label": "Unlimited AI access",
+            "detail": "Staff and admin accounts have no weekly post limit.",
+            "weekly_headline": "Unlimited",
+            "weekly_sub": "No weekly cap for your role",
+            "answers_headline": "Unlimited AI answers",
+            "answers_sub": "Tokens are not deducted for staff",
+            "meter_percent": 0,
+        }
+
+    posted = _count_forum_posts_this_week(user)
+    balance = int(get_balance(user, request=request))
+    approx_left = max(0, balance // cost)
+    remaining_week = max(0, weekly_limit - posted)
+    meter_percent = (
+        min(100, int(round((posted / weekly_limit) * 100))) if weekly_limit else 0
+    )
+
+    if approx_left <= 0:
+        tone = "empty"
+        answers_headline = "No AI answers left"
+        answers_sub = "Recharge tokens to keep asking career questions"
+    elif approx_left <= 3 or remaining_week <= 1:
+        tone = "low"
+        answers_headline = f"{approx_left} AI answers available"
+        answers_sub = "Tokens are used only when you receive an AI answer"
+    else:
+        tone = "ok"
+        answers_headline = f"{approx_left} AI answers available"
+        answers_sub = "Tokens are used only when you receive an AI answer"
+
+    return {
+        "is_authenticated": True,
+        "unlimited": False,
+        "weekly_limit": weekly_limit,
+        "posted_this_week": posted,
+        "remaining_this_week": remaining_week,
+        "approx_questions_left": approx_left,
+        "balance_tokens": balance,
+        "balance_display": _format_token_count(balance),
+        "cost_per_question": cost,
+        "tone": tone,
+        "label": f"{posted} of {weekly_limit} used this week",
+        "detail": answers_sub,
+        "weekly_headline": f"{posted} of {weekly_limit} this week",
+        "weekly_sub": f"{remaining_week} remaining in your weekly allowance",
+        "answers_headline": answers_headline,
+        "answers_sub": answers_sub,
+        "meter_percent": meter_percent,
     }
 
 

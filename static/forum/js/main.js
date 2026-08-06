@@ -19,6 +19,27 @@ function getCookie(name) {
 
 const csrftoken = getCookie('csrftoken');
 
+// Same-origin credentials so Django session auth is applied (logged-in users
+// must not fall through to the guest AI allowance paywall).
+const FORUM_FETCH_DEFAULTS = {
+    credentials: 'same-origin',
+    headers: {
+        'X-CSRFToken': csrftoken || '',
+    },
+};
+
+async function forumFetch(url, options = {}) {
+    const headers = {
+        ...(FORUM_FETCH_DEFAULTS.headers || {}),
+        ...(options.headers || {}),
+    };
+    return fetch(url, {
+        ...FORUM_FETCH_DEFAULTS,
+        ...options,
+        headers,
+    });
+}
+
 // Submit query to API
 async function submitQuery() {
     const queryInput = document.getElementById('userQuery');
@@ -59,12 +80,11 @@ async function submitQuery() {
     document.getElementById('aiResponse').style.display = 'none';
 
     try {
-        // Submit query to API
-        const response = await fetch(`${API_BASE_URL}/queries/`, {
+        // Submit query to API (include session cookies for logged-in quota)
+        const response = await forumFetch(`${API_BASE_URL}/queries/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
             },
             body: JSON.stringify({
                 question: query
@@ -72,12 +92,32 @@ async function submitQuery() {
         });
 
         if (!response.ok) {
+            // Quota paywall: show ephemeral message, do not treat as a posted answer
+            if (response.status === 402) {
+                try {
+                    const payData = await response.json();
+                    if (payData.forum_quota) {
+                        updateForumQuota(payData.forum_quota);
+                    }
+                    const payHtml = (payData.response && payData.response.response_text)
+                        || `<h4>${payData.error || 'AI token limit reached'}</h4><p>${payData.detail || ''}</p>`;
+                    displayAIResponse(payHtml);
+                    // Do not refresh popular/trending — nothing was posted
+                    return;
+                } catch (e) {
+                    // fall through to generic error
+                }
+            }
             // Try to get error message from response
             let errorMessage = 'Failed to submit query';
             try {
                 const errorData = await response.json();
                 if (errorData.error) {
                     errorMessage = errorData.error;
+                }
+                if (errorData.response && errorData.response.response_text) {
+                    displayAIResponse(errorData.response.response_text);
+                    return;
                 }
             } catch (e) {
                 // If response is not JSON, use status text
@@ -94,6 +134,26 @@ async function submitQuery() {
 
         const data = await response.json();
         
+        // Quota flag (HTTP 200 or 402)
+        if (data.quota_exceeded || (data.paywall && data.response && data.response.response_text)) {
+            if (data.forum_quota) updateForumQuota(data.forum_quota);
+            const payHtml = (data.response && data.response.response_text)
+                || `<h4>${data.error || 'AI token limit reached'}</h4><p>${data.detail || ''}</p>`;
+            displayAIResponse(payHtml);
+            return;
+        }
+        
+        // Soft failure: no tokens charged, show message without treating as posted
+        if (data.error && data.tokens_charged === false) {
+            if (data.forum_quota) updateForumQuota(data.forum_quota);
+            if (data.response && data.response.response_text && !/error:/i.test(data.response.response_text)) {
+                displayAIResponse(data.response.response_text);
+            } else {
+                displayError(data.error);
+            }
+            return;
+        }
+        
         // Check if response contains an error
         if (data.error) {
             console.error('❌ API Returned Error:', data.error);
@@ -106,14 +166,24 @@ async function submitQuery() {
             let responseText = data.response.response_text;
             // Clean markdown code blocks if present
             responseText = responseText.replace(/```html\n?/g, '').replace(/```\n?/g, '');
+            // Never treat paywall text as a successful post for list refresh
+            const isPaywall = /sign in to keep using ai|free guest ai allowance|ai token limit reached|free ai boost just ran out/i.test(responseText);
             displayAIResponse(responseText);
-            // Refresh popular queries after successful submission
-            loadPopularQueries();
-            loadTrendingQueries();
-            loadInitialData(); // Refresh statistics
+            if (data.forum_quota) {
+                updateForumQuota(data.forum_quota);
+            } else if (!isPaywall) {
+                refreshForumQuota();
+            }
+            if (!isPaywall) {
+                // Refresh popular queries only after a real answer was posted
+                loadPopularQueries();
+                loadTrendingQueries();
+                loadInitialData();
+            }
         } else if (data.id) {
             // Wait for response (polling)
             await waitForResponse(data.id);
+            refreshForumQuota();
             // Refresh after getting response
             loadPopularQueries();
             loadTrendingQueries();
@@ -144,7 +214,7 @@ async function waitForResponse(queryId) {
     
     while (attempts < maxAttempts) {
         try {
-            const response = await fetch(`${API_BASE_URL}/queries/${queryId}/response/`);
+            const response = await forumFetch(`${API_BASE_URL}/queries/${queryId}/response/`);
             
             if (response.ok) {
                 const data = await response.json();
@@ -418,7 +488,7 @@ async function loadCategoryQueries(category) {
             url += `?category=${category}`;
         }
         
-        const response = await fetch(url);
+        const response = await forumFetch(url);
         if (response.ok) {
             const queries = await response.json();
             // If no queries for this category, show message
@@ -437,11 +507,25 @@ async function loadCategoryQueries(category) {
     }
 }
 
+async function refreshForumQuota() {
+    try {
+        const progressResponse = await forumFetch(`${API_BASE_URL}/user-progress/`);
+        if (progressResponse.ok) {
+            const progress = await progressResponse.json();
+            if (progress.forum_quota) {
+                updateForumQuota(progress.forum_quota);
+            }
+        }
+    } catch (e) {
+        // Non-fatal — quota card keeps server-rendered values
+    }
+}
+
 // Load categories and statistics on page load
 async function loadInitialData() {
     try {
         // Load categories
-        const categoriesResponse = await fetch(`${API_BASE_URL}/categories/`);
+        const categoriesResponse = await forumFetch(`${API_BASE_URL}/categories/`);
         if (categoriesResponse.ok) {
             const categories = await categoriesResponse.json();
             // Categories are already in HTML, but can be updated dynamically if needed
@@ -450,7 +534,7 @@ async function loadInitialData() {
         // Load user progress first to check if user is authenticated
         let userAuthenticated = false;
         try {
-            const progressResponse = await fetch(`${API_BASE_URL}/user-progress/`);
+            const progressResponse = await forumFetch(`${API_BASE_URL}/user-progress/`);
             if (progressResponse.ok) {
                 const progress = await progressResponse.json();
                 userAuthenticated = progress.is_authenticated === true;
@@ -472,7 +556,7 @@ async function loadInitialData() {
         
         // If user is not logged in, show platform-wide statistics
         if (!userAuthenticated) {
-            const statsResponse = await fetch(`${API_BASE_URL}/statistics/`);
+            const statsResponse = await forumFetch(`${API_BASE_URL}/statistics/`);
             if (statsResponse.ok) {
                 const stats = await statsResponse.json();
                 updateStatistics(stats);
@@ -508,7 +592,7 @@ async function loadAIFeatures() {
     }
     
     try {
-        const response = await fetch(`${API_BASE_URL}/ai-features/`);
+        const response = await forumFetch(`${API_BASE_URL}/ai-features/`);
         if (response.ok) {
             const features = await response.json();
             displayAIFeatures(features);
@@ -560,7 +644,7 @@ async function loadAICapabilities() {
     }
     
     try {
-        const response = await fetch(`${API_BASE_URL}/ai-capabilities/`);
+        const response = await forumFetch(`${API_BASE_URL}/ai-capabilities/`);
         if (response.ok) {
             const capabilities = await response.json();
             displayAICapabilities(capabilities);
@@ -629,6 +713,75 @@ function updateProgressTitle(title) {
     }
 }
 
+// Update AI Career Guidance card in the account sidebar (PWA)
+function updateForumQuota(quota) {
+    if (!quota) return;
+    const card = document.getElementById('forumQuotaCard');
+    if (!card) return;
+
+    const tone = quota.tone || (quota.unlimited ? 'unlimited' : 'ok');
+    card.dataset.tone = tone;
+    card.classList.remove(
+        'forum-quota-card--ok',
+        'forum-quota-card--low',
+        'forum-quota-card--empty',
+        'forum-quota-card--unlimited'
+    );
+    card.classList.add(`forum-quota-card--${tone}`);
+
+    const weeklyHeadline = document.getElementById('forumQuotaWeeklyHeadline');
+    const weeklySub = document.getElementById('forumQuotaWeeklySub');
+    const answersHeadline = document.getElementById('forumQuotaAnswersHeadline');
+    const answersSub = document.getElementById('forumQuotaAnswersSub');
+    const balanceEl = document.getElementById('forumQuotaBalance');
+    const meterEl = document.getElementById('forumQuotaMeter');
+    const labelEl = document.getElementById('forumQuotaLabel');
+    const detailEl = document.getElementById('forumQuotaDetail');
+    const remainingEl = document.getElementById('forumQuotaRemaining');
+    const approxEl = document.getElementById('forumQuotaApprox');
+
+    if (quota.unlimited) {
+        card.dataset.unlimited = '1';
+        if (weeklyHeadline) weeklyHeadline.textContent = quota.weekly_headline || 'Unlimited';
+        if (weeklySub) weeklySub.textContent = quota.weekly_sub || quota.detail || '';
+        if (labelEl) labelEl.textContent = quota.label || 'Unlimited AI access';
+        if (detailEl) detailEl.textContent = quota.detail || '';
+        return;
+    }
+
+    card.dataset.unlimited = '0';
+    if (weeklyHeadline) weeklyHeadline.textContent = quota.weekly_headline || quota.label || '';
+    if (weeklySub) weeklySub.textContent = quota.weekly_sub || '';
+    if (answersHeadline) answersHeadline.textContent = quota.answers_headline || '';
+    if (answersSub) answersSub.textContent = quota.answers_sub || quota.detail || '';
+    if (balanceEl) {
+        const bal = quota.balance_display != null
+            ? quota.balance_display
+            : (quota.balance_tokens != null ? Number(quota.balance_tokens).toLocaleString() : '0');
+        balanceEl.textContent = `${bal} tokens`;
+    }
+    if (meterEl) {
+        const pct = quota.meter_percent != null
+            ? quota.meter_percent
+            : (quota.weekly_limit
+                ? Math.min(100, Math.round(((quota.posted_this_week || 0) / quota.weekly_limit) * 100))
+                : 0);
+        meterEl.style.width = `${pct}%`;
+        const bar = meterEl.parentElement;
+        if (bar && bar.getAttribute('role') === 'progressbar') {
+            bar.setAttribute('aria-valuenow', String(pct));
+        }
+    }
+    if (labelEl) labelEl.textContent = quota.label || '';
+    if (detailEl) detailEl.textContent = quota.detail || '';
+    if (remainingEl && quota.remaining_this_week != null) {
+        remainingEl.textContent = quota.remaining_this_week;
+    }
+    if (approxEl && quota.approx_questions_left != null) {
+        approxEl.textContent = quota.approx_questions_left;
+    }
+}
+
 // Update user progress display (user-specific stats)
 function updateUserProgress(progress) {
     // User progress stats use different IDs than platform stats
@@ -650,6 +803,10 @@ function updateUserProgress(progress) {
     if (universitiesViewed && progress.universities_viewed !== undefined) {
         universitiesViewed.textContent = progress.universities_viewed || 0;
     }
+
+    if (progress.forum_quota) {
+        updateForumQuota(progress.forum_quota);
+    }
 }
 
 // Format numbers for display
@@ -665,7 +822,7 @@ function formatNumber(num) {
 // Load popular queries
 async function loadPopularQueries() {
     try {
-        const response = await fetch(`${API_BASE_URL}/popular-queries/`);
+        const response = await forumFetch(`${API_BASE_URL}/popular-queries/`);
         if (response.ok) {
             const queries = await response.json();
             displayPopularQueries(queries);
@@ -712,7 +869,8 @@ function displayPopularQueries(queries) {
         accordionItem.className = 'accordion-item';
         accordionItem.id = `accordion-${index}`;
         
-        const hasResponse = query.response_text && query.response_text.trim();
+        const hasResponse = query.response_text && query.response_text.trim()
+            && !/sign in to keep using ai|free guest ai allowance|ai token limit reached/i.test(query.response_text);
         
         // Clean response text for display
         let cleanedResponse = '';
@@ -728,30 +886,145 @@ function displayPopularQueries(queries) {
                 <div class="accordion-question">
                     <div class="accordion-icon-left">${categoryIcon}</div>
                     <div class="accordion-question-content">
-                        <div class="query-text">${query.question}</div>
-                        <div class="query-category">${categoryEmoji} ${query.category} • ${query.country_emoji} ${query.country}</div>
+                        <div class="query-text">${escapeHtml(query.question)}</div>
+                        <div class="query-category">${categoryEmoji} ${escapeHtml(query.category || '')} • ${query.country_emoji || ''} ${escapeHtml(query.country || '')}</div>
                     </div>
                 </div>
                 <span class="accordion-toggle-icon" id="icon-${index}">+</span>
             </div>
             <div class="accordion-content" id="content-${index}">
                 ${hasResponse ? `
-                    <div class="accordion-answer">
+                    <div class="accordion-answer" id="answer-${index}">
                         ${cleanedResponse}
                     </div>
                 ` : `
                     <div class="accordion-no-answer">
                         <p>No answer available yet. Click to ask this question!</p>
-                        <button class="ask-question-btn" onclick="event.stopPropagation(); quickQuery('${query.question.replace(/'/g, "\\'")}');">
+                        <button class="ask-question-btn" onclick="event.stopPropagation(); quickQuery('${String(query.question || '').replace(/'/g, "\\'")}');">
                             <i class="fas fa-paper-plane"></i> Ask This Question
                         </button>
                     </div>
                 `}
+                ${window.FORUM_CAN_MODERATE && query.id ? `
+                    <div class="forum-mod-actions" onclick="event.stopPropagation();">
+                        <button type="button" class="forum-mod-btn forum-mod-btn--hide" onclick="moderateHidePost(${query.id}, ${index})"><i class="fas fa-eye-slash"></i> Hide</button>
+                        <button type="button" class="forum-mod-btn forum-mod-btn--edit" onclick="moderateEditPost(${query.id}, ${index})"><i class="fas fa-edit"></i> Edit</button>
+                        <button type="button" class="forum-mod-btn forum-mod-btn--delete" onclick="moderateDeletePost(${query.id}, ${index})"><i class="fas fa-trash"></i> Delete</button>
+                    </div>
+                    <div class="forum-mod-edit-box" id="edit-box-${index}" style="display:none;" onclick="event.stopPropagation();">
+                        <label>Question</label>
+                        <textarea id="edit-question-${index}">${escapeHtml(query.question || '')}</textarea>
+                        <label>Answer (HTML allowed)</label>
+                        <textarea id="edit-answer-${index}">${escapeHtml(query.response_text || '')}</textarea>
+                        <div class="forum-mod-actions">
+                            <button type="button" class="forum-mod-btn forum-mod-btn--edit" onclick="moderateSavePost(${query.id}, ${index})"><i class="fas fa-save"></i> Save</button>
+                            <button type="button" class="forum-mod-btn" onclick="document.getElementById('edit-box-${index}').style.display='none'">Cancel</button>
+                        </div>
+                    </div>
+                ` : ''}
             </div>
         `;
         
         container.appendChild(accordionItem);
     });
+}
+
+function escapeHtml(str) {
+    return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+async function moderateHidePost(queryId, index) {
+    if (!window.FORUM_CAN_MODERATE) return;
+    if (!confirm('Hide this post from Exploration / Trending?')) return;
+    try {
+        const response = await forumFetch(`${API_BASE_URL}/queries/${queryId}/hide/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: '{}',
+        });
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.error || 'Failed to hide post');
+        }
+        const item = document.getElementById(`accordion-${index}`);
+        if (item) item.remove();
+        loadPopularQueries();
+        loadTrendingQueries();
+    } catch (e) {
+        alert(e.message || 'Failed to hide post');
+    }
+}
+
+function moderateEditPost(queryId, index) {
+    const box = document.getElementById(`edit-box-${index}`);
+    if (!box) return;
+    box.style.display = box.style.display === 'none' ? 'flex' : 'none';
+    const content = document.getElementById(`content-${index}`);
+    const item = document.getElementById(`accordion-${index}`);
+    if (item && !item.classList.contains('active')) {
+        item.classList.add('active');
+        if (content) content.style.display = 'block';
+    }
+}
+
+async function moderateSavePost(queryId, index) {
+    if (!window.FORUM_CAN_MODERATE) return;
+    const qEl = document.getElementById(`edit-question-${index}`);
+    const aEl = document.getElementById(`edit-answer-${index}`);
+    const question_text = qEl ? qEl.value.trim() : '';
+    const response_text = aEl ? aEl.value.trim() : '';
+    if (question_text.length < 10) {
+        alert('Question must be at least 10 characters.');
+        return;
+    }
+    try {
+        const response = await forumFetch(`${API_BASE_URL}/queries/${queryId}/moderate/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question_text, response_text }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to save');
+        }
+        const answerEl = document.getElementById(`answer-${index}`);
+        if (answerEl && data.response_text) {
+            answerEl.innerHTML = data.response_text;
+        }
+        const qText = document.querySelector(`#accordion-${index} .query-text`);
+        if (qText && data.question) qText.textContent = data.question;
+        const box = document.getElementById(`edit-box-${index}`);
+        if (box) box.style.display = 'none';
+        loadPopularQueries();
+        loadTrendingQueries();
+    } catch (e) {
+        alert(e.message || 'Failed to save post');
+    }
+}
+
+async function moderateDeletePost(queryId, index) {
+    if (!window.FORUM_CAN_MODERATE) return;
+    if (!confirm('Permanently delete this post and its answer?')) return;
+    try {
+        const response = await forumFetch(`${API_BASE_URL}/queries/${queryId}/`, {
+            method: 'DELETE',
+        });
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.error || 'Failed to delete');
+        }
+        const item = document.getElementById(`accordion-${index}`);
+        if (item) item.remove();
+        loadPopularQueries();
+        loadTrendingQueries();
+    } catch (e) {
+        alert(e.message || 'Failed to delete post');
+    }
 }
 
 // Get icon for category
@@ -799,7 +1072,7 @@ function toggleAccordion(index) {
 // Load trending queries
 async function loadTrendingQueries() {
     try {
-        const response = await fetch(`${API_BASE_URL}/trending/`);
+        const response = await forumFetch(`${API_BASE_URL}/trending/`);
         if (response.ok) {
             const queries = await response.json();
             displayTrendingQueries(queries);

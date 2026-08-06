@@ -13,9 +13,54 @@ from forum.serializers import (
     QuerySerializer, ResponseSerializer, CategorySerializer,
     CountrySerializer, QueryWithResponseSerializer, AIFeatureSerializer, AICapabilitySerializer
 )
-from forum.services.ai_service import generate_ai_response, extract_entities
+from forum.services.ai_service import (
+    generate_ai_response,
+    extract_entities,
+    is_non_answer_response,
+)
 import time
 import re
+
+
+def _paywall_html(payload: dict) -> str:
+    pay = payload or {}
+    cta = pay.get("cta_url") or "/ai-tokens/"
+    label = pay.get("cta_label") or "Recharge AI tokens"
+    headline = pay.get("headline") or pay.get("message") or "AI token limit reached"
+    body = pay.get("body") or pay.get("detail") or ""
+    return (
+        f"<h4>{headline}</h4>"
+        f"<p>{body}</p>"
+        f"<p><a href=\"{cta}\">{label}</a></p>"
+    )
+
+
+def _quota_exceeded_payload(exc, forum_user=None, request=None) -> dict:
+    """Build API payload for quota paywall (HTTP 200 so browsers/JS always parse JSON)."""
+    pay = getattr(exc, "payload", None) or {}
+    forum_quota = None
+    try:
+        from core.llm_quota import forum_question_limit_status
+
+        forum_quota = forum_question_limit_status(forum_user, request=request)
+    except Exception:
+        pass
+    return {
+        "quota_exceeded": True,
+        "error": pay.get("headline") or pay.get("message") or "AI token limit reached",
+        "detail": pay.get("body") or pay.get("detail") or "",
+        "paywall": pay,
+        "forum_quota": forum_quota,
+        "response": {"response_text": _paywall_html(pay)},
+    }
+
+
+def _can_moderate_forum(user) -> bool:
+    return bool(
+        user
+        and getattr(user, "is_authenticated", False)
+        and (getattr(user, "is_staff", False) or getattr(user, "is_superuser", False))
+    )
 
 
 def _update_performance_metrics(ai_generated=True, response_time_ms=0, cost=0.0):
@@ -211,8 +256,50 @@ def index(request):
             print(f"Career Readiness: {user_data.get('career_readiness', 0)}%")
             print(f"Top Matches: {', '.join(user_data.get('top_matches', [])) if user_data.get('top_matches') else 'N/A'}")
             print("="*80 + "\n")
-    
-    # Load AI Features server-side for immediate display
+    else:
+        context['user_data'] = None
+
+    # AI question post limit (weekly + token estimate) for profile card
+    try:
+        from core.llm_quota import forum_question_limit_status
+        context['forum_quota'] = forum_question_limit_status(
+            request.user if request.user.is_authenticated else None,
+            request=request,
+        )
+    except Exception:
+        context['forum_quota'] = {
+            'is_authenticated': request.user.is_authenticated,
+            'unlimited': False,
+            'weekly_limit': 5,
+            'posted_this_week': 0,
+            'remaining_this_week': 5,
+            'approx_questions_left': 0,
+            'balance_tokens': 0,
+            'balance_display': '0',
+            'tone': 'ok',
+            'meter_percent': 0,
+            'label': 'AI guidance unavailable',
+            'detail': '',
+            'weekly_headline': 'Limit unavailable',
+            'weekly_sub': 'Please refresh the page',
+            'answers_headline': '—',
+            'answers_sub': '',
+        }
+
+    # Student display ID for profile card
+    display_id = None
+    if request.user.is_authenticated:
+        try:
+            display_id = (
+                getattr(request.user, 'get_display_student_id', lambda: None)()
+                or getattr(request.user, 'get_student_display_id', lambda: None)()
+            )
+        except Exception:
+            display_id = None
+        if not display_id:
+            display_id = f"UID{str(request.user.id).zfill(6)}"
+    context['display_student_id'] = display_id
+
     try:
         features = AIFeature.objects.filter(is_active=True).order_by('order', 'name')
         
@@ -293,6 +380,11 @@ def index(request):
     from django.urls import reverse
     context['logout_url'] = reverse('users:logout')
     context['dashboard_url'] = reverse('users:userdashboard')
+    context['can_moderate_forum'] = _can_moderate_forum(request.user)
+    try:
+        context['forum_admin_url'] = reverse('admin:forum_query_changelist')
+    except Exception:
+        context['forum_admin_url'] = '/admin/forum/query/'
 
     try:
         jinja2_engine = engines['jinja2']
@@ -350,7 +442,7 @@ class QueryViewSet(viewsets.ModelViewSet):
             similarity_threshold = getattr(settings, 'SEMANTIC_SIMILARITY_THRESHOLD', 0.85)
             existing_response, _ = find_similar_query(question, similarity_threshold=similarity_threshold)
             
-            if existing_response:
+            if existing_response and not is_non_answer_response(existing_response):
                 # Similar query found - create query record but reuse existing response
                 response_time_ms = int((time.time() - start_time) * 1000)
                 
@@ -393,12 +485,37 @@ class QueryViewSet(viewsets.ModelViewSet):
                 )
                 
                 query.mark_completed()
+
+                # Reward + track weekly question post limit for authenticated users.
+                forum_user = request.user if getattr(request.user, "is_authenticated", False) else None
+                if forum_user:
+                    try:
+                        from core.llm_quota import (
+                            credit_forum_relevant_question,
+                            forum_question_limit_status,
+                            record_forum_question_post,
+                        )
+                        credit_forum_relevant_question(
+                            forum_user,
+                            query_id=query.id,
+                            question_text=question,
+                        )
+                        record_forum_question_post(forum_user, query_id=query.id)
+                    except Exception:
+                        pass
                 
                 # Update performance metrics
                 _update_performance_metrics(ai_generated=False)
                 
                 serializer = QueryWithResponseSerializer(query)
-                return DRFResponse(serializer.data, status=status.HTTP_201_CREATED)
+                payload = serializer.data
+                payload['tokens_charged'] = False  # Cached answer — no AI tokens used
+                try:
+                    from core.llm_quota import forum_question_limit_status
+                    payload['forum_quota'] = forum_question_limit_status(forum_user, request=request)
+                except Exception:
+                    pass
+                return DRFResponse(payload, status=status.HTTP_201_CREATED)
         
         # No similar query found (or database cache disabled) - create new query and generate AI response
         query = Query.objects.create(
@@ -421,8 +538,72 @@ class QueryViewSet(viewsets.ModelViewSet):
             print(f"Query ID: {query.id}")
             print("-"*80)
             
-            # Pass user to generate_ai_response for age-appropriate responses
-            ai_response, cost = generate_ai_response(question, country, category, user=request.user if request.user.is_authenticated else None)
+            forum_user = request.user if getattr(request.user, "is_authenticated", False) else None
+            try:
+                ai_response, cost = generate_ai_response(
+                    question,
+                    country,
+                    category,
+                    user=forum_user,
+                    request=request,
+                )
+            except Exception as gen_exc:
+                from core.llm_quota import LLMQuotaExceeded
+
+                if isinstance(gen_exc, LLMQuotaExceeded):
+                    # Quota / paywall: show to the user only — never save as an answered post.
+                    query.status = 'failed'
+                    query.save(update_fields=['status'])
+                    try:
+                        query.delete()
+                    except Exception:
+                        pass
+                    return DRFResponse(
+                        _quota_exceeded_payload(gen_exc, forum_user, request),
+                        status=status.HTTP_200_OK,
+                    )
+                raise
+            
+            # Never persist paywall / error text as a completed forum answer
+            if is_non_answer_response(ai_response):
+                query.status = 'failed'
+                query.save(update_fields=['status'])
+                try:
+                    query.delete()
+                except Exception:
+                    pass
+                # If the model returned paywall-like text, show recharge UI not a generic error
+                lower = (ai_response or "").lower()
+                if any(
+                    m in lower
+                    for m in (
+                        "sign in to keep using ai",
+                        "free guest ai allowance",
+                        "ai token limit reached",
+                        "free ai boost just ran out",
+                        "recharge ai tokens",
+                    )
+                ):
+                    from core.llm_quota import LLMQuotaExceeded, ensure_can_use_llm
+
+                    try:
+                        ensure_can_use_llm(forum_user, feature="forum", request=request)
+                    except LLMQuotaExceeded as qexc:
+                        return DRFResponse(
+                            _quota_exceeded_payload(qexc, forum_user, request),
+                            status=status.HTTP_200_OK,
+                        )
+                return DRFResponse(
+                    {
+                        "error": (
+                            "AI could not generate an answer right now. "
+                            "No tokens were used — please try again."
+                        ),
+                        "tokens_charged": False,
+                        "response": {"response_text": ai_response or ""},
+                    },
+                    status=status.HTTP_200_OK,
+                )
             
             # Calculate response time
             response_time_ms = int((time.time() - start_time) * 1000)
@@ -448,12 +629,43 @@ class QueryViewSet(viewsets.ModelViewSet):
             
             query.response_time_ms = response_time_ms
             query.mark_completed()
+
+            # Only track/reward when we have a real answer. Tokens are debited
+            # inside generate_ai_response only after a successful OpenAI call
+            # (cost > 0). Cached answers (cost == 0) do not consume tokens.
+            ai_tokens_used = cost > 0
+            if forum_user:
+                try:
+                    from core.llm_quota import (
+                        credit_forum_relevant_question,
+                        record_forum_question_post,
+                    )
+                    record_forum_question_post(forum_user, query_id=query.id)
+                    # Posting reward is fine for both AI and cached real answers
+                    credit_forum_relevant_question(
+                        forum_user,
+                        query_id=query.id,
+                        question_text=question,
+                    )
+                except Exception:
+                    pass
             
             # Update performance metrics
-            _update_performance_metrics(ai_generated=True, response_time_ms=response_time_ms, cost=cost)
+            _update_performance_metrics(
+                ai_generated=ai_tokens_used,
+                response_time_ms=response_time_ms,
+                cost=cost,
+            )
             
             serializer = QueryWithResponseSerializer(query)
-            return DRFResponse(serializer.data, status=status.HTTP_201_CREATED)
+            payload = serializer.data
+            payload["tokens_charged"] = ai_tokens_used
+            try:
+                from core.llm_quota import forum_question_limit_status
+                payload['forum_quota'] = forum_question_limit_status(forum_user, request=request)
+            except Exception:
+                pass
+            return DRFResponse(payload, status=status.HTTP_201_CREATED)
             
         except Exception as e:
             query.status = 'failed'
@@ -558,6 +770,108 @@ class QueryViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
 
+    @action(detail=True, methods=['post'])
+    def hide(self, request, pk=None):
+        """Staff: hide post from public forum display."""
+        if not _can_moderate_forum(request.user):
+            return DRFResponse({'error': 'Staff only'}, status=status.HTTP_403_FORBIDDEN)
+        query = self.get_object()
+        query.hide(request.user)
+        return DRFResponse({'ok': True, 'id': query.id, 'is_hidden': True})
+
+    @action(detail=True, methods=['post'])
+    def unhide(self, request, pk=None):
+        """Staff: show a previously hidden post again."""
+        if not _can_moderate_forum(request.user):
+            return DRFResponse({'error': 'Staff only'}, status=status.HTTP_403_FORBIDDEN)
+        query = self.get_object()
+        query.unhide()
+        return DRFResponse({'ok': True, 'id': query.id, 'is_hidden': False})
+
+    @action(detail=True, methods=['post'])
+    def moderate(self, request, pk=None):
+        """
+        Staff: edit question and/or answer text, optionally hide.
+        Body: { question_text?, response_text?, is_hidden? }
+        """
+        if not _can_moderate_forum(request.user):
+            return DRFResponse({'error': 'Staff only'}, status=status.HTTP_403_FORBIDDEN)
+
+        query = self.get_object()
+        question_text = request.data.get('question_text')
+        response_text = request.data.get('response_text')
+        is_hidden = request.data.get('is_hidden')
+        updated = []
+
+        if question_text is not None:
+            text = str(question_text).strip()
+            if len(text) < 10:
+                return DRFResponse(
+                    {'error': 'Question must be at least 10 characters.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            query.question_text = text[:2000]
+            query.save(update_fields=['question_text', 'updated_at'])
+            updated.append('question_text')
+
+        if is_hidden is not None:
+            hide_flag = str(is_hidden).lower() in ('1', 'true', 'yes')
+            if hide_flag and not query.is_hidden:
+                query.hide(request.user)
+            elif not hide_flag and query.is_hidden:
+                query.unhide()
+            updated.append('is_hidden')
+
+        if response_text is not None:
+            text = str(response_text).strip()
+            if not text:
+                return DRFResponse(
+                    {'error': 'Answer cannot be empty.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if is_non_answer_response(text):
+                return DRFResponse(
+                    {'error': 'That text looks like a paywall/error message, not an answer.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            resp_obj, created = Response.objects.get_or_create(
+                query=query,
+                defaults={'response_text': text, 'confidence_score': 1.0},
+            )
+            if not created and resp_obj.response_text != text:
+                resp_obj.response_text = text
+                resp_obj.save(update_fields=['response_text'])
+            if query.status != 'completed':
+                query.mark_completed()
+            updated.append('response_text')
+
+        # Refresh response text for payload
+        answer = ''
+        try:
+            answer = query.response.response_text
+        except Response.DoesNotExist:
+            answer = ''
+
+        return DRFResponse(
+            {
+                'ok': True,
+                'id': query.id,
+                'updated': updated,
+                'question': query.question_text,
+                'is_hidden': query.is_hidden,
+                'response_text': answer,
+            }
+        )
+
+    def destroy(self, request, *args, **kwargs):
+        """Staff: permanently delete a forum post (+ answer)."""
+        if not _can_moderate_forum(request.user):
+            return DRFResponse({'error': 'Staff only'}, status=status.HTTP_403_FORBIDDEN)
+        query = self.get_object()
+        qid = query.id
+        query.delete()
+        return DRFResponse({'ok': True, 'id': qid, 'deleted': True}, status=status.HTTP_200_OK)
+
 
 class CategoryListView(APIView):
     """List all categories"""
@@ -635,13 +949,19 @@ class UserProgressView(APIView):
     def get(self, request):
         if not request.user.is_authenticated:
             # Return default/empty values for anonymous users with is_authenticated flag
+            try:
+                from core.llm_quota import forum_question_limit_status
+                forum_quota = forum_question_limit_status(None, request=request)
+            except Exception:
+                forum_quota = None
             return DRFResponse({
                 'is_authenticated': False,
                 'careers_explored': 0,
                 'stream_match': 0,
                 'skills_identified': 0,
                 'universities_viewed': 0,
-                'career_readiness': 0
+                'career_readiness': 0,
+                'forum_quota': forum_quota,
             })
         
         # Get user's career shortlists (careers explored/bookmarked)
@@ -739,13 +1059,21 @@ class UserProgressView(APIView):
         except Exception:
             pass
         
+        forum_quota = None
+        try:
+            from core.llm_quota import forum_question_limit_status
+            forum_quota = forum_question_limit_status(request.user, request=request)
+        except Exception:
+            forum_quota = None
+
         return DRFResponse({
             'is_authenticated': True,
             'careers_explored': careers_explored,
             'stream_match': stream_match,
             'skills_identified': skills_identified,
             'universities_viewed': universities_viewed,
-            'career_readiness': career_readiness
+            'career_readiness': career_readiness,
+            'forum_quota': forum_quota,
         })
 
 
@@ -824,7 +1152,7 @@ class PopularQueriesView(APIView):
         from django.db.models import Max
         
         # Base queryset - filter by category if provided
-        base_queryset = Query.objects.filter(status='completed')
+        base_queryset = Query.objects.filter(status='completed', is_hidden=False)
         if category_slug and category_slug != 'all':
             try:
                 category_obj = Category.objects.get(slug=category_slug)
@@ -836,7 +1164,7 @@ class PopularQueriesView(APIView):
         unique_queries = base_queryset.values('question_text').annotate(
             latest_id=Max('id'),
             latest_created=Max('created_at')
-        ).order_by('-latest_created')[:5]
+        ).order_by('-latest_created')[:40]
         
         # Get the actual query objects for the unique questions
         query_ids = [q['latest_id'] for q in unique_queries]
@@ -869,13 +1197,18 @@ class PopularQueriesView(APIView):
                 except Country.DoesNotExist:
                     pass
             
-            # Get response text if available
+            # Get response text if available — skip paywall / non-answers
             response_text = ''
             try:
                 if query.response:
-                    response_text = query.response.response_text
+                    response_text = query.response.response_text or ''
+                    if is_non_answer_response(response_text):
+                        continue
             except Response.DoesNotExist:
-                pass
+                continue
+
+            if not str(response_text).strip():
+                continue
             
             queries_data.append({
                 'id': query.id,
@@ -913,7 +1246,8 @@ class TrendingQueriesView(APIView):
         # Get unique questions from recent queries - improved deduplication
         unique_trending = Query.objects.filter(
             created_at__gte=recent_time,
-            status='completed'
+            status='completed',
+            is_hidden=False,
         ).values('question_text').annotate(
             latest_id=Max('id'),
             latest_created=Max('created_at')
@@ -942,13 +1276,18 @@ class TrendingQueriesView(APIView):
             
             seen_questions.add(normalized_question)
             
-            # Get response text if available
+            # Get response text if available — skip paywall / non-answers
             response_text = ''
             try:
                 if query.response:
-                    response_text = query.response.response_text
+                    response_text = query.response.response_text or ''
+                    if is_non_answer_response(response_text):
+                        continue
             except Response.DoesNotExist:
-                pass
+                continue
+
+            if not str(response_text).strip():
+                continue
             
             trending_data.append({
                 'id': query.id,

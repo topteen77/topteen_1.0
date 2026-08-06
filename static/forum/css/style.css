@@ -43,6 +43,261 @@ body {
 .profile-details-item span {
     font-weight: 800;
 }
+
+/* AI Career Guidance card (PWA profile) */
+.forum-quota-shell .forum-quota-shell-header h3 {
+    color: #fff;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.forum-quota-shell .forum-quota-shell-header h3 i {
+    color: #fff;
+}
+
+.forum-quota-shell-body {
+    padding: 12px !important;
+}
+
+.forum-quota-card {
+    margin: 0;
+    padding: 12px 12px 10px;
+    border-radius: 12px;
+    background: #f7f6ff;
+    border: 1px solid #ddd8ff;
+    box-shadow: none;
+}
+
+.forum-quota-card--ok {
+    background: linear-gradient(160deg, #f7f6ff 0%, #f3f8ff 100%);
+    border-color: #d5d0ff;
+}
+
+.forum-quota-card--low {
+    background: linear-gradient(160deg, #fff8f1 0%, #fff5eb 100%);
+    border-color: #f0d2b0;
+}
+
+.forum-quota-card--empty {
+    background: linear-gradient(160deg, #fff5f5 0%, #fff1f1 100%);
+    border-color: #f0c4c4;
+}
+
+.forum-quota-card--unlimited {
+    background: linear-gradient(160deg, #f0faf4 0%, #eef8f3 100%);
+    border-color: #b7e0c8;
+}
+
+.forum-quota-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #4b46b8;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 10px;
+}
+
+.forum-quota-title i {
+    color: #6860f6;
+    font-size: 0.95rem;
+}
+
+.forum-quota-hero {
+    margin-bottom: 4px;
+}
+
+.forum-quota-hero-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1.25;
+}
+
+.forum-quota-hero-sub {
+    font-size: 0.82rem;
+    color: #6b7280;
+    margin-top: 2px;
+}
+
+.forum-quota-rows {
+    display: grid;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.forum-quota-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1px;
+}
+
+.forum-quota-row-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #8b87c2;
+}
+
+.forum-quota-row-value {
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.3;
+}
+
+.forum-quota-row-sub {
+    font-size: 0.78rem;
+    color: #6b7280;
+    line-height: 1.35;
+}
+
+.forum-quota-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(99, 91, 196, 0.14);
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.forum-quota-footer-sep {
+    opacity: 0.5;
+}
+
+.forum-quota-meter {
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(63, 55, 201, 0.1);
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.forum-quota-card--low .forum-quota-meter-fill {
+    background: linear-gradient(90deg, #f59e0b, #f97316);
+}
+
+.forum-quota-card--empty .forum-quota-meter-fill {
+    background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+.forum-quota-meter-fill {
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #6860f6, #5dade2);
+    transition: width 0.35s ease;
+}
+
+.forum-quota-badge {
+    display: inline-flex;
+    margin-top: 8px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.forum-quota-badge--unlimited {
+    background: #e8f8ef;
+    color: #0f7a45;
+}
+
+.forum-mod-banner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    margin: -8px 0 16px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #9a3412;
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.forum-mod-banner a {
+    color: var(--purple-dark);
+    font-weight: 700;
+    text-decoration: underline;
+}
+
+.forum-mod-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed #ddd;
+}
+
+.forum-mod-btn {
+    border: 1px solid #d1d5db;
+    background: #fff;
+    color: #374151;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    min-height: 36px;
+}
+
+.forum-mod-btn:hover {
+    background: #f3f4f6;
+}
+
+.forum-mod-btn--hide {
+    border-color: #fdba74;
+    color: #c2410c;
+}
+
+.forum-mod-btn--edit {
+    border-color: #93c5fd;
+    color: #1d4ed8;
+}
+
+.forum-mod-btn--delete {
+    border-color: #fca5a5;
+    color: #b91c1c;
+}
+
+.forum-mod-edit-box {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.forum-mod-edit-box textarea {
+    width: 100%;
+    min-height: 110px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 10px;
+    font: inherit;
+    font-size: 0.9rem;
+}
+
+.forum-mod-edit-box .forum-mod-actions {
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+}
+
 /* Dashboard 3-column layout (image style) */
 .dashboard-grid {
     display: grid;
@@ -69,26 +324,33 @@ body {
     background: #6860F6;
     display: flex;
     justify-content: center;
-    padding: 6px 0;
+    padding: 10px 0;
+    border-radius: var(--card-radius) var(--card-radius) 0 0;
 }
 
 .welcom-card p {
     font-size: 21px;
     color: #fff;
     font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .welcom-card p img {
     width: 30px;
 }
 
-/* Cards */
+/* Cards — framed on all sides against page background */
 .card {
     background: #fff;
     border-radius: var(--card-radius);
     box-shadow: var(--card-shadow);
     overflow: hidden;
     border: 1px solid #D1CEFF;
+    width: 100%;
+    max-width: 100%;
 }
 
 .card.features-card .card-body {
@@ -103,8 +365,9 @@ body {
 
 .card-header.new-card-header-gradient {
     background: #6860f6;
-    padding: 10px ;
+    padding: 10px 14px;
     color: #fff;
+    border-radius: var(--card-radius) var(--card-radius) 0 0;
 }
 
 .card-header.new-card-header-gradient h3 img {
@@ -1463,127 +1726,373 @@ button.category-tab img {
 .career-readiness { font-size: 1rem; margin-bottom: 6px; display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
 .top-matches { font-size: 0.85em; opacity: 0.9; }
 
-/* Mobile Responsive Styles */
+/* Mobile / Tablet responsive */
+@media (max-width: 1100px) {
+    .dashboard-grid {
+        grid-template-columns: 240px minmax(0, 1fr);
+        gap: 18px;
+    }
+
+    .right-sidebar {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+        position: static;
+        top: auto;
+    }
+
+    .left-sidebar {
+        position: sticky;
+        top: 12px;
+    }
+
+    .container {
+        padding: 14px;
+    }
+}
+
 @media (max-width: 1024px) {
     .dashboard-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
+        grid-template-columns: 220px minmax(0, 1fr);
+        gap: 16px;
     }
-    
+
     .main-content {
         grid-template-columns: 1fr;
         gap: 20px;
     }
-    
-    .container {
-        padding: 10px;
-    }
-    
+
     .student-profile-content {
         flex-direction: column;
         align-items: flex-start;
     }
-    
+
     .student-profile-right {
         text-align: left;
         width: 100%;
     }
-    
+
     .career-readiness {
         justify-content: flex-start;
     }
-    
+
     .student-info span {
         display: block;
         margin-bottom: 5px;
         margin-right: 0;
     }
+
+    .banner-title {
+        font-size: clamp(1.4rem, 3vw, 2rem);
+    }
+
+    .quick-actions {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: 8px;
+        padding-bottom: 6px;
+        scrollbar-width: thin;
+    }
+
+    .quick-action {
+        flex: 0 0 auto;
+    }
 }
 
 @media (max-width: 768px) {
+    body {
+        background: #f2f1f7;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .left-sidebar,
+    .right-sidebar {
+        position: static;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .right-sidebar {
+        grid-column: auto;
+        grid-template-columns: none;
+    }
+
+    /* Profile first, then ask box, then features / trending */
+    .left-sidebar {
+        order: 1;
+    }
+
+    .center-content {
+        order: 2;
+        gap: 16px;
+        min-width: 0;
+    }
+
+    .right-sidebar {
+        order: 3;
+    }
+
+    .container {
+        padding: 16px 14px;
+        padding-left: max(14px, env(safe-area-inset-left, 0px));
+        padding-right: max(14px, env(safe-area-inset-right, 0px));
+        max-width: 100%;
+        overflow-x: hidden;
+        box-sizing: border-box;
+    }
+
     .header {
         padding: 20px;
     }
-    
+
     .logo {
         font-size: 2em;
     }
-    
+
     .tagline {
         font-size: 1.1em;
     }
-    
+
+    /* Clear framed cards with visible side borders/gutter */
+    .card,
+    .query-card,
+    .banner-card,
+    .exploration-card,
+    .profile-card,
+    .features-card,
+    .forum-quota-shell,
+    .trending-card {
+        border-radius: 16px;
+        border: 1px solid #cfcaf5;
+        box-shadow: 0 4px 18px rgba(63, 55, 201, 0.1);
+        margin-left: 0;
+        margin-right: 0;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .welcom-card {
+        padding: 12px 0;
+    }
+
+    .welcom-card p {
+        font-size: 1.15rem;
+    }
+
+    .profile-card .card-header-gradient {
+        padding: 20px 16px 12px;
+    }
+
+    .profile-avatar {
+        width: 72px;
+        height: 72px;
+        font-size: 1.7rem;
+        margin-bottom: 10px;
+        background: #eceaf8;
+    }
+
+    .profile-name {
+        font-size: 1.2rem;
+        color: #1f2937;
+    }
+
+    .profile-id {
+        font-size: 0.88rem;
+        color: #6b7280;
+        margin-bottom: 0;
+    }
+
+    .profile-card .card-body {
+        padding: 8px 16px 18px;
+    }
+
+    .profile-details {
+        margin-bottom: 14px;
+        text-align: left;
+    }
+
+    .profile-details-item {
+        font-size: 0.95rem;
+        color: #374151;
+        margin-bottom: 6px;
+    }
+
     .query-input-area {
         padding: 20px;
     }
-    
+
     .quick-actions {
         gap: 8px;
     }
-    
+
     .quick-action {
-        padding: 6px 12px;
+        padding: 10px 14px;
         font-size: 0.85em;
+        min-height: 44px;
     }
-    
+
     .query-input {
-        padding: 15px;
-        font-size: 1em;
-    }
-    
-    .submit-btn {
-        padding: 12px 30px;
-        font-size: 1em;
+        padding: 14px;
+        font-size: 16px; /* avoid iOS zoom */
+        min-height: 96px;
         width: 100%;
     }
-    
+
+    .submit-btn,
+    .btn-profile-action {
+        padding: 13px 20px;
+        font-size: 1em;
+        width: 100%;
+        min-height: 46px;
+        border-radius: 12px;
+    }
+
+    .profile-auth-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-top: 4px;
+    }
+
+    .btn-profile-logout {
+        border-width: 1.5px;
+        border-color: #6860f6;
+        color: #6860f6;
+    }
+
+    .forum-quota-shell-body {
+        padding: 12px !important;
+    }
+
+    .forum-quota-card {
+        padding: 12px;
+    }
+
+    .forum-quota-row-value {
+        font-size: 0.95rem;
+    }
+
+    .forum-quota-footer {
+        font-size: 0.72rem;
+    }
+
+    .forum-mod-banner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .forum-mod-actions {
+        width: 100%;
+    }
+
+    .forum-mod-btn {
+        flex: 1 1 auto;
+    }
+
     .student-profile {
         padding: 15px;
     }
-    
+
     .student-profile-left h3 {
         font-size: 1.2em;
     }
-    
+
     .career-readiness {
         font-size: 1.1em;
     }
-    
+
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
     }
-    
+
     .stat-card {
         padding: 15px;
     }
-    
+
     .stat-number {
         font-size: 1.5em;
     }
-    
+
     .category-tabs {
         gap: 8px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 6px;
     }
-    
+
     .category-tab {
-        padding: 8px 16px;
+        padding: 10px 14px;
         font-size: 0.9em;
+        flex-shrink: 0;
+        min-height: 44px;
     }
-    
+
     .sidebar, .main-panel, .info-panel {
         padding: 20px;
     }
-    
+
     .ai-response {
-        padding: 20px;
+        padding: 16px;
+        font-size: 0.95rem;
+        overflow-wrap: anywhere;
+    }
+
+    .ai-response table {
+        display: block;
+        max-width: 100%;
+        overflow-x: auto;
+    }
+
+    .banner-inner {
+        padding: 22px 16px;
+        text-align: center;
+    }
+
+    .card-body {
+        padding: 16px;
+    }
+
+    .card.features-card .card-body {
+        padding: 4px 10px 8px;
+    }
+
+    .feature-link {
+        padding: 14px 8px;
+        font-size: 0.95rem;
+        border-bottom: 1px solid #eceaf5;
+    }
+
+    .feature-list li:last-child .feature-link,
+    .feature-list li:last-child > span {
+        border-bottom: none;
+    }
+
+    .card-title-plain {
+        font-size: 1.05rem;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
     }
 }
 
 /* iPhone 14 Pro Max and similar large phones (428px × 926px) */
 @media (max-width: 428px) {
     .container {
-        padding: 10px;
+        padding: 14px 14px;
+        padding-left: max(14px, env(safe-area-inset-left, 0px));
+        padding-right: max(14px, env(safe-area-inset-right, 0px));
     }
     
     .header {
@@ -1807,7 +2316,9 @@ button.category-tab img {
 /* Smaller phones (iPhone SE, etc.) */
 @media (max-width: 375px) {
     .container {
-        padding: 8px;
+        padding: 12px 12px;
+        padding-left: max(12px, env(safe-area-inset-left, 0px));
+        padding-right: max(12px, env(safe-area-inset-right, 0px));
     }
     
     .header {

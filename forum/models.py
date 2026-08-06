@@ -71,11 +71,29 @@ class Query(models.Model):
     processed_at = models.DateTimeField(null=True, blank=True)
     response_time_ms = models.IntegerField(null=True, blank=True)  # Response time in milliseconds
     source = models.CharField(max_length=20, default='ai', choices=[('ai', 'AI Generated'), ('database', 'From Database')])
+    # Moderation: staff can hide posts from public display without deleting.
+    is_hidden = models.BooleanField(
+        default=False,
+        db_index=True,
+        help_text='Hidden posts are not shown in Exploration / Trending.',
+    )
+    hidden_at = models.DateTimeField(null=True, blank=True)
+    hidden_by = models.ForeignKey(
+        'users.User',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='forum_hidden_queries',
+    )
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name_plural = "Queries"
         ordering = ['-created_at']
-        indexes = [models.Index(fields=['status', '-created_at'])]
+        indexes = [
+            models.Index(fields=['status', '-created_at']),
+            models.Index(fields=['is_hidden', 'status', '-created_at']),
+        ]
 
     def __str__(self):
         return self.question_text[:50]
@@ -84,6 +102,19 @@ class Query(models.Model):
         self.status = 'completed'
         self.processed_at = timezone.now()
         self.save()
+
+    def hide(self, user=None):
+        self.is_hidden = True
+        self.hidden_at = timezone.now()
+        if user is not None and getattr(user, 'is_authenticated', False):
+            self.hidden_by = user
+        self.save(update_fields=['is_hidden', 'hidden_at', 'hidden_by', 'updated_at'])
+
+    def unhide(self):
+        self.is_hidden = False
+        self.hidden_at = None
+        self.hidden_by = None
+        self.save(update_fields=['is_hidden', 'hidden_at', 'hidden_by', 'updated_at'])
 
 
 class Response(models.Model):
