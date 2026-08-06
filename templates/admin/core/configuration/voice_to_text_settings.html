@@ -15,7 +15,7 @@
 {% block content %}
 <p style="margin-bottom: 16px; color: var(--tt-text-muted, #666);">
   Control speech-to-text across Notebook, login/signup fields, profile voice bar, and note editors.
-  Changes take effect on the next page load.
+  Changes apply immediately: open tabs refresh within a few seconds, and the next mic tap always uses the latest mode.
 </p>
 
 {% if current_mode == 'openai' and not openai_key_configured %}

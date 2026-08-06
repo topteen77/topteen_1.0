@@ -113,6 +113,116 @@
     }
   }
 
+  function getSettingsUrl() {
+    try {
+      return global.TT_VOICE_SETTINGS_API || '/api/voice/settings/';
+    } catch (e) {
+      return '/api/voice/settings/';
+    }
+  }
+
+  var boundStates = [];
+  var settingsWatchStarted = false;
+  var settingsFetchInFlight = null;
+  var lastAppliedMode = null;
+  var SETTINGS_POLL_MS = 5000;
+
+  function hideAllVoiceMicsInDom() {
+    try {
+      var mics = document.querySelectorAll(
+        '.student-popup-mic, .tt-speech-mic, #parentNbMic, [data-ttvn-mic]'
+      );
+      for (var i = 0; i < mics.length; i++) {
+        mics[i].hidden = true;
+        mics[i].style.display = 'none';
+      }
+    } catch (e) {}
+  }
+
+  function applyVoiceSettingsPayload(data) {
+    if (!data || !data.ok) return false;
+    var mode = String(data.mode || '').toLowerCase();
+    if (mode !== 'off' && mode !== 'browser' && mode !== 'openai') return false;
+    var prev = lastAppliedMode != null ? lastAppliedMode : getVoiceMode();
+    try {
+      global.TT_VOICE_TO_TEXT_MODE = mode;
+      global.TT_VOICE_TO_TEXT_ENABLED = mode !== 'off';
+    } catch (eSet) {}
+    try {
+      global.dispatchEvent(new CustomEvent('tt-voice-settings', { detail: data }));
+    } catch (eEvt) {}
+
+    if (mode === 'off') {
+      if (prev !== 'off') {
+        stopAll();
+        for (var i = 0; i < boundStates.length; i++) {
+          try { hideMic(boundStates[i]); } catch (eHide) {}
+        }
+        hideAllVoiceMicsInDom();
+      }
+    } else if (prev !== mode) {
+      // Mode switched (e.g. browser ↔ openai) or re-enabled — refresh mic UI.
+      for (var j = 0; j < boundStates.length; j++) {
+        try { probeAndMaybeShowMic(boundStates[j]); } catch (eProbe) {}
+      }
+      try { enhance(document); } catch (eEnh) {}
+    }
+    lastAppliedMode = mode;
+    return true;
+  }
+
+  function refreshVoiceSettings(force) {
+    var now = Date.now();
+    if (!force && settingsFetchInFlight) return settingsFetchInFlight;
+    if (!force && lastAppliedMode != null && (now - (refreshVoiceSettings._ts || 0)) < 1500) {
+      return Promise.resolve({
+        ok: true,
+        mode: getVoiceMode(),
+        enabled: voiceFeatureEnabled()
+      });
+    }
+    settingsFetchInFlight = fetch(getSettingsUrl(), {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        refreshVoiceSettings._ts = Date.now();
+        applyVoiceSettingsPayload(data);
+        return data;
+      })
+      .catch(function (err) {
+        try { console.warn('[tt-speech] settings refresh failed', err); } catch (e) {}
+        return null;
+      })
+      .then(function (data) {
+        settingsFetchInFlight = null;
+        return data;
+      });
+    return settingsFetchInFlight;
+  }
+
+  function startVoiceSettingsWatcher() {
+    if (settingsWatchStarted) return;
+    settingsWatchStarted = true;
+    lastAppliedMode = getVoiceMode();
+    refreshVoiceSettings(true);
+    try {
+      setInterval(function () {
+        refreshVoiceSettings(false);
+      }, SETTINGS_POLL_MS);
+    } catch (eInt) {}
+    try {
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) refreshVoiceSettings(true);
+      });
+    } catch (eVis) {}
+    try {
+      global.addEventListener('focus', function () { refreshVoiceSettings(true); });
+    } catch (eFocus) {}
+  }
+
   function pickRecorderMime() {
     if (typeof MediaRecorder === 'undefined') return '';
     var candidates = [
@@ -806,7 +916,7 @@
     }
   }
 
-  function beginListening(state) {
+  function beginListeningNow(state) {
     if (!voiceFeatureEnabled()) {
       markSpeechBroken(state, 'disabled by admin (VOICE_TO_TEXT_MODE=off)');
       return;
@@ -866,6 +976,18 @@
       return;
     }
     startRecognitionEngine(state);
+  }
+
+  function beginListening(state) {
+    // Always confirm latest admin mode before opening the mic.
+    flashTip(state, 'Checking voice settings…', 'is-ok');
+    refreshVoiceSettings(true).then(function () {
+      if (!voiceFeatureEnabled()) {
+        markSpeechBroken(state, 'disabled by admin (VOICE_TO_TEXT_MODE=off)');
+        return;
+      }
+      beginListeningNow(state);
+    });
   }
 
   function probeAndMaybeShowMic(state) {
@@ -1047,11 +1169,13 @@
 
     input.dataset.ttSpeechBound = '1';
     input._ttSpeechState = state;
+    if (boundStates.indexOf(state) === -1) boundStates.push(state);
     return state;
   }
 
   function enhance(root) {
     root = root || document;
+    startVoiceSettingsWatcher();
     if (!voiceFeatureEnabled()) {
       try {
         var mics = root.querySelectorAll('.student-popup-mic, .tt-speech-mic');
@@ -1082,6 +1206,8 @@
     getVoiceMode: getVoiceMode,
     isCloudMode: isCloudMode,
     transcribeBlob: transcribeBlob,
+    refreshVoiceSettings: refreshVoiceSettings,
+    startVoiceSettingsWatcher: startVoiceSettingsWatcher,
     localDevHelpMessage: localDevHelpMessage,
     bind: bind,
     enhance: enhance,
@@ -1089,4 +1215,17 @@
     _normalizeIdentity: normalizeIdentity,
     _normalizeByMode: normalizeByMode
   };
+
+  try {
+    if (global.document && global.document.readyState === 'loading') {
+      global.document.addEventListener('DOMContentLoaded', function () {
+        startVoiceSettingsWatcher();
+        enhance(document);
+      });
+    } else {
+      startVoiceSettingsWatcher();
+      // Defer enhance so late-rendered popup fields still get bound on first paint.
+      setTimeout(function () { enhance(document); }, 0);
+    }
+  } catch (eBoot) {}
 })(typeof window !== 'undefined' ? window : this);

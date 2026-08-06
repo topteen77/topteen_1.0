@@ -45,11 +45,16 @@ def normalize_voice_to_text_mode(raw) -> str:
     return ''
 
 
-def get_voice_to_text_mode() -> str:
-    """Resolve mode from Configuration, with ENABLE_VOICE_TO_TEXT / settings fallback."""
+def _default_voice_mode() -> str:
     default = normalize_voice_to_text_mode(
         getattr(settings, 'VOICE_TO_TEXT_MODE', None)
     ) or VOICE_TO_TEXT_BROWSER
+    return default
+
+
+def get_voice_to_text_mode() -> str:
+    """Resolve mode from Configuration, with ENABLE_VOICE_TO_TEXT / settings fallback."""
+    default = _default_voice_mode()
     try:
         from core.models import Configuration
 
@@ -72,9 +77,50 @@ def get_voice_to_text_mode() -> str:
         return default
 
 
+def get_voice_to_text_mode_live() -> str:
+    """
+    Read mode directly from DB (bypass process-local / Redis config snapshot).
+
+    Used by the public settings API so admin changes apply immediately across
+    all gunicorn workers, not after CONFIGURATION_LOCAL_TTL.
+    """
+    default = _default_voice_mode()
+    try:
+        from core.models import Configuration
+
+        row = (
+            Configuration.objects.filter(key=VOICE_TO_TEXT_MODE_KEY)
+            .only('value')
+            .first()
+        )
+        mode = normalize_voice_to_text_mode(row.value if row else '')
+        if mode:
+            return mode
+        legacy = (
+            Configuration.objects.filter(key=ENABLE_VOICE_TO_TEXT_KEY)
+            .only('value')
+            .first()
+        )
+        if legacy and str(legacy.value).lower() in ('false', '0', 'no', 'off'):
+            return VOICE_TO_TEXT_OFF
+        return default if default != VOICE_TO_TEXT_OFF else VOICE_TO_TEXT_BROWSER
+    except Exception:
+        return get_voice_to_text_mode()
+
+
 def voice_to_text_enabled(mode: str | None = None) -> bool:
     return (mode or get_voice_to_text_mode()) != VOICE_TO_TEXT_OFF
 
 
 def openai_transcribe_available() -> bool:
     return bool((getattr(settings, 'OPENAI_API_KEY', None) or '').strip())
+
+
+def voice_settings_payload() -> dict:
+    mode = get_voice_to_text_mode_live()
+    return {
+        'ok': True,
+        'mode': mode,
+        'enabled': voice_to_text_enabled(mode),
+        'openai_configured': openai_transcribe_available(),
+    }
