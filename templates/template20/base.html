@@ -267,10 +267,10 @@
     window.TT_VOICE_TO_TEXT_ENABLED = {{ enable_voice_to_text | default(true) | tojson }};
     window.TT_VOICE_TO_TEXT_MODE = {{ voice_to_text_mode | default('browser') | tojson }};
     window.TT_VOICE_TRANSCRIBE_API = {{ voice_transcribe_api_url | default('/api/voice/transcribe/') | tojson }};
+    window.TT_VOICE_SETTINGS_API = {{ voice_settings_api_url | default('/api/voice/settings/') | tojson }};
   </script>
-  {% if enable_voice_to_text|default(true) %}
-  <script src="{{ static('js_new/tt-speech-input.js') }}?v=20260805-speech10" defer></script>
-  {% endif %}
+  {# Always load helper so open tabs can hide mics immediately when admin disables voice. #}
+  <script src="{{ static('js_new/tt-speech-input.js') }}?v=20260806-speech11" defer></script>
   <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" defer></script>
 
   {% if request and request.user and request.user.is_authenticated %}

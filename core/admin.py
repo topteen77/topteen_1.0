@@ -765,7 +765,13 @@ class ConfigurationAdmin(admin.ModelAdmin):
                 )
                 config.value = legacy_val
                 config.save()
-                messages.success(request, 'Voice-to-text settings saved successfully.')
+                # Force every worker to drop stale config snapshots immediately.
+                Configuration.clear_cache()
+                messages.success(
+                    request,
+                    'Voice-to-text settings saved. Open pages pick this up immediately '
+                    '(within a few seconds, or on the next mic tap).',
+                )
                 return redirect('admin:core_configuration_voice_to_text_settings')
         else:
             form = VoiceToTextSettingsForm(initial={'VOICE_TO_TEXT_MODE': get_voice_to_text_mode()})

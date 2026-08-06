@@ -668,6 +668,10 @@ def globals(request):
         _voice_transcribe_url = reverse("api_voice_transcribe")
     except Exception:
         _voice_transcribe_url = "/api/voice/transcribe/"
+    try:
+        _voice_settings_url = reverse("api_voice_settings")
+    except Exception:
+        _voice_settings_url = "/api/voice/settings/"
 
     kwargs = {
         "allow_search_engine_index": resolve_allow_search_engine_index(request),
@@ -686,6 +690,7 @@ def globals(request):
         "enable_voice_to_text": _voice_enabled,
         "voice_to_text_mode": _voice_mode,
         "voice_transcribe_api_url": _voice_transcribe_url,
+        "voice_settings_api_url": _voice_settings_url,
         "openai_transcribe_model": getattr(settings, 'OPENAI_TRANSCRIBE_MODEL', 'gpt-4o-mini-transcribe'),
         "default_mindmap_type": coerce_default_mindmap_type(
             Configuration.get('DEFAULT_MINDMAP_TYPE', '6', editable=True) or '6'

@@ -620,10 +620,11 @@
   }
   if (typeof window.TT_VOICE_TRANSCRIBE_API === 'undefined') {
     window.TT_VOICE_TRANSCRIBE_API = {{ voice_transcribe_api_url | default('/api/voice/transcribe/') | tojson }};
+  window.TT_VOICE_SETTINGS_API = {{ voice_settings_api_url | default('/api/voice/settings/') | tojson }};
   }
 </script>
-<script src="{{ static('js_new/tt-speech-input.js') }}?v=20260805-speech10"></script>
-<script src="{{ static('js_new/tt-voice-nav.js') }}?v=20260805-voicenav5"></script>
+<script src="{{ static('js_new/tt-speech-input.js') }}?v=20260806-speech11"></script>
+<script src="{{ static('js_new/tt-voice-nav.js') }}?v=20260806-voicenav6"></script>
 {% endif %}
 <script>
   document.addEventListener('DOMContentLoaded', function() {
@@ -990,7 +991,7 @@
     });
 
     // Voice navigation + form fill (mic / green bar only when admin + browser ready)
-    if (window.TTVoiceNav && window.TT_VOICE_TO_TEXT_ENABLED !== false) {
+    if (window.TTVoiceNav) {
       try {
         window.TTVoiceNav.attach({
           pageCommands: [

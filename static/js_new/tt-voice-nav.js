@@ -670,7 +670,63 @@
     });
   }
 
+  function applyLiveVoiceSettings(data) {
+    if (!data || !data.ok) return;
+    var mode = String(data.mode || '').toLowerCase();
+    if (mode !== 'off' && mode !== 'browser' && mode !== 'openai') return;
+    try {
+      global.TT_VOICE_TO_TEXT_MODE = mode;
+      global.TT_VOICE_TO_TEXT_ENABLED = mode !== 'off';
+    } catch (e) {}
+    if (!active) return;
+    if (mode === 'off') {
+      stopListening(active);
+      hideBar(active);
+      return;
+    }
+    active.commandsOnly = !speechEngineReady();
+    ensureBar(active);
+    showBar(active);
+    applyMicVisibility(active);
+    renderChips(active);
+  }
+
+  function refreshLiveVoiceSettings() {
+    if (global.TTSpeechInput && typeof global.TTSpeechInput.refreshVoiceSettings === 'function') {
+      return global.TTSpeechInput.refreshVoiceSettings(true).then(function (data) {
+        applyLiveVoiceSettings(data || {
+          ok: true,
+          mode: getVoiceMode(),
+          enabled: voiceFeatureEnabled()
+        });
+        return data;
+      });
+    }
+    var url = global.TT_VOICE_SETTINGS_API || '/api/voice/settings/';
+    return fetch(url, {
+      credentials: 'same-origin',
+      headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        applyLiveVoiceSettings(data);
+        return data;
+      })
+      .catch(function () { return null; });
+  }
+
   function startListening(state) {
+    if (state.busy) return;
+    refreshLiveVoiceSettings().then(function () {
+      if (!shouldShowVoiceUi()) {
+        hideBar(state);
+        return;
+      }
+      startListeningNow(state);
+    });
+  }
+
+  function startListeningNow(state) {
     if (state.busy || !shouldShowVoiceUi()) return;
     if (!micAllowed(state)) {
       setStatus(state, 'Mic unavailable here — tap a suggestion chip instead.');
@@ -717,7 +773,7 @@
         state.ignoreEnd = true;
         destroyRecognition(state);
         setTimeout(function () {
-          if (state.wantListening && !state.busy) startListening(state);
+          if (state.wantListening && !state.busy) startListeningNow(state);
         }, 400);
         return;
       }
@@ -741,7 +797,7 @@
       // restart until silence timer stops us
       setTimeout(function () {
         if (state.wantListening && !state.busy && shouldShowVoiceUi()) {
-          try { startListening(state); } catch (e) {}
+          try { startListeningNow(state); } catch (e) {}
         }
       }, 180);
     };
@@ -1097,10 +1153,13 @@
     state._resumeTimer = setTimeout(function () {
       state._resumeTimer = null;
       if (!state || state.busy || state.wantListening) return;
-      if (!shouldShowVoiceUi() || !micAllowed(state)) return;
-      setHeard(state, 'Listening…');
-      setStatus(state, 'Speak mode on — pause to stop if you don’t speak');
-      startListening(state);
+      refreshLiveVoiceSettings().then(function () {
+        if (!state || state.busy || state.wantListening) return;
+        if (!shouldShowVoiceUi() || !micAllowed(state)) return;
+        setHeard(state, 'Listening…');
+        setStatus(state, 'Speak mode on — pause to stop if you don’t speak');
+        startListeningNow(state);
+      });
     }, 450);
   }
 
@@ -1454,12 +1513,6 @@
 
   function attach(config) {
     detach();
-    if (!shouldShowVoiceUi()) {
-      try {
-        console.warn('[tt-voice-nav] UI hidden — admin VOICE_TO_TEXT_MODE=off');
-      } catch (e) {}
-      return null;
-    }
 
     var state = {
       config: config || {},
@@ -1473,6 +1526,30 @@
       networkRetry: false,
       ignoreEnd: false
     };
+
+    try {
+      global.addEventListener('tt-voice-settings', function (ev) {
+        applyLiveVoiceSettings((ev && ev.detail) || null);
+        if (active && voiceFeatureEnabled()) {
+          ensureBar(active);
+          // Keep bar ready; show when a form modal opens or user already has it.
+          applyMicVisibility(active);
+          renderChips(active);
+        }
+      });
+    } catch (eListen) {}
+    if (global.TTSpeechInput && typeof global.TTSpeechInput.startVoiceSettingsWatcher === 'function') {
+      try { global.TTSpeechInput.startVoiceSettingsWatcher(); } catch (eWatch) {}
+    }
+
+    if (!shouldShowVoiceUi()) {
+      try {
+        console.warn('[tt-voice-nav] voice off — watching for admin enable');
+      } catch (e) {}
+      active = state;
+      bindFormLifecycle(state);
+      return state;
+    }
 
     var finishAttach = function (forceCommandsOnly) {
       if (forceCommandsOnly) state.commandsOnly = true;
@@ -1498,7 +1575,10 @@
     if (navigator.permissions && navigator.permissions.query) {
       try {
         navigator.permissions.query({ name: 'microphone' }).then(function (status) {
-          if (!shouldShowVoiceUi()) return;
+          if (!shouldShowVoiceUi()) {
+            applyLiveVoiceSettings({ ok: true, mode: 'off', enabled: false });
+            return;
+          }
           if (status.state === 'denied') {
             try { console.warn('[tt-voice-nav] mic permission denied — chips-only mode'); } catch (e) {}
             finishAttach(true);
