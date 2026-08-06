@@ -389,7 +389,11 @@
 
       /* ---- FAB ---- */
       const fabWrap    = el('div', { id: 'cb-fab-wrap' });
-      this._fab        = el('button', { id: 'cb-fab', 'aria-label': 'Open chat' });
+      this._fab        = el('button', {
+        id: 'cb-fab',
+        'aria-label': 'Ask AI Career Counsellor',
+        title: 'Ask AI Career Counsellor'
+      });
       this._fab.innerHTML = IC.chat;
       this._badge      = el('div', { id: 'cb-badge' }, '0');
       this._fabTip     = el('div', { id: 'cb-fab-tooltip', role: 'status', textContent: 'Ask AI Career Counsellor' });
@@ -677,12 +681,8 @@
     }
 
     _showFabTooltip() {
-      if (this._fabTooltipDismissed || !this._fabTip) return;
-      // Delay a bit so it feels intentional after first paint.
-      setTimeout(() => {
-        if (this._fabTooltipDismissed || !this._fabTip) return;
-        this._fabTip.classList.add('cb-visible');
-      }, 450);
+      // Tooltip is CSS hover/focus only so it never covers the Voice mic FAB.
+      return;
     }
 
     _hideFabTooltip() {

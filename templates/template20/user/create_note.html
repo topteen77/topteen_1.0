@@ -80,10 +80,24 @@
   }
   .folder-icon {
     width: 48px;
-    height: 68px;
+    height: 48px;
     object-fit: contain;
     transition: transform 0.3s ease;
   }
+  .note-editor-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(145deg, #efeaff, #e4dcff);
+    color: #5d3fd3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    margin-bottom: 12px;
+    transition: transform 0.3s ease;
+  }
+  .note-editor:hover .note-editor-icon,
   .note-editor:hover .folder-icon {
     transform: translateY(-2px);
   }
@@ -114,11 +128,12 @@
   }
   .note-content-wrap .note-content-textarea {
     padding-right: 52px;
+    padding-top: 8px;
   }
   .note-mic-btn {
     position: absolute;
     right: 0;
-    bottom: 8px;
+    top: 0;
     width: 40px;
     height: 40px;
     padding: 0;
@@ -143,7 +158,34 @@
     border-bottom-color: #5d3fd3;
   }
 
-  
+  .note-toolbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .note-screen-reader-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid #d6ddf6;
+    background: #fff;
+    color: #5d3fd3;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .note-screen-reader-btn.is-on {
+    display: inline-flex;
+  }
+  .note-screen-reader-btn.is-speaking {
+    color: #fff;
+    background: #5d3fd3;
+    border-color: #5d3fd3;
+  }
 </style>
 {% endblock %}
 
@@ -184,11 +226,17 @@
     <!-- Header -->
 
     <div class="app-right-content pt-3 px-3 pb-3">
-    <div class="d-md-flex d-none justify-content-between align-items-center mb-4 pt-4 position-relative">
+    {# Desktop only — avoid overlapping mobile Back (md–lg breakpoint overlap) #}
+    <div class="d-none d-lg-flex justify-content-between align-items-center mb-4 pt-4 position-relative">
       <button type="button" class="btn btn-outline-secondary text-decoration-none d-flex align-items-center note-back-btn" data-back-url="{{ url('users:mynotepad') }}">
         <i class='bx bx-arrow-back fs-20 me-1'></i> Back
       </button>
-      <div class="d-none d-lg-block">
+      <div class="d-flex align-items-center gap-2">
+        {% if note.id %}
+        <a href="{{ url('users:createnote') }}" class="btn btn-outline-secondary d-flex align-items-center gap-1">
+          <i class='bx bx-plus fs-18'></i> Add notes
+        </a>
+        {% endif %}
         <button type="button" onclick="saveNoteSubmitForm();" class="btn custom-button purple-button">
           Save
         </button>
@@ -196,11 +244,18 @@
     </div>
 
     <!-- Mobile Header -->
-    <div class="d-lg-none border-bottom pb-3 mb-4 position-relative d-flex align-items-center justify-content-between">
-      <button type="button" class="btn btn-outline-secondary d-flex align-items-center note-back-btn" data-back-url="{{ url('users:mynotepad') }}">
+    <div class="d-lg-none border-bottom pb-3 mb-4 position-relative d-flex align-items-center justify-content-between gap-2">
+      <button type="button" class="btn btn-outline-secondary d-flex align-items-center flex-shrink-0 note-back-btn" data-back-url="{{ url('users:mynotepad') }}">
         <i class='bx bx-arrow-back fs-20 me-1'></i> Back
       </button>
-      <h2 class="fs-16 fw-normal text-center mb-0 fs-20 fw-bold">{% if note.id %}Edit Note{% else %}New Note{% endif %}</h2>
+      <h2 class="fs-16 fw-bold mb-0 text-truncate">{% if note.id %}Edit Note{% else %}New Note{% endif %}</h2>
+      {% if note.id %}
+      <a href="{{ url('users:createnote') }}" class="btn btn-outline-secondary d-flex align-items-center flex-shrink-0 py-1 px-2" title="Add notes">
+        <i class='bx bx-plus fs-18'></i>
+      </a>
+      {% else %}
+      <span class="flex-shrink-0" style="width:40px" aria-hidden="true"></span>
+      {% endif %}
     </div>
 
     <!-- Note Editor -->
@@ -209,7 +264,13 @@
       <input type="hidden" name="obj_id" value="{{ note.id }}">
       
       <div class="mb-4 note-field">
-            <img src="{{ static('topteenfrontend/assets/images/folders.svg') }}" class="folder-icon mb-3" alt="Folder" onerror="this.style.display='none';" />
+        <div class="note-toolbar">
+          <span class="note-editor-icon" aria-hidden="true"><i class='bx bx-note'></i></span>
+          <button type="button" class="note-screen-reader-btn" id="noteScreenReaderBtn"
+            title="Read note aloud" aria-label="Read note aloud" aria-pressed="false">
+            <i class='bx bx-volume-full' aria-hidden="true"></i>
+          </button>
+        </div>
         <input name="title" 
                type="text" 
                {% if note.title %}value="{{ note.title }}"{% endif %}
@@ -250,18 +311,63 @@
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 {% if enable_voice_to_text|default(true) %}
-<script src="{{ static('js_new/tt-speech-input.js') }}?v=20260806-speech11"></script>
+<script src="{{ static('js_new/tt-speech-input.js') }}?v=20260806-speech16"></script>
 
 <script>
   // Voice-to-text on note body (same Web Speech approach as parent notebook)
   document.addEventListener('DOMContentLoaded', function () {
     var ta = document.getElementById('noteContent');
     var mic = document.getElementById('noteContentMic');
-    if (!ta || !mic || !window.TTSpeechInput) return;
-    if (window.TTSpeechInput.voiceFeatureEnabled && !window.TTSpeechInput.voiceFeatureEnabled()) return;
-    try {
-      window.TTSpeechInput.bind(ta, { mode: 'text', micBtn: mic });
-    } catch (e) {}
+    if (ta && mic && window.TTSpeechInput) {
+      if (!(window.TTSpeechInput.voiceFeatureEnabled && !window.TTSpeechInput.voiceFeatureEnabled())) {
+        try {
+          // Same path as notebook drawer: field mic when voice is on
+          try { localStorage.setItem('tt_voice_talk_type', '1'); } catch (ePref) {}
+          window.TTSpeechInput.bind(ta, { mode: 'text', micBtn: mic });
+        } catch (e) {}
+      }
+    }
+
+    // Screen Reader — uses shared TTScreenReader (selection / from top + highlights)
+    var srBtn = document.getElementById('noteScreenReaderBtn');
+    function srPrefOn() {
+      if (window.TTScreenReader && typeof window.TTScreenReader.isEnabled === 'function') {
+        return window.TTScreenReader.isEnabled();
+      }
+      try {
+        var v = localStorage.getItem('tt_voice_screen_reader');
+        return v === '1' || v === 'true';
+      } catch (e) {}
+      return false;
+    }
+    function syncSrBtn() {
+      if (!srBtn) return;
+      var on = srPrefOn();
+      var speaking = window.TTScreenReader && window.TTScreenReader.isSpeaking && window.TTScreenReader.isSpeaking();
+      srBtn.classList.toggle('is-on', on);
+      srBtn.classList.toggle('is-speaking', !!speaking);
+      srBtn.setAttribute('aria-hidden', on ? 'false' : 'true');
+      srBtn.setAttribute('aria-pressed', speaking ? 'true' : 'false');
+      var icon = srBtn.querySelector('i');
+      if (icon) icon.className = speaking ? 'bx bx-stop-circle' : 'bx bx-volume-full';
+      srBtn.title = speaking ? 'Stop reading' : 'Read selection or note aloud';
+    }
+    if (srBtn) {
+      syncSrBtn();
+      srBtn.addEventListener('click', function () {
+        if (!srPrefOn()) return;
+        if (window.TTScreenReader && typeof window.TTScreenReader.toggle === 'function') {
+          // Prefer reading the note field when nothing else is selected
+          var ta = document.getElementById('noteContent');
+          if (ta && (!window.getSelection() || window.getSelection().isCollapsed)) {
+            try { ta.focus(); } catch (eF) {}
+          }
+          window.TTScreenReader.toggle();
+          syncSrBtn();
+        }
+      });
+      window.addEventListener('tt-voice-screen-reader', function () { syncSrBtn(); });
+    }
   });
 </script>
 {% endif %}

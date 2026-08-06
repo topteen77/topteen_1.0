@@ -264,18 +264,48 @@ class WebsiteSettingsForm(forms.Form):
 
 
 class VoiceToTextSettingsForm(forms.Form):
-    """Dedicated admin form for site-wide voice-to-text mode."""
+    """Dedicated admin form for site-wide voice-to-text + voice widget."""
 
     VOICE_TO_TEXT_MODE = forms.ChoiceField(
         choices=[],  # filled in __init__
         required=True,
         label="Voice-to-text mode",
         help_text=(
-            "Site-wide speech-to-text for Notebook, login/signup fields, profile voice bar, and note editors. "
-            "Disabled: hide all mics. "
+            "Site-wide speech-to-text for Notebook, login/signup fields, voice widget, and note editors. "
+            "Disabled: hide all mics and the voice widget. "
             "Browser: free Web Speech API (Chrome/Edge; not Safari on iPhone). "
             "OpenAI: gpt-4o-mini-transcribe via server (~$0.003/min; needs OPENAI_API_KEY; works on iPhone)."
         ),
+    )
+    VOICE_WIDGET_ENABLED = forms.BooleanField(
+        required=False,
+        label="Show voice widget FAB",
+        help_text="Floating mic button + Voice Navigation status bar site-wide (except psychometric test-taking pages).",
+    )
+    VOICE_NAV_ENABLED = forms.BooleanField(
+        required=False,
+        label="Allow Voice Navigation",
+        help_text="Spoken site/form commands (Go home, Next, Save, Help, …).",
+    )
+    VOICE_TALK_TYPE_ENABLED = forms.BooleanField(
+        required=False,
+        label="Allow Talk & Type",
+        help_text="Per-field microphone buttons on inputs (login, notes, etc.).",
+    )
+    VOICE_LINK_NUMBERS_ENABLED = forms.BooleanField(
+        required=False,
+        label="Allow link numbering",
+        help_text='Voice commands “Show numbers” / “Go to N” for on-page links.',
+    )
+    VOICE_NAV_DEFAULT_ON = forms.BooleanField(
+        required=False,
+        label="Default Voice Navigation on",
+        help_text="Turn Nav on for visitors who have not set a preference yet (only if Nav is allowed).",
+    )
+    VOICE_TALK_TYPE_DEFAULT_ON = forms.BooleanField(
+        required=False,
+        label="Default Talk & Type on",
+        help_text="Show field mics by default when visitor has no preference (only if Talk & Type is allowed).",
     )
 
     def __init__(self, *args, **kwargs):
@@ -736,16 +766,26 @@ class ConfigurationAdmin(admin.ModelAdmin):
         return render(request, 'admin/core/configuration/website_settings.html', context)
 
     def voice_to_text_settings_view(self, request):
-        """Admin UI for site-wide voice-to-text mode (hub → Voice to text settings)."""
+        """Admin UI for site-wide voice-to-text + widget (hub → Voice to text settings)."""
         from core.models import Configuration
         from core.voice_to_text import (
             ENABLE_VOICE_TO_TEXT_KEY,
+            VOICE_LINK_NUMBERS_ENABLED_KEY,
+            VOICE_NAV_DEFAULT_ON_KEY,
+            VOICE_NAV_ENABLED_KEY,
+            VOICE_TALK_TYPE_DEFAULT_ON_KEY,
+            VOICE_TALK_TYPE_ENABLED_KEY,
             VOICE_TO_TEXT_MODE_KEY,
             VOICE_TO_TEXT_MODES,
             VOICE_TO_TEXT_OFF,
+            VOICE_WIDGET_BOOL_KEYS,
+            VOICE_WIDGET_ENABLED_KEY,
             get_voice_to_text_mode,
+            get_voice_widget_settings_live,
             normalize_voice_to_text_mode,
             openai_transcribe_available,
+            save_voice_bool,
+            voice_settings_payload,
         )
 
         if request.method == 'POST':
@@ -765,17 +805,29 @@ class ConfigurationAdmin(admin.ModelAdmin):
                 )
                 config.value = legacy_val
                 config.save()
+                for key in VOICE_WIDGET_BOOL_KEYS:
+                    save_voice_bool(key, bool(form.cleaned_data.get(key)))
                 # Force every worker to drop stale config snapshots immediately.
                 Configuration.clear_cache()
                 messages.success(
                     request,
-                    'Voice-to-text settings saved. Open pages pick this up immediately '
-                    '(within a few seconds, or on the next mic tap).',
+                    'Voice settings saved. Open pages pick this up immediately '
+                    '(within a few seconds, or on the next mic / Start listening).',
                 )
                 return redirect('admin:core_configuration_voice_to_text_settings')
         else:
-            form = VoiceToTextSettingsForm(initial={'VOICE_TO_TEXT_MODE': get_voice_to_text_mode()})
+            flags = get_voice_widget_settings_live()
+            form = VoiceToTextSettingsForm(initial={
+                'VOICE_TO_TEXT_MODE': get_voice_to_text_mode(),
+                VOICE_WIDGET_ENABLED_KEY: flags[VOICE_WIDGET_ENABLED_KEY],
+                VOICE_NAV_ENABLED_KEY: flags[VOICE_NAV_ENABLED_KEY],
+                VOICE_TALK_TYPE_ENABLED_KEY: flags[VOICE_TALK_TYPE_ENABLED_KEY],
+                VOICE_LINK_NUMBERS_ENABLED_KEY: flags[VOICE_LINK_NUMBERS_ENABLED_KEY],
+                VOICE_NAV_DEFAULT_ON_KEY: flags[VOICE_NAV_DEFAULT_ON_KEY],
+                VOICE_TALK_TYPE_DEFAULT_ON_KEY: flags[VOICE_TALK_TYPE_DEFAULT_ON_KEY],
+            })
 
+        live = voice_settings_payload()
         context = {
             **self.admin_site.each_context(request),
             'title': 'Voice to text settings',
@@ -783,6 +835,7 @@ class ConfigurationAdmin(admin.ModelAdmin):
             'opts': self.model._meta,
             'openai_key_configured': openai_transcribe_available(),
             'current_mode': get_voice_to_text_mode(),
+            'live_payload': live,
         }
         return render(request, 'admin/core/configuration/voice_to_text_settings.html', context)
 

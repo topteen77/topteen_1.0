@@ -42,14 +42,16 @@
   }
 
   /**
-   * Chrome secure-context rules (why LAN IP fails):
+   * Chrome secure-context rules (why LAN IP often fails):
    * - http://localhost / http://127.0.0.1  → secure context → mic/speech OK
-   * - http://10.x / http://192.168.x       → NOT secure → browser blocks mic
-   * Our code cannot override that; user must use localhost, HTTPS, or Chrome flag.
+   * - http://10.x / http://192.168.x       → usually NOT secure → Chrome blocks
+   * We still ALLOW attempts on private LAN (Firefox / chrome://flags may work).
    */
   function insecureContextBlocked() {
     try {
-      return global.isSecureContext === false;
+      if (global.isSecureContext !== false) return false;
+      if (isLocalDevHost()) return false; // try anyway on local/dev LAN
+      return true;
     } catch (e) {
       return false;
     }
@@ -60,7 +62,6 @@
   }
 
   function canUseSpeechNow() {
-    // Need the API object AND a secure context (or Chrome treating origin as secure)
     if (!speechApiPresent()) return false;
     if (insecureContextBlocked()) return false;
     return true;
@@ -88,7 +89,6 @@
   }
 
   function canUseMicHardware() {
-    if (insecureContextBlocked()) return false;
     try {
       return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
     } catch (e) {
@@ -125,7 +125,30 @@
   var settingsWatchStarted = false;
   var settingsFetchInFlight = null;
   var lastAppliedMode = null;
-  var SETTINGS_POLL_MS = 5000;
+  // Admin flags rarely change — avoid hammering the server (was 5s).
+  var SETTINGS_POLL_MS = 60000;
+  var SETTINGS_MIN_GAP_MS = 30000;
+
+  function getCachedVoiceSettings() {
+    try {
+      if (global.TT_VOICE_SETTINGS && global.TT_VOICE_SETTINGS.ok) {
+        return global.TT_VOICE_SETTINGS;
+      }
+    } catch (e) {}
+    // Always return a full shape so widget adminAllows* never sees missing flags as "off"
+    var mode = getVoiceMode();
+    return {
+      ok: true,
+      mode: mode,
+      enabled: mode !== 'off',
+      widget_enabled: global.TT_VOICE_WIDGET_ENABLED !== false,
+      nav_enabled: global.TT_VOICE_NAV_ENABLED !== false,
+      talk_type_enabled: global.TT_VOICE_TALK_TYPE_ENABLED !== false,
+      link_numbers_enabled: global.TT_VOICE_LINK_NUMBERS_ENABLED !== false,
+      nav_default_on: !!global.TT_VOICE_NAV_DEFAULT_ON,
+      talk_type_default_on: !!global.TT_VOICE_TALK_TYPE_DEFAULT_ON
+    };
+  }
 
   function hideAllVoiceMicsInDom() {
     try {
@@ -139,29 +162,78 @@
     } catch (e) {}
   }
 
+  function isExcludedVoicePath() {
+    try {
+      if (global.TTVoiceWidget && typeof global.TTVoiceWidget.isExcludedPath === 'function') {
+        return !!global.TTVoiceWidget.isExcludedPath();
+      }
+      var p = (global.location && global.location.pathname) || '';
+      return (
+        p.indexOf('/psychometric/') === 0 ||
+        p.indexOf('/api/web/take_test/') === 0 ||
+        p.indexOf('/api/web/test/') === 0
+      );
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function talkTypeAllowedByAdmin() {
+    try {
+      if (typeof global.TT_VOICE_TALK_TYPE_ENABLED !== 'undefined') {
+        return !!global.TT_VOICE_TALK_TYPE_ENABLED;
+      }
+    } catch (e) {}
+    return true;
+  }
+
+  function talkTypeUserPrefOn() {
+    try {
+      var v = global.localStorage.getItem('tt_voice_talk_type');
+      if (v === '0' || v === 'false') return false;
+      if (v === '1' || v === 'true') return true;
+    } catch (e) {}
+    try {
+      if (typeof global.TT_VOICE_TALK_TYPE_DEFAULT_ON !== 'undefined') {
+        return !!global.TT_VOICE_TALK_TYPE_DEFAULT_ON;
+      }
+    } catch (e2) {}
+    return true;
+  }
+
+  function talkTypeActive() {
+    if (isExcludedVoicePath()) return false;
+    return voiceFeatureEnabled() && talkTypeAllowedByAdmin() && talkTypeUserPrefOn();
+  }
+
   function applyVoiceSettingsPayload(data) {
     if (!data || !data.ok) return false;
     var mode = String(data.mode || '').toLowerCase();
     if (mode !== 'off' && mode !== 'browser' && mode !== 'openai') return false;
     var prev = lastAppliedMode != null ? lastAppliedMode : getVoiceMode();
+    var talkAllowed = data.talk_type_enabled !== false && mode !== 'off';
     try {
       global.TT_VOICE_TO_TEXT_MODE = mode;
       global.TT_VOICE_TO_TEXT_ENABLED = mode !== 'off';
+      global.TT_VOICE_WIDGET_ENABLED = !!data.widget_enabled;
+      global.TT_VOICE_NAV_ENABLED = !!data.nav_enabled;
+      global.TT_VOICE_TALK_TYPE_ENABLED = !!data.talk_type_enabled;
+      global.TT_VOICE_LINK_NUMBERS_ENABLED = !!data.link_numbers_enabled;
+      global.TT_VOICE_NAV_DEFAULT_ON = !!data.nav_default_on;
+      global.TT_VOICE_TALK_TYPE_DEFAULT_ON = !!data.talk_type_default_on;
+      global.TT_VOICE_SETTINGS = data;
     } catch (eSet) {}
     try {
       global.dispatchEvent(new CustomEvent('tt-voice-settings', { detail: data }));
     } catch (eEvt) {}
 
-    if (mode === 'off') {
-      if (prev !== 'off') {
-        stopAll();
-        for (var i = 0; i < boundStates.length; i++) {
-          try { hideMic(boundStates[i]); } catch (eHide) {}
-        }
-        hideAllVoiceMicsInDom();
+    if (mode === 'off' || !talkAllowed || !talkTypeUserPrefOn()) {
+      stopAll();
+      for (var i = 0; i < boundStates.length; i++) {
+        try { hideMic(boundStates[i]); } catch (eHide) {}
       }
-    } else if (prev !== mode) {
-      // Mode switched (e.g. browser ↔ openai) or re-enabled — refresh mic UI.
+      hideAllVoiceMicsInDom();
+    } else {
       for (var j = 0; j < boundStates.length; j++) {
         try { probeAndMaybeShowMic(boundStates[j]); } catch (eProbe) {}
       }
@@ -173,13 +245,12 @@
 
   function refreshVoiceSettings(force) {
     var now = Date.now();
-    if (!force && settingsFetchInFlight) return settingsFetchInFlight;
-    if (!force && lastAppliedMode != null && (now - (refreshVoiceSettings._ts || 0)) < 1500) {
-      return Promise.resolve({
-        ok: true,
-        mode: getVoiceMode(),
-        enabled: voiceFeatureEnabled()
-      });
+    if (settingsFetchInFlight) return settingsFetchInFlight;
+    var lastTs = refreshVoiceSettings._ts || 0;
+    // force: allow refresh after 2.5s; normal: 30s min gap (keeps Speak-now fast)
+    var gap = force ? 2500 : SETTINGS_MIN_GAP_MS;
+    if (lastTs && (now - lastTs) < gap) {
+      return Promise.resolve(getCachedVoiceSettings());
     }
     settingsFetchInFlight = fetch(getSettingsUrl(), {
       method: 'GET',
@@ -190,15 +261,15 @@
       .then(function (data) {
         refreshVoiceSettings._ts = Date.now();
         applyVoiceSettingsPayload(data);
-        return data;
+        return data && data.ok ? data : getCachedVoiceSettings();
       })
       .catch(function (err) {
         try { console.warn('[tt-speech] settings refresh failed', err); } catch (e) {}
-        return null;
+        return getCachedVoiceSettings();
       })
       .then(function (data) {
         settingsFetchInFlight = null;
-        return data;
+        return data || getCachedVoiceSettings();
       });
     return settingsFetchInFlight;
   }
@@ -206,21 +277,22 @@
   function startVoiceSettingsWatcher() {
     if (settingsWatchStarted) return;
     settingsWatchStarted = true;
-    lastAppliedMode = getVoiceMode();
+    // Do not set lastAppliedMode before the first successful fetch — that used to
+    // make early force refreshes look "already applied" with incomplete cache.
     refreshVoiceSettings(true);
     try {
       setInterval(function () {
+        try {
+          if (document.hidden) return;
+        } catch (eHid) {}
         refreshVoiceSettings(false);
       }, SETTINGS_POLL_MS);
     } catch (eInt) {}
     try {
       document.addEventListener('visibilitychange', function () {
-        if (!document.hidden) refreshVoiceSettings(true);
+        if (!document.hidden) refreshVoiceSettings(false);
       });
     } catch (eVis) {}
-    try {
-      global.addEventListener('focus', function () { refreshVoiceSettings(true); });
-    } catch (eFocus) {}
   }
 
   function pickRecorderMime() {
@@ -409,12 +481,13 @@
     tip.classList.toggle('is-ok', kind === 'is-ok');
     if (state.tipTimer) clearTimeout(state.tipTimer);
     if (msg) {
+      var sticky = kind === 'is-err' && /mic not available/i.test(msg);
       state.tipTimer = setTimeout(function () {
-        // Keep listening tip while active
         if (state.wantListening && kind !== 'is-err') return;
+        if (sticky && state.micUnavailable) return;
         tip.textContent = '';
         tip.classList.remove('is-visible', 'is-err', 'is-ok');
-      }, kind === 'is-err' ? 6000 : 4500);
+      }, sticky ? 12000 : (kind === 'is-err' ? 6000 : 4500));
     }
   }
 
@@ -427,6 +500,41 @@
     if (state.input) state.input.classList.toggle('is-speech-listening', !!listening);
     state.micBtn.setAttribute('title', listening ? 'Stop listening' : 'Speak to fill');
     state.micBtn.setAttribute('aria-label', listening ? 'Stop listening' : 'Speak to fill');
+  }
+
+  function showMicDisabled(state, message) {
+    if (!state || !state.micBtn) return;
+    state.micUnavailable = true;
+    state.wantListening = false;
+    clearSilenceTimer(state);
+    clearRestartTimer(state);
+    destroyRecognition(state);
+    destroyCloudRecorder(state, true);
+    state.micBtn.hidden = false;
+    state.micBtn.removeAttribute('hidden');
+    state.micBtn.style.display = 'inline-flex';
+    state.micBtn.disabled = true;
+    state.micBtn.classList.remove('is-listening');
+    state.micBtn.classList.add('is-unavailable', 'is-disabled');
+    state.micBtn.setAttribute('aria-disabled', 'true');
+    state.micBtn.setAttribute('aria-hidden', 'false');
+    state.micBtn.setAttribute('title', 'Mic not available');
+    state.micBtn.setAttribute('aria-label', 'Mic not available');
+    var icon = state.micBtn.querySelector('i');
+    if (icon) icon.className = 'bx bx-microphone-off';
+    if (state.input) {
+      state.input.classList.remove('is-speech-listening');
+      state.input.classList.add('has-speech');
+      var wrap = state.input.closest('.student-popup-input-wrap, .tt-speech-wrap');
+      if (wrap) {
+        wrap.classList.add('has-speech');
+        if (state.input.classList.contains('has-toggle') || wrap.querySelector('.student-popup-eye')) {
+          wrap.classList.add('has-eye-speech');
+        }
+      }
+    }
+    flashTip(state, message || 'Mic not available', 'is-err');
+    if (active === state) active = null;
   }
 
   function writeSpeechToBox(state, interim) {
@@ -529,16 +637,19 @@
   function markSpeechBroken(state, message) {
     try { console.warn('[tt-speech] unavailable:', message || 'unknown'); } catch (e) {}
     setSpeechProbeCache(false);
-    if (state) {
-      clearTimeout(state.tipTimer);
-      flashTip(state, '');
+    if (!state) return;
+    clearTimeout(state.tipTimer);
+    // Talk & Type on → keep mic visible but disabled with clear message
+    if (talkTypeActive()) {
+      showMicDisabled(state, 'Mic not available');
+      return;
     }
+    flashTip(state, '');
     hideMic(state);
   }
 
   function setMicUnavailable(state, message) {
-    // Hide broken mic; do not leave a disabled control or long error tip.
-    markSpeechBroken(state, message || 'microphone unavailable');
+    markSpeechBroken(state, message || 'Mic not available');
   }
 
   function setMicAvailable(state) {
@@ -546,6 +657,7 @@
     state.micUnavailable = false;
     state.micBtn.hidden = false;
     state.micBtn.removeAttribute('hidden');
+    state.micBtn.disabled = false;
     state.micBtn.style.display = 'inline-flex';
     state.micBtn.classList.remove('is-unavailable', 'is-disabled', 'is-listening');
     state.micBtn.setAttribute('aria-disabled', 'false');
@@ -564,6 +676,7 @@
       }
       state.input.classList.add('has-speech');
     }
+    flashTip(state, '');
   }
 
   function stopCloudTracks(state) {
@@ -917,11 +1030,11 @@
   }
 
   function beginListeningNow(state) {
-    if (!voiceFeatureEnabled()) {
-      markSpeechBroken(state, 'disabled by admin (VOICE_TO_TEXT_MODE=off)');
+    if (!talkTypeActive()) {
+      markSpeechBroken(state, 'Talk & Type is turned off');
       return;
     }
-    // Hard browser block: http://10.x is not a secure context
+    // Public HTTP only — local LAN still attempts (may need Chrome flag)
     if (insecureContextBlocked()) {
       markSpeechBroken(state, localDevHelpMessage());
       return;
@@ -982,8 +1095,8 @@
     // Always confirm latest admin mode before opening the mic.
     flashTip(state, 'Checking voice settings…', 'is-ok');
     refreshVoiceSettings(true).then(function () {
-      if (!voiceFeatureEnabled()) {
-        markSpeechBroken(state, 'disabled by admin (VOICE_TO_TEXT_MODE=off)');
+      if (!talkTypeActive()) {
+        markSpeechBroken(state, 'Talk & Type is turned off');
         return;
       }
       beginListeningNow(state);
@@ -993,13 +1106,14 @@
   function probeAndMaybeShowMic(state) {
     if (!state || !state.micBtn) return;
     hideMic(state);
-    if (!voiceFeatureEnabled()) {
-      try { console.warn('[tt-speech] disabled by admin (VOICE_TO_TEXT_MODE=off)'); } catch (e) {}
+    if (!talkTypeActive()) {
+      try { console.warn('[tt-speech] Talk & Type off (admin or user pref)'); } catch (e) {}
       return;
     }
     if (isCloudMode()) {
       if (!canUseMicHardware()) {
         try { console.warn('[tt-speech] cloud mode unavailable:', localDevHelpMessage()); } catch (eCloud) {}
+        showMicDisabled(state, 'Mic not available');
         return;
       }
       if (state.input) {
@@ -1012,20 +1126,7 @@
     }
     if (!canUseSpeechNow()) {
       try { console.warn('[tt-speech] unavailable:', localDevHelpMessage()); } catch (e2) {}
-      return;
-    }
-    var cached = getSpeechProbeCache();
-    if (cached === '0') {
-      try { console.warn('[tt-speech] skipped — previous engine failure this session'); } catch (e3) {}
-      return;
-    }
-    if (cached === '1') {
-      if (state.input) {
-        var wrapOk = state.input.closest('.student-popup-input-wrap, .tt-speech-wrap');
-        if (wrapOk) wrapOk.classList.add('has-speech');
-        state.input.classList.add('has-speech');
-      }
-      setMicAvailable(state);
+      showMicDisabled(state, 'Mic not available');
       return;
     }
 
@@ -1038,64 +1139,22 @@
       setMicAvailable(state);
     }
 
+    // Match notebook drawer: show mic when Talk & Type is on; validate on first tap.
+    // Do not require a silent probe to succeed before the icon appears.
+    var cached = getSpeechProbeCache();
+    if (cached === '0') {
+      try { global.sessionStorage.removeItem('tt_voice_stt_ok'); } catch (eClear) {}
+    }
+
     if (navigator.permissions && navigator.permissions.query) {
       try {
         navigator.permissions.query({ name: 'microphone' }).then(function (status) {
-          if (!voiceFeatureEnabled()) return;
+          if (!voiceFeatureEnabled() || !talkTypeActive()) return;
           if (status.state === 'denied') {
             markSpeechBroken(state, 'microphone permission denied');
             return;
           }
-          if (status.state === 'granted') {
-            // Silent probe: only show mic if speech engine starts cleanly
-            var Ctor = getSpeechRecognitionCtor();
-            if (!Ctor) {
-              markSpeechBroken(state, 'SpeechRecognition missing');
-              return;
-            }
-            destroyRecognition(state);
-            var r = new Ctor();
-            var settled = false;
-            function finish(ok, reason) {
-              if (settled) return;
-              settled = true;
-              try { r.onstart = r.onerror = r.onend = null; } catch (e) {}
-              try { r.abort(); } catch (e2) {}
-              state.recognition = null;
-              if (ok) {
-                setSpeechProbeCache(true);
-                showReady();
-              } else {
-                markSpeechBroken(state, reason || 'probe-failed');
-              }
-            }
-            r.continuous = false;
-            r.interimResults = false;
-            r.maxAlternatives = 1;
-            r.lang = (navigator.language || 'en-IN');
-            r.onstart = function () { finish(true); };
-            r.onerror = function (ev) {
-              var err = (ev && ev.error) || '';
-              if (err === 'aborted' || err === 'no-speech') {
-                finish(true);
-                return;
-              }
-              try { console.warn('[tt-speech] probe error:', err); } catch (eLog) {}
-              finish(false, err || 'probe-error');
-            };
-            r.onend = function () { if (!settled) finish(true); };
-            state.recognition = r;
-            try {
-              r.start();
-            } catch (eStart) {
-              try { console.warn('[tt-speech] probe start failed', eStart); } catch (e2) {}
-              finish(false, 'probe-start-failed');
-            }
-            setTimeout(function () {
-              if (!settled) finish(false, 'probe-timeout');
-            }, 3500);
-            return;
-          }
+          // granted or prompt — show mic (same as notebook drawer)
           showReady();
         }).catch(function () { showReady(); });
         return;
@@ -1125,7 +1184,7 @@
     if (!input || input.dataset.ttSpeechBound === '1') return null;
 
     var wrap = input.closest('.student-popup-input-wrap, .tt-speech-wrap');
-    var micBtn = options.micBtn || (voiceFeatureEnabled() ? ensureMicButton(input) : null);
+    var micBtn = options.micBtn || (talkTypeActive() ? ensureMicButton(input) : null);
     if (!micBtn) {
       // Remove leftover mic markup when voice is disabled site-wide
       var leftover = wrap && wrap.querySelector('.student-popup-mic, .tt-speech-mic');
@@ -1158,7 +1217,11 @@
     micBtn.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();
-      if (micBtn.hidden || state.micUnavailable) return;
+      if (micBtn.hidden) return;
+      if (state.micUnavailable || micBtn.disabled || micBtn.getAttribute('aria-disabled') === 'true') {
+        flashTip(state, 'Mic not available', 'is-err');
+        return;
+      }
       if (state.wantListening) {
         stopListening(state);
         flashTip(state, '');
@@ -1176,9 +1239,13 @@
   function enhance(root) {
     root = root || document;
     startVoiceSettingsWatcher();
-    if (!voiceFeatureEnabled()) {
+    if (!talkTypeActive()) {
+      try { stopAll(); } catch (eStop) {}
+      for (var h = 0; h < boundStates.length; h++) {
+        try { hideMic(boundStates[h]); } catch (eHide) {}
+      }
       try {
-        var mics = root.querySelectorAll('.student-popup-mic, .tt-speech-mic');
+        var mics = root.querySelectorAll('.student-popup-mic, .tt-speech-mic, #parentNbMic');
         for (var m = 0; m < mics.length; m++) {
           mics[m].hidden = true;
           mics[m].style.display = 'none';
@@ -1186,11 +1253,19 @@
       } catch (e) {}
       return [];
     }
+    // Talk & Type on → re-show already-bound field mics, then bind new fields
+    for (var j = 0; j < boundStates.length; j++) {
+      try { probeAndMaybeShowMic(boundStates[j]); } catch (eProbe) {}
+    }
     var nodes = root.querySelectorAll('[data-tt-speech]');
     var bound = [];
     for (var i = 0; i < nodes.length; i++) {
       var el = nodes[i];
       if (el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA') continue;
+      if (el.dataset.ttSpeechBound === '1') {
+        if (el._ttSpeechState) bound.push(el._ttSpeechState);
+        continue;
+      }
       var st = bind(el, { mode: el.getAttribute('data-tt-speech') || 'text' });
       if (st) bound.push(st);
     }
@@ -1203,6 +1278,8 @@
     canUseSpeechNow: canUseSpeechNow,
     canUseMicHardware: canUseMicHardware,
     voiceFeatureEnabled: voiceFeatureEnabled,
+    talkTypeActive: talkTypeActive,
+    talkTypeAllowedByAdmin: talkTypeAllowedByAdmin,
     getVoiceMode: getVoiceMode,
     isCloudMode: isCloudMode,
     transcribeBlob: transcribeBlob,

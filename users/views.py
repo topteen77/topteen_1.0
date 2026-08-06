@@ -190,23 +190,52 @@ def is_safe_post_login_redirect_path(path):
     Paths safe to open in the browser after HTML login/signup.
     Blocks XHR/JSON endpoints (e.g. notification poll) that @login_required
     sends to LOGIN_URL with ?next=..., which would otherwise strand users on raw JSON.
+    Accepts absolute same-origin URLs and normalizes them to a path.
     """
     if not path or not isinstance(path, str):
         return False
     p = path.strip()
-    if not p.startswith('/') or p.startswith('//'):
+    if not p:
         return False
-    base = (p.split('?')[0] or '').lower()
-    if '/notifications/api/' in base:
+    # Absolute URL → path (so forum full href still works)
+    if p.startswith("http://") or p.startswith("https://"):
+        try:
+            from urllib.parse import urlparse
+
+            parsed = urlparse(p)
+            p = (parsed.path or "/") + (("?" + parsed.query) if parsed.query else "")
+            if parsed.fragment:
+                p = f"{p}#{parsed.fragment}"
+        except Exception:
+            return False
+    if not p.startswith("/") or p.startswith("//"):
         return False
-    if base.startswith('/ai-feature-quota/'):
+    base = (p.split("?")[0] or "").lower()
+    if "/notifications/api/" in base:
         return False
-    if base.startswith('/api/v1/'):
+    if base.startswith("/ai-feature-quota/"):
         return False
-    if base.startswith('/api-auth/'):
+    if base.startswith("/api/v1/"):
+        return False
+    if base.startswith("/api-auth/"):
         return False
     return True
 
+
+def normalize_post_login_redirect_path(path):
+    """Return a safe path-only next URL, or empty string."""
+    if not is_safe_post_login_redirect_path(path):
+        return ""
+    p = (path or "").strip()
+    if p.startswith("http://") or p.startswith("https://"):
+        from urllib.parse import urlparse
+
+        parsed = urlparse(p)
+        out = (parsed.path or "/") + (("?" + parsed.query) if parsed.query else "")
+        if parsed.fragment:
+            out = f"{out}#{parsed.fragment}"
+        return out
+    return p
 
 # def create_institute(request):
 #     if request.method == 'POST':      
@@ -2263,7 +2292,8 @@ def _absolute_post_login_url(request, user) -> str:
     next_path = (request.POST.get("next") or request.GET.get("next") or "").strip()
     if not next_path:
         next_path = request.session.pop("login_next_url", "") or ""
-    if next_path and is_safe_post_login_redirect_path(next_path):
+    next_path = normalize_post_login_redirect_path(next_path)
+    if next_path:
         full_url = request.build_absolute_uri(next_path)
         if url_has_allowed_host_and_scheme(full_url, request.get_host()):
             if "/psychometrictest/" in full_url:
@@ -4214,6 +4244,11 @@ class MyNotePad(TemplateView):
         return ctx
 
     def get(self, request, *args, **kwargs):
+        # Students use the in-page notebook drawer; hide the full notepad page.
+        is_parent = getattr(request.user, "user_type", None) == choices.UserType.PARENT
+        if not is_parent:
+            scrapbook = reverse("users:scrapbook")
+            return redirect(f"{scrapbook}?open_notebook=1")
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
 
 

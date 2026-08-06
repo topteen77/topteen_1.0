@@ -197,38 +197,27 @@
   {% endif %}
 
   <div class="notepad-page-shell">
-    <!-- Notepad Heading -->
-    <div class="d-md-flex d-none justify-content-between align-items-center mb-4 border-bottom pb-3">
+    {% set add_note_url = url('users:createnote') %}
+    <!-- Desktop header -->
+    <div class="d-none d-lg-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
       <h1 class="fs-24 fw-semibold mb-0 d-flex align-items-center">
         <i class='bx bx-note text-purple me-2 fs-26'></i> My Notebook
       </h1>
-      <div class="d-flex align-items-center gap-2">
-        {% if enable_voice_to_text|default(true) %}
-        <button type="button" class="btn custom-button purple-button d-flex align-items-center gap-2" data-parent-notebook-open>
-          <i class='bx bx-microphone fs-18'></i> Voice note
-        </button>
-        {% else %}
-        <button type="button" class="btn custom-button purple-button d-flex align-items-center gap-2" data-parent-notebook-open>
-          <i class='bx bx-note fs-18'></i> Quick note
-        </button>
-        {% endif %}
-        <a href="{{ url('users:createnote') }}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
-          <i class='bx bx-plus fs-18'></i> New note
-        </a>
-      </div>
+      <a href="{{ add_note_url }}" class="btn custom-button purple-button d-flex align-items-center gap-2">
+        <i class='bx bx-plus fs-18'></i> Add notes
+      </a>
     </div>
 
-    <!-- Mobile Header -->
-    <div class="d-lg-none d-flex align-items-center justify-content-between border-bottom pb-3 mb-4 position-relative mt-2">
-
-      <button type="button" class="btn btn-outline-secondary d-flex align-items-center"
+    <!-- Mobile header — always include Add notes -->
+    <div class="d-lg-none d-flex align-items-center justify-content-between border-bottom pb-3 mb-4 gap-2 mt-2">
+      <button type="button" class="btn btn-outline-secondary d-flex align-items-center flex-shrink-0"
         data-scrapbook-url="{{ notepad_back_url|default(url('users:scrapbook')) }}">
         <i class='bx bx-arrow-back fs-20 me-1'></i> Back
       </button>
-
-
-      <h2 class="fs-20 fw-normal text-center mb-0 fw-bold">My Notebook</h2>
-
+      <h2 class="fs-16 fw-bold mb-0 text-truncate">My Notebook</h2>
+      <a href="{{ add_note_url }}" class="btn custom-button purple-button d-flex align-items-center gap-1 flex-shrink-0 py-1 px-2">
+        <i class='bx bx-plus fs-18'></i> <span class="d-none d-sm-inline">Add notes</span>
+      </a>
     </div>
 
     <!-- Notes Grid -->
@@ -269,20 +258,18 @@
       {% endfor %}
     </div>
     {% else %}
-    <!-- Empty State -->
+    <!-- Empty State — same Add notes action (no second create path) -->
     <div class="notepad-empty text-center">
       <span class="notepad-empty-icon">
         <i class='bx bx-note fs-30'></i>
       </span>
       <h3 class="fs-20 fw-semibold text-dark mb-2">No notes yet</h3>
       <p class="text-gray fs-14 mb-4">Start creating your first note to keep track of your thoughts and reminders.</p>
-      <a href="{{ url('users:createnote') }}" class="btn custom-button purple-button">
-        <i class='bx bx-plus me-2'></i> Create First Note
+      <a href="{{ add_note_url }}" class="btn custom-button purple-button">
+        <i class='bx bx-plus me-2'></i> Add notes
       </a>
     </div>
     {% endif %}
-
-    <!-- Mobile New Note Button -->
 
   </div>
 {% endblock %}

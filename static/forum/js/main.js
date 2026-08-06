@@ -19,6 +19,160 @@ function getCookie(name) {
 
 const csrftoken = getCookie('csrftoken');
 
+/**
+ * Convert AI answer markdown to HTML for display.
+ * Leaves existing HTML alone; converts **bold**, lists, headings, etc.
+ */
+function looksLikeHtml(text) {
+    return /<\s*(p|div|h[1-6]|ul|ol|li|strong|em|br|table|span|a)\b/i.test(String(text || ''));
+}
+
+function looksLikeMarkdown(text) {
+    const s = String(text || '');
+    return /(^|\n)\s{0,3}#{1,6}\s+\S/.test(s)
+        || /(^|\n)\s{0,3}[-*+]\s+\S/.test(s)
+        || /(^|\n)\s{0,3}\d+\.\s+\S/.test(s)
+        || /\*\*[^*\n]+\*\*/.test(s)
+        || /__[^_\n]+__/.test(s)
+        || /(^|\n)>.+\S/.test(s)
+        || /```/.test(s)
+        || /\[[^\]]+\]\([^)]+\)/.test(s);
+}
+
+function forumInlineMarkdown(text) {
+    let s = String(text || '');
+    s = s.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img alt="$1" src="$2" style="max-width:100%;">');
+    s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    s = s.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+    s = s.replace(/(^|[^*\w])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
+    s = s.replace(/(^|[^_\w])_([^_\n]+)_(?!_)/g, '$1<em>$2</em>');
+    s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+    return s;
+}
+
+function forumMarkdownToHtmlFallback(raw) {
+    let s = String(raw || '').replace(/\r\n/g, '\n').trim();
+    if (!s) return '';
+
+    // Fenced code
+    const codeBlocks = [];
+    s = s.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+        const idx = codeBlocks.length;
+        const escaped = escapeHtml(code.trimEnd());
+        codeBlocks.push(`<pre><code>${escaped}</code></pre>`);
+        return `\n\x00CODE${idx}\x00\n`;
+    });
+
+    const lines = s.split('\n');
+    const out = [];
+    let i = 0;
+    let para = [];
+    let inUl = false;
+    let inOl = false;
+
+    const flushPara = () => {
+        if (!para.length) return;
+        out.push(`<p>${forumInlineMarkdown(para.join(' '))}</p>`);
+        para = [];
+    };
+    const closeLists = () => {
+        if (inUl) { out.push('</ul>'); inUl = false; }
+        if (inOl) { out.push('</ol>'); inOl = false; }
+    };
+
+    while (i < lines.length) {
+        const line = lines[i];
+        const stripped = line.trim();
+
+        if (!stripped) {
+            flushPara();
+            closeLists();
+            i += 1;
+            continue;
+        }
+
+        const codeTok = stripped.match(/^\x00CODE(\d+)\x00$/);
+        if (codeTok) {
+            flushPara();
+            closeLists();
+            out.push(codeBlocks[Number(codeTok[1])] || '');
+            i += 1;
+            continue;
+        }
+
+        const heading = stripped.match(/^(#{1,6})\s+(.*)$/);
+        if (heading) {
+            flushPara();
+            closeLists();
+            const level = Math.min(6, heading[1].length);
+            out.push(`<h${level}>${forumInlineMarkdown(heading[2])}</h${level}>`);
+            i += 1;
+            continue;
+        }
+
+        const ul = stripped.match(/^[-*+]\s+(.*)$/);
+        if (ul) {
+            flushPara();
+            if (inOl) { out.push('</ol>'); inOl = false; }
+            if (!inUl) { out.push('<ul>'); inUl = true; }
+            out.push(`<li>${forumInlineMarkdown(ul[1])}</li>`);
+            i += 1;
+            continue;
+        }
+
+        const ol = stripped.match(/^\d+\.\s+(.*)$/);
+        if (ol) {
+            flushPara();
+            if (inUl) { out.push('</ul>'); inUl = false; }
+            if (!inOl) { out.push('<ol>'); inOl = true; }
+            out.push(`<li>${forumInlineMarkdown(ol[1])}</li>`);
+            i += 1;
+            continue;
+        }
+
+        closeLists();
+        para.push(stripped);
+        i += 1;
+    }
+    flushPara();
+    closeLists();
+    return out.join('\n');
+}
+
+function formatForumAnswerHtml(raw) {
+    if (raw == null) return '';
+    let text = String(raw);
+    // Strip fenced wrappers OpenAI sometimes adds
+    text = text.replace(/^```html\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
+
+    if (!text) return '';
+
+    // Already HTML — still convert leftover markdown markers inside text nodes is rare;
+    // if it looks like HTML, return as-is (after light ** cleanup if mixed).
+    if (looksLikeHtml(text) && !looksLikeMarkdown(text)) {
+        return text;
+    }
+
+    // Mixed or pure markdown
+    if (typeof window.marked !== 'undefined' && typeof window.marked.parse === 'function') {
+        try {
+            return window.marked.parse(text, { breaks: true, gfm: true });
+        } catch (e) {
+            console.warn('marked.parse failed, using fallback', e);
+        }
+    }
+
+    if (looksLikeMarkdown(text) || !looksLikeHtml(text)) {
+        return forumMarkdownToHtmlFallback(text);
+    }
+
+    // HTML that still has ** markers — convert inline only
+    return text
+        .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+        .replace(/(^|[^*\w])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
+}
+
 // Same-origin credentials so Django session auth is applied (logged-in users
 // must not fall through to the guest AI allowance paywall).
 const FORUM_FETCH_DEFAULTS = {
@@ -306,7 +460,7 @@ function displayAIResponse(responseText, isWelcomeMessage = false) {
         if (bottomBtn) bottomBtn.style.display = 'block';
     }
 
-    responseDiv.innerHTML = responseText;
+    responseDiv.innerHTML = formatForumAnswerHtml(responseText);
     responseDiv.style.display = 'block';
 
     // Scroll response block into view
@@ -872,10 +1026,10 @@ function displayPopularQueries(queries) {
         const hasResponse = query.response_text && query.response_text.trim()
             && !/sign in to keep using ai|free guest ai allowance|ai token limit reached/i.test(query.response_text);
         
-        // Clean response text for display
+        // Clean + convert markdown → HTML for display
         let cleanedResponse = '';
         if (hasResponse) {
-            cleanedResponse = query.response_text.replace(/```html\n?/g, '').replace(/```\n?/g, '').trim();
+            cleanedResponse = formatForumAnswerHtml(query.response_text);
         }
         
         // Get icon based on category
@@ -994,7 +1148,7 @@ async function moderateSavePost(queryId, index) {
         }
         const answerEl = document.getElementById(`answer-${index}`);
         if (answerEl && data.response_text) {
-            answerEl.innerHTML = data.response_text;
+            answerEl.innerHTML = formatForumAnswerHtml(data.response_text);
         }
         const qText = document.querySelector(`#accordion-${index} .query-text`);
         if (qText && data.question) qText.textContent = data.question;

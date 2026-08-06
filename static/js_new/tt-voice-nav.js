@@ -56,16 +56,33 @@
     }
   }
 
+  function pageHost() {
+    try { return (global.location && global.location.hostname) || ''; } catch (e) { return ''; }
+  }
+
+  function isLocalDevHost(h) {
+    h = h || pageHost();
+    if (!h) return false;
+    if (h === 'localhost' || h === '127.0.0.1' || h === '::1') return true;
+    if (h.endsWith('.localhost')) return true;
+    return /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.)/.test(h);
+  }
+
+  /**
+   * Soft gate only for public HTTP. On localhost / private LAN we still attempt
+   * mic/speech (Chrome may deny; Firefox / chrome://flags may allow).
+   */
   function insecureContextBlocked() {
     try {
-      return global.isSecureContext === false;
+      if (global.isSecureContext !== false) return false;
+      if (isLocalDevHost()) return false;
+      return true;
     } catch (e) {
       return false;
     }
   }
 
   function canUseMicHardware() {
-    if (insecureContextBlocked()) return false;
     try {
       return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
     } catch (e) {
@@ -74,8 +91,10 @@
   }
 
   function canUseSpeechNow() {
-    if (isCloudMode()) return canUseMicHardware();
-    return !!getSpeechCtor() && !insecureContextBlocked();
+    if (isCloudMode()) return canUseMicHardware() && !insecureContextBlocked();
+    if (!getSpeechCtor()) return false;
+    if (insecureContextBlocked()) return false;
+    return true;
   }
 
   function isAppleMobileSafari() {
@@ -95,6 +114,11 @@
     if (insecureContextBlocked()) {
       return 'This page is not a secure context (use HTTPS or localhost).';
     }
+    try {
+      if (global.isSecureContext === false && isLocalDevHost()) {
+        // Soft warning only — we still attempt mic; used when start fails
+      }
+    } catch (eSoft) {}
     if (isCloudMode()) {
       if (!canUseMicHardware()) return 'Microphone not available for cloud voice-to-text.';
       return '';
@@ -177,11 +201,13 @@
     var css = document.createElement('style');
     css.id = STYLE_ID;
     css.textContent = [
+      ':root{--tt-bottom-stack:0px;--ttvn-bar-pad:118px;}',
       '#' + BAR_ID + '{',
-      'position:fixed;left:0;right:0;bottom:0;z-index:12200;',
+      'position:fixed;left:0;right:0;bottom:var(--tt-bottom-stack,0px);z-index:12200;',
       'padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));',
       'pointer-events:none;display:none;',
       'font-family:inherit;',
+      'transition:bottom .2s ease;',
       '}',
       '#' + BAR_ID + '.is-visible{display:block;}',
       '#' + BAR_ID + ' .ttvn-panel{',
@@ -190,6 +216,7 @@
       'border:1px solid #8fd3a8;border-radius:16px;',
       'box-shadow:0 8px 28px rgba(16,80,40,.18);',
       'padding:10px 12px;color:#14532d;',
+      'max-height:min(52vh,420px);overflow:auto;',
       '}',
       '#' + BAR_ID + ' .ttvn-row{display:flex;align-items:flex-start;gap:10px;}',
       '#' + BAR_ID + ' .ttvn-mic{',
@@ -203,8 +230,9 @@
       'animation:ttvn-pulse 1.2s ease-in-out infinite;',
       '}',
       '#' + BAR_ID + ' .ttvn-mic:disabled,',
-      '#' + BAR_ID + ' .ttvn-mic.is-busy{',
-      'opacity:.55;cursor:not-allowed;animation:none;',
+      '#' + BAR_ID + ' .ttvn-mic.is-busy,',
+      '#' + BAR_ID + ' .ttvn-mic.is-unavailable{',
+      'opacity:.5;cursor:not-allowed;animation:none;background:#f3f4f6;color:#6b7280;border-color:#d1d5db;',
       '}',
       '#' + BAR_ID + ' .ttvn-body{flex:1;min-width:0;}',
       '#' + BAR_ID + ' .ttvn-heard{',
@@ -216,35 +244,98 @@
       '}',
       '#' + BAR_ID + ' .ttvn-status.is-err{color:#9a3412;}',
       '#' + BAR_ID + ' .ttvn-chips{',
-      'display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;',
-      'margin-top:8px;padding-bottom:2px;scrollbar-width:none;',
+      'display:flex;flex-wrap:wrap;gap:8px;',
+      'margin-top:8px;padding-bottom:2px;',
       '}',
-      '#' + BAR_ID + ' .ttvn-chips::-webkit-scrollbar{display:none;}',
       '#' + BAR_ID + ' .ttvn-chip{',
-      'flex:0 0 auto;border:1px solid #6fbf8d;background:#fff;',
-      'color:#166534;border-radius:999px;padding:7px 12px;',
-      'font-size:12px;font-weight:600;white-space:nowrap;',
-      'touch-action:manipulation;min-height:36px;',
+      'flex:0 0 auto;border:1.5px solid #6fbf8d;background:#fff;',
+      'color:#166534;border-radius:999px;padding:8px 14px;',
+      'font-size:12px;font-weight:700;white-space:nowrap;',
+      'touch-action:manipulation;min-height:38px;',
+      'box-shadow:0 1px 0 rgba(22,101,52,.08);',
       '}',
       '#' + BAR_ID + ' .ttvn-chip:disabled{opacity:.5;}',
       '#' + BAR_ID + ' .ttvn-help{',
-      'display:none;margin-top:8px;padding:8px 10px;',
-      'background:rgba(255,255,255,.72);border-radius:12px;',
-      'font-size:12px;line-height:1.45;',
+      'display:none;margin-top:10px;padding:10px;',
+      'background:rgba(255,255,255,.9);border-radius:12px;',
+      'border:1px solid #b7e4c7;font-size:12px;line-height:1.4;',
       '}',
       '#' + BAR_ID + ' .ttvn-help.is-open{display:block;}',
+      '#' + BAR_ID + ' .ttvn-help-title{',
+      'font-size:12px;font-weight:800;letter-spacing:.02em;',
+      'text-transform:uppercase;color:#166534;margin:0 0 8px;',
+      '}',
+      '#' + BAR_ID + ' .ttvn-help-list{display:grid;gap:6px;margin:0;}',
+      '#' + BAR_ID + ' .ttvn-help-item{',
+      'display:flex;align-items:flex-start;gap:10px;',
+      'padding:8px 10px;border-radius:10px;background:#f3fbf6;',
+      'border:1px solid #d8f0e2;',
+      '}',
+      '#' + BAR_ID + ' .ttvn-help-cmd{',
+      'flex:0 0 auto;min-width:7.5em;font-weight:800;color:#14532d;',
+      '}',
+      '#' + BAR_ID + ' .ttvn-help-desc{flex:1;color:#3f6b52;}',
+      '#' + BAR_ID + ' .ttvn-help-note{',
+      'margin-top:8px;font-size:11px;color:#4b6b58;opacity:.95;',
+      '}',
       '#' + BAR_ID + ' .ttvn-close{',
       'flex:0 0 auto;width:36px;height:36px;border:0;background:transparent;',
       'color:#166534;font-size:22px;line-height:1;border-radius:8px;',
       '}',
       '@keyframes ttvn-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}',
-      'body.ttvn-bar-open{padding-bottom:118px !important;}',
+      'body.ttvn-bar-open{padding-bottom:calc(var(--ttvn-bar-pad,118px) + var(--tt-bottom-stack,0px)) !important;}',
       '@media (max-width:767.98px){',
-      'body.ttvn-bar-open{padding-bottom:128px !important;}',
-      '#' + BAR_ID + ' .ttvn-panel{border-radius:14px 14px 0 0;}',
+      ':root{--ttvn-bar-pad:136px;}',
+      '#' + BAR_ID + ' .ttvn-panel{border-radius:14px 14px 0 0;max-height:min(58vh,460px);}',
+      '#' + BAR_ID + ' .ttvn-chip{font-size:13px;padding:9px 14px;}',
+      '#' + BAR_ID + ' .ttvn-help-item{flex-direction:column;gap:2px;}',
+      '#' + BAR_ID + ' .ttvn-help-cmd{min-width:0;}',
+      '}',
+      '@media (max-width:428px){',
+      ':root{--ttvn-bar-pad:148px;}',
+      '#' + BAR_ID + '{padding-left:10px;padding-right:10px;}',
       '}'
     ].join('');
     document.head.appendChild(css);
+  }
+
+  function syncBottomStack() {
+    var offset = 0;
+    try {
+      var cookie = document.getElementById('eu-cookie-consent');
+      if (cookie) {
+        var style = global.getComputedStyle ? getComputedStyle(cookie) : null;
+        var visible = cookie.offsetParent !== null ||
+          (cookie.style && cookie.style.display && cookie.style.display !== 'none');
+        if (style && style.display === 'none') visible = false;
+        if (visible && cookie.offsetHeight) offset = Math.max(offset, cookie.offsetHeight);
+      }
+    } catch (e) {}
+    try {
+      document.documentElement.style.setProperty('--tt-bottom-stack', offset + 'px');
+    } catch (e2) {}
+    return offset;
+  }
+
+  function startBottomStackWatcher() {
+    if (global.__ttvnBottomStackWatch) return;
+    global.__ttvnBottomStackWatch = true;
+    syncBottomStack();
+    try {
+      global.addEventListener('resize', syncBottomStack);
+      global.setInterval(syncBottomStack, 1200);
+      var cookie = document.getElementById('eu-cookie-consent');
+      if (cookie && global.MutationObserver) {
+        new MutationObserver(syncBottomStack).observe(cookie, {
+          attributes: true, attributeFilter: ['style', 'class'], childList: true, subtree: true
+        });
+      }
+      var accept = document.getElementById('eu-cookie-consent-accept');
+      if (accept) accept.addEventListener('click', function () {
+        setTimeout(syncBottomStack, 50);
+        setTimeout(syncBottomStack, 400);
+      });
+    } catch (e) {}
   }
 
   function ensureBar(state) {
@@ -271,7 +362,7 @@
           '</button>' +
           '<div class="ttvn-body">' +
             '<div class="ttvn-heard" data-ttvn-heard>Tap mic to speak</div>' +
-            '<div class="ttvn-status" data-ttvn-status>Try: Edit contact · Help</div>' +
+            '<div class="ttvn-status" data-ttvn-status>Tap a command below</div>' +
             '<div class="ttvn-chips" data-ttvn-chips></div>' +
             '<div class="ttvn-help" data-ttvn-help></div>' +
           '</div>' +
@@ -289,7 +380,11 @@
     if (state.micBtn) {
       state.micBtn.addEventListener('click', function (e) {
         e.preventDefault();
-        if (state.busy || state.micBtn.disabled) return;
+        if (state.busy || state.micBtn.disabled || state.commandsOnly || !micAllowed(state)) {
+          setHeard(state, 'Mic not available');
+          setStatus(state, 'Mic not available — use command buttons below.', 'err');
+          return;
+        }
         if (state.wantListening) stopListening(state, 'Paused. Tap mic to continue.');
         else startListening(state);
       });
@@ -306,24 +401,92 @@
 
   function showBar(state) {
     if (!state || !state.bar) return;
+    // Headless / site widget owns the green UI — never show the legacy bar
+    if (state.headless) {
+      hideBar(state);
+      return;
+    }
+    try {
+      var wrap = document.getElementById('tt-voice-fab-wrap');
+      if (wrap && wrap.classList.contains('is-on')) {
+        hideBar(state);
+        return;
+      }
+    } catch (eWidget) {}
+    // Respect user Voice Navigation preference (widget toggle / localStorage)
+    try {
+      var pref = global.localStorage.getItem('tt_voice_nav');
+      if (pref === '0' || pref === 'false') {
+        hideBar(state);
+        return;
+      }
+    } catch (ePref) {}
+    startBottomStackWatcher();
+    syncBottomStack();
     state.bar.classList.add('is-visible');
+    state.bar.style.display = '';
     document.body.classList.add('ttvn-bar-open');
   }
 
   function hideBar(state) {
     if (!state || !state.bar) return;
     state.bar.classList.remove('is-visible');
+    try { state.bar.style.display = 'none'; } catch (e) {}
     document.body.classList.remove('ttvn-bar-open');
+  }
+
+  function mergeConfig(extra) {
+    if (!active) return null;
+    extra = extra || {};
+    var cfg = active.config || {};
+    if (extra.forms) {
+      cfg.forms = (cfg.forms || []).concat(extra.forms);
+    }
+    if (extra.pageCommands) {
+      cfg.pageCommands = (cfg.pageCommands || []).concat(extra.pageCommands);
+    }
+    if (typeof extra.onStatus === 'function') cfg.onStatus = extra.onStatus;
+    if (typeof extra.onHeard === 'function') cfg.onHeard = extra.onHeard;
+    active.config = cfg;
+    return active;
+  }
+
+  function registerForm(formCfg) {
+    if (!formCfg) return;
+    if (!active) {
+      attach({ headless: true, forms: [formCfg] });
+      return active;
+    }
+    return mergeConfig({ forms: [formCfg] });
+  }
+
+  function activateFormById(formId) {
+    if (!active) return false;
+    var forms = (active.config && active.config.forms) || [];
+    for (var i = 0; i < forms.length; i++) {
+      if (forms[i].id === formId) {
+        activateForm(active, forms[i]);
+        return true;
+      }
+    }
+    return false;
   }
 
   function setHeard(state, text) {
     if (state.heardEl) state.heardEl.textContent = text || '';
+    if (state.config && typeof state.config.onHeard === 'function') {
+      try { state.config.onHeard(text || ''); } catch (eH) {}
+    }
   }
 
   function setStatus(state, text, kind) {
-    if (!state.statusEl) return;
-    state.statusEl.textContent = text || '';
-    state.statusEl.classList.toggle('is-err', kind === 'err');
+    if (state.statusEl) {
+      state.statusEl.textContent = text || '';
+      state.statusEl.classList.toggle('is-err', kind === 'err');
+    }
+    if (state.config && typeof state.config.onStatus === 'function') {
+      try { state.config.onStatus(text || '', kind || ''); } catch (eS) {}
+    }
   }
 
   function setBusy(state, busy, reason) {
@@ -338,8 +501,8 @@
       for (var i = 0; i < chips.length; i++) chips[i].disabled = !!busy;
     }
     if (busy) {
-      setStatus(state, reason || 'Working…');
-      if (state.wantListening) stopListening(state, reason || 'Working…', true);
+      setStatus(state, reason || 'Processing…');
+      if (state.wantListening) stopListening(state, reason || 'Processing…', true);
     }
   }
 
@@ -403,9 +566,251 @@
     return 'Speak the value, then say Next';
   }
 
+  function elVisible(el) {
+    if (!el) return false;
+    try {
+      if (el.offsetParent === null && (el.tagName || '').toLowerCase() !== 'body') {
+        var style = global.getComputedStyle ? getComputedStyle(el) : null;
+        if (style && (style.display === 'none' || style.visibility === 'hidden')) return false;
+        // fixed elements can have null offsetParent — still ok if displayed
+        if (style && style.display !== 'none') return true;
+        return false;
+      }
+      return true;
+    } catch (e) {
+      return !!el;
+    }
+  }
+
+  function pathName() {
+    try { return (global.location && global.location.pathname) || '/'; } catch (e) { return '/'; }
+  }
+
+  function buildDefaultPageCommands() {
+    var cmds = [];
+    var path = pathName();
+    var isHome = path === '/' || path === '';
+
+    if (!isHome) {
+      cmds.push({
+        label: 'Go home',
+        desc: 'Open the homepage',
+        match: /^(go home|home|open home)$/i,
+        run: function (done) {
+          global.location.href = '/';
+          done('Going home');
+          return 'async';
+        }
+      });
+    }
+
+    cmds.push({
+      label: 'Go back',
+      desc: 'Previous page',
+      group: 'Navigate',
+      match: /^(go back|back|previous page)$/i,
+      run: function (done) {
+        global.history.back();
+        done('Going back');
+        return 'async';
+      }
+    });
+
+    cmds.push({
+      label: 'Scroll to top',
+      desc: 'Jump to top of page',
+      group: 'Scroll',
+      match: /^(go to top|scroll to top|scroll top|page top|top of (the )?page)$/i,
+      run: function (done) {
+        global.scrollTo({ top: 0, behavior: 'smooth' });
+        done('Scrolled to top');
+      }
+    });
+    cmds.push({
+      label: 'Scroll to bottom',
+      desc: 'Jump to bottom of page',
+      group: 'Scroll',
+      match: /^(go to bottom|scroll to bottom|scroll bottom|page bottom|bottom of (the )?page)$/i,
+      run: function (done) {
+        var h = Math.max(document.body.scrollHeight || 0, document.documentElement.scrollHeight || 0);
+        global.scrollTo({ top: h, behavior: 'smooth' });
+        done('Scrolled to bottom');
+      }
+    });
+    cmds.push({
+      label: 'Scroll down',
+      desc: 'Move down one screen',
+      group: 'Scroll',
+      match: /^(scroll down|page down|move down)$/i,
+      run: function (done) {
+        var y = global.pageYOffset || document.documentElement.scrollTop || 0;
+        var vh = global.innerHeight || 600;
+        global.scrollTo({ top: y + Math.round(vh * 0.85), behavior: 'smooth' });
+        done('Scrolled down');
+      }
+    });
+    cmds.push({
+      label: 'Scroll up',
+      desc: 'Move up one screen',
+      group: 'Scroll',
+      match: /^(scroll up|page up|move up)$/i,
+      run: function (done) {
+        var y = global.pageYOffset || document.documentElement.scrollTop || 0;
+        var vh = global.innerHeight || 600;
+        global.scrollTo({ top: Math.max(0, y - Math.round(vh * 0.85)), behavior: 'smooth' });
+        done('Scrolled up');
+      }
+    });
+
+    var explore = document.querySelector(
+      'a[href*="/careers"], a[href*="career"], [data-nav="discover"], a[href*="/discover"]'
+    );
+    if (explore && elVisible(explore)) {
+      cmds.push({
+        label: 'Explore careers',
+        desc: 'Open career discovery',
+        match: /^(explore careers|careers|discover careers|open careers)$/i,
+        run: function (done) {
+          explore.click();
+          done('Opening careers');
+          return 'async';
+        }
+      });
+    }
+
+    var loginBtn = document.querySelector(
+      '#header-signin-btn, .student-login-popup-trigger, [onclick*="showLoginRequiredPopup"], [data-bs-target="#studentLoginModal"], #openStudentLogin, .open-login, .btn-profile-login, a[href*="/user/login"]'
+    );
+    var loggedIn = !!(document.body && (
+      document.body.classList.contains('logged-in') ||
+      document.querySelector('.profile-auth-actions .btn-profile-logout, a[href*="logout"]')
+    ));
+    if (!loggedIn && (loginBtn || typeof global.showLoginRequiredPopup === 'function')) {
+      cmds.push({
+        label: 'Open login',
+        desc: 'Sign in to your account',
+        group: 'Navigate',
+        match: /^(open login|open log in|login|log in|sign in|signin|open sign in)$/i,
+        run: function (done) {
+          if (typeof global.showLoginRequiredPopup === 'function') {
+            global.showLoginRequiredPopup();
+          } else if (loginBtn) {
+            loginBtn.click();
+          }
+          done('Opening login');
+          return 'async';
+        }
+      });
+    }
+
+    cmds.push({
+      label: 'Open menu',
+      desc: 'Open the top navigation menu',
+      group: 'Top navigation',
+      match: /^(open menu|open navigation|show menu|open nav|hamburger)$/i,
+      run: function (done) {
+        var burger = document.getElementById('burger');
+        var menu = document.getElementById('menu');
+        if (burger) burger.classList.add('is-active');
+        if (menu) {
+          menu.classList.add('is-active');
+          menu.classList.add('is-open');
+        }
+        try { document.body.classList.add('no-scroll'); } catch (e) {}
+        done(menu || burger ? 'Opening menu' : 'Menu not available');
+      }
+    });
+    cmds.push({
+      label: 'Close menu',
+      desc: 'Close the top navigation menu',
+      group: 'Top navigation',
+      match: /^(close menu|close navigation|hide menu|close nav)$/i,
+      run: function (done) {
+        var burger = document.getElementById('burger');
+        var menu = document.getElementById('menu');
+        if (burger) burger.classList.remove('is-active');
+        if (menu) {
+          menu.classList.remove('is-active');
+          menu.classList.remove('is-open');
+        }
+        try { document.body.classList.remove('no-scroll'); } catch (e) {}
+        done('Closing menu');
+      }
+    });
+
+    var contactBtn = document.getElementById('openPersonalInfoModal');
+    if (contactBtn && elVisible(contactBtn)) {
+      cmds.push({
+        label: 'Edit contact',
+        desc: 'Open personal info',
+        match: /^(edit contact|open contact|edit personal|edit profile)$/i,
+        run: function (done) {
+          contactBtn.click();
+          setTimeout(function () {
+            if (typeof activateFormById === 'function') activateFormById('personal');
+            done('Opened personal information');
+          }, 350);
+          return 'async';
+        }
+      });
+    }
+
+    var nb = document.getElementById('openParentNotebook') ||
+      document.querySelector('[data-open-notebook], .open-notebook, #notebookFab');
+    if (nb && elVisible(nb)) {
+      cmds.push({
+        label: 'Open notebook',
+        desc: 'Open notes',
+        match: /^(open notebook|notebook|open notes)$/i,
+        run: function (done) {
+          nb.click();
+          done('Opening notebook');
+          return 'async';
+        }
+      });
+    }
+
+    cmds.push({
+      label: 'Help',
+      desc: 'Show commands for this page',
+      match: /^(help|commands)$/i,
+      run: null // handled specially
+    });
+
+    return cmds;
+  }
+
+  function resolvePageCommands(state) {
+    var registered = (state && state.config && state.config.pageCommands) || [];
+    var defaults = buildDefaultPageCommands();
+    var out = [];
+    var seen = {};
+
+    function add(cmd) {
+      if (!cmd || !cmd.label) return;
+      var key = String(cmd.label).toLowerCase();
+      if (seen[key]) return;
+      // Never show Edit contact unless the control exists
+      if (key === 'edit contact' && !document.getElementById('openPersonalInfoModal')) return;
+      seen[key] = true;
+      out.push(cmd);
+    }
+
+    registered.forEach(add);
+    defaults.forEach(add);
+    return out;
+  }
+
+  function tryCommandsHint(state) {
+    var labels = currentSuggestions(state).filter(function (l) {
+      return String(l).toLowerCase() !== 'help';
+    }).slice(0, 3);
+    if (!labels.length) return 'Try: Help';
+    return 'Try: ' + labels.join(' · ') + ' · Help';
+  }
+
   function currentSuggestions(state) {
     if (state.formCtx && state.formCtx.active) {
-      // After finishing the last field (said Next), show finish actions only.
       if (state.formCtx.atEnd) {
         return ['Save', 'Cancel', 'Reset', 'Back', 'Help'];
       }
@@ -419,48 +824,57 @@
       }
       return chips;
     }
-    return ['Edit contact', 'Help'];
+    return resolvePageCommands(state).map(function (c) { return c.label; });
   }
 
   function helpText(state) {
     var reason = speechUnavailableReason();
     var iosTip = reason
-      ? '<br><br><strong>Why no mic?</strong><br>' + reason
+      ? '<div class="ttvn-help-note"><strong>Why no mic?</strong> ' + reason + '</div>'
       : '';
+    if (global.isSecureContext === false && isLocalDevHost() && !reason) {
+      iosTip = '<div class="ttvn-help-note">Local HTTP: mic may need Chrome flag ' +
+        '<code>unsafely-treat-insecure-origin-as-secure</code> if the browser blocks it.</div>';
+    }
     if (state.formCtx && state.formCtx.active) {
       var field = getCurrentField(state);
       var fieldTip = field
-        ? '<br><br><strong>This field (' + (field.label || field.id) + ')</strong><br>' + fieldSpeakHint(field)
+        ? '<div class="ttvn-help-note"><strong>This field (' + (field.label || field.id) + ')</strong> — ' +
+          fieldSpeakHint(field) + '</div>'
         : '';
       return [
-        '<strong>How to speak</strong>',
-        '• Text: say the value, then Next',
-        '• Date: “15 January 2005” or “15/01/2005”',
-        '• Dropdown / gender / class: say the option (“Male”, “Class 10”)',
-        '• Radio: say the choice label',
-        '• Or “Gender female”, “Class 10”, “Birthday 15/01/2005”',
-        '<br><strong>Navigate</strong>',
-        '• Next / Back — move fields',
-        '• On last field: Save · Cancel · Reset',
-        '• Help — show this list',
+        '<div class="ttvn-help-title">Form commands</div>',
+        '<div class="ttvn-help-list">',
+        '<div class="ttvn-help-item"><span class="ttvn-help-cmd">Next</span><span class="ttvn-help-desc">Move to next field</span></div>',
+        '<div class="ttvn-help-item"><span class="ttvn-help-cmd">Back</span><span class="ttvn-help-desc">Previous field</span></div>',
+        '<div class="ttvn-help-item"><span class="ttvn-help-cmd">Save</span><span class="ttvn-help-desc">Submit the form</span></div>',
+        '<div class="ttvn-help-item"><span class="ttvn-help-cmd">Cancel</span><span class="ttvn-help-desc">Close without saving</span></div>',
+        '<div class="ttvn-help-item"><span class="ttvn-help-cmd">Reset</span><span class="ttvn-help-desc">Clear and start over</span></div>',
+        '<div class="ttvn-help-item"><span class="ttvn-help-cmd">Help</span><span class="ttvn-help-desc">Show this list</span></div>',
+        '</div>',
         fieldTip,
-        iosTip,
-        isAppleMobileSafari()
-          ? '<br><br>On iPhone: use OpenAI voice mode, chips, or the keyboard mic.'
-          : ''
-      ].join('<br>');
+        iosTip
+      ].join('');
     }
+    var cmds = resolvePageCommands(state);
+    var items = cmds.map(function (c) {
+      return '<div class="ttvn-help-item"><span class="ttvn-help-cmd">' +
+        String(c.label).replace(/</g, '&lt;') +
+        '</span><span class="ttvn-help-desc">' +
+        String(c.desc || 'Say this command').replace(/</g, '&lt;') +
+        '</span></div>';
+    }).join('');
     return [
-      '<strong>Page commands</strong>',
-      '• Edit contact — open personal info',
-      '• Help — show this list',
-      'Open a form, then say Next / Save or dictate a field.',
+      '<div class="ttvn-help-title">Commands on this page</div>',
+      '<div class="ttvn-help-list">' + items + '</div>',
+      '<div class="ttvn-help-note">Tap a button above, or speak the command name.</div>',
       iosTip
-    ].join('<br>');
+    ].join('');
   }
 
   function renderChips(state) {
     if (!state.chipsEl) return;
+    syncBottomStack();
     var items = currentSuggestions(state);
     state.chipsEl.innerHTML = '';
     items.forEach(function (label) {
@@ -469,6 +883,7 @@
       btn.className = 'ttvn-chip';
       btn.textContent = label;
       btn.disabled = !!state.busy;
+      btn.setAttribute('aria-label', 'Voice command: ' + label);
       btn.addEventListener('click', function () {
         if (state.busy) return;
         handleUtterance(state, label);
@@ -566,21 +981,34 @@
     else if (!keepBusy && !state.busy) {
       setStatus(state, state.formCtx && state.formCtx.active
         ? 'Say Next, Save, or a field value'
-        : 'Try: Edit contact · Help');
+        : tryCommandsHint(state));
     }
   }
 
   function applyMicVisibility(state) {
     if (!state || !state.micBtn) return;
     var allow = micAllowed(state);
-    state.micBtn.hidden = !allow;
-    state.micBtn.style.display = allow ? '' : 'none';
-    state.micBtn.setAttribute('aria-hidden', allow ? 'false' : 'true');
+    state.micBtn.hidden = false;
+    state.micBtn.removeAttribute('hidden');
+    state.micBtn.style.display = 'inline-flex';
+    state.micBtn.setAttribute('aria-hidden', 'false');
     if (!allow) {
       state.micBtn.classList.remove('is-listening');
+      state.micBtn.classList.add('is-unavailable');
       state.micBtn.disabled = true;
+      state.micBtn.setAttribute('aria-disabled', 'true');
+      state.micBtn.setAttribute('title', 'Mic not available');
+      state.micBtn.setAttribute('aria-label', 'Mic not available');
+      var iconOff = state.micBtn.querySelector('i');
+      if (iconOff) iconOff.className = 'bx bx-microphone-off';
     } else if (!state.busy) {
+      state.micBtn.classList.remove('is-unavailable');
       state.micBtn.disabled = false;
+      state.micBtn.setAttribute('aria-disabled', 'false');
+      state.micBtn.setAttribute('title', 'Voice command');
+      state.micBtn.setAttribute('aria-label', 'Start voice command');
+      var iconOn = state.micBtn.querySelector('i');
+      if (iconOn && !state.wantListening) iconOn.className = 'bx bx-microphone';
     }
   }
 
@@ -588,14 +1016,13 @@
     try { console.warn('[tt-voice-nav] speech engine unavailable:', reason || 'unknown'); } catch (e) {}
     setProbeCache(false);
     stopListening(state);
-    // Keep the green bar + chips so users can still navigate/test without STT.
+    // Mic unavailable → do not show Voice Navigation bar (chips-only removed)
     if (state) {
       state.commandsOnly = true;
       applyMicVisibility(state);
-      setHeard(state, 'Voice engine unavailable');
-      setStatus(state, 'Use suggestion chips below (mic hidden). Reason logged in console.');
-      showBar(state);
-      renderChips(state);
+      setHeard(state, 'Mic not available');
+      setStatus(state, 'Mic not available', 'err');
+      if (!state.headless) hideBar(state);
     }
   }
 
@@ -685,6 +1112,10 @@
       return;
     }
     active.commandsOnly = !speechEngineReady();
+    if (active.headless) {
+      hideBar(active);
+      return;
+    }
     ensureBar(active);
     showBar(active);
     applyMicVisibility(active);
@@ -693,7 +1124,8 @@
 
   function refreshLiveVoiceSettings() {
     if (global.TTSpeechInput && typeof global.TTSpeechInput.refreshVoiceSettings === 'function') {
-      return global.TTSpeechInput.refreshVoiceSettings(true).then(function (data) {
+      // Use cached settings when fresh — do not hit API on every mic resume
+      return global.TTSpeechInput.refreshVoiceSettings(false).then(function (data) {
         applyLiveVoiceSettings(data || {
           ok: true,
           mode: getVoiceMode(),
@@ -717,16 +1149,16 @@
 
   function startListening(state) {
     if (state.busy) return;
-    refreshLiveVoiceSettings().then(function () {
-      if (!shouldShowVoiceUi()) {
-        hideBar(state);
-        return;
-      }
-      startListeningNow(state);
-    });
+    // Use last-known settings — do not wait on HTTP before opening the mic
+    if (!shouldShowVoiceUi()) {
+      hideBar(state);
+      return;
+    }
+    startListeningNow(state);
   }
 
   function startListeningNow(state) {
+    if (state.headless) return; // widget owns the mic
     if (state.busy || !shouldShowVoiceUi()) return;
     if (!micAllowed(state)) {
       setStatus(state, 'Mic unavailable here — tap a suggestion chip instead.');
@@ -759,8 +1191,8 @@
         var icon = state.micBtn.querySelector('i');
         if (icon) icon.className = 'bx bx-stop-circle';
       }
-      setHeard(state, 'Listening…');
-      setStatus(state, 'Speak a command — pause 4s to stop');
+      setHeard(state, '');
+      setStatus(state, 'Speak now');
       armSilence(state);
     };
 
@@ -1145,28 +1577,26 @@
   }
 
   function resumeListeningSoon(state) {
-    if (!state || state.commandsOnly || !micAllowed(state)) return;
+    if (!state || state.headless) return; // widget owns the mic
+    if (state.commandsOnly || !micAllowed(state)) return;
     if (state._resumeTimer) {
       clearTimeout(state._resumeTimer);
       state._resumeTimer = null;
     }
     state._resumeTimer = setTimeout(function () {
       state._resumeTimer = null;
-      if (!state || state.busy || state.wantListening) return;
-      refreshLiveVoiceSettings().then(function () {
-        if (!state || state.busy || state.wantListening) return;
-        if (!shouldShowVoiceUi() || !micAllowed(state)) return;
-        setHeard(state, 'Listening…');
-        setStatus(state, 'Speak mode on — pause to stop if you don’t speak');
-        startListeningNow(state);
-      });
+      if (!state || state.headless || state.busy || state.wantListening) return;
+      if (!shouldShowVoiceUi() || !micAllowed(state)) return;
+      setHeard(state, 'Speak now');
+      setStatus(state, 'Speak now');
+      startListeningNow(state);
     }, 450);
   }
 
   /* ---------- command handling ---------- */
 
   function runCommand(state, fn, workingMsg) {
-    setBusy(state, true, workingMsg || 'Working…');
+    setBusy(state, true, workingMsg || 'Processing…');
     var finished = false;
     function done(okMsg, kind) {
       if (finished) return;
@@ -1229,13 +1659,18 @@
       return;
     }
 
-    // Page-level commands
+    // Page-level commands (registered + page-aware defaults)
     if (!state.formCtx || !state.formCtx.active) {
-      var pageCmds = state.config.pageCommands || [];
+      var pageCmds = resolvePageCommands(state);
       for (var p = 0; p < pageCmds.length; p++) {
         var pc = pageCmds[p];
-        if (pc.match && pc.match.test(t)) {
+        if (!pc || !pc.match || pc.label === 'Help') continue;
+        if (pc.match.test(t)) {
           runCommand(state, function (done) {
+            if (typeof pc.run !== 'function') {
+              done('Done');
+              return;
+            }
             var r = pc.run(done, text);
             if (r === 'async') return 'async';
             if (!r) done('Done');
@@ -1243,7 +1678,7 @@
           return;
         }
       }
-      // fuzzy edit contact
+      // Legacy fuzzy edit contact — only when the control exists
       if (/(edit|open|change).*(contact|personal|profile|info)/.test(t) || t === 'edit contact') {
         var openBtn = document.getElementById('openPersonalInfoModal');
         if (openBtn) {
@@ -1263,7 +1698,7 @@
           return;
         }
       }
-      setStatus(state, 'Try: Edit contact · Help', 'err');
+      setStatus(state, tryCommandsHint(state), 'err');
       return;
     }
 
@@ -1475,6 +1910,11 @@
       modal.addEventListener('shown.bs.offcanvas', function () {});
       modal.addEventListener('shown.bs.modal', function () {
         if (!shouldShowVoiceUi()) return;
+        // Site widget owns the green bar — only activate form, don't show legacy bar
+        if (state.headless) {
+          activateForm(state, formCfg);
+          return;
+        }
         ensureBar(state);
         showBar(state);
         applyMicVisibility(state);
@@ -1499,11 +1939,12 @@
           stopListening(state);
           deactivateForm(state);
           if (state.commandsOnly || !micAllowed(state)) {
-            setHeard(state, isAppleMobileSafari() ? 'iPhone chips mode' : 'Voice engine unavailable');
-            setStatus(state, speechUnavailableReason() || 'Tap chips to test commands');
+            setHeard(state, 'Mic not available');
+            setStatus(state, 'Mic not available — use command buttons below.', 'err');
+            applyMicVisibility(state);
           } else {
             setHeard(state, 'Tap mic to speak');
-            setStatus(state, 'Try: Edit contact · Help');
+            setStatus(state, tryCommandsHint(state));
           }
           if (state.helpEl) state.helpEl.classList.remove('is-open');
         }
@@ -1524,17 +1965,19 @@
       _resumeTimer: null,
       silenceTimer: null,
       networkRetry: false,
-      ignoreEnd: false
+      ignoreEnd: false,
+      headless: !!(config && config.headless)
     };
 
     try {
       global.addEventListener('tt-voice-settings', function (ev) {
         applyLiveVoiceSettings((ev && ev.detail) || null);
         if (active && voiceFeatureEnabled()) {
-          ensureBar(active);
-          // Keep bar ready; show when a form modal opens or user already has it.
-          applyMicVisibility(active);
-          renderChips(active);
+          if (!active.headless) {
+            ensureBar(active);
+            applyMicVisibility(active);
+            renderChips(active);
+          }
         }
       });
     } catch (eListen) {}
@@ -1542,7 +1985,7 @@
       try { global.TTSpeechInput.startVoiceSettingsWatcher(); } catch (eWatch) {}
     }
 
-    if (!shouldShowVoiceUi()) {
+    if (!shouldShowVoiceUi() && !state.headless) {
       try {
         console.warn('[tt-voice-nav] voice off — watching for admin enable');
       } catch (e) {}
@@ -1554,25 +1997,33 @@
     var finishAttach = function (forceCommandsOnly) {
       if (forceCommandsOnly) state.commandsOnly = true;
       if (!speechEngineReady()) state.commandsOnly = true;
-      ensureBar(state);
-      showBar(state);
-      applyMicVisibility(state);
-      renderChips(state);
+      if (!state.headless) {
+        ensureBar(state);
+        applyMicVisibility(state);
+        // Mic unavailable → never show Voice Navigation bar
+        if (state.commandsOnly) {
+          hideBar(state);
+        } else {
+          showBar(state);
+          renderChips(state);
+        }
+      }
       bindFormLifecycle(state);
       active = state;
+      if (state.headless) {
+        setStatus(state, 'Voice forms ready');
+        return;
+      }
       if (state.commandsOnly) {
-        setHeard(state, isAppleMobileSafari() ? 'iPhone chips mode' : 'Voice engine unavailable');
-        setStatus(
-          state,
-          speechUnavailableReason() || 'Tap chips to test commands (mic hidden on this device/URL)'
-        );
+        setHeard(state, 'Mic not available');
+        setStatus(state, 'Mic not available', 'err');
       } else {
-        setHeard(state, 'Tap mic to speak');
-        setStatus(state, 'Try: Edit contact · Help');
+        setHeard(state, 'Speak now');
+        setStatus(state, tryCommandsHint(state));
       }
     };
 
-    if (navigator.permissions && navigator.permissions.query) {
+    if (!state.headless && navigator.permissions && navigator.permissions.query) {
       try {
         navigator.permissions.query({ name: 'microphone' }).then(function (status) {
           if (!shouldShowVoiceUi()) {
@@ -1580,7 +2031,7 @@
             return;
           }
           if (status.state === 'denied') {
-            try { console.warn('[tt-voice-nav] mic permission denied — chips-only mode'); } catch (e) {}
+            try { console.warn('[tt-voice-nav] mic permission denied — hiding voice bar'); } catch (e) {}
             finishAttach(true);
             return;
           }
@@ -1623,10 +2074,33 @@
   global.TTVoiceNav = {
     attach: attach,
     detach: detach,
+    mergeConfig: mergeConfig,
+    registerForm: registerForm,
+    activateFormById: activateFormById,
     shouldShowVoiceUi: shouldShowVoiceUi,
     speechEngineReady: speechEngineReady,
     voiceFeatureEnabled: voiceFeatureEnabled,
     canUseSpeechNow: canUseSpeechNow,
+    syncBottomStack: syncBottomStack,
+    hideBar: function () {
+      if (active) hideBar(active);
+      else {
+        try {
+          var el = document.getElementById(BAR_ID);
+          if (el) {
+            el.classList.remove('is-visible');
+            el.style.display = 'none';
+          }
+          document.body.classList.remove('ttvn-bar-open');
+        } catch (e) {}
+      }
+    },
+    getPageCommands: function () {
+      return resolvePageCommands(active || { config: {} });
+    },
+    refreshChips: function () {
+      if (active) renderChips(active);
+    },
     handleUtterance: function (text) {
       if (active) handleUtterance(active, text);
     },

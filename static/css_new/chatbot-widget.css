@@ -169,7 +169,7 @@
 
 #cb-badge.visible { display: flex; }
 
-/* FAB helper tooltip (shown on initial load) */
+/* FAB helper tooltip — only on hover/focus (never blocks the mic FAB) */
 #cb-fab-tooltip {
   position: absolute;
   right: 0;
@@ -186,7 +186,8 @@
   opacity: 0;
   transform: translateY(8px);
   pointer-events: none;
-  transition: opacity .25s ease, transform .25s ease;
+  transition: opacity .2s ease, transform .2s ease;
+  z-index: 2;
 }
 #cb-fab-tooltip::after {
   content: "";
@@ -197,9 +198,69 @@
   border-style: solid;
   border-color: #111827 transparent transparent transparent;
 }
+/* Desktop / devices with hover: show label only while hovering or focusing the Ask AI button */
+@media (hover: hover) and (pointer: fine) {
+  #cb-fab-wrap:hover #cb-fab-tooltip,
+  #cb-fab-wrap:focus-within #cb-fab-tooltip {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* Legacy class kept inert — do not auto-pin tooltip over the mic stack */
 #cb-fab-tooltip.cb-visible {
-  opacity: 1;
-  transform: translateY(0);
+  opacity: 0;
+  transform: translateY(8px);
+}
+@media (hover: hover) and (pointer: fine) {
+  #cb-fab-wrap:hover #cb-fab-tooltip.cb-visible,
+  #cb-fab-wrap:focus-within #cb-fab-tooltip.cb-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* When Voice mic is stacked above Ask AI, keep label beside the icon (never above) */
+body.ttvw-with-chatbot #cb-fab-tooltip {
+  right: calc(var(--cb-fab-size) + 10px);
+  left: auto;
+  bottom: 50%;
+  top: auto;
+  transform: translateY(50%) translateX(8px);
+  white-space: normal;
+  max-width: min(180px, calc(100vw - 100px));
+  line-height: 1.25;
+}
+body.ttvw-with-chatbot #cb-fab-tooltip::after {
+  right: -6px;
+  top: 50%;
+  left: auto;
+  bottom: auto;
+  transform: translateY(-50%);
+  border-width: 6px 0 6px 6px;
+  border-color: transparent transparent transparent #111827;
+}
+@media (hover: hover) and (pointer: fine) {
+  body.ttvw-with-chatbot #cb-fab-wrap:hover #cb-fab-tooltip,
+  body.ttvw-with-chatbot #cb-fab-wrap:focus-within #cb-fab-tooltip {
+    transform: translateY(50%) translateX(0);
+  }
+}
+body.ttvw-with-chatbot.cb-ai-pos-left #cb-fab-tooltip {
+  right: auto;
+  left: calc(var(--cb-fab-size) + 10px);
+  transform: translateY(50%) translateX(-8px);
+}
+body.ttvw-with-chatbot.cb-ai-pos-left #cb-fab-tooltip::after {
+  left: -6px;
+  right: auto;
+  border-width: 6px 6px 6px 0;
+  border-color: transparent #111827 transparent transparent;
+}
+@media (hover: hover) and (pointer: fine) {
+  body.ttvw-with-chatbot.cb-ai-pos-left #cb-fab-wrap:hover #cb-fab-tooltip,
+  body.ttvw-with-chatbot.cb-ai-pos-left #cb-fab-wrap:focus-within #cb-fab-tooltip {
+    transform: translateY(50%) translateX(0);
+  }
 }
 
 
@@ -1393,6 +1454,44 @@ body.cb-bots-stack #cb-window {
     bottom: max(90px, calc(72px + env(safe-area-inset-bottom, 0px))) !important;
   }
 }
+/*
+ * PWA / mobile: keep “Ask AI Career Counsellor” beside the FAB, not above it.
+ * Touch devices: no persistent/auto tooltip (hover media above); label via title/aria.
+ */
+@media (max-width: 767.98px) {
+  #cb-fab-tooltip {
+    right: calc(var(--cb-fab-size) + 10px);
+    left: auto;
+    bottom: 50%;
+    top: auto;
+    transform: translateY(50%) translateX(8px);
+    white-space: normal;
+    max-width: min(150px, calc(100vw - 100px));
+    line-height: 1.25;
+    z-index: 1;
+  }
+  #cb-fab-tooltip::after {
+    right: -6px;
+    top: 50%;
+    left: auto;
+    bottom: auto;
+    transform: translateY(-50%);
+    border-width: 6px 0 6px 6px;
+    border-color: transparent transparent transparent #111827;
+  }
+  body.cb-ai-pos-left #cb-fab-tooltip {
+    right: auto;
+    left: calc(var(--cb-fab-size) + 10px);
+    transform: translateY(50%) translateX(-8px);
+  }
+  body.cb-ai-pos-left #cb-fab-tooltip::after {
+    left: -6px;
+    right: auto;
+    border-width: 6px 6px 6px 0;
+    border-color: transparent #111827 transparent transparent;
+  }
+}
+
 @media (max-width: 480px) {
   body.cb-bots-stack #cb-fab-wrap {
     bottom: max(90px, calc(72px + env(safe-area-inset-bottom, 0px))) !important;

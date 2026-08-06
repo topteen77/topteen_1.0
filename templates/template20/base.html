@@ -81,11 +81,14 @@
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="{{ static('css_new/bootstrap.min.css') }}">
   <link rel="stylesheet" href="{{ static('css_new/custom-min.css') }}?v=20260728-smart1" type="text/css" media="all" />
-  {% if show_ai_counsellor_bot %}<link rel="stylesheet" href="{{ static('css_new/chatbot-widget.css') }}?v=20260728e" type="text/css" media="all" />{% endif %}
+  {% if show_ai_counsellor_bot %}<link rel="stylesheet" href="{{ static('css_new/chatbot-widget.css') }}?v=20260806-cb2" type="text/css" media="all" />{% endif %}
   {% if show_page_chat_widget %}<link rel="stylesheet" href="{{ static('css_new/page-chat-widget.css') }}?v=20260728h" type="text/css" media="all" />{% endif %}
   <link rel="stylesheet" href="{{ static('css_new/search.css') }}" type="text/css" media="all" />
   {% block chatbot_css %}
   {% if show_chatbot %}<link rel="stylesheet" href="{{ static('css_new/chatbot.css') }}" type="text/css" media="all" />{% endif %}
+  {% endblock %}
+  {% block voice_widget_css %}
+  <link rel="stylesheet" href="{{ static('css_new/tt-voice-widget.css') }}?v=20260806-vw20" type="text/css" media="all" />
   {% endblock %}
   {# After header + chat CSS so safe-area insets win over fixed heights #}
   <link rel="stylesheet" href="{{ static('css_new/pwa-safe-area.css') }}?v=6" type="text/css" media="all" />
@@ -250,14 +253,14 @@
   {# When both widgets load, page-chat must mount first so cb-root is later in DOM (same z-index stacking). #}
   {% if show_page_chat_widget and show_ai_counsellor_bot %}
   <script src="{{ static('js_new/page-chat-widget.js') }}?v=20260728-kb2" defer></script>
-  <script src="{{ static('js_new/chatbot-widget.js') }}?v=20260728-kb2" defer></script>
+  <script src="{{ static('js_new/chatbot-widget.js') }}?v=20260806-cb2" defer></script>
   {% else %}
-  {% if show_ai_counsellor_bot %}<script src="{{ static('js_new/chatbot-widget.js') }}?v=20260728-kb2" defer></script>{% endif %}
+  {% if show_ai_counsellor_bot %}<script src="{{ static('js_new/chatbot-widget.js') }}?v=20260806-cb2" defer></script>{% endif %}
   {% if show_page_chat_widget %}<script src="{{ static('js_new/page-chat-widget.js') }}?v=20260728-kb2" defer></script>{% endif %}
   {% endif %}
 
   {% block chatbot_js %}
-  {% if show_chatbot %}<script src="{{ static('js_new/chatbot-widget.js') }}?v=20260728-kb2" defer></script>{% endif %}
+  {% if show_chatbot %}<script src="{{ static('js_new/chatbot-widget.js') }}?v=20260806-cb2" defer></script>{% endif %}
   {% endblock %}
   <script>
     window.TT_INCLUDED_LANGUAGES = {{ translate_enabled_languages_csv | tojson }};
@@ -270,7 +273,12 @@
     window.TT_VOICE_SETTINGS_API = {{ voice_settings_api_url | default('/api/voice/settings/') | tojson }};
   </script>
   {# Always load helper so open tabs can hide mics immediately when admin disables voice. #}
-  <script src="{{ static('js_new/tt-speech-input.js') }}?v=20260806-speech11" defer></script>
+  <script src="{{ static('js_new/tt-speech-input.js') }}?v=20260806-speech18" defer></script>
+  <script src="{{ static('js_new/tt-screen-reader.js') }}?v=20260806-sr3" defer></script>
+  <script src="{{ static('js_new/tt-voice-nav.js') }}?v=20260806-voicenav15" defer></script>
+  {% block voice_widget %}
+  <script src="{{ static('js_new/tt-voice-widget.js') }}?v=20260806-vw24" defer></script>
+  {% endblock %}
   <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" defer></script>
 
   {% if request and request.user and request.user.is_authenticated %}

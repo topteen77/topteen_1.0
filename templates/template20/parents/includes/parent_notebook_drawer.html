@@ -1267,10 +1267,7 @@
     stopListening();
   });
 
-  document.addEventListener('click', function (e) {
-    var trigger = e.target.closest('[data-parent-notebook-open]');
-    if (!trigger) return;
-    e.preventDefault();
+  function openNotebookDrawer() {
     // Close mobile nav drawer if open so notebook can show
     var navDrawer = document.getElementById('mobileProfileDrawer');
     if (navDrawer && window.bootstrap && bootstrap.Offcanvas) {
@@ -1280,6 +1277,26 @@
     if (window.bootstrap && bootstrap.Offcanvas) {
       bootstrap.Offcanvas.getOrCreateInstance(drawer).show();
     }
+  }
+
+  document.addEventListener('click', function (e) {
+    var trigger = e.target.closest('[data-parent-notebook-open]');
+    if (!trigger) return;
+    e.preventDefault();
+    openNotebookDrawer();
   });
+
+  // Deep-link from /user/my-notepad/ redirect → scrapbook?open_notebook=1
+  try {
+    var params = new URLSearchParams(window.location.search || '');
+    if (params.get('open_notebook') === '1') {
+      params.delete('open_notebook');
+      var clean = window.location.pathname + (params.toString() ? '?' + params.toString() : '') + (window.location.hash || '');
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState({}, '', clean);
+      }
+      setTimeout(openNotebookDrawer, 80);
+    }
+  } catch (errOpen) {}
 })();
 </script>

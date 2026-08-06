@@ -1,11 +1,14 @@
 """
-Site-wide voice-to-text mode
+Site-wide voice-to-text + voice widget settings
 (Admin → Configuration hub → Voice to text settings).
 
 Modes:
   off      — hide mic / voice UI everywhere
   browser  — Web Speech API (free; Chrome/Edge; not Safari iOS)
   openai   — OpenAI gpt-4o-mini-transcribe via server proxy
+
+Widget flags are stored as Configuration keys and exposed live via
+GET /api/voice/settings/ (DB read — no service restart).
 """
 from __future__ import annotations
 
@@ -31,6 +34,33 @@ OPENAI_TRANSCRIBE_MODEL = 'gpt-4o-mini-transcribe'
 VOICE_TO_TEXT_MODE_KEY = 'VOICE_TO_TEXT_MODE'
 ENABLE_VOICE_TO_TEXT_KEY = 'ENABLE_VOICE_TO_TEXT'
 
+# Widget feature flags (Admin → Voice to text settings)
+VOICE_WIDGET_ENABLED_KEY = 'VOICE_WIDGET_ENABLED'
+VOICE_NAV_ENABLED_KEY = 'VOICE_NAV_ENABLED'
+VOICE_TALK_TYPE_ENABLED_KEY = 'VOICE_TALK_TYPE_ENABLED'
+VOICE_LINK_NUMBERS_ENABLED_KEY = 'VOICE_LINK_NUMBERS_ENABLED'
+VOICE_NAV_DEFAULT_ON_KEY = 'VOICE_NAV_DEFAULT_ON'
+VOICE_TALK_TYPE_DEFAULT_ON_KEY = 'VOICE_TALK_TYPE_DEFAULT_ON'
+
+VOICE_WIDGET_BOOL_KEYS = (
+    VOICE_WIDGET_ENABLED_KEY,
+    VOICE_NAV_ENABLED_KEY,
+    VOICE_TALK_TYPE_ENABLED_KEY,
+    VOICE_LINK_NUMBERS_ENABLED_KEY,
+    VOICE_NAV_DEFAULT_ON_KEY,
+    VOICE_TALK_TYPE_DEFAULT_ON_KEY,
+)
+
+# Defaults when key missing
+_VOICE_WIDGET_BOOL_DEFAULTS = {
+    VOICE_WIDGET_ENABLED_KEY: True,
+    VOICE_NAV_ENABLED_KEY: True,
+    VOICE_TALK_TYPE_ENABLED_KEY: True,
+    VOICE_LINK_NUMBERS_ENABLED_KEY: True,
+    VOICE_NAV_DEFAULT_ON_KEY: False,
+    VOICE_TALK_TYPE_DEFAULT_ON_KEY: True,
+}
+
 
 def normalize_voice_to_text_mode(raw) -> str:
     mode = str(raw or '').strip().lower()
@@ -43,6 +73,12 @@ def normalize_voice_to_text_mode(raw) -> str:
     if mode in ('openai_mini', 'gpt-4o-mini-transcribe', 'whisper', 'cloud'):
         return VOICE_TO_TEXT_OPENAI
     return ''
+
+
+def _parse_bool(raw, default: bool = True) -> bool:
+    if raw is None or raw == '':
+        return default
+    return str(raw).strip().lower() in ('true', '1', 'yes', 'on')
 
 
 def _default_voice_mode() -> str:
@@ -62,7 +98,6 @@ def get_voice_to_text_mode() -> str:
         mode = normalize_voice_to_text_mode(raw)
         if mode:
             return mode
-        # Legacy boolean toggle
         legacy = Configuration.get(
             ENABLE_VOICE_TO_TEXT_KEY,
             default=str(getattr(settings, 'ENABLE_VOICE_TO_TEXT', True)).lower(),
@@ -80,9 +115,6 @@ def get_voice_to_text_mode() -> str:
 def get_voice_to_text_mode_live() -> str:
     """
     Read mode directly from DB (bypass process-local / Redis config snapshot).
-
-    Used by the public settings API so admin changes apply immediately across
-    all gunicorn workers, not after CONFIGURATION_LOCAL_TTL.
     """
     default = _default_voice_mode()
     try:
@@ -108,6 +140,26 @@ def get_voice_to_text_mode_live() -> str:
         return get_voice_to_text_mode()
 
 
+def _read_bool_live(key: str, default: bool) -> bool:
+    try:
+        from core.models import Configuration
+
+        row = Configuration.objects.filter(key=key).only('value').first()
+        if row is None:
+            return default
+        return _parse_bool(row.value, default)
+    except Exception:
+        return default
+
+
+def get_voice_widget_settings_live() -> dict:
+    """All widget flags from DB (no config cache)."""
+    flags = {}
+    for key in VOICE_WIDGET_BOOL_KEYS:
+        flags[key] = _read_bool_live(key, _VOICE_WIDGET_BOOL_DEFAULTS[key])
+    return flags
+
+
 def voice_to_text_enabled(mode: str | None = None) -> bool:
     return (mode or get_voice_to_text_mode()) != VOICE_TO_TEXT_OFF
 
@@ -117,10 +169,34 @@ def openai_transcribe_available() -> bool:
 
 
 def voice_settings_payload() -> dict:
+    """Live payload for open tabs — admin changes apply without restart."""
     mode = get_voice_to_text_mode_live()
+    stt_on = mode != VOICE_TO_TEXT_OFF
+    flags = get_voice_widget_settings_live()
+    widget_enabled = bool(flags[VOICE_WIDGET_ENABLED_KEY]) and stt_on
+    nav_enabled = bool(flags[VOICE_NAV_ENABLED_KEY]) and widget_enabled
+    talk_enabled = bool(flags[VOICE_TALK_TYPE_ENABLED_KEY]) and widget_enabled
+    link_numbers = bool(flags[VOICE_LINK_NUMBERS_ENABLED_KEY]) and nav_enabled
     return {
         'ok': True,
         'mode': mode,
-        'enabled': voice_to_text_enabled(mode),
+        'enabled': stt_on,
+        'widget_enabled': widget_enabled,
+        'nav_enabled': nav_enabled,
+        'talk_type_enabled': talk_enabled,
+        'link_numbers_enabled': link_numbers,
+        'nav_default_on': bool(flags[VOICE_NAV_DEFAULT_ON_KEY]) and nav_enabled,
+        'talk_type_default_on': bool(flags[VOICE_TALK_TYPE_DEFAULT_ON_KEY]) and talk_enabled,
         'openai_configured': openai_transcribe_available(),
     }
+
+
+def save_voice_bool(key: str, value: bool) -> None:
+    from core.models import Configuration
+
+    val = 'true' if value else 'false'
+    config, _ = Configuration.objects.get_or_create(
+        key=key, defaults={'value': val, 'editable': True}
+    )
+    config.value = val
+    config.save()

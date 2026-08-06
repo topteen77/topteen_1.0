@@ -18,7 +18,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'forum/css/style.css' %}?v=20260806c">
+    <link rel="stylesheet" href="{% static 'forum/css/style.css' %}?v=20260806f">
     {% csrf_token %}
 </head>
 <body>
@@ -54,7 +54,7 @@
                             <a href="{{ dashboard_url }}" class="btn btn-profile-action btn-profile-dashboard"><i class="fas fa-th-large"></i> Dashboard</a>
                             <a href="{{ logout_url }}" class="btn btn-profile-action btn-profile-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
                             {% else %}
-                            <button type="button" class="btn btn-profile-action btn-profile-login" onclick="if (typeof showLoginRequiredPopup === 'function') { showLoginRequiredPopup(window.location.href); }"><i class="fas fa-sign-in-alt"></i> Login</button>
+                            <button type="button" class="btn btn-profile-action btn-profile-login" onclick="if (typeof showLoginRequiredPopup === 'function') { showLoginRequiredPopup(window.location.pathname + window.location.search + window.location.hash); }"><i class="fas fa-sign-in-alt"></i> Login</button>
                             {% endif %}
                         </div>
                     </div>
@@ -255,6 +255,7 @@
     <script>
         window.FORUM_CAN_MODERATE = {{ can_moderate_forum|yesno:"true,false" }};
     </script>
-    <script src="{% static 'forum/js/main.js' %}?v=20260806b"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+    <script src="{% static 'forum/js/main.js' %}?v=20260806e"></script>
 </body>
 </html>

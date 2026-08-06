@@ -37,6 +37,76 @@ def is_non_answer_response(response_text: str) -> bool:
     return False
 
 
+def _looks_like_html(text: str) -> bool:
+    return bool(re.search(r"<\s*(p|div|h[1-6]|ul|ol|li|strong|em|br|table|span|a)\b", text or "", re.I))
+
+
+def _looks_like_markdown(text: str) -> bool:
+    s = text or ""
+    return bool(
+        re.search(r"(^|\n)\s{0,3}#{1,6}\s+\S", s)
+        or re.search(r"(^|\n)\s{0,3}[-*+]\s+\S", s)
+        or re.search(r"(^|\n)\s{0,3}\d+\.\s+\S", s)
+        or re.search(r"\*\*[^*\n]+\*\*", s)
+        or re.search(r"__[^_\n]+__", s)
+        or "```" in s
+        or re.search(r"\[[^\]]+\]\([^)]+\)", s)
+    )
+
+
+def ensure_response_html(response_text: str) -> str:
+    """
+    Convert markdown AI answers to HTML for forum display/storage.
+    Leaves existing HTML unchanged.
+    """
+    if not response_text:
+        return response_text or ""
+    text = str(response_text).strip()
+    # Strip fenced code wrappers
+    if text.startswith("```html"):
+        text = text.replace("```html\n", "", 1).replace("```html", "", 1)
+    if text.startswith("```"):
+        text = text[3:].lstrip("\n")
+    if text.endswith("```"):
+        text = text.rsplit("```", 1)[0]
+    text = text.strip()
+    if not text:
+        return ""
+
+    if _looks_like_html(text) and not _looks_like_markdown(text):
+        return text
+
+    if not _looks_like_markdown(text) and _looks_like_html(text):
+        return text
+
+    try:
+        import markdown as md
+
+        for extensions in (
+            ["extra", "sane_lists", "nl2br", "tables"],
+            ["extra", "sane_lists", "tables"],
+            ["extra", "nl2br"],
+            ["extra"],
+            [],
+        ):
+            try:
+                return md.markdown(text, extensions=extensions)
+            except Exception:
+                continue
+    except ImportError:
+        pass
+
+    # Minimal fallback: bold/italic + paragraphs
+    html = (
+        text.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+    )
+    html = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", html)
+    html = re.sub(r"(?<!\*)\*([^*\n]+)\*(?!\*)", r"<em>\1</em>", html)
+    parts = [p.strip() for p in re.split(r"\n\s*\n", html) if p.strip()]
+    return "".join(f"<p>{p.replace(chr(10), '<br>')}</p>" for p in parts)
+
 def extract_entities(query):
     """Extract country, course, and category from query"""
     query_lower = query.lower()
@@ -811,8 +881,8 @@ def generate_ai_response(query, country=None, category=None, user=None, request=
             else:
                 # If header exists, just return cleaned response
                 formatted_response = cleaned_response
-            
-            return formatted_response, 0.0
+
+            return ensure_response_html(formatted_response), 0.0
     
     # STEP 2: Check cache (temporary cache for same session)
     cache_key = f"ai_response_{hash(query)}"
@@ -835,7 +905,7 @@ def generate_ai_response(query, country=None, category=None, user=None, request=
         if not has_query_header:
             cleaned_text = f'<h4>📝 Query:</h4>\n<p><strong>{query}</strong></p>\n\n{cleaned_text}'
         
-        return cleaned_text, cost
+        return ensure_response_html(cleaned_text), cost
     
     # Get OpenAI API key
     api_key = settings.OPENAI_API_KEY
@@ -1153,7 +1223,9 @@ Course: [If applicable]</p>
 <li>Total: [range]</li>
 </ul>
 
-Format your response in clean HTML with proper headings, lists, and strategic emoji usage. Be professional, clear, helpful, and always maintain a courteous demeanor."""
+Format your response in clean HTML only (use <p>, <strong>, <ul><li>, <h4>, etc.).
+Do NOT use Markdown syntax such as **bold**, *italic*, # headings, or - lists.
+Be professional, clear, helpful, and always maintain a courteous demeanor."""
 
     try:
         # Call OpenAI API with configured model (default: GPT-4o-mini)
@@ -1225,6 +1297,9 @@ Only answer questions related to career choices, education for careers, or skill
         if ai_response.endswith('```'):
             ai_response = ai_response.rsplit('```', 1)[0]
         ai_response = ai_response.strip()
+
+        # Convert markdown → HTML so forum UI never shows raw ** / * markers
+        ai_response = ensure_response_html(ai_response)
 
         # No usable answer → do not charge tokens
         if not ai_response or is_non_answer_response(ai_response):
