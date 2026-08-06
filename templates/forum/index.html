@@ -18,7 +18,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'forum/css/style.css' %}?v=20260806b">
+    <link rel="stylesheet" href="{% static 'forum/css/style.css' %}?v=20260806c">
     {% csrf_token %}
 </head>
 <body>
@@ -60,7 +60,8 @@
                     </div>
                 </div>
 
-                {# Standalone quota card — matches stacked PWA card layout #}
+                {# AI Career Guidance — logged-in accounts only #}
+                {% if user.is_authenticated %}
                 <div class="card forum-quota-shell" id="forumQuotaShell">
                     <div class="card-header new-card-header-gradient forum-quota-shell-header">
                         <h3><i class="fas fa-robot" aria-hidden="true"></i> AI Career Guidance</h3>
@@ -102,6 +103,7 @@
                         </div>
                     </div>
                 </div>
+                {% endif %}
 
                 <!-- AI Features Card -->
                 <div class="card features-card">
