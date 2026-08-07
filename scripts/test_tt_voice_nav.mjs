@@ -248,7 +248,9 @@ const emailBad = loadApi()._validateField(
 assert(!emailBad.ok, 'bad email rejected');
 
 const apiOff = loadApi({ admin: false });
-assert(apiOff.attach({ pageCommands: [], forms: [] }) == null, 'attach no-ops when admin disabled');
+const attachedOff = apiOff.attach({ pageCommands: [], forms: [] });
+assert(!!attachedOff, 'attach still wires watcher when admin disabled');
+assert(apiOff.shouldShowVoiceUi() === false, 'UI stays hidden while admin disabled');
 
 if (failed) {
   console.error('\n' + failed + ' test(s) failed');

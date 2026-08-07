@@ -1242,6 +1242,19 @@
 
   setupSpeech();
 
+  try {
+    window.addEventListener('tt-voice-settings', function (ev) {
+      var data = (ev && ev.detail) || {};
+      var mode = String(data.mode || window.TT_VOICE_TO_TEXT_MODE || '').toLowerCase();
+      if (mode === 'off' || data.enabled === false) {
+        try { stopListening(); } catch (eStop) {}
+        hideMic();
+        return;
+      }
+      probeAndMaybeShowMic();
+    });
+  } catch (eVoiceEvt) {}
+
   drawer.addEventListener('show.bs.offcanvas', function () {
     // Never show voice errors just because the notebook opened
     if (!wantListening) setStatus('');

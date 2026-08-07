@@ -3040,6 +3040,17 @@ def translate_complexity_api(request):
     })
 
 
+@require_GET
+def voice_settings_api(request):
+    """
+    Live voice-to-text mode for open browser tabs.
+    Reads DB directly so admin changes apply without waiting for config cache TTL.
+    """
+    from core.voice_to_text import voice_settings_payload
+
+    return JsonResponse(voice_settings_payload())
+
+
 @require_POST
 def voice_transcribe_api(request):
     """
@@ -3050,11 +3061,11 @@ def voice_transcribe_api(request):
     from core.voice_to_text import (
         OPENAI_TRANSCRIBE_MODEL,
         VOICE_TO_TEXT_OPENAI,
-        get_voice_to_text_mode,
+        get_voice_to_text_mode_live,
         openai_transcribe_available,
     )
 
-    if get_voice_to_text_mode() != VOICE_TO_TEXT_OPENAI:
+    if get_voice_to_text_mode_live() != VOICE_TO_TEXT_OPENAI:
         return JsonResponse({'ok': False, 'error': 'Cloud voice-to-text is disabled'}, status=403)
     if not openai_transcribe_available():
         return JsonResponse({'ok': False, 'error': 'OpenAI API key is not configured'}, status=503)
