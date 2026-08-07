@@ -60,6 +60,65 @@
 }
 
 
+.db-header.framework-header {
+	margin-top: 64px;
+}
+
+
+
+.framework-art-panel {
+  position: relative;
+  width: 100%;
+  max-width: 172mm;
+  margin: 34px auto 0;
+    margin-bottom: 0px;
+  padding: 28px 16px 18px;
+  border: 1.6px solid #3F37C9;
+  border-radius: 14px;
+  background: #ffffff;
+  box-sizing: border-box;
+  text-align: center;
+  overflow: visible;
+  margin-top: 74px;
+}
+
+
+.framework-wish-badge {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  width: 280px;
+  margin-left: -140px;
+  background: #3F37C9;
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  padding: 9px 14px;
+  border-radius: 8px;
+  letter-spacing: 0.01em;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+
+.framework-art {
+  width: 100%;
+  margin: 6px auto 0;
+    margin-bottom: 0px;
+  text-align: center;
+}
+
+
+.framework-art img {
+  display: inline-block !important;
+  width: 100% !important;
+  max-width: 150mm !important;
+  max-height: 148mm !important;
+  height: auto !important;
+  vertical-align: middle;
+}
     </style>
 
 
@@ -73,6 +132,101 @@
             <hr class="page-header-line" style="width: 100%;" />
     </div>
 
+    <!-- Introduction -->
+    {% if is_combined_pdf|default(false) %}
+    <div class="chapterPage intro-page">
+      <div class="intro-panel">
+        <div class="intro-panel-badge">Introduction</div>
+        <p>Selecting the right academic stream is a significant milestone in a student's educational journey. It's like choosing a path in a vast, exciting forest where each trail leads to unique adventures and destinations. This decision lays the foundation for future career prospects and academic pursuits, making it crucial for students to carefully evaluate their options.</p>
+        <p>Imagine standing at a crossroads with a map in hand, each route offering a glimpse into different worlds—science teeming with discoveries, commerce bustling with business acumen, and humanities rich with cultural insights. This pivotal choice is not just about subjects and exams; it's about uncovering your passions, unlocking potential, and setting the stage for your future. Whether you dream of becoming an engineer, an entrepreneur, or an artist, the right stream can be the launch pad to your aspirations, turning your academic journey into an exhilarating quest for knowledge and success.</p>
+        <p>The Stream Sorter Assessment Test aims to guide students in this decision by evaluating three key aspects: <span class="intro-highlight">Interest, Personality, and Aptitude.</span> These elements are essential in identifying the most suitable academic path for each individual.</p>
+      </div>
+      <div class="intro-career-art">
+        <img src="{{ static('images_new/new_report/career-hand.png') }}" alt="Career" />
+      </div>
+    </div>
+
+    <div class="chapterPage howto-page">
+      <h1 class="howto-title h2-title">How To Use This Report</h1>
+      <p class="howto-intro">This test typically consists of a series of questions in 3 parts that evaluate various aspects of a student's <span class="hl">Personality, Interest and Aptitude</span> and it helps you decide the suggested stream to consider in your high school.</p>
+
+      <table class="howto-cards" cellspacing="0" cellpadding="0">
+        <tr>
+          <td>
+            <div class="howto-card personality">
+              <div class="howto-card-accent"></div>
+              <div class="howto-card-icon">
+                <img src="{{ static('images/personality-icon.png') }}" alt="Personality" />
+              </div>
+              <p class="howto-card-label">Personality</p>
+            </div>
+          </td>
+          <td>
+            <div class="howto-card interest">
+              <div class="howto-card-accent"></div>
+              <div class="howto-card-icon">
+                <img src="{{ static('images/interest-icon.png') }}" alt="Interest" />
+              </div>
+              <p class="howto-card-label">Interest</p>
+            </div>
+          </td>
+          <td>
+            <div class="howto-card aptitude">
+              <div class="howto-card-accent"></div>
+              <div class="howto-card-icon">
+                <img src="{{ static('images/intelligence-icon.png') }}" alt="Aptitude" />
+              </div>
+              <p class="howto-card-label">Aptitude</p>
+            </div>
+          </td>
+        </tr>
+      </table>
+
+      <div class="howto-table-wrap">
+        <table class="howto-table">
+          <thead>
+            <tr>
+              <th>Part</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="howto-part">
+                  <div class="howto-num n1"><span>1</span></div>
+                  <div class="howto-part-text">Part 1 - Personality Assessment</div>
+                </div>
+              </td>
+              <td class="howto-desc"><span class="kw">Personality</span> encompasses the traits &amp; characteristics that define how you interact with the world and approach tasks</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="howto-part">
+                  <div class="howto-num n2"><span>2</span></div>
+                  <div class="howto-part-text">Part 2 - Career Interest Assessment</div>
+                </div>
+              </td>
+              <td class="howto-desc"><span class="kw">Interest</span> refers to the subjects and activities that naturally engage and excite you</td>
+            </tr>
+            <tr>
+              <td>
+                <div class="howto-part">
+                  <div class="howto-num n3"><span>3</span></div>
+                  <div class="howto-part-text">Part 3 - Aptitude Assessment</div>
+                </div>
+              </td>
+              <td class="howto-desc"><span class="kw">Aptitude</span> refers to your cognitive abilities, including logical reasoning, problem-solving skills, and understanding of complex concepts</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="howto-footer">
+        <p>This comprehensive report ensures that you make informed decision about your academic path, leading to more successful and fulfilling career.</p>
+      </div>
+    </div>
+    {% else %}
     <!-- Introduction -->
     <div class="chapterPage">
       <div class="text-color-top">
@@ -173,7 +327,32 @@
       </div>
     </div>
 
+    {% endif %}
+
     <!-- Topteen Framework -->
+    {% if is_combined_pdf|default(false) %}
+    <div class="chapterPage framework-page">
+      <h1 class="framework-title">Topteen Framework</h1>
+      <div class="framework-copy">
+        <p>Congratulations on completing your Stream Sorter Assessment, including the <strong>Interest, Aptitude, and Personality</strong> tests!</p>
+        <p>These assessments are a significant step in understanding your unique strengths, interests, and abilities. By successfully completing them, you've demonstrated not only your capability but also your commitment to personal and academic growth.</p>
+        <p>As you review your results, remember that these tests are tools to help guide you on your journey towards a fulfilling and successful future. Embrace the insights gained, and use them to explore new opportunities, set goals, and make informed decisions about your education and career paths.</p>
+      </div>
+
+
+   
+
+<div class="framework-art-panel">
+        <div class="framework-wish-badge">Best wishes for your bright future!</div>
+        <div class="framework-art">
+          <img src="{{ static('images_new/new_report/combine-report.png') }}" alt="Topteen Framework" />
+        </div>
+      </div>
+
+
+    
+    </div>
+    {% else %}
     <div class="chapterPage">
       <div class="page-header" style="width:650px ;">
         <div class="page-header-content">
@@ -181,22 +360,28 @@
         </div>
               <hr class="page-header-line" style="width: 100%;" />
       </div>
-      <div class="db-header">
+      
+      <div class="db-header framework-header">
         <h1>Topteen Framework</h1>
       </div>
+
       <div class="text-info-paragraph">
-        <p>Congratulations on completing your Stream Sorter Assessment, including the Interest, Aptitude, and Personality tests!</p>
+        <p>Congratulations on completing your Stream Sorter Assessment, including the <strong style="color:#3F37C9;">Interest, Aptitude, and Personality</strong> tests!</p>
         <p>These assessments are a significant step in understanding your unique strengths, interests, and abilities. By successfully completing them, you've demonstrated not only your capability but also your commitment to personal and academic growth.</p>
         <p>As you review your results, remember that these tests are tools to help guide you on your journey towards a fulfilling and successful future. Embrace the insights gained, and use them to explore new opportunities, set goals, and make informed decisions about your education and career paths.</p>
         <p style="text-align: center; color:#3F37C9; font-style: italic;">Best wishes for your bright future!</p>
       </div>
       <div class="framework-img" style="margin-top: 60px; width:100%; text-align: center;">
-        <img style="width:550px;" src="{{ static('images/framework.png') }}" alt="Framework">
+        <img src="{{ static('images_new/new_report/combine-report.png') }}" alt="Frame Work" />
       </div>
     </div>
+    {% endif %}
 
     <!-- Part 1: Personality Assessment Report -->
     {% if personality_data and personality_data.results %}
+    {% if is_combined_pdf|default(false) %}
+    {% include 'template20/app/partials/personality_assessment_pdf_pages.html' %}
+    {% else %}
     <div class="chapterPage personality-interpretation-page">
       <div class="page-header" style="width:650px ;">
         <div class="page-header-content">
@@ -215,80 +400,6 @@
         <p style="font-size: 14px;">This report is based on the <strong>RIASEC</strong> model, developed by John Holland, which categorizes career interests into six distinct types: <strong>Realistic, Investigative, Artistic, Social, Enterprising, and Conventional</strong>. By identifying your dominant interest types, you can better understand your career preferences and suggest suitable career paths that align with your strengths and passions.</p>
       </div>
 
-
-      <!-- hidden comobine report -->
-      <div class="test-title" style="with:100%; text-align: center; display: none !important;">Holland's Code description</div>
-      <div class="ris-box" style="width:100%; text-align: center; margin-top: 20px; margin-bottom: 30px; display: none !important;">
-        <img style="width:600px;" src="{{ static('images/riasec-ig.png') }}" alt="riasec" />
-      </div>
-
-      
-    <table style="margin-bottom: 30px; margin-top:0px; display: none !important;">
-      <thead>
-        <tr>
-          <th style="background: #E7E5FF; color:#2720A7; padding: 21px 0 21px 14px; border-top-left-radius: 15px; font-size: 14px;">Holland Code</th>
-          <th style="background: #E7E5FF; color:#2720A7; padding: 21px 3px; border-top-right-radius: 15px;">Description</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr style="border:1px solid #9490dd;">
-          <td style="width: 200px; padding-left:14px; text-align: center;">
-            <div class="r-img"><img style="width:30px;" src="{{ static('images/r.png') }}" alt="text" /><br>
-              <span style="color:#057190; font-size: 14px; font-weight: 600;">Realistic</span>
-            </div>
-          </td>
-          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 400; font-size: 11px;">Individuals with Realistic interests prefer hands-on activities and practical tasks. They enjoy working with tools, machines, or animals & often excel in environments that require physical activity & problem-solving. Careers that suit Realistic types include engineering, construction, agriculture, and skilled trades.</td>
-        </tr>
-        <tr style="border:1px solid #9490dd;">
-          <td style="width: 200px; padding-left:14px; text-align: center;">
-            <div class="1-img"><img style="width:30px;" src="{{ static('images/i.png') }}" alt="text" /><br>
-              <span style="color:#A92CAF; font-size: 16px; font-weight: 600;">Investigative</span>
-            </div>
-          </td>
-          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 400; font-size: 11px;">Investigative individuals are curious and analytical, often drawn to research and intellectual challenges. They enjoy exploring ideas, conducting experiments, and solving complex problems. Suitable careers include those in science, medicine, technology, and academia, where critical thinking and data analysis are paramount.</td>
-        </tr>
-        <tr style="border:1px solid #9490dd;">
-          <td style="width: 200px; padding-left:14px; text-align: center;">
-            <div class="1-img"><img style="width:30px;" src="{{ static('images/a.png') }}" alt="text" /><br>
-              <span style="color:#2A740E; font-size: 16px; font-weight: 600;">Artistic</span>
-            </div>
-          </td>
-          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 400; font-size: 11px;">Artistic individuals thrive in creative and expressive environments. They enjoy activities that involve art, music, writing, and design, often seeking opportunities to innovate and express themselves. Careers in the arts, entertainment, fashion, and media are ideal for Artistic types, as they allow for personal expression and creativity.</td>
-        </tr>
-        <tr style="border:1px solid #9490dd;">
-          <td style="width: 200px; padding-left:14px; text-align: center;">
-            <div class="1-img"><img style="width:30px;" src="{{ static('images/s.png') }}" alt="text" /><br>
-              <span style="color:#6D5C04; font-size: 16px; font-weight: 600;">Social</span>
-            </div>
-          </td>
-          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 400; font-size: 11px;">Social individuals are empathetic and enjoy helping others. They excel in roles that involve teaching, counseling, and providing support. Careers in education, healthcare, social work, and human resources are well-suited for Social types, where they can make a positive impact on people's lives.</td>
-        </tr>
-        <tr style="border:1px solid #9490dd;">
-          <td style="width: 200px; padding-left:14px; text-align: center;">
-            <div class="1-img"><img style="width:30px;" src="{{ static('images/e.png') }}" alt="text" /><br>
-              <span style="color:#A22717; font-size: 16px; font-weight: 600;">Enterprising</span>
-            </div>
-          </td>
-          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 400; font-size: 11px;">Enterprising individuals are natural leaders and persuaders. They enjoy activities that involve leading teams, making decisions, and taking risks. They often thrive in dynamic environments where they can influence others and achieve goals. Careers in business, management, sales, and entrepreneurship are ideal for Enterprising types, who are driven by ambition and leadership opportunities.</td>
-        </tr>
-        <tr style="border:1px solid #9490dd;">
-          <td style="width: 200px; padding-left:14px; text-align: center;">
-            <div class="1-img"><img style="width:30px;" src="{{ static('images/c.png') }}" alt="text" /><br>
-              <span style="color:#0B5BA1; font-size: 16px; font-weight: 600;">Conventional</span>
-            </div>
-          </td>
-          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 400; font-size: 11px;">Conventional individuals prefer structured and orderly tasks. They excel in roles that involve organization, data management, and attention to detail. Careers in accounting, administration, finance, and logistics suit Conventional types, where precision and reliability is the key.</td>
-        </tr>
-      </tbody>
-    </table>
-
-
-      <!-- hidden comobine report -->
-
-
-      <!-- New update section this page -->
-
-        
       <div class="db-header">
         <h1 style="color: #121216;     font-size: 20px;     font-weight: 700;">Interpretation & Recommendations</h1>
       </div>
@@ -321,8 +432,6 @@
     </div>
 
     <div class="chapterPage report-graph-page">
-
-
       <div class="page-header" style="width:650px ;">
         <div class="page-header-content">
           <img style="width:120px;"  src="{{ static('images/logo.png') }}" alt="TOPTEEN Logo" />
@@ -355,50 +464,24 @@
       {% endwith %}
     </div>
     {% endif %}
+    {% endif %}
 
     <!-- Part 2: Interest Assessment Report -->
     {% if interest_data and interest_data.scores %}
-    {% set _interest_pdf_compact = show_student_info_on_cover is defined and show_student_info_on_cover %}
-
-    {% if _interest_pdf_compact %}
-    {% with interest_pdf_compact=true, interest_show_page_header=true %}
+    {% if is_combined_pdf|default(false) %}
+    {% with interest_pdf_compact=true, interest_show_page_header=false %}
     {% include 'template20/app/partials/riasec_interest_report_pdf_layout.html' %}
     {% endwith %}
-    <div class="chapterPage">
-      {% if user_name and user_ID %}
-      <div class="graph">
-        <img  style="width:550px;" src="{{ graph_image_media_url(user_name, user_ID, 'interest') }}" alt="Interest assessment graph" />
-      </div>
-      {% endif %}
-
-      <!-- Next Steps -->
-      <div style="width: 100%; float: left; justify-content: center;">
-        <div class="text-color-top" style="display: flex; flex-direction: row; justify-content: center;">
-          <div class="top-layout" style="background: #FF7D04; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;">
-            Next Steps
-          </div>
-        </div>
-        <div style="width:100%; float: left; background:#FFF1E4; border: 1px solid #FF7D04; border-radius: 5px; padding: 10px; margin:0px auto;">
-          <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;">
-            <strong style="color: #FF7D04;">• Explore Careers:</strong> Research the careers mentioned in this report to learn more about what they entail.
-          </div>
-          <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;">
-            <strong style="color: #FF7D04;">• Gain Experience:</strong> Seek out internships, volunteer opportunities, or part-time jobs in fields that interest you.
-          </div>
-          <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;">
-            <strong style="color:#FF7D04;">• Further Education:</strong> Consider the educational requirements for your desired careers and plan your academic path accordingly.
-          </div>
-          <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;">
-            <strong style="color: #FF7D04;">• Seek Guidance:</strong> Talk to career counselors, mentors, and professionals in your fields of interest for advice and guidance.
-          </div>
-        </div>
-        <div class="text-info-paragraph" style="width: 550px; margin: 0px auto;">
-          <p style="font-style: italic; text-align: center;">
-            By aligning your career choices with your interests, you can find a fulfilling and rewarding career that leverages your strengths and passions. <strong style="color:#FF7D04;">Best wishes!</strong>
-          </p>
+    {% if user_name and user_ID %}
+    <div class="chapterPage report-graph-page interest-graph-page">
+      <div class="graph-frame">
+        <div class="report-graph-block">
+          <img src="{{ graph_image_media_url(user_name, user_ID, 'interest') }}" alt="Interest assessment graph" />
         </div>
       </div>
+      {% include 'template20/app/partials/next_steps_card.html' %}
     </div>
+    {% endif %}
     {% else %}
     <div class="chapterPage">
       {% include 'template20/app/partials/riasec_careers_wheel_styles.html' %}
@@ -445,6 +528,10 @@
 
     <!-- Part 3: Aptitude Assessment Report -->
     {% if intelligence_data and intelligence_data.scores %}
+    {% if is_combined_pdf|default(false) %}
+    {% include 'template20/app/partials/aptitude_assessment_pdf_pages.html' %}
+    {% include 'template20/app/partials/aptitude_combination_profile.html' %}
+    {% else %}
     <div class="chapterPage">
       <div class="page-header" style="width:650px ;">
         <div class="page-header-content">
@@ -458,119 +545,6 @@
       <div class="db-header" style="margin-top: 0px;">
         <h1 style="color: #3F37C9; margin-top: 10px;">APTITUDE ASSESSMENT REPORT</h1>
       </div>
-
-      <!-- hidden Reprot -->
-
-      <div class="text-info-paragraph" style="width: 100%; float: left; margin-top: 10px; display:none;">
-        <p>An aptitude test is a standardized assessment designed to measure a person's cognitive abilities and intellectual potential. These tests evaluate various factors of aptitude to provide a comprehensive understanding of an individual's mental capabilities. The key factors often assessed in an aptitude test include numerical reasoning, verbal reasoning, logical reasoning, mechanical reasoning, spatial reasoning, language usage and spelling, and critical reasoning. By identifying your dominant Reasoning type, you can better understand your career preferences and suggest suitable career paths that align with your strengths and passions.</p>
-      </div>
-
-
-
-      <div class="test-title" style="color:#000; font-weight: 600; margin-top: 10px; margin-bottom: 15px; font-size: 16px; display:none;">
-        Reasoning type description
-      </div>
-      <table style="margin-bottom: 30px; margin-top:0px; display: none;">
-        <thead>
-          <tr>
-            <th style="border-top-left-radius: 15px; font-size: 16px;">Reasoning Type</th>
-            <th style="border-top-right-radius: 15px; font-size: 16px;">Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr style="border:1px solid #9490dd;">
-            <td style="width: 200px; padding-left:14px; color: #000; font-weight: 700;">
-              <div style="display: flex;align-items: center;">
-                <div>
-                  <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/numeric.png') }}" alt="Numerical Reasoning" />
-                </div>
-                Numerical Reasoning
-              </div>
-            </td>
-            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 11px;">
-              Ability to understand, interpret, and work with numerical concepts and relationships. It involves the capacity to reason with numbers and perform mathematical operations to solve problems.
-            </td>
-          </tr>
-          <tr style="border:1px solid #9490dd;">
-            <td style="padding-left:14px; color: #000; font-weight: 700;">
-              <div style="display: flex; align-items: center;">
-                <div>
-                  <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/verbal.png') }}" alt="Verbal Reasoning" />
-                </div>
-                Verbal Reasoning
-              </div>
-            </td>
-            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 11px;">
-              Ability to understand, analyze, and interpret written and spoken language. It involves evaluating information and arguments presented in words to make logical conclusions.
-            </td>
-          </tr>
-          <tr style="border:1px solid #9490dd;">
-            <td style="padding-left:14px; color: #000; font-weight: 700;">
-              <div style="display: flex; align-items: center;">
-                <div>
-                  <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/logical.png') }}" alt="Logical Reasoning" />
-                </div>
-                Logical Reasoning
-              </div>
-            </td>
-            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 11px;">
-              Ability to analyze and evaluate arguments, identify patterns, and solve problems using logic. It involves deducing conclusions from premises and understanding the principles of logic.
-            </td>
-          </tr>
-          <tr style="border:1px solid #9490dd;">
-            <td style="padding-left:14px; color: #000; font-weight: 700;">
-              <div style="display: flex; align-items: center;">
-                <div>
-                  <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/mechanical-reasoning.png') }}" alt="Mechanical Reasoning" />
-                </div>
-                Mechanical Reasoning
-              </div>
-            </td>
-            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 11px;">
-              Ability to analyze and evaluate arguments, identify patterns, and solve problems using logic. It involves deducing conclusions from premises and understanding the principles of logic.
-            </td>
-          </tr>
-          <tr style="border:1px solid #9490dd;">
-            <td style="padding-left:14px; color: #000; font-weight: 700;">
-              <div style="display: flex; align-items: center;">
-                <div>
-                  <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/spatial-reasoning.png') }}" alt="Spatial Reasoning" />
-                </div>
-                Spatial Reasoning
-              </div>
-            </td>
-            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 11px;">
-              Ability to visualize and manipulate objects in space. It involves understanding spatial relationships and properties of objects.
-            </td>
-          </tr>
-          <tr style="border:1px solid #9490dd;">
-            <td style="padding-left:14px; color: #000; font-weight: 700;">
-              <div style="display: flex; align-items: center;">
-                <div>
-                  <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/language-usage.png') }}" alt="Language Usage and Spelling" />
-                </div>
-                Language Usage and Spelling
-              </div>
-            </td>
-            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 11px;">
-              Ability to understand and use language correctly, including grammar, punctuation, and spelling. It involves the accurate and effective use of words in communication.
-            </td>
-          </tr>
-          <tr style="border:1px solid #9490dd;">
-            <td style="padding-left:14px; color: #000; font-weight: 700;">
-              <div style="display: flex; align-items: center;">
-                <div>
-                  <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/emotional-reasoning.png') }}" alt="Emotional Reasoning" />
-                </div>
-                Critical Reasoning
-              </div>
-            </td>
-            <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 11px;">
-              Ability to perceive, understand, and manage emotions in oneself and others. It involves recognizing and interpreting critical cues and using this information to guide thinking and behavior.
-            </td>
-          </tr>
-        </tbody>
-      </table>
 
       <div class="db-header" style="margin-top: 10px;">
         <h3 style="color: #121216; font-size:20px; font-weight: 700;">Interpretation & Recommendations</h1>
@@ -587,7 +561,6 @@
         {% if intelligence_data.above_avg and intelligence_data.above_avg|length > 0 %}
         <div class="box-i onebox aptitude-summary--above" style="background: #F0FFEA;margin: 20px 8px; border-radius: 10px; border-right: 4px solid #2A740E; border-bottom: 4px solid #2A740E; width:190px; min-height: 190px;">
           <p class="aptitude-summary-label" style="color: #2A740E; font-weight: 700; font-size: 16px; margin: 0 0 10px 0; text-align: center;">Above Average</p>
-        
           {% for above in intelligence_data.above_avg %}
           <p class="aptitude-summary-item" style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin: 0 0 3px 0; text-align: center; overflow-wrap: break-word;">{{ above }}</p>
           {% endfor %}
@@ -605,7 +578,7 @@
 
         {% if intelligence_data.below_avg %}
         <div class="box-i onebox aptitude-summary--below" style="background:#FFE5E5; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #A22717; border-bottom: 4px solid #A22717; width:190px; min-height: 190px;">
-          <p class="aptitude-summary-label" style="color: #A22717; font-weight: 700; font-size: 16px; margin: 0 0 10px 0; text-align: center;">Growth Area</p>  
+          <p class="aptitude-summary-label" style="color: #A22717; font-weight: 700; font-size: 16px; margin: 0 0 10px 0; text-align: center;">Growth Area</p>
           {% for belowavg in intelligence_data.below_avg %}
           <p class="aptitude-summary-item" style="color: #494949; font-size: 14px; font-weight: 600; line-height: 20px; margin: 0 0 3px 0; text-align: center; overflow-wrap: break-word;">{{ belowavg }}</p>
           {% endfor %}
@@ -654,15 +627,10 @@
           </tr>
         </tbody>
       </table>
-
-
     </div>
 
-
-
-    <!-- Aptitude combination profile (Strong Fit / Good Fit from Excel) -->
     {% include 'template20/app/partials/aptitude_combination_profile.html' %}
-
+    {% endif %}
     {% endif %}
 
     {% if student_below_average|default(false) %}
@@ -671,7 +639,13 @@
     {% endif %}
     {% include 'template20/app/partials/below_average_guidance_report.html' %}
     {% elif stream_sorter_guidance %}
+    {% if is_combined_pdf|default(false) %}
+    <div class="chapterPage stream-pathways-page">
+      {% include 'template20/app/partials/stream_sorter_guidance_section.html' %}
+    </div>
+    {% else %}
     {% include 'template20/app/partials/stream_sorter_guidance_section.html' %}
+    {% endif %}
     {% endif %}
 
   </div>

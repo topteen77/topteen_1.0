@@ -2,64 +2,602 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <link rel="preload stylesheet" href="{{ static('font/font-style.css') }}">
   <link rel="stylesheet" href="{{ static('css_new/stream-sorter-guidance-report.css') }}" />
   <title>Stream Sorter Combined Assessment Report</title>
-  <!-- PDF layout v2: reduced gaps, content width fit (do not remove - used to verify template) -->
+  <!-- PDF layout: Space Grotesk TTF only (Galano WOFF fonts break WeasyPrint) -->
   <style>
-    /* @page {
-      size: A4;
-      margin: 2cm;
-    } */
-
-    @page {
-      @top-left {
-        content: element(page-header);
-      }
-      margin-top: 2.5cm;
+    @font-face {
+      font-family: 'Space Grotesk';
+      src: url("{{ static('font/space-grotesk/SpaceGrotesk-Regular.ttf') }}") format('truetype');
+      font-weight: 400;
+      font-style: normal;
     }
-    
-    /* For PDF generation, make header a running element */
+    @font-face {
+      font-family: 'Space Grotesk';
+      src: url("{{ static('font/space-grotesk/SpaceGrotesk-Medium.ttf') }}") format('truetype');
+      font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Space Grotesk';
+      src: url("{{ static('font/space-grotesk/SpaceGrotesk-SemiBold.ttf') }}") format('truetype');
+      font-weight: 600;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Space Grotesk';
+      src: url("{{ static('font/space-grotesk/SpaceGrotesk-Bold.ttf') }}") format('truetype');
+      font-weight: 700;
+      font-style: normal;
+    }
+
+    /* A4 decorative background — @page for PDF; element bg for ?debug=true */
+    {% set _a4_bg = pdf_a4_bg_url if pdf_a4_bg_url is defined and pdf_a4_bg_url else static('images_new/new_report/a4-bg-img.png') %}
+    @page {
+      size: A4;
+      margin: 0;
+      background-image: url("{{ _a4_bg }}");
+      background-size: 210mm 297mm;
+      background-position: center center;
+      background-repeat: no-repeat;
+    }
+    @page cover {
+      size: A4;
+      margin: 0;
+      background-image: url("{{ _a4_bg }}");
+      background-size: 210mm 297mm;
+      background-position: center center;
+      background-repeat: no-repeat;
+    }
+
     @media print {
       .page-header {
-        position: running(page-header);
-        margin-bottom: 0;
-        padding: 0.3cm 0 0 0;
-      }
-      .page-header-line {
-        width: 100%;
-        box-sizing: border-box;
+        display: none !important;
       }
     }
 
     .page-header {
-      width: 100%;
+      display: none !important;
     }
 
     body {
       margin: 0;
       padding: 0;
       color: #494949;
-      font-family: 'Galano Grotesque';
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 10pt;
       counter-reset: chapters;
       print-color-adjust: exact;
       -webkit-print-color-adjust: exact;
+      background: #e8e9ef;
+    }
+    @media screen {
+      body {
+        padding: 24px 0 40px;
+      }
+      .coverPage,
+      .chapterPage {
+        margin-left: auto !important;
+        margin-right: auto !important;
+        box-shadow: 0 10px 30px rgba(20, 24, 60, 0.18);
+        background-color: #ffffff;
+        background-image: url("{{ _a4_bg }}");
+        background-size: 210mm 297mm;
+        background-position: center center;
+        background-repeat: no-repeat;
+      }
+      .chapterPage {
+        margin-top: 28px !important;
+      }
+    }
+    @media print {
+      body {
+        background: transparent;
+        padding: 0;
+      }
+      .coverPage,
+      .chapterPage {
+        background-image: none !important;
+        background-color: transparent !important;
+      }
     }
     *, *::before, *::after { box-sizing: border-box; }
     ul:not(.aptitude-fit-list) { list-style-type: none; padding: 0; }
     a { color: inherit; text-decoration: none; }
     hr { height: 0; border: 0; border-top: 1px solid #494949; margin: 10px 0; }
+    img { max-width: 100%; height: auto; }
+    .coverPage, .chapterPage { page-break-after: always; }
+    .coverPage,
     .chapterPage {
-      max-width: 100%;
-      width: 100%;
-      max-width: 21cm;
+      position: relative;
+      box-sizing: border-box;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+      overflow-x: hidden;
+    }
+    .chapterPage {
+      width: 210mm;
+      max-width: 210mm;
+      min-height: 297mm;
       margin: 0 auto;
+      padding: 1.5cm 1.6cm 1.6cm;
+      font-family: 'Space Grotesk', sans-serif;
       clear: both;
-      padding: 12px 16px;
-      page-break-after: always;
+    }
+    body.combined-report-page .report-container {
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 0;
+      background: transparent;
+    }
+    .chapterPage.aptitude-combination-profile,
+    .chapterPage.aptitude-final-streams,
+    .chapterPage.aptitude-tier {
+      width: 210mm !important;
+      max-width: 210mm !important;
+      min-height: 297mm !important;
+      float: none !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
+
+    /* Cover — same UI as test1/2/3 */
+    .coverPage {
+      page: cover;
+      width: 210mm;
+      min-height: 297mm;
+      height: 297mm;
+      max-height: 297mm;
+      margin: 0 auto;
+      padding: 1.1cm 1.4cm 1.8cm !important;
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+      overflow: hidden;
+      page-break-inside: avoid;
+      background-image: none;
+    }
+    .coverPage div { margin-bottom: 0; }
+    .coverPage * {
+      font-family: 'Space Grotesk', sans-serif;
       box-sizing: border-box;
     }
+    .cover-inner {
+      width: 100%;
+      max-width: 172mm;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .cover-logo {
+      margin: 0 auto 8px;
+      text-align: center;
+    }
+    .cover-logo img {
+      width: 250px;
+      height: auto;
+      display: inline-block;
+    }
+    .cover-logo.main-cover-logo {
+      margin-top: 67px;
+      margin-bottom: 25px;
+    }
+    .cover-title {
+      margin: 0 0 12px;
+      text-align: center;
+    }
+    .cover-title .line-stream {
+      display: block;
+      margin: 0;
+      font-size: 37px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: #4341C9;
+      line-height: 1.15;
+      text-transform: uppercase;
+    }
+    .cover-title .line-report {
+      display: block;
+      margin: 4px 0 0;
+      font-size: 37px;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      color: #111111;
+      line-height: 1.15;
+      text-transform: uppercase;
+    }
+    .cover-hero {
+      width: 100%;
+      margin: 0 auto 14px;
+      text-align: center;
+    }
+    .cover-hero img {
+      width: 100%;
+      max-width: 155mm;
+      max-height: 88mm;
+      height: auto;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .cover-info-grid {
+      width: 153mm;
+      max-width: 153mm;
+      margin: 0 auto 14px;
+      border-collapse: separate;
+      border-spacing: 10px 10px;
+      table-layout: fixed;
+    }
+    .cover-info-grid td {
+      width: 50%;
+      vertical-align: middle;
+      padding: 0;
+      border: none;
+      background: transparent;
+    }
+    .cover-info-card {
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px solid #E8EAFF;
+      text-align: left;
+      padding: 10px 12px;
+      box-shadow: 0 2px 8px rgba(67, 65, 201, 0.06);
+    }
+    .cover-info-card-inner {
+      display: table;
+      width: 100%;
+      margin: 0;
+    }
+    .cover-info-icon {
+      display: table-cell;
+      vertical-align: middle;
+      width: 40px;
+      padding-right: 10px;
+    }
+    .cover-info-icon-box {
+      width: 34px;
+      height: 34px;
+      background: #4341C9;
+      border-radius: 8px;
+      text-align: center;
+      line-height: 34px;
+    }
+    .cover-info-icon-box svg {
+      width: 17px;
+      height: 17px;
+      vertical-align: middle;
+    }
+    .cover-info-text {
+      display: table-cell;
+      vertical-align: middle;
+      text-align: left;
+    }
+    .cover-info-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #4341C9;
+      line-height: 1.2;
+      margin: 0 0 2px;
+    }
+    .cover-info-value {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: #111111;
+      line-height: 1.25;
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+    .cover-disclaimer {
+      position: relative;
+      width: 153mm;
+      max-width: 153mm;
+      margin: 61px auto 0;
+      border: 1.5px solid #4341C9;
+      border-radius: 14px;
+      background: #ffffff;
+      padding: 16px 14px 12px;
+      text-align: left;
+    }
+    .cover-disclaimer-badge {
+      position: absolute;
+      top: -11px;
+      left: 50%;
+      margin-left: -48px;
+      width: 96px;
+      background: #4341C9;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 0;
+      border-radius: 999px;
+      white-space: nowrap;
+      line-height: 1.3;
+      text-align: center;
+    }
+    .cover-disclaimer-body {
+      display: table;
+      width: 100%;
+      margin: 0;
+    }
+    .cover-disclaimer-icon {
+      display: table-cell;
+      vertical-align: middle;
+      width: 32px;
+      padding-right: 8px;
+    }
+    .cover-disclaimer-icon svg {
+      width: 24px;
+      height: 24px;
+      display: block;
+    }
+    .cover-disclaimer-text {
+      display: table-cell;
+      vertical-align: middle;
+      font-size: 11.5px;
+      font-weight: 500;
+      color: #494949;
+      line-height: 1.4;
+      margin: 0;
+      text-align: left;
+    }
+
+    /* Intro + How To Use — same UI as test1/2/3 */
+    .intro-page {
+      display: block;
+      padding-top: 1.8cm;
+      padding-bottom: 1.5cm;
+      height: 297mm;
+      max-height: 297mm;
+      overflow: hidden;
+      page-break-inside: avoid;
+      text-align: center;
+    }
+    .intro-page div { margin-bottom: 0; }
+    .intro-panel {
+      position: relative;
+      width: 100%;
+      max-width: 172mm;
+      margin: 64px auto 0;
+      border: 1.5px solid #4341C9;
+      border-radius: 18px;
+      background: #ffffff;
+      padding: 28px 22px 22px;
+      box-sizing: border-box;
+      text-align: left;
+      overflow: visible;
+    }
+    .intro-panel-badge {
+      position: absolute;
+      top: -16px;
+      left: 50%;
+      margin-left: -85px;
+      width: 170px;
+      background: #4341C9;
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-align: center;
+      text-transform: uppercase;
+      padding: 7px 10px;
+      border-radius: 8px;
+      line-height: 1.2;
+    }
+    .intro-panel p {
+      margin: 0 0 14px;
+      font-size: 15px;
+      font-weight: 400;
+      color: #2f2f2f;
+      line-height: 1.55;
+      text-align: left;
+    }
+    .intro-panel p:last-child { margin-bottom: 0; }
+    .intro-panel .intro-highlight {
+      color: #4341C9;
+      font-weight: 700;
+    }
+    .intro-career-art {
+      width: 165mm;
+      max-width: 165mm;
+      margin: 0.9cm auto 0;
+      text-align: center;
+    }
+    .intro-career-art img {
+      width: 100%;
+      max-width: 165mm;
+      height: auto;
+      max-height: 115mm;
+      display: inline-block;
+      border-radius: 8px;
+    }
+    .howto-page {
+      padding-top: 1.4cm;
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+      height: 297mm;
+      max-height: 297mm;
+      overflow: hidden;
+      page-break-inside: avoid;
+    }
+    .howto-page div { margin-bottom: 0; }
+    .howto-page * { font-family: 'Space Grotesk', sans-serif; box-sizing: border-box; }
+    .howto-page .howto-title {
+      margin: 0 0 14px;
+      color: #4341C9;
+      font-size: 26px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+    }
+    .howto-title.h2-title { margin-top: 64px; }
+    .howto-page .howto-intro {
+      max-width: 168mm;
+      margin: 0 auto 18px;
+      font-size: 14px;
+      font-weight: 400;
+      color: #333;
+      line-height: 1.5;
+      text-align: center;
+    }
+    .howto-page .howto-intro .hl {
+      color: #4341C9;
+      font-weight: 700;
+    }
+    .howto-cards {
+      width: 160mm;
+      max-width: 160mm;
+      margin: 37px auto 39px;
+      border-collapse: separate;
+      border-spacing: 10px 0;
+      table-layout: fixed;
+      text-align: center;
+    }
+    .howto-cards td {
+      width: 33.33%;
+      vertical-align: top;
+      padding: 0;
+      border: none;
+      background: transparent;
+    }
+    .howto-card {
+      position: relative;
+      height: 138px;
+      background: #ffffff;
+      border: 1.5px solid #E4E1F6;
+      border-radius: 18px;
+      padding: 18px 12px 16px;
+      text-align: center;
+      overflow: hidden;
+      box-shadow: 0 3px 10px rgba(67, 65, 201, 0.08);
+    }
+    .howto-card-icon {
+      width: 68px;
+      height: 68px;
+      margin: 0 auto 10px;
+      border-radius: 50%;
+      background: #F5F4FF;
+      border: 1px solid #E8E6FA;
+      text-align: center;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+    .howto-card-icon img {
+      display: block;
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      margin: 14px auto 0;
+    }
+    .howto-card-label {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+      color: #111;
+      line-height: 1.2;
+    }
+    .howto-card-accent {
+      position: absolute;
+      right: -28px;
+      bottom: -28px;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      z-index: 0;
+    }
+    .howto-card.personality .howto-card-accent { background: #7B6CF0; }
+    .howto-card.interest .howto-card-accent { background: #4A7DFF; }
+    .howto-card.aptitude .howto-card-accent { background: #2BB8C0; }
+    .howto-table-wrap {
+      width: 100%;
+      max-width: 172mm;
+      margin: 8px auto 16px;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #ffffff;
+      border: 1px solid #ECEAF8;
+      box-sizing: border-box;
+      text-align: left;
+    }
+    .howto-table { width: 100%; border-collapse: collapse; }
+    .howto-table thead th {
+      background: #4341C9 !important;
+      color: #ffffff !important;
+      font-size: 15px !important;
+      font-weight: 700 !important;
+      padding: 11px 14px !important;
+      text-align: left !important;
+      border: none !important;
+    }
+    .howto-table thead th:first-child { width: 42%; }
+    .howto-table td {
+      border: none !important;
+      border-top: 1px solid #E6E4F2 !important;
+      padding: 12px 14px !important;
+      vertical-align: middle;
+      background: #fff;
+      text-align: left;
+      font-size: 15px;
+    }
+    .howto-part { display: table; width: 100%; }
+    .howto-num {
+      display: table-cell;
+      width: 28px;
+      vertical-align: middle;
+    }
+    .howto-num span {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      line-height: 24px;
+    }
+    .howto-num.n1 span { background: #7B6CF0; }
+    .howto-num.n2 span { background: #4A7DFF; }
+    .howto-num.n3 span { background: #2BB8C0; }
+    .howto-part-text {
+      display: table-cell;
+      vertical-align: middle;
+      padding-left: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a1a1a;
+      line-height: 1.3;
+    }
+    .howto-desc {
+      font-size: 11.5px;
+      font-weight: 400;
+      color: #333;
+      line-height: 1.45;
+    }
+    .howto-desc .kw {
+      color: #4341C9;
+      font-weight: 700;
+    }
+    .howto-footer {
+      width: 100%;
+      max-width: 172mm;
+      margin: 33px auto 0;
+      background: #F1EEFF;
+      border-radius: 12px;
+      padding: 12px 14px;
+      text-align: center;
+    }
+    .howto-footer p {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 500;
+      color: #333;
+      line-height: 1.45;
+    }
+
     .top-info { display: flex; }
     .info-box { border: 1px solid #3F37C9; width: 100%; display: flex; margin-bottom: 26px; border-radius: 5px; }
     .top-info .info-box:last-child { margin-left: 26px; }
@@ -67,12 +605,9 @@
     .top-info .info-box:first-child { margin-right: 26px; }
     .output { display: flex; align-items: center; height: 44px; }
     .output p { font-size: 12px; color: #494949; font-weight: 500; display: flex; justify-content: center; line-height: 19px; margin-bottom: 0px; padding-left: 11px;margin-top:0px; }
-    /* Screen 1: reduce gap on first (cover) page */
-    .coverPage {
-      margin: 0.3cm;
-      padding: 10px 16px 20px !important;
-      page-break-after: always;
-    }
+    .coverPage .info-box,
+    .coverPage .output { background: #fff; }
+    .coverPage table td { background: #fff; }
     .coverPage .top-layout { margin-top: 12px !important; }
     /* .coverPage p { margin-top: 6px !important; margin-bottom: 0 !important; } */
     .pageBreak { page-break-before: always; height: 0.5cm; }
@@ -159,7 +694,8 @@
       break-inside: avoid;
     }
     .interest-area-block .test-title { float: none !important; width: 100% !important; }
-    .combined-report-page { padding: 0; background: white; overflow-x: hidden; }
+    .combined-report-page { padding: 0; background: transparent; overflow-x: hidden; }
+    .report-container { background: transparent; }
   
     .report-container img { max-width: 100%; height: auto; }
     /* Screen 3: content width fit in page - constrain fixed widths to page */
@@ -179,6 +715,80 @@
     .img-tow { margin-top: 0; }
     .r-img, .img-info, .framework-img, .ris-box { }
     .framework-img { margin-top: 24px !important; }
+
+    /* Topteen Framework page */
+    .chapterPage.framework-page {
+      padding: 1.3cm 1.5cm 1.4cm !important;
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+      height: 297mm;
+      max-height: 297mm;
+      overflow: hidden;
+      page-break-inside: avoid;
+      box-sizing: border-box;
+    }
+    .framework-page * {
+      font-family: 'Space Grotesk', sans-serif;
+      box-sizing: border-box;
+    }
+    .framework-page div { margin-bottom: 0; }
+    .framework-title {
+      margin: 48px auto 18px !important;
+      color: #2C2A9E !important;
+      font-size: 28px !important;
+      font-weight: 700 !important;
+      text-transform: none !important;
+      letter-spacing: 0.01em;
+      line-height: 1.2;
+      text-align: center;
+    }
+    .framework-copy {
+      width: 100%;
+      max-width: 168mm;
+      margin: 0 auto 10px;
+      text-align: left;
+    }
+    .framework-copy p {
+      margin: 0 0 12px !important;
+      font-size: 14.5px !important;
+      font-weight: 400 !important;
+      color: #444 !important;
+      line-height: 1.55 !important;
+      text-align: left !important;
+    }
+    .framework-copy p:last-child { margin-bottom: 0 !important; }
+    .framework-copy strong {
+      color: #2C2A9E !important;
+      font-weight: 700 !important;
+    }
+    .framework-wish {
+      display: inline-block;
+      margin: 14px auto 8px !important;
+      padding: 8px 22px !important;
+      background: #EEF0FF !important;
+      border: 1px solid #D8D4F0 !important;
+      border-radius: 999px !important;
+      color: #4341C9 !important;
+      font-size: 14px !important;
+      font-weight: 600 !important;
+      font-style: normal !important;
+      line-height: 1.3 !important;
+      text-align: center !important;
+    }
+    .framework-art {
+      width: 100%;
+      max-width: 168mm;
+      margin: 10px auto 0;
+      text-align: center;
+    }
+    .framework-art img {
+      display: inline-block !important;
+      width: 100% !important;
+      max-width: 155mm !important;
+      max-height: 135mm !important;
+      height: auto !important;
+      vertical-align: middle;
+    }
     .img-info { margin-top: 16px !important; }
     .graph { width: 100%; text-align: center; }
     .personality-interpretation-page { page-break-after: auto; }
@@ -318,104 +928,197 @@
     }
     .vocational-guidance-more-note { display: none; }
 
-    /* Extended career pathways hero — WeasyPrint-safe layout */
+    /* Extended career pathways hero — WeasyPrint-safe layout + spacing */
+    .stream-pathways-section {
+      clear: both !important;
+      overflow: visible !important;
+      margin: 8px 0 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    .stream-pathways-section .stream-pathways-print-header,
+    .stream-pathways-print-header {
+      display: none !important;
+    }
     .stream-pathways-hero,
     .stream-pathways-hero--pdf {
       display: table !important;
-      width: 100%;
-      table-layout: fixed;
-      page-break-inside: avoid;
+      width: 100% !important;
+      table-layout: fixed !important;
+      page-break-inside: avoid !important;
+      margin: 0 0 18px !important;
+      padding: 16px 18px !important;
+      border-radius: 14px !important;
+      box-sizing: border-box !important;
+      border: 1px solid #c7d2fe !important;
+      background:
+        radial-gradient(circle at 88% 18%, rgba(129, 140, 248, 0.22), transparent 42%),
+        linear-gradient(135deg, #f8faff 0%, #eef2ff 55%, #faf5ff 100%) !important;
     }
     .stream-pathways-hero__content,
     .stream-pathways-hero__media {
       display: table-cell !important;
-      vertical-align: middle;
+      vertical-align: middle !important;
     }
     .stream-pathways-hero__content {
-      width: 70%;
-      padding-right: 10px;
+      width: 68% !important;
+      padding: 4px 14px 4px 6px !important;
+      text-align: left !important;
     }
     .stream-pathways-hero__media {
-      width: 30%;
-      text-align: right;
+      width: 32% !important;
+      text-align: right !important;
+      padding: 4px 4px 4px 8px !important;
     }
     .stream-pathways-hero__image {
-      display: block;
-      width: 96px;
-      max-width: 96px;
-      height: auto;
-      margin-left: auto;
+      display: block !important;
+      width: 92px !important;
+      max-width: 92px !important;
+      height: auto !important;
+      margin-left: auto !important;
     }
     .stream-pathways-hero__badge {
-      display: inline-block;
-      white-space: nowrap;
+      display: inline-block !important;
+      white-space: nowrap !important;
+      margin: 0 0 10px !important;
+      padding: 4px 10px !important;
     }
     .stream-pathways-hero__badge-icon {
-      display: inline-block;
-      vertical-align: middle;
-      width: 11px;
-      height: 11px;
+      display: inline-block !important;
+      vertical-align: middle !important;
+      width: 11px !important;
+      height: 11px !important;
+      margin-right: 3px !important;
+    }
+    .stream-pathways-hero h1 {
+      margin: 0 0 8px !important;
+      font-size: 18px !important;
+      line-height: 1.25 !important;
+      color: #3f37c9 !important;
+      text-align: left !important;
+    }
+    .stream-pathways-hero .stream-pathways-lead {
+      margin: 0 0 8px !important;
+      font-size: 11px !important;
+      line-height: 1.5 !important;
+      color: #64748b !important;
+      text-align: left !important;
     }
     .stream-pathways-hero__pdf-note {
-      margin: 6px 0 0;
-      font-size: 9pt;
-      font-weight: 600;
-      line-height: 1.4;
-      color: #3f37c9;
+      margin: 8px 0 0 !important;
+      font-size: 10px !important;
+      font-weight: 600 !important;
+      line-height: 1.45 !important;
+      color: #3f37c9 !important;
+      text-align: left !important;
     }
     .stream-pathways-hero__meta {
       display: none !important;
     }
 
-    /* Extended career pathways — tag pills and stream cards (WeasyPrint-safe) */
-    .stream-pathways-section {
-      clear: both !important;
-      overflow: visible !important;
-    }
+    /* Extended career pathways — spacing for title / green zone / pills */
     .stream-pathways-block {
       clear: both !important;
       overflow: visible !important;
-      margin: 0 0 18px !important;
+      margin: 0 0 20px !important;
+      padding: 0 !important;
       page-break-inside: auto !important;
     }
     .stream-pathways-block + .stream-pathways-block {
       clear: both !important;
       margin-top: 28px !important;
-      padding-top: 10px !important;
+      padding-top: 12px !important;
     }
     .stream-pathways-block-title {
       clear: both !important;
       position: static !important;
       display: block !important;
-      margin: 0 0 10px !important;
-      padding: 0 0 8px !important;
+      margin: 4px 0 16px !important;
+      padding: 0 0 10px !important;
+      font-size: 15px !important;
+      line-height: 1.3 !important;
       page-break-after: avoid !important;
+      text-align: left !important;
     }
     .stream-pathways-block-title::after {
       position: static !important;
       display: block !important;
-      margin-top: 4px !important;
+      margin-top: 6px !important;
       width: 64px !important;
       height: 2px !important;
     }
     .stream-pathways-zone {
       clear: both !important;
       overflow: visible !important;
-      margin-bottom: 14px !important;
-      padding-bottom: 10px !important;
+      margin: 0 0 16px !important;
+      padding: 16px 16px 14px !important;
+      border-radius: 14px !important;
+      box-sizing: border-box !important;
     }
-    .stream-pathways-zone--other {
-      page-break-before: always !important;
-      break-before: page !important;
+    .stream-pathways-zone--recommended {
+      padding: 14px 16px 12px !important;
+      margin: 0 0 16px !important;
+      background: linear-gradient(180deg, #ecfdf5 0%, #f0fdf4 55%, #ffffff 100%) !important;
+      border: 1px solid #6ee7b7 !important;
+    }
+    .stream-pathways-zone--other,
+    .stream-pathways-zone--other-pdf {
+      page-break-before: auto !important;
+      break-before: auto !important;
       clear: both !important;
-      margin-top: 0 !important;
-      padding-top: 12px !important;
+      display: block !important;
+      visibility: visible !important;
+      margin: 14px 0 10px !important;
+      padding: 14px 16px 12px !important;
+      background: linear-gradient(180deg, #f8fafc 0%, #f3f4f6 52%, #ffffff 100%) !important;
+      border: 1px solid #d1d5db !important;
+    }
+    .stream-pathways-zone--other.is-collapsed,
+    .stream-pathways-zone--other[hidden] {
+      display: block !important;
+      visibility: visible !important;
     }
     .stream-pathways-zone-heading--recommended,
     .stream-pathways-zone-heading--other {
       clear: both !important;
-      margin-bottom: 10px !important;
+      margin: 0 0 12px !important;
+      padding: 0 0 8px !important;
+      border-bottom: 1px solid rgba(110, 231, 183, 0.55) !important;
       page-break-after: avoid !important;
+      text-align: left !important;
+    }
+    .stream-pathways-zone-heading--other {
+      border-bottom-color: #d1d5db !important;
+    }
+    .stream-pathways-recommended-title {
+      margin: 0 0 4px !important;
+      font-size: 13px !important;
+      line-height: 1.3 !important;
+      color: #047857 !important;
+      text-align: left !important;
+    }
+    .stream-pathways-other-title {
+      margin: 0 0 4px !important;
+      font-size: 13px !important;
+      line-height: 1.3 !important;
+      color: #374151 !important;
+      text-align: left !important;
+    }
+    .stream-pathways-recommended-subtitle {
+      margin: 0 !important;
+      font-size: 10px !important;
+      line-height: 1.45 !important;
+      color: #4b5563 !important;
+      text-align: left !important;
+    }
+    .stream-pathways-other-subtitle {
+      margin: 0 !important;
+      font-size: 10px !important;
+      line-height: 1.45 !important;
+      color: #6b7280 !important;
+      text-align: left !important;
     }
     .stream-pathways-stream-grid,
     .stream-pathways-stream-grid--recommended,
@@ -435,6 +1138,7 @@
       clear: both !important;
       height: 0 !important;
     }
+    /* Flat stream rows (title + pills) — matches mockup, not nested cards */
     .stream-pathways-stream-grid .stream-pathways-stream-card,
     .stream-pathways-stream-grid--recommended .stream-pathways-stream-card,
     .stream-pathways-stream-grid--other .stream-pathways-stream-card {
@@ -443,22 +1147,47 @@
       width: 100% !important;
       max-width: 100% !important;
       margin: 0 0 12px !important;
+      padding: 0 !important;
       box-sizing: border-box !important;
       page-break-inside: avoid !important;
       break-inside: avoid !important;
       overflow: visible !important;
+      border: none !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
     }
     .stream-pathways-stream-grid .stream-pathways-stream-card:last-child,
     .stream-pathways-stream-grid--recommended .stream-pathways-stream-card:last-child,
     .stream-pathways-stream-grid--other .stream-pathways-stream-card:last-child {
       margin-bottom: 0 !important;
     }
+    .stream-pathways-stream-card__head {
+      padding: 0 0 6px !important;
+      background: transparent !important;
+      border: none !important;
+      text-align: left !important;
+    }
+    .stream-pathways-stream-card__head h3 {
+      margin: 0 !important;
+      font-size: 11.5px !important;
+      line-height: 1.35 !important;
+      font-weight: 700 !important;
+      text-align: left !important;
+    }
+    .stream-pathways-stream-card--recommended .stream-pathways-stream-card__head h3 {
+      color: #047857 !important;
+    }
+    .stream-pathways-stream-card--other .stream-pathways-stream-card__head h3 {
+      color: #1f2937 !important;
+    }
     .stream-pathways-career-list {
       display: block !important;
-      padding: 10px 12px 12px !important;
+      padding: 0 !important;
       margin: 0 !important;
       list-style: none !important;
       overflow: visible !important;
+      text-align: left !important;
     }
     .stream-pathways-career-list li {
       display: inline-block !important;
@@ -468,7 +1197,7 @@
     }
     .stream-pathways-career-pill {
       display: inline-block !important;
-      padding: 4px 10px !important;
+      padding: 4px 11px !important;
       margin: 0 !important;
       border-radius: 999px !important;
       font-size: 8.5pt !important;
@@ -478,44 +1207,81 @@
     }
     .stream-pathways-career-pill--recommended {
       color: #065f46 !important;
-      background: #ecfdf5 !important;
+      background: #ffffff !important;
       border: 1px solid #6ee7b7 !important;
     }
     .stream-pathways-career-pill--other {
       color: #374151 !important;
-      background: #f3f4f6 !important;
+      background: #ffffff !important;
       border: 1px solid #d1d5db !important;
     }
-    .stream-pathways-future-grid {
+    .stream-pathways-toggle-wrap {
+      display: none !important;
+    }
+    .stream-pathways-future-card {
       display: block !important;
       clear: both !important;
-      overflow: visible !important;
+      margin: 6px 0 0 !important;
+      padding: 12px 14px 10px !important;
+      border-radius: 14px !important;
+      border: 1px solid #c7d2fe !important;
+      background: linear-gradient(180deg, #f8faff 0%, #eef2ff 42%, #ffffff 100%) !important;
+      box-sizing: border-box !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+    .stream-pathways-future-list {
+      display: block !important;
       margin: 0 !important;
       padding: 0 !important;
       list-style: none !important;
+      overflow: visible !important;
     }
-    .stream-pathways-future-grid li {
+    .stream-pathways-future-list li {
       display: inline-block !important;
-      width: 31% !important;
-      margin: 0 1.5% 8px 0 !important;
+      margin: 0 8px 8px 0 !important;
       padding: 0 !important;
       vertical-align: top !important;
+    }
+    .stream-pathways-future-chip {
+      display: inline-block !important;
+      padding: 5px 11px !important;
+      border-radius: 999px !important;
+      font-size: 8.5pt !important;
+      font-weight: 600 !important;
+      line-height: 1.35 !important;
+      color: #1e293b !important;
+      background: #ffffff !important;
+      border: 1px solid #c7d2fe !important;
+      text-decoration: none !important;
       box-sizing: border-box !important;
     }
-    .stream-pathways-future-item {
-      display: block !important;
-      padding: 6px 8px !important;
-      font-size: 8.5pt !important;
-      line-height: 1.35 !important;
-      text-align: center !important;
-      box-sizing: border-box !important;
+    .stream-pathways-future-chip--linked {
+      color: #2f28b8 !important;
     }
     .stream-pathways-stream-card,
     .stream-pathways-career-pill,
     .stream-pathways-stream-card__head,
-    .stream-pathways-future-item {
+    .stream-pathways-future-card,
+    .stream-pathways-future-chip {
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
+    }
+    .chapterPage.stream-pathways-page {
+      padding: 1.2cm 1.4cm 1.3cm !important;
+      overflow: visible !important;
+      height: auto !important;
+      max-height: none !important;
+      min-height: 297mm !important;
+      text-align: left !important;
+    }
+    .stream-pathways-section--pdf {
+      margin-top: 0 !important;
+    }
+    .stream-pathways-block--future {
+      clear: both !important;
+      margin-top: 22px !important;
+      padding-top: 8px !important;
     }
 
     .aptitude-performance-profile {
@@ -758,6 +1524,358 @@
     }
   </style>
   {% include 'template20/app/partials/riasec_careers_wheel_styles.html' %}
+  <style>
+    {% include 'template20/app/partials/personality_assessment_pdf_styles.html' %}
+    {% include 'template20/app/partials/interest_assessment_pdf_styles.html' %}
+    {% include 'template20/app/partials/aptitude_assessment_pdf_styles.html' %}
+    {% include 'template20/app/partials/next_steps_card_styles.html' %}
+    {% include 'template20/app/partials/riasec_report_graph_styles.html' %}
+    {% include 'template20/app/partials/riasec_career_alignment_styles.html' %}
+    /* Aptitude interpretation page — avoid personality interp-banner spacing clash */
+    .aptitude-interp-page.interp-page {
+      padding-top: 1.2cm;
+      text-align: center;
+    }
+    .aptitude-interp-page .page-title.pr-3-title {
+      margin-top: 48px;
+    }
+
+    /* Combined PDF Part-3 opener — beat legacy th/td table styles */
+    body.combined-report-page .chapterPage.aptitude-part-opener {
+      padding: 1.2cm 1.5cm 1.4cm !important;
+      text-align: center !important;
+      overflow: hidden !important;
+    }
+    body.combined-report-page .aptitude-part-opener .part-badge.p-badge-3 {
+      display: inline-block !important;
+      background: #4341C9 !important;
+      color: #fff !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      padding: 7px 24px !important;
+      border-radius: 10px !important;
+      margin: 48px auto 18px !important;
+    }
+    body.combined-report-page .aptitude-part-opener .page-title {
+      margin: 10px 0 12px !important;
+      color: #2C2A9E !important;
+      font-size: 26px !important;
+      font-weight: 700 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.02em !important;
+      line-height: 1.2 !important;
+      text-align: center !important;
+    }
+    body.combined-report-page .aptitude-part-opener .page-intro {
+      width: 100% !important;
+      max-width: 170mm !important;
+      margin: 0 auto 14px !important;
+      text-align: left !important;
+      font-size: 15px !important;
+      font-weight: 400 !important;
+      color: #333 !important;
+      line-height: 1.5 !important;
+    }
+    body.combined-report-page .aptitude-part-opener .page-intro .hl {
+      color: #2C2A9E !important;
+      font-weight: 700 !important;
+    }
+    body.combined-report-page .aptitude-part-opener .section-subtitle {
+      margin: 4px auto 13px !important;
+      font-size: 16px !important;
+      font-weight: 700 !important;
+      color: #111 !important;
+      text-align: center !important;
+    }
+    body.combined-report-page .aptitude-reason-table-wrap {
+      width: 100% !important;
+      max-width: 172mm !important;
+      margin: 0 auto !important;
+      background: #F3F1FF !important;
+      border-radius: 16px !important;
+      padding: 10px 12px 8px !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+      border: none !important;
+      float: none !important;
+      clear: both !important;
+    }
+    body.combined-report-page .aptitude-reason-table {
+      width: 100% !important;
+      border-collapse: collapse !important;
+      background: transparent !important;
+      margin: 0 !important;
+    }
+    body.combined-report-page .aptitude-reason-table thead th,
+    body.combined-report-page .aptitude-reason-table th {
+      background: transparent !important;
+      background-color: transparent !important;
+      color: #2C2A9E !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      padding: 6px 8px 8px !important;
+      text-align: left !important;
+      border: none !important;
+    }
+    body.combined-report-page .aptitude-reason-table thead th:first-child {
+      width: 30% !important;
+      text-align: center !important;
+    }
+    body.combined-report-page .aptitude-reason-table td {
+      border: none !important;
+      border-top: 1px solid #D8D4F0 !important;
+      padding: 7px 8px !important;
+      vertical-align: middle !important;
+      background: transparent !important;
+      background-color: transparent !important;
+    }
+    body.combined-report-page .aptitude-reason-table .type-cell {
+      width: 30% !important;
+      text-align: center !important;
+    }
+    body.combined-report-page .aptitude-reason-table .type-cell img {
+      width: 26px !important;
+      height: 26px !important;
+      display: inline-block !important;
+      margin: 0 auto 3px !important;
+    }
+    body.combined-report-page .aptitude-reason-table .type-name {
+      display: block !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      line-height: 1.2 !important;
+      margin-top: 2px !important;
+    }
+    body.combined-report-page .aptitude-reason-table .type-name.nr { color: #057190 !important; }
+    body.combined-report-page .aptitude-reason-table .type-name.vr { color: #A92CAF !important; }
+    body.combined-report-page .aptitude-reason-table .type-name.lr { color: #2A740E !important; }
+    body.combined-report-page .aptitude-reason-table .type-name.mr { color: #A22717 !important; }
+    body.combined-report-page .aptitude-reason-table .type-name.sr { color: #0B5BA1 !important; }
+    body.combined-report-page .aptitude-reason-table .type-name.lu { color: #6D5C04 !important; }
+    body.combined-report-page .aptitude-reason-table .type-name.cr { color: #C2410C !important; }
+    body.combined-report-page .aptitude-reason-table .desc-cell {
+      font-size: 14px !important;
+      font-weight: 400 !important;
+      color: #333 !important;
+      line-height: 1.4 !important;
+      text-align: left !important;
+    }
+
+    /* Combined PDF Part-3 interpretation / tiers / performance / stream desc */
+    body.combined-report-page .chapterPage.aptitude-interp-page {
+      padding: 1cm 1.4cm 1cm !important;
+      height: 297mm !important;
+      max-height: 297mm !important;
+      overflow: hidden !important;
+      text-align: center !important;
+      font-family: 'Space Grotesk', sans-serif !important;
+    }
+    body.combined-report-page .aptitude-interp-page .page-title.pr-3-title {
+      margin: 48px 0 6px !important;
+      color: #4341C9 !important;
+      font-size: 21px !important;
+      font-weight: 700 !important;
+      text-transform: uppercase !important;
+      text-align: center !important;
+    }
+    body.combined-report-page .aptitude-interp-page .interp-lead {
+      margin: 12px auto 19px !important;
+      font-size: 13px !important;
+      font-weight: 500 !important;
+      color: #333 !important;
+      text-align: center !important;
+    }
+    body.combined-report-page .aptitude-interp-page .reasoning-pill {
+      display: inline-block !important;
+      background: linear-gradient(135deg, #5B54E0 0%, #7B74F0 100%) !important;
+      color: #fff !important;
+      font-size: 14px !important;
+      font-weight: 700 !important;
+      padding: 8px 20px 8px 12px !important;
+      border-radius: 999px !important;
+      margin: 0 auto 14px !important;
+      box-shadow: 0 6px 16px rgba(67, 65, 201, 0.28) !important;
+    }
+    body.combined-report-page .aptitude-interp-page .reasoning-pill-text {
+      color: #fff !important;
+      font-weight: 700 !important;
+    }
+    body.combined-report-page .tier-cards {
+      width: 160mm !important;
+      max-width: 160mm !important;
+      margin: 24px auto 45px !important;
+      border-collapse: separate !important;
+      border-spacing: 8px 0 !important;
+      table-layout: fixed !important;
+    }
+    body.combined-report-page .tier-cards td {
+      vertical-align: top !important;
+      padding: 0 !important;
+      border: none !important;
+      background: transparent !important;
+    }
+    body.combined-report-page .tier-card {
+      position: relative !important;
+      min-height: 100px !important;
+      border-radius: 14px !important;
+      padding: 12px 12px 14px !important;
+      text-align: left !important;
+      overflow: hidden !important;
+      box-shadow: 0 5px 16px rgba(40, 40, 90, 0.1) !important;
+    }
+    body.combined-report-page .tier-card--above {
+      background: linear-gradient(160deg, #ffffff 55%, #F0FBEA 100%) !important;
+      border: 1.5px solid #C8EBB8 !important;
+    }
+    body.combined-report-page .tier-card--avg {
+      background: linear-gradient(160deg, #ffffff 55%, #F0EEFF 100%) !important;
+      border: 1.5px solid #D4D0F5 !important;
+    }
+    body.combined-report-page .tier-card--growth {
+      background: linear-gradient(160deg, #ffffff 55%, #FFF0EE 100%) !important;
+      border: 1.5px solid #F0C8C4 !important;
+    }
+    body.combined-report-page .tier-card--above .tier-card-title { color: #1F7A1F !important; }
+    body.combined-report-page .tier-card--avg .tier-card-title { color: #4341C9 !important; }
+    body.combined-report-page .tier-card--growth .tier-card-title { color: #B83228 !important; }
+    body.combined-report-page .tier-card-title {
+      margin: 0 0 8px !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+    }
+    body.combined-report-page .tier-item-name {
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      color: #333 !important;
+    }
+    body.combined-report-page .perf-summary-panel {
+      position: relative !important;
+      width: 100% !important;
+      max-width: 174mm !important;
+      margin: 16px auto 0 !important;
+      border: 1.8px solid #6B63E8 !important;
+      border-radius: 18px !important;
+      background: linear-gradient(180deg, #FAFAFF 0%, #ffffff 40%) !important;
+      padding: 20px 12px 10px !important;
+      box-sizing: border-box !important;
+      float: none !important;
+      clear: both !important;
+    }
+    body.combined-report-page .perf-summary-badge {
+      position: absolute !important;
+      top: -13px !important;
+      left: 50% !important;
+      margin-left: -90px !important;
+      width: 180px !important;
+      background: linear-gradient(135deg, #5B54E0 0%, #7B74F0 100%) !important;
+      color: #fff !important;
+      font-size: 12.5px !important;
+      font-weight: 700 !important;
+      padding: 6px 0 !important;
+      border-radius: 999px !important;
+      text-align: center !important;
+    }
+    body.combined-report-page .perf-col-headers th,
+    body.combined-report-page .perf-col-headers th.perf-h-metric,
+    body.combined-report-page .perf-col-headers th.perf-h-label {
+      background: transparent !important;
+      background-color: transparent !important;
+      border: none !important;
+      color: #222 !important;
+      font-size: 10px !important;
+      font-weight: 700 !important;
+      padding: 0 3px 6px !important;
+      text-align: center !important;
+    }
+    body.combined-report-page .perf-col-headers th.perf-h-label {
+      text-align: left !important;
+      width: 36% !important;
+    }
+    body.combined-report-page .perf-row td {
+      border: none !important;
+      background: transparent !important;
+      padding: 5px 4px !important;
+      vertical-align: middle !important;
+    }
+    body.combined-report-page .perf-label-pill {
+      display: inline-block !important;
+      color: #fff !important;
+      font-size: 10.5px !important;
+      font-weight: 700 !important;
+      padding: 7px 11px !important;
+      border-radius: 999px !important;
+    }
+    body.combined-report-page .chapterPage.interp-follow-page {
+      padding-top: 1.6cm !important;
+      text-align: center !important;
+      overflow: visible !important;
+    }
+    body.combined-report-page .interp-follow-page .graph-frame {
+      width: 100% !important;
+      max-width: 170mm !important;
+      margin: 48px auto 16px !important;
+      padding: 10px !important;
+      border: 1.5px solid #E4E1F6 !important;
+      border-radius: 14px !important;
+      background: #fff !important;
+      box-sizing: border-box !important;
+    }
+    body.combined-report-page .stream-desc-wrap {
+      position: relative !important;
+      width: 100% !important;
+      max-width: 172mm !important;
+      margin: 28px auto 0 !important;
+      border: 1.5px solid #D8D4F0 !important;
+      border-radius: 16px !important;
+      background: #ffffff !important;
+      padding: 24px 16px 14px !important;
+      box-sizing: border-box !important;
+      float: none !important;
+      clear: both !important;
+    }
+    body.combined-report-page .stream-desc-badge {
+      position: absolute !important;
+      top: -13px !important;
+      left: 50% !important;
+      margin-left: -90px !important;
+      width: 180px !important;
+      background: #4341C9 !important;
+      color: #fff !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      text-align: center !important;
+      padding: 6px 10px !important;
+      border-radius: 999px !important;
+    }
+    body.combined-report-page .stream-desc-grid,
+    body.combined-report-page .stream-desc-grid td {
+      border: none !important;
+      background: transparent !important;
+      padding: 0 !important;
+    }
+    body.combined-report-page .stream-desc-row {
+      display: table !important;
+      width: 100% !important;
+      margin: 0 0 8px !important;
+      border: 1px solid #E8E6F8 !important;
+      border-radius: 12px !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+    body.combined-report-page .stream-desc-pill {
+      display: inline-block !important;
+      color: #fff !important;
+      font-weight: 700 !important;
+      font-size: 12px !important;
+      padding: 4px 10px !important;
+      border-radius: 999px !important;
+    }
+    body.combined-report-page .stream-desc-name {
+      color: #333 !important;
+      font-size: 13px !important;
+      font-weight: 500 !important;
+    }
+  </style>
 </head>
 <body class="combined-report-page">
   <div class="report-container">
@@ -766,69 +1884,109 @@
 
       
     <div class="coverPage">
-      <div class="img-top" style="width: 100%; text-align: center;">
-        <img style="width: 200px;" src="{{ static('images/logo.png') }}" alt="logo" />
-      </div>
-      <div class="heading-cover" style="width: 100%; text-align: center;">
-        <h1 style="font-family: 'Galano Grotesque'; margin-top: 0.23cm; font-size: 35px; color: #3F37C9;">Stream Sorter Assessment Report</h1>
-      </div>
-      <div class="image-cover" style="width: 100%; text-align: center;">
-        <img style="width: 320px;" src="{{ static('images/report-image.png') }}" alt="img" />
-      </div>
-
-      {% if show_student_info_on_cover is defined and show_student_info_on_cover and user_profile is defined and user_profile %}
-      <div class="student-detail-info" style="width: 100%; max-width: 650px; margin: 24px auto 24px auto;">
-        <div class="top-info">
-          <div class="info-box">
-            <div class="dt-i-info" style="color:#fff; margin-bottom: 0px;"> Name </div>
-            <div class="output" style="margin-bottom: 0px;">
-              <p>{{ student_name }}</p>
-            </div>
-          </div>
-          <div class="info-box" >
-            <div class="dt-i-info" style="color:#fff; width: 125px;margin-bottom: 0px;">School</div>
-            <div class="output" style="font-size:12px; margin-left:11px; color:#494949; font-weight: 500;" >
-            {{ user_profile.schoolname if user_profile.schoolname else '' }}
-            </div>
-          </div>
+      <div class="cover-inner">
+        <div class="cover-logo main-cover-logo">
+          <img src="{{ static('images/logo.png') }}" alt="topteen" />
         </div>
-        <div class="top-info">
-          <div class="info-box">
-            <div class="dt-i-info" style="color:#fff; margin-bottom: 0px;"> Grade</div>
-            <div class="output" style="margin-bottom: 0px;">
-              <p>{{ user_profile.grade if user_profile.grade else '' }}</p>
-            </div>
-          </div>
-          <div class="info-box">
-            <div class="dt-i-info" style="width: 3.2cm;color:#fff; margin-bottom: 0px;"> Date of Test </div>
-            <div class="output" style="margin-bottom: 0px;">
-              <p>{{ created_date.strftime('%Y-%m-%d') if created_date else now.strftime('%Y-%m-%d') }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      {% endif %}
 
-      <div style="width:100%; margin-top: 40px; float: left;">
-        <table style="width:100%; margin-top: 20px;">
-          <tbody>
-            <tr style="border: 1px solid #3F37CB; border-radius: 10px;">
-              <td>
-                <div class="disclaimer-heading" style="width:100%; text-align: center; color: #3F37CB; text-align: center; margin-top: -19px;">
-                  <p style="background-color: #3F37CB; padding:2px; color: #fff; font-size: 12px; border-radius: 5px 5px 0 0; text-align: center; width:150px; margin: 0px auto;">Disclaimer</p>
+        <div class="cover-title">
+          <span class="line-stream">Stream Sorter</span>
+          <span class="line-report">Assessment Report</span>
+        </div>
+
+        <div class="cover-hero">
+          <img src="{{ static('images_new/new_report/cover-hero.png') }}" alt="Assessment report illustration" />
+        </div>
+
+        <table class="cover-info-grid" cellspacing="0" cellpadding="0">
+          <tr>
+            <td>
+              <div class="cover-info-card">
+                <div class="cover-info-card-inner">
+                  <div class="cover-info-icon">
+                    <div class="cover-info-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v1.2h19.2v-1.2c0-3.2-6.4-4.8-9.6-4.8z" fill="#ffffff"/>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="cover-info-text">
+                    <span class="cover-info-label">Name</span>
+                    <span class="cover-info-value">{{ student_name if student_name is defined and student_name else (user_name if user_name is defined else '') }}</span>
+                  </div>
                 </div>
-                <p style="width:100%; text-align: center;font-size:12px;">The results of this assessment are based on the responses given by the individual on the self report questionnaire and are subject to change based on multiple factors.</p>
-              </td>
-            </tr>
-          </tbody>
+              </div>
+            </td>
+            <td>
+              <div class="cover-info-card">
+                <div class="cover-info-card-inner">
+                  <div class="cover-info-icon">
+                    <div class="cover-info-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M12 3L2 8v2h20V8L12 3zM4 11v8h3v-5h4v5h3v-5h4v5h3v-8H4zm5 10h6v1H9v-1z" fill="#ffffff"/>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="cover-info-text">
+                    <span class="cover-info-label">School</span>
+                    <span class="cover-info-value">{% if user_profile and user_profile.schoolname %}{{ user_profile.schoolname }}{% else %}—{% endif %}</span>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="cover-info-card">
+                <div class="cover-info-card-inner">
+                  <div class="cover-info-icon">
+                    <div class="cover-info-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M12 3L1 9l11 6 9-4.9V17h2V9L12 3zm-7 9.2V15c0 1.7 3.1 3 7 3s7-1.3 7-3v-2.8l-7 3.8-7-3.8z" fill="#ffffff"/>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="cover-info-text">
+                    <span class="cover-info-label">Grade</span>
+                    <span class="cover-info-value">{% if user_profile and user_profile.grade %}{{ user_profile.grade }}{% else %}—{% endif %}</span>
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="cover-info-card">
+                <div class="cover-info-card-inner">
+                  <div class="cover-info-icon">
+                    <div class="cover-info-icon-box">
+                      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M7 2h2v2h6V2h2v2h3v16H4V4h3V2zm11 8H6v8h12v-8zm0-4H6v2h12V6z" fill="#ffffff"/>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="cover-info-text">
+                    <span class="cover-info-label">Date of Test</span>
+                    <span class="cover-info-value">{{ created_date.strftime('%Y-%m-%d') if created_date else now.strftime('%Y-%m-%d') }}</span>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
         </table>
+
+        <div class="cover-disclaimer">
+          <div class="cover-disclaimer-badge">Disclaimer</div>
+          <div class="cover-disclaimer-body">
+            <div class="cover-disclaimer-icon">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5l8-3z" fill="#4341C9"/>
+                <path d="M10.2 15.4l-2.8-2.8 1.4-1.4 1.4 1.4 4.2-4.2 1.4 1.4-5.6 5.6z" fill="#ffffff"/>
+              </svg>
+            </div>
+            <p class="cover-disclaimer-text">The results of this assessment are based on the responses given by the individual on the self report questionnaire and are subject to change based on multiple factors.</p>
+          </div>
+        </div>
       </div>
     </div>
-
-
-
-
-
 
     <!-- End Cover Page -->
   </div>

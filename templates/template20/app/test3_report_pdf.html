@@ -2,26 +2,89 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap">
   <link rel="preload stylesheet" href="{{ static('font/font-style.css') }}">
   <title>Stream Sorter Assessment Report - Aptitude</title>
   <style>
-    @page {
-      @top-left {
-        content: element(page-header);
-      }
-      margin-top: 2.5cm;
+    @font-face {
+      font-family: 'Space Grotesk';
+      src: url("{{ static('font/space-grotesk/SpaceGrotesk-Regular.ttf') }}") format('truetype');
+      font-weight: 400;
+      font-style: normal;
     }
-    
+    @font-face {
+      font-family: 'Space Grotesk';
+      src: url("{{ static('font/space-grotesk/SpaceGrotesk-Medium.ttf') }}") format('truetype');
+      font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Space Grotesk';
+      src: url("{{ static('font/space-grotesk/SpaceGrotesk-SemiBold.ttf') }}") format('truetype');
+      font-weight: 600;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Space Grotesk';
+      src: url("{{ static('font/space-grotesk/SpaceGrotesk-Bold.ttf') }}") format('truetype');
+      font-weight: 700;
+      font-style: normal;
+    }
+
     .page-header {
       width: 675px;
       padding: 0.3cm 0 0 0;
-      /* Fallback for browser preview */
       position: relative;
       display: block;
       margin-bottom: 1cm;
     }
-    
-    /* For PDF generation, make header a running element */
+    .page-header-content {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.3cm;
+    }
+    .page-header-content img {
+      width: 40px;
+      height: auto;
+    }
+    .page-header-content .logo-text {
+      font-size: 18px;
+      font-weight: bold;
+      color: #494949;
+      font-family: 'Space Grotesk', sans-serif;
+      text-transform: uppercase;
+      margin-left: 10px;
+    }
+    .page-header-line {
+      width: 100%;
+      height: 0;
+      border: 0;
+      border-top: 1px solid #494949;
+      margin: 0;
+      padding: 0;
+      display: block;
+      box-sizing: border-box;
+    }
+
+    /* A4 decorative background — only on @page for PDF (avoids double paint) */
+    {% set _a4_bg = pdf_a4_bg_url if pdf_a4_bg_url is defined and pdf_a4_bg_url else static('images_new/new_report/a4-bg-img.png') %}
+    @page {
+      size: A4;
+      margin: 0;
+      background-image: url("{{ _a4_bg }}");
+      background-size: 210mm 297mm;
+      background-position: center center;
+      background-repeat: no-repeat;
+    }
+    @page cover {
+      size: A4;
+      margin: 0;
+      background-image: url("{{ _a4_bg }}");
+      background-size: 210mm 297mm;
+      background-position: center center;
+      background-repeat: no-repeat;
+    }
+
     @media print {
       .page-header {
         position: running(page-header);
@@ -33,59 +96,290 @@
         box-sizing: border-box;
       }
     }
-    
-    .page-header-content {
-      display: flex;
-      align-items: center;
-      margin-bottom: 0.3cm;
-    }
-    
-    .page-header-content img {
-      width: 40px;
-      height: auto;
-    }
-    
-    .page-header-content .logo-text {
-      font-size: 18px;
-      font-weight: bold;
-      color: #494949;
-      font-family: 'Galano Grotesque';
-      text-transform: uppercase;
-      margin-left: 10px;
-    }
-    
-    .page-header-line {
-      width: 100%;
-      height: 0;
-      border: 0;
-      border-top: 1px solid #494949;
-      margin: 0;
-      padding: 0;
-      display: block;
-      box-sizing: border-box;
-    }
-    
+
     body {
       margin: 0;
       padding: 0;
       color: #494949;
-      font-family: 'Galano Grotesque';
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 10pt;
       counter-reset: chapters;
       print-color-adjust: exact;
       -webkit-print-color-adjust: exact;
-
-      width: 650px;
-      margin: 0px auto;
+      background: #e8e9ef;
     }
+    @media screen {
+      .page-header {
+        display: none !important;
+      }
+      body {
+        padding: 24px 0 40px;
+      }
+      .coverPage,
+      .chapterPage {
+        margin-left: auto !important;
+        margin-right: auto !important;
+        box-shadow: 0 10px 30px rgba(20, 24, 60, 0.18);
+        background-color: #ffffff;
+        background-image: url("{{ _a4_bg }}");
+        background-size: 210mm 297mm;
+        background-position: center center;
+        background-repeat: no-repeat;
+      }
+      .chapterPage {
+        margin-top: 28px !important;
+      }
+    }
+    @media print {
+      body {
+        background: transparent;
+        padding: 0;
+      }
+      .coverPage,
+      .chapterPage {
+        background-image: none !important;
+        background-color: transparent !important;
+      }
+    }
+
     ul { list-style-type: none; padding: 0; }
     li { margin-bottom: 5px; }
     div { margin-bottom: 10px; }
     a { color: inherit; text-decoration: none; }
     hr { height: 0; border: 0; border-top: 1px solid #494949; margin: 10px 0 10px 0; }
+    img { max-width: 100%; height: auto; }
     .coverPage, .chapterPage { page-break-after: always; }
-    .coverPage { margin: .5cm; }
-    .coverPage h1 { margin-top: 0.23cm; font-size: 35px; color: #3F37C9; }
+    .coverPage,
+    .chapterPage {
+      position: relative;
+      box-sizing: border-box;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+      overflow-x: hidden;
+    }
+
+    /* Cover page — same UI as test1 */
+    .coverPage {
+      page: cover;
+      width: 210mm;
+      min-height: 297mm;
+      height: 297mm;
+      max-height: 297mm;
+      margin: 0 auto;
+      padding: 1.1cm 1.4cm 1.8cm;
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+      overflow: hidden;
+      page-break-inside: avoid;
+    }
+    .coverPage div { margin-bottom: 0; }
+    .coverPage * {
+      font-family: 'Space Grotesk', sans-serif;
+      box-sizing: border-box;
+    }
+    .cover-inner {
+      width: 100%;
+      max-width: 172mm;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .cover-logo {
+      margin: 0 auto 8px;
+      text-align: center;
+    }
+    .cover-logo img {
+      width: 250px;
+      height: auto;
+      display: inline-block;
+    }
+    .cover-logo.main-cover-logo {
+      margin-top: 67px;
+      margin-bottom: 25px;
+    }
+    .cover-title {
+      margin: 0 0 12px;
+      text-align: center;
+    }
+    .cover-title .line-stream {
+      display: block;
+      margin: 0;
+      font-size: 37px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: #4341C9;
+      line-height: 1.15;
+      text-transform: uppercase;
+    }
+    .cover-title .line-report {
+      display: block;
+      margin: 4px 0 0;
+      font-size: 37px;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      color: #111111;
+      line-height: 1.15;
+      text-transform: uppercase;
+    }
+    .cover-hero {
+      width: 100%;
+      margin: 0 auto 14px;
+      border-radius: 6px;
+      padding: 0;
+      background: transparent;
+      text-align: center;
+    }
+    .cover-hero img {
+      width: 100%;
+      max-width: 155mm;
+      max-height: 88mm;
+      height: auto;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .cover-info-grid {
+      width: 153mm;
+      max-width: 153mm;
+      margin: 0 auto 14px;
+      border-collapse: separate;
+      border-spacing: 10px 10px;
+      table-layout: fixed;
+    }
+    .cover-info-grid td {
+      width: 50%;
+      vertical-align: middle;
+      padding: 0;
+      border: none;
+      background: transparent;
+    }
+    .cover-info-card {
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px solid #E8EAFF;
+      text-align: left;
+      padding: 10px 12px;
+      box-shadow: 0 2px 8px rgba(67, 65, 201, 0.06);
+    }
+    .cover-info-card-inner {
+      display: table;
+      width: 100%;
+      margin: 0;
+    }
+    .cover-info-icon {
+      display: table-cell;
+      vertical-align: middle;
+      width: 40px;
+      padding-right: 10px;
+    }
+    .cover-info-icon-box {
+      width: 34px;
+      height: 34px;
+      background: #4341C9;
+      border-radius: 8px;
+      text-align: center;
+      line-height: 34px;
+    }
+    .cover-info-icon-box svg {
+      width: 17px;
+      height: 17px;
+      vertical-align: middle;
+    }
+    .cover-info-text {
+      display: table-cell;
+      vertical-align: middle;
+      text-align: left;
+    }
+    .cover-info-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #4341C9;
+      line-height: 1.2;
+      margin: 0 0 2px;
+    }
+    .cover-info-value {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: #111111;
+      line-height: 1.25;
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+    .cover-disclaimer {
+      position: relative;
+      width: 153mm;
+      max-width: 153mm;
+      margin: 61px auto 0;
+      border: 1.5px solid #4341C9;
+      border-radius: 14px;
+      background: #ffffff;
+      padding: 16px 14px 12px;
+      text-align: left;
+    }
+    .cover-disclaimer-badge {
+      position: absolute;
+      top: -11px;
+      left: 50%;
+      margin-left: -48px;
+      width: 96px;
+      background: #4341C9;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 0;
+      border-radius: 999px;
+      white-space: nowrap;
+      line-height: 1.3;
+      text-align: center;
+    }
+    .cover-disclaimer-body {
+      display: table;
+      width: 100%;
+      margin: 0;
+    }
+    .cover-disclaimer-icon {
+      display: table-cell;
+      vertical-align: middle;
+      width: 32px;
+      padding-right: 8px;
+    }
+    .cover-disclaimer-icon svg {
+      width: 24px;
+      height: 24px;
+      display: block;
+    }
+    .cover-disclaimer-text {
+      display: table-cell;
+      vertical-align: middle;
+      font-size: 11.5px;
+      font-weight: 500;
+      color: #494949;
+      line-height: 1.4;
+      margin: 0;
+      text-align: left;
+    }
+
+    .chapterPage {
+      width: 210mm;
+      max-width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto;
+      padding: 1.5cm 1.6cm 1.6cm;
+      font-family: 'Space Grotesk', sans-serif;
+      box-sizing: border-box;
+      overflow-x: hidden;
+    }
+    /* Aptitude partials set inline width:100% / float — keep A4 frame + bg */
+    .chapterPage.aptitude-combination-profile,
+    .chapterPage.aptitude-final-streams,
+    .chapterPage.aptitude-tier {
+      width: 210mm !important;
+      max-width: 210mm !important;
+      min-height: 297mm !important;
+      float: none !important;
+      margin-left: auto !important;
+      margin-right: auto !important;
+    }
     .top-info { display: flex; }
     .info-box { border: 1px solid #3F37C9; width: 100%; display: flex; margin-bottom: 26px; border-radius: 5px; }
     .top-info .info-box:last-child { margin-left: 26px; }
@@ -104,6 +398,288 @@
     .box-info .img { text-align: center; margin-top: 20px; }
     .box-info h5 { font-size: 14px; text-align: center; color: #000; margin-bottom: 11px; }
     .box-i { width: 250px; height: 150px; display: flex; justify-content: center; flex-direction: column; align-items: center; }
+    .two-box { display: flex; justify-content: center; margin: 32px 0; }
+    .two-box-in { width: 210px; height: 138px; display: flex; justify-content: center; flex-direction: column; background: #E7E5FF; grid-gap: 1rem; align-items: center; text-align: center; margin: 0 9px; padding: 3px 7px; border-radius: 10px; border-right: 3px solid #3F37CB; border-bottom: 3px solid #3F37C9; }
+    .two-box-in p { list-style: none; padding: 0; margin: 5px 0 0 0; }
+    .img-tow { margin-top: 0; }
+    .cat-box { display: flex; flex-direction: column; justify-content: center; margin-bottom: 31px; }
+    .cat-head { display: flex; justify-content: center; align-items: center; flex-direction: column; background: #3F37C9; border-radius: 7px 7px 0 0; padding: 13px 0; color: #fff; }
+    .cat-head h4 { font-size: 16px; width:600px; margin: 0px; }
+    .cat-list { padding:6px; margin-top:0px; background: #F7F6FF; }
+    .cat-list ul { column-count:3; list-style: none; padding: 0; }
+    .cat-list ul li { list-style: none; padding: 0; margin: 0; }
+    .chapterPage h1 { margin-top: 0; text-transform: uppercase; font-family: 'Space Grotesk', sans-serif; }
+    /* INTRODUCTION page — same UI as test1 */
+    .intro-page {
+      display: block;
+      padding-top: 1.8cm;
+      padding-bottom: 1.5cm;
+      height: 297mm;
+      max-height: 297mm;
+      overflow: hidden;
+      page-break-inside: avoid;
+      text-align: center;
+    }
+    .intro-page div { margin-bottom: 0; }
+    .intro-panel {
+      position: relative;
+      width: 100%;
+      max-width: 172mm;
+      margin: 64px auto 0;
+      border: 1.5px solid #4341C9;
+      border-radius: 18px;
+      background: #ffffff;
+      padding: 28px 22px 22px;
+      box-sizing: border-box;
+      text-align: left;
+      overflow: visible;
+    }
+    .intro-panel-badge {
+      position: absolute;
+      top: -16px;
+      left: 50%;
+      margin-left: -85px;
+      width: 170px;
+      background: #4341C9;
+      color: #ffffff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-align: center;
+      text-transform: uppercase;
+      padding: 7px 10px;
+      border-radius: 8px;
+      line-height: 1.2;
+    }
+    .intro-panel p {
+      margin: 0 0 14px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px;
+      font-weight: 400;
+      color: #2f2f2f;
+      line-height: 1.55;
+      text-align: left;
+    }
+    .intro-panel p:last-child { margin-bottom: 0; }
+    .intro-panel .intro-highlight {
+      color: #4341C9;
+      font-weight: 700;
+    }
+    .intro-career-art {
+      width: 165mm;
+      max-width: 165mm;
+      margin: 0.9cm auto 0;
+      text-align: center;
+    }
+    .intro-career-art img {
+      width: 100%;
+      max-width: 165mm;
+      height: auto;
+      max-height: 115mm;
+      display: inline-block;
+      border-radius: 8px;
+    }
+    /* HOW TO USE THIS REPORT — same UI as test1 */
+    .howto-page {
+      padding-top: 1.4cm;
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+      height: 297mm;
+      max-height: 297mm;
+      overflow: hidden;
+      page-break-inside: avoid;
+    }
+    .howto-page div { margin-bottom: 0; }
+    .howto-page * { font-family: 'Space Grotesk', sans-serif; box-sizing: border-box; }
+    .howto-page .howto-title {
+      margin: 0 0 14px;
+      color: #4341C9;
+      font-size: 26px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+    }
+    .howto-title.h2-title {
+      margin-top: 64px;
+    }
+    .howto-page .howto-intro {
+      max-width: 168mm;
+      margin: 0 auto 18px;
+      font-size: 14px;
+      font-weight: 400;
+      color: #333;
+      line-height: 1.5;
+      text-align: center;
+    }
+    .howto-page .howto-intro .hl {
+      color: #4341C9;
+      font-weight: 700;
+    }
+    .howto-cards {
+      width: 160mm;
+      max-width: 160mm;
+      margin: 37px auto 39px;
+      border-collapse: separate;
+      border-spacing: 10px 0;
+      table-layout: fixed;
+      text-align: center;
+    }
+    .howto-cards td {
+      width: 33.33%;
+      vertical-align: top;
+      padding: 0;
+      border: none;
+      background: transparent;
+    }
+    .howto-card {
+      position: relative;
+      height: 138px;
+      background: #ffffff;
+      border: 1.5px solid #E4E1F6;
+      border-radius: 18px;
+      padding: 18px 12px 16px;
+      text-align: center;
+      overflow: hidden;
+      box-shadow: 0 3px 10px rgba(67, 65, 201, 0.08);
+    }
+    .howto-card-icon {
+      width: 68px;
+      height: 68px;
+      margin: 0 auto 10px;
+      border-radius: 50%;
+      background: #F5F4FF;
+      border: 1px solid #E8E6FA;
+      text-align: center;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+    .howto-card-icon img {
+      display: block;
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      margin: 14px auto 0;
+    }
+    .howto-card-label {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+      color: #111;
+      line-height: 1.2;
+    }
+    .howto-card-accent {
+      position: absolute;
+      right: -28px;
+      bottom: -28px;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      z-index: 0;
+    }
+    .howto-card.personality .howto-card-accent { background: #7B6CF0; }
+    .howto-card.interest .howto-card-accent { background: #4A7DFF; }
+    .howto-card.aptitude .howto-card-accent { background: #2BB8C0; }
+    .howto-table-wrap {
+      width: 100%;
+      max-width: 172mm;
+      margin: 8px auto 16px;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #ffffff;
+      border: 1px solid #ECEAF8;
+      box-sizing: border-box;
+      text-align: left;
+    }
+    .howto-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .howto-table thead th {
+      background: #4341C9 !important;
+      color: #ffffff !important;
+      font-size: 15px !important;
+      font-weight: 700 !important;
+      padding: 11px 14px !important;
+      text-align: left !important;
+      border: none !important;
+    }
+    .howto-table thead th:first-child {
+      width: 42%;
+    }
+    .howto-table td {
+      border: none !important;
+      border-top: 1px solid #E6E4F2 !important;
+      padding: 12px 14px !important;
+      vertical-align: middle;
+      background: #fff;
+      text-align: left;
+      font-size: 15px;
+    }
+    .howto-part {
+      display: table;
+      width: 100%;
+    }
+    .howto-num {
+      display: table-cell;
+      width: 28px;
+      vertical-align: middle;
+    }
+    .howto-num span {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      line-height: 24px;
+    }
+    .howto-num.n1 span { background: #7B6CF0; }
+    .howto-num.n2 span { background: #4A7DFF; }
+    .howto-num.n3 span { background: #2BB8C0; }
+    .howto-part-text {
+      display: table-cell;
+      vertical-align: middle;
+      padding-left: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a1a1a;
+      line-height: 1.3;
+    }
+    .howto-desc {
+      font-size: 11.5px;
+      font-weight: 400;
+      color: #333;
+      line-height: 1.45;
+    }
+    .howto-desc .kw {
+      color: #4341C9;
+      font-weight: 700;
+    }
+    .howto-footer {
+      width: 100%;
+      max-width: 172mm;
+      margin: 33px auto 0;
+      background: #F1EEFF;
+      border-radius: 12px;
+      padding: 12px 14px;
+      text-align: center;
+    }
+    .howto-footer p {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 500;
+      color: #333;
+      line-height: 1.45;
+    }
+
+    .box-i { width: 250px; height: 150px; display: flex; justify-content: center; flex-direction: column; align-items: center; }
     .box-i.onebox { background: #E7E5FF; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #3F37C9; border-bottom: 4px solid #3F37C9; width:190px; height: 180px; min-height: 180px; }
     .two-box { display: flex; justify-content: center; margin: 32px 0; }
     .two-box-in { width: 210px; height: 138px; display: flex; justify-content: center; flex-direction: column; background: #E7E5FF; grid-gap: 1rem; align-items: center; text-align: center; margin: 0 9px; padding: 3px 7px; border-radius: 10px; border-right: 3px solid #3F37CB; border-bottom: 3px solid #3F37C9; }
@@ -117,17 +693,598 @@
     .cat-list { padding:6px; margin-top:0px; background: #F7F6FF; }
     .cat-list ul { column-count:3; list-style: none; padding: 0; }
     .cat-list ul li { list-style: none; padding: 0; margin: 0; }
-    .chapterPage h1 { margin-top: 1cm; text-transform: uppercase; }
-    .disclaimer-heading { width: 120px; text-align: center; margin-bottom: 13px; }
     .text-color-top { display: flex; justify-content: center; }
     .top-layout { background: #3F37C9; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 28px; font-weight: 600; border-radius: 10px 10px 0 0; }
     .db-header { margin-top: 10px; text-align: center; }
     .db-header h1 { color: #3F37C9; font-size: 24pt; margin: 0 0 10px 0; }
     .test-title { color:#000; font-size:16px; font-weight: 600; margin-top: 10px; }
     .img-info { width: 100%; text-align: center; margin-top:30px; }
-    .boxthree { margin: 20px 0 40px 0; float:left; width: 100%; }
     .graph { width:100%; text-align: center; margin-top: 40px; float: left; }
     .threebox-col { display: flex; justify-content: center; margin: 8px 0 0 0; }
+    .boxthree { margin: 20px 0 40px 0; float:left; width: 100%; }
+    img { max-width: 100%; height: auto; }
+
+    /* Part-3 Aptitude opener — same UI language as test1 Holland page */
+    .aptitude-part-opener {
+      padding-top: 1.4cm;
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+      height: 297mm;
+      max-height: 297mm;
+      overflow: hidden;
+      page-break-inside: avoid;
+      box-sizing: border-box;
+    }
+    .aptitude-part-opener div { margin-bottom: 0 !important; }
+    .aptitude-part-opener * { font-family: 'Space Grotesk', sans-serif; box-sizing: border-box; }
+    .part-badge {
+      display: inline-block;
+      background: #4341C9;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 7px 24px;
+      border-radius: 10px;
+      margin: 0 auto 12px;
+      letter-spacing: 0.02em;
+    }
+    .part-badge.p-badge-3 {
+      margin-top: 48px;
+      margin-bottom: 18px;
+    }
+    .aptitude-part-opener .page-title {
+      margin: 0 0 12px !important;
+      color: #2C2A9E !important;
+      font-size: 26px !important;
+      font-weight: 700 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+      text-align: center;
+      margin-top: 10px !important;
+    }
+    .aptitude-part-opener .page-intro {
+      width: 100%;
+      max-width: 170mm;
+      margin: 0 auto 14px;
+      text-align: left;
+      font-size: 15px;
+      font-weight: 400;
+      color: #333;
+      line-height: 1.5;
+      box-sizing: border-box;
+    }
+    .aptitude-part-opener .page-intro .hl {
+      color: #2C2A9E;
+      font-weight: 700;
+    }
+    .aptitude-part-opener .section-subtitle {
+      margin: 4px auto 12px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #111;
+      text-align: center;
+      margin-bottom: 13px !important;
+    }
+    .aptitude-reason-table-wrap {
+      width: 100%;
+      max-width: 172mm;
+      margin: 0 auto;
+      background: #F3F1FF;
+      border-radius: 16px;
+      padding: 10px 12px 8px;
+      overflow: hidden;
+      box-sizing: border-box;
+      text-align: left;
+      border: none;
+    }
+    .aptitude-reason-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: transparent;
+    }
+    .aptitude-reason-table thead th {
+      background: transparent !important;
+      color: #2C2A9E !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      padding: 6px 8px 8px !important;
+      text-align: left !important;
+      border: none !important;
+    }
+    .aptitude-reason-table thead th:first-child {
+      width: 30%;
+      text-align: center !important;
+    }
+    .aptitude-reason-table td {
+      border: none !important;
+      border-top: 1px solid #D8D4F0 !important;
+      padding: 7px 8px !important;
+      vertical-align: middle;
+      background: transparent;
+    }
+    .aptitude-reason-table .type-cell {
+      width: 30%;
+      text-align: center;
+      padding-top: 8px !important;
+      padding-bottom: 8px !important;
+    }
+    .aptitude-reason-table .type-cell img {
+      width: 26px;
+      height: 26px;
+      display: inline-block;
+      margin: 0 auto 3px;
+      vertical-align: middle;
+    }
+    .aptitude-reason-table .type-name {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-top: 2px;
+    }
+    .aptitude-reason-table .type-name.nr { color: #057190; }
+    .aptitude-reason-table .type-name.vr { color: #A92CAF; }
+    .aptitude-reason-table .type-name.lr { color: #2A740E; }
+    .aptitude-reason-table .type-name.mr { color: #A22717; }
+    .aptitude-reason-table .type-name.sr { color: #0B5BA1; }
+    .aptitude-reason-table .type-name.lu { color: #6D5C04; }
+    .aptitude-reason-table .type-name.cr { color: #C2410C; }
+    .aptitude-reason-table .desc-cell {
+      font-size: 14px;
+      font-weight: 400;
+      color: #333;
+      line-height: 1.4;
+      text-align: left;
+    }
+    /* Page 5 — Reasoning / Interpretation (polished UI) */
+    .interp-page {
+      padding: 1cm 1.4cm 1cm;
+      font-family: 'Space Grotesk', sans-serif;
+      height: 297mm;
+      max-height: 297mm;
+      overflow: hidden;
+      page-break-inside: avoid;
+      text-align: center;
+      box-sizing: border-box;
+    }
+    .interp-page div { margin-bottom: 0 !important; }
+    .interp-page * { font-family: 'Space Grotesk', sans-serif; box-sizing: border-box; }
+    .interp-page .page-title {
+      margin: 10px 0 6px !important;
+      color: #4341C9 !important;
+      font-size: 21px !important;
+      font-weight: 700 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.03em;
+      line-height: 1.2;
+      text-align: center;
+    }
+
+    .page-title.pr-3-title {
+  margin-top: 64px !important;
+}
+
+
+    .interp-lead {
+      margin: 0 0 10px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #333;
+      text-align: center;
+      line-height: 1.4;
+      margin-top: 12px;
+  margin-bottom: 19px;
+    }
+
+    .reasoning-pill {
+      display: inline-block;
+      background: linear-gradient(135deg, #5B54E0 0%, #7B74F0 100%);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 8px 20px 8px 12px;
+      border-radius: 999px;
+      line-height: 1.2;
+      margin: 0 auto 14px;
+      box-shadow: 0 6px 16px rgba(67, 65, 201, 0.28);
+      text-align: center;
+    }
+    .reasoning-pill-inner {
+      display: table;
+      margin: 0 auto;
+    }
+    .reasoning-pill-icon {
+      display: table-cell;
+      vertical-align: middle;
+      width: 28px;
+      padding-right: 8px;
+    }
+    .reasoning-pill-icon span {
+      display: inline-block;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      text-align: center;
+      line-height: 26px;
+    }
+    .reasoning-pill-icon svg {
+      width: 15px;
+      height: 15px;
+      vertical-align: middle;
+    }
+    .reasoning-pill-text {
+      display: table-cell;
+      vertical-align: middle;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.02em;
+    }
+
+    .tier-cards {
+      width: 160mm;
+      max-width: 160mm;
+      margin: 0 auto 14px;
+      border-collapse: separate;
+      border-spacing: 8px 0;
+      table-layout: fixed;
+      margin-top: 24px;
+  margin-bottom: 45px;
+    }
+    .tier-cards td {
+      vertical-align: stretch;
+      padding: 0;
+      border: none;
+      background: transparent;
+    }
+    .tier-cards.tier-cards--2 td { width: 50%; }
+    .tier-cards.tier-cards--3 td { width: 33.33%; }
+    .tier-card {
+      position: relative;
+      min-height: 100px;
+      height: 100%;
+      border-radius: 14px;
+      padding: 12px 12px 14px;
+      text-align: left;
+      overflow: hidden;
+      box-shadow: 0 5px 16px rgba(40, 40, 90, 0.1);
+    }
+    .tier-card--above {
+      background: linear-gradient(160deg, #ffffff 55%, #F0FBEA 100%);
+      border: 1.5px solid #C8EBB8;
+    }
+    .tier-card--avg {
+      background: linear-gradient(160deg, #ffffff 55%, #F0EEFF 100%);
+      border: 1.5px solid #D4D0F5;
+    }
+    .tier-card--growth {
+      background: linear-gradient(160deg, #ffffff 55%, #FFF0EE 100%);
+      border: 1.5px solid #F0C8C4;
+    }
+    .tier-card-title {
+      margin: 0 0 8px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.2;
+      position: relative;
+      z-index: 1;
+      letter-spacing: 0.01em;
+    }
+    .tier-card--above .tier-card-title { color: #1F7A1F; }
+    .tier-card--avg .tier-card-title { color: #4341C9; }
+    .tier-card--growth .tier-card-title { color: #B83228; }
+    .tier-item {
+      display: table;
+      width: auto;
+      max-width: 100%;
+      margin: 0 0 5px;
+      position: relative;
+      z-index: 1;
+    }
+    .tier-check {
+      display: table-cell;
+      width: 16px;
+      vertical-align: middle;
+      padding-right: 5px;
+    }
+    .tier-check span {
+      display: inline-block;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 15px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    }
+    .tier-card--above .tier-check span { background: #2EA043; }
+    .tier-card--avg .tier-check span { background: #5B54E0; }
+    .tier-card--growth .tier-check span { background: #D6453A; }
+    .tier-check svg {
+      width: 9px;
+      height: 9px;
+      vertical-align: middle;
+    }
+    .tier-item-name {
+      display: table-cell;
+      vertical-align: middle;
+      font-size: 11px;
+      font-weight: 700;
+      color: #1a1a1a;
+      line-height: 1.2;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+    .tier-items-2col {
+      width: 100%;
+      border-collapse: collapse;
+      position: relative;
+      z-index: 1;
+    }
+    .tier-items-2col td {
+      width: 50%;
+      vertical-align: top;
+      padding: 0 2px 0 0;
+      border: none;
+      background: transparent;
+    }
+    .tier-card-accent {
+      position: absolute;
+      right: -22px;
+      bottom: -28px;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      z-index: 0;
+      opacity: 0.92;
+    }
+    .tier-card--above .tier-card-accent { background: #3CB04A; }
+    .tier-card--avg .tier-card-accent { background: #6B63E8; }
+    .tier-card--growth .tier-card-accent { background: #E05A4A; }
+
+    .perf-summary-panel {
+      position: relative;
+      width: 100%;
+      max-width: 174mm;
+      margin: 16px auto 0;
+      border: 1.8px solid #6B63E8;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #FAFAFF 0%, #ffffff 40%);
+      padding: 20px 12px 10px;
+      text-align: left;
+      box-sizing: border-box;
+      box-shadow: 0 8px 20px rgba(67, 65, 201, 0.08);
+    }
+    .perf-summary-badge {
+      position: absolute;
+      top: -13px;
+      left: 50%;
+      margin-left: -90px;
+      width: 180px;
+      background: linear-gradient(135deg, #5B54E0 0%, #7B74F0 100%);
+      color: #fff;
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 6px 0;
+      border-radius: 999px;
+      text-align: center;
+      line-height: 1.3;
+      letter-spacing: 0.02em;
+      box-shadow: 0 4px 12px rgba(67, 65, 201, 0.28);
+    }
+    .perf-col-headers {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0 0 6px;
+      table-layout: fixed;
+    }
+    .perf-col-headers th {
+      background: transparent !important;
+      border: none !important;
+      padding: 0 3px 6px !important;
+      font-size: 10px !important;
+      font-weight: 700 !important;
+      color: #222 !important;
+      text-align: center !important;
+      line-height: 1.2;
+      letter-spacing: 0.01em;
+    }
+    .perf-col-headers th.perf-h-label {
+      width: 36%;
+      text-align: left !important;
+    }
+    .perf-col-headers th.perf-h-metric { width: 16%; }
+
+    .perf-row-wrap {
+      width: 100%;
+      margin: 0 0 5px;
+      border: none;
+      border-bottom: 1px solid #ECEAF5;
+      border-radius: 0;
+      background: transparent;
+      overflow: hidden;
+      box-sizing: border-box;
+      padding: 5px 0;
+    }
+    .perf-row-wrap:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+    .perf-row {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      margin: 0;
+    }
+    .perf-row td {
+      border: none !important;
+      padding: 5px 4px !important;
+      vertical-align: middle;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.2;
+      background: transparent;
+    }
+    .perf-row .perf-label {
+      width: 36%;
+      text-align: left !important;
+      padding: 4px 6px 4px 2px !important;
+    }
+    .perf-label-pill {
+      display: inline-block;
+      color: #fff;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 7px 11px;
+      border-radius: 999px;
+      line-height: 1.2;
+      text-align: center;
+      width: auto;
+      min-width: 88%;
+      box-sizing: border-box;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      letter-spacing: 0.01em;
+    }
+    .perf-row .perf-metric { width: 16%; }
+    .perf-metric-v {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .perf-acc-bar {
+      display: block;
+      width: 70%;
+      max-width: 48px;
+      height: 4px;
+      margin: 4px auto 0;
+      background: #EDEAF8;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .perf-acc-fill {
+      display: block;
+      height: 4px;
+      border-radius: 999px;
+    }
+
+    .stream-desc-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 168mm;
+      margin: 18px auto 0;
+      border: 1.6px solid #6B63E8;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #FAFAFF 0%, #ffffff 35%);
+      padding: 24px 14px 14px;
+      box-sizing: border-box;
+      clear: both;
+      text-align: left;
+      box-shadow: 0 8px 20px rgba(67, 65, 201, 0.08);
+      overflow: visible;
+      margin-top: 46px;
+    }
+    .stream-desc-badge {
+      position: absolute;
+      top: -13px;
+      left: 50%;
+      margin-left: -88px;
+      width: 176px;
+      background: linear-gradient(135deg, #5B54E0 0%, #7B74F0 100%);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 6px 0;
+      border-radius: 999px;
+      text-align: center;
+      line-height: 1.3;
+      letter-spacing: 0.02em;
+      box-shadow: 0 4px 12px rgba(67, 65, 201, 0.28);
+    }
+    .stream-desc-grid {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 6px;
+      margin: 0;
+    }
+    .stream-desc-grid td {
+      border: none !important;
+      padding: 0 !important;
+      background: transparent !important;
+      vertical-align: middle;
+    }
+    .stream-desc-row {
+      display: table;
+      width: 100%;
+      border: 1px solid #ECEAF5;
+      border-radius: 12px;
+      background: #ffffff;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(40, 40, 90, 0.05);
+    }
+    .stream-desc-code {
+      display: table-cell;
+      width: 78px;
+      vertical-align: middle;
+      padding: 6px 8px 6px 10px;
+    }
+    .stream-desc-pill {
+      display: inline-block;
+      min-width: 58px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-align: center;
+      line-height: 1.2;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .stream-desc-name {
+      display: table-cell;
+      vertical-align: middle;
+      padding: 10px 14px 10px 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #2a2a2a;
+      line-height: 1.35;
+      text-align: left;
+    }
+    .stream-desc-row.pcm { background: linear-gradient(90deg, #FFF9E8 0%, #ffffff 55%); border-color: #F3E4A8; }
+    .stream-desc-row.pcm .stream-desc-pill { background: #D4A017; }
+    .stream-desc-row.pcb { background: linear-gradient(90deg, #F4F0FF 0%, #ffffff 55%); border-color: #D9D2F5; }
+    .stream-desc-row.pcb .stream-desc-pill { background: #6B63E8; }
+    .stream-desc-row.hum { background: linear-gradient(90deg, #EEF9E8 0%, #ffffff 55%); border-color: #C7E6B8; }
+    .stream-desc-row.hum .stream-desc-pill { background: #2EA043; }
+    .stream-desc-row.hwl { background: linear-gradient(90deg, #E8F7FB 0%, #ffffff 55%); border-color: #B8DFEA; }
+    .stream-desc-row.hwl .stream-desc-pill { background: #1F8AA8; }
+    .stream-desc-row.cwm { background: linear-gradient(90deg, #FFF3E8 0%, #ffffff 55%); border-color: #F0D0A8; }
+    .stream-desc-row.cwm .stream-desc-pill { background: #E49B31; }
+    .stream-desc-row.cwom { background: linear-gradient(90deg, #EEEBFF 0%, #ffffff 55%); border-color: #D0CBF0; }
+    .stream-desc-row.cwom .stream-desc-pill { background: #4341C9; }
+
+    .graph-frame {
+      width: 100%;
+      max-width: 170mm;
+      margin: 12px auto;
+      padding: 10px;
+      border: 1.5px solid #E4E1F6;
+      border-radius: 14px;
+      background: #fff;
+      box-sizing: border-box;
+      clear: both;
+      float: none;
+      text-align: center;
+      margin-top: 64px;
+    }
+    .graph-frame img { width: 100%; max-width: 150mm; height: auto; }
+    .interp-follow-page {
+      padding-top: 1.6cm;
+      text-align: center;
+    }
     .aptitude-combination-profile div,
     .aptitude-plan-block div,
     .aptitude-fit-icon-box,
@@ -287,308 +1444,471 @@
   {% include 'template20/app/partials/aptitude_tier_styles.html' %}
 </head>
 <body>
-  <div class="page-header">
-    <div class="page-header-content">
-      <img style="width: 90px;" src="{{ static('images/logo.png') }}" alt="TOPTEEN Logo" />
-    </div>
-    <hr class="page-header-line" />
-  </div>
   <div class="coverPage">
-    <div class="img-top" style="width: 100%; text-align: center;">
-      <img style="width: 200px;" src="{{ static('images/logo.png') }}" alt="logo" />
-    </div>
-    <div class="heading-cover" style="width: 100%; text-align: center;">
-      <h1 style="font-family: 'Galano Grotesque'; margin-top: 0.23cm; font-size: 35px; color: #3F37C9;">Stream Sorter Assessment Report</h1>
-    </div>
-    <div class="image-cover" style="width: 100%; text-align: center;">
-      <img style="width: 320px;" src="{{ static('images/report-image.png') }}" alt="img" />
-    </div>
-
-    {% if user_profile %}
-    <div class="student-detail-info" style="width:650px; margin-bottom:30px;">
-      <div class="top-info">
-        <div class="info-box">
-          <div class="dt-i-info" style="color:#fff; margin-bottom: 0px;"> Name </div>
-          <div class="output" style="margin-bottom: 0px;">
-            <p>{{ student_name }}</p>
-          </div>
-        </div>
-        <div class="info-box">
-          <div class="dt-i-info" style="color:#fff; width: 125px;margin-bottom: 0px;">School</div>
-          <div class="output">
-            <p>{{ user_profile.schoolname if user_profile.schoolname else '' }}</p>
-          </div>
-        </div>
+    <div class="cover-inner">
+      <div class="cover-logo main-cover-logo">
+        <img src="{{ static('images/logo.png') }}" alt="topteen" />
       </div>
-      <div class="top-info">
-        <div class="info-box">
-          <div class="dt-i-info" style="color:#fff; margin-bottom: 0px;"> Grade</div>
-          <div class="output" style="margin-bottom: 0px;">
-            <p>{{ user_profile.grade if user_profile.grade else '' }}</p>
-          </div>
-        </div>
-        <div class="info-box">
-          <div class="dt-i-info" style="width: 3cm;color:#fff; margin-bottom: 0px;"> Date of Test </div>
-          <div class="output" style="margin-bottom: 0px;">
-            <p>{{ created_date.strftime('%Y-%m-%d') if created_date else now.strftime('%Y-%m-%d') }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-    {% endif %}
 
-    <div style="width:100%; margin-top: 40px; float: left;">
-      <table style="width:100%; margin-top: 20px;">
-        <tbody>
-          <tr style="border: 1px solid #3F37CB; border-radius: 10px;">
-            <td>
-              <div class="disclaimer-heading" style="width:100%; text-align: center; color: #3F37CB; text-align: center; margin-top: -19px;">
-                <p style="background-color: #3F37CB; padding:2px; color: #fff; font-size: 12px; border-radius: 5px 5px 0 0; text-align: center; width:150px; margin: 0px auto;">Disclaimer</p>
+      <div class="cover-title">
+        <span class="line-stream">Stream Sorter</span>
+        <span class="line-report">Assessment Report</span>
+      </div>
+
+      <div class="cover-hero">
+        <img src="{{ static('images_new/new_report/cover-hero.png') }}" alt="Assessment report illustration" />
+      </div>
+
+      <table class="cover-info-grid" cellspacing="0" cellpadding="0">
+        <tr>
+          <td>
+            <div class="cover-info-card">
+              <div class="cover-info-card-inner">
+                <div class="cover-info-icon">
+                  <div class="cover-info-icon-box">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v1.2h19.2v-1.2c0-3.2-6.4-4.8-9.6-4.8z" fill="#ffffff"/>
+                    </svg>
+                  </div>
+                </div>
+                <div class="cover-info-text">
+                  <span class="cover-info-label">Name</span>
+                  <span class="cover-info-value">{{ student_name if student_name is defined and student_name else (user_name if user_name is defined else '') }}</span>
+                </div>
               </div>
-              <p style="width:100%; text-align: center;">The results of this assessment are based on the responses given by the individual on the self report questionnaire and are subject to change based on multiple factors.</p>
+            </div>
+          </td>
+          <td>
+            <div class="cover-info-card">
+              <div class="cover-info-card-inner">
+                <div class="cover-info-icon">
+                  <div class="cover-info-icon-box">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <path d="M12 3L2 8v2h20V8L12 3zM4 11v8h3v-5h4v5h3v-5h4v5h3v-8H4zm5 10h6v1H9v-1z" fill="#ffffff"/>
+                    </svg>
+                  </div>
+                </div>
+                <div class="cover-info-text">
+                  <span class="cover-info-label">School</span>
+                  <span class="cover-info-value">{% if user_profile and user_profile.schoolname %}{{ user_profile.schoolname }}{% else %}—{% endif %}</span>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="cover-info-card">
+              <div class="cover-info-card-inner">
+                <div class="cover-info-icon">
+                  <div class="cover-info-icon-box">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <path d="M12 3L1 9l11 6 9-4.9V17h2V9L12 3zm-7 9.2V15c0 1.7 3.1 3 7 3s7-1.3 7-3v-2.8l-7 3.8-7-3.8z" fill="#ffffff"/>
+                    </svg>
+                  </div>
+                </div>
+                <div class="cover-info-text">
+                  <span class="cover-info-label">Grade</span>
+                  <span class="cover-info-value">{% if user_profile and user_profile.grade %}{{ user_profile.grade }}{% else %}—{% endif %}</span>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="cover-info-card">
+              <div class="cover-info-card-inner">
+                <div class="cover-info-icon">
+                  <div class="cover-info-icon-box">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <path d="M7 2h2v2h6V2h2v2h3v16H4V4h3V2zm11 8H6v8h12v-8zm0-4H6v2h12V6z" fill="#ffffff"/>
+                    </svg>
+                  </div>
+                </div>
+                <div class="cover-info-text">
+                  <span class="cover-info-label">Date of Test</span>
+                  <span class="cover-info-value">{{ created_date.strftime('%Y-%m-%d') if created_date else now.strftime('%Y-%m-%d') }}</span>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </table>
+
+      <div class="cover-disclaimer">
+        <div class="cover-disclaimer-badge">Disclaimer</div>
+        <div class="cover-disclaimer-body">
+          <div class="cover-disclaimer-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5l8-3z" fill="#4341C9"/>
+              <path d="M10.2 15.4l-2.8-2.8 1.4-1.4 1.4 1.4 4.2-4.2 1.4 1.4-5.6 5.6z" fill="#ffffff"/>
+            </svg>
+          </div>
+          <p class="cover-disclaimer-text">The results of this assessment are based on the responses given by the individual on the self report questionnaire and are subject to change based on multiple factors.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapterPage intro-page">
+    <div class="intro-panel">
+      <div class="intro-panel-badge">Introduction</div>
+      <p>Selecting the right academic stream is a significant milestone in a student's educational journey. It's like choosing a path in a vast, exciting forest where each trail leads to unique adventures and destinations. This decision lays the foundation for future career prospects and academic pursuits, making it crucial for students to carefully evaluate their options.</p>
+      <p>Imagine standing at a crossroads with a map in hand, each route offering a glimpse into different worlds—science teeming with discoveries, commerce bustling with business acumen, and humanities rich with cultural insights. This pivotal choice is not just about subjects and exams; it's about uncovering your passions, unlocking potential, and setting the stage for your future. Whether you dream of becoming an engineer, an entrepreneur, or an artist, the right stream can be the launch pad to your aspirations, turning your academic journey into an exhilarating quest for knowledge and success.</p>
+      <p>The Stream Sorter Assessment Test aims to guide students in this decision by evaluating three key aspects: <span class="intro-highlight">Interest, Personality, and Aptitude.</span> These elements are essential in identifying the most suitable academic path for each individual.</p>
+    </div>
+    <div class="intro-career-art">
+      <img src="{{ static('images_new/new_report/career-hand.png') }}" alt="Career" />
+    </div>
+  </div>
+
+  <div class="chapterPage howto-page">
+    <h1 class="howto-title h2-title">How To Use This Report</h1>
+    <p class="howto-intro">This test typically consists of a series of questions in 3 parts that evaluate various aspects of a student's <span class="hl">Personality, Interest and Aptitude</span> and it helps you decide the suggested stream to consider in your high school.</p>
+
+    <table class="howto-cards" cellspacing="0" cellpadding="0">
+      <tr>
+        <td>
+          <div class="howto-card personality">
+            <div class="howto-card-accent"></div>
+            <div class="howto-card-icon">
+              <img src="{{ static('images/personality-icon.png') }}" alt="Personality" />
+            </div>
+            <p class="howto-card-label">Personality</p>
+          </div>
+        </td>
+        <td>
+          <div class="howto-card interest">
+            <div class="howto-card-accent"></div>
+            <div class="howto-card-icon">
+              <img src="{{ static('images/interest-icon.png') }}" alt="Interest" />
+            </div>
+            <p class="howto-card-label">Interest</p>
+          </div>
+        </td>
+        <td>
+          <div class="howto-card aptitude">
+            <div class="howto-card-accent"></div>
+            <div class="howto-card-icon">
+              <img src="{{ static('images/intelligence-icon.png') }}" alt="Aptitude" />
+            </div>
+            <p class="howto-card-label">Aptitude</p>
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <div class="howto-table-wrap">
+      <table class="howto-table">
+        <thead>
+          <tr>
+            <th>Part</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div class="howto-part">
+                <div class="howto-num n1"><span>1</span></div>
+                <div class="howto-part-text">Part 1 - Personality Assessment</div>
+              </div>
             </td>
+            <td class="howto-desc"><span class="kw">Personality</span> encompasses the traits &amp; characteristics that define how you interact with the world and approach tasks</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="howto-part">
+                <div class="howto-num n2"><span>2</span></div>
+                <div class="howto-part-text">Part 2 - Career Interest Assessment</div>
+              </div>
+            </td>
+            <td class="howto-desc"><span class="kw">Interest</span> refers to the subjects and activities that naturally engage and excite you</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="howto-part">
+                <div class="howto-num n3"><span>3</span></div>
+                <div class="howto-part-text">Part 3 - Aptitude Assessment</div>
+              </div>
+            </td>
+            <td class="howto-desc"><span class="kw">Aptitude</span> refers to your cognitive abilities, including logical reasoning, problem-solving skills, and understanding of complex concepts</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="howto-footer">
+      <p>This comprehensive report ensures that you make informed decision about your academic path, leading to more successful and fulfilling career.</p>
+    </div>
+  </div>
+
+  <div class="chapterPage aptitude-part-opener">
+    <div class="part-badge p-badge-3">Part - 3</div>
+    <h1 class="page-title">Aptitude Assessment Report</h1>
+    <p class="page-intro">An aptitude test is a standardized assessment designed to measure a person's <span class="hl">cognitive abilities</span> and intellectual potential. These tests evaluate factors such as <span class="hl">numerical, verbal, logical, mechanical, spatial, language, and critical reasoning</span>. By identifying your dominant Reasoning type, you can better understand your strengths and suggest suitable academic and career paths.</p>
+
+    <div class="section-subtitle">Reasoning type description</div>
+    <div class="aptitude-reason-table-wrap">
+      <table class="aptitude-reason-table">
+        <thead>
+          <tr>
+            <th>Reasoning Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="type-cell">
+              <img src="{{ static('images/numeric.png') }}" alt="Numerical" />
+              <span class="type-name nr">Numerical Reasoning</span>
+            </td>
+            <td class="desc-cell">Ability to understand, interpret, and work with numerical concepts and relationships. It involves reasoning with numbers and performing mathematical operations to solve problems.</td>
+          </tr>
+          <tr>
+            <td class="type-cell">
+              <img src="{{ static('images/verbal.png') }}" alt="Verbal" />
+              <span class="type-name vr">Verbal Reasoning</span>
+            </td>
+            <td class="desc-cell">Ability to understand, analyze, and interpret written and spoken language. It involves evaluating information and arguments presented in words to make logical conclusions.</td>
+          </tr>
+          <tr>
+            <td class="type-cell">
+              <img src="{{ static('images/logical.png') }}" alt="Logical" />
+              <span class="type-name lr">Logical Reasoning</span>
+            </td>
+            <td class="desc-cell">Ability to analyze and evaluate arguments, identify patterns, and solve problems using logic. It involves deducing conclusions from premises and understanding principles of logic.</td>
+          </tr>
+          <tr>
+            <td class="type-cell">
+              <img src="{{ static('images/mechanical-reasoning.png') }}" alt="Mechanical" />
+              <span class="type-name mr">Mechanical Reasoning</span>
+            </td>
+            <td class="desc-cell">Ability to understand and work with mechanical systems, tools, and physical principles. It involves visualizing how components work together and solving machinery-related problems.</td>
+          </tr>
+          <tr>
+            <td class="type-cell">
+              <img src="{{ static('images/spatial-reasoning.png') }}" alt="Spatial" />
+              <span class="type-name sr">Spatial Reasoning</span>
+            </td>
+            <td class="desc-cell">Ability to visualize and manipulate objects in space. It involves understanding spatial relationships and properties of objects.</td>
+          </tr>
+          <tr>
+            <td class="type-cell">
+              <img src="{{ static('images/language-usage.png') }}" alt="Language" />
+              <span class="type-name lu">Language Usage &amp; Spelling</span>
+            </td>
+            <td class="desc-cell">Ability to understand and use language correctly, including grammar, punctuation, and spelling. It involves accurate and effective use of words in communication.</td>
+          </tr>
+          <tr>
+            <td class="type-cell">
+              <img src="{{ static('images/emotional-reasoning.png') }}" alt="Critical" />
+              <span class="type-name cr">Critical Reasoning</span>
+            </td>
+            <td class="desc-cell">Ability to analyze, evaluate, and synthesize information objectively. It involves reasoned judgements, problem-solving, and forming well-supported conclusions while recognizing biases.</td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
 
-  <div class="chapterPage">
-    <div class="db-header" style="margin-top: 16px; text-align: center;">
-      <h1 style="color: #3F37C9;">INTRODUCTION</h1>
+  <div class="chapterPage interp-page">
+    <h1 class="page-title pr-3-title">Interpretation &amp; Recommendations</h1>
+    <p class="interp-lead">Based on your test results, your strongest Reasoning Area is:</p>
+    <div class="reasoning-pill">
+      <div class="reasoning-pill-inner">
+        <div class="reasoning-pill-icon">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M12 12a4 4 0 100-8 4 4 0 000 8z" fill="#fff"/>
+              <path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+              <circle cx="17.2" cy="17.2" r="3.2" fill="#6B63E8" stroke="#fff" stroke-width="1.4"/>
+              <path d="M15.8 17.2l0.9 0.9 1.8-1.8" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+        </div>
+        <div class="reasoning-pill-text">Reasoning</div>
+      </div>
     </div>
-    <table>
-      <tbody>
-        <tr style="background: #E7FEFF;">
-          <td>
-            <div class="intro-box" style="background: #E7FEFF; padding: 18px;">
-              <p style="font-family: 'Galano Grotesque';">Selecting the right academic stream is a significant milestone in a student's educational journey. It's like choosing a path in a vast, exciting forest where each trail leads to unique adventures and destinations. This decision lays the foundation for future career prospects and academic pursuits, making it crucial for students to carefully evaluate their options.</p>
-              <p style="font-family: 'Galano Grotesque';">Imagine standing at a crossroads with a map in hand, each route offering a glimpse into different worlds—science teeming with discoveries, commerce bustling with business acumen, and humanities rich with cultural insights. This pivotal choice is not just about subjects and exams; it's about uncovering your passions, unlocking potential, and setting the stage for your future. Whether you dream of becoming an engineer, an entrepreneur, or an artist, the right stream can be the launch pad to your aspirations, turning your academic journey into an exhilarating quest for knowledge and success.</p>
-              <p style="font-family: 'Galano Grotesque';">The Stream Sorter Assessment Test aims to guide students in this decision by evaluating three key aspects: <strong>Interest, Personality, and Aptitude</strong>. These elements are essential in identifying the most suitable academic path for each individual.</p>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <div class="img-info">
-      <img style="width:500px" src="{{ static('images/student-sitting.png') }}" alt="Student" />
-    </div>
-  </div>
 
-  <div class="chapterPage">
-    <div class="db-header" style="margin-top: 10px; text-align: center;">
-      <h1 style="color: #3F37C9; font-size: 19pt;">HOW TO USE THIS REPORT</h1>
-    </div>
-    <div class="text-info-paragraph">
-      <p>This test typically consists of a series of questions in 3 parts that evaluate various aspects of a student's <strong>Personality, Interest and Aptitude</strong> and it helps you decide the suggested stream to consider in your high school.</p>
-    </div>
-    <div class="boxthree">
-      <div class="box-info" style="text-align: center;">
-        <div class="img"> <img style="width:50px;" src="{{ static('images/personality-icon.png') }}" alt="img" /> </div>
-        <h5>Personality</h5>
-      </div>
-      <div class="box-info" style="text-align: center;">
-        <div class="img"> <img style="width:50px;" src="{{ static('images/interest-icon.png') }}" alt="img" /> </div>
-        <h5>Interest</h5>
-      </div>
-      <div class="box-info" style="text-align: center;">
-        <div class="img"> <img style="width:50px;" src="{{ static('images/intelligence-icon.png') }}" alt="img" /> </div>
-        <h5>Aptitude</h5>
-      </div>
-    </div>
-    <table style="margin-bottom: 30px; margin-top:25px;">
-      <thead>
+    {% set check_svg %}
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M6 12.5l4 4 8-8" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    {% endset %}
+
+    {% set tier_cols = (1 if above_avg else 0) + (1 if avg else 0) + (1 if below else 0) %}
+    <table class="tier-cards {% if tier_cols >= 3 %}tier-cards--3{% else %}tier-cards--2{% endif %}" cellspacing="0" cellpadding="0">
+      <tr>
+        {% if above_avg %}
+        <td>
+          <div class="tier-card tier-card--above">
+            <div class="tier-card-accent"></div>
+            <p class="tier-card-title">Above Average</p>
+            {% for above in above_avg %}
+            <div class="tier-item">
+              <div class="tier-check"><span>{{ check_svg|safe }}</span></div>
+              <div class="tier-item-name">{{ above|replace(' Reasoning', '')|replace(' Usage and Spelling', '')|replace(' Usage & Spelling', '') }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        </td>
+        {% endif %}
+
+        {% if avg %}
+        <td>
+          <div class="tier-card tier-card--avg">
+            <div class="tier-card-accent"></div>
+            <p class="tier-card-title">Average</p>
+            {% for average in avg %}
+            <div class="tier-item">
+              <div class="tier-check"><span>{{ check_svg|safe }}</span></div>
+              <div class="tier-item-name">{{ average|replace(' Reasoning', '')|replace(' Usage and Spelling', '')|replace(' Usage & Spelling', '') }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        </td>
+        {% endif %}
+
+        {% if below %}
+        <td>
+          <div class="tier-card tier-card--growth">
+            <div class="tier-card-accent"></div>
+            <p class="tier-card-title">Growth Area</p>
+            {% for belowavg in below %}
+            <div class="tier-item">
+              <div class="tier-check"><span>{{ check_svg|safe }}</span></div>
+              <div class="tier-item-name">{{ belowavg|replace(' Reasoning', '')|replace(' Usage and Spelling', '')|replace(' Usage & Spelling', '') }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        </td>
+        {% endif %}
+      </tr>
+    </table>
+
+    {% if aptitude_profile_sections %}
+    <div class="perf-summary-panel">
+      <div class="perf-summary-badge">Performance Summary</div>
+      <table class="perf-col-headers">
         <tr>
-          <th style="background: #E7E5FF; color:#2720A7; padding: 21px 0 21px 14px; border-top-left-radius: 15px;">Part</th>
-          <th style="background: #E7E5FF; color:#2720A7; padding: 21px 3px; border-top-right-radius: 15px;">Description</th>
+          <th class="perf-h-label"></th>
+          <th class="perf-h-metric">Score</th>
+          <th class="perf-h-metric">Total Questions</th>
+          <th class="perf-h-metric">Correct Answers</th>
+          <th class="perf-h-metric">Accuracy</th>
         </tr>
-      </thead>
-      <tbody>
-        <tr style="border:1px solid #9490dd;">
-          <td style="width: 200px; padding-left:14px; color: #000; font-weight: 700;">Part 1- Personality Assessment</td>
-          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 16px;"><span style="color:#2720A7;">Personality</span> encompasses the traits and characteristics that define how you interact with the world and approach tasks </td>
-        </tr>
-        <tr style="border:1px solid #9490dd;">
-          <td style="padding-left:14px; color: #000; font-weight: 700;">Part 2- Career Interest  Assessment</td>
-          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 16px;"><span style="color:#2720A7;">Interest</span> refers to the subjects and activities that naturally engage and excite you</td>
-        </tr>
-        <tr style="border:1px solid #9490dd;">
-          <td style="width: 200px; padding-left:14px; color: #000; font-weight: 700;">Part 3- Aptitude Assessment</td>
-          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 16px;"><span style="color:#2720A7;">Aptitude</span> refers to your cognitive abilities, including logical reasoning, problem-solving skills, and understanding of complex concepts</td>
-        </tr>
-      </tbody>
-    </table>
-    <div class="text-info-paragraph">
-      <p>This comprehensive report ensures that you make informed decision about your academic path, leading to more successful and fulfilling career.</p>
-    </div>
-  </div>
-
-  <div class="chapterPage">
-    <div class="text-color-top">
-      <div class="top-layout" style="margin-top:0px;">Part - 3</div>
-    </div>
-    <div class="db-header" style="margin-top: 0px; text-align: center;">
-      <h1 style="color: #3F37C9; margin-top: 0px; font-size: 19pt;">APTITUDE ASSESSMENT REPORT</h1>
-    </div>
-    <div class="text-info-paragraph" style="width: 100%; float: left; margin-top: 5px;">
-      <p style="font-size: 14px;">An aptitude test is a standardized assessment designed to measure a person's cognitive abilities and intellectual potential. These tests evaluate various factors of aptitude to provide a comprehensive understanding of an individual's mental capabilities. The key factors often assessed in an aptitude test include numerical reasoning, verbal reasoning, logical reasoning, mechanical reasoning, spatial reasoning, language usage and spelling, and critical reasoning. By identifying your dominant Reasoning type, you can better understand your career preferences and suggest suitable career paths that align with your strengths and passions.</p>
-    </div>
-
-    <div class="test-title" style="color:#000; font-weight: 600; margin-top: 10px; margin-bottom: 15px; font-size: 16px;">Reasoning type description</div>
-    <table style="margin-bottom: 30px; margin-top:0px;">
-      <thead>
+      </table>
+      {% set perf_order = ['LOGICAL', 'CRITICAL', 'SPATIAL', 'MECHANICAL', 'NUMERICAL', 'LANGUAGE', 'VERBAL'] %}
+      {% for code in perf_order %}
+      {% for section in aptitude_profile_sections if section.code == code %}
+      {% if section.code == 'LOGICAL' %}
+        {% set row_color = '#148A8F' %}
+      {% elif section.code == 'CRITICAL' %}
+        {% set row_color = '#6B63E8' %}
+      {% elif section.code == 'SPATIAL' %}
+        {% set row_color = '#2A740E' %}
+      {% elif section.code == 'MECHANICAL' %}
+        {% set row_color = '#E86B1F' %}
+      {% elif section.code == 'NUMERICAL' %}
+        {% set row_color = '#1E40AF' %}
+      {% elif section.code == 'LANGUAGE' %}
+        {% set row_color = '#C026A8' %}
+      {% elif section.code == 'VERBAL' %}
+        {% set row_color = '#8B8B1A' %}
+      {% else %}
+        {% set row_color = section.accent_color %}
+      {% endif %}
+      {% set acc_w = section.accuracy if section.accuracy <= 100 else 100 %}
+      <div class="perf-row-wrap">
+      <table class="perf-row">
         <tr>
-          <th style="background: #E7E5FF; color:#2720A7; padding: 21px 0 21px 14px; border-top-left-radius: 15px; font-size: 16px;">Reasoning Type</th>
-          <th style="background: #E7E5FF; color:#2720A7; padding: 21px 3px; border-top-right-radius: 15px; font-size: 16px;">Description</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr style="border:1px solid #9490dd;">
-          <td style="width: 200px; padding-left:14px; color: #000; font-weight: 700;">
-            <div style="display: flex;align-items: center;" style="margin-bottom:0px;">
-              <div> <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/numeric.png') }}" alt="Numerical Reasoning" /> </div> Numerical Reasoning
-            </div>
+          <td class="perf-label">
+            <span class="perf-label-pill" style="background: {{ row_color }};">
+              {% if section.code == 'LANGUAGE' %}Language Usage &amp; Spelling{% else %}{{ section.name }}{% endif %}
+            </span>
           </td>
-          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 500; font-size: 11px;">Ability to understand, interpret, and work with numerical concepts and relationships. It involves the capacity to reason with numbers and perform mathematical operations to solve problems.</td>
-        </tr>
-        <tr style="border:1px solid #9490dd;">
-          <td style="width: 200px; padding-left:14px; color: #000; font-weight: 700;">
-            <div style="display: flex; align-items: center;" style="margin-bottom:0px;">
-              <div> <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/verbal.png') }}" alt="Verbal Reasoning" /> </div> Verbal Reasoning
-            </div>
+          <td class="perf-metric" style="color: {{ row_color }};">
+            <span class="perf-metric-v">{{ section.correct_answers }}/{{ section.total_questions }}</span>
           </td>
-          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 500; font-size: 11px;">Ability to understand, analyze, and interpret written and spoken language. It involves evaluating information and arguments presented in words to make logical conclusions.</td>
-        </tr>
-        <tr style="border:1px solid #9490dd;">
-          <td style="padding-left:14px; color: #000; font-weight: 700;">
-            <div style="display: flex; align-items: center;" style="margin-bottom:0px;">
-              <div> <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/logical.png') }}" alt="Logical Reasoning" /> </div>Logical Reasoning
-            </div>
+          <td class="perf-metric" style="color: {{ row_color }};">
+            <span class="perf-metric-v">{{ section.total_questions }}</span>
           </td>
-          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 500; font-size: 11px;">Ability to analyze and evaluate arguments, identify patterns, and solve problems using logic. It involves deducing conclusions from premises and understanding the principles of logic.</td>
-        </tr>
-        <tr style="border:1px solid #9490dd;">
-          <td style="padding-left:14px; color: #000; font-weight: 700;">
-            <div style="display: flex; align-items: center;" style="margin-bottom:0px;">
-              <div> <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/mechanical-reasoning.png') }}" alt="Mechanical Reasoning" /> </div> Mechanical Reasoning
-            </div>
+          <td class="perf-metric" style="color: {{ row_color }};">
+            <span class="perf-metric-v">{{ section.correct_answers }}</span>
           </td>
-          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 500; font-size: 11px;">Ability to understand and work with mechanical systems, tools, and physical principles. It involves visualizing how mechanical components work together and solving problems related to machinery and equipment.</td>
-        </tr>
-        <tr style="border:1px solid #9490dd;">
-          <td style="padding-left:14px; color: #000; font-weight: 700;">
-            <div style="display: flex; align-items: center;" style="margin-bottom:0px;">
-              <div> <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/spatial-reasoning.png') }}" alt="Spatial Reasoning" /> </div> Spatial Reasoning
-            </div>
+          <td class="perf-metric" style="color: {{ row_color }};">
+            <span class="perf-metric-v">{{ section.accuracy }}%</span>
+            <span class="perf-acc-bar"><span class="perf-acc-fill" style="width: {{ acc_w }}%; background: {{ row_color }};"></span></span>
           </td>
-          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 500; font-size: 11px;">Ability to visualize and manipulate objects in space. It involves understanding spatial relationships and properties of objects.</td>
         </tr>
-        <tr style="border:1px solid #9490dd;">
-          <td style="padding-left:14px; color: #000; font-weight: 700;">
-            <div style="display: flex; align-items: center;" style="margin-bottom:0px;">
-              <div> <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/language-usage.png') }}" alt="Language Usage and Spelling" /> </div> Language Usage and Spelling
-            </div>
-          </td>
-          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 500; font-size: 11px;">Ability to understand and use language correctly, including grammar, punctuation, and spelling. It involves the accurate and effective use of words in communication.</td>
-        </tr>
-        <tr style="border:1px solid #9490dd;">
-          <td style="padding-left:14px; color: #000; font-weight: 700;">
-            <div style="display: flex; align-items: center;" style="margin-bottom:0px;">
-              <div> <img style="width:40px; height: 40px; margin-right: 10px;" src="{{ static('images/emotional-reasoning.png') }}" alt="Critical Reasoning" /> </div> Critical Reasoning
-            </div>
-          </td>
-          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 500; font-size: 11px;">Ability to analyze, evaluate and synthesize information objectively and systematically. It involves reasoned judgements, problem-solving ability and capability to form well-supported conclusions along with recognizing biases and considering alternative perspective.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="chapterPage">
-    <div class="db-header" style="margin-top: 10px; text-align: center;">
-      <h1 style="color: #3F37C9; font-size: 19pt;">Interpretation & Recommendations</h1>
-    </div>
-    <div class="text-info-paragraph" style="text-align: center;">
-      <p>Based on your test results, your strongest Reasoning Area is:</p>
-    </div>
-    <div class="text-color-top" style="display: flex; justify-content: center;">
-      <div class="top-layout" style="background: #3F37C9; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 15px; font-weight: 600; border-radius: 10px 10px 0 0;">
-        REASONING
+      </table>
       </div>
-    </div>
-    <div class="threebox-col">
-      {% if above_avg %}
-      <div class="box-i onebox" style="background: #F0FFEA;margin: 20px 8px; border-radius: 10px; border-right: 4px solid #2A740E; border-bottom: 4px solid #2A740E; width:190px; height: 180px; min-height: 180px;">
-        
-       <p style="color: #2A740E; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Above Average</p>
-        {% for above in above_avg %}
-        <p style="color: #494949; line-height: 16px; font-size: 11px; font-weight: 600; margin-bottom: 3px; overflow-wrap: break-word;">{{ above }}</p>
-        {% endfor %}
-      </div>
-      {% endif %}
-
-      {% if avg %}
-      <div class="box-i onebox" style="background: #F5F4FF; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #3F37C9; border-bottom: 4px solid #3F37C9; width:190px; height: 180px; min-height: 180px;">
-      
-      
-       <p style="color: #3F37C9; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Average</p>
-        {% for average in avg %}
-        <p style="color: #494949; line-height: 16px; font-size: 11px; font-weight: 600; margin-bottom: 3px; overflow-wrap: break-word;">{{ average }}</p>
-        {% endfor %}
-      </div>
-      {% endif %}
-
-      {% if below %}
-      <div class="box-i onebox" style="background:#FFE5E5; margin: 20px 8px; border-radius: 10px; border-right: 4px solid #A22717; border-bottom: 4px solid #A22717; width:190px;height: 180px; min-height: 180px;">
-        <p style="color: #A22717; font-weight: 700; font-size: 16px; margin-bottom: 0px; width:180px;float:left; text-align: center; margin-top:0px;">Growth Area</p>
-       
-        {% for belowavg in below %}
-        <p style="color: #494949; line-height: 16px; font-size: 11px; font-weight: 600; margin-bottom: 3px; overflow-wrap: break-word;">{{ belowavg }}</p>
-        {% endfor %}
-      </div>
-      {% endif %}
-    </div>
-
-    {% include 'template20/app/partials/aptitude_performance_profile.html' %}
-
-    {% if user_name and user_ID %}
-    <div class="graph" style="width:100%; text-align: center; margin-top: 10px; float: left; margin-bottom: 10px;">
-      <img style="width:500px;" src="{{ graph_image_media_url(user_name, user_ID, 'intelligence') }}" alt="graph" />
+      {% endfor %}
+      {% endfor %}
     </div>
     {% endif %}
-  
-    <table style="margin-bottom: 30px; margin-top:10px; width:600px; margin: 0px auto;">
-      <thead>
+  </div>
+
+  <div class="chapterPage interp-follow-page">
+    {% if user_name and user_ID %}
+    <div class="graph-frame">
+      <img src="{{ graph_image_media_url(user_name, user_ID, 'intelligence') }}" alt="Aptitude assessment graph" />
+    </div>
+    {% endif %}
+
+    <div class="stream-desc-wrap">
+      <div class="stream-desc-badge">Stream Description</div>
+      <table class="stream-desc-grid" cellspacing="0" cellpadding="0">
         <tr>
-          <th colspan="2" style="background: #3F37C9; color:#fff; padding: 5px 0 5px 14px; border-top-left-radius: 15px; font-size: 16px;text-align: center; border-top-right-radius: 15px;">Stream Description</th>
+          <td>
+            <div class="stream-desc-row pcm">
+              <div class="stream-desc-code"><span class="stream-desc-pill">PCM</span></div>
+              <div class="stream-desc-name">Physics, Chemistry, Mathematics</div>
+            </div>
+          </td>
         </tr>
-      </thead>
-      <tbody>
-        <tr style="background: #FFFCEC;">
-          <td style="width: 200px; padding-left:14px; color: #D7B20A; font-weight: 700;">• PCM</td>
-          <td style="padding-left:14px; color: #000; font-weight: 400;">Physics, Chemistry, Mathematics</td>
+        <tr>
+          <td>
+            <div class="stream-desc-row pcb">
+              <div class="stream-desc-code"><span class="stream-desc-pill">PCB</span></div>
+              <div class="stream-desc-name">Physics, Chemistry, Biology</div>
+            </div>
+          </td>
         </tr>
-        <tr style="background: #FFEDEB;">
-          <td style="width: 200px; padding-left:14px; color: #3F37C9; font-weight: 700;">• PCB</td>
-          <td style="padding-left:14px; color: #000; font-weight: 400;">Physics, Chemistry, Biology</td>
+        <tr>
+          <td>
+            <div class="stream-desc-row hum">
+              <div class="stream-desc-code"><span class="stream-desc-pill">HUM</span></div>
+              <div class="stream-desc-name">Humanities</div>
+            </div>
+          </td>
         </tr>
-        <tr style="background: #F0FFEA;">
-          <td style="width: 200px; padding-left:14px; color: #2A740E; font-weight: 700;">• HUM</td>
-          <td style="padding-left:14px; color: #000; font-weight: 400;">Humanities</td>
+        <tr>
+          <td>
+            <div class="stream-desc-row hwl">
+              <div class="stream-desc-code"><span class="stream-desc-pill">HWL</span></div>
+              <div class="stream-desc-name">Humanities with Languages</div>
+            </div>
+          </td>
         </tr>
-        <tr style="background: #E5F9FF;">
-          <td style="width: 200px; padding-left:14px; color: #2E8AA6; font-weight: 700;">• HWL</td>
-          <td style="padding-left:14px; color: #000; font-weight: 400;">Humanities with Languages</td>
+        <tr>
+          <td>
+            <div class="stream-desc-row cwm">
+              <div class="stream-desc-code"><span class="stream-desc-pill">CWM</span></div>
+              <div class="stream-desc-name">Commerce with Mathematics</div>
+            </div>
+          </td>
         </tr>
-        <tr style="background: #FFF1E4;">
-          <td style="width: 200px; padding-left:14px; color: #E49B31; font-weight: 700;">• CWM</td>
-          <td style="padding-left:14px; color: #000; font-weight: 400;">Commerce with Mathematics</td>
+        <tr>
+          <td>
+            <div class="stream-desc-row cwom">
+              <div class="stream-desc-code"><span class="stream-desc-pill">CWOM</span></div>
+              <div class="stream-desc-name">Commerce without Mathematics</div>
+            </div>
+          </td>
         </tr>
-        <tr style="background: #E7E5FF;">
-          <td style="width: 200px; padding-left:14px; color:#3F37C9; font-weight: 700;">• CWOM</td>
-          <td style="padding-left:14px; color: #000; font-weight: 400;">Commerce without Mathematics</td>
-        </tr>
-      </tbody>
-    </table>
+      </table>
+    </div>
   </div>
 
   {% include 'template20/app/partials/aptitude_combination_profile.html' %}

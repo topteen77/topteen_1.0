@@ -2,9 +2,35 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap">
   <link rel="preload stylesheet" href="{{ static('font/font-style.css') }}">
   <title>Stream Sorter Assessment Report - Personality</title>
   <style>
+    @font-face {
+      font-family: 'Space Grotesk';
+      src: url("{{ static('font/space-grotesk/SpaceGrotesk-Regular.ttf') }}") format('truetype');
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Space Grotesk';
+      src: url("{{ static('font/space-grotesk/SpaceGrotesk-Medium.ttf') }}") format('truetype');
+      font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Space Grotesk';
+      src: url("{{ static('font/space-grotesk/SpaceGrotesk-SemiBold.ttf') }}") format('truetype');
+      font-weight: 600;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Space Grotesk';
+      src: url("{{ static('font/space-grotesk/SpaceGrotesk-Bold.ttf') }}") format('truetype');
+      font-weight: 700;
+      font-style: normal;
+    }
+
     /* Browser preview styles - header visible */
     .page-header {
       width: 675px;
@@ -29,7 +55,7 @@
       font-size: 18px;
       font-weight: bold;
       color: #494949;
-      font-family: 'Galano Grotesque';
+      font-family: 'Space Grotesk', sans-serif;
       text-transform: uppercase;
       margin-left: 10px;
     }
@@ -45,12 +71,25 @@
       box-sizing: border-box;
     }
     
-    /* PDF-specific: Use running header for page headers */
+    /* A4 decorative background — only on @page for PDF (avoids double paint) */
+    {% set _a4_bg = pdf_a4_bg_url if pdf_a4_bg_url is defined and pdf_a4_bg_url else static('images_new/new_report/a4-bg-img.png') %}
     @page {
-      @top-left {
-        content: element(page-header);
-      }
-      margin-top: 2.5cm;
+      size: A4;
+      margin: 0;
+      background-image: url("{{ _a4_bg }}");
+      background-size: 210mm 297mm;
+      background-position: center center;
+      background-repeat: no-repeat;
+    }
+
+    /* Cover page: same full-bleed A4 frame */
+    @page cover {
+      size: A4;
+      margin: 0;
+      background-image: url("{{ _a4_bg }}");
+      background-size: 210mm 297mm;
+      background-position: center center;
+      background-repeat: no-repeat;
     }
     
     /* For PDF generation, make header a running element */
@@ -81,7 +120,7 @@
       font-size: 18px;
       font-weight: bold;
       color: #494949;
-      font-family: 'Galano Grotesque';
+      font-family: 'Space Grotesk', sans-serif;
     }
     
     .page-header-line {
@@ -99,49 +138,1206 @@
       margin: 0;
       padding: 0;
       color: #494949;
-      font-family: 'Galano Grotesque';
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 10pt;
       counter-reset: chapters;
       print-color-adjust: exact;
       -webkit-print-color-adjust: exact;
+      background: #e8e9ef;
+    }
+    /* Screen / ?debug=true: center each A4 sheet + element bg (PDF uses @page only) */
+    @media screen {
+      .page-header {
+        display: none !important;
+      }
+      body {
+        padding: 24px 0 40px;
+      }
+      .coverPage,
+      .chapterPage {
+        margin-left: auto !important;
+        margin-right: auto !important;
+        box-shadow: 0 10px 30px rgba(20, 24, 60, 0.18);
+        background-color: #ffffff;
+        background-image: url("{{ _a4_bg }}");
+        background-size: 210mm 297mm;
+        background-position: center center;
+        background-repeat: no-repeat;
+      }
+      .chapterPage {
+        margin-top: 28px !important;
+      }
+    }
+    @media print {
+      body {
+        background: transparent;
+        padding: 0;
+      }
+      .coverPage,
+      .chapterPage {
+        background-image: none !important;
+        background-color: transparent !important;
+      }
     }
     ul { list-style-type: none; padding: 0; }
     li { margin-bottom: 5px; }
     div { margin-bottom: 10px; }
     a { color: inherit; text-decoration: none; }
     hr { height: 0; border: 0; border-top: 1px solid #494949; margin: 10px 0 10px 0; }
+    img {
+      max-width: 100%;
+      height: auto;
+    }
     .coverPage, .chapterPage { page-break-after: always; }
-    .coverPage { margin: .5cm; }
-    .coverPage h1 { margin-top: 0.23cm; font-size: 35px; color: #3F37C9; }
-    .top-info { display: flex; }
-    .info-box { border: 1px solid #3F37C9; width: 100%; display: flex; margin-bottom: 26px; border-radius: 5px; }
-    .top-info .info-box:last-child { margin-left: 26px; }
-    .dt-i-info { background: #3F37C9; width: 2cm; font-size: 16px; font-weight: 600; padding: 10px 0 13px 20px; display: flex; align-items: center; border-radius: 4px; }
-    .top-info .info-box:first-child { margin-right: 26px; }
-    .output { display: flex; align-items: center; }
-    .output p { font-size: 14px; color: #494949; font-weight: 500; display: flex; justify-content: center; line-height: 19px; margin-bottom: 0px; padding-left: 11px; }
+    .coverPage,
+    .chapterPage {
+      position: relative;
+      box-sizing: border-box;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+      overflow-x: hidden;
+    }
+    /* Shared centered content column — keeps all pages aligned inside A4 */
+    .pdf-col {
+      width: 100%;
+      max-width: 172mm;
+      margin-left: auto;
+      margin-right: auto;
+      box-sizing: border-box;
+    }
+    .coverPage {
+      page: cover;
+      width: 210mm;
+      min-height: 297mm;
+      height: 297mm;
+      max-height: 297mm;
+      margin: 0 auto;
+      padding: 1.1cm 1.4cm 1.8cm;
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+      overflow: hidden;
+      page-break-inside: avoid;
+    }
+    .coverPage div {
+      margin-bottom: 0;
+    }
+    .coverPage * {
+      font-family: 'Space Grotesk', sans-serif;
+      box-sizing: border-box;
+    }
+    .cover-inner {
+      width: 100%;
+      max-width: 172mm;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .cover-logo {
+      margin: 0 auto 8px;
+      text-align: center;
+    }
+    .cover-logo img {
+      width:250px;
+      height: auto;
+      display: inline-block;
+    }
+
+    .cover-logo.main-cover-logo {
+      margin-top: 67px;
+      margin-bottom: 25px;
+}
+
+
+    .cover-title {
+      margin: 0 0 12px;
+      text-align: center;
+    }
+    .cover-title .line-stream {
+      display: block;
+      margin: 0;
+      font-size: 37px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: #4341C9;
+      line-height: 1.15;
+      text-transform: uppercase;
+    }
+    .cover-title .line-report {
+      display: block;
+      margin: 4px 0 0;
+      font-size: 37px;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      color: #111111;
+      line-height: 1.15;
+      text-transform: uppercase;
+    }
+    .cover-hero {
+      width: 100%;
+      margin: 0 auto 14px;
+      border-radius: 6px;
+      padding: 0;
+      background: transparent;
+      text-align: center;
+    }
+    .cover-hero img {
+      width: 100%;
+      max-width: 155mm;
+      max-height: 88mm;
+      height: auto;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .cover-info-grid {
+      width: 153mm;
+      max-width: 153mm;
+      margin: 0 auto 14px;
+      border-collapse: separate;
+      border-spacing: 10px 10px;
+      table-layout: fixed;
+    }
+    .cover-info-grid td {
+      width: 50%;
+      vertical-align: middle;
+      padding: 0;
+      border: none;
+      background: transparent;
+    }
+    .cover-info-card {
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px solid #E8EAFF;
+      text-align: left;
+      padding: 10px 12px;
+      box-shadow: 0 2px 8px rgba(67, 65, 201, 0.06);
+    }
+    .cover-info-card-inner {
+      display: table;
+      width: 100%;
+      margin: 0;
+    }
+    .cover-info-icon {
+      display: table-cell;
+      vertical-align: middle;
+      width: 40px;
+      padding-right: 10px;
+    }
+    .cover-info-icon-box {
+      width: 34px;
+      height: 34px;
+      background: #4341C9;
+      border-radius: 8px;
+      text-align: center;
+      line-height: 34px;
+    }
+    .cover-info-icon-box svg {
+      width: 17px;
+      height: 17px;
+      vertical-align: middle;
+    }
+    .cover-info-text {
+      display: table-cell;
+      vertical-align: middle;
+      text-align: left;
+    }
+    .cover-info-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #4341C9;
+      line-height: 1.2;
+      margin: 0 0 2px;
+    }
+    .cover-info-value {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: #111111;
+      line-height: 1.25;
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+    /* Disclaimer — even gap under cards, above bottom wave */
+    .cover-disclaimer {
+      position: relative;
+      width: 153mm;
+      max-width: 153mm;
+      margin: 4px auto 0;
+      border: 1.5px solid #4341C9;
+      border-radius: 14px;
+      background: #ffffff;
+      padding: 16px 14px 12px;
+      text-align: left;
+      margin-top: 61px;
+    }
+    .cover-disclaimer-badge {
+      position: absolute;
+      top: -11px;
+      left: 50%;
+      margin-left: -48px;
+      width: 96px;
+      background: #4341C9;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 0;
+      border-radius: 999px;
+      white-space: nowrap;
+      line-height: 1.3;
+      text-align: center;
+    }
+    .cover-disclaimer-body {
+      display: table;
+      width: 100%;
+      margin: 0;
+    }
+    .cover-disclaimer-icon {
+      display: table-cell;
+      vertical-align: middle;
+      width: 32px;
+      padding-right: 8px;
+    }
+    .cover-disclaimer-icon svg {
+      width: 24px;
+      height: 24px;
+      display: block;
+    }
+    .cover-disclaimer-text {
+      display: table-cell;
+      vertical-align: middle;
+      font-size: 11.5px;
+      font-weight: 500;
+      color: #494949;
+      line-height: 1.4;
+      margin: 0;
+      text-align: left;
+    }
+    .chapterPage {
+      width: 210mm;
+      max-width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto;
+      padding: 1.5cm 1.6cm 1.6cm;
+      font-family: 'Space Grotesk', sans-serif;
+      box-sizing: border-box;
+      text-align: center;
+      overflow-x: hidden;
+    }
+    /* Single-sheet pages: lock to one A4 so bg/layout stay aligned */
+    .intro-page,
+    .howto-page,
+    .personality-page,
+    .personality-interpretation-page {
+      height: 297mm;
+      max-height: 297mm;
+      overflow: hidden;
+      page-break-inside: avoid;
+    }
+    .top-info { display: table; width: 100%; max-width: 172mm; margin: 0 auto 16px; table-layout: fixed; }
+    .info-box { border: 1px solid #3F37C9; width: 100%; display: table; margin-bottom: 16px; border-radius: 5px; }
+    .dt-i-info { background: #3F37C9; width: 2cm; font-size: 16px; font-weight: 600; padding: 10px 0 13px 20px; display: table-cell; vertical-align: middle; border-radius: 4px; }
+    .output { display: table-cell; vertical-align: middle; }
+    .output p { font-size: 14px; color: #494949; font-weight: 500; text-align: center; line-height: 19px; margin-bottom: 0; padding-left: 11px; }
     h4 { font-size: 10pt; margin: 0; }
     p { margin-top: 0; color: #494949; }
     .intro-box p { font-size: 16px; }
-    table { width: 100%; border-collapse: collapse; }
+    table { width: 100%; border-collapse: collapse; max-width: 100%; }
     th, td { padding: 4px; text-align: left; outline: 0px; }
     th { background-color: #f2f2f2; }
     .text-info-paragraph p { font-size: 16px; }
-    .box-info { background: #E7E5FF; border-radius: 10px; border-right: 4px solid #3F37C9; border-bottom: 4px solid #3F37C9; width: 180px; margin: 10px; float: left; }
+    .box-info { background: #E7E5FF; border-radius: 10px; border-right: 4px solid #3F37C9; border-bottom: 4px solid #3F37C9; width: 180px; margin: 10px auto; float: none; display: inline-block; vertical-align: top; }
     .box-info .img { text-align: center; margin-top: 20px; }
     .box-info h5 { font-size: 14px; text-align: center; color: #000; margin-bottom: 11px; }
-    .box-i { width: 250px; height: 150px; display: flex; justify-content: center; flex-direction: column; align-items: center; }
-    .two-box { display: flex; justify-content: center; margin: 32px 0; }
-    .two-box-in { width: 210px; height: 138px; display: flex; justify-content: center; flex-direction: column; background: #E7E5FF; grid-gap: 1rem; align-items: center; text-align: center; margin: 0 9px; padding: 3px 7px; border-radius: 10px; border-right: 3px solid #3F37CB; border-bottom: 3px solid #3F37C9; }
-    .two-box-in p { list-style: none; padding: 0; margin: 5px 0 0 0; }
-    .img-tow { margin-top: 0; }
-    .cat-box { display: flex; flex-direction: column; justify-content: center; margin-bottom: 31px; }
-    .cat-head { display: flex; justify-content: center; align-items: center; flex-direction: column; background: #3F37C9; border-radius: 7px 7px 0 0; padding: 13px 0; color: #fff; }
-    .cat-head h4 { font-size: 16px; width:600px; margin: 0px; }
-    .cat-list { padding:6px; margin-top:0px; background: #F7F6FF; }
-    .cat-list ul { column-count:3; list-style: none; padding: 0; }
-    .cat-list ul li { list-style: none; padding: 0; margin: 0; }
-    .chapterPage h1 { margin-top: 1cm; text-transform: uppercase; }
+    .box-i { width: 100%; max-width: 250px; height: 150px; margin: 0 auto; text-align: center; }
+    /* Graph / last page — Personality Assessment Report */
+    .chapterPage.report-graph-page {
+      padding: 1.2cm 1.5cm 1.5cm !important;
+      overflow: hidden !important;
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .report-graph-page * {
+      font-family: 'Space Grotesk', sans-serif;
+      box-sizing: border-box;
+    }
+    .report-graph-page div { margin-bottom: 0; }
+    .graph-page-title {
+      margin: 0 auto 14px !important;
+      color: #4341C9 !important;
+      font-size: 22px !important;
+      font-weight: 700 !important;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      line-height: 1.2;
+      text-align: center;
+      border-bottom: 2px solid #4341C9;
+      display: inline-block;
+      padding-bottom: 4px;
+    }
+    .graph-frame {
+      width: 100%;
+      max-width: 172mm;
+      margin: 0 auto 16px;
+      border: 1.5px solid #7B8FE8;
+      border-radius: 14px;
+      background: #ffffff;
+      padding: 10px 12px 8px;
+      overflow: hidden;
+      margin-top: 64px;
+    }
+    .report-graph-block,
+    .chapterPage .graph,
+    .graph-frame .report-graph-block {
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 0 auto !important;
+      padding: 0 !important;
+      float: none !important;
+      clear: both;
+      text-align: center;
+      overflow: hidden;
+    }
+    .report-graph-block img,
+    .chapterPage .graph img,
+    .graph-frame .report-graph-block img {
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      height: auto !important;
+      max-height: 105mm;
+      margin: 0 auto !important;
+    }
+    /* Stream suggestion cards (HUM / CWM) */
+    .stream-result-cards {
+      width: 165mm;
+      max-width: 165mm;
+      margin: 0 auto 18px;
+      border-collapse: separate;
+      border-spacing: 12px 0;
+      table-layout: fixed;
+      margin-top: 57px;
+    }
+    .stream-result-cards td {
+      width: 50%;
+      vertical-align: middle;
+      padding: 0;
+      border: none;
+      background: transparent;
+    }
+    .stream-result-card {
+      position: relative;
+      width: 100%;
+      min-height: 72px;
+      border-radius: 16px;
+      padding: 12px 14px;
+      overflow: hidden;
+      text-align: left;
+      border: 1px solid #E4E1F6;
+    }
+    .stream-result-card.accent-purple {
+      background: linear-gradient(90deg, #EDE9FF 0%, #F7F5FF 55%, #FFFFFF 100%);
+    }
+    .stream-result-card.accent-teal {
+      background: linear-gradient(90deg, #D9F4F6 0%, #EEFBFC 55%, #FFFFFF 100%);
+    }
+    .stream-result-card::before {
+      content: "";
+      position: absolute;
+      left: -18px;
+      top: -10px;
+      width: 56px;
+      height: 96px;
+      border-radius: 50%;
+      opacity: 0.9;
+    }
+    .stream-result-card.accent-purple::before { background: #8B7CF0; }
+    .stream-result-card.accent-teal::before { background: #2BB8C0; }
+    .stream-result-inner {
+      display: table;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+    .stream-result-icon {
+      display: table-cell;
+      vertical-align: middle;
+      width: 48px;
+      padding-right: 10px;
+    }
+    .stream-result-icon-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 1px solid #E8E6F8;
+      text-align: center;
+      line-height: 44px;
+      overflow: hidden;
+    }
+    .stream-result-icon-circle img {
+      width: 26px;
+      height: 26px;
+      vertical-align: middle;
+      object-fit: contain;
+    }
+    .stream-result-text {
+      display: table-cell;
+      vertical-align: middle;
+      text-align: left;
+    }
+    .stream-result-code {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: #2C2A9E;
+      line-height: 1.15;
+    }
+    .stream-result-name {
+      margin: 3px 0 0;
+      font-size: 12px;
+      font-weight: 500;
+      color: #555;
+      line-height: 1.25;
+      word-wrap: break-word;
+      overflow-wrap: anywhere;
+    }
+    /* Career Pathways panel with overlapping pill */
+    .pathways-panel {
+      position: relative;
+      width: 100%;
+      max-width: 172mm;
+      margin: 10px auto 0;
+      border: 1.5px solid #4341C9;
+      border-radius: 16px;
+      background: #ffffff;
+      padding: 22px 16px 14px;
+      text-align: left;
+      margin-top: 50px;
+    }
+    .pathways-badge {
+      position: absolute;
+      top: -13px;
+      left: 50%;
+      margin-left: -78px;
+      width: 156px;
+      background: #4341C9;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      line-height: 1.2;
+      letter-spacing: 0.02em;
+    }
+    .pathways-list {
+      list-style: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      column-count: 3;
+      column-gap: 14px;
+      width: 100%;
+    }
+    .pathways-list li {
+      position: relative;
+      list-style: none !important;
+      margin: 0 0 8px !important;
+      padding: 0 0 0 18px !important;
+      font-size: 12px;
+      font-weight: 500;
+      color: #333;
+      line-height: 1.35;
+      break-inside: avoid;
+      word-wrap: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    .pathways-list li::before {
+      content: "";
+  position: absolute;
+  left: 0;
+  top:1px;
+  width: 12px;
+  height: 12px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='none' viewBox='0 0 10 10'%3E%3Cpath fill='%234341C9' d='M1 5a4 4 0 1 1 8 0 4 4 0 0 1-8 0Zm4-5a5 5 0 1 0 0 10A5 5 0 0 0 5 0Zm2.729 3.729L7.02 3.02 4.5 5.543 3.104 4.146l-.708.708L4.5 6.957 7.729 3.73Z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+    }
+   
+    /* Legacy two-box / cat-box kept for other templates; muted on this page */
+    .two-box {
+      width: 100%;
+      max-width: 172mm;
+      margin: 14px auto;
+      border-collapse: separate;
+      border-spacing: 10px 0;
+      table-layout: fixed;
+      float: none;
+      clear: both;
+    }
+    .two-box td {
+      width: 50%;
+      vertical-align: top;
+      padding: 0;
+      border: none;
+      background: transparent;
+    }
+    .two-box-in {
+      width: 100%;
+      min-height: 120px;
+      height: auto;
+      background: #E7E5FF;
+      text-align: center;
+      margin: 0;
+      padding: 12px 10px;
+      border-radius: 10px;
+      border-right: 3px solid #3F37CB;
+      border-bottom: 3px solid #3F37C9;
+      box-sizing: border-box;
+      float: none;
+    }
+    .two-box-in p { list-style: none; padding: 0; margin: 5px 0 0 0; word-wrap: break-word; overflow-wrap: anywhere; }
+    .two-box-in .stream-label {
+      color: #000;
+      font-size: 13px;
+      margin: 6px 0 0;
+      text-align: center;
+      width: 100%;
+      font-weight: 600;
+      word-wrap: break-word;
+    }
+    .img-tow { margin: 0 auto; text-align: center; }
+    .img-tow img { width: 44px; height: auto; display: inline-block; }
+    .cat-box {
+      display: block;
+      width: 100%;
+      max-width: 172mm;
+      margin: 12px auto 14px;
+      float: none;
+      clear: both;
+      text-align: left;
+      box-sizing: border-box;
+    }
+    .cat-head {
+      display: block;
+      width: 100%;
+      background: #3F37C9;
+      border-radius: 7px 7px 0 0;
+      padding: 11px 12px;
+      color: #fff;
+      text-align: center;
+      box-sizing: border-box;
+    }
+    .cat-head h4 {
+      font-size: 15px !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 0 !important;
+      text-align: center;
+      color: #fff;
+    }
+    .cat-list {
+      padding: 8px 10px;
+      margin-top: 0;
+      background: #F7F6FF;
+      width: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    .cat-list ul {
+      column-count: 3;
+      list-style: none;
+      padding: 0 0 0 16px;
+      margin: 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .cat-list ul li {
+      list-style: disc;
+      padding: 0;
+      margin: 0 0 4px;
+      font-size: 12px;
+      line-height: 1.35;
+      word-wrap: break-word;
+      overflow-wrap: anywhere;
+      break-inside: avoid;
+    }
+    .chapterPage h1 { margin-top: 0; text-transform: uppercase; font-family: 'Space Grotesk', sans-serif; }
+    /* INTRODUCTION page panel (matches new report design) */
+    .intro-page {
+      display: block;
+      padding-top: 1.8cm;
+      padding-bottom: 1.5cm;
+    }
+    .intro-page div {
+      margin-bottom: 0;
+    }
+    .intro-panel {
+      position: relative;
+      width: 100%;
+      max-width: 172mm;
+      margin: 0.4cm auto 0;
+      border: 1.5px solid #4341C9;
+      border-radius: 18px;
+      background: #ffffff;
+      padding: 28px 22px 22px;
+      box-sizing: border-box;
+      text-align: left;
+      overflow: visible;
+      margin-top: 64px;
+    }
+    .intro-panel-badge {
+      position: absolute;
+      top: -16px;
+      left: 50%;
+      margin-left: -85px;
+      width: 170px;
+      background: #4341C9;
+      color: #ffffff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-align: center;
+      text-transform: uppercase;
+      padding: 7px 10px;
+      border-radius: 8px;
+      line-height: 1.2;
+    }
+    .intro-panel p {
+      margin: 0 0 14px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px;
+      font-weight: 400;
+      color: #2f2f2f;
+      line-height: 1.55;
+      text-align: left;
+    }
+    .intro-panel p:last-child {
+      margin-bottom: 0;
+    }
+    .intro-panel .intro-highlight {
+      color: #4341C9;
+      font-weight: 700;
+    }
+    .intro-career-art {
+      width: 165mm;
+      max-width: 165mm;
+      margin: 0.9cm auto 0;
+      text-align: center;
+    }
+    .intro-career-art img {
+      width: 100%;
+      max-width: 165mm;
+      height: auto;
+      max-height: 115mm;
+      display: inline-block;
+      border-radius: 8px;
+    }
+    /* Part-1 Personality / Holland code page */
+    .personality-page {
+      padding-top: 1.4cm;
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .personality-page div { margin-bottom: 0; }
+    .personality-page * { font-family: 'Space Grotesk', sans-serif; box-sizing: border-box; }
+    .part-badge {
+      display: inline-block;
+      background: #4341C9;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 7px 24px;
+      border-radius: 10px;
+      margin: 0 auto 12px;
+      letter-spacing: 0.02em;
+    }
+
+
+    .part-badge.p-badge-1 {
+  margin-top: 64px;
+  margin-bottom: 21px;
+}
+
+    .personality-page .page-title {
+      margin: 0 0 12px;
+      color: #2C2A9E;
+      font-size: 26px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+    }
+    .personality-page .page-intro {
+      width: 100%;
+      max-width: 170mm;
+      margin: 0 auto 14px;
+      text-align: left;
+      font-size: 15px;
+      font-weight: 400;
+      color: #333;
+      line-height: 1.5;
+      box-sizing: border-box;
+    }
+    .personality-page .page-intro strong {
+      font-weight: 700;
+      color: #1f1f1f;
+    }
+    .personality-page .section-subtitle {
+      margin: 0 0 10px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #111;
+      text-align: center;
+    }
+    .riasec-icons {
+      width: 100%;
+      max-width: 170mm;
+      margin: 0 auto 12px;
+      text-align: center;
+    }
+    .riasec-icons img {
+      width: 100%;
+      max-width: 520px;
+      height: auto;
+      display: inline-block;
+    }
+    .holland-table-wrap {
+      width: 100%;
+      max-width: 172mm;
+      margin: 10px auto 0;
+      background: #F3F1FF;
+      border-radius: 16px;
+      padding: 10px 12px 8px;
+      overflow: hidden;
+      box-sizing: border-box;
+      text-align: left;
+    }
+    .holland-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: transparent;
+    }
+    .holland-table th {
+      background: transparent !important;
+      color: #2C2A9E !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      padding: 8px 10px 10px !important;
+      text-align: left !important;
+      border: none !important;
+    }
+    .holland-table th:first-child {
+      width: 28%;
+      text-align: center !important;
+    }
+    .holland-table td {
+      border: none !important;
+      border-top: 1px solid #D8D4F0 !important;
+      padding: 9px 10px !important;
+      vertical-align: middle;
+      background: transparent;
+    }
+    .holland-table .code-cell {
+      width: 28%;
+      text-align: center;
+    }
+    .holland-table .code-cell img {
+      width: 28px;
+      height: auto;
+      display: inline-block;
+      margin-bottom: 2px;
+    }
+    .holland-table .code-name {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-top: 2px;
+    }
+    .holland-table .code-name.r { color: #057190; }
+    .holland-table .code-name.i { color: #A92CAF; }
+    .holland-table .code-name.a { color: #2A740E; }
+    .holland-table .code-name.s { color: #6D5C04; }
+    .holland-table .code-name.e { color: #A22717; }
+    .holland-table .code-name.c { color: #0B5BA1; }
+    .holland-table .desc-cell {
+      font-size: 11px;
+      font-weight: 400;
+      color: #2f2f2f;
+      line-height: 1.4;
+      text-align: left;
+    }
+    /* HOW TO USE THIS REPORT page */
+    .howto-page {
+      padding-top: 1.4cm;
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .howto-page div { margin-bottom: 0; }
+    .howto-page * { font-family: 'Space Grotesk', sans-serif; box-sizing: border-box; }
+    .howto-page .howto-title {
+      margin: 0 0 14px;
+      color: #4341C9;
+      font-size: 26px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+    }
+
+    .howto-title.h2-title {
+  margin-top: 64px;
+}
+    .howto-page .howto-intro {
+      max-width: 168mm;
+      margin: 0 auto 18px;
+      font-size: 14px;
+      font-weight: 400;
+      color: #333;
+      line-height: 1.5;
+      text-align: center;
+    }
+    .howto-page .howto-intro .hl {
+      color: #4341C9;
+      font-weight: 700;
+    }
+    .howto-cards {
+      width: 160mm;
+      max-width: 160mm;
+      margin: 14px auto 20px;
+      border-collapse: separate;
+      border-spacing: 10px 0;
+      table-layout: fixed;
+      text-align: center;
+      margin-top: 37px;
+  margin-bottom: 39px;
+    }
+    .howto-cards td {
+      width: 33.33%;
+      vertical-align: top;
+      padding: 0;
+      border: none;
+      background: transparent;
+    }
+    .howto-card {
+      position: relative;
+      height: 138px;
+      background: #ffffff;
+      border: 1.5px solid #E4E1F6;
+      border-radius: 18px;
+      padding: 18px 12px 16px;
+      text-align: center;
+      overflow: hidden;
+      box-shadow: 0 3px 10px rgba(67, 65, 201, 0.08);
+    }
+    .howto-card-icon {
+      width: 68px;
+      height: 68px;
+      margin: 0 auto 10px;
+      border-radius: 50%;
+      background: #F5F4FF;
+      border: 1px solid #E8E6FA;
+      text-align: center;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+    .howto-card-icon img {
+      display: block;
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      margin: 14px auto 0;
+    }
+    .howto-card-label {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+      color: #111;
+      line-height: 1.2;
+    }
+    .howto-card-accent {
+      position: absolute;
+      right: -28px;
+      bottom: -28px;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      z-index: 0;
+    }
+    .howto-card.personality .howto-card-accent { background: #7B6CF0; }
+    .howto-card.interest .howto-card-accent { background: #4A7DFF; }
+    .howto-card.aptitude .howto-card-accent { background: #2BB8C0; }
+    .howto-table-wrap {
+      width: 100%;
+      max-width: 172mm;
+      margin: 8px auto 16px;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #ffffff;
+      border: 1px solid #ECEAF8;
+      box-sizing: border-box;
+      text-align: left;
+    }
+    .howto-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .howto-table thead th {
+      background: #4341C9 !important;
+      color: #ffffff !important;
+      font-size: 15px !important;
+      font-weight: 700 !important;
+      padding: 11px 14px !important;
+      text-align: left !important;
+      border: none !important;
+    }
+    .howto-table thead th:first-child {
+      width: 42%;
+    }
+    .howto-table td {
+      border: none !important;
+      border-top: 1px solid #E6E4F2 !important;
+      padding: 12px 14px !important;
+      vertical-align: middle;
+      background: #fff;
+      text-align: left;
+      font-size: 15px;
+    }
+    .howto-part {
+      display: table;
+      width: 100%;
+    }
+    .howto-num {
+      display: table-cell;
+      width: 28px;
+      vertical-align: middle;
+    }
+    .howto-num span {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      line-height: 24px;
+    }
+    .howto-num.n1 span { background: #7B6CF0; }
+    .howto-num.n2 span { background: #4A7DFF; }
+    .howto-num.n3 span { background: #2BB8C0; }
+    .howto-part-text {
+      display: table-cell;
+      vertical-align: middle;
+      padding-left: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a1a1a;
+      line-height: 1.3;
+    }
+    .howto-desc {
+      font-size: 11.5px;
+      font-weight: 400;
+      color: #333;
+      line-height: 1.45;
+    }
+    .howto-desc .kw {
+      color: #4341C9;
+      font-weight: 700;
+    }
+    .howto-footer {
+      width: 100%;
+      max-width: 172mm;
+      margin: 16px auto 0;
+      background: #F1EEFF;
+      border-radius: 12px;
+      padding: 12px 14px;
+      text-align: center;
+      margin-top: 33px;
+    }
+    .howto-footer p {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 500;
+      color: #333;
+      line-height: 1.45;
+    }
+    /* Interpretation & Recommendations */
+    .interp-page {
+      padding-top: 1.3cm;
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .interp-page div { margin-bottom: 0; }
+    .interp-page * { font-family: 'Space Grotesk', sans-serif; box-sizing: border-box; }
+    .interp-banner {
+      display: inline-block;
+      background: #4341C9;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 10px 28px 10px 20px;
+      border-radius: 999px;
+      margin: 0 auto 12px;
+      line-height: 1.2;
+      box-shadow: 0 4px 12px rgba(67, 65, 201, 0.22);
+      margin-top: 64px;
+  margin-bottom: 24px !important;
+    }
+    .interp-banner svg {
+      width: 16px;
+      height: 16px;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    .interp-prompt {
+      margin: 0 auto 12px;
+      font-size: 15px;
+      font-weight: 500;
+      color: #333;
+      text-align: center;
+    }
+    .interp-code-pill {
+      display: inline-block;
+      background: linear-gradient(90deg, #1FA8B5 0%, #4CC3CE 100%);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 8px 22px 8px 16px;
+      border-radius: 999px;
+      margin: 0 auto 14px;
+      line-height: 1.25;
+      margin-top: 10px;
+  margin-bottom: 32px !important;
+    }
+    .interp-code-pill svg {
+      width: 16px;
+      height: 16px;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    .interp-score-cards {
+      width: 160mm;
+      max-width: 160mm;
+      margin: 0 auto 14px;
+      display: table;
+      table-layout: fixed;
+      border-collapse: separate;
+      border-spacing: 10px 0;
+      margin-bottom: 30px !important;
+    }
+    .interp-score-card {
+      display: table-cell;
+      width: 33.33%;
+      vertical-align: top;
+      background: #ffffff;
+      border: 1px solid #E8E6F8;
+      border-radius: 14px;
+      padding: 14px 12px 12px;
+      text-align: center;
+      box-shadow: 0 4px 14px rgba(67, 65, 201, 0.10);
+    }
+    .interp-score-icon {
+      width: 28px;
+      height: 28px;
+      margin: 0 auto 6px;
+      border-radius: 50%;
+      background: #EDEAFF;
+      text-align: center;
+      line-height: 28px;
+      padding:4px;
+    }
+    .interp-score-icon svg {
+      width: 14px;
+      height: 14px;
+      vertical-align: middle;
+    }
+    .interp-score-pct {
+      margin: 0 0 2px;
+      font-size: 26px;
+      font-weight: 700;
+      color: #4341C9;
+      line-height: 1.1;
+    }
+    .interp-score-name {
+      margin: 0 0 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #222;
+      line-height: 1.2;
+    }
+    .interp-progress {
+      width: 100%;
+      height: 7px;
+      background: #E9E7F5;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .interp-progress-fill {
+      height: 7px;
+      background: #4341C9;
+      border-radius: 999px;
+    }
+    .interp-page .riasec-career-alignment {
+      width: 100%;
+      max-width: 168mm;
+      margin: 8px auto 0 !important;
+      clear: both;
+      float: none !important;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    .interp-page .riasec-career-alignment-heading {
+      color: #111 !important;
+      font-size: 15px !important;
+      font-weight: 700 !important;
+      margin: 0 0 10px !important;
+    }
+    .interp-page .riasec-career-alignment-body {
+      background: #EEF8FF !important;
+      border: 1px solid #D7ECF8;
+      border-radius: 14px !important;
+      padding: 14px 16px !important;
+    }
+    .interp-page .riasec-career-alignment-body p,
+    .interp-page .riasec-career-alignment-body li {
+      font-size: 15px !important;
+      line-height: 1.5 !important;
+      color: #333 !important;
+    }
+    .interp-page .riasec-career-alignment-body strong {
+      color: #2C2A9E !important;
+      font-weight: 700 !important;
+    }
+    .interp-page .riasec-career-alignment-body ul {
+      list-style: none !important;
+      margin: 4px 0 12px !important;
+      padding: 0 !important;
+    }
+    .interp-page .riasec-career-alignment-body li {
+      display: inline-block;
+      position: relative;
+      padding-left: 16px !important;
+      margin: 0 14px 6px 0 !important;
+      font-weight: 500 !important;
+    }
+    .interp-page .riasec-career-alignment-body li::before {
+      content: "";
+    position: absolute;
+    left: 0;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='none' viewBox='0 0 10 10'%3E%3Cpath fill='%234341C9' d='M1 5a4 4 0 1 1 8 0 4 4 0 0 1-8 0Zm4-5a5 5 0 1 0 0 10A5 5 0 0 0 5 0Zm2.729 3.729L7.02 3.02 4.5 5.543 3.104 4.146l-.708.708L4.5 6.957 7.729 3.73Z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    }
     .disclaimer-heading { width: 120px; text-align: center; margin-bottom: 13px; }
     .personality-interpretation-page { page-break-after: auto; }
     {% include 'template20/app/partials/riasec_report_graph_styles.html' %}
@@ -149,263 +1345,374 @@
   </style>
 </head>
 <body>
-  <div class="page-header">
+  <!-- <div class="page-header">
     <div class="page-header-content">
       <img style="width: 90px;"  src="{{ static('images/logo.png') }}" alt="TOPTEEN Logo" />
     </div>
     <hr class="page-header-line" />
-  </div>
+  </div> -->
   <div class="coverPage">
-    <div class="img-top" style="width: 100%; text-align: center;">
-      <img style="width: 200px;" src="{{ static('images/logo.png') }}" alt="logo" />
-    </div>
-    <div class="heading-cover" style="width: 100%; text-align: center;">
-      <h1 style="font-family: 'Galano Grotesque'; margin-top: 0.23cm; font-size: 35px; color: #3F37C9;">Stream Sorter Assessment Report</h1>
-    </div>
-    <div class="image-cover" style="width: 100%; text-align: center;">
-      <img style="width: 320px;" src="{{ static('images/report-image.png') }}" alt="img" />
-    </div>
-
-    {% if user_profile %}
-    <div class="student-detail-info" style="width:650px; margin-bottom:30px;">
-      <div class="top-info">
-        <div class="info-box">
-          <div class="dt-i-info" style="color:#fff; margin-bottom: 0px;"> Name </div>
-          <div class="output" style="margin-bottom: 0px;">
-            <p>{{ student_name }}</p>
-          </div>
-        </div>
-        <div class="info-box" >
-          <div class="dt-i-info" style="color:#fff; width: 125px;margin-bottom: 0px;">School</div>
-          <div class="output" >
-            <p>{{ user_profile.schoolname if user_profile.schoolname else '' }}</p>
-          </div>
-        </div>
+    <div class="cover-inner">
+      <div class="cover-logo main-cover-logo">
+        <img src="{{ static('images/logo.png') }}" alt="topteen" />
       </div>
-      <div class="top-info">
-        <div class="info-box">
-          <div class="dt-i-info" style="color:#fff; margin-bottom: 0px;"> Grade</div>
-          <div class="output" style="margin-bottom: 0px;">
-            <p>{{ user_profile.grade if user_profile.grade else '' }}</p>
-          </div>
-        </div>
-        <div class="info-box">
-          <div class="dt-i-info" style="width: 3cm;color:#fff; margin-bottom: 0px;"> Date of Test </div>
-          <div class="output" style="margin-bottom: 0px;">
-            <p>{{ created_date.strftime('%Y-%m-%d') if created_date else now.strftime('%Y-%m-%d') }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-    {% endif %}
 
-    <div style="width:100%; margin-top: 40px; float: left;">
-      <table style="width:100%; margin-top: 20px;">
-        <tbody>
-          <tr style="border: 1px solid #3F37CB; border-radius: 10px;">
-            <td>
-              <div class="disclaimer-heading" style="width:100%; text-align: center; color: #3F37CB; text-align: center; margin-top: -19px;">
-                <p style="background-color: #3F37CB; padding:2px; color: #fff; font-size: 12px; border-radius: 5px 5px 0 0; text-align: center; width:150px; margin: 0px auto;">Disclaimer</p>
+      <div class="cover-title">
+        <span class="line-stream">Stream Sorter</span>
+        <span class="line-report">Assessment Report</span>
+      </div>
+
+      <div class="cover-hero">
+        <img src="{{ static('images_new/new_report/cover-hero.png') }}" alt="Assessment report illustration" />
+      </div>
+
+      <table class="cover-info-grid" cellspacing="0" cellpadding="0">
+        <tr>
+          <td>
+            <div class="cover-info-card">
+              <div class="cover-info-card-inner">
+                <div class="cover-info-icon">
+                  <div class="cover-info-icon-box">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v1.2h19.2v-1.2c0-3.2-6.4-4.8-9.6-4.8z" fill="#ffffff"/>
+                    </svg>
+                  </div>
+                </div>
+                <div class="cover-info-text">
+                  <span class="cover-info-label">Name</span>
+                  <span class="cover-info-value">{{ student_name if student_name is defined and student_name else (user_name if user_name is defined else '') }}</span>
+                </div>
               </div>
-              <p style="width:100%; text-align: center;">The results of this assessment are based on the responses given by the individual on the self report questionnaire and are subject to change based on multiple factors.</p>
+            </div>
+          </td>
+          <td>
+            <div class="cover-info-card">
+              <div class="cover-info-card-inner">
+                <div class="cover-info-icon">
+                  <div class="cover-info-icon-box">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <path d="M12 3L2 8v2h20V8L12 3zM4 11v8h3v-5h4v5h3v-5h4v5h3v-8H4zm5 10h6v1H9v-1z" fill="#ffffff"/>
+                    </svg>
+                  </div>
+                </div>
+                <div class="cover-info-text">
+                  <span class="cover-info-label">School</span>
+                  <span class="cover-info-value">{% if user_profile and user_profile.schoolname %}{{ user_profile.schoolname }}{% else %}—{% endif %}</span>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="cover-info-card">
+              <div class="cover-info-card-inner">
+                <div class="cover-info-icon">
+                  <div class="cover-info-icon-box">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <path d="M12 3L1 9l11 6 9-4.9V17h2V9L12 3zm-7 9.2V15c0 1.7 3.1 3 7 3s7-1.3 7-3v-2.8l-7 3.8-7-3.8z" fill="#ffffff"/>
+                    </svg>
+                  </div>
+                </div>
+                <div class="cover-info-text">
+                  <span class="cover-info-label">Grade</span>
+                  <span class="cover-info-value">{% if user_profile and user_profile.grade %}{{ user_profile.grade }}{% else %}—{% endif %}</span>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="cover-info-card">
+              <div class="cover-info-card-inner">
+                <div class="cover-info-icon">
+                  <div class="cover-info-icon-box">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <path d="M7 2h2v2h6V2h2v2h3v16H4V4h3V2zm11 8H6v8h12v-8zm0-4H6v2h12V6z" fill="#ffffff"/>
+                    </svg>
+                  </div>
+                </div>
+                <div class="cover-info-text">
+                  <span class="cover-info-label">Date of Test</span>
+                  <span class="cover-info-value">{{ created_date.strftime('%Y-%m-%d') if created_date else now.strftime('%Y-%m-%d') }}</span>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </table>
+
+      <div class="cover-disclaimer">
+        <div class="cover-disclaimer-badge">Disclaimer</div>
+        <div class="cover-disclaimer-body">
+          <div class="cover-disclaimer-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5l8-3z" fill="#4341C9"/>
+              <path d="M10.2 15.4l-2.8-2.8 1.4-1.4 1.4 1.4 4.2-4.2 1.4 1.4-5.6 5.6z" fill="#ffffff"/>
+            </svg>
+          </div>
+          <p class="cover-disclaimer-text">The results of this assessment are based on the responses given by the individual on the self report questionnaire and are subject to change based on multiple factors.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapterPage intro-page">
+    <div class="intro-panel">
+      <div class="intro-panel-badge">Introduction</div>
+      <p>Selecting the right academic stream is a significant milestone in a student's educational journey. It's like choosing a path in a vast, exciting forest where each trail leads to unique adventures and destinations. This decision lays the foundation for future career prospects and academic pursuits, making it crucial for students to carefully evaluate their options.</p>
+      <p>Imagine standing at a crossroads with a map in hand, each route offering a glimpse into different worlds—science teeming with discoveries, commerce bustling with business acumen, and humanities rich with cultural insights. This pivotal choice is not just about subjects and exams; it's about uncovering your passions, unlocking potential, and setting the stage for your future. Whether you dream of becoming an engineer, an entrepreneur, or an artist, the right stream can be the launch pad to your aspirations, turning your academic journey into an exhilarating quest for knowledge and success.</p>
+      <p>The Stream Sorter Assessment Test aims to guide students in this decision by evaluating three key aspects: <span class="intro-highlight">Interest, Personality, and Aptitude.</span> These elements are essential in identifying the most suitable academic path for each individual.</p>
+    </div>
+    <div class="intro-career-art">
+      <img src="{{ static('images_new/new_report/career-hand.png') }}" alt="Career" />
+    </div>
+  </div>
+
+  <div class="chapterPage howto-page">
+    <h1 class="howto-title h2-title">How To Use This Report</h1>
+    <p class="howto-intro">This test typically consists of a series of questions in 3 parts that evaluate various aspects of a student's <span class="hl">Personality, Interest and Aptitude</span> and it helps you decide the suggested stream to consider in your high school.</p>
+
+    <table class="howto-cards" cellspacing="0" cellpadding="0">
+      <tr>
+        <td>
+          <div class="howto-card personality">
+            <div class="howto-card-accent"></div>
+            <div class="howto-card-icon">
+              <img src="{{ static('images/personality-icon.png') }}" alt="Personality" />
+            </div>
+            <p class="howto-card-label">Personality</p>
+          </div>
+        </td>
+        <td>
+          <div class="howto-card interest">
+            <div class="howto-card-accent"></div>
+            <div class="howto-card-icon">
+              <img src="{{ static('images/interest-icon.png') }}" alt="Interest" />
+            </div>
+            <p class="howto-card-label">Interest</p>
+          </div>
+        </td>
+        <td>
+          <div class="howto-card aptitude">
+            <div class="howto-card-accent"></div>
+            <div class="howto-card-icon">
+              <img src="{{ static('images/intelligence-icon.png') }}" alt="Aptitude" />
+            </div>
+            <p class="howto-card-label">Aptitude</p>
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <div class="howto-table-wrap">
+      <table class="howto-table">
+        <thead>
+          <tr>
+            <th>Part</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div class="howto-part">
+                <div class="howto-num n1"><span>1</span></div>
+                <div class="howto-part-text">Part 1 - Personality Assessment</div>
+              </div>
             </td>
+            <td class="howto-desc"><span class="kw">Personality</span> encompasses the traits &amp; characteristics that define how you interact with the world and approach tasks</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="howto-part">
+                <div class="howto-num n2"><span>2</span></div>
+                <div class="howto-part-text">Part 2 - Career Interest Assessment</div>
+              </div>
+            </td>
+            <td class="howto-desc"><span class="kw">Interest</span> refers to the subjects and activities that naturally engage and excite you</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="howto-part">
+                <div class="howto-num n3"><span>3</span></div>
+                <div class="howto-part-text">Part 3 - Aptitude Assessment</div>
+              </div>
+            </td>
+            <td class="howto-desc"><span class="kw">Aptitude</span> refers to your cognitive abilities, including logical reasoning, problem-solving skills, and understanding of complex concepts</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="howto-footer">
+      <p>This comprehensive report ensures that you make informed decision about your academic path, leading to more successful and fulfilling career.</p>
+    </div>
+  </div>
+
+  <div class="chapterPage personality-page">
+    <div class="part-badge p-badge-1">Part -1</div>
+    <h1 class="page-title">Personality Assessment Report</h1>
+    <p class="page-intro">This report is based on the <strong style="color: #2C2A9E;">RIASEC</strong> model, developed by John Holland, which categorizes career interests into six distinct types: <strong style="color: #2C2A9E;">Realistic, Investigative, Artistic, Social, Enterprising, and Conventional</strong>. By identifying your dominant interest types, you can better understand your career preferences and suggest suitable career paths that align with your strengths and passions.</p>
+    <div class="section-subtitle">Holland’s Code description</div>
+    <div class="riasec-icons">
+      <img src="{{ static('images/riasec-ig.png') }}" alt="RIASEC codes" />
+    </div>
+
+    <div class="holland-table-wrap">
+      <table class="holland-table">
+        <thead>
+          <tr>
+            <th>Holland Code</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="code-cell">
+              <img src="{{ static('images/r.png') }}" alt="R" />
+              <span class="code-name r">Realistic</span>
+            </td>
+            <td class="desc-cell">Individuals with Realistic interests prefer hands-on activities and practical tasks. They enjoy working with tools, machines, or animals &amp; often excel in environments that require physical activity &amp; problem-solving. Careers that suit Realistic types include engineering, construction, agriculture, and skilled trades.</td>
+          </tr>
+          <tr>
+            <td class="code-cell">
+              <img src="{{ static('images/i.png') }}" alt="I" />
+              <span class="code-name i">Investigative</span>
+            </td>
+            <td class="desc-cell">Investigative individuals are curious and analytical, often drawn to research and intellectual challenges. They enjoy exploring ideas, conducting experiments, and solving complex problems. Suitable careers include those in science, medicine, technology, and academia, where critical thinking and data analysis are paramount.</td>
+          </tr>
+          <tr>
+            <td class="code-cell">
+              <img src="{{ static('images/a.png') }}" alt="A" />
+              <span class="code-name a">Artistic</span>
+            </td>
+            <td class="desc-cell">Artistic individuals thrive in creative and expressive environments. They enjoy activities that involve art, music, writing, and design, often seeking opportunities to innovate and express themselves. Careers in the arts, entertainment, fashion, and media are ideal for Artistic types, as they allow for personal expression and creativity.</td>
+          </tr>
+          <tr>
+            <td class="code-cell">
+              <img src="{{ static('images/s.png') }}" alt="S" />
+              <span class="code-name s">Social</span>
+            </td>
+            <td class="desc-cell">Social individuals are empathetic and enjoy helping others. They excel in roles that involve teaching, counseling, and providing support. Careers in education, healthcare, social work, and human resources are well-suited for Social types, where they can make a positive impact on people's lives.</td>
+          </tr>
+          <tr>
+            <td class="code-cell">
+              <img src="{{ static('images/e.png') }}" alt="E" />
+              <span class="code-name e">Enterprising</span>
+            </td>
+            <td class="desc-cell">Enterprising individuals are natural leaders and persuaders. They enjoy activities that involve leading teams, making decisions, and taking risks. They often thrive in dynamic environments where they can influence others and achieve goals. Careers in business, management, sales, and entrepreneurship are ideal for Enterprising types, who are driven by ambition and leadership opportunities.</td>
+          </tr>
+          <tr>
+            <td class="code-cell">
+              <img src="{{ static('images/c.png') }}" alt="C" />
+              <span class="code-name c">Conventional</span>
+            </td>
+            <td class="desc-cell">Conventional individuals prefer structured and orderly tasks. They excel in roles that involve organization, data management, and attention to detail. Careers in accounting, administration, finance, and logistics suit Conventional types, where precision and reliability is the key.</td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
 
-  <div class="chapterPage">
-    <div class="db-header" style="margin-top: 16px; text-align: center;">
-      <h1 style="color: #3F37C9;">INTRODUCTION</h1>
-    </div>
-    <table>
-      <tbody>
-        <tr style="background: #E7FEFF;">
-          <td>
-            <div class="intro-box" style="background: #E7FEFF; padding: 18px;">
-              <p style="font-family: 'Galano Grotesque';">Selecting the right academic stream is a significant milestone in a student's educational journey. It's like choosing a path in a vast, exciting forest where each trail leads to unique adventures and destinations. This decision lays the foundation for future career prospects and academic pursuits, making it crucial for students to carefully evaluate their options.</p>
-              <p style="font-family: 'Galano Grotesque';">Imagine standing at a crossroads with a map in hand, each route offering a glimpse into different worlds—science teeming with discoveries, commerce bustling with business acumen, and humanities rich with cultural insights. This pivotal choice is not just about subjects and exams; it's about uncovering your passions, unlocking potential, and setting the stage for your future. Whether you dream of becoming an engineer, an entrepreneur, or an artist, the right stream can be the launch pad to your aspirations, turning your academic journey into an exhilarating quest for knowledge and success.</p>
-              <p style="font-family: 'Galano Grotesque';">The Stream Sorter Assessment Test aims to guide students in this decision by evaluating three key aspects: <strong>Interest, Personality, and Aptitude</strong>. These elements are essential in identifying the most suitable academic path for each individual.</p>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <div class="img-info" style="width: 100%; text-align: center; margin-top:30px;">
-      <img style="width:500px" src="{{ static('images/student-sitting.png') }}" alt="Student" />
-    </div>
-  </div>
-
-  <div class="chapterPage">
-    <div class="db-header" style="margin-top: 10px; text-align: center;">
-      <h1 style="color: #3F37C9;">HOW TO USE THIS REPORT</h1>
-    </div>
-    <div class="text-info-paragraph">
-      <p>This test typically consists of a series of questions in 3 parts that evaluate various aspects of a student's <strong>Personality, Interest and Aptitude</strong> and it helps you decide the suggested stream to consider in your high school.</p>
-    </div>
-    <div class="boxthree" style="margin: 20px 0 40px 0; float:left; width: 100%;">
-      <div class="box-info" style="text-align: center;">
-        <div class="img"><img style="width:50px;" src="{{ static('images/personality-icon.png') }}" alt="img" /></div>
-        <h5>Personality</h5>
-      </div>
-      <div class="box-info" style="text-align: center;">
-        <div class="img"><img style="width:50px;" src="{{ static('images/interest-icon.png') }}" alt="img" /></div>
-        <h5>Interest</h5>
-      </div>
-      <div class="box-info" style="text-align: center;">
-        <div class="img"><img style="width:50px;" src="{{ static('images/intelligence-icon.png') }}" alt="img" /></div>
-        <h5>Aptitude</h5>
-      </div>
-    </div>
-    <table style="margin-bottom: 30px; margin-top:25px;">
-      <thead>
-        <tr>
-          <th style="background: #E7E5FF; color:#2720A7; padding: 21px 0 21px 14px; border-top-left-radius: 15px;">Part</th>
-          <th style="background: #E7E5FF; color:#2720A7; padding: 21px 3px; border-top-right-radius: 15px;">Description</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr style="border:1px solid #9490dd;">
-          <td style="width: 200px; padding-left:14px; color: #000; font-weight: 700;">Part 1- Personality Assessment</td>
-          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 16px;"><span style="color:#2720A7;">Personality</span> encompasses the traits and characteristics that define how you interact with the world and approach tasks</td>
-        </tr>
-        <tr style="border:1px solid #9490dd;">
-          <td style="padding-left:14px; color: #000; font-weight: 700;">Part 2- Career Interest Assessment</td>
-          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 16px;"><span style="color:#2720A7;">Interest</span> refers to the subjects and activities that naturally engage and excite you</td>
-        </tr>
-        <tr style="border:1px solid #9490dd;">
-          <td style="width: 200px; padding-left:14px; color: #000; font-weight: 700;">Part 3- Aptitude Assessment</td>
-          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 16px;"><span style="color:#2720A7;">Aptitude</span> refers to your cognitive abilities, including logical reasoning, problem-solving skills, and understanding of complex concepts</td>
-        </tr>
-      </tbody>
-    </table>
-    <div class="text-info-paragraph">
-      <p>This comprehensive report ensures that you make informed decision about your academic path, leading to more successful and fulfilling career.</p>
-    </div>
-  </div>
-
-  <div class="chapterPage">
-    <div class="text-color-top" style="display: flex; justify-content: center;">
-      <div class="top-layout" style="background: #3F37C9; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 0px; font-weight: 600; border-radius: 10px 10px 0 0;">Part -1</div>
-    </div>
-    <div class="db-header" style="margin-top: 10px; text-align: center;">
-      <h1 style="color: #3F37C9; margin-top:0px">PERSONALITY ASSESSMENT REPORT</h1>
-    </div>
-    <div class="text-info-paragraph" >
-      <p style="font-size: 14px;">This report is based on the <strong>RIASEC</strong> model, developed by John Holland, which categorizes career interests into six distinct types: <strong>Realistic, Investigative, Artistic, Social, Enterprising, and Conventional</strong>. By identifying your dominant interest types, you can better understand your career preferences and suggest suitable career paths that align with your strengths and passions.</p>
-    </div>
-    <div class="test-title" style="color:#000; font-size:16px; font-weight: 600; margin-top: 10px; width:100%; text-align: center;">Holland's Code description</div>
-    <div class="ris-box" style="width:100%; text-align: center; margin-top: 20px; margin-bottom: 30px;">
-      <img style="width:600px;" src="{{ static('images/riasec-ig.png') }}" alt="riasec" />
-    </div>
-
-    <table style="margin-bottom: 30px; margin-top:0px;">
-      <thead>
-        <tr>
-          <th style="background: #E7E5FF; color:#2720A7; padding: 21px 0 21px 14px; border-top-left-radius: 15px; font-size: 14px;">Holland Code</th>
-          <th style="background: #E7E5FF; color:#2720A7; padding: 21px 3px; border-top-right-radius: 15px;">Description</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr style="border:1px solid #9490dd;">
-          <td style="width: 200px; padding-left:14px; text-align: center;">
-            <div class="r-img"><img style="width:30px;" src="{{ static('images/r.png') }}" alt="text" /><br>
-              <span style="color:#057190; font-size: 14px; font-weight: 600;">Realistic</span>
-            </div>
-          </td>
-          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 400; font-size: 11px;">Individuals with Realistic interests prefer hands-on activities and practical tasks. They enjoy working with tools, machines, or animals & often excel in environments that require physical activity & problem-solving. Careers that suit Realistic types include engineering, construction, agriculture, and skilled trades.</td>
-        </tr>
-        <tr style="border:1px solid #9490dd;">
-          <td style="width: 200px; padding-left:14px; text-align: center;">
-            <div class="1-img"><img style="width:30px;" src="{{ static('images/i.png') }}" alt="text" /><br>
-              <span style="color:#A92CAF; font-size: 16px; font-weight: 600;">Investigative</span>
-            </div>
-          </td>
-          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 400; font-size: 11px;">Investigative individuals are curious and analytical, often drawn to research and intellectual challenges. They enjoy exploring ideas, conducting experiments, and solving complex problems. Suitable careers include those in science, medicine, technology, and academia, where critical thinking and data analysis are paramount.</td>
-        </tr>
-        <tr style="border:1px solid #9490dd;">
-          <td style="width: 200px; padding-left:14px; text-align: center;">
-            <div class="1-img"><img style="width:30px;" src="{{ static('images/a.png') }}" alt="text" /><br>
-              <span style="color:#2A740E; font-size: 16px; font-weight: 600;">Artistic</span>
-            </div>
-          </td>
-          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 400; font-size: 11px;">Artistic individuals thrive in creative and expressive environments. They enjoy activities that involve art, music, writing, and design, often seeking opportunities to innovate and express themselves. Careers in the arts, entertainment, fashion, and media are ideal for Artistic types, as they allow for personal expression and creativity.</td>
-        </tr>
-        <tr style="border:1px solid #9490dd;">
-          <td style="width: 200px; padding-left:14px; text-align: center;">
-            <div class="1-img"><img style="width:30px;" src="{{ static('images/s.png') }}" alt="text" /><br>
-              <span style="color:#6D5C04; font-size: 16px; font-weight: 600;">Social</span>
-            </div>
-          </td>
-          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 400; font-size: 11px;">Social individuals are empathetic and enjoy helping others. They excel in roles that involve teaching, counseling, and providing support. Careers in education, healthcare, social work, and human resources are well-suited for Social types, where they can make a positive impact on people's lives.</td>
-        </tr>
-        <tr style="border:1px solid #9490dd;">
-          <td style="width: 200px; padding-left:14px; text-align: center;">
-            <div class="1-img"><img style="width:30px;" src="{{ static('images/e.png') }}" alt="text" /><br>
-              <span style="color:#A22717; font-size: 16px; font-weight: 600;">Enterprising</span>
-            </div>
-          </td>
-          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 400; font-size: 11px;">Enterprising individuals are natural leaders and persuaders. They enjoy activities that involve leading teams, making decisions, and taking risks. They often thrive in dynamic environments where they can influence others and achieve goals. Careers in business, management, sales, and entrepreneurship are ideal for Enterprising types, who are driven by ambition and leadership opportunities.</td>
-        </tr>
-        <tr style="border:1px solid #9490dd;">
-          <td style="width: 200px; padding-left:14px; text-align: center;">
-            <div class="1-img"><img style="width:30px;" src="{{ static('images/c.png') }}" alt="text" /><br>
-              <span style="color:#0B5BA1; font-size: 16px; font-weight: 600;">Conventional</span>
-            </div>
-          </td>
-          <td style="padding-top:5px; padding-bottom: 5px; color: #000; font-weight: 400; font-size: 11px;">Conventional individuals prefer structured and orderly tasks. They excel in roles that involve organization, data management, and attention to detail. Careers in accounting, administration, finance, and logistics suit Conventional types, where precision and reliability is the key.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
 
 
+  <div class="chapterPage personality-interpretation-page interp-page">
+    <div class="interp-banner">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-4 0-8 2-8 4v2h16v-2c0-2-4-4-8-4z" fill="#fff"/>
+        <circle cx="17.5" cy="17.5" r="3.2" stroke="#fff" stroke-width="1.6" fill="none"/>
+        <path d="M19.7 19.7L22 22" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      Interpretation &amp; Recommendations
+    </div>
+    <p class="interp-prompt">Based on your test results, your strongest areas of interest are:</p>
 
-  <div class="chapterPage personality-interpretation-page">
-    <div class="db-header" style="margin-top: 10px; text-align: center;">
-      <h1 style="color: #3F37C9;">Interpretation & Recommendations</h1>
-    </div>
-    <div class="text-info-paragraph" style="margin-bottom: 0px;">
-      <p>Based on your test results, your strongest areas of interest are:</p>
-    </div>
-    <div class="text-color-top" style="display: flex; justify-content: center;">
-      <div class="top-layout" style="background: #3F37C9; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 28px; font-weight: 600; border-radius: 10px 10px 0 0;">
-        {{ top_category.fullname if top_category and top_category.fullname else 'N/A' }}
-      </div>
+    <div class="interp-code-pill">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="12" cy="12" r="8" stroke="#fff" stroke-width="1.8"/>
+        <circle cx="12" cy="12" r="4.5" stroke="#fff" stroke-width="1.5"/>
+        <circle cx="12" cy="12" r="1.5" fill="#fff"/>
+        <path d="M12 3v2M12 19v2M3 12h2M19 12h2" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      {{ top_category.fullname if top_category and top_category.fullname else 'N/A' }}
     </div>
 
     {% if top_categories %}
-    {% for result in top_categories %}
-    <div class="threebox-col">
-      <div class="box-i onebox" style="background: #E7E5FF;margin: 20px 8px; border-radius: 10px; border-right: 4px solid #3F37C9; border-bottom: 4px solid #3F37C9; float: left; width:190px; height:100px;">
-        <p style="color: #3F37C9;font-weight: 700;font-size: 23px;margin-bottom: 0px;">{{ (result.score|replace('%', '')|float)|round|int if result.score else 0 }}%</p>
-        <p style="color: #494949;font-size: 18px;font-weight: 600;margin-bottom: 0px;">{{ result.category if result.category else 'N/A' }}</p>
+    <div class="interp-score-cards">
+      {% for result in top_categories %}
+      {% set pct = (result.score|replace('%', '')|float)|round|int if result.score else 0 %}
+      <div class="interp-score-card">
+        <div class="interp-score-icon">
+         
+          <img src="{{ static('images_new/new_report/target-line 2.png') }}" alt="Career" />
+         
+         
+        </div>
+        <p class="interp-score-pct">{{ pct }}%</p>
+        <p class="interp-score-name">{{ result.category if result.category else 'N/A' }}</p>
+        <div class="interp-progress">
+          <div class="interp-progress-fill" style="width: {{ pct if pct <= 100 else 100 }}%;"></div>
+        </div>
       </div>
+      {% endfor %}
     </div>
-    {% endfor %}
     {% endif %}
 
     {% include 'template20/app/partials/riasec_career_alignment_block.html' %}
   </div>
 
   <div class="chapterPage report-graph-page">
-    {% include 'template20/app/partials/riasec_personality_graph_pdf.html' %}
-    <div class="two-box">
-      {% if streamsubject %}
-      {% for stream, subject in streamsubject %}
-      <div class="two-box-in" style="width:210px; height:150px; display: flex; justify-content: center; flex-direction: column; background: #E7E5FF; align-items: center; text-align: center; margin: 0 9px; padding: 3px 7px; border-radius: 10px; border-right: 3px solid #3F37CB; border-bottom: 3px solid #3F37C9; gap: 3px;">
-        <div class="img-tow"><img style="width:50px; margin-bottom:0px; margin-top: 0px;" src="{{ static('images/pcm-icon.png') }}" alt="img"></div>
-        <div style="color: #000; font-size: 14px; margin-bottom: 0px; margin-top: 0px; text-align: center; width:100%; font-weight: 600;">{{ stream }}</div>
-        <p style="font-size: 14px; margin-top: 0px; text-align: center; list-style: none; padding: 0; margin-left: 0;">{{ subject }}</p>
-      </div>
-      {% endfor %}
-      {% endif %}
+   
+
+    <div class="graph-frame">
+      {% include 'template20/app/partials/riasec_personality_graph_pdf.html' %}
     </div>
 
-    {% with section_title_center=true, section_column_count=3, section_list_disc=true, section_list_height='150px' %}
-    {% include 'template20/app/partials/stream_career_sections.html' %}
-    {% endwith %}
+    {% if streamsubject %}
+    <table class="stream-result-cards" cellspacing="0" cellpadding="0">
+      <tr>
+        {% for stream, subject in streamsubject %}
+        <td>
+          <div class="stream-result-card {% if loop.index0 % 2 == 0 %}accent-purple{% else %}accent-teal{% endif %}">
+            <div class="stream-result-inner">
+              <div class="stream-result-icon">
+                <div class="stream-result-icon-circle">
+                  <img src="{{ static('images/pcm-icon.png') }}" alt="" />
+                </div>
+              </div>
+              <div class="stream-result-text">
+                <p class="stream-result-code">{{ stream }}</p>
+                <p class="stream-result-name">{{ subject }}</p>
+              </div>
+            </div>
+          </div>
+        </td>
+        {% endfor %}
+      </tr>
+    </table>
+    {% endif %}
+
+    {% if stream_career_sections %}
+      {% for section in stream_career_sections %}
+      <div class="pathways-panel">
+        <div class="pathways-badge">{{ section.title }}</div>
+        <ul class="pathways-list">
+          {% for value in section.careers %}
+          <li>{{ value }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endfor %}
+    {% elif courseName %}
+      <div class="pathways-panel">
+        <div class="pathways-badge">Career Pathways</div>
+        <ul class="pathways-list">
+          {% for value in courseName %}
+          <li>{{ value }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
   </div>
 </body>
 </html>

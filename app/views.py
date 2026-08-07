@@ -5,6 +5,7 @@ from core.utils import (
     class10_assessment_pdf_filename,
     class10_combined_report_pdf_filename,
     class10_web_report_pdf_filename,
+    delete_user_pdf,
     ensure_user_pdf_folder,
     save_user_pdf,
     serve_user_pdf_response,
@@ -22,6 +23,11 @@ import json
 from django.contrib import messages
 
 import os
+# Non-GUI backend required for Django/runserver (TkAgg crashes with Tcl_AsyncDelete)
+os.environ.setdefault("MPLBACKEND", "Agg")
+import matplotlib
+
+matplotlib.use("Agg", force=True)
 import matplotlib.pyplot as plt
 import shutil
 
@@ -1119,10 +1125,26 @@ def _try_serve_or_enqueue_web_report_pdf(request, target_user, report_kind, *, _
     Query flags used by the report-page button UX:
       - prefetch=1 → enqueue only, HTTP 204
       - status=1 (or Accept: application/json) → {"ready": bool, "url": "..."}
+      - force=1 / regen=1 → delete cached PDF and regenerate sync
 
     Returns an HttpResponse when handled; None means caller should generate sync.
     """
-    if _sync_generate or (request.GET.get("debug") or "").strip() == "true":
+    force_regen = (request.GET.get("force") or request.GET.get("regen") or "").strip().lower() in (
+        "1", "true", "yes",
+    )
+    if _sync_generate or force_regen or (request.GET.get("debug") or "").strip() == "true":
+        if force_regen:
+            try:
+                delete_user_pdf(
+                    target_user.id,
+                    class10_web_report_pdf_filename(target_user, report_kind),
+                )
+            except Exception:
+                logger.exception(
+                    "force regen delete failed user=%s kind=%s",
+                    getattr(target_user, "id", None),
+                    report_kind,
+                )
         return None
 
     is_prefetch = (request.GET.get("prefetch") or "").strip() == "1"
@@ -1361,16 +1383,33 @@ def class10_report_download_pdf(request, user_id=None, _sync_generate=False):
                 'above_avg': above_avg
             }
         
-        # Refresh graph images before PDF so chart layout/margins stay current
-        original_user = getattr(request, 'user', None)
-        try:
-            request.user = target_user
-            gernate_graph(request)
-        except Exception as e:
-            logger.warning("class10_report_download_pdf: could not generate graphs for user %s: %s", target_user.id, e)
-        finally:
-            if original_user is not None:
-                request.user = original_user
+        # Refresh graph images before PDF (skip if already present — avoids long regen)
+        from app.graph_media_utils import graph_image_path
+
+        graph_user_name = getattr(target_user, 'name', None) or target_user.email
+        force_graphs = (request.GET.get('force_graphs') or '').strip() in ('1', 'true', 'yes')
+        missing_graphs = any(
+            not os.path.exists(graph_image_path(graph_user_name, target_user.id, kind))
+            for kind in ('personality', 'interest', 'intelligence')
+        )
+        if force_graphs or missing_graphs:
+            original_user = getattr(request, 'user', None)
+            try:
+                request.user = target_user
+                gernate_graph(request)
+            except Exception as e:
+                logger.warning(
+                    "class10_report_download_pdf: could not generate graphs for user %s: %s",
+                    target_user.id,
+                    e,
+                )
+            finally:
+                if original_user is not None:
+                    request.user = original_user
+                try:
+                    plt.close('all')
+                except Exception:
+                    pass
         
         # Student info for first page (same as test1 report)
         student_name = getattr(target_user, 'name', None) or target_user.email
@@ -1380,8 +1419,6 @@ def class10_report_download_pdf(request, user_id=None, _sync_generate=False):
         if created_date is None:
             created_date = getattr(target_user, 'date_joined', None)
         now = datetime.now()
-
-        graph_user_name = getattr(target_user, 'name', None) or target_user.email
 
         # Build context for PDF (same as HTML report so content include matches)
         # show_student_info_on_cover: only True for PDF so student info appears on first page of download only
@@ -1445,6 +1482,12 @@ def class10_report_download_pdf(request, user_id=None, _sync_generate=False):
             )
         )
 
+        pdf_a4_bg_web_url, pdf_a4_bg_file_url = _pdf_a4_background_urls(request)
+        is_debug_html = (request.GET.get('debug') or '').strip() == 'true'
+        context['pdf_a4_bg_url'] = pdf_a4_bg_web_url if is_debug_html else pdf_a4_bg_file_url
+        context['pdf_a4_bg_web_url'] = pdf_a4_bg_web_url
+        context['is_combined_pdf'] = True
+
         # Render HTML with Jinja2 so PDF template (uses {% set %}, .items()) is correct
         pdf_template_name = 'template20/app/class10_combined_report_pdf.html'
         try:
@@ -1453,15 +1496,16 @@ def class10_report_download_pdf(request, user_id=None, _sync_generate=False):
         except (KeyError, Exception):
             template = get_template(pdf_template_name)
         html = template.render(context)
-        html = _resolve_static_urls_to_local_paths(html, request.build_absolute_uri('/'))
-        
-        # Debug: return raw HTML to verify template/CSS (?debug=true)
-        if request.GET.get('debug') == 'true':
+
+        # Debug: return raw HTML before file:// rewrite so browser can load /static/
+        if is_debug_html:
             from django.http import HttpResponse as HttpResp
             r = HttpResp(html, content_type='text/html; charset=utf-8')
             r['Content-Disposition'] = 'inline; filename=combined-report-debug.html'
             r['Cache-Control'] = 'no-store, no-cache, must-revalidate'
             return r
+
+        html = _resolve_static_urls_to_local_paths(html, request.build_absolute_uri('/'))
         
         # Generate PDF (WeasyPrint) - wrap for clear production logging if it fails
         try:
@@ -1471,7 +1515,7 @@ def class10_report_download_pdf(request, user_id=None, _sync_generate=False):
                 pdf_file = weasyprint.HTML(
                     string=html,
                     base_url=request.build_absolute_uri('/')
-                ).write_pdf()
+                ).write_pdf(optimize_images=True)
             finally:
                 ssl._create_default_https_context = original_ssl_context
         except Exception as pdf_err:
@@ -2743,6 +2787,11 @@ def gernate_graph(request):
         logger.warning("Error creating intelligence assessment graph: %s", e)
         personality = ''
 
+    try:
+        plt.close('all')
+    except Exception:
+        pass
+
     return below, avg, above_avg, personality, min_length, max_length
      
 
@@ -3318,48 +3367,96 @@ def _resolve_static_urls_to_local_paths(html_content, base_url):
     Replace /static/ and /media/ URLs in HTML with local file paths
     to avoid HTTP requests during PDF generation.
     This significantly speeds up PDF generation by eliminating network requests.
+    Also rewrites CSS url(/static/...) so @page / background-image assets load.
     """
-    def replace_static(match):
-        quote_char = match.group(1)  # Captured quote character (" or ')
-        static_path = match.group(2)  # Path after /static/
-        # Try to find the static file using Django's staticfiles finder
+    from pathlib import Path
+
+    def _static_to_file_uri(static_path):
         found_path = finders.find(static_path)
-        if found_path:
-            # Normalize path separators for file:// URLs (use forward slashes)
-            normalized_path = found_path.replace('\\', '/')
-            # Convert to file:// URL with proper formatting
-            return f'{match.group(0)[:match.start(2)-match.start()]}file:///{normalized_path}{quote_char}'
-        # If not found, return original
-        return match.group(0)
-    
-    def replace_media(match):
-        quote_char = match.group(1)  # Captured quote character (" or ')
-        media_path = match.group(2)  # Path after /media/
-        # Construct full media file path
+        if not found_path:
+            return None
+        return Path(found_path).resolve().as_uri()
+
+    def _media_to_file_uri(media_path):
         media_file_path = os.path.join(settings.MEDIA_ROOT, media_path)
-        if os.path.exists(media_file_path):
-            # Normalize path separators for file:// URLs (use forward slashes)
-            normalized_path = media_file_path.replace('\\', '/')
-            # Convert to file:// URL with proper formatting
-            return f'{match.group(0)[:match.start(2)-match.start()]}file:///{normalized_path}{quote_char}'
-        # If not found, return original
-        return match.group(0)
-    
-    # Replace /static/ URLs in src and href attributes (capture quote and path separately)
+        if not os.path.exists(media_file_path):
+            return None
+        return Path(media_file_path).resolve().as_uri()
+
+    # Replace /static/ URLs in src and href attributes
+    def replace_attr_static(match):
+        attr, quote, static_path = match.group(1), match.group(2), match.group(3)
+        uri = _static_to_file_uri(static_path)
+        if not uri:
+            return match.group(0)
+        return f'{attr}={quote}{uri}{quote}'
+
     html_content = re.sub(
         r'(src|href)=(["\'])/static/([^"\']+)\2',
-        lambda m: f'{m.group(1)}={m.group(2)}file:///{finders.find(m.group(3)).replace(chr(92), "/")}{m.group(2)}' if finders.find(m.group(3)) else m.group(0),
-        html_content
+        replace_attr_static,
+        html_content,
     )
-    
-    # Replace /media/ URLs in src and href attributes (capture quote and path separately)
+
+    # Replace /media/ URLs in src and href attributes
+    def replace_attr_media(match):
+        attr, quote, media_path = match.group(1), match.group(2), match.group(3)
+        uri = _media_to_file_uri(media_path)
+        if not uri:
+            return match.group(0)
+        return f'{attr}={quote}{uri}{quote}'
+
     html_content = re.sub(
         r'(src|href)=(["\'])/media/([^"\']+)\2',
-        lambda m: (lambda path, quote: f'{m.group(1)}={quote}file:///{path.replace(chr(92), "/")}{quote}' if os.path.exists(path) else m.group(0))(os.path.join(settings.MEDIA_ROOT, m.group(3)), m.group(2)),
-        html_content
+        replace_attr_media,
+        html_content,
     )
-    
+
+    # Replace CSS url("/static/...") and url('/static/...') and url(/static/...)
+    def replace_css_static(match):
+        quote, static_path = match.group(1) or '', match.group(2)
+        uri = _static_to_file_uri(static_path)
+        if not uri:
+            return match.group(0)
+        q = quote or '"'
+        return f'url({q}{uri}{q})'
+
+    html_content = re.sub(
+        r'url\((["\']?)/static/([^"\')]+)\1\)',
+        replace_css_static,
+        html_content,
+    )
+
+    # Absolute http(s) static URLs (from static() / build_absolute_uri)
+    def replace_css_abs_static(match):
+        quote, static_path = match.group(1) or '', match.group(2)
+        uri = _static_to_file_uri(static_path)
+        if not uri:
+            return match.group(0)
+        q = quote or '"'
+        return f'url({q}{uri}{q})'
+
+    html_content = re.sub(
+        r'url\((["\']?)https?://[^"\')]+/static/([^"\')]+)\1\)',
+        replace_css_abs_static,
+        html_content,
+    )
+
     return html_content
+
+
+def _pdf_a4_background_urls(request):
+    """
+    Return (web_url, file_uri) for the Class 10 A4 report background image.
+    web_url works in browser debug preview; file_uri is preferred by WeasyPrint.
+    """
+    from pathlib import Path
+    from django.templatetags.static import static as static_tag
+
+    rel = 'images_new/new_report/a4-bg-img.png'
+    web_url = request.build_absolute_uri(static_tag(rel))
+    found = finders.find(rel)
+    file_uri = Path(found).resolve().as_uri() if found else web_url
+    return web_url, file_uri
 
 
 @login_required(login_url=reverse_lazy('users:login'))
@@ -3433,6 +3530,8 @@ def test1_report_pdf(request, user_id=None, _sync_generate=False):
         # Get created_date and student_name
         created_date = test1_result.created if hasattr(test1_result, 'created') else target_user.created
         student_name = target_user.name if target_user.name else target_user.email
+        pdf_a4_bg_web_url, pdf_a4_bg_file_url = _pdf_a4_background_urls(request)
+        is_debug_html = (request.GET.get('debug') or '').strip() == 'true'
         
         context = {
             'user': target_user,
@@ -3448,6 +3547,9 @@ def test1_report_pdf(request, user_id=None, _sync_generate=False):
             'student_name': student_name,
             'created_date': created_date,
             'now': datetime.now(),
+            # Browser debug preview needs http(s); WeasyPrint uses local file URI
+            'pdf_a4_bg_url': pdf_a4_bg_web_url if is_debug_html else pdf_a4_bg_file_url,
+            'pdf_a4_bg_web_url': pdf_a4_bg_web_url,
         }
         
         # Render HTML template
@@ -3455,11 +3557,14 @@ def test1_report_pdf(request, user_id=None, _sync_generate=False):
         html = template.render(context)
         
         # Debug: return raw HTML (?debug=true)
-        if request.GET.get('debug') == 'true':
+        if is_debug_html:
             r = HttpResponse(html, content_type='text/html; charset=utf-8')
             r['Content-Disposition'] = 'inline; filename=test1-personality-report-debug.html'
             r['Cache-Control'] = 'no-store, no-cache, must-revalidate'
             return r
+        
+        # Resolve /static/ (incl. CSS background url()) to local file:// paths for WeasyPrint
+        html = _resolve_static_urls_to_local_paths(html, request.build_absolute_uri('/'))
         
         # Generate PDF with optimizations
         # Keep HTTP base_url for proper static/media resolution
@@ -3569,6 +3674,8 @@ def test2_report_pdf(request, user_id=None, _sync_generate=False):
         student_name = target_user.name if target_user.name else target_user.email
         
         from app.interest_report_utils import interest_report_context_fields
+        pdf_a4_bg_web_url, pdf_a4_bg_file_url = _pdf_a4_background_urls(request)
+        is_debug_html = (request.GET.get('debug') or '').strip() == 'true'
         context = {
             'user': target_user,
             'user_profile': user_profile,
@@ -3580,6 +3687,8 @@ def test2_report_pdf(request, user_id=None, _sync_generate=False):
             'student_name': student_name,
             'created_date': created_date,
             'now': datetime.now(),
+            'pdf_a4_bg_url': pdf_a4_bg_web_url if is_debug_html else pdf_a4_bg_file_url,
+            'pdf_a4_bg_web_url': pdf_a4_bg_web_url,
             **interest_report_context_fields(
                 scores=test2_result.scores if test2_result else None,
                 max_length=max_length,
@@ -3592,16 +3701,16 @@ def test2_report_pdf(request, user_id=None, _sync_generate=False):
         html = template.render(context)
         
         # Debug: return raw HTML (?debug=true)
-        if request.GET.get('debug') == 'true':
+        if is_debug_html:
             r = HttpResponse(html, content_type='text/html; charset=utf-8')
             r['Content-Disposition'] = 'inline; filename=test2-interest-report-debug.html'
             r['Cache-Control'] = 'no-store, no-cache, must-revalidate'
             return r
         
+        # Resolve /static/ (incl. CSS background url()) to local file:// paths for WeasyPrint
+        html = _resolve_static_urls_to_local_paths(html, request.build_absolute_uri('/'))
+        
         # Generate PDF with optimizations
-        # Keep HTTP base_url for proper static/media resolution
-        # The main optimization is graph generation check (skip if exists)
-        # and image optimization for smaller file size
         import ssl
         original_ssl_context = ssl._create_default_https_context
         ssl._create_default_https_context = ssl._create_unverified_context
@@ -3709,6 +3818,9 @@ def test3_report_pdf(request, user_id=None, _sync_generate=False):
         from app.report_visibility import student_all_growth_areas
         from app.vocational_recommendations import vocational_guidance_context_for_below_areas
 
+        pdf_a4_bg_web_url, pdf_a4_bg_file_url = _pdf_a4_background_urls(request)
+        is_debug_html = (request.GET.get('debug') or '').strip() == 'true'
+
         context = {
             'user': target_user,
             'user_profile': user_profile,
@@ -3724,6 +3836,8 @@ def test3_report_pdf(request, user_id=None, _sync_generate=False):
             'stream_recommendation': recommend_streams_from_tiers(above_avg, avg, below_avg=below),
             'student_below_average': student_all_growth_areas(below, avg, above_avg),
             'show_student_info_on_cover': True,
+            'pdf_a4_bg_url': pdf_a4_bg_web_url if is_debug_html else pdf_a4_bg_file_url,
+            'pdf_a4_bg_web_url': pdf_a4_bg_web_url,
         }
         context.update(vocational_guidance_context_for_below_areas(below, user=target_user))
 
@@ -3739,16 +3853,16 @@ def test3_report_pdf(request, user_id=None, _sync_generate=False):
         html = template.render(context)
         
         # Debug: return raw HTML (?debug=true)
-        if request.GET.get('debug') == 'true':
+        if is_debug_html:
             r = HttpResponse(html, content_type='text/html; charset=utf-8')
             r['Content-Disposition'] = 'inline; filename=test3-intelligence-report-debug.html'
             r['Cache-Control'] = 'no-store, no-cache, must-revalidate'
             return r
         
+        # Resolve /static/ (incl. CSS background url()) to local file:// paths for WeasyPrint
+        html = _resolve_static_urls_to_local_paths(html, request.build_absolute_uri('/'))
+        
         # Generate PDF with optimizations
-        # Keep HTTP base_url for proper static/media resolution
-        # The main optimization is graph generation check (skip if exists)
-        # and image optimization for smaller file size
         import ssl
         original_ssl_context = ssl._create_default_https_context
         ssl._create_default_https_context = ssl._create_unverified_context
