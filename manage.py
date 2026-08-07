@@ -5,6 +5,7 @@ import sys
 from django.conf import settings
 
 def main():
+    os.environ.setdefault("MPLBACKEND", "Agg")
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'topteens.settings')
     try:
         from django.core.management import execute_from_command_line

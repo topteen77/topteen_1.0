@@ -1,0 +1,600 @@
+.intro-page,
+    .howto-page,
+    .personality-page,
+    .personality-interpretation-page {
+      height: 297mm;
+      max-height: 297mm;
+      overflow: hidden;
+      page-break-inside: avoid;
+    }
+
+    /* Graph / last page — Personality Assessment Report */
+    .chapterPage.report-graph-page {
+      padding: 1.2cm 1.5cm 1.5cm !important;
+      overflow: hidden !important;
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .report-graph-page * {
+      font-family: 'Space Grotesk', sans-serif;
+      box-sizing: border-box;
+    }
+    .report-graph-page div { margin-bottom: 0; }
+    .graph-page-title {
+      margin: 0 auto 14px !important;
+      color: #4341C9 !important;
+      font-size: 22px !important;
+      font-weight: 700 !important;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      line-height: 1.2;
+      text-align: center;
+      border-bottom: 2px solid #4341C9;
+      display: inline-block;
+      padding-bottom: 4px;
+    }
+    .graph-frame {
+      width: 100%;
+      max-width: 172mm;
+      margin: 0 auto 16px;
+      border: 1.5px solid #7B8FE8;
+      border-radius: 14px;
+      background: #ffffff;
+      padding: 10px 12px 8px;
+      overflow: hidden;
+      margin-top: 64px;
+    }
+    .report-graph-block,
+    .chapterPage .graph,
+    .graph-frame .report-graph-block {
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 0 auto !important;
+      padding: 0 !important;
+      float: none !important;
+      clear: both;
+      text-align: center;
+      overflow: hidden;
+    }
+    .report-graph-block img,
+    .chapterPage .graph img,
+    .graph-frame .report-graph-block img {
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      height: auto !important;
+      max-height: 105mm;
+      margin: 0 auto !important;
+    }
+    /* Stream suggestion cards (HUM / CWM) */
+    .stream-result-cards {
+      width: 165mm;
+      max-width: 165mm;
+      margin: 0 auto 18px;
+      border-collapse: separate;
+      border-spacing: 12px 0;
+      table-layout: fixed;
+      margin-top: 57px;
+    }
+    .stream-result-cards td {
+      width: 50%;
+      vertical-align: middle;
+      padding: 0;
+      border: none;
+      background: transparent;
+    }
+    .stream-result-card {
+      position: relative;
+      width: 100%;
+      min-height: 72px;
+      border-radius: 16px;
+      padding: 12px 14px;
+      overflow: hidden;
+      text-align: left;
+      border: 1px solid #E4E1F6;
+    }
+    .stream-result-card.accent-purple {
+      background: linear-gradient(90deg, #EDE9FF 0%, #F7F5FF 55%, #FFFFFF 100%);
+    }
+    .stream-result-card.accent-teal {
+      background: linear-gradient(90deg, #D9F4F6 0%, #EEFBFC 55%, #FFFFFF 100%);
+    }
+    .stream-result-card::before {
+      content: "";
+      position: absolute;
+      left: -18px;
+      top: -10px;
+      width: 56px;
+      height: 96px;
+      border-radius: 50%;
+      opacity: 0.9;
+    }
+    .stream-result-card.accent-purple::before { background: #8B7CF0; }
+    .stream-result-card.accent-teal::before { background: #2BB8C0; }
+    .stream-result-inner {
+      display: table;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+    .stream-result-icon {
+      display: table-cell;
+      vertical-align: middle;
+      width: 48px;
+      padding-right: 10px;
+    }
+    .stream-result-icon-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 1px solid #E8E6F8;
+      text-align: center;
+      line-height: 44px;
+      overflow: hidden;
+    }
+    .stream-result-icon-circle img {
+      width: 26px;
+      height: 26px;
+      vertical-align: middle;
+      object-fit: contain;
+    }
+    .stream-result-text {
+      display: table-cell;
+      vertical-align: middle;
+      text-align: left;
+    }
+    .stream-result-code {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: #2C2A9E;
+      line-height: 1.15;
+    }
+    .stream-result-name {
+      margin: 3px 0 0;
+      font-size: 12px;
+      font-weight: 500;
+      color: #555;
+      line-height: 1.25;
+      word-wrap: break-word;
+      overflow-wrap: anywhere;
+    }
+    /* Career Pathways panel with overlapping pill */
+    .pathways-panel {
+      position: relative;
+      width: 100%;
+      max-width: 172mm;
+      margin: 10px auto 0;
+      border: 1.5px solid #4341C9;
+      border-radius: 16px;
+      background: #ffffff;
+      padding: 22px 16px 14px;
+      text-align: left;
+      margin-top: 50px;
+    }
+    .pathways-badge {
+      position: absolute;
+      top: -13px;
+      left: 50%;
+      margin-left: -78px;
+      width: 156px;
+      background: #4341C9;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      line-height: 1.2;
+      letter-spacing: 0.02em;
+    }
+    .pathways-list {
+      list-style: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      column-count: 3;
+      column-gap: 14px;
+      width: 100%;
+    }
+    .pathways-list li {
+      position: relative;
+      list-style: none !important;
+      margin: 0 0 8px !important;
+      padding: 0 0 0 18px !important;
+      font-size: 12px;
+      font-weight: 500;
+      color: #333;
+      line-height: 1.35;
+      break-inside: avoid;
+      word-wrap: break-word;
+      overflow-wrap: anywhere;
+    }
+    .pathways-list li::before {
+      content: "";
+  position: absolute;
+  left: 0;
+  top:1px;
+  width: 12px;
+  height: 12px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='none' viewBox='0 0 10 10'%3E%3Cpath fill='%234341C9' d='M1 5a4 4 0 1 1 8 0 4 4 0 0 1-8 0Zm4-5a5 5 0 1 0 0 10A5 5 0 0 0 5 0Zm2.729 3.729L7.02 3.02 4.5 5.543 3.104 4.146l-.708.708L4.5 6.957 7.729 3.73Z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+    }
+    
+    /* Legacy two-box / cat-box kept for other templates; muted on this page */
+    .two-box {
+      width: 100%;
+      max-width: 172mm;
+      margin: 14px auto;
+      border-collapse: separate;
+      border-spacing: 10px 0;
+      table-layout: fixed;
+      float: none;
+      clear: both;
+    }
+    .two-box td {
+      width: 50%;
+      vertical-align: top;
+      padding: 0;
+      border: none;
+      background: transparent;
+    }
+    .two-box-in {
+      width: 100%;
+      min-height: 120px;
+      height: auto;
+      background: #E7E5FF;
+      text-align: center;
+      margin: 0;
+      padding: 12px 10px;
+      border-radius: 10px;
+      border-right: 3px solid #3F37CB;
+      border-bottom: 3px solid #3F37C9;
+      box-sizing: border-box;
+      float: none;
+    }
+    .two-box-in p { list-style: none; padding: 0; margin: 5px 0 0 0; word-wrap: break-word; overflow-wrap: anywhere; }
+    .two-box-in .stream-label {
+      color: #000;
+      font-size: 13px;
+      margin: 6px 0 0;
+      text-align: center;
+      width: 100%;
+      font-weight: 600;
+      word-wrap: break-word;
+    }
+    .img-tow { margin: 0 auto; text-align: center; }
+    .img-tow img { width: 44px; height: auto; display: inline-block; }
+    .cat-box {
+      display: block;
+      width: 100%;
+      max-width: 172mm;
+      margin: 12px auto 14px;
+      float: none;
+      clear: both;
+      text-align: left;
+      box-sizing: border-box;
+    }
+    .cat-head {
+      display: block;
+      width: 100%;
+      background: #3F37C9;
+      border-radius: 7px 7px 0 0;
+      padding: 11px 12px;
+      color: #fff;
+      text-align: center;
+      box-sizing: border-box;
+    }
+
+    .personality-page {
+      padding-top: 1.4cm;
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .personality-page div { margin-bottom: 0; }
+    .personality-page * { font-family: 'Space Grotesk', sans-serif; box-sizing: border-box; }
+    .part-badge {
+      display: inline-block;
+      background: #4341C9;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 7px 24px;
+      border-radius: 10px;
+      margin: 0 auto 12px;
+      letter-spacing: 0.02em;
+    }
+
+
+    .part-badge.p-badge-1 {
+  margin-top: 64px;
+  margin-bottom: 21px;
+}
+
+    .personality-page .page-title {
+      margin: 0 0 12px;
+      color: #2C2A9E;
+      font-size: 26px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+    }
+    .personality-page .page-intro {
+      width: 100%;
+      max-width: 170mm;
+      margin: 0 auto 14px;
+      text-align: left;
+      font-size: 15px;
+      font-weight: 400;
+      color: #333;
+      line-height: 1.5;
+      box-sizing: border-box;
+    }
+    .personality-page .page-intro strong {
+      font-weight: 700;
+      color: #1f1f1f;
+    }
+    .personality-page .section-subtitle {
+      margin: 0 0 10px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #111;
+      text-align: center;
+    }
+    .riasec-icons {
+      width: 100%;
+      max-width: 170mm;
+      margin: 0 auto 12px;
+      text-align: center;
+    }
+    .riasec-icons img {
+      width: 100%;
+      max-width: 520px;
+      height: auto;
+      display: inline-block;
+    }
+    .holland-table-wrap {
+      width: 100%;
+      max-width: 172mm;
+      margin: 10px auto 0;
+      background: #F3F1FF;
+      border-radius: 16px;
+      padding: 10px 12px 8px;
+      overflow: hidden;
+      box-sizing: border-box;
+      text-align: left;
+    }
+    .holland-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: transparent;
+    }
+    .holland-table th {
+      background: transparent !important;
+      color: #2C2A9E !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      padding: 8px 10px 10px !important;
+      text-align: left !important;
+      border: none !important;
+    }
+    .holland-table th:first-child {
+      width: 28%;
+      text-align: center !important;
+    }
+    .holland-table td {
+      border: none !important;
+      border-top: 1px solid #D8D4F0 !important;
+      padding: 9px 10px !important;
+      vertical-align: middle;
+      background: transparent;
+    }
+    .holland-table .code-cell {
+      width: 28%;
+      text-align: center;
+    }
+    .holland-table .code-cell img {
+      width: 28px;
+      height: auto;
+      display: inline-block;
+      margin-bottom: 2px;
+    }
+    .holland-table .code-name {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-top: 2px;
+    }
+    .holland-table .code-name.r { color: #057190; }
+    .holland-table .code-name.i { color: #A92CAF; }
+    .holland-table .code-name.a { color: #2A740E; }
+    .holland-table .code-name.s { color: #6D5C04; }
+    .holland-table .code-name.e { color: #A22717; }
+    .holland-table .code-name.c { color: #0B5BA1; }
+    .holland-table .desc-cell {
+      font-size: 11px;
+      font-weight: 400;
+      color: #2f2f2f;
+      line-height: 1.4;
+      text-align: left;
+    }
+
+    .personality-interpretation-page.interp-page,
+    .interp-page:not(.aptitude-interp-page) {
+      padding-top: 1.3cm;
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .personality-interpretation-page.interp-page div,
+    .interp-page:not(.aptitude-interp-page) div { margin-bottom: 0; }
+    .personality-interpretation-page.interp-page *,
+    .interp-page:not(.aptitude-interp-page) * { font-family: 'Space Grotesk', sans-serif; box-sizing: border-box; }
+    .interp-banner {
+      display: inline-block;
+      background: #4341C9;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 10px 28px 10px 20px;
+      border-radius: 999px;
+      margin: 0 auto 12px;
+      line-height: 1.2;
+      box-shadow: 0 4px 12px rgba(67, 65, 201, 0.22);
+      margin-top: 64px;
+  margin-bottom: 24px !important;
+    }
+    .interp-banner svg {
+      width: 16px;
+      height: 16px;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    .interp-prompt {
+      margin: 0 auto 12px;
+      font-size: 15px;
+      font-weight: 500;
+      color: #333;
+      text-align: center;
+    }
+    .interp-code-pill {
+      display: inline-block;
+      background: linear-gradient(90deg, #1FA8B5 0%, #4CC3CE 100%);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 8px 22px 8px 16px;
+      border-radius: 999px;
+      margin: 0 auto 14px;
+      line-height: 1.25;
+      margin-top: 10px;
+  margin-bottom: 32px !important;
+    }
+    .interp-code-pill svg {
+      width: 16px;
+      height: 16px;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    .interp-score-cards {
+      width: 160mm;
+      max-width: 160mm;
+      margin: 0 auto 14px;
+      display: table;
+      table-layout: fixed;
+      border-collapse: separate;
+      border-spacing: 10px 0;
+      margin-bottom: 30px !important;
+    }
+    .interp-score-card {
+      display: table-cell;
+      width: 33.33%;
+      vertical-align: top;
+      background: #ffffff;
+      border: 1px solid #E8E6F8;
+      border-radius: 14px;
+      padding: 14px 12px 12px;
+      text-align: center;
+      box-shadow: 0 4px 14px rgba(67, 65, 201, 0.10);
+    }
+    .interp-score-icon {
+      width: 28px;
+      height: 28px;
+      margin: 0 auto 6px;
+      border-radius: 50%;
+      background: #EDEAFF;
+      text-align: center;
+      line-height: 28px;
+      padding:4px;
+    }
+    .interp-score-icon svg {
+      width: 14px;
+      height: 14px;
+      vertical-align: middle;
+    }
+    .interp-score-pct {
+      margin: 0 0 2px;
+      font-size: 26px;
+      font-weight: 700;
+      color: #4341C9;
+      line-height: 1.1;
+    }
+    .interp-score-name {
+      margin: 0 0 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #222;
+      line-height: 1.2;
+    }
+    .interp-progress {
+      width: 100%;
+      height: 7px;
+      background: #E9E7F5;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .interp-progress-fill {
+      height: 7px;
+      background: #4341C9;
+      border-radius: 999px;
+    }
+    .interp-page .riasec-career-alignment {
+      width: 100%;
+      max-width: 168mm;
+      margin: 8px auto 0 !important;
+      clear: both;
+      float: none !important;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    .interp-page .riasec-career-alignment-heading {
+      color: #111 !important;
+      font-size: 15px !important;
+      font-weight: 700 !important;
+      margin: 0 0 10px !important;
+    }
+    .interp-page .riasec-career-alignment-body {
+      background: #EEF8FF !important;
+      border: 1px solid #D7ECF8;
+      border-radius: 14px !important;
+      padding: 14px 16px !important;
+    }
+    .interp-page .riasec-career-alignment-body p,
+    .interp-page .riasec-career-alignment-body li {
+      font-size: 15px !important;
+      line-height: 1.5 !important;
+      color: #333 !important;
+    }
+    .interp-page .riasec-career-alignment-body strong {
+      color: #2C2A9E !important;
+      font-weight: 700 !important;
+    }
+    .interp-page .riasec-career-alignment-body ul {
+      list-style: none !important;
+      margin: 4px 0 12px !important;
+      padding: 0 !important;
+    }
+    .interp-page .riasec-career-alignment-body li {
+      display: inline-block;
+      position: relative;
+      padding-left: 16px !important;
+      margin: 0 14px 6px 0 !important;
+      font-weight: 500 !important;
+    }
+    .interp-page .riasec-career-alignment-body li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 5px;
+      width: 12px;
+      height: 12px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='none' viewBox='0 0 10 10'%3E%3Cpath fill='%234341C9' d='M1 5a4 4 0 1 1 8 0 4 4 0 0 1-8 0Zm4-5a5 5 0 1 0 0 10A5 5 0 0 0 5 0Zm2.729 3.729L7.02 3.02 4.5 5.543 3.104 4.146l-.708.708L4.5 6.957 7.729 3.73Z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-size: contain;
+      background-position: center;
+    }
+    .disclaimer-heading { width: 120px; text-align: center; margin-bottom: 13px; }
+    .personality-interpretation-page { page-break-after: auto; }

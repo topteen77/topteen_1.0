@@ -2,7 +2,7 @@
 {% set interest_pdf_compact = interest_pdf_compact|default(false) %}
 
 {% if interest_pdf_compact %}
-<div class="chapterPage interest-part-opener">
+<div class="chapterPage interest-part-opener interest-assessment-page">
   {% if interest_show_page_header %}
   <div class="page-header" style="width:650px;">
     <div class="page-header-content">
@@ -11,23 +11,17 @@
     <hr class="page-header-line" style="width: 100%;" />
   </div>
   {% endif %}
-  <div class="text-color-top" style="margin-bottom:0px !important;">
-    <div class="top-layout" style="font-size: 14px;">Part -2</div>
-  </div>
-  <div class="db-header" style="margin-top: 2px;">
-    <h1 style="color: #3F37C9; margin:0px;">CAREER INTEREST ASSESSMENT REPORT</h1>
-  </div>
-  <div class="text-info-paragraph interest-part-intro-copy">
-    <p style="font-size:12px; line-height:1.45; margin-bottom:6px;">This report aims to provide you with insights into your career interests using the RIASEC framework. Each section describes a trait and highlights the strong points associated with it, helping you understand your potential strengths and suitable career paths. This report is based on the Career Interest Inventory, which helps identify your dominant traits, career interests, preferences, and potential paths</p>
-  </div>
-  <div class="riasec-mini-card0-list">
-    <div class="test-title" style="color:#000; font-size:14px; font-weight: 600; margin-top: 2px; width:100%; margin-bottom:0px;">
-      Your Dominant Interest {% if dominant_interest_tied %}areas are{% else %}area is{% endif %}:
-    </div>
+  <div class="part-badge p-badge-2">Part -2</div>
+  <h1 class="page-title">Career Interest Assessment Report</h1>
+  <p class="page-intro">This report aims to provide you with insights into your career interests using the <strong>RIASEC</strong> framework. Each section describes a trait and highlights the strong points associated with it, helping you understand your potential strengths and suitable career paths. This report is based on the Career Interest Inventory, which helps identify your dominant traits, career interests, preferences, and potential paths.</p>
+
+  <div class="dominant-interest-block">
+    <p class="dominant-interest-label">Your Dominant Interest {% if dominant_interest_tied %}areas are{% else %}area is{% endif %}:</p>
     {% if dominant_interest_labels %}
-    <span style="font-size: 13px; font-weight: 600; margin: 4px 0 8px; color: #3F37C9;">{{ dominant_interest_labels }}</span>
+    <div class="dominant-interest-pill">{{ dominant_interest_labels }}</div>
     {% endif %}
   </div>
+
   {% if dominant_interest_codes %}
   <div class="interest-areas-stack interest-areas-stack--opener">
     {% for code in dominant_interest_codes %}

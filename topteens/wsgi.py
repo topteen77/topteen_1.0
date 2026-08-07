@@ -11,6 +11,8 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
+# Headless matplotlib for PDF/graph generation in web workers
+os.environ.setdefault("MPLBACKEND", "Agg")
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'topteens.settings')
 
 application = get_wsgi_application()
