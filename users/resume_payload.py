@@ -1386,11 +1386,8 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
     if profile:
         hobby_names = [h.name for h in profile.hobbies.all()[:30] if getattr(h, "name", None)]
 
+    # Contact "location" pin uses address — never school/grade.
     parts_addr = []
-    if profile and (profile.schoolname or "").strip():
-        parts_addr.append((profile.schoolname or "").strip())
-    if profile and (profile.grade or "").strip():
-        parts_addr.append((profile.grade or "").strip())
 
     # Prefer resume-specific photo (used by template picker); fallback to user profile avatar.
     v2_meta = _v2_meta_from_wizard(wiz)
@@ -1479,6 +1476,10 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
     meta_phone = (personal_meta.get("phone") or "").strip()
     meta_school = (personal_meta.get("school") or "").strip()
     meta_grade = (personal_meta.get("grade") or "").strip()
+    meta_location = (
+        (personal_meta.get("location") or "").strip()
+        or (personal_meta.get("address") or "").strip()
+    )
 
     profile_name = (user.name or "").strip()
     if profile_name and profile_name != "Student" and profile_name.lower() != email.lower():
@@ -1512,12 +1513,14 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
         elif education_out and meta_grade:
             education_out[0]["degree"] = meta_grade
 
+    address = meta_location or (", ".join(parts_addr) if parts_addr else "")
+
     out = {
         "fullName": full_name,
         "headline": headline,
         "email": email,
         "phone": phone,
-        "address": ", ".join(parts_addr) if parts_addr else "",
+        "address": address,
         "linkedin": linkedin,
         "website": website,
         "summary": summary,
@@ -1541,6 +1544,22 @@ def resume_studio_prototype_payload(resume, request=None, *, ignore_studio_proto
         sp = wiz[STUDIO_PROTO_V1_KEY]
         if isinstance(sp.get("resume"), dict):
             out = _merge_studio_proto_resume_into_payload(out, sp["resume"])
+
+    # Studio Location field wins over cached proto; strip legacy school/grade addresses.
+    if "location" in personal_meta or "address" in personal_meta:
+        out["address"] = meta_location
+    else:
+        legacy_school = (getattr(profile, "schoolname", None) or "").strip() if profile else ""
+        legacy_grade = (getattr(profile, "grade", None) or "").strip() if profile else ""
+        legacy_addr = ", ".join(p for p in (legacy_school, legacy_grade) if p)
+        cur_addr = (out.get("address") or "").strip()
+        if cur_addr and (
+            cur_addr == legacy_grade
+            or cur_addr == legacy_school
+            or cur_addr == legacy_addr
+        ):
+            out["address"] = ""
+
     cleaned = _clean_studio_list_fields(out)
     cleaned["headline"] = _studio_resume_headline(
         resume, profile, wiz, cleaned.get("headline") or ""

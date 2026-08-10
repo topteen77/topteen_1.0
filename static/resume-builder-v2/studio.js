@@ -1073,6 +1073,8 @@
     base.headline = trimVal("rb2Headline");
     var phoneEl = $("#rb2Phone");
     if (phoneEl && !phoneEl.readOnly) base.phone = trimVal("rb2Phone");
+    var locationEl = $("#rb2Location");
+    if (locationEl) base.address = locationEl.value.trim();
     var emailEl = $("#rb2Email");
     if (emailEl) base.email = emailEl.value.trim();
     var summaryField = $("#rb2SummaryField");
@@ -1332,6 +1334,7 @@
     var body = {
       action: "save_personal",
       headline: trimVal("rb2Headline"),
+      location: trimVal("rb2Location"),
     };
     var nameEl = $("#rb2Name");
     if (nameEl && !nameEl.readOnly) body.name = trimVal("rb2Name");
@@ -2168,13 +2171,14 @@
     var pctEl = document.getElementById("rb2ProgressPct");
     var levelEl = document.getElementById("rb2ProgressLevel");
     var barWrap = document.getElementById("rb2ProgressBarWrap");
-    var key = progressLevelKey(level);
+    var complete = pct >= 100;
+    var key = complete ? "outstanding" : progressLevelKey(level);
     if (label) label.dataset.level = key;
     if (barWrap) {
       barWrap.dataset.level = key;
-      barWrap.setAttribute("aria-valuenow", String(pct));
+      barWrap.setAttribute("aria-valuenow", String(complete ? 100 : pct));
     }
-    if (pct >= 100) {
+    if (complete) {
       if (label) {
         label.innerHTML = '<span class="rb2-progress-pct rb2-progress-pct--complete">Resume complete!</span>';
       }
@@ -2185,8 +2189,9 @@
   }
 
   function updateProgress(pct, level) {
+    var complete = pct >= 100;
     var bar = document.getElementById("rb2ProgressBar");
-    if (bar) bar.style.width = pct + "%";
+    if (bar) bar.style.width = (complete ? 100 : pct) + "%";
     if (level == null) {
       var levelEl = document.getElementById("rb2ProgressLevel");
       level = levelEl ? levelEl.textContent.trim() : "Good";
@@ -2307,6 +2312,7 @@
         phone: trimVal("rb2Phone"),
         school: trimVal("rb2School"),
         email: trimVal("rb2Email"),
+        location: trimVal("rb2Location"),
       },
       summary: ($("#rb2SummaryField") || {}).value || "",
       skills: (payload.skills || []).map(function (s) { return s.title; }),

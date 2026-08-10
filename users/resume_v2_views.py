@@ -647,6 +647,11 @@ class ResumeV2AIView(View):
                     if val:
                         personal_patch[key] = val
 
+            # Location is resume-only (always editable); empty clears the pin.
+            personal_patch["location"] = (
+                (body.get("location") or body.get("address") or "").strip()[:200]
+            )
+
             offer = offer_personal_profile_sync(request.user, resume, body)
             save_v2_meta(
                 resume,

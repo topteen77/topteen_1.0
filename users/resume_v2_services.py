@@ -1533,6 +1533,10 @@ def studio_personal_context(user, resume) -> dict:
     phone = profile_phone or (personal_meta.get("phone") or "").strip()
     school = profile_school or (personal_meta.get("school") or "").strip()
     grade = profile_grade or (personal_meta.get("grade") or "").strip()
+    location = (
+        (personal_meta.get("location") or "").strip()
+        or (personal_meta.get("address") or "").strip()
+    )
 
     return {
         "name": name,
@@ -1540,10 +1544,12 @@ def studio_personal_context(user, resume) -> dict:
         "phone": phone,
         "school": school,
         "grade": grade,
+        "location": location,
         "can_edit_name": not profile_name,
         "can_edit_phone": not profile_phone,
         "can_edit_school": not profile_school,
         "can_edit_grade": not profile_grade,
+        "can_edit_location": True,
     }
 
 
@@ -1764,6 +1770,7 @@ def build_resume_sections_snapshot(resume, user, client_sections: dict | None = 
             "school": personal.get("school") or "",
             "email": personal.get("email") or "",
             "grade": personal.get("grade") or "",
+            "location": personal.get("location") or "",
         },
         "summary": (resume.about or "").strip(),
         "skills": [s.get("title") for s in (payload.get("skills") or []) if s.get("title")],
