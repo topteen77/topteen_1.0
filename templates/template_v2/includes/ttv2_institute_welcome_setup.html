@@ -1,0 +1,66 @@
+{# First-login / empty roster welcome for institute dashboard.
+   Expects ttv2_analytics (kpi.total_credits, credits_remaining). CTAs use existing quick-link hashes. #}
+{% set _credits_left = ttv2_analytics.kpi.credits_remaining|default(0) %}
+{% set _credits_total = ttv2_analytics.kpi.total_credits|default(0) %}
+{% set _inst_name = (institute.name if (institute is defined and institute and institute.name) else 'your institute') %}
+
+<div class="ttv2-welcome-setup" data-ttv2-welcome-setup>
+  <div class="ttv2-welcome-setup__hero">
+    <div class="ttv2-welcome-setup__badge" aria-hidden="true">
+      <i class="bx bx-rocket"></i>
+    </div>
+    <div class="ttv2-welcome-setup__copy">
+      <p class="ttv2-welcome-setup__eyebrow mb-1">Getting started</p>
+      <h2 class="ttv2-welcome-setup__title">Welcome to TopTeen, {{ _inst_name }}</h2>
+      <p class="ttv2-welcome-setup__lede">
+        {% if _credits_left > 0 %}
+          Your account is ready with <strong>{{ _credits_left }}</strong> student credit{{ 's' if _credits_left != 1 else '' }} available{% if _credits_total and _credits_total != _credits_left %} (of {{ _credits_total }}){% endif %}.
+        {% else %}
+          Your account is ready.
+        {% endif %}
+        Enroll students to unlock psychometric completion, clarity insights, and counseling reports on this dashboard.
+      </p>
+    </div>
+  </div>
+
+  <ol class="ttv2-welcome-setup__steps">
+    <li class="ttv2-welcome-setup__step ttv2-welcome-setup__step--primary">
+      <div class="ttv2-welcome-setup__step-num" aria-hidden="true">1</div>
+      <div class="ttv2-welcome-setup__step-body">
+        <h3 class="ttv2-welcome-setup__step-title">Enroll students</h3>
+        <p class="ttv2-welcome-setup__step-text">
+          Upload a CSV for the class you are onboarding. Each enrolled student uses one credit.
+        </p>
+        <div class="ttv2-welcome-setup__actions">
+          <a href="#ql-upload-matric" class="btn btn-primary ttv2-welcome-setup__btn">
+            <i class="bx bx-upload me-1" aria-hidden="true"></i> Class 10 — Matric CSV
+          </a>
+          <a href="#ql-upload-postmatric" class="btn btn-outline-primary ttv2-welcome-setup__btn">
+            <i class="bx bx-upload me-1" aria-hidden="true"></i> Class 12 — Post-Matric CSV
+          </a>
+        </div>
+      </div>
+    </li>
+    <li class="ttv2-welcome-setup__step">
+      <div class="ttv2-welcome-setup__step-num" aria-hidden="true">2</div>
+      <div class="ttv2-welcome-setup__step-body">
+        <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+          <h3 class="ttv2-welcome-setup__step-title mb-0">Add a counselor</h3>
+          <span class="ttv2-welcome-setup__optional">Optional</span>
+        </div>
+        <p class="ttv2-welcome-setup__step-text">
+          Invite a counselor so students can be assigned for guidance after enrollment. You can do this anytime from Quick links.
+        </p>
+        <div class="ttv2-welcome-setup__actions">
+          <a href="#ql-add-counselor" class="btn btn-outline-secondary ttv2-welcome-setup__btn">
+            <i class="bx bx-user-voice me-1" aria-hidden="true"></i> Add counselor
+          </a>
+        </div>
+      </div>
+    </li>
+  </ol>
+
+  <p class="ttv2-welcome-setup__hint mb-0">
+    Tip: After upload, open <strong>Students</strong> in the sidebar to review the roster. Charts and KIRA insights appear once students are enrolled.
+  </p>
+</div>

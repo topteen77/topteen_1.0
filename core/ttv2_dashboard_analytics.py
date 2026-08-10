@@ -417,15 +417,21 @@ def build_ttv2_analytics(
         )
 
     user_ids: List[int] = []
-    # KPI "total students" must match institute roster counts (Count(student_management)),
-    # including rows where student FK is still null; psychometrics use linked users only.
+    # KPI "total students" = paid seats only (exclude demo accounts).
+    # Psychometrics use linked non-demo users for paid KPIs; demos tracked separately.
     n_students = 0
+    n_demo_students = 0
     if student_management_qs is not None and hasattr(student_management_qs, "count"):
-        n_students = int(student_management_qs.count())
-        sm_alive = student_management_qs.filter(student__isnull=False)
+        n_demo_students = int(
+            student_management_qs.filter(student__is_demo_account=True).count()
+        )
+        paid_qs = student_management_qs.exclude(student__is_demo_account=True)
+        n_students = int(paid_qs.count())
+        sm_alive = paid_qs.filter(student__isnull=False)
         user_ids = list(sm_alive.values_list("student_id", flat=True).distinct())
     student_management_ids: List[int] = []
     if student_management_qs is not None and hasattr(student_management_qs, "values_list"):
+        # Follow-ups / sessions: include all SM rows (demo + paid) so demos can appear in journey.
         student_management_ids = list(
             student_management_qs.values_list("id", flat=True).distinct()
         )
@@ -558,20 +564,27 @@ def build_ttv2_analytics(
             student_management_ids=followup_student_management_ids,
         )
 
-    kira = (
-        f"Top stream concentration: {top_stream}. "
-        f"Encourage group sessions when multiple students share the same stream to reduce the clarity gap."
-    )
-    if psych_pct >= 80:
+    # Empty roster: no stream / psych insights yet — suppress KIRA toast noise.
+    if n_students <= 0:
+        kira = ""
+    elif psych_pct >= 80:
         kira = (
             f"Strong psychometric progress ({psych_pct}%). Consider scheduling career roadmap reviews "
             f"for the remaining {risk_at_risk} student(s)."
+        )
+    else:
+        kira = (
+            f"Top stream concentration: {top_stream}. "
+            f"Encourage group sessions when multiple students share the same stream to reduce the clarity gap."
         )
 
     if credit_left <= 0:
         cred_alert = (
             f"Credit alert: no remaining credits. Add students only after the institute top-up. "
         )
+    elif n_students <= 0:
+        # First-login welcome panel covers healthy credit messaging.
+        cred_alert = ""
     elif credit_left < 5:
         cred_alert = (
             f"Credit alert: {credit_left} credit(s) remaining. Plan sessions accordingly and request a top-up if needed."
@@ -624,7 +637,13 @@ def build_ttv2_analytics(
             "labels": ["Completed", "Pending"],
         }
 
-    if week_activity is not None:
+    if n_students <= 0:
+        _cred_ready = int(credit_left)
+        week_summary = (
+            f"You're set up with {_cred_ready} credit{'s' if _cred_ready != 1 else ''} ready. "
+            f"Enroll Class 10 or Class 12 students to unlock psychometric completion and counseling insights."
+        )
+    elif week_activity is not None:
         _prefix = "Selected range" if has_date_range else "This week"
         week_summary = (
             f"{_prefix}: {week_activity['enrollments']} new enrolments · "
@@ -660,6 +679,7 @@ def build_ttv2_analytics(
         "week_activity": week_activity,
         "kpi": {
             "total_students": n_students,
+            "demo_students": n_demo_students,
             "classes_active": distinct_classes,
             "sessions_week": sessions_week,
             "sessions_prev": sessions_prev,
@@ -707,6 +727,7 @@ def empty_ttv2_analytics() -> Dict[str, Any]:
         "week_activity": None,
         "kpi": {
             "total_students": 0,
+            "demo_students": 0,
             "classes_active": 0,
             "sessions_week": 0,
             "sessions_prev": 0,

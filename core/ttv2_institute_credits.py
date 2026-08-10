@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.db.models.functions import Lower
 
 from core import choices
@@ -11,18 +11,27 @@ from institute.models import Institute
 
 
 def institute_credits_remaining(allocated, used) -> int:
-    """Balance credits = allocated seat cap minus enrolled students."""
+    """Balance credits = allocated seat cap minus enrolled paid students."""
     return max(0, int(allocated or 0) - int(used or 0))
+
+
+def institute_paid_seats_used(institute) -> int:
+    """Paid seats used (excludes demo student accounts)."""
+    from institute.models import StudentManagement
+
+    try:
+        return (
+            StudentManagement.objects.filter(institute_id=institute.id)
+            .exclude(student__is_demo_account=True)
+            .count()
+        )
+    except Exception:
+        return 0
 
 
 def institute_credits_remaining_for_institute(institute) -> int:
     """Remaining upload seats for one institute (matches roster balance display)."""
-    from institute.models import StudentManagement
-
-    try:
-        used = StudentManagement.objects.filter(institute_id=institute.id).count()
-    except Exception:
-        used = 0
+    used = institute_paid_seats_used(institute)
     return institute_credits_remaining(getattr(institute, "credit_counts", 0), used)
 
 
@@ -67,7 +76,12 @@ def build_ttv2_quicklink_institutes(user) -> List[Dict[str, Any]]:
 
     try:
         rows = list(
-            qs.annotate(credits_used=Count("student_management"))
+            qs.annotate(
+                credits_used=Count(
+                    "student_management",
+                    filter=~Q(student_management__student__is_demo_account=True),
+                )
+            )
             .values(
                 "id",
                 "name",
@@ -75,6 +89,8 @@ def build_ttv2_quicklink_institutes(user) -> List[Dict[str, Any]]:
                 "credit_counts",
                 "credits_used",
                 "is_system_demo",
+                "is_demo_institute",
+                "demo_seed_count",
             )
             .order_by(Lower("name"))[:500]
         )

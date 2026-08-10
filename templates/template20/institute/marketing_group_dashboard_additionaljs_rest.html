@@ -1219,7 +1219,22 @@
         Swal.fire({
           icon: 'warning',
           title: 'Permanently delete institute?',
-          text: 'This cannot be undone.\n\nInstitute: ' + insName,
+          html: (function () {
+            var isDemo = delBtn.getAttribute('data-is-demo') === '1';
+            var sc = parseInt(delBtn.getAttribute('data-student-count') || '0', 10) || 0;
+            var lines = [
+              '<p class="mb-2">This cannot be undone.</p>',
+              '<p class="mb-0"><strong>Institute:</strong> ' + String(insName).replace(/</g, '&lt;') + '</p>'
+            ];
+            if (isDemo) {
+              lines.push(
+                '<p class="mt-2 mb-0 text-danger">Demo institute: all students' +
+                (sc ? ' (' + sc + ')' : '') +
+                ', counselors, and the institute login will also be permanently deleted.</p>'
+              );
+            }
+            return lines.join('');
+          })(),
           showCancelButton: true,
           confirmButtonText: 'Yes, delete permanently',
           confirmButtonColor: '#d33',

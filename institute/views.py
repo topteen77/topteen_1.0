@@ -1857,6 +1857,11 @@ class InstituteCreateView(TemplateView):
         logo = request.FILES.get("institute_logo")
         referer = request.META.get('HTTP_REFERER') or reverse('institute:marketinggroupdashboard')
 
+        def _err_redirect():
+            """Keep create-institute modal open after server-side validation errors."""
+            base = (referer or '').split('#', 1)[0] or reverse('institute:marketinggroupdashboard')
+            return HttpResponseRedirect(base + '#ql-add-institute')
+
         ins_em = re.match(evalid, ins_email) if ins_email else None
 
         if ins_email and User.objects.filter(email__iexact=ins_email).exists():
@@ -1864,28 +1869,44 @@ class InstituteCreateView(TemplateView):
                 request,
                 "This email is already registered. An institute with this login may already exist.",
             )
-            return HttpResponseRedirect(referer)
+            return _err_redirect()
 
         if name and address and Institute.objects.filter(name__iexact=name, address__iexact=address).exists():
             messages.error(
                 request,
                 "An institute with this name and address already exists.",
             )
-            return HttpResponseRedirect(referer)
+            return _err_redirect()
 
         from institute.tieup_billing import parse_exam_credits_qty_from_post
+        from institute.demo_students import (
+            DemoStudentError,
+            parse_demo_counts_from_post,
+            seed_institute_demo_students,
+        )
+
+        demo_n10, demo_n12, create_as_demo = parse_demo_counts_from_post(request.POST)
 
         credit_counts, credits_err = parse_exam_credits_qty_from_post(request.POST)
+        if create_as_demo:
+            # Demo institutes do not require paid exam credits.
+            if credits_err or credit_counts is None:
+                credit_counts, credits_err = 0, None
+            # If marketing chose Demo but left counts at 0, seed one of each class.
+            if demo_n10 <= 0 and demo_n12 <= 0:
+                demo_n10, demo_n12 = 1, 1
         if credits_err:
             messages.error(request, credits_err)
-            return HttpResponseRedirect(referer)
+            return _err_redirect()
+        if credit_counts is None:
+            credit_counts = 0
 
         if contact and not re.match(phone10, contact):
             messages.error(request, "Contact number must be exactly 10 digits.")
-            return HttpResponseRedirect(referer)
+            return _err_redirect()
         if admin_contact and not re.match(phone10, admin_contact):
             messages.error(request, "Admin contact number must be exactly 10 digits.")
-            return HttpResponseRedirect(referer)
+            return _err_redirect()
 
         max_credits = get_global_remain_credits()
         if ins_em and name and address and contact and admin_contact and logo and 0 <= credit_counts <= max_credits:
@@ -1899,18 +1920,18 @@ class InstituteCreateView(TemplateView):
                     ins_group = get_object_or_404(InstituteGroup, id=int(raw_ig))
                     if not owned_ig.filter(pk=ins_group.pk).exists():
                         messages.error(request, "Invalid institute group selection.")
-                        return HttpResponseRedirect(referer)
+                        return _err_redirect()
                 elif owned_ig.count() == 1:
                     ins_group = owned_ig.first()
                 elif owned_ig.count() > 1:
                     messages.error(request, "Please select an institute group.")
-                    return HttpResponseRedirect(referer)
+                    return _err_redirect()
                 else:
                     messages.error(
                         request,
                         "Your account has no institute group assigned. Contact support.",
                     )
-                    return HttpResponseRedirect(referer)
+                    return _err_redirect()
             else:
                 if raw_ig.isdigit():
                     ins_group = get_object_or_404(InstituteGroup, id=int(raw_ig))
@@ -1946,6 +1967,7 @@ class InstituteCreateView(TemplateView):
                 institute_group=ins_group,
                 marketing_group=marketing_group,
                 institute_status=initial_status,
+                is_demo_institute=bool(create_as_demo),
             )
             ins.save()
             from institute.psychometric_packages import (
@@ -1953,37 +1975,61 @@ class InstituteCreateView(TemplateView):
                 sync_institute_packages_from_post,
             )
 
-            apply_institute_psychometric_settings_from_post(ins, request.POST, save=True)
-            sync_institute_packages_from_post(ins, request.POST)
+            if not create_as_demo:
+                apply_institute_psychometric_settings_from_post(ins, request.POST, save=True)
+                sync_institute_packages_from_post(ins, request.POST)
             from institute.tieup_billing import (
                 create_tieup_order,
                 tieup_lines_for_institute_create,
             )
 
-            tieup_lines = tieup_lines_for_institute_create(request.POST, credit_counts)
-            if tieup_lines:
-                coupon_code = (request.POST.get("tieup_coupon_code") or "").strip()
+            if not create_as_demo:
+                tieup_lines = tieup_lines_for_institute_create(request.POST, credit_counts)
+                if tieup_lines:
+                    coupon_code = (request.POST.get("tieup_coupon_code") or "").strip()
+                    try:
+                        create_tieup_order(
+                            ins,
+                            request.user,
+                            tieup_lines,
+                            coupon_code=coupon_code or None,
+                        )
+                    except ValueError as e:
+                        messages.warning(
+                            request,
+                            f"Institute created but tie-up billing failed: {e}",
+                        )
+                elif credit_counts > 0:
+                    from institute.tieup_billing import ensure_pending_tieup_order_for_institute
+
+                    ensure_pending_tieup_order_for_institute(ins, request.user)
+
+            if create_as_demo:
                 try:
-                    create_tieup_order(
-                        ins,
-                        request.user,
-                        tieup_lines,
-                        coupon_code=coupon_code or None,
+                    seed_result = seed_institute_demo_students(
+                        ins, request.user, demo_n10, demo_n12
                     )
-                except ValueError as e:
+                    messages.success(
+                        request,
+                        (
+                            f"Demo students added: Class 10 × {seed_result['class10']}, "
+                            f"Class 12 × {seed_result['class12']} "
+                            f"(seed {seed_result['demo_seed_count']}/{3}). "
+                            f"Login password: {ins.get_demo_student_password()}"
+                        ),
+                    )
+                except DemoStudentError as e:
                     messages.warning(
                         request,
-                        f"Institute created but tie-up billing failed: {e}",
+                        f"Institute created but demo students were not added: {e}",
                     )
-            elif credit_counts > 0:
-                from institute.tieup_billing import ensure_pending_tieup_order_for_institute
 
-                ensure_pending_tieup_order_for_institute(ins, request.user)
             send_institute_mail.delay(ins.created_by.email, password)
             if initial_status == choices.InstituteStatus.APPROVED:
                 messages.success(request, "Institute created and approved.")
             else:
                 messages.success(request, "Institute created.")
+            return HttpResponseRedirect(referer.split('#', 1)[0] if referer else reverse('institute:marketinggroupdashboard'))
         else:
             if credit_counts > max_credits:
                 messages.error(request, "No remaining credits for this allocation.")
@@ -1995,7 +2041,127 @@ class InstituteCreateView(TemplateView):
                 messages.error(request, "Please fill all required institute fields.")
             else:
                 messages.error(request, "Something went wrong. Please check the form and try again.")
+            return _err_redirect()
+
+# manish
+@method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
+@method_decorator(superuser_or_marketing_institute_create,name='dispatch')
+class InstituteSeedDemoStudentsView(View):
+    """Marketing / group admin: seed Class 10/12 demo students (max 5/class, 3 runs)."""
+
+    def post(self, request, *args, **kwargs):
+        from institute.demo_students import (
+            DemoStudentError,
+            marketing_can_manage_institute,
+            parse_demo_seed_counts,
+            remaining_demo_slots,
+            seed_institute_demo_students,
+        )
+
+        referer = request.META.get("HTTP_REFERER") or reverse("institute:marketinggroupdashboard")
+        institute_id = (request.POST.get("institute_id") or "").strip()
+        if not institute_id.isdigit():
+            messages.error(request, "Select an institute.")
+            return HttpResponseRedirect(referer)
+        institute = get_object_or_404(Institute, pk=int(institute_id))
+        if not marketing_can_manage_institute(request.user, institute):
+            messages.error(request, "You cannot manage this institute.")
+            return HttpResponseRedirect(referer)
+        # Seed modal does not post institute_account_type; always read counts.
+        n10, n12 = parse_demo_seed_counts(request.POST)
+        try:
+            result = seed_institute_demo_students(institute, request.user, n10, n12)
+            slots = remaining_demo_slots(institute)
+            messages.success(
+                request,
+                (
+                    f"Demo students added for {institute.name}: "
+                    f"Class 10 × {result['class10']}, Class 12 × {result['class12']}. "
+                    f"Seed runs left: {slots['seed_runs_left']}. "
+                    f"Login password: {institute.get_demo_student_password()}"
+                ),
+            )
+        except DemoStudentError as e:
+            messages.error(request, str(e))
         return HttpResponseRedirect(referer)
+
+
+@method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
+@method_decorator(superuser_or_marketing_institute_create,name='dispatch')
+class InstituteConvertDemoToPaidView(View):
+    """Remove demo students and attach paid exam / assignment credits."""
+
+    def post(self, request, *args, **kwargs):
+        from institute.demo_students import (
+            DemoStudentError,
+            convert_demo_institute_to_paid,
+            marketing_can_manage_institute,
+        )
+        from institute.tieup_billing import (
+            create_tieup_order,
+            parse_exam_credits_qty_from_post,
+            tieup_lines_for_institute_create,
+        )
+
+        referer = request.META.get("HTTP_REFERER") or reverse("institute:marketinggroupdashboard")
+        institute_id = (request.POST.get("institute_id") or "").strip()
+        if not institute_id.isdigit():
+            messages.error(request, "Select an institute.")
+            return HttpResponseRedirect(referer)
+        institute = get_object_or_404(Institute, pk=int(institute_id))
+        if not marketing_can_manage_institute(request.user, institute):
+            messages.error(request, "You cannot manage this institute.")
+            return HttpResponseRedirect(referer)
+
+        credit_counts, credits_err = parse_exam_credits_qty_from_post(request.POST)
+        if credits_err:
+            messages.error(request, credits_err)
+            return HttpResponseRedirect(referer)
+
+        assign_raw = (request.POST.get("tieup_assignment_credits_qty") or request.POST.get("assignment_credits") or "").strip()
+        assignment_credits = None
+        if assign_raw:
+            try:
+                assignment_credits = max(0, int(assign_raw))
+            except (TypeError, ValueError):
+                messages.error(request, "Enter a valid number for assignment credits.")
+                return HttpResponseRedirect(referer)
+
+        try:
+            result = convert_demo_institute_to_paid(
+                institute,
+                request.user,
+                credit_counts=credit_counts,
+                assignment_credits=assignment_credits,
+            )
+        except DemoStudentError as e:
+            messages.error(request, str(e))
+            return HttpResponseRedirect(referer)
+
+        institute.refresh_from_db()
+        tieup_lines = tieup_lines_for_institute_create(request.POST, credit_counts or 0)
+        if tieup_lines:
+            coupon_code = (request.POST.get("tieup_coupon_code") or "").strip()
+            try:
+                create_tieup_order(
+                    institute,
+                    request.user,
+                    tieup_lines,
+                    coupon_code=coupon_code or None,
+                )
+            except ValueError as e:
+                messages.warning(request, f"Converted, but tie-up billing failed: {e}")
+
+        messages.success(
+            request,
+            (
+                f"{institute.name} converted to paid. "
+                f"Removed {result['removed_demo_students']} demo student(s). "
+                f"Exam credits: {institute.credit_counts}."
+            ),
+        )
+        return HttpResponseRedirect(referer)
+
 
 # manish
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
@@ -3000,6 +3166,23 @@ class InstituteMarketingProfileEditView(TemplateView):
             parse_line_items_from_post,
             sync_institute_tieup_from_post,
         )
+        from institute.demo_students import (
+            DemoStudentError,
+            convert_demo_institute_to_paid,
+            parse_demo_counts_from_post,
+            seed_institute_demo_students,
+        )
+
+        demo_n10, demo_n12, want_demo = parse_demo_counts_from_post(request.POST)
+        was_demo = bool(getattr(ins, "is_demo_institute", False))
+        account_type_changed = want_demo != was_demo
+        # Switching Paid → Demo with empty counts → seed one of each (same as create).
+        if want_demo and account_type_changed and demo_n10 <= 0 and demo_n12 <= 0:
+            from institute.demo_students import remaining_demo_slots
+
+            slots = remaining_demo_slots(ins)
+            demo_n10 = 1 if slots["class10"] > 0 else 0
+            demo_n12 = 1 if slots["class12"] > 0 else 0
 
         tieup_qty_raw = (
             request.POST.get("tieup_student_test_credits_qty")
@@ -3019,7 +3202,10 @@ class InstituteMarketingProfileEditView(TemplateView):
             or request.POST.get("psychometric_access_mode")
             or (request.POST.get("assignment_credits") or "").strip() != ""
             or request.POST.getlist("institute_package_codes")
+            or account_type_changed
+            or (want_demo and (demo_n10 or demo_n12))
         )
+        extra_messages = []
         if profile_changed:
             if ins_name:
                 update_student_data.delay(ins.id, ins_name)
@@ -3035,29 +3221,93 @@ class InstituteMarketingProfileEditView(TemplateView):
                 ins.institute_group = institute_group
             if ins_logo:
                 ins.logo = ins_logo
+
+            # Demo → Paid: purge demo students and attach paid credits from form.
+            if was_demo and not want_demo:
+                credit_counts = None
+                if tieup_qty_raw:
+                    try:
+                        credit_counts = max(0, int(tieup_qty_raw))
+                    except (TypeError, ValueError):
+                        credit_counts = None
+                assign_raw = (
+                    request.POST.get("assignment_credits")
+                    or request.POST.get("tieup_assignment_credits_qty")
+                    or ""
+                ).strip()
+                assignment_credits = None
+                if assign_raw:
+                    try:
+                        assignment_credits = max(0, int(assign_raw))
+                    except (TypeError, ValueError):
+                        assignment_credits = None
+                try:
+                    conv = convert_demo_institute_to_paid(
+                        ins,
+                        request.user,
+                        credit_counts=credit_counts if credit_counts is not None else ins.credit_counts,
+                        assignment_credits=assignment_credits,
+                    )
+                    ins.refresh_from_db()
+                    extra_messages.append(
+                        f"Converted to paid; removed {conv['removed_demo_students']} demo student(s)."
+                    )
+                except DemoStudentError as e:
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+                    messages.error(request, str(e))
+                    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+            # Paid → Demo (or stay demo): mark demo and optionally seed more students.
+            if want_demo:
+                ins.is_demo_institute = True
+                if not was_demo:
+                    extra_messages.append("Marked as demo institute.")
+
             from institute.psychometric_packages import (
                 apply_institute_psychometric_settings_from_post,
                 sync_institute_packages_from_post,
             )
 
-            apply_institute_psychometric_settings_from_post(ins, request.POST, save=False)
+            if not want_demo:
+                apply_institute_psychometric_settings_from_post(ins, request.POST, save=False)
             ins.save()
-            sync_institute_packages_from_post(ins, request.POST)
-            try:
-                sync_institute_tieup_from_post(ins, request.user, request.POST)
-            except ValueError as e:
-                messages.warning(
-                    request,
-                    f"Institute profile saved; tie-up billing was not updated: {e}",
-                )
-            messages.success(request, f"Institute {ins.name} updated successfully.")
+            if not want_demo:
+                sync_institute_packages_from_post(ins, request.POST)
+                try:
+                    sync_institute_tieup_from_post(ins, request.user, request.POST)
+                except ValueError as e:
+                    messages.warning(
+                        request,
+                        f"Institute profile saved; tie-up billing was not updated: {e}",
+                    )
+
+            if want_demo and (demo_n10 or demo_n12):
+                try:
+                    seed_result = seed_institute_demo_students(
+                        ins, request.user, demo_n10, demo_n12
+                    )
+                    extra_messages.append(
+                        f"Demo students added: Class 10 × {seed_result['class10']}, "
+                        f"Class 12 × {seed_result['class12']}. "
+                        f"Login password: {ins.get_demo_student_password()}"
+                    )
+                    ins.refresh_from_db()
+                except DemoStudentError as e:
+                    extra_messages.append(f"Demo seed skipped: {e}")
+
+            msg = f"Institute {ins.name} updated successfully."
+            if extra_messages:
+                msg = msg + " " + " ".join(extra_messages)
+            messages.success(request, msg)
         else:
             messages.info(request, "No changes were made.")
-        
+            msg = "No changes were made."
+
         # Handle AJAX requests
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'success': True, 'message': f'Institute {ins.name} updated successfully.'})
-        
+            return JsonResponse({'success': True, 'message': msg})
+
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
@@ -7429,7 +7679,9 @@ class InstituteRejectView(View):
 @method_decorator(marketing_group_user_only, name='dispatch')
 class InstituteHardDeleteView(View):
     """
-    Permanently remove an institute from the database when it has no student registrations.
+    Permanently remove an institute.
+    - Paid institutes: only when they have no student registrations.
+    - Demo institutes: may delete with students (students + institute login removed).
     Allowed for superuser or the institute's marketing_group marketing_group_admin.
     """
 
@@ -7468,12 +7720,31 @@ class InstituteHardDeleteView(View):
                 )
 
         name = institute.name
+        is_demo = bool(getattr(institute, 'is_demo_institute', False))
         try:
             with transaction.atomic():
                 locked = Institute.objects.select_for_update().get(pk=institute.pk)
+                if is_demo:
+                    from institute.demo_students import (
+                        DemoStudentError,
+                        hard_delete_demo_institute,
+                    )
+
+                    try:
+                        result = hard_delete_demo_institute(locked)
+                    except DemoStudentError as e:
+                        return respond_error(str(e))
+                    removed = result.get('removed_students') or 0
+                    msg = (
+                        f"Demo institute '{name}' was permanently deleted"
+                        + (f" (removed {removed} student{'s' if removed != 1 else ''})." if removed else ".")
+                    )
+                    return respond_success(msg)
+
                 if StudentManagement.objects.complete().filter(institute_id=locked.pk).exists():
                     return respond_error(
-                        'Cannot delete: this institute has student registrations (including inactive rows).',
+                        'Cannot delete: this institute has student registrations (including inactive rows). '
+                        'Convert/remove students first, or mark it as a demo institute to allow full delete.',
                     )
                 locked.delete(hard_delete=True)
         except Institute.DoesNotExist:

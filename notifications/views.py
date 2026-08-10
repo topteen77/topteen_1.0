@@ -39,7 +39,7 @@ INSTITUTE_BELL_EVENT_TYPES = (
 )
 
 OPS_NOTIFICATION_BUCKET_KEYS = frozenset(
-    ('lead', 'registration', 'payment_done', 'payment_failed')
+    ('lead', 'registration', 'payment_done', 'payment_failed', 'demo_institute')
 )
 
 OPS_BUCKET_LABELS = {
@@ -47,6 +47,7 @@ OPS_BUCKET_LABELS = {
     'registration': 'New registration',
     'payment_done': 'New payment done',
     'payment_failed': 'Payment failed',
+    'demo_institute': 'Demo institute activity',
 }
 
 _OPS_BUCKET_ANALYTICS_ROUTES = {
@@ -55,6 +56,12 @@ _OPS_BUCKET_ANALYTICS_ROUTES = {
     'payment_done': 'user_analytics:successful_payments_detail',
     'payment_failed': 'user_analytics:failed_payments_detail',
 }
+
+DEMO_INSTITUTE_EVENT_TYPES = (
+    'marketing.demo_institute_students_added',
+    'marketing.demo_institute_test_result',
+    'marketing.demo_institute_all_demos_completed',
+)
 
 FAMILY_STUDENT_BUCKET_KEYS = frozenset(('careers', 'blogs', 'videos', 'colleges'))
 FAMILY_PARENT_BUCKET_KEYS = frozenset(('student_liked', 'student_disliked'))
@@ -153,6 +160,8 @@ def _notification_bucket_queryset(user, bucket_key):
         )
     if bucket_key == 'payment_failed':
         return qs.filter(event_type='payment.failed')
+    if bucket_key == 'demo_institute':
+        return qs.filter(event_type__in=DEMO_INSTITUTE_EVENT_TYPES)
     return qs.none()
 
 
@@ -166,6 +175,9 @@ def _ops_bucket_destination_url(request, bucket_key):
     Marketing group admins use the in-app notifications list (no user-analytics ACL).
     Staff keep deep links into user-analytics business reports.
     """
+    if bucket_key == 'demo_institute':
+        page_base = reverse('notifications:page')
+        return '{}?bucket={}'.format(page_base, quote(bucket_key, safe=''))
     if _ops_user_has_analytics_access(request.user):
         route = _OPS_BUCKET_ANALYTICS_ROUTES.get(bucket_key)
         if route:
@@ -181,7 +193,7 @@ def _notification_summary_buckets(request):
     """``key``, ``label``, ``count``, ``url`` for each summary row."""
     user = request.user
     buckets = []
-    for key in ('lead', 'registration', 'payment_done', 'payment_failed'):
+    for key in ('lead', 'registration', 'payment_done', 'payment_failed', 'demo_institute'):
         count = _notification_bucket_queryset(user, key).count()
         buckets.append(
             {
@@ -189,7 +201,8 @@ def _notification_summary_buckets(request):
                 'label': OPS_BUCKET_LABELS.get(key, key),
                 'count': count,
                 'url': _ops_bucket_destination_url(request, key),
-                'clear_on_click': True,
+                # Keep demo activity readable on the notifications page (do not wipe on click).
+                'clear_on_click': key != 'demo_institute',
             }
         )
     return buckets

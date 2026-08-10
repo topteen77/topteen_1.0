@@ -56,12 +56,61 @@
               <small class="text-muted">Leave empty to keep current logo</small>
             </div>
             <div class="col-12">
-              {% include "template_v2/institute/includes/psychometric_institute_settings.html" %}
+              <div class="border rounded-3 p-3" data-ttv2-account-type-block>
+                <label class="form-label fw-semibold mb-2">Institute type <span class="text-danger">*</span></label>
+                <div class="d-flex flex-wrap gap-3 mb-3">
+                  <div class="form-check">
+                    <input class="form-check-input"
+                           type="radio"
+                           name="institute_account_type"
+                           id="ttv2EditAccountTypePaid{{ ins.id }}"
+                           value="paid"
+                           data-ttv2-account-type
+                           {% if not ins.is_demo_institute %}checked{% endif %}>
+                    <label class="form-check-label" for="ttv2EditAccountTypePaid{{ ins.id }}">Paid institute</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input"
+                           type="radio"
+                           name="institute_account_type"
+                           id="ttv2EditAccountTypeDemo{{ ins.id }}"
+                           value="demo"
+                           data-ttv2-account-type
+                           {% if ins.is_demo_institute %}checked{% endif %}>
+                    <label class="form-check-label" for="ttv2EditAccountTypeDemo{{ ins.id }}">Demo institute</label>
+                  </div>
+                </div>
+                <div class="border rounded-3 p-3 bg-light-subtle" data-ttv2-demo-only-section>
+                  <p class="fw-semibold mb-1">Demo student seed</p>
+                  <p class="small text-muted mb-2">
+                    Max 5 per class, {{ 3 - (ins.demo_seed_count|default(0)|int) }} seed run(s) left
+                    (used {{ ins.demo_seed_count|default(0) }}/3).
+                    Switching to <strong>Paid</strong> removes existing demo students.
+                  </p>
+                  <div class="row g-2">
+                    <div class="col-md-6">
+                      <label class="form-label">Add Class 10 demos (0–5)</label>
+                      <input type="number" class="form-control" name="demo_class10_count" min="0" max="5" value="0" data-ttv2-demo-field>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Add Class 12 demos (0–5)</label>
+                      <input type="number" class="form-control" name="demo_class12_count" min="0" max="5" value="0" data-ttv2-demo-field>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="col-12">
-              {% with tieup_exam_credits_required=true, tieup_hide_coupon=true, tieup_initial=_ti, tieup_edit_mode=true %}
-              {% include "template_v2/institute/includes/tieup_billing_fields.html" %}
-              {% endwith %}
+            <div class="col-12" data-ttv2-paid-only-section>
+              <div class="row g-3">
+                <div class="col-12">
+                  {% include "template_v2/institute/includes/psychometric_institute_settings.html" %}
+                </div>
+                <div class="col-12">
+                  {% with tieup_exam_credits_required=true, tieup_hide_coupon=true, tieup_initial=_ti, tieup_edit_mode=true %}
+                  {% include "template_v2/institute/includes/tieup_billing_fields.html" %}
+                  {% endwith %}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -75,3 +124,35 @@
     </div>
   </div>
 </div>
+<script>
+(function () {
+  var modal = document.getElementById('updateInstituteModal{{ ins.id }}');
+  if (!modal || modal.__ttv2EditAccountBound) return;
+  modal.__ttv2EditAccountBound = true;
+  function isDemo() {
+    var c = modal.querySelector('input[name="institute_account_type"]:checked');
+    return !!(c && c.value === 'demo');
+  }
+  function sync() {
+    var demoOn = isDemo();
+    var demoSec = modal.querySelector('[data-ttv2-demo-only-section]');
+    var paidSec = modal.querySelector('[data-ttv2-paid-only-section]');
+    [demoSec, paidSec].forEach(function (sec, idx) {
+      if (!sec) return;
+      var off = (idx === 0) ? !demoOn : demoOn;
+      sec.classList.toggle('opacity-50', off);
+      sec.classList.toggle('pe-none', off);
+    });
+    var examQty = modal.querySelector('input[name="tieup_student_test_credits_qty"]');
+    if (examQty) {
+      if (demoOn) examQty.removeAttribute('required');
+      else examQty.setAttribute('required', 'required');
+    }
+  }
+  modal.querySelectorAll('[data-ttv2-account-type]').forEach(function (r) {
+    r.addEventListener('change', sync);
+  });
+  modal.addEventListener('shown.bs.modal', sync);
+  sync();
+})();
+</script>

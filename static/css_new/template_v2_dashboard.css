@@ -638,13 +638,20 @@ body.ttv2-shell .ttv2-counselor-quicklink:hover{
   transform: translateY(-1px);
 }
 
-/* Disabled nav items */
+/* Disabled nav items (progressive unlock) — keep pointer events for title tooltips */
 body.ttv2-shell .ttv2-counselor-nav a.ttv2-nav-disabled{
-  opacity: .55;
-  pointer-events: none;
+  opacity: .48;
+  cursor: not-allowed;
+  filter: grayscale(0.35);
 }
 body.ttv2-shell .ttv2-counselor-nav a.ttv2-nav-disabled:hover{
   background: transparent;
+  transform: none;
+  text-decoration: none;
+}
+body.ttv2-shell .ttv2-counselor-nav a.ttv2-nav-disabled .ttv2-counselor-nav-icon,
+body.ttv2-shell .ttv2-counselor-nav a.ttv2-nav-disabled .ttv2-counselor-nav-label{
+  opacity: .9;
 }
 
 /* Sidebar profile card (used by counselor + institute sidebars) */
@@ -6440,4 +6447,152 @@ html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-dashboard-toast--kira{
   #ttv2UnassignedStudents .ttv2-unassigned-table-wrap {
      overflow:scroll !important;
     }
+}
+/* Institute first-login welcome / setup wizard */
+body.ttv2-shell .ttv2-welcome-setup-card{
+  padding: 22px 24px 20px;
+  border: 1px solid color-mix(in srgb, var(--c-border, var(--ttv2-border)) 85%, transparent);
+  box-shadow: var(--ttv2-shadow-sm);
+  background:
+    radial-gradient(120% 90% at 0% 0%, rgba(82, 73, 223, 0.08), transparent 55%),
+    radial-gradient(90% 70% at 100% 0%, rgba(56, 189, 248, 0.07), transparent 50%),
+    var(--c-bg2, var(--ttv2-surface));
+}
+body.ttv2-shell .ttv2-welcome-setup__hero{
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+body.ttv2-shell .ttv2-welcome-setup__badge{
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #fff;
+  background: linear-gradient(135deg, #5249DF, #38bdf8);
+  box-shadow: 0 10px 22px rgba(82, 73, 223, 0.28);
+}
+body.ttv2-shell .ttv2-welcome-setup__eyebrow{
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-accent, var(--ttv2-accent));
+}
+body.ttv2-shell .ttv2-welcome-setup__title{
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--c-text, var(--ttv2-fg));
+}
+body.ttv2-shell .ttv2-welcome-setup__lede{
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--c-text2, var(--ttv2-muted));
+  max-width: 62ch;
+}
+body.ttv2-shell .ttv2-welcome-setup__lede strong{
+  color: var(--c-text, var(--ttv2-fg));
+  font-weight: 700;
+}
+body.ttv2-shell .ttv2-welcome-setup__steps{
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+body.ttv2-shell .ttv2-welcome-setup__step{
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px 16px 14px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--c-border, var(--ttv2-border)) 88%, transparent);
+  background: color-mix(in srgb, var(--c-bg2, var(--ttv2-surface)) 92%, transparent);
+}
+body.ttv2-shell .ttv2-welcome-setup__step--primary{
+  border-color: color-mix(in srgb, var(--c-accent, var(--ttv2-accent)) 35%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--c-accent, var(--ttv2-accent)) 6%, transparent), transparent 70%),
+    color-mix(in srgb, var(--c-bg2, var(--ttv2-surface)) 96%, transparent);
+}
+body.ttv2-shell .ttv2-welcome-setup__step-num{
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--c-accent, var(--ttv2-accent));
+}
+body.ttv2-shell .ttv2-welcome-setup__step:not(.ttv2-welcome-setup__step--primary) .ttv2-welcome-setup__step-num{
+  background: #94a3b8;
+}
+body.ttv2-shell .ttv2-welcome-setup__step-body{
+  flex: 1 1 auto;
+  min-width: 0;
+}
+body.ttv2-shell .ttv2-welcome-setup__step-title{
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--c-text, var(--ttv2-fg));
+}
+body.ttv2-shell .ttv2-welcome-setup__step-text{
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--c-text2, var(--ttv2-muted));
+}
+body.ttv2-shell .ttv2-welcome-setup__optional{
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+  background: rgba(148, 163, 184, 0.16);
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+body.ttv2-shell .ttv2-welcome-setup__actions{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+body.ttv2-shell .ttv2-welcome-setup__btn{
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 10px;
+  padding: 8px 14px;
+}
+body.ttv2-shell .ttv2-welcome-setup__hint{
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--c-text3, var(--ttv2-muted));
+}
+@media (max-width: 575.98px){
+  body.ttv2-shell .ttv2-welcome-setup-card{
+    padding: 16px;
+  }
+  body.ttv2-shell .ttv2-welcome-setup__title{
+    font-size: 18px;
+  }
+  body.ttv2-shell .ttv2-welcome-setup__hero{
+    gap: 12px;
+  }
+  body.ttv2-shell .ttv2-welcome-setup__actions .btn{
+    width: 100%;
+  }
 }
