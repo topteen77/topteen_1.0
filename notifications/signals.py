@@ -87,18 +87,33 @@ def institute_student_notifications(sender, instance, created, **kwargs):
         return
     institute_user = getattr(instance.institute, 'created_by', None)
     recipients = [u for u in [institute_user] if getattr(u, 'id', None)]
-    if not recipients:
+    if recipients:
+        emit_notification(
+            event_type='institute.student_registered',
+            title='New student registered',
+            body='A student was registered under your institute.',
+            recipients=recipients,
+            category=NotificationCategory.INSTITUTE,
+            source_obj=instance,
+            payload={'student_id': instance.student_id, 'institute_id': instance.institute_id},
+            dedupe_key='institute_student_registered_{}'.format(instance.id),
+        )
+
+    # Marketing alerts for demo institutes (website + optional WhatsApp).
+    if getattr(instance, '_skip_demo_mktg_student_added_notify', False):
         return
-    emit_notification(
-        event_type='institute.student_registered',
-        title='New student registered',
-        body='A student was registered under your institute.',
-        recipients=recipients,
-        category=NotificationCategory.INSTITUTE,
-        source_obj=instance,
-        payload={'student_id': instance.student_id, 'institute_id': instance.institute_id},
-        dedupe_key='institute_student_registered_{}'.format(instance.id),
-    )
+    try:
+        institute = instance.institute
+        if institute and getattr(institute, 'is_demo_institute', False):
+            from institute.demo_institute_notifications import notify_demo_institute_students_added
+
+            notify_demo_institute_students_added(
+                institute,
+                student=getattr(instance, 'student', None),
+                source='enroll',
+            )
+    except Exception:
+        pass
 
 
 @receiver(post_save, sender=Lead)
@@ -125,6 +140,50 @@ def marketing_lead_notifications(sender, instance, created, **kwargs):
         payload={'lead_id': instance.id, 'email': instance.email, 'source': instance.source},
         dedupe_key='marketing_new_lead_{}'.format(instance.id),
     )
+
+
+def _notify_demo_result_for_user(user, result_kind='test'):
+    if not user:
+        return
+    try:
+        from institute.demo_institute_notifications import notify_demo_institute_test_result
+
+        notify_demo_institute_test_result(user, result_kind=result_kind)
+    except Exception:
+        pass
+
+
+@receiver(post_save, sender='app.Results')
+def demo_institute_class10_result_notifications(sender, instance, created, **kwargs):
+    if not created:
+        return
+    _notify_demo_result_for_user(getattr(instance, 'user', None), result_kind='class10')
+
+
+@receiver(post_save, sender='app_post_matric.TestResult')
+def demo_institute_post_matric_result_notifications(sender, instance, created, **kwargs):
+    if not created:
+        return
+    session = getattr(instance, 'session', None)
+    user = getattr(session, 'user', None) if session else None
+    _notify_demo_result_for_user(user, result_kind='post_matric')
+
+
+@receiver(post_save, sender='psychometric_tests.PsychometricTestResult')
+def demo_institute_psychometric_result_notifications(sender, instance, created, **kwargs):
+    # get_or_create may create an empty shell first; notify once when RIASEC scores appear.
+    if not any(
+        getattr(instance, f, None) is not None
+        for f in ('realistic', 'investigative', 'artistic', 'social', 'entrepreneurial', 'conventional')
+    ):
+        return
+    try:
+        from institute.demo_institute_notifications import resolve_user_from_psychometric_result
+
+        user = resolve_user_from_psychometric_result(instance)
+    except Exception:
+        user = None
+    _notify_demo_result_for_user(user, result_kind='psychometric')
 
 
 @receiver(post_save, sender=UserEvent)

@@ -48,6 +48,8 @@ class InstituteMarketingGroupAdmin(admin.ModelAdmin):
         "id",
         "m_group_name",
         "marketing_group_admin",
+        "whatsapp_notifications_enabled",
+        "email_notifications_enabled",
         "institutes_list_link",
         "get_object_status",
         "get_user_status",
@@ -55,9 +57,32 @@ class InstituteMarketingGroupAdmin(admin.ModelAdmin):
         "created",
         "modified",
     ]
+    list_editable=["whatsapp_notifications_enabled", "email_notifications_enabled"]
     readonly_fields=["created","modified"]
-    list_filter=[UserStatusFilter,"object_status","created","modified"]
+    list_filter=[
+        UserStatusFilter,
+        "whatsapp_notifications_enabled",
+        "email_notifications_enabled",
+        "object_status",
+        "created",
+        "modified",
+    ]
     search_fields=["m_group_name","marketing_group_admin__email","marketing_group_admin__name"]
+    fieldsets = (
+        (None, {"fields": ("m_group_name", "marketing_group_admin")}),
+        (
+            "Demo institute alerts",
+            {
+                "fields": ("whatsapp_notifications_enabled", "email_notifications_enabled"),
+                "description": (
+                    "Controls outbound alerts to this marketing admin for demo institutes. "
+                    "In-app bell notifications always send. WhatsApp also requires Communication → "
+                    "WhatsApp settings to be enabled/ready, and the admin user must have a mobile number."
+                ),
+            },
+        ),
+        ("Meta", {"fields": ("created", "modified")}),
+    )
     
     def get_queryset(self, request):
         # Show all marketing groups including those with inactive users
@@ -144,6 +169,7 @@ class InstituteAdmin(admin.ModelAdmin):
         "created_by_email",
         "is_demo_institute",
         "is_system_demo",
+        "demo_seed_count",
         "logo_preview",
         "modified",
     ]
@@ -154,7 +180,7 @@ class InstituteAdmin(admin.ModelAdmin):
         "institute_status",
         ("marketing_group", RelatedOnlyFieldListFilter),
     ]
-    readonly_fields = ["created", "modified", "slug", "logo_preview", "is_system_demo"]
+    readonly_fields = ["created", "modified", "slug", "logo_preview", "is_system_demo", "demo_seed_count"]
     search_fields = [
         "name",
         "created_by__name",

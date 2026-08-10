@@ -181,6 +181,58 @@ def _annotate_nav_active(sections: List[Dict[str, Any]], request_path: str) -> N
             item["active"] = True
 
 
+def _institute_nav_gates(institute: Optional[Institute]) -> Dict[str, bool]:
+    """
+    Lightweight existence flags for progressive institute sidebar unlock.
+    Uses short-circuiting .exists() queries only (no full counts / chart payloads).
+    """
+    empty = {"has_students": False, "has_counselors": False, "has_sessions": False}
+    if not institute or not getattr(institute, "pk", None):
+        return empty
+    try:
+        from django.db.models import Q
+
+        from counselor.models import Counselor, FollowUpStatus
+        from institute.models import StudentManagement
+
+        inst_id = int(institute.pk)
+        has_students = StudentManagement.objects.filter(institute_id=inst_id).exists()
+        has_counselors = Counselor.objects.filter(
+            Q(counselor_admin_id=inst_id) | Q(institute_placements__id=inst_id)
+        ).exists()
+        has_sessions = False
+        if has_students or has_counselors:
+            has_sessions = FollowUpStatus.objects.filter(
+                Q(student__institute_id=inst_id)
+                | Q(counselor__counselor_admin_id=inst_id)
+                | Q(counselor__institute_placements__id=inst_id)
+            ).exists()
+        return {
+            "has_students": bool(has_students),
+            "has_counselors": bool(has_counselors),
+            "has_sessions": bool(has_sessions),
+        }
+    except Exception:
+        return empty
+
+
+def _nav_item(
+    *,
+    label: str,
+    href: str,
+    unlocked: bool = True,
+    lock_reason: str = "",
+    **extra: Any,
+) -> Dict[str, Any]:
+    """Build a nav item; locked items keep a visible label but cannot navigate."""
+    item: Dict[str, Any] = {"label": label, "href": href if unlocked else "#", **extra}
+    if not unlocked:
+        item["disabled"] = True
+        if lock_reason:
+            item["title"] = lock_reason
+    return item
+
+
 def _nav_for_role(
     *,
     role: str,
@@ -424,7 +476,7 @@ def _nav_for_role(
             },
         ]
 
-    # Default: institute
+    # Default: institute — progressive unlock based on account data.
     dash_url = (
         _safe_reverse("institute:institute_masterdashboard", args=[inst_slug])
         if inst_slug
@@ -435,6 +487,15 @@ def _nav_for_role(
         if inst_slug
         else "#"
     )
+    gates = _institute_nav_gates(institute)
+    has_students = gates["has_students"]
+    has_counselors = gates["has_counselors"]
+    has_sessions = gates["has_sessions"]
+    lock_students = "Enroll students (Class 10 / Class 12 CSV) to unlock this section."
+    lock_counselors = "Add a counselor to unlock this section."
+    lock_sessions = "Session reports unlock after counseling follow-ups are logged."
+    lock_analytics = "Available after students are enrolled."
+    lock_history = "Available after your first student upload."
 
     def _ql_href(hash_key: str) -> str:
         # Quick-link hash anchors live on the master dashboard. If we're already on
@@ -449,59 +510,85 @@ def _nav_for_role(
         {
             "title": "Reports",
             "items": [
-                {
-                    "label": "Dashboard",
-                    "dot": "#6c7dff",
-                    "href": dash_url,
-                },
-                {
-                    "label": "Students",
-                    "dot": "#f472b6",
-                    "href": _safe_reverse("institute:institutedashboard_page", args=[inst_slug, "students"]) if inst_slug else "#",
-                },
-                {
-                    "label": "Counselors",
-                    "dot": "#4ade80",
-                    "href": _safe_reverse("institute:institutedashboard_page", args=[inst_slug, "counselors"]) if inst_slug else "#",
-                },
-                {
-                    "label": "Sessions",
-                    "dot": "#fb923c",
-                    "href": _safe_reverse("institute:institutedashboard_page", args=[inst_slug, "sessions"]) if inst_slug else "#",
-                },
+                _nav_item(
+                    label="Dashboard",
+                    href=dash_url,
+                    unlocked=True,
+                    key="dashboard",
+                    dot="#6c7dff",
+                ),
+                _nav_item(
+                    label="Students",
+                    href=_safe_reverse("institute:institutedashboard_page", args=[inst_slug, "students"])
+                    if inst_slug
+                    else "#",
+                    unlocked=has_students,
+                    lock_reason=lock_students,
+                    key="students",
+                    dot="#f472b6",
+                ),
+                _nav_item(
+                    label="Counselors",
+                    href=_safe_reverse("institute:institutedashboard_page", args=[inst_slug, "counselors"])
+                    if inst_slug
+                    else "#",
+                    unlocked=has_counselors,
+                    lock_reason=lock_counselors,
+                    key="counselors",
+                    dot="#4ade80",
+                ),
+                _nav_item(
+                    label="Sessions",
+                    href=_safe_reverse("institute:institutedashboard_page", args=[inst_slug, "sessions"])
+                    if inst_slug
+                    else "#",
+                    unlocked=has_sessions,
+                    lock_reason=lock_sessions,
+                    key="institute_sessions",
+                    dot="#fb923c",
+                ),
             ],
         },
         {
             "title": "Guidance",
             "items": [
-                {
-                    "label": "Session report",
-                    "dot": "#fb923c",
-                    "href": _safe_reverse("institute:institutedashboard_page", args=[inst_slug, "session_report"])
+                _nav_item(
+                    label="Session report",
+                    href=_safe_reverse("institute:institutedashboard_page", args=[inst_slug, "session_report"])
                     if inst_slug
                     else "#",
-                    "key": "sessions",
-                },
+                    unlocked=has_sessions,
+                    lock_reason=lock_sessions,
+                    key="sessions",
+                    dot="#fb923c",
+                ),
             ],
         },
         {
             "title": "Analytics",
             "items": [
-                {
-                    "label": "Career heatmap",
-                    "dot": "#34d399",
-                    "href": _safe_reverse("institute:institutedashboard_page", args=[inst_slug, "heatmap"])
+                _nav_item(
+                    label="Career heatmap",
+                    href=_safe_reverse("institute:institutedashboard_page", args=[inst_slug, "heatmap"])
                     if inst_slug
                     else "#",
-                    "key": "heatmap",
-                },
-                {
-                    "label": "Streams & capacity",
-                    "dot": "#a78bfa",
-                    "href": _safe_reverse("institute:institutedashboard_page", args=[inst_slug, "streams_capacity"])
+                    unlocked=has_students,
+                    lock_reason=lock_analytics,
+                    key="heatmap",
+                    dot="#34d399",
+                ),
+                _nav_item(
+                    label="Streams & capacity",
+                    href=_safe_reverse(
+                        "institute:institutedashboard_page", args=[inst_slug, "streams_capacity"]
+                    )
                     if inst_slug
                     else "#",
-                },
+                    unlocked=has_students,
+                    lock_reason=lock_analytics,
+                    key="streams_capacity",
+                    dot="#a78bfa",
+                ),
             ],
         },
         {
@@ -514,6 +601,7 @@ def _nav_for_role(
                     "quicklink": True,
                     "no_ajax": True,
                     "disabled": not inst_slug,
+                    "title": "" if inst_slug else "Institute not ready",
                 },
                 {
                     "label": "Matric-CSV Upload",
@@ -522,6 +610,7 @@ def _nav_for_role(
                     "quicklink": True,
                     "no_ajax": True,
                     "disabled": not inst_slug,
+                    "title": "" if inst_slug else "Institute not ready",
                 },
                 {
                     "label": "Post-Matric-CSV Upload",
@@ -530,26 +619,31 @@ def _nav_for_role(
                     "quicklink": True,
                     "no_ajax": True,
                     "disabled": not inst_slug,
+                    "title": "" if inst_slug else "Institute not ready",
                 },
-                {
-                    "label": "Uploaded History Log",
-                    "icon": "bx bx-history",
-                    "href": history_url,
-                    "quicklink": True,
-                    "disabled": not inst_slug,
-                },
+                _nav_item(
+                    label="Uploaded History Log",
+                    href=history_url,
+                    unlocked=bool(inst_slug and has_students),
+                    lock_reason=lock_history,
+                    icon="bx bx-history",
+                    quicklink=True,
+                ),
             ],
         },
         {
             "title": "Billing",
             "items": [
-                {
-                    "label": "Payments & invoices",
-                    "dot": "#34d399",
-                    "href": _safe_reverse("institute:institutedashboard_page", args=[inst_slug, "payments"])
+                _nav_item(
+                    label="Payments & invoices",
+                    href=_safe_reverse("institute:institutedashboard_page", args=[inst_slug, "payments"])
                     if inst_slug
                     else "#",
-                },
+                    unlocked=bool(inst_slug),
+                    lock_reason="Institute not ready",
+                    key="payments",
+                    dot="#34d399",
+                ),
             ],
         },
     ]

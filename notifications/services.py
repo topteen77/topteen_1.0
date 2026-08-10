@@ -51,6 +51,24 @@ DEFAULT_TYPE_CONFIGS = {
     'course.allocated': dict(category=NotificationCategory.COURSE, description='Course allocated', requires_celery=False, requires_email=False),
     'institute.student_registered': dict(category=NotificationCategory.INSTITUTE, description='Institute student registration', requires_celery=False, requires_email=False),
     'marketing.new_lead': dict(category=NotificationCategory.MARKETING, description='New lead for marketing team', requires_celery=False, requires_email=False),
+    'marketing.demo_institute_students_added': dict(
+        category=NotificationCategory.MARKETING,
+        description='Demo institute enrolled students',
+        requires_celery=False,
+        requires_email=False,
+    ),
+    'marketing.demo_institute_test_result': dict(
+        category=NotificationCategory.MARKETING,
+        description='Demo institute student generated a test result',
+        requires_celery=False,
+        requires_email=False,
+    ),
+    'marketing.demo_institute_all_demos_completed': dict(
+        category=NotificationCategory.MARKETING,
+        description='All demo students at a demo institute completed tests',
+        requires_celery=False,
+        requires_email=False,
+    ),
     'accounts.new_registration': dict(
         category=NotificationCategory.MARKETING,
         description='New end-user registration (analytics)',

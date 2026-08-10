@@ -102,7 +102,11 @@
             {% include "template_v2/institute/includes/mktg_institute_row_upload_buttons.html" %}
           </td>
           {% endif %}
-          <td>{% if _is_group_mode %}{{ ins.total_credits if ins.total_credits is defined else 0 }}{% else %}{{ ins.credit_counts if ins.credit_counts else 0 }}{% endif %}</td>
+          <td>{% if _is_group_mode %}{{ ins.total_credits if ins.total_credits is defined else 0 }}{% else %}{{ ins.credit_counts if ins.credit_counts else 0 }}{% endif %}
+            {% if not _is_group_mode and ins.is_demo_institute|default(false) %}
+              <span class="badge bg-warning text-dark ms-1" title="Demo institute — seed {{ ins.demo_seed_count|default(0) }}/3">Demo</span>
+            {% endif %}
+          </td>
           {% if not _is_group_mode %}
           <td>
             <div class="ttv2-mktg-action-bar">
@@ -122,14 +126,17 @@
                 <i class='bx bx-key text-info'></i>
               </button>
               {% endif %}
-              {% if not ins.is_system_demo and (ins.student_count or 0) == 0 %}
+              {% if not ins.is_system_demo and ((ins.student_count or 0) == 0 or ins.is_demo_institute|default(false)) %}
               <button type="button"
                       class="btn btn-sm btn-link p-0 institute-hard-delete-btn"
                       data-delete-url="{{ url('institute:instituteharddelete', args=[ins.id]) }}"
-                      title="Permanently delete (no students)">
+                      data-is-demo="{% if ins.is_demo_institute|default(false) %}1{% else %}0{% endif %}"
+                      data-student-count="{{ ins.student_count or 0 }}"
+                      title="{% if ins.is_demo_institute|default(false) %}Permanently delete demo institute and students{% else %}Permanently delete (no students){% endif %}">
                 <i class='bx bx-trash text-danger'></i>
               </button>
               {% endif %}
+              {% include "template_v2/institute/includes/mktg_institute_row_demo_actions.html" %}
             </div>
           </td>
           <td>
@@ -216,7 +223,11 @@
             {% include "template_v2/institute/includes/mktg_institute_row_upload_buttons.html" %}
           </td>
           {% endif %}
-          <td>{% if _is_group_mode %}{{ ins.total_credits if ins.total_credits is defined else 0 }}{% else %}{{ ins.credit_counts if ins.credit_counts else 0 }}{% endif %}</td>
+          <td>{% if _is_group_mode %}{{ ins.total_credits if ins.total_credits is defined else 0 }}{% else %}{{ ins.credit_counts if ins.credit_counts else 0 }}{% endif %}
+            {% if not _is_group_mode and ins.is_demo_institute|default(false) %}
+              <span class="badge bg-warning text-dark ms-1" title="Demo institute — seed {{ ins.demo_seed_count|default(0) }}/3">Demo</span>
+            {% endif %}
+          </td>
           {% if not _is_group_mode %}
           <td>
             <div class="ttv2-mktg-action-bar">
@@ -236,14 +247,17 @@
                 <i class='bx bx-key text-info'></i>
               </button>
               {% endif %}
-              {% if not ins.is_system_demo and (ins.student_count or 0) == 0 %}
+              {% if not ins.is_system_demo and ((ins.student_count or 0) == 0 or ins.is_demo_institute|default(false)) %}
               <button type="button"
                       class="btn btn-sm btn-link p-0 institute-hard-delete-btn"
                       data-delete-url="{{ url('institute:instituteharddelete', args=[ins.id]) }}"
-                      title="Permanently delete (no students)">
+                      data-is-demo="{% if ins.is_demo_institute|default(false) %}1{% else %}0{% endif %}"
+                      data-student-count="{{ ins.student_count or 0 }}"
+                      title="{% if ins.is_demo_institute|default(false) %}Permanently delete demo institute and students{% else %}Permanently delete (no students){% endif %}">
                 <i class='bx bx-trash text-danger'></i>
               </button>
               {% endif %}
+              {% include "template_v2/institute/includes/mktg_institute_row_demo_actions.html" %}
             </div>
           </td>
           <td>

@@ -11,6 +11,16 @@ urlpatterns = [
     path("student_data/",views.StudentData.as_view(),name="studentdata"),
     path("institute_data/",views.InstituteData.as_view(),name="institutedata"),
     path("create_institute/",views.InstituteCreateView.as_view(),name="createinstitute"),
+    path(
+        "seed_institute_demo_students/",
+        views.InstituteSeedDemoStudentsView.as_view(),
+        name="seedinstitutedemostudents",
+    ),
+    path(
+        "convert_demo_institute/",
+        views.InstituteConvertDemoToPaidView.as_view(),
+        name="convertdemoinstitute",
+    ),
 
     #manish
 

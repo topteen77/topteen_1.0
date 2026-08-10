@@ -911,8 +911,20 @@ body.ttv2-shell .ttv2-topbar-pay-now {
 
     // Sidebar link interception
     document.addEventListener('click', function(e){
-      var a = e.target && (e.target.closest ? e.target.closest('.ttv2-counselor-nav a.ttv2-nav-link, .ttv2-counselor-nav a[data-ttv2-nav]') : null);
+      var a = e.target && (e.target.closest ? e.target.closest('.ttv2-counselor-nav a') : null);
       if (!a) return;
+      // Progressive unlock: blocked until account has matching data.
+      if (a.classList && a.classList.contains('ttv2-nav-disabled')) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      if (a.getAttribute('aria-disabled') === 'true') {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      if (!a.classList.contains('ttv2-nav-link') && !a.getAttribute('data-ttv2-nav')) return;
       if (!shouldAjaxifyLink(a)) return;
       var host = document.getElementById('ttv2AjaxContent');
       if (!host) return;

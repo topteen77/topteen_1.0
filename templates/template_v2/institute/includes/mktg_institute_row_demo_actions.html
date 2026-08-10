@@ -1,0 +1,27 @@
+{# Marketing row actions: seed demos / convert to paid. Expects `ins`. #}
+{% if not ins.is_system_demo|default(false) %}
+  {% set _seed_left = 3 - (ins.demo_seed_count|default(0)|int) %}
+  {% if _seed_left > 0 %}
+  <button type="button"
+          class="btn btn-sm btn-link p-0"
+          data-bs-toggle="modal"
+          data-bs-target="#ttv2SeedDemoStudentsModal"
+          data-institute-id="{{ ins.id }}"
+          data-institute-name="{{ ins.name }}"
+          data-seed-left="{{ _seed_left }}"
+          title="Add demo students ({{ _seed_left }} seed run{{ 's' if _seed_left != 1 else '' }} left)">
+    <i class='bx bx-user-plus text-success'></i>
+  </button>
+  {% endif %}
+  {% if ins.is_demo_institute|default(false) %}
+  <button type="button"
+          class="btn btn-sm btn-link p-0"
+          data-bs-toggle="modal"
+          data-bs-target="#ttv2ConvertDemoInstituteModal"
+          data-institute-id="{{ ins.id }}"
+          data-institute-name="{{ ins.name }}"
+          title="Convert demo to paid (removes demo students)">
+    <i class='bx bx-transfer-alt text-warning'></i>
+  </button>
+  {% endif %}
+{% endif %}

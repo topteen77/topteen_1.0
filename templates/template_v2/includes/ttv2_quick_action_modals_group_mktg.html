@@ -14,9 +14,15 @@
         </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form method="POST" action="{{ url('institute:createinstitute') }}" enctype="multipart/form-data" class="ttv2-create-institute-modal__form d-flex flex-column flex-grow-1 min-h-0">
+      <form method="POST"
+            action="{{ url('institute:createinstitute') }}"
+            enctype="multipart/form-data"
+            class="ttv2-create-institute-modal__form d-flex flex-column flex-grow-1 min-h-0"
+            data-ttv2-create-institute-form="1"
+            novalidate>
         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
         <div class="modal-body ttv2-create-institute-modal__body pt-3">
+          <div class="alert alert-danger py-2 small d-none" data-ttv2-create-institute-error role="alert"></div>
           <div class="row g-3">
             <div class="col-12">
               <label class="form-label">Email <span class="text-danger">*</span></label>
@@ -37,9 +43,12 @@
                      name="institute_contact"
                      inputmode="numeric"
                      maxlength="10"
+                     minlength="10"
+                     pattern="[0-9]{10}"
                      autocomplete="tel"
                      title="Enter a 10-digit mobile number"
                      required>
+              <small class="text-muted">Exactly 10 digits</small>
             </div>
             <div class="col-md-6">
               <label class="form-label">Admin Contact <span class="text-danger">*</span></label>
@@ -48,9 +57,12 @@
                      name="institute_admin"
                      inputmode="numeric"
                      maxlength="10"
+                     minlength="10"
+                     pattern="[0-9]{10}"
                      autocomplete="tel"
                      title="Enter a 10-digit mobile number"
                      required>
+              <small class="text-muted">Exactly 10 digits</small>
             </div>
             <div class="col-md-6">
               <label class="form-label">Institute Group</label>
@@ -64,13 +76,69 @@
             </div>
             <div class="col-12">
               <label class="form-label">Institute Logo <span class="text-danger">*</span></label>
-              <input type="file" class="form-control" name="institute_logo" accept=".jpg,.png" required>
+              <input type="file" class="form-control" name="institute_logo" accept=".jpg,.jpeg,.png,image/jpeg,image/png" required>
               <small class="text-muted">Accepted formats: JPG, PNG</small>
             </div>
-            {% include "template_v2/institute/includes/psychometric_institute_settings.html" %}
-            {% with tieup_exam_credits_required=true, tieup_hide_coupon=true %}
-            {% include "template_v2/institute/includes/tieup_billing_fields.html" %}
-            {% endwith %}
+            <div class="col-12">
+              <div class="border rounded-3 p-3" data-ttv2-account-type-block>
+                <label class="form-label fw-semibold mb-2">Institute type <span class="text-danger">*</span></label>
+                <div class="d-flex flex-wrap gap-3 mb-3">
+                  <div class="form-check">
+                    <input class="form-check-input"
+                           type="radio"
+                           name="institute_account_type"
+                           id="ttv2AccountTypePaid"
+                           value="paid"
+                           data-ttv2-account-type
+                           checked>
+                    <label class="form-check-label" for="ttv2AccountTypePaid">
+                      Paid institute
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input"
+                           type="radio"
+                           name="institute_account_type"
+                           id="ttv2AccountTypeDemo"
+                           value="demo"
+                           data-ttv2-account-type>
+                    <label class="form-check-label" for="ttv2AccountTypeDemo">
+                      Demo institute
+                    </label>
+                  </div>
+                </div>
+
+                <div class="border rounded-3 p-3 bg-light-subtle"
+                     data-ttv2-demo-only-section>
+                  <p class="fw-semibold mb-1 mb-md-2">Demo student seed</p>
+                  <p class="small text-muted mb-2">
+                    Optional Class 10 / Class 12 dummy students with pre-activated psychometric access.
+                    Max <strong>5 per class</strong>, up to <strong>3 seed runs</strong> per institute.
+                    Demo seats do not consume paid exam credits.
+                  </p>
+                  <div class="row g-2" data-ttv2-demo-fields>
+                    <div class="col-md-6">
+                      <label class="form-label">Class 10 demos (0–5)</label>
+                      <input type="number" class="form-control" name="demo_class10_count" min="0" max="5" value="0" data-ttv2-demo-field>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">Class 12 demos (0–5)</label>
+                      <input type="number" class="form-control" name="demo_class12_count" min="0" max="5" value="0" data-ttv2-demo-field>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12" data-ttv2-paid-only-section>
+              <div class="row g-3">
+                {% include "template_v2/institute/includes/psychometric_institute_settings.html" %}
+                <div class="col-12">
+                  {% with tieup_exam_credits_required=true, tieup_hide_coupon=true %}
+                  {% include "template_v2/institute/includes/tieup_billing_fields.html" %}
+                  {% endwith %}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="modal-footer border-top pt-3 flex-shrink-0 bg-white">
@@ -81,6 +149,196 @@
     </div>
   </div>
 </div>
+<script>
+(function () {
+  function isDemoAccountType(root) {
+    var checked = root.querySelector('input[name="institute_account_type"]:checked');
+    return !!(checked && checked.value === 'demo');
+  }
+
+  function setSectionDisabled(section, disabled) {
+    if (!section) return;
+    section.classList.toggle('opacity-50', disabled);
+    section.classList.toggle('pe-none', disabled);
+    section.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+    // Do NOT set input.disabled — disabled fields are omitted from POST and
+    // caused demo student counts to be dropped on create.
+    section.querySelectorAll('input, select, textarea').forEach(function (el) {
+      if (el.name === 'institute_account_type') return;
+      if (disabled) {
+        el.setAttribute('tabindex', '-1');
+      } else {
+        el.removeAttribute('tabindex');
+      }
+    });
+  }
+
+  function syncAccountTypeSections(root) {
+    if (!root) return;
+    var demoOn = isDemoAccountType(root);
+    var demoSec = root.querySelector('[data-ttv2-demo-only-section]');
+    var paidSec = root.querySelector('[data-ttv2-paid-only-section]');
+    setSectionDisabled(demoSec, !demoOn);
+    setSectionDisabled(paidSec, demoOn);
+
+    if (demoOn) {
+      var n10El = root.querySelector('[name="demo_class10_count"]');
+      var n12El = root.querySelector('[name="demo_class12_count"]');
+      var n10 = parseInt((n10El && n10El.value) || '0', 10) || 0;
+      var n12 = parseInt((n12El && n12El.value) || '0', 10) || 0;
+      if (n10 <= 0 && n12 <= 0) {
+        if (n10El) n10El.value = '1';
+        if (n12El) n12El.value = '1';
+      }
+    }
+
+    var examQty = root.querySelector('input[name="tieup_student_test_credits_qty"]');
+    if (examQty) {
+      if (demoOn) {
+        examQty.removeAttribute('required');
+        if (!(examQty.value || '').trim()) examQty.value = '0';
+      } else {
+        examQty.setAttribute('required', 'required');
+      }
+    }
+  }
+
+  function bindAccountTypeToggle(root) {
+    if (!root || root.__ttv2AccountTypeBound) return;
+    root.__ttv2AccountTypeBound = true;
+    root.querySelectorAll('[data-ttv2-account-type]').forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        syncAccountTypeSections(root);
+      });
+    });
+    syncAccountTypeSections(root);
+  }
+
+  function showCreateInstituteError(form, msg) {
+    var box = form.querySelector('[data-ttv2-create-institute-error]');
+    if (!box) {
+      window.alert(msg);
+      return;
+    }
+    box.textContent = msg;
+    box.classList.remove('d-none');
+    try {
+      box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } catch (e) {}
+  }
+
+  function clearCreateInstituteError(form) {
+    var box = form.querySelector('[data-ttv2-create-institute-error]');
+    if (!box) return;
+    box.textContent = '';
+    box.classList.add('d-none');
+  }
+
+  function digitsOnly(v) {
+    return String(v || '').replace(/\D+/g, '');
+  }
+
+  function validateCreateInstituteForm(form) {
+    clearCreateInstituteError(form);
+    var email = (form.querySelector('[name="institute_email"]') || {}).value || '';
+    var name = (form.querySelector('[name="institute_name"]') || {}).value || '';
+    var address = (form.querySelector('[name="institute_address"]') || {}).value || '';
+    var contactEl = form.querySelector('[name="institute_contact"]');
+    var adminEl = form.querySelector('[name="institute_admin"]');
+    var logoEl = form.querySelector('[name="institute_logo"]');
+    var contact = digitsOnly(contactEl && contactEl.value);
+    var admin = digitsOnly(adminEl && adminEl.value);
+    if (contactEl) contactEl.value = contact;
+    if (adminEl) adminEl.value = admin;
+
+    if (!(email || '').trim()) {
+      showCreateInstituteError(form, 'Email is required.');
+      return false;
+    }
+    if (!(name || '').trim() || !(address || '').trim()) {
+      showCreateInstituteError(form, 'Please fill institute name and address.');
+      return false;
+    }
+    if (!/^\d{10}$/.test(contact)) {
+      showCreateInstituteError(form, 'Contact number must be exactly 10 digits.');
+      if (contactEl) {
+        contactEl.classList.add('is-invalid');
+        try { contactEl.focus(); } catch (e1) {}
+      }
+      return false;
+    }
+    if (contactEl) contactEl.classList.remove('is-invalid');
+    if (!/^\d{10}$/.test(admin)) {
+      showCreateInstituteError(form, 'Admin contact number must be exactly 10 digits.');
+      if (adminEl) {
+        adminEl.classList.add('is-invalid');
+        try { adminEl.focus(); } catch (e2) {}
+      }
+      return false;
+    }
+    if (adminEl) adminEl.classList.remove('is-invalid');
+
+    var file = logoEl && logoEl.files && logoEl.files[0];
+    if (!file) {
+      showCreateInstituteError(form, 'Institute logo is required (JPG or PNG).');
+      return false;
+    }
+    var fname = (file.name || '').toLowerCase();
+    var okExt = /\.(jpe?g|png)$/.test(fname);
+    var okType = /image\/(jpeg|png)/.test(file.type || '');
+    if (!okExt && !okType) {
+      showCreateInstituteError(form, 'Institute logo must be a JPG or PNG file.');
+      return false;
+    }
+
+    var demoOn = isDemoAccountType(form);
+    if (demoOn) {
+      var n10 = parseInt((form.querySelector('[name="demo_class10_count"]') || {}).value || '0', 10) || 0;
+      var n12 = parseInt((form.querySelector('[name="demo_class12_count"]') || {}).value || '0', 10) || 0;
+      if (n10 <= 0 && n12 <= 0) {
+        showCreateInstituteError(form, 'For a demo institute, set at least one Class 10 or Class 12 demo student (1–5).');
+        return false;
+      }
+    } else {
+      var examQty = form.querySelector('input[name="tieup_student_test_credits_qty"]');
+      if (examQty && !examQty.disabled) {
+        var raw = (examQty.value || '').trim();
+        if (raw === '' || isNaN(parseInt(raw, 10)) || parseInt(raw, 10) < 0) {
+          showCreateInstituteError(form, 'Enter exam credits (quantity).');
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  function bindCreateInstituteValidation(root) {
+    if (!root || root.__ttv2CreateValBound) return;
+    var form = root.querySelector('form[data-ttv2-create-institute-form]');
+    if (!form) return;
+    root.__ttv2CreateValBound = true;
+    form.addEventListener('submit', function (ev) {
+      syncAccountTypeSections(root);
+      if (!validateCreateInstituteForm(form)) {
+        ev.preventDefault();
+        ev.stopPropagation();
+      }
+    });
+    form.querySelectorAll('.ttv2-phone10').forEach(function (el) {
+      el.addEventListener('input', function () {
+        el.classList.remove('is-invalid');
+        clearCreateInstituteError(form);
+      });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var modal = document.getElementById('ttv2AddInstituteModal');
+    bindAccountTypeToggle(modal);
+    bindCreateInstituteValidation(modal);
+  });
+})();
+</script>
 
 {# Add Counselor (select institute first, then post to create_counselor/<slug>/) #}
 <div class="modal fade" id="ttv2AddCounselorModal" tabindex="-1" aria-hidden="true">
@@ -171,7 +429,7 @@
     function clamp(el){
       try{
         if (!el) return;
-        var v = (el.value || '').replace(/\\D+/g, '');
+        var v = (el.value || '').replace(/\D+/g, '');
         if (v.length > 10) v = v.slice(0, 10);
         if (el.value !== v) el.value = v;
       } catch(e) {}
@@ -284,3 +542,122 @@
   </div>
 </div>
 
+
+{# Seed demo students (marketing row action) #}
+<div class="modal fade ttv2-quick-modal" id="ttv2SeedDemoStudentsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class='bx bx-user-plus me-2'></i> Add demo students</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url('institute:seedinstitutedemostudents') }}">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="institute_id" id="ttv2SeedDemoInstituteId" value="">
+        <div class="modal-body">
+          <p class="small text-muted mb-3">
+            Seeding for <strong id="ttv2SeedDemoInstituteName">—</strong>.
+            Max 5 per class. Seed runs left: <strong id="ttv2SeedDemoRunsLeft">—</strong>.
+          </p>
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label">Class 10 (0–5)</label>
+              <input type="number" class="form-control" name="demo_class10_count" min="0" max="5" value="1">
+            </div>
+            <div class="col-6">
+              <label class="form-label">Class 12 (0–5)</label>
+              <input type="number" class="form-control" name="demo_class12_count" min="0" max="5" value="1">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create demos</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{# Convert demo institute → paid #}
+<div class="modal fade ttv2-quick-modal" id="ttv2ConvertDemoInstituteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class='bx bx-transfer-alt me-2'></i> Convert demo to paid</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" action="{{ url('institute:convertdemoinstitute') }}">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="institute_id" id="ttv2ConvertDemoInstituteId" value="">
+        <div class="modal-body">
+          <div class="alert alert-warning py-2 small">
+            This permanently removes all demo students for
+            <strong id="ttv2ConvertDemoInstituteName">—</strong>
+            and attaches paid exam credits. Demo seats never convert into paid seats.
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Exam credits (paid) <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" name="tieup_student_test_credits_qty" min="0" step="1" required value="8">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Assignment credits (optional)</label>
+              <input type="number" class="form-control" name="tieup_assignment_credits_qty" min="0" step="1" value="0">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Exam credit unit price</label>
+              <input type="number" class="form-control" name="tieup_student_test_credits_price" min="0" step="0.01" placeholder="0.00">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Assignment credit unit price</label>
+              <input type="number" class="form-control" name="tieup_assignment_credits_price" min="0" step="0.01" placeholder="0.00">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-warning">Convert &amp; set paid credits</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  function bindDemoModals() {
+    var seedModal = document.getElementById('ttv2SeedDemoStudentsModal');
+    if (seedModal && !seedModal.__ttv2Bound) {
+      seedModal.__ttv2Bound = true;
+      seedModal.addEventListener('show.bs.modal', function (ev) {
+        var btn = ev.relatedTarget;
+        if (!btn) return;
+        var idEl = document.getElementById('ttv2SeedDemoInstituteId');
+        var nameEl = document.getElementById('ttv2SeedDemoInstituteName');
+        var leftEl = document.getElementById('ttv2SeedDemoRunsLeft');
+        if (idEl) idEl.value = btn.getAttribute('data-institute-id') || '';
+        if (nameEl) nameEl.textContent = btn.getAttribute('data-institute-name') || '—';
+        if (leftEl) leftEl.textContent = btn.getAttribute('data-seed-left') || '—';
+      });
+    }
+    var convertModal = document.getElementById('ttv2ConvertDemoInstituteModal');
+    if (convertModal && !convertModal.__ttv2Bound) {
+      convertModal.__ttv2Bound = true;
+      convertModal.addEventListener('show.bs.modal', function (ev) {
+        var btn = ev.relatedTarget;
+        if (!btn) return;
+        var idEl = document.getElementById('ttv2ConvertDemoInstituteId');
+        var nameEl = document.getElementById('ttv2ConvertDemoInstituteName');
+        if (idEl) idEl.value = btn.getAttribute('data-institute-id') || '';
+        if (nameEl) nameEl.textContent = btn.getAttribute('data-institute-name') || '—';
+      });
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindDemoModals);
+  } else {
+    bindDemoModals();
+  }
+  document.addEventListener('ttv2:content:loaded', bindDemoModals);
+})();
+</script>
