@@ -1403,9 +1403,23 @@
       page-break-inside: avoid;
     }
     .aptitude-combination-profile div,
-    .aptitude-plan-block div,
     .aptitude-fit-icon-box {
       margin-bottom: 0 !important;
+    }
+    .aptitude-fit-section {
+      padding: 10px 14px !important;
+      margin: 0 !important;
+    }
+    .aptitude-fit-section-head {
+      display: block !important;
+      margin: 0 0 6px !important;
+      padding: 0 !important;
+      line-height: 1.3 !important;
+    }
+    .aptitude-fit-section-head > span {
+      display: inline-block !important;
+      margin: 0 !important;
+      padding: 0 !important;
     }
     .aptitude-fit-list {
       list-style-type: disc !important;
@@ -1415,6 +1429,7 @@
     .aptitude-fit-list li {
       list-style-type: disc !important;
       display: list-item !important;
+      margin: 0 0 4px !important;
     }
     .aptitude-combination-narrative__body {
       display: flex !important;
@@ -1426,9 +1441,20 @@
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
-      width: 42px !important;
-      min-width: 42px !important;
+      width: 30px !important;
+      height: 30px !important;
+      min-width: 30px !important;
+      min-height: 30px !important;
       flex-shrink: 0 !important;
+      background: transparent !important;
+      border: none !important;
+    }
+    .aptitude-combination-narrative__icon .aptitude-fit-svg,
+    .aptitude-combination-narrative__icon .aptitude-fit-svg--lamp {
+      width: 28px !important;
+      height: 30px !important;
+      max-width: 28px !important;
+      max-height: 30px !important;
     }
     .aptitude-combination-narrative__text {
       flex: 1 !important;
@@ -1470,10 +1496,20 @@
       color: #3F37C9 !important;
     }
     .aptitude-fit-col-header,
-    .aptitude-fit-stream-row,
-    .aptitude-fit-section-head {
+    .aptitude-fit-stream-row {
       display: flex !important;
       align-items: center !important;
+    }
+    .aptitude-fit-col--strong .aptitude-fit-col-header {
+      background: #166534 !important;
+    }
+    .aptitude-fit-col--good .aptitude-fit-col-header {
+      background: #3F37C9 !important;
+    }
+    .aptitude-fit-col-title,
+    .aptitude-fit-col--strong .aptitude-fit-col-title,
+    .aptitude-fit-col--good .aptitude-fit-col-title {
+      color: #ffffff !important;
     }
   </style>
   {% include 'template20/app/partials/aptitude_tier_styles.html' %}

@@ -6,7 +6,7 @@
 {% block additionalhead %}
 {{ super() }}
 <link rel="stylesheet" href="{{ static('resume-builder-prototype/styles.css') }}?v=56">
-<link rel="stylesheet" href="{{ static('resume-builder-v2/styles.css') }}?v=44">
+<link rel="stylesheet" href="{{ static('resume-builder-v2/styles.css') }}?v=46">
 <link rel="stylesheet" href="{{ static('resume-builder-v2/messages.css') }}?v=4">
 <link rel="stylesheet" href="{{ static('resume-builder-v2/ai-review.css') }}?v=2">
 <style>
@@ -50,9 +50,9 @@
 {% block student_row_class %}row g-0 student-dash-shell{% endblock %}
 
 {% block student_main %}
-<div class="rb2-studio-app">
+<div class="rb2-studio-app{% if overall_completion >= 100 %} rb2-studio-app--complete{% endif %}">
   {# ——— Top bar ——— #}
-  <header class="rb2-studio-topbar mt-8">
+  <header class="rb2-studio-topbar mt-8{% if overall_completion >= 100 %} rb2-studio-topbar--complete{% endif %}">
     <div class="rb2-studio-topbar__left">
       <a href="{{ url('users:resume_v2_dashboard') }}" class="rb2-studio-back" title="Back to resumes">
         <i class='bx bx-arrow-back'></i>
@@ -65,16 +65,20 @@
       </div>
     </div>
     <div class="rb2-studio-topbar__progress">
-      <div class="rb2-strength-bar rb2-strength-bar--topbar" id="rb2ProgressBarWrap" data-level="{{ strength.level|lower }}" role="progressbar" aria-valuenow="{{ overall_completion }}" aria-valuemin="0" aria-valuemax="100" aria-label="Resume completion">
+      <div class="rb2-strength-bar rb2-strength-bar--topbar" id="rb2ProgressBarWrap" data-level="{% if overall_completion >= 100 %}outstanding{% else %}{{ strength.level|lower }}{% endif %}" role="progressbar" aria-valuenow="{{ overall_completion }}" aria-valuemin="0" aria-valuemax="100" aria-label="Resume completion">
         <div class="rb2-strength-bar__fill" id="rb2ProgressBar" style="width:{{ overall_completion }}%"></div>
       </div>
-      <p class="rb2-studio-topbar__progress-label" id="rb2ProgressLabel" data-level="{{ strength.level|lower }}">
+      <p class="rb2-studio-topbar__progress-label" id="rb2ProgressLabel" data-level="{% if overall_completion >= 100 %}outstanding{% else %}{{ strength.level|lower }}{% endif %}">
+        {% if overall_completion >= 100 %}
+        <span class="rb2-progress-pct rb2-progress-pct--complete">Resume complete!</span>
+        {% else %}
         <span class="rb2-progress-pct" id="rb2ProgressPct">{{ overall_completion }}% done</span>
         <span class="rb2-progress-sep" aria-hidden="true">·</span>
         <span class="rb2-progress-level" id="rb2ProgressLevel">{{ strength.level }}</span>
         {% if goal_label %}
         <span class="rb2-progress-sep" aria-hidden="true">·</span>
         <span class="rb2-progress-goal">Goal: {{ goal_label }}</span>
+        {% endif %}
         {% endif %}
       </p>
     </div>
@@ -171,7 +175,9 @@
       {% endif %}
 
       <div class="rb2-complete-sidebar {% if overall_completion >= 100 %}is-visible{% endif %}" id="rb2CompleteSidebar">
-        <div class="rb2-complete-sidebar__icon"><i class='bx bx-party'></i></div>
+        <div class="rb2-complete-sidebar__icon">
+          <img src="{{ static('resume-builder-v2/images/celebrations.gif') }}" alt="" width="56" height="56" decoding="async">
+        </div>
         <h3 class="rb2-complete-sidebar__title">You're all set!</h3>
         <p class="rb2-complete-sidebar__text">Your resume is ready. Use the header actions to download or preview.</p>
       </div>
@@ -244,6 +250,12 @@
                 {% if pf.can_edit_phone %}placeholder="Phone number"{% else %}readonly{% endif %}
                 class="{% if not pf.can_edit_phone %}rb2-field--readonly{% endif %}">
               {% if pf.can_edit_phone %}<p class="rb2-field-hint">Add a phone number so employers can reach you.</p>{% endif %}
+            </div>
+            <div class="rb2-field">
+              <label>Location</label>
+              <input type="text" id="rb2Location" value="{{ pf.location|default('', true)|e }}"
+                placeholder="e.g. Mumbai, India" maxlength="200">
+              <p class="rb2-field-hint">City or area shown with the pin on your resume.</p>
             </div>
             {% if pf.school or pf.can_edit_school %}
             <div class="rb2-field">
@@ -530,9 +542,11 @@
         <i class='bx bx-chevron-left'></i> Back
       </button>
       <span class="rb2-studio-nav__step" id="rb2NavStepLabel">About you</span>
-      <button type="button" class="rb2-btn rb2-btn--primary rb2-btn--sm" id="rb2NavContinue">
-        Continue <i class='bx bx-chevron-right'></i>
-      </button>
+      <span class="rb2-btn-shine-wrap">
+        <button type="button" class="rb2-btn rb2-btn--primary rb2-btn--sm" id="rb2NavContinue">
+          Continue <i class='bx bx-chevron-right'></i>
+        </button>
+      </span>
     </div>
   </nav>
 
@@ -665,5 +679,5 @@ window.__RB2_STUDIO = {
 </script>
 <script src="{{ static('resume-builder-v2/messages.js') }}?v=3"></script>
 <script src="{{ static('resume-builder-v2/ai-review-modal.js') }}?v=3"></script>
-<script src="{{ static('resume-builder-v2/studio.js') }}?v=71"></script>
+<script src="{{ static('resume-builder-v2/studio.js') }}?v=72"></script>
 {% endblock %}
