@@ -50,6 +50,28 @@ Test. Make informed decisions and choose the right career path.
 }
 }
 
+  .js-psychometric-pay-btn.is-loading {
+    pointer-events: none;
+    opacity: 0.92;
+  }
+  .js-psychometric-pay-btn .psychometric-pay-btn__content {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+  }
+  .js-psychometric-pay-btn .psychometric-pay-btn__spinner {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.15em;
+    flex: 0 0 auto;
+  }
+  .js-psychometric-pay-btn.purple-button.is-loading .psychometric-pay-btn__spinner,
+  .js-psychometric-pay-btn.cta-button.is-loading .psychometric-pay-btn__spinner {
+    border-color: rgba(255, 255, 255, 0.35);
+    border-right-color: #fff;
+  }
+
 </style>
 {% endblock %}
 
@@ -994,14 +1016,24 @@ Test. Make informed decisions and choose the right career path.
   function resetPsychometricPayButtons() {
     document.querySelectorAll('.js-psychometric-pay-btn').forEach(function (btn) {
       btn.disabled = false;
-      btn.textContent = btn.getAttribute('data-label') || btn.textContent;
+      btn.classList.remove('is-loading');
+      btn.removeAttribute('aria-busy');
+      var label = btn.getAttribute('data-label') || 'Continue';
+      btn.innerHTML = '<span class="psychometric-pay-btn__content"><span>' + label + '</span></span>';
     });
   }
 
   function setPsychometricPayButtonsBusy(activeBtn) {
     document.querySelectorAll('.js-psychometric-pay-btn').forEach(function (btn) {
       btn.disabled = true;
-      if (activeBtn && btn === activeBtn) btn.textContent = 'Processing...';
+      if (activeBtn && btn === activeBtn) {
+        btn.classList.add('is-loading');
+        btn.setAttribute('aria-busy', 'true');
+        btn.innerHTML = '<span class="psychometric-pay-btn__content">'
+          + '<span class="spinner-border spinner-border-sm psychometric-pay-btn__spinner" role="status" aria-hidden="true"></span>'
+          + '<span>Processing...</span>'
+          + '</span>';
+      }
     });
   }
 
@@ -1080,6 +1112,12 @@ Test. Make informed decisions and choose the right career path.
 
   document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.js-psychometric-pay-btn').forEach(function (btn) {
+      if (!btn.getAttribute('data-label')) {
+        btn.setAttribute('data-label', btn.textContent.trim());
+      }
+      btn.innerHTML = '<span class="psychometric-pay-btn__content"><span>'
+        + (btn.getAttribute('data-label') || btn.textContent.trim())
+        + '</span></span>';
       btn.addEventListener('click', function () { submitPsychometricPayment(btn); });
     });
     {% if is_authenticated and not is_student %}
