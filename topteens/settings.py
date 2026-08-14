@@ -202,6 +202,7 @@ OPENAI_TRANSCRIBE_MODEL = config('OPENAI_TRANSCRIBE_MODEL', default='gpt-4o-mini
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 MIDDLEWARE = [
+    'core.health_check_middleware.HealthCheckMiddleware',  # ALB/ECS health checks; must be first
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'core.slash_middleware.AppendSlashRedirectMiddleware',  # Redirect /path to /path/ when /path/ resolves (before catch-all 404)
