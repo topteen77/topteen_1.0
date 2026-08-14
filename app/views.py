@@ -1242,6 +1242,13 @@ def class10_combined_report(request, user_id=None):
             target_user = request.user
             route_user_id = int(target_user.id)
 
+        try:
+            from institute.demo_report_view_tracking import maybe_record_demo_student_report_view
+
+            maybe_record_demo_student_report_view(target_user, report_kind="class10_combined")
+        except Exception:
+            pass
+
         # Fast path: cached full HTML (skip for debug / incomplete reports need fresh errors)
         html_key = class10_combined_report_html_cache_key(target_user.id, embed_mode)
         if not request.GET.get('nocache'):
@@ -3125,6 +3132,13 @@ def test1_report_html(request, user_id=None):
             'no_results': False,
             'viewing_as_admin': user_id is not None and user_id != request.user.id
         }
+
+        try:
+            from institute.demo_report_view_tracking import maybe_record_demo_student_report_view
+
+            maybe_record_demo_student_report_view(target_user, report_kind="test1")
+        except Exception:
+            pass
         
         resp = render(request, 'template20/app/test1_report.html', context)
         return _add_no_cache_headers(resp)
@@ -3230,6 +3244,13 @@ def test2_report_html(request, user_id=None):
             ),
         }
         
+        try:
+            from institute.demo_report_view_tracking import maybe_record_demo_student_report_view
+
+            maybe_record_demo_student_report_view(target_user, report_kind="test2")
+        except Exception:
+            pass
+
         resp = render(request, 'template20/app/test2_report.html', context)
         return _add_no_cache_headers(resp)
         
@@ -3344,6 +3365,13 @@ def test3_report_html(request, user_id=None):
                 test3_result.scores if test3_result and test3_result.scores else None
             )
         )
+
+        try:
+            from institute.demo_report_view_tracking import maybe_record_demo_student_report_view
+
+            maybe_record_demo_student_report_view(target_user, report_kind="test3")
+        except Exception:
+            pass
 
         resp = render(request, 'template20/app/test3_report.html', context)
         return _add_no_cache_headers(resp)

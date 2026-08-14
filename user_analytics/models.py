@@ -270,6 +270,7 @@ class UserEvent(BaseModel):
         ('psychometric_test_started', 'Psychometric Test Started'),
         ('psychometric_test_completed', 'Psychometric Test Completed'),
         ('result_generated', 'Result Generated'),
+        ('report_viewed', 'Report Viewed'),
         ('course_enrolled', 'Course Enrolled'),
         ('skilllab_enrolled', 'SkillLab Course Enrolled'),
         ('institute_student_registered', 'Institute Student Registered'),

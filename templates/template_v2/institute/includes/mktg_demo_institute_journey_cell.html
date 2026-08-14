@@ -1,0 +1,33 @@
+{# Vertical demo-institute journey stepper. Expects `ins` with `_demo_journey`. #}
+{% set j = ins._demo_journey if ins._demo_journey is defined else none %}
+{% if j %}
+<div class="ttv2-mktg-journey{% if j.fully_complete %} is-complete{% endif %}">
+  <ol class="ttv2-mktg-journey-vstep">
+    {% for s in j.stages %}
+    <li class="ttv2-mktg-journey-vstep-item{% if s.done %} is-done{% endif %}{% if s.key == j.current_key and not j.fully_complete %} is-current{% endif %}{% if j.fully_complete and loop.last %} is-current{% endif %}">
+      <span class="ttv2-mktg-journey-vstep-rail" aria-hidden="true">
+        <span class="ttv2-mktg-journey-vstep-mark">
+          {% if s.done %}<i class="bx bx-check"></i>{% else %}{{ loop.index }}{% endif %}
+        </span>
+        {% if not loop.last %}<span class="ttv2-mktg-journey-vstep-line"></span>{% endif %}
+      </span>
+      <span class="ttv2-mktg-journey-vstep-body">
+        <span class="ttv2-mktg-journey-vstep-label">{{ s.label }}</span>
+        {% if s.date_short %}
+        <span class="ttv2-mktg-journey-vstep-date">{{ s.date_short }}</span>
+        {% elif not s.done %}
+        <span class="ttv2-mktg-journey-vstep-date is-pending">Pending</span>
+        {% endif %}
+      </span>
+    </li>
+    {% endfor %}
+  </ol>
+  {% if not j.fully_complete %}
+  <div class="ttv2-mktg-journey-hint" title="{{ j.next_action }}">{{ j.next_action }}</div>
+  {% else %}
+  <div class="ttv2-mktg-journey-hint is-done">Ready to convert to paid</div>
+  {% endif %}
+</div>
+{% else %}
+<span class="text-muted">—</span>
+{% endif %}

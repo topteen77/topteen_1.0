@@ -1,0 +1,121 @@
+<div class="ttv2-mktg-subpage ttv2-mktg-demo-performance-page">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+    <div>
+      <h2 class="fs-20 mb-1">Institute marketing performance</h2>
+      <p class="text-muted small mb-0">
+        Demo institute journey funnel: account created → demo students added → 1st psychometric test → report viewed.
+      </p>
+    </div>
+    <a href="{{ url('institute:marketinggroupdashboard_page', args=['institutes']) }}?account_type=demo"
+       class="btn btn-sm btn-outline-secondary">Open demo institutes</a>
+  </div>
+
+  {% set perf = mktg_demo_performance if mktg_demo_performance is defined else none %}
+  {% if perf %}
+  <div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small">Demo institutes</div>
+          <div class="fs-22 fw-semibold">{{ perf.total_demo_institutes }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small">Full journey complete</div>
+          <div class="fs-22 fw-semibold text-success">{{ perf.fully_complete }}</div>
+        </div>
+      </div>
+    </div>
+    {% for step in perf.funnel %}
+    <div class="col-sm-6 col-lg-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="text-muted small">{{ step.label }}</div>
+          <div class="fs-22 fw-semibold">{{ step.count }}</div>
+          <div class="small text-muted">{{ step.percent }}% of demos</div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="card-title mb-3">Journey funnel</h5>
+      <div class="d-flex flex-wrap gap-2 align-items-stretch">
+        {% for step in perf.funnel %}
+        <div class="flex-grow-1" style="min-width:140px;">
+          <div class="border rounded-3 p-3 h-100">
+            <div class="small text-muted mb-1">{{ loop.index }}. {{ step.label }}</div>
+            <div class="fw-semibold">{{ step.count }} / {{ perf.total_demo_institutes }}</div>
+            <div class="progress mt-2" style="height:6px;">
+              <div class="progress-bar bg-primary" role="progressbar" style="width: {{ step.percent }}%;" aria-valuenow="{{ step.percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+          </div>
+        </div>
+        {% if not loop.last %}
+        <div class="d-none d-md-flex align-items-center text-muted px-1">→</div>
+        {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+      <h5 class="card-title mb-3">By demo institute</h5>
+      <div class="table-responsive">
+        <table class="table table-hover ttv2-rich-table mb-0 align-middle">
+          <thead>
+            <tr>
+              <th style="width:48px;">#</th>
+              <th>Institute</th>
+              <th>Students</th>
+              <th>Stage</th>
+              <th>Progress</th>
+              <th>Next action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if perf.rows|length %}
+              {% for row in perf.rows %}
+              {% set j = row.journey if row.journey else none %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td>
+                  <a href="{{ url('institute:institute_masterdashboard', args=[row.slug]) }}" class="text-decoration-none fw-semibold">{{ row.name }}</a>
+                </td>
+                <td>{{ row.student_count }}</td>
+                <td>{{ j.current_label if j else '—' }}</td>
+                <td>
+                  {% if j %}
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="progress flex-grow-1" style="height:6px;min-width:72px;">
+                      <div class="progress-bar {% if j.fully_complete %}bg-success{% else %}bg-primary{% endif %}" style="width: {{ j.percent }}%;"></div>
+                    </div>
+                    <span class="small">{{ j.percent }}%</span>
+                  </div>
+                  {% else %}
+                  —
+                  {% endif %}
+                </td>
+                <td class="small text-muted">{{ j.next_action if j else '—' }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="6" class="text-center text-muted py-4">No demo institutes in your marketing scope yet.</td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="alert alert-light border">No performance data available.</div>
+  {% endif %}
+</div>

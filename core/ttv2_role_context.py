@@ -416,6 +416,14 @@ def _nav_for_role(
                         "dot": "#f472b6",
                         "href": _safe_reverse("institute:marketinggroupdashboard_page", args=["students"]),
                     },
+                    {
+                        "label": "Demo performance",
+                        "dot": "#38bdf8",
+                        "href": _safe_reverse(
+                            "institute:marketinggroupdashboard_page", args=["demo_performance"]
+                        ),
+                        "key": "demo_performance",
+                    },
                 ],
             },
             {

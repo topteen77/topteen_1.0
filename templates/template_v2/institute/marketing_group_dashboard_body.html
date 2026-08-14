@@ -36,6 +36,8 @@
     {% include "template_v2/institute/pages/marketing_group_tieup_payments.html" %}
   {% elif (ttv2_page|default('dashboard')) == 'session_report' %}
     {% include "template_v2/institute/pages/institute_session_report_rich.html" %}
+  {% elif (ttv2_page|default('dashboard')) == 'demo_performance' %}
+    {% include "template_v2/institute/pages/marketing_group_demo_performance.html" %}
   {% else %}
     <div class="ttv2-card">
       <div class="card-title text-capitalize">{{ ttv2_page|default('page') }}</div>

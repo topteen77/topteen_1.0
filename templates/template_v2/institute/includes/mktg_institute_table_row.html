@@ -1,0 +1,151 @@
+{# Single institute/group row for marketing institutes table.
+   Expects: ins, _is_group_mode, row_num
+   Optional: _demo_compact — slim columns for demo section (no group/upload/credits/approval)
+#}
+{% set _demo_compact = _demo_compact|default(false) %}
+<tr class="institute-row{% if _demo_compact %} institute-row--demo{% endif %}"
+    data-institute-id="{{ ins.id }}"
+    data-institute-slug="{{ ins.slug if ins.slug is defined else '' }}"
+    data-institute-name="{{ ins.name if ins.name is defined else (ins.group_name if ins.group_name is defined else '-') }}"
+    data-institute-email="{{ ins.created_by.email if ins.created_by is defined and ins.created_by else '-' }}"
+    data-institute-contact="{{ ins.contact_info if ins.contact_info is defined and ins.contact_info else '-' }}"
+    data-institute-address="{{ ins.address if ins.address is defined and ins.address else '-' }}"
+    data-institute-admin="{{ ins.administrator_contact if ins.administrator_contact is defined and ins.administrator_contact else '-' }}"
+    data-institute-students="{{ ins.student_count if ins.student_count else 0 }}"
+    data-institute-credits="{{ ins.credit_counts if ins.credit_counts is defined and ins.credit_counts else 0 }}">
+  <td>{{ row_num }}</td>
+  {% if _is_group_mode %}
+  <td>{{ ins.group_name if ins.group_name else '-' }}</td>
+  {% else %}
+  <td class="ttv2-mktg-cell-name">
+    <a href="{{ url('institute:institute_masterdashboard', args=[ins.slug]) }}">
+      {{ ins.name }}
+    </a>
+    {% if _demo_compact %}
+      <span class="badge bg-warning text-dark ms-1 align-middle" title="Demo institute — seed {{ ins.demo_seed_count|default(0) }}/3">Demo</span>
+    {% endif %}
+  </td>
+  <td class="ttv2-mktg-cell-login-email">
+    {% include "template_v2/institute/includes/mktg_institute_login_email_cell.html" %}
+  </td>
+  {% endif %}
+
+  {% if not _demo_compact %}
+  {% if not _is_group_mode %}
+  <td>
+    {% if ins.institute_group %}
+      {% set _grp_href = request.path ~ '?list_mode=group&institute_group_id=' ~ ins.institute_group.id %}
+      <a href="{{ _grp_href }}" class="text-primary text-decoration-none fw-semibold">{{ ins.institute_group.group_name }}</a>
+    {% else %}
+      <span></span>
+    {% endif %}
+  </td>
+  {% endif %}
+  <td>
+    {% if _is_group_mode %}
+      {% if ins.institute_group_id and ins.institute_count is defined %}
+        {% set _grp_drill_href = request.path ~ '?list_mode=all&institute_group_id=' ~ ins.institute_group_id %}
+        <a href="{{ _grp_drill_href }}" class="text-primary text-decoration-none fw-semibold" title="Show institutes in this group">{{ ins.institute_count }}</a>
+      {% else %}
+        <span class="fw-semibold">{{ ins.institute_count if ins.institute_count is defined else '-' }}</span>
+      {% endif %}
+    {% elif ins.institute_group and ins.group_institute_count %}
+      {% set _grp_cnt_href = request.path ~ '?list_mode=group&institute_group_id=' ~ ins.institute_group.id %}
+      <a href="{{ _grp_cnt_href }}" class="text-primary text-decoration-none fw-semibold">{{ ins.group_institute_count }}</a>
+    {% else %}
+      <span class="text-muted">-</span>
+    {% endif %}
+  </td>
+  {% endif %}
+
+  {% set _mktg_stu_cnt = ins.student_count if ins.student_count else 0 %}
+  <td>
+    {% if _is_group_mode %}
+    <span class="fw-semibold">{{ _mktg_stu_cnt }}</span>
+    {% else %}
+    {% set _mktg_stu_href = url('institute:marketinggroupdashboard_page', args=['students']) ~ '?institute_slug=' ~ (ins.slug|urlencode) %}
+    <a href="{{ _mktg_stu_href }}" class="fw-semibold text-primary text-decoration-none" title="Open students for this school">{{ _mktg_stu_cnt }}</a>
+    {% endif %}
+  </td>
+
+  {% if not _is_group_mode %}
+  <td class="ttv2-mktg-cell-journey">
+    {% if ins.is_demo_institute|default(false) %}
+      {% include "template_v2/institute/includes/mktg_demo_institute_journey_cell.html" %}
+    {% else %}
+      <span class="text-muted">—</span>
+    {% endif %}
+  </td>
+  {% if not _demo_compact %}
+  <td class="ttv2-mktg-cell-upload">
+    {% include "template_v2/institute/includes/mktg_institute_row_upload_buttons.html" %}
+  </td>
+  {% endif %}
+  {% endif %}
+
+  {% if not _demo_compact %}
+  <td>{% if _is_group_mode %}{{ ins.total_credits if ins.total_credits is defined else 0 }}{% else %}{{ ins.credit_counts if ins.credit_counts else 0 }}{% endif %}
+    {% if not _is_group_mode and ins.is_demo_institute|default(false) %}
+      <span class="badge bg-warning text-dark ms-1" title="Demo institute — seed {{ ins.demo_seed_count|default(0) }}/3">Demo</span>
+    {% endif %}
+  </td>
+  {% endif %}
+
+  {% if not _is_group_mode %}
+  <td>
+    <div class="ttv2-mktg-action-bar">
+      <button type="button"
+              class="btn btn-sm btn-link p-0"
+              data-bs-toggle="modal"
+              data-bs-target="#updateInstituteModal{{ ins.id }}"
+              title="Update">
+        <i class='bx bx-edit text-primary'></i>
+      </button>
+      {% if ins.created_by %}
+      <button type="button"
+              class="btn btn-sm btn-link p-0"
+              data-bs-toggle="modal"
+              data-bs-target="#changePasswordModal{{ ins.id }}"
+              title="Change login password">
+        <i class='bx bx-key text-info'></i>
+      </button>
+      {% endif %}
+      {% if not ins.is_system_demo and ((ins.student_count or 0) == 0 or ins.is_demo_institute|default(false)) %}
+      <button type="button"
+              class="btn btn-sm btn-link p-0 institute-hard-delete-btn"
+              data-delete-url="{{ url('institute:instituteharddelete', args=[ins.id]) }}"
+              data-is-demo="{% if ins.is_demo_institute|default(false) %}1{% else %}0{% endif %}"
+              data-student-count="{{ ins.student_count or 0 }}"
+              title="{% if ins.is_demo_institute|default(false) %}Permanently delete demo institute and students{% else %}Permanently delete (no students){% endif %}">
+        <i class='bx bx-trash text-danger'></i>
+      </button>
+      {% endif %}
+      {% include "template_v2/institute/includes/mktg_institute_row_demo_actions.html" %}
+    </div>
+  </td>
+  {% if not _demo_compact %}
+  <td>
+    {% if ins.institute_status == 3 %}
+    <div class="ttv2-mktg-row-pending d-flex flex-wrap align-items-center gap-1">
+      <a href="{{ url('institute:instituteapprove', args=[ins.id]) }}"
+         class="btn btn-sm btn-success text-white">
+        <i class='bx bx-check-circle me-1'></i>Approve
+      </a>
+      <a href="{{ url('institute:institutereject', args=[ins.id]) }}"
+         class="btn btn-sm btn-danger text-white">
+        <i class='bx bx-x-circle me-1'></i>Reject
+      </a>
+    </div>
+    {% elif ins.institute_status == 2 %}
+    <span class="ttv2-mktg-status-pill ttv2-mktg-status-pill--bad">
+      <i class='bx bx-x-circle'></i> Rejected
+    </span>
+    {% else %}
+    <span class="ttv2-mktg-status-pill ttv2-mktg-status-pill--ok">
+      <i class='bx bx-check-circle'></i> Approved
+    </span>
+    {% endif %}
+  </td>
+  {% endif %}
+  {% endif %}
+</tr>

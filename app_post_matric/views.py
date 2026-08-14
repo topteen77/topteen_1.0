@@ -2718,6 +2718,13 @@ def CombinedReport(request, user_id=None):
             target_user = request.user
             route_student_id = int(request.user.id)
 
+        try:
+            from institute.demo_report_view_tracking import maybe_record_demo_student_report_view
+
+            maybe_record_demo_student_report_view(target_user, report_kind="post_matric_combined")
+        except Exception:
+            pass
+
         from .report_cache import get_or_build_combined_report_context
 
         context = get_or_build_combined_report_context(

@@ -233,6 +233,18 @@ class Institute(BaseModel, SlugModel):
             "(max 3)."
         ),
     )
+    marketing_followup_note = models.TextField(
+        blank=True,
+        default="",
+        verbose_name="Marketing follow-up note",
+        help_text=_("Internal note for marketing while tracking this demo institute journey."),
+    )
+    marketing_followup_at = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Next marketing follow-up",
+        help_text=_("Optional next follow-up date for this demo institute."),
+    )
 
     # Seat Capacity fields for streams
     pcm = models.PositiveIntegerField(

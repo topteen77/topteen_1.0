@@ -4,7 +4,8 @@
 {% set _has_search_active = (search_params is defined and (
     search_params.institute|default('') or
     search_params.location|default('') or
-    search_params.status|default('')
+    search_params.status|default('') or
+    search_params.account_type|default('')
   )) %}
         <div class="ttv2-mktg-filters-section mb-4" id="ttv2MktgFiltersSection">
           {# Mobile-only top bar with Filter toggle #}
@@ -111,6 +112,14 @@
                       <option value="pending" {% if search_params is defined and search_params.status == 'pending' %}selected{% endif %}>Pending</option>
                       <option value="approved" {% if search_params is defined and search_params.status == 'approved' %}selected{% endif %}>Approved</option>
                       <option value="rejected" {% if search_params is defined and search_params.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                    </select>
+                  </div>
+                  <div class="ttv2-mktg-filter-field ttv2-mktg-filter-field--narrow">
+                    <label for="account_type_filter" class="form-label">Type</label>
+                    <select name="account_type" id="account_type_filter" class="form-control custom-input">
+                      <option value="" {% if not search_params is defined or not search_params.account_type %}selected{% endif %}>All</option>
+                      <option value="demo" {% if search_params is defined and search_params.account_type == 'demo' %}selected{% endif %}>Demo only</option>
+                      <option value="paid" {% if search_params is defined and search_params.account_type == 'paid' %}selected{% endif %}>Paid only</option>
                     </select>
                   </div>
                   <div class="ttv2-mktg-filter-actions">

@@ -2397,6 +2397,12 @@ class MarketingGroupDashboardView(TemplateView):
             if status_key in status_map:
                 institutes = institutes.filter(institute_status=status_map[status_key])
 
+            account_type = (search_params.get("account_type") or "").strip().lower()
+            if account_type == "demo":
+                institutes = institutes.filter(is_demo_institute=True, is_system_demo=False)
+            elif account_type == "paid":
+                institutes = institutes.filter(is_demo_institute=False)
+
         group_count_sq = (
             Institute.objects.filter(institute_group_id=OuterRef("institute_group_id"))
             .values("institute_group_id")
@@ -2404,13 +2410,14 @@ class MarketingGroupDashboardView(TemplateView):
             .values("c")[:1]
         )
         # Annotate with student count + institute-group institute count.
+        # Latest institutes first (created DESC).
         institutes = institutes.annotate(
             student_count=Count('student_management'),
             group_institute_count=Coalesce(
                 Subquery(group_count_sq, output_field=IntegerField()),
                 Value(0),
             ),
-        ).select_related("institute_group", "created_by")
+        ).select_related("institute_group", "created_by").order_by("-created")
 
         # Get unique locations for dropdown
         locations = institutes.values_list('address', flat=True).distinct()
@@ -2496,6 +2503,77 @@ class MarketingGroupDashboardView(TemplateView):
             "locations": locations  # Add locations for dropdown
         }
 
+    def _fill_institutes_table_ctx(self, ctx, request, search_params, institutes_list, list_mode, per_page=None):
+        """
+        Paginate institutes for the AJAX table.
+
+        When not in group mode and Type=All, demo institutes are shown in a
+        separate section (latest first); paid institutes are paginated below.
+        """
+        from institute.demo_institute_journey import attach_demo_journeys
+        from urllib.parse import urlencode
+
+        if per_page is None:
+            per_page = request.GET.get("per_page", "10")
+        account_type = (search_params.get("account_type") or "").strip().lower()
+        split_demo = list_mode != "group" and account_type not in ("demo", "paid")
+
+        ctx["demo_institutes_list"] = None
+        ctx["institutes_split_demo"] = False
+        ctx["institutes_demo_compact_table"] = account_type == "demo"
+
+        if split_demo and hasattr(institutes_list, "filter"):
+            demo_qs = institutes_list.filter(
+                is_demo_institute=True, is_system_demo=False
+            ).order_by("-created")
+            paid_qs = institutes_list.filter(is_demo_institute=False).order_by("-created")
+            demo_rows = list(demo_qs[:100])
+            attach_demo_journeys(demo_rows)
+            ctx["demo_institutes_list"] = demo_rows
+            ctx["institutes_split_demo"] = True
+            institutes_list = paid_qs
+
+        if per_page == "all":
+            ctx["institutes_paginations"] = None
+            ctx["institutes_list_all"] = list(institutes_list)
+            attach_demo_journeys(ctx["institutes_list_all"])
+        else:
+            try:
+                per_page_int = int(per_page)
+                if per_page_int not in [10, 100]:
+                    per_page_int = 10
+            except (ValueError, TypeError):
+                per_page_int = 10
+
+            pages = Paginator(institutes_list, per_page_int)
+            page_number = request.GET.get("page", 1)
+            try:
+                ctx["institutes_paginations"] = pages.get_page(page_number)
+            except Exception:
+                ctx["institutes_paginations"] = pages.get_page(1)
+            attach_demo_journeys(ctx["institutes_paginations"].object_list)
+            ctx["institutes_list_all"] = None
+
+        ctx["search_params"] = search_params
+        ctx["institutes_is_group_mode"] = list_mode == "group"
+        ctx["per_page"] = per_page
+        _qs = {}
+        for _k in (
+            "institute",
+            "location",
+            "location_search",
+            "institute_group_id",
+            "status",
+            "list_mode",
+            "account_type",
+        ):
+            _v = (search_params.get(_k) or "").strip()
+            if _v and not (_k == "list_mode" and _v == "all"):
+                _qs[_k] = _v
+        if per_page:
+            _qs["per_page"] = str(per_page)
+        ctx["institute_table_query_string"] = urlencode(_qs)
+
     def update_institute_streams(request, institutes):
         # Ensure that the user is allowed to update this institute
         
@@ -2515,6 +2593,10 @@ class MarketingGroupDashboardView(TemplateView):
         _status = _raw_status if _raw_status in ('pending', 'approved', 'rejected', '') else ''
         _raw_list_mode = (request.GET.get('list_mode') or '').strip().lower()
         _list_mode = _raw_list_mode if _raw_list_mode in ('all', 'direct', 'group') else 'all'
+        _raw_account_type = (request.GET.get('account_type') or '').strip().lower()
+        _account_type = _raw_account_type if _raw_account_type in ('', 'all', 'demo', 'paid') else ''
+        if _account_type == 'all':
+            _account_type = ''
         search_params = {
             'institute': request.GET.get('institute', '').strip(),
             'location': request.GET.get('location', '').strip(),
@@ -2522,6 +2604,7 @@ class MarketingGroupDashboardView(TemplateView):
             'institute_group_id': request.GET.get('institute_group_id', '').strip(),
             'status': _status,
             'list_mode': _list_mode,
+            'account_type': _account_type,
         }
         
         # Check what data is being requested
@@ -2660,43 +2743,10 @@ class MarketingGroupDashboardView(TemplateView):
             info = self.get_institute_group_info(group_admin, search_params, load_full_data=False)
             list_mode = (search_params.get('list_mode') or '').strip().lower()
             institutes_list = info['group_rows'] if list_mode == 'group' else info['institutes']
-            
-            # Get per_page parameter from request, default to 10
             per_page = request.GET.get('per_page', '10')
-            
-            # Handle pagination
-            if per_page == 'all':
-                # Show all records without pagination
-                ctx['institutes_paginations'] = None
-                ctx['institutes_list_all'] = list(institutes_list)
-            else:
-                try:
-                    per_page_int = int(per_page)
-                    # Limit to valid options: 10, 100
-                    if per_page_int not in [10, 100]:
-                        per_page_int = 10
-                except (ValueError, TypeError):
-                    per_page_int = 10
-                
-                pages = Paginator(institutes_list, per_page_int)
-                page_number = request.GET.get('page', 1)
-                try:
-                    ctx['institutes_paginations'] = pages.get_page(page_number)
-                except:
-                    ctx['institutes_paginations'] = pages.get_page(1)
-            
-            ctx['search_params'] = search_params
-            ctx['institutes_is_group_mode'] = (list_mode == 'group')
-            ctx['per_page'] = per_page
-            from urllib.parse import urlencode
-            _qs = {}
-            for _k in ('institute', 'location', 'location_search', 'institute_group_id', 'status', 'list_mode'):
-                _v = (search_params.get(_k) or '').strip()
-                if _v and not (_k == 'list_mode' and _v == 'all'):
-                    _qs[_k] = _v
-            if per_page:
-                _qs['per_page'] = str(per_page)
-            ctx['institute_table_query_string'] = urlencode(_qs)
+            self._fill_institutes_table_ctx(
+                ctx, request, search_params, institutes_list, list_mode, per_page=per_page
+            )
         elif data_type == 'stats':
             # AJAX request for statistics
             group_admin = request.user
@@ -2794,24 +2844,18 @@ class MarketingGroupDashboardView(TemplateView):
             info = self.get_institute_group_info(group_admin, search_params, load_full_data=False)
             list_mode = (search_params.get('list_mode') or '').strip().lower()
             institutes_list = info['group_rows'] if list_mode == 'group' else info['institutes']
-            pages = Paginator(institutes_list, 10)
-            page_number = request.GET.get('page', 1)
-            ctx['institutes_paginations'] = pages.get_page(page_number)
-            ctx['search_params'] = search_params
-            ctx['institutes_is_group_mode'] = (list_mode == 'group')
-            ctx['per_page'] = '10'
-            from urllib.parse import urlencode
-            _qs = {}
-            for _k in ('institute', 'location', 'location_search', 'institute_group_id', 'status', 'list_mode'):
-                _v = (search_params.get(_k) or '').strip()
-                if _v and not (_k == 'list_mode' and _v == 'all'):
-                    _qs[_k] = _v
-            _qs['per_page'] = '10'
-            ctx['institute_table_query_string'] = urlencode(_qs)
+            self._fill_institutes_table_ctx(
+                ctx, request, search_params, institutes_list, list_mode, per_page='10'
+            )
         # v2 shell: separate page mode (dashboard/students/assessments/...) from URL
         ctx["ttv2_page"] = (kwargs.get("page") or "dashboard").strip().lower()
         if ctx["ttv2_page"] == "session_report":
             _ttv2_fill_marketing_group_session_report_ctx(request, ctx)
+        if ctx["ttv2_page"] in ("demo_performance", "journey_tracker"):
+            from institute.demo_institute_journey import build_demo_marketing_performance
+
+            ctx["ttv2_page"] = "demo_performance"
+            ctx["mktg_demo_performance"] = build_demo_marketing_performance(request.user)
         if ctx["ttv2_page"] == "students":
             sm_scope = scoped_student_management_for_dashboard(request)
             ctx["total_students_count"] = sm_scope.count()
@@ -3204,6 +3248,8 @@ class InstituteMarketingProfileEditView(TemplateView):
             or request.POST.getlist("institute_package_codes")
             or account_type_changed
             or (want_demo and (demo_n10 or demo_n12))
+            or "marketing_followup_note" in request.POST
+            or "marketing_followup_at" in request.POST
         )
         extra_messages = []
         if profile_changed:
@@ -3221,6 +3267,22 @@ class InstituteMarketingProfileEditView(TemplateView):
                 ins.institute_group = institute_group
             if ins_logo:
                 ins.logo = ins_logo
+
+            if "marketing_followup_note" in request.POST:
+                ins.marketing_followup_note = (
+                    request.POST.get("marketing_followup_note") or ""
+                ).strip()
+            if "marketing_followup_at" in request.POST:
+                raw_fu = (request.POST.get("marketing_followup_at") or "").strip()
+                if not raw_fu:
+                    ins.marketing_followup_at = None
+                else:
+                    from datetime import datetime as _dt
+
+                    try:
+                        ins.marketing_followup_at = _dt.strptime(raw_fu, "%Y-%m-%d").date()
+                    except ValueError:
+                        pass
 
             # Demo → Paid: purge demo students and attach paid credits from form.
             if was_demo and not want_demo:

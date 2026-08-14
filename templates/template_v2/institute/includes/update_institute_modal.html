@@ -100,6 +100,26 @@
                 </div>
               </div>
             </div>
+            {% if ins.is_demo_institute %}
+            <div class="col-12">
+              <div class="border rounded-3 p-3 bg-light-subtle">
+                <p class="fw-semibold mb-1">Marketing follow-up</p>
+                <p class="small text-muted mb-2">Track the demo school journey and set your next call/note.</p>
+                <div class="row g-2">
+                  <div class="col-md-4">
+                    <label class="form-label">Next follow-up date</label>
+                    <input type="date" class="form-control" name="marketing_followup_at"
+                           value="{{ ins.marketing_followup_at.isoformat() if ins.marketing_followup_at else '' }}">
+                  </div>
+                  <div class="col-md-8">
+                    <label class="form-label">Follow-up note</label>
+                    <textarea class="form-control" name="marketing_followup_note" rows="2"
+                              placeholder="e.g. Called principal — will try demo login tomorrow">{{ ins.marketing_followup_note|default('') }}</textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endif %}
             <div class="col-12" data-ttv2-paid-only-section>
               <div class="row g-3">
                 <div class="col-12">
