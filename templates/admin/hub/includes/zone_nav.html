@@ -16,6 +16,12 @@
     {% trans 'Operations' %}
     <span class="tt-admin-hub-nav__count">{{ hub_operations_count }}</span>
   </a>
+  <a href="{% url 'admin:hub_education_loan' %}"
+     class="tt-admin-hub-nav__item tt-admin-hub-nav__item--loan{% if hub_zone == 'education_loan' %} is-active{% endif %}">
+    <span class="tt-admin-hub-nav__icon" aria-hidden="true">₹</span>
+    {% trans 'Education Loan' %}
+    <span class="tt-admin-hub-nav__count">{{ hub_education_loan_count }}</span>
+  </a>
   {% if hub_sibling %}
   <a href="{{ hub_sibling.url }}" class="tt-admin-hub-nav__sibling">
     {% blocktrans with label=hub_sibling.label count=hub_sibling.count %}Go to {{ label }} ({{ count }}) →{% endblocktrans %}

@@ -1,0 +1,517 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}
+{{ college_name }} | TopTeen
+{% endblock %}
+
+{% block description_content %}
+{{ college_name }}{% if college_location %} - {{ college_location }}{% endif %}. Explore admission, courses, cut-off, placement and more.
+{% endblock %}
+
+{% block bodyclass %}no-scrollbar overflow-x-hidden{% endblock %}
+
+{% block content %}
+<section class="college-hero pt-md-18 pt-14 pb-4">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12 mb-3">
+        {% include 'template20/includes/breadcrumb.html' %}
+      </div>
+
+      <div class="col-lg-8">
+        {% set words = college_name.split() %}
+        {% set initials = ((words[0][0] if words else 'C') ~ (words[1][0] if words|length > 1 else ''))|upper %}
+        <div class="college-header indian-detail-header p-4 mb-4">
+          <div class="d-flex align-items-start gap-3">
+            <div class="indian-detail-initials" aria-hidden="true">{{ initials }}</div>
+            <div class="flex-grow-1">
+              <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                <h1 class="college-title mb-2 h4">{{ college_name }}</h1>
+                <button type="button"
+                        class="btn btn-sm indian-detail-shortlist {% if is_indian_shortlisted %}bookmarked{% endif %}"
+                        id="indianDetailShortlist"
+                        data-college-id="{{ college_id }}"
+                        data-name="{{ college_name|e }}"
+                        data-city="{{ college_city or '' }}"
+                        data-state="{{ college_state or '' }}"
+                        data-type="{{ college_type or '' }}"
+                        data-fees="{{ (college_fees|join(', ') if college_fees else '')|e }}">
+                  <i class='bx {% if is_indian_shortlisted %}bxs-bookmark{% else %}bx-bookmark{% endif %}'></i>
+                  <span>{% if is_indian_shortlisted %}Shortlisted{% else %}Shortlist{% endif %}</span>
+                </button>
+              </div>
+              {% if college_location %}
+              <div class="text-muted mb-2"><i class='bx bx-map-pin'></i> {{ college_location }}</div>
+              {% endif %}
+              <div class="d-flex flex-wrap gap-2">
+                {% if college_type %}
+                <span class="indian-chip">{{ college_type }}</span>
+                {% endif %}
+                {% for fee in college_fees %}
+                <span class="indian-fee">{{ fee }}</span>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="college-tabs mb-4">
+          <ul class="nav nav-tabs flex-nowrap">
+            {% for tab in tabs %}
+            <li class="nav-item">
+              <a class="nav-link {% if tab.active %}active{% endif %}"
+                 href="{{ url('colleges:indian_collegedetail_tab', args=[college_id, tab.path]) }}">
+                {{ tab.label }}
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <div class="college-tab-content bg-white rounded shadow-sm p-4 mb-4">
+          {% if api_error %}
+          <div class="alert alert-warning mb-0">{{ api_error }}</div>
+          {% elif content_unavailable %}
+            <h2 class="h5 mb-3">Overview</h2>
+            <p class="text-muted mb-3">{{ tab_error }}</p>
+            <a class="btn btn-sm btn-outline-primary" href="{{ url('colleges:college') }}">
+              ← Back to college search
+            </a>
+          {% elif is_courses_tab %}
+            <h2 class="h5 mb-3">Courses and Fees</h2>
+            {% if tab_error and not streams %}
+              <p class="text-muted mb-0">{{ tab_error }}</p>
+            {% else %}
+              {% if streams %}
+              <div class="mb-4">
+                <label class="form-label fw-semibold">Stream</label>
+                <div class="d-flex flex-wrap gap-2">
+                  {% for stream in streams %}
+                  <a class="btn btn-sm {% if stream.slug == selected_stream %}btn-primary{% else %}btn-outline-primary{% endif %}"
+                     href="{{ url('colleges:indian_collegedetail_tab', args=[college_id, 'courses']) }}?stream={{ stream.slug }}">
+                    {{ stream.name }}{% if stream.course_count %} ({{ stream.course_count }}){% endif %}
+                  </a>
+                  {% endfor %}
+                </div>
+              </div>
+              {% endif %}
+
+              {% if courses %}
+              <div class="table-responsive">
+                <table class="table table-bordered align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Course</th>
+                      <th>Degree Level</th>
+                      <th>Stream</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for item in courses %}
+                    {% set course_name = item.name or (item.course.name if item.course else 'Course') %}
+                    {% set course_id = (item.course.id if item.course and item.course.id else item.id) %}
+                    {% set course_slug = item.course.slug if item.course else '' %}
+                    {% set degree_level = item.course.degree_level if item.course else '' %}
+                    {% set stream_name = item.course.stream_name if item.course else '' %}
+                    {% set stream_slug = item.course.stream_slug if item.course else (selected_stream or '') %}
+                    {% set is_highlighted = highlight_course_slug and course_slug == highlight_course_slug %}
+                    <tr class="{% if is_highlighted %}indian-course-row-active{% endif %}"
+                        {% if is_highlighted %}id="indian-active-course"{% endif %}>
+                      <td>
+                        {% if course_id %}
+                        <a class="indian-course-link{% if is_highlighted %} is-active{% endif %}"
+                           href="{{ url('colleges:indian_course_detail', args=[course_id]) }}?name={{ course_name|urlencode }}&degree={{ degree_level|urlencode }}&stream={{ stream_name|urlencode }}&stream_slug={{ stream_slug|urlencode }}&course_slug={{ course_slug|urlencode }}&from_college={{ college_id }}">
+                          {{ course_name }}
+                        </a>
+                        {% else %}
+                        {{ course_name }}
+                        {% endif %}
+                      </td>
+                      <td>{{ degree_level or '—' }}</td>
+                      <td>{{ stream_name or '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              {% elif tab_error %}
+              <p class="text-muted mb-0">{{ tab_error }}</p>
+              {% else %}
+              <p class="text-muted mb-0">No courses found for this stream.</p>
+              {% endif %}
+            {% endif %}
+          {% elif tab_error %}
+            <h2 class="h5 mb-3">{{ active_tab_label }}</h2>
+            <p class="text-muted mb-0">{{ tab_error }}</p>
+          {% elif tab_html %}
+            <div class="indian-college-markdown">
+              {{ tab_html|safe }}
+            </div>
+          {% else %}
+            <h2 class="h5 mb-3">{{ active_tab_label }}</h2>
+            <p class="text-muted mb-0">No content available for this section yet.</p>
+          {% endif %}
+        </div>
+
+        <a href="{{ url('colleges:college') }}" id="indianBackToColleges" class="btn btn-outline-primary mb-5">
+          <i class='bx bx-arrow-back'></i> <span>Back to Colleges</span>
+        </a>
+      </div>
+
+      <div class="col-lg-4">
+        <div id="indianFromSearchBlock" class="p-3 bg-white rounded shadow-sm mb-4" hidden>
+          <h3 class="h6 mb-3">From your search</h3>
+          <div id="indianFromSearchList" class="indian-from-search-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block additionalcss %}
+<style>
+  .indian-detail-header {
+    background: linear-gradient(160deg, #ffffff 0%, #f8f5ff 100%);
+    border: 1px solid #ebe4f7;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(88, 28, 135, 0.06);
+    position: relative;
+    overflow: hidden;
+  }
+  .indian-detail-header::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, #7c3aed, #a78bfa);
+  }
+  .indian-detail-initials {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: #5b21b6;
+    background: linear-gradient(145deg, #ede9fe, #ddd6fe);
+    border: 1px solid #ddd6fe;
+  }
+  .indian-detail-shortlist {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1px solid #ddd6fe;
+    background: #fff;
+    color: #5b21b6;
+    border-radius: 999px;
+    padding: 0.35rem 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .indian-detail-shortlist.bookmarked {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #047857;
+  }
+  .indian-chip {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #5b21b6;
+    background: #f3e8ff;
+    border: 1px solid #e9d5ff;
+    border-radius: 999px;
+    padding: 0.25rem 0.7rem;
+  }
+  .indian-fee {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #0f766e;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    border-radius: 8px;
+    padding: 0.25rem 0.6rem;
+  }
+  .indian-course-link {
+    color: #6d28d9;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .indian-course-link:hover {
+    color: #5b21b6;
+    text-decoration: underline;
+  }
+  .college-tabs .nav-tabs {
+    border-bottom: 1px solid #e5e7eb;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .college-tabs .nav-tabs::-webkit-scrollbar { display: none; }
+  .college-tabs .nav-link {
+    color: #4b5563;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-weight: 500;
+    padding: 0.75rem 1rem;
+  }
+  .college-tabs .nav-link.active {
+    color: #7c3aed;
+    border-bottom-color: #7c3aed;
+    background: transparent;
+  }
+  .indian-from-search-item {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid #eceff5;
+    border-radius: 12px;
+    padding: 0.75rem 0.85rem;
+    margin-bottom: 0.65rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .indian-from-search-item:last-child { margin-bottom: 0; }
+  .indian-from-search-item:hover {
+    border-color: #ddd6fe;
+    box-shadow: 0 4px 12px rgba(88, 28, 135, 0.06);
+  }
+  .indian-from-search-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.2rem;
+  }
+  .indian-from-search-meta {
+    font-size: 0.78rem;
+    color: #6b7280;
+  }
+  .indian-college-markdown h1,
+  .indian-college-markdown h2,
+  .indian-college-markdown h3 {
+    margin-top: 1.25rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+  }
+  .indian-college-markdown h2 { font-size: 1.25rem; }
+  .indian-college-markdown h3 { font-size: 1.1rem; }
+  .indian-college-markdown p { margin-bottom: 0.85rem; color: #374151; line-height: 1.65; }
+  .indian-college-markdown ul,
+  .indian-college-markdown ol { padding-left: 1.25rem; margin-bottom: 0.85rem; }
+  .indian-college-markdown table {
+    width: 100%;
+    margin-bottom: 1rem;
+    border-collapse: collapse;
+  }
+  .indian-college-markdown th,
+  .indian-college-markdown td {
+    border: 1px solid #e5e7eb;
+    padding: 0.5rem 0.75rem;
+  }
+  .indian-college-markdown .indian-md-table-wrap,
+  .indian-college-markdown .table-responsive {
+    margin-bottom: 1rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .indian-college-markdown li { margin-bottom: 0.35rem; line-height: 1.6; }
+  .indian-college-markdown li > p { margin-bottom: 0.25rem; }
+  .indian-course-row-active {
+    background: #f5f3ff !important;
+  }
+  .indian-course-row-active td {
+    border-color: #ddd6fe;
+  }
+  .indian-course-link.is-active {
+    color: #5b21b6;
+    font-weight: 700;
+  }
+</style>
+{% endblock %}
+
+{% block additionaljs %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+(function() {
+  var SNAPSHOT_KEY = 'indian_college_search_snapshot';
+  var currentId = String({{ college_id }});
+
+  var activeCourse = document.getElementById('indian-active-course');
+  if (activeCourse && activeCourse.scrollIntoView) {
+    setTimeout(function() {
+      activeCourse.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 120);
+  }
+
+  function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      document.cookie.split(';').forEach(function(cookie) {
+        cookie = cookie.trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        }
+      });
+    }
+    return cookieValue;
+  }
+
+  function readSnapshot() {
+    try {
+      var raw = sessionStorage.getItem(SNAPSHOT_KEY);
+      if (!raw) return null;
+      var data = JSON.parse(raw);
+      if (!data || !Array.isArray(data.results)) return null;
+      return data;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function escapeHtml(s) {
+    return String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  var snapshot = readSnapshot();
+  var backBtn = document.getElementById('indianBackToColleges');
+  if (snapshot && snapshot.listUrl && backBtn) {
+    var href = snapshot.listUrl;
+    if (snapshot.query) {
+      href += (href.indexOf('?') === -1 ? '?' : '&') + snapshot.query;
+    }
+    backBtn.setAttribute('href', href);
+    var label = backBtn.querySelector('span');
+    if (label) label.textContent = 'Back to search results';
+  }
+
+  var block = document.getElementById('indianFromSearchBlock');
+  var list = document.getElementById('indianFromSearchList');
+  if (snapshot && block && list) {
+    var others = snapshot.results.filter(function(item) {
+      return String(item.id) !== currentId;
+    }).slice(0, 8);
+    if (others.length) {
+      list.innerHTML = others.map(function(item) {
+        var loc = ['India', item.state, item.city].filter(Boolean).join(', ');
+        var meta = [item.type, item.fees].filter(Boolean).join(' · ');
+        return '<a class="indian-from-search-item" href="/colleges/institute/' + encodeURIComponent(item.id) + '/">' +
+          '<div class="indian-from-search-name">' + escapeHtml(item.name) + '</div>' +
+          '<div class="indian-from-search-meta">' + escapeHtml(loc) +
+          (meta ? '<br>' + escapeHtml(meta) : '') +
+          '</div></a>';
+      }).join('');
+      block.hidden = false;
+    }
+  }
+
+  var shortlistBtn = document.getElementById('indianDetailShortlist');
+  if (shortlistBtn) {
+    shortlistBtn.addEventListener('click', function() {
+      var isAuthenticated = {{ 'true' if request.user.is_authenticated else 'false' }};
+      if (!isAuthenticated) {
+        if (window.Swal) {
+          Swal.fire({
+            title: 'Login Required',
+            text: 'You must be logged in to shortlist colleges. Would you like to login?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#667eea',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, Login',
+            cancelButtonText: 'Cancel'
+          }).then(function(result) {
+            if (result.isConfirmed) {
+              var trigger = document.querySelector('.student-login-popup-trigger, #header-signin-btn');
+              if (trigger) trigger.click();
+              else window.location.href = '/user/login/';
+            }
+          });
+        }
+        return;
+      }
+      var btn = shortlistBtn;
+      var csrf = getCookie('csrftoken');
+      var body = new URLSearchParams({
+        college_id: btn.getAttribute('data-college-id') || '',
+        name: btn.getAttribute('data-name') || '',
+        city_name: btn.getAttribute('data-city') || '',
+        state_name: btn.getAttribute('data-state') || '',
+        college_type: btn.getAttribute('data-type') || '',
+        avg_fees: btn.getAttribute('data-fees') || '',
+        csrfmiddlewaretoken: csrf || ''
+      });
+      btn.disabled = true;
+      fetch('{{ url("colleges:shortlist_indian_college") }}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': csrf || '',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: body.toString()
+      })
+      .then(function(r) {
+        if (r.status === 401 || r.status === 403) {
+          if (window.Swal) {
+            Swal.fire({
+              title: 'Login Required',
+              text: 'You must be logged in to shortlist colleges. Would you like to login?',
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonColor: '#667eea',
+              cancelButtonColor: '#d33',
+              confirmButtonText: 'Yes, Login',
+              cancelButtonText: 'Cancel'
+            }).then(function(result) {
+              if (result.isConfirmed) {
+                var trigger = document.querySelector('.student-login-popup-trigger, #header-signin-btn');
+                if (trigger) trigger.click();
+                else window.location.href = '/user/login/';
+              }
+            });
+          }
+          return null;
+        }
+        return r.json();
+      })
+      .then(function(data) {
+        if (!data) return;
+        if (!data.success) throw new Error('fail');
+        var on = !!data.shortlisted;
+        btn.classList.toggle('bookmarked', on);
+        var icon = btn.querySelector('i');
+        var span = btn.querySelector('span');
+        if (icon) icon.className = on ? 'bx bxs-bookmark' : 'bx bx-bookmark';
+        if (span) span.textContent = on ? 'Shortlisted' : 'Shortlist';
+        if (window.Swal) {
+          Swal.fire({
+            title: on ? 'College shortlisted' : 'Removed from shortlist',
+            icon: 'success', position: 'top-end', showConfirmButton: false, timer: 2000, toast: true
+          });
+        }
+      })
+      .catch(function() {
+        if (window.Swal) {
+          Swal.fire({
+            title: 'Error updating shortlist',
+            icon: 'error', position: 'top-end', showConfirmButton: false, timer: 2000, toast: true
+          });
+        }
+      })
+      .finally(function() { btn.disabled = false; });
+    });
+  }
+})();
+</script>
+{% endblock %}

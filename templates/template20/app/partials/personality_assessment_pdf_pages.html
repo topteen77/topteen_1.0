@@ -1,0 +1,160 @@
+{# Personality Part-1 / Interpretation / Graph pages — matches test1_report_pdf.html #}
+<div class="chapterPage personality-page">
+  <div class="part-badge p-badge-1">Part -1</div>
+  <h1 class="page-title">Personality Assessment Report</h1>
+  <p class="page-intro">This report is based on the <strong style="color: #2C2A9E;">RIASEC</strong> model, developed by John Holland, which categorizes career interests into six distinct types: <strong style="color: #2C2A9E;">Realistic, Investigative, Artistic, Social, Enterprising, and Conventional</strong>. By identifying your dominant interest types, you can better understand your career preferences and suggest suitable career paths that align with your strengths and passions.</p>
+  <div class="section-subtitle">Holland’s Code description</div>
+  <div class="riasec-icons">
+    <img src="{{ static('images/riasec-ig.png') }}" alt="RIASEC codes" />
+  </div>
+
+  <div class="holland-table-wrap">
+    <table class="holland-table">
+      <thead>
+        <tr>
+          <th>Holland Code</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="code-cell">
+            <img src="{{ static('images/r.png') }}" alt="R" />
+            <span class="code-name r">Realistic</span>
+          </td>
+          <td class="desc-cell">Individuals with Realistic interests prefer hands-on activities and practical tasks. They enjoy working with tools, machines, or animals &amp; often excel in environments that require physical activity &amp; problem-solving. Careers that suit Realistic types include engineering, construction, agriculture, and skilled trades.</td>
+        </tr>
+        <tr>
+          <td class="code-cell">
+            <img src="{{ static('images/i.png') }}" alt="I" />
+            <span class="code-name i">Investigative</span>
+          </td>
+          <td class="desc-cell">Investigative individuals are curious and analytical, often drawn to research and intellectual challenges. They enjoy exploring ideas, conducting experiments, and solving complex problems. Suitable careers include those in science, medicine, technology, and academia, where critical thinking and data analysis are paramount.</td>
+        </tr>
+        <tr>
+          <td class="code-cell">
+            <img src="{{ static('images/a.png') }}" alt="A" />
+            <span class="code-name a">Artistic</span>
+          </td>
+          <td class="desc-cell">Artistic individuals thrive in creative and expressive environments. They enjoy activities that involve art, music, writing, and design, often seeking opportunities to innovate and express themselves. Careers in the arts, entertainment, fashion, and media are ideal for Artistic types, as they allow for personal expression and creativity.</td>
+        </tr>
+        <tr>
+          <td class="code-cell">
+            <img src="{{ static('images/s.png') }}" alt="S" />
+            <span class="code-name s">Social</span>
+          </td>
+          <td class="desc-cell">Social individuals are empathetic and enjoy helping others. They excel in roles that involve teaching, counseling, and providing support. Careers in education, healthcare, social work, and human resources are well-suited for Social types, where they can make a positive impact on people's lives.</td>
+        </tr>
+        <tr>
+          <td class="code-cell">
+            <img src="{{ static('images/e.png') }}" alt="E" />
+            <span class="code-name e">Enterprising</span>
+          </td>
+          <td class="desc-cell">Enterprising individuals are natural leaders and persuaders. They enjoy activities that involve leading teams, making decisions, and taking risks. They often thrive in dynamic environments where they can influence others and achieve goals. Careers in business, management, sales, and entrepreneurship are ideal for Enterprising types, who are driven by ambition and leadership opportunities.</td>
+        </tr>
+        <tr>
+          <td class="code-cell">
+            <img src="{{ static('images/c.png') }}" alt="C" />
+            <span class="code-name c">Conventional</span>
+          </td>
+          <td class="desc-cell">Conventional individuals prefer structured and orderly tasks. They excel in roles that involve organization, data management, and attention to detail. Careers in accounting, administration, finance, and logistics suit Conventional types, where precision and reliability is the key.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="chapterPage personality-interpretation-page interp-page">
+  <div class="interp-banner">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-4 0-8 2-8 4v2h16v-2c0-2-4-4-8-4z" fill="#fff"/>
+      <circle cx="17.5" cy="17.5" r="3.2" stroke="#fff" stroke-width="1.6" fill="none"/>
+      <path d="M19.7 19.7L22 22" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+    Interpretation &amp; Recommendations
+  </div>
+  <p class="interp-prompt">Based on your test results, your strongest areas of interest are:</p>
+
+  <div class="interp-code-pill">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="12" cy="12" r="8" stroke="#fff" stroke-width="1.8"/>
+      <circle cx="12" cy="12" r="4.5" stroke="#fff" stroke-width="1.5"/>
+      <circle cx="12" cy="12" r="1.5" fill="#fff"/>
+      <path d="M12 3v2M12 19v2M3 12h2M19 12h2" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>
+    </svg>
+    {{ top_category.fullname if top_category and top_category.fullname else 'N/A' }}
+  </div>
+
+  {% set _score_cats = top_categories if top_categories else (personality_data.top_categories if personality_data and personality_data.top_categories else none) %}
+  {% if _score_cats %}
+  <div class="interp-score-cards">
+    {% for result in _score_cats %}
+    {% set pct = (result.score|replace('%', '')|float)|round|int if result.score else 0 %}
+    <div class="interp-score-card">
+      <div class="interp-score-icon">
+        <img src="{{ static('images_new/new_report/target-line 2.png') }}" alt="Career" />
+      </div>
+      <p class="interp-score-pct">{{ pct }}%</p>
+      <p class="interp-score-name">{{ result.category if result.category else 'N/A' }}</p>
+      <div class="interp-progress">
+        <div class="interp-progress-fill" style="width: {{ pct if pct <= 100 else 100 }}%;"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% include 'template20/app/partials/riasec_career_alignment_block.html' %}
+</div>
+
+<div class="chapterPage report-graph-page">
+  <div class="graph-frame">
+    {% include 'template20/app/partials/riasec_personality_graph_pdf.html' %}
+  </div>
+
+  {% if streamsubject %}
+  <table class="stream-result-cards" cellspacing="0" cellpadding="0">
+    <tr>
+      {% for stream, subject in streamsubject %}
+      <td>
+        <div class="stream-result-card {% if loop.index0 % 2 == 0 %}accent-purple{% else %}accent-teal{% endif %}">
+          <div class="stream-result-inner">
+            <div class="stream-result-icon">
+              <div class="stream-result-icon-circle">
+                <img src="{{ static('images/pcm-icon.png') }}" alt="" />
+              </div>
+            </div>
+            <div class="stream-result-text">
+              <p class="stream-result-code">{{ stream }}</p>
+              <p class="stream-result-name">{{ subject }}</p>
+            </div>
+          </div>
+        </div>
+      </td>
+      {% endfor %}
+    </tr>
+  </table>
+  {% endif %}
+
+  {% if stream_career_sections %}
+    {% for section in stream_career_sections %}
+    <div class="pathways-panel">
+      <div class="pathways-badge">{{ section.title }}</div>
+      <ul class="pathways-list">
+        {% for value in section.careers %}
+        <li>{{ value }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endfor %}
+  {% elif courseName %}
+    <div class="pathways-panel">
+      <div class="pathways-badge">Career Pathways</div>
+      <ul class="pathways-list">
+        {% for value in courseName %}
+        <li>{{ value }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+</div>

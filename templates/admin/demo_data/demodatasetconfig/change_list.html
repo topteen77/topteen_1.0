@@ -30,53 +30,54 @@
 </div>
 
 {# Background job status #}
-<div class="module" style="margin-bottom: 1.5em; padding: 1em; border-left: 4px solid {% if job_in_progress %}#f0ad4e{% elif last_job_status == 'failed' %}#d9534f{% elif last_job_status == 'success' %}#5cb85c{% else %}#777{% endif %}; background: #f8f9fa;">
+<div id="demo-job-status-panel" class="module" style="margin-bottom: 1.5em; padding: 1em; border-left: 4px solid {% if job_in_progress %}#f0ad4e{% elif last_job_status == 'failed' %}#d9534f{% elif last_job_status == 'success' %}#5cb85c{% else %}#777{% endif %}; background: #f8f9fa;"
+     data-in-progress="{% if job_in_progress %}1{% else %}0{% endif %}"
+     data-status="{{ last_job_status|default:'' }}">
   <h2 style="margin-top: 0;">Background job status</h2>
-  <p style="margin: 0 0 0.35em 0;"><strong>Status:</strong> {{ last_job_status_label|default:"Idle" }}{% if last_job_action_label and last_job_action_label != "—" %} — {{ last_job_action_label }}{% endif %}</p>
-  {% if last_job_message %}<p style="margin: 0 0 0.35em 0; color: #333;">{{ last_job_message }}</p>{% endif %}
-  {% if last_job_task_id %}<p style="margin: 0 0 0.35em 0; color: #666; font-size: 12px;">Celery task id: <code>{{ last_job_task_id }}</code></p>{% endif %}
-  {% if last_job_started_at %}<p style="margin: 0; color: #666; font-size: 12px;">Started: {{ last_job_started_at }}{% if last_job_finished_at %} · Finished: {{ last_job_finished_at }}{% endif %}</p>{% endif %}
+  <p style="margin: 0 0 0.35em 0;"><strong>Status:</strong> <span id="demo-job-status-text">{{ last_job_status_label|default:"Idle" }}{% if last_job_action_label and last_job_action_label != "—" %} — {{ last_job_action_label }}{% endif %}</span></p>
+  <p id="demo-job-message" style="margin: 0 0 0.35em 0; color: #333;{% if not last_job_message %} display:none;{% endif %}">{{ last_job_message }}</p>
+  <p id="demo-job-task-id" style="margin: 0 0 0.35em 0; color: #666; font-size: 12px;{% if not last_job_task_id %} display:none;{% endif %}">Celery task id: <code>{{ last_job_task_id }}</code></p>
+  <p id="demo-job-times" style="margin: 0; color: #666; font-size: 12px;{% if not last_job_started_at %} display:none;{% endif %}">Started: <span id="demo-job-started">{{ last_job_started_at }}</span><span id="demo-job-finished-wrap"{% if not last_job_finished_at %} style="display:none;"{% endif %}> · Finished: <span id="demo-job-finished">{{ last_job_finished_at }}</span></span></p>
   <p style="margin: 0.5em 0 0 0; color: #333; font-size: 13px;">
-    <strong>Live demo students (from last successful setup):</strong> {{ live_demo_student_count|default:0 }}
+    <strong>Live demo students (from last successful setup):</strong> <span id="demo-live-student-count">{{ live_demo_student_count|default:0 }}</span>
+    <span id="demo-live-student-hint">
     {% if live_demo_student_count %}
     — still present until Remove finishes with <em>Success</em>.
     {% else %}
     — none tracked (remove succeeded, or never set up).
     {% endif %}
+    </span>
   </p>
-  {% if job_in_progress %}
-  <p style="margin: 0.75em 0 0 0;">
+  <p id="demo-job-running-actions" style="margin: 0.75em 0 0 0;{% if not job_in_progress %} display:none;{% endif %}">
     <a href="{% url 'admin:demo_data_demodatasetconfig_changelist' %}" class="button">Refresh status</a>
     <a href="{% url 'admin:demo_data_clear_job' %}" class="button" style="margin-left: 0.5em;" onclick="return confirm('Clear job status marker only? This does NOT delete demo students. Use only if Celery shows 0 open tasks.');">Clear stuck job status</a>
-    <span style="color: #856404; margin-left: 0.5em;">Job still running — refresh until Success / Failed.</span>
+    <span style="color: #856404; margin-left: 0.5em;">Auto-refreshing every few seconds until Success / Failed…</span>
   </p>
-  {% endif %}
 </div>
 
 {# Live Celery tasks (same inspect as Service monitor) #}
-<div class="module" style="margin-bottom: 1.5em; padding: 1em; border-left: 4px solid #417690; background: #f8f9fa;">
+<div id="demo-celery-panel" class="module" style="margin-bottom: 1.5em; padding: 1em; border-left: 4px solid #417690; background: #f8f9fa;"
+     data-open-tasks="{{ celery_open_tasks|default:0 }}">
   <h2 style="margin-top: 0;">Celery running / queued tasks</h2>
   <p style="margin: 0 0 0.75em 0; color: #555; font-size: 13px;">
-    Workers up: <strong>{{ celery_workers_up|default:0 }}</strong> ·
-    Open tasks: <strong>{{ celery_open_tasks|default:0 }}</strong>.
+    Workers up: <strong id="demo-celery-workers">{{ celery_workers_up|default:0 }}</strong> ·
+    Open tasks: <strong id="demo-celery-open">{{ celery_open_tasks|default:0 }}</strong>.
     Live snapshot from workers — use Stop to revoke/terminate. Periodic beat jobs may reappear later.
-    {% if not celery_inspect_ok and celery_inspect_error %}
-    <span style="color: #d9534f;"> Inspect error: {{ celery_inspect_error }}</span>
-    {% endif %}
-    {% if celery_workers_up == 0 %}
-    <span style="color: #d9534f;"> No workers — Reset/Remove will not run until celery is restarted/redeployed.</span>
-    {% endif %}
+    <span id="demo-celery-inspect-err" style="color: #d9534f;{% if celery_inspect_ok or not celery_inspect_error %} display:none;{% endif %}"> Inspect error: {{ celery_inspect_error }}</span>
+    <span id="demo-celery-no-workers" style="color: #d9534f;{% if celery_workers_up %} display:none;{% endif %}"> No workers — Reset/Remove will not run until celery is restarted/redeployed.</span>
+    <span id="demo-celery-auto" style="color: #417690; margin-left: 0.35em;{% if not job_in_progress and not celery_open_tasks %} display:none;{% endif %}">· Auto-refresh on</span>
   </p>
-  {% if celery_task_rows %}
-  <p style="margin: 0 0 0.75em 0;">
+  <div id="demo-celery-toolbar" style="margin: 0 0 0.75em 0;{% if not celery_task_rows %} display:none;{% endif %}">
     <a href="{% url 'admin:demo_data_demodatasetconfig_changelist' %}" class="button">Refresh</a>
     <form method="post" action="{% url 'admin:demo_data_celery_revoke_all' %}" style="display: inline; margin-left: 0.5em;"
           onsubmit="return confirm('Stop ALL open Celery tasks listed below?');">
       {% csrf_token %}
       <button type="submit" class="button" style="background: #ba2121;">Stop all open</button>
     </form>
-  </p>
-  <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+  </div>
+  <div id="demo-celery-table-wrap">
+  {% if celery_task_rows %}
+  <table id="demo-celery-table" style="width: 100%; border-collapse: collapse; font-size: 12px;">
     <thead>
       <tr style="background: #eee; text-align: left;">
         <th style="padding: 0.4em; border: 1px solid #ddd;">State</th>
@@ -87,7 +88,7 @@
         <th style="padding: 0.4em; border: 1px solid #ddd;">Action</th>
       </tr>
     </thead>
-    <tbody>
+    <tbody id="demo-celery-tbody">
       {% for t in celery_task_rows %}
       <tr{% if last_job_task_id and t.id == last_job_task_id %} style="background: #fff8e1;"{% endif %}>
         <td style="padding: 0.4em; border: 1px solid #ddd;">
@@ -114,10 +115,9 @@
     </tbody>
   </table>
   {% else %}
-  <p style="margin: 0; color: #666;">No active, reserved, or scheduled tasks right now.
-    <a href="{% url 'admin:demo_data_demodatasetconfig_changelist' %}">Refresh</a>
-  </p>
+  <p id="demo-celery-empty" style="margin: 0; color: #666;">No active, reserved, or scheduled tasks right now.</p>
   {% endif %}
+  </div>
 </div>
 
 {# Student demo: actions #}
@@ -384,4 +384,185 @@
   <p style="margin: 0;">No student demo data yet. Run <strong>Setup student demo data</strong> above.</p>
   {% endif %}
 </div>
+<script>
+(function () {
+  var STATUS_URL = "{% url 'admin:demo_data_status_json' %}";
+  var REVOKE_URL = "{% url 'admin:demo_data_celery_revoke' %}";
+  var CSRF = (document.querySelector('#demo-config-form input[name=csrfmiddlewaretoken]') ||
+              document.querySelector('input[name=csrfmiddlewaretoken]') || {}).value || '';
+  var POLL_MS = 3500;
+  var panel = document.getElementById('demo-job-status-panel');
+  var celeryPanel = document.getElementById('demo-celery-panel');
+  if (!panel || !celeryPanel) return;
+
+  var wasInProgress = panel.getAttribute('data-in-progress') === '1';
+  var timer = null;
+  var inFlight = false;
+
+  function esc(s) {
+    var d = document.createElement('div');
+    d.textContent = s == null ? '' : String(s);
+    return d.innerHTML;
+  }
+
+  function borderColor(status, inProgress) {
+    if (inProgress) return '#f0ad4e';
+    if (status === 'failed') return '#d9534f';
+    if (status === 'success') return '#5cb85c';
+    return '#777';
+  }
+
+  function renderTasks(rows, highlightId) {
+    var wrap = document.getElementById('demo-celery-table-wrap');
+    var toolbar = document.getElementById('demo-celery-toolbar');
+    if (!wrap) return;
+    if (!rows || !rows.length) {
+      if (toolbar) toolbar.style.display = 'none';
+      wrap.innerHTML = '<p id="demo-celery-empty" style="margin: 0; color: #666;">No active, reserved, or scheduled tasks right now.</p>';
+      return;
+    }
+    if (toolbar) toolbar.style.display = '';
+    var html = '<table id="demo-celery-table" style="width: 100%; border-collapse: collapse; font-size: 12px;">' +
+      '<thead><tr style="background: #eee; text-align: left;">' +
+      '<th style="padding: 0.4em; border: 1px solid #ddd;">State</th>' +
+      '<th style="padding: 0.4em; border: 1px solid #ddd;">Task</th>' +
+      '<th style="padding: 0.4em; border: 1px solid #ddd;">Task id</th>' +
+      '<th style="padding: 0.4em; border: 1px solid #ddd;">Worker</th>' +
+      '<th style="padding: 0.4em; border: 1px solid #ddd;">Started / ETA</th>' +
+      '<th style="padding: 0.4em; border: 1px solid #ddd;">Action</th>' +
+      '</tr></thead><tbody id="demo-celery-tbody">';
+    rows.forEach(function (t) {
+      var id = t.id || '';
+      var name = t.name || '';
+      var state = t.state || '';
+      var started = t.started || t.eta || '—';
+      var hl = highlightId && id === highlightId ? ' style="background: #fff8e1;"' : '';
+      var stateHtml = state === 'active'
+        ? '<strong style="color: #2e7d32;">active</strong>'
+        : esc(state);
+      var action = '—';
+      if (id) {
+        action = '<form method="post" action="' + REVOKE_URL + '" style="display: inline;"' +
+          ' onsubmit="return confirm(' + JSON.stringify('Stop this Celery task?\n' + name + '\n' + id) + ');">' +
+          '<input type="hidden" name="csrfmiddlewaretoken" value="' + esc(CSRF) + '">' +
+          '<input type="hidden" name="task_id" value="' + esc(id) + '">' +
+          '<input type="hidden" name="task_name" value="' + esc(name) + '">' +
+          '<input type="hidden" name="state" value="' + esc(state) + '">' +
+          '<button type="submit" class="button" style="background: #ba2121;">Stop</button></form>';
+      }
+      html += '<tr' + hl + '>' +
+        '<td style="padding: 0.4em; border: 1px solid #ddd;">' + stateHtml + '</td>' +
+        '<td style="padding: 0.4em; border: 1px solid #ddd;"><code>' + esc(name) + '</code></td>' +
+        '<td style="padding: 0.4em; border: 1px solid #ddd;"><code>' + esc(id || '—') + '</code></td>' +
+        '<td style="padding: 0.4em; border: 1px solid #ddd;">' + esc(t.worker || '') + '</td>' +
+        '<td style="padding: 0.4em; border: 1px solid #ddd;">' + esc(started) + '</td>' +
+        '<td style="padding: 0.4em; border: 1px solid #ddd;">' + action + '</td></tr>';
+    });
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+  }
+
+  function apply(data) {
+    var inProgress = !!data.job_in_progress;
+    var status = data.last_job_status || '';
+    panel.style.borderLeftColor = borderColor(status, inProgress);
+    panel.setAttribute('data-in-progress', inProgress ? '1' : '0');
+    panel.setAttribute('data-status', status);
+
+    var statusLabel = data.last_job_status_label || 'Idle';
+    if (data.last_job_action_label && data.last_job_action_label !== '—') {
+      statusLabel += ' — ' + data.last_job_action_label;
+    }
+    var statusEl = document.getElementById('demo-job-status-text');
+    if (statusEl) statusEl.textContent = statusLabel;
+
+    var msg = document.getElementById('demo-job-message');
+    if (msg) {
+      msg.textContent = data.last_job_message || '';
+      msg.style.display = data.last_job_message ? '' : 'none';
+    }
+    var tid = document.getElementById('demo-job-task-id');
+    if (tid) {
+      tid.innerHTML = data.last_job_task_id
+        ? ('Celery task id: <code>' + esc(data.last_job_task_id) + '</code>')
+        : '';
+      tid.style.display = data.last_job_task_id ? '' : 'none';
+    }
+    var times = document.getElementById('demo-job-times');
+    var started = document.getElementById('demo-job-started');
+    var finishedWrap = document.getElementById('demo-job-finished-wrap');
+    var finished = document.getElementById('demo-job-finished');
+    if (times) times.style.display = data.last_job_started_at ? '' : 'none';
+    if (started) started.textContent = data.last_job_started_at || '';
+    if (finishedWrap) finishedWrap.style.display = data.last_job_finished_at ? '' : 'none';
+    if (finished) finished.textContent = data.last_job_finished_at || '';
+
+    var countEl = document.getElementById('demo-live-student-count');
+    if (countEl) countEl.textContent = String(data.live_demo_student_count || 0);
+    var hint = document.getElementById('demo-live-student-hint');
+    if (hint) {
+      hint.innerHTML = (data.live_demo_student_count || 0)
+        ? ' — still present until Remove finishes with <em>Success</em>.'
+        : ' — none tracked (remove succeeded, or never set up).';
+    }
+
+    var runningActions = document.getElementById('demo-job-running-actions');
+    if (runningActions) runningActions.style.display = inProgress ? '' : 'none';
+
+    var workers = document.getElementById('demo-celery-workers');
+    var openEl = document.getElementById('demo-celery-open');
+    if (workers) workers.textContent = String(data.celery_workers_up || 0);
+    if (openEl) openEl.textContent = String(data.celery_open_tasks || 0);
+    celeryPanel.setAttribute('data-open-tasks', String(data.celery_open_tasks || 0));
+
+    var err = document.getElementById('demo-celery-inspect-err');
+    if (err) {
+      if (!data.celery_inspect_ok && data.celery_inspect_error) {
+        err.textContent = ' Inspect error: ' + data.celery_inspect_error;
+        err.style.display = '';
+      } else {
+        err.style.display = 'none';
+      }
+    }
+    var noWorkers = document.getElementById('demo-celery-no-workers');
+    if (noWorkers) noWorkers.style.display = data.celery_workers_up ? 'none' : '';
+
+    var auto = document.getElementById('demo-celery-auto');
+    if (auto) auto.style.display = (inProgress || (data.celery_open_tasks || 0) > 0) ? '' : 'none';
+
+    renderTasks(data.celery_task_rows || [], data.last_job_task_id || '');
+
+    // Job finished → full reload so Setup buttons / demos list catch up.
+    if (wasInProgress && !inProgress) {
+      window.location.reload();
+      return;
+    }
+    wasInProgress = inProgress;
+    scheduleNext(inProgress || (data.celery_open_tasks || 0) > 0);
+  }
+
+  function scheduleNext(keepGoing) {
+    if (timer) clearTimeout(timer);
+    timer = null;
+    if (keepGoing) {
+      timer = setTimeout(poll, POLL_MS);
+    }
+  }
+
+  function poll() {
+    if (inFlight) return;
+    inFlight = true;
+    fetch(STATUS_URL, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+      .then(function (r) { if (!r.ok) throw new Error('status ' + r.status); return r.json(); })
+      .then(apply)
+      .catch(function () { scheduleNext(true); })
+      .finally(function () { inFlight = false; });
+  }
+
+  // Start polling when a job is running or Celery has open tasks.
+  if (wasInProgress || parseInt(celeryPanel.getAttribute('data-open-tasks') || '0', 10) > 0) {
+    scheduleNext(true);
+  }
+})();
+</script>
 {% endblock %}

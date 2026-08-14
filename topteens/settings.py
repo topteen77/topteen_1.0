@@ -31,6 +31,11 @@ SECRET_KEY = config('SECRET_KEY', default='(&yw*5eqsx-tkz^&kvlxx8donayimg&kee=*1
 DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,testserver,www.topteen.in,test.topteen.in').split(',')
+# Dev tunnels (iPhone Safari testing when LAN/AP isolation blocks http://10.x:8002)
+if str(config('ENVIRONMENT', default='production')).lower() in ('development', 'staging', 'demo'):
+    for _h in ('.ngrok-free.app', '.ngrok-free.dev', '.ngrok.app', '.ngrok.io', '.loca.lt'):
+        if _h not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(_h)
 
 # Student localStorage payload encryption (for chatbot decryption use same key)
 # Generate a key: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
@@ -60,7 +65,7 @@ INSTALLED_APPS = [
     'gamification.apps.GamificationConfig',
     'skilllab',
     'users',
-    'careers',
+    'careers.apps.CareersConfig',
     'topteenadmin',
     'colleges',
     'courses',
@@ -84,6 +89,7 @@ INSTALLED_APPS = [
     'invoices',
     'seo_dashboard',
     'notifications.apps.NotificationsConfig',
+    'loan_desk.apps.LoanDeskConfig',
 ]
 
 # Optional services: set False in .env when not running (avoids errors, uses fallbacks)
@@ -111,6 +117,21 @@ SERVICE_MONITOR_SUPERVISOR_CELERY = config(
 SERVICE_MONITOR_SUPERVISOR_GUNICORN = config(
     'SERVICE_MONITOR_SUPERVISOR_GUNICORN', default='gunicorn,gunicorn_topteen,topteens_gunicorn'
 )
+# Installed-mode (systemd) unit names — first loaded unit wins. Production www uses topteen-in-prod-website.
+SERVICE_MONITOR_SYSTEMD_GUNICORN = config(
+    'SERVICE_MONITOR_SYSTEMD_GUNICORN',
+    default='topteen-in-prod-website,topteen-new-website,gunicorn-topteens',
+)
+SERVICE_MONITOR_SYSTEMD_CELERY = config(
+    'SERVICE_MONITOR_SYSTEMD_CELERY',
+    default='celery,celery-worker,topteen-celery,celery_worker',
+)
+SERVICE_MONITOR_SYSTEMD_REDIS = config(
+    'SERVICE_MONITOR_SYSTEMD_REDIS',
+    default='redis-server,redis',
+)
+# Prefix control commands with `sudo -n` (passwordless). Set False if the app user can restart directly.
+SERVICE_MONITOR_CONTROL_USE_SUDO = config('SERVICE_MONITOR_CONTROL_USE_SUDO', default=True, cast=bool)
 
 # User analytics: set False in .env to disable all tracking (debugging / manual data clean)
 ENABLE_USER_ANALYTICS_TRACKING = config('ENABLE_USER_ANALYTICS_TRACKING', default=True, cast=bool)
@@ -126,6 +147,15 @@ ENABLE_ELASTICSEARCH = config('ENABLE_ELASTICSEARCH', default=True, cast=bool)
 if ENABLE_ELASTICSEARCH:
     INSTALLED_APPS.append('django_elasticsearch_dsl')
 
+# Indian colleges listing API (canamuni upstream). When enabled, /colleges/ uses this API.
+USE_INDIAN_COLLEGES_API = config('USE_INDIAN_COLLEGES_API', default=True, cast=bool)
+INDIAN_COLLEGES_API_BASE = config(
+    'INDIAN_COLLEGES_API_BASE', default='http://35.154.133.230:8000'
+)
+INDIAN_COLLEGES_DETAIL_BASE = config(
+    'INDIAN_COLLEGES_DETAIL_BASE', default='http://35.154.133.230:5173'
+)
+
 # AI Features Configuration (Optional - defaults to False)
 ENABLE_AI_FEATURES = config('ENABLE_AI_FEATURES', default=False, cast=bool)
 ENABLE_AI_SUMMARIES = config('ENABLE_AI_SUMMARIES', default=False, cast=bool)
@@ -140,6 +170,8 @@ GOOGLE_CSE_ID = config('GOOGLE_CSE_ID', default='')  # Programmable Search Engin
 ANTHROPIC_API_KEY = config('ANTHROPIC_API_KEY', default='')
 AI_MODEL = config('AI_MODEL', default='gpt-3.5-turbo')  # or gemini-1.5-flash, claude-3-haiku, etc.
 GEMINI_MODEL = config('GEMINI_MODEL', default='gemini-1.5-flash')
+# INR per 1 USD — compare provider spend vs amount collected on the LLM billing admin page.
+USD_TO_INR_RATE = config('USD_TO_INR_RATE', default=84.0, cast=float)
 
 # Forum AI Configuration
 OPENAI_MODEL = config('OPENAI_MODEL', default='gpt-4o-mini')  # Default to cost-effective model for forum
@@ -159,6 +191,11 @@ QUERY_EMBEDDING_CACHE_TTL = config('QUERY_EMBEDDING_CACHE_TTL', default=3600, ca
 ENABLE_ANSWERING_CAREFULLY_WIDGET = config('ENABLE_ANSWERING_CAREFULLY_WIDGET', default=True, cast=bool)
 # ENABLE_AUTO_FORWARD: Auto-advance to next question when user selects an answer (default: True)
 ENABLE_AUTO_FORWARD = config('ENABLE_AUTO_FORWARD', default=True, cast=bool)
+# Voice-to-text: off | browser | openai (Admin → Core website settings overrides).
+# Legacy ENABLE_VOICE_TO_TEXT=False maps to off; True maps to browser when mode unset.
+VOICE_TO_TEXT_MODE = config('VOICE_TO_TEXT_MODE', default='browser')
+ENABLE_VOICE_TO_TEXT = config('ENABLE_VOICE_TO_TEXT', default=True, cast=bool)
+OPENAI_TRANSCRIBE_MODEL = config('OPENAI_TRANSCRIBE_MODEL', default='gpt-4o-mini-transcribe')
 
 # Allow same-origin iframes (e.g. Career Battle wrapper embedding /career-battle/app/).
 # Still blocks embedding from other sites (clickjacking protection).
@@ -172,6 +209,8 @@ MIDDLEWARE = [
     'core.indexing_middleware.URLIndexingMiddleware',  # Add X-Robots-Tag for admin-blocked URL patterns
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # AJAX: return 401 JSON instead of redirecting XHR to login page HTML (v2 dashboards)
+    'core.ajax_auth_middleware.AjaxAuthRedirectMiddleware',
     # After auth: slide session expiry for logged-in users when SAVE_EVERY_REQUEST is False
     'topteens.custome_middleware.SlideSessionForAuthenticatedMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -192,6 +231,7 @@ CORS_ALLOWED_ORIGINS = [
     'https://demo.topteen.in',
     'https://topteenc.s3.ap-northeast-1.amazonaws.com',
 ]
+# CloudFront domain is appended after CLOUDFRONT_DOMAIN is resolved (see S3 block below).
 
 CSRF_TRUSTED_ORIGINS = [
     'https://www.topteen.in',
@@ -199,8 +239,41 @@ CSRF_TRUSTED_ORIGINS = [
     'https://demo.topteen.in',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
+    'http://localhost:8002',
+    'http://127.0.0.1:8002',
     'http://10.0.0.93:8000',
+    'http://10.0.0.93:8002',
+    'http://10.0.0.118:8000',
+    'http://10.0.0.118:8002',
 ]
+# Extra CSRF origins from env (comma-separated full origins), e.g. http://192.168.1.10:8002
+_extra_csrf = config('CSRF_TRUSTED_ORIGINS_EXTRA', default='', cast=str) or ''
+for _origin in [o.strip() for o in _extra_csrf.split(',') if o.strip()]:
+    if _origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(_origin)
+# In development, also trust http(s)://<ALLOWED_HOST> on common local ports (login from phones/LAN).
+if str(config('ENVIRONMENT', default='production')).lower() in ('development', 'staging', 'demo'):
+    for _host in ALLOWED_HOSTS:
+        _host = (_host or '').strip()
+        if not _host or _host.startswith('.') or _host == '*':
+            continue
+        for _port in ('8000', '8002', '8005', '8080'):
+            for _scheme in ('http', 'https'):
+                _o = f'{_scheme}://{_host}:{_port}'
+                if _o not in CSRF_TRUSTED_ORIGINS:
+                    CSRF_TRUSTED_ORIGINS.append(_o)
+                _o2 = f'{_scheme}://{_host}'
+                if _o2 not in CSRF_TRUSTED_ORIGINS:
+                    CSRF_TRUSTED_ORIGINS.append(_o2)
+    # Wildcard CSRF for ngrok tunnels (Django 4.1+)
+    for _wild in (
+        'https://*.ngrok-free.app',
+        'https://*.ngrok-free.dev',
+        'https://*.ngrok.app',
+        'https://*.ngrok.io',
+    ):
+        if _wild not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(_wild)
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True # If needed for cookies or auth
@@ -209,7 +282,9 @@ CORS_ALLOW_CREDENTIALS = True # If needed for cookies or auth
 ENVIRONMENT = config('ENVIRONMENT', default='production')
 TOPTEEN_SITE_URL = config('TOPTEEN_SITE_URL', default='https://www.topteen.in')
 USE_HTTPS = config('USE_HTTPS', default=False, cast=bool)
-SECURE_SSL_REDIRECT = USE_HTTPS
+# Allow HTTP+HTTPS dual access on custom ports (e.g. :8005 and :8443) without
+# redirecting http://IP:8005 -> https://IP/ (missing port = blank page).
+SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=USE_HTTPS, cast=bool)
 SESSION_COOKIE_SECURE = USE_HTTPS
 CSRF_COOKIE_SECURE = USE_HTTPS
 # Keep users signed in during normal browsing (avoid mobile browser clearing session cookies).
@@ -239,9 +314,11 @@ DEFAULT_LOGIN_SESSION_AGE = SESSION_COOKIE_AGE
 REMEMBER_ME_SESSION_AGE = config('REMEMBER_ME_SESSION_AGE', default=2592000, cast=int)  # 30 days
 DEMO_LOGIN_SESSION_AGE = config('DEMO_LOGIN_SESSION_AGE', default=SESSION_COOKIE_AGE, cast=int)
 CSRF_FAILURE_VIEW = 'users.views.csrf_failure'
-# When behind reverse proxy (nginx, etc.) that terminates SSL
-if USE_HTTPS:
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# Honor X-Forwarded-Proto from reverse proxies / ngrok so build_absolute_uri()
+# returns https://… after login (iPhone Chrome was getting http:// and failing).
+# Safe when only trusted proxies set this header (ngrok, nginx).
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = config('USE_X_FORWARDED_HOST', default=True, cast=bool)
 
 ROOT_URLCONF = 'topteens.urls'
 # Trailing slash: our AppendSlashRedirectMiddleware redirects /path -> /path/ when /path/ resolves.
@@ -543,7 +620,6 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240  # Increase if needed
 
 # S3 Bucket Configuration
 S3_BUCKET_PREFIX = config('S3_BUCKET_PREFIX', default='s3://topteenc/')
-S3_BUCKET_BASE_URL = config('S3_BUCKET_BASE_URL', default='https://topteenc.s3.ap-northeast-1.amazonaws.com/')
 S3_EBOOK_FOLDER = 'ebook'  # Folder path for ebooks in S3
 S3_FOUR_PILLARS_FOLDER = config('S3_FOUR_PILLARS_FOLDER', default='four_pillars')  # Folder for Four Pillars of Learning images in S3
 # Multiple Intelligences (MI) page: full base URL for MI images in S3 (e.g. https://bucket.s3.region.amazonaws.com/mi/). If unset, uses static/images_new/mi/
@@ -561,6 +637,25 @@ AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default='')
 AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default='')
 AWS_REGION = config('AWS_REGION', default='ap-northeast-1')
 AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default='topteenc')
+
+# CloudFront CDN in front of the S3 bucket (optional).
+# Set CLOUDFRONT_DOMAIN (or AWS_S3_CUSTOM_DOMAIN) to dxxxx.cloudfront.net or a custom alias (no scheme).
+# Then set S3_MEDIA_ACCESS_MODE=cloudfront so FileField/.url and S3_BUCKET_BASE_URL use the CDN.
+def _normalize_cdn_domain(raw):
+    value = (raw or '').strip()
+    for prefix in ('https://', 'http://'):
+        if value.lower().startswith(prefix):
+            value = value[len(prefix):]
+    return value.strip().strip('/')
+
+
+CLOUDFRONT_DOMAIN = _normalize_cdn_domain(
+    config('CLOUDFRONT_DOMAIN', default='') or config('AWS_S3_CUSTOM_DOMAIN', default='')
+)
+if CLOUDFRONT_DOMAIN:
+    _cf_origin = f'https://{CLOUDFRONT_DOMAIN}'
+    if _cf_origin not in CORS_ALLOWED_ORIGINS:
+        CORS_ALLOWED_ORIGINS.append(_cf_origin)
 
 # S3 File Upload Size Limit (in MB)
 S3_MAX_FILE_SIZE_MB = config('S3_MAX_FILE_SIZE_MB', default=2, cast=int)
@@ -580,7 +675,8 @@ _USE_S3 = USE_S3_FOR_MEDIA and bool(AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY)
 
 # S3 media access: how your website serves S3 media (applies to all media on the bucket).
 # - presigned: .url returns signed URLs (private bucket; only your app generates valid links; URLs expire in 1h).
-# - public: .url returns plain S3 URLs (bucket/objects must allow public GetObject).
+# - public: .url returns plain S3 URLs (or CloudFront if CLOUDFRONT_DOMAIN is set).
+# - cloudfront: .url returns https://{CLOUDFRONT_DOMAIN}/... (requires CLOUDFRONT_DOMAIN; use OAI/OAC or public origin).
 # - proxy: .url returns /media/s3/...; Django streams from S3 (bucket fully private; only your site can show files).
 S3_MEDIA_ACCESS_MODE = config('S3_MEDIA_ACCESS_MODE', default='presigned')
 # For proxy mode, S3 key prefix (must match storage "location"); used by s3_media_proxy view.
@@ -589,20 +685,38 @@ S3_MEDIA_LOCATION = config('S3_MEDIA_LOCATION', default='media')
 # Legacy: when S3_MEDIA_ACCESS_MODE is presigned/public, this controls querystring_auth.
 AWS_QUERYSTRING_AUTH = config('AWS_QUERYSTRING_AUTH', default=True, cast=bool)
 
+_S3_DIRECT_BASE_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/"
+_S3_BUCKET_BASE_URL_ENV = config('S3_BUCKET_BASE_URL', default='')
+_use_cloudfront = bool(CLOUDFRONT_DOMAIN) and S3_MEDIA_ACCESS_MODE in ('cloudfront', 'public')
+if _use_cloudfront:
+    S3_BUCKET_BASE_URL = f"https://{CLOUDFRONT_DOMAIN}/"
+elif _S3_BUCKET_BASE_URL_ENV:
+    S3_BUCKET_BASE_URL = _S3_BUCKET_BASE_URL_ENV if _S3_BUCKET_BASE_URL_ENV.endswith('/') else f"{_S3_BUCKET_BASE_URL_ENV}/"
+else:
+    S3_BUCKET_BASE_URL = _S3_DIRECT_BASE_URL
+
 if _USE_S3:
     _use_proxy = (S3_MEDIA_ACCESS_MODE == 'proxy')
-    _querystring_auth = False if _use_proxy else AWS_QUERYSTRING_AUTH
+    # CloudFront / public URLs must not append S3 signature query strings.
+    if _use_proxy or _use_cloudfront or S3_MEDIA_ACCESS_MODE == 'public':
+        _querystring_auth = False
+    else:
+        _querystring_auth = AWS_QUERYSTRING_AUTH
+    _storage_options = {
+        "bucket_name": AWS_STORAGE_BUCKET_NAME,
+        "region_name": AWS_REGION,
+        "location": S3_MEDIA_LOCATION,
+        "default_acl": "public-read",
+        "querystring_auth": _querystring_auth,
+        "querystring_expire": 3600,
+    }
+    if _use_cloudfront:
+        _storage_options["custom_domain"] = CLOUDFRONT_DOMAIN
+        AWS_S3_CUSTOM_DOMAIN = CLOUDFRONT_DOMAIN
     STORAGES = {
         "default": {
-            "BACKEND": "core.storage_backends.S3MediaStorage" if _use_proxy else "storages.backends.s3.S3Storage",
-            "OPTIONS": {
-                "bucket_name": AWS_STORAGE_BUCKET_NAME,
-                "region_name": AWS_REGION,
-                "location": S3_MEDIA_LOCATION,
-                "default_acl": "public-read",
-                "querystring_auth": _querystring_auth,
-                "querystring_expire": 3600,
-            },
+            "BACKEND": "core.storage_backends.S3MediaStorage" if (_use_proxy or _use_cloudfront) else "storages.backends.s3.S3Storage",
+            "OPTIONS": _storage_options,
         },
         "staticfiles": {
             "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
@@ -610,8 +724,10 @@ if _USE_S3:
     }
     if _use_proxy:
         MEDIA_URL = "/media/"
+    elif _use_cloudfront:
+        MEDIA_URL = f"https://{CLOUDFRONT_DOMAIN}/{S3_MEDIA_LOCATION}/"
     else:
-        MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/{S3_MEDIA_LOCATION}/"
+        MEDIA_URL = f"{_S3_DIRECT_BASE_URL}{S3_MEDIA_LOCATION}/"
     AWS_S3_REGION_NAME = AWS_REGION
     AWS_LOCATION = S3_MEDIA_LOCATION
     AWS_DEFAULT_ACL = "public-read"
@@ -689,6 +805,10 @@ else:
 _redis_host = config('REDIS_HOST', default='127.0.0.1') or '127.0.0.1'
 _redis_port = config('REDIS_PORT', default='6379') or '6379'
 SESSION_REDIS_DB = config('SESSION_REDIS_DB', default=2, cast=int)
+TRANSLATION_REDIS_DB = config('TRANSLATION_REDIS_DB', default=3, cast=int)
+ROSTER_REDIS_DB = config('ROSTER_REDIS_DB', default=4, cast=int)
+CAREERS_REDIS_DB = config('CAREERS_REDIS_DB', default=5, cast=int)
+PARENTS_REDIS_DB = config('PARENTS_REDIS_DB', default=6, cast=int)
 SESSION_CACHE_ALIAS = 'sessions'
 SESSION_USE_SIGNED_COOKIES = config('SESSION_USE_SIGNED_COOKIES', default=False, cast=bool)
 
@@ -701,6 +821,63 @@ if ENABLE_REDIS:
         },
         'KEY_PREFIX': 'topteen_sess',
         'TIMEOUT': SESSION_COOKIE_AGE,
+    }
+    # LLM translation complexity cache — always Redis when enabled (even if default is DummyCache in DEBUG).
+    CACHES['translations'] = {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': f"redis://{_redis_host}:{_redis_port}/{TRANSLATION_REDIS_DB}",
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'KEY_PREFIX': 'topteen_tr',
+        'TIMEOUT': 60 * 60 * 24 * 30,  # 30 days
+    }
+    # Institute roster test-result payloads — Redis even in DEBUG so student cards load from cache.
+    CACHES['roster'] = {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': f"redis://{_redis_host}:{_redis_port}/{ROSTER_REDIS_DB}",
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'KEY_PREFIX': 'topteen_roster',
+        'TIMEOUT': 90,
+    }
+    # Careers list/cluster/detail — Redis even in DEBUG (default may be DummyCache).
+    CACHES['careers'] = {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': f"redis://{_redis_host}:{_redis_port}/{CAREERS_REDIS_DB}",
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'KEY_PREFIX': 'topteen_careers',
+        'TIMEOUT': 900,
+    }
+    # Parent dashboard / catalog query results — Redis even in DEBUG (default may be DummyCache).
+    CACHES['parents'] = {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': f"redis://{_redis_host}:{_redis_port}/{PARENTS_REDIS_DB}",
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'KEY_PREFIX': 'topteen_parents',
+        'TIMEOUT': 120,
+    }
+else:
+    CACHES['translations'] = {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'topteen-translations',
+    }
+    CACHES['roster'] = {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'topteen-roster',
+    }
+    CACHES['careers'] = {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'topteen-careers',
+    }
+    CACHES['parents'] = {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'topteen-parents',
     }
 
 SESSION_ENGINE = (config('SESSION_ENGINE', default='') or '').strip()
@@ -734,6 +911,16 @@ _TOPTEEN_FROM_EMAIL = config('TOPTEEN_FROM_EMAIL', default='support@topteen.care
 TOPTEEN_FROM_EMAIL = _TOPTEEN_FROM_EMAIL
 MOBILE_SMS_SERVICE = ''
 
+# SMS / WhatsApp — live enable/disable and credentials are managed in admin
+# (SmsSettings / WhatsAppSettings). Env values below seed empty admin fields only.
+# https://www.plivo.com/ — Auth ID/Token from https://manage.plivo.com/dashboard/
+SMS_ENABLED = config('SMS_ENABLED', default=False, cast=bool)  # legacy; prefer admin SmsSettings.is_enabled
+WHATSAPP_ENABLED = config('WHATSAPP_ENABLED', default=False, cast=bool)  # legacy; prefer admin WhatsAppSettings.is_enabled
+SMS_PROVIDER = config('SMS_PROVIDER', default='smartping').strip().lower()  # smartping | plivo
+OTP_MOBILE_CHANNEL = config('OTP_MOBILE_CHANNEL', default='sms').strip().lower()  # legacy
+SMS_FORCE_SEND = config('SMS_FORCE_SEND', default=False, cast=bool)  # legacy
+WHATSAPP_FORCE_SEND = config('WHATSAPP_FORCE_SEND', default=False, cast=bool)  # legacy
+
 # SmartPing SMS API Configuration
 SMARTPING_SMS_API_URL = config('SMARTPING_SMS_API_URL', default='https://pgapi.smartping.ai/fe/api/v1/send')
 SMARTPING_SMS_USERNAME = config('SMARTPING_SMS_USERNAME', default='Testprepgpt.trans')
@@ -743,6 +930,22 @@ SMARTPING_SMS_DLT_CONTENT_ID = config('SMARTPING_SMS_DLT_CONTENT_ID', default='1
 SMARTPING_SMS_DLT_PRINCIPAL_ENTITY_ID = config('SMARTPING_SMS_DLT_PRINCIPAL_ENTITY_ID', default='1701172845816093698')
 SMARTPING_SMS_UNICODE = config('SMARTPING_SMS_UNICODE', default='false')
 SMARTPING_SMS_MESSAGE_TEMPLATE = config('SMARTPING_SMS_MESSAGE_TEMPLATE', default='{otp} is your verification code for TestprepGPT AI')
+# Legacy alias — prefer SMS_FORCE_SEND
+SMARTPING_SMS_FORCE_SEND = config('SMARTPING_SMS_FORCE_SEND', default=False, cast=bool)
+
+# Plivo SMS + WhatsApp
+PLIVO_AUTH_ID = config('PLIVO_AUTH_ID', default='')
+PLIVO_AUTH_TOKEN = config('PLIVO_AUTH_TOKEN', default='')
+PLIVO_SMS_FROM = config('PLIVO_SMS_FROM', default='')  # E.164 number or alphanumeric sender ID
+PLIVO_WHATSAPP_FROM = config('PLIVO_WHATSAPP_FROM', default='')  # WABA-linked number in E.164
+PLIVO_SMS_MESSAGE_TEMPLATE = config(
+    'PLIVO_SMS_MESSAGE_TEMPLATE',
+    default='{otp} is your verification code for TopTeen',
+)
+PLIVO_WHATSAPP_OTP_TEMPLATE = config('PLIVO_WHATSAPP_OTP_TEMPLATE', default='')  # approved template name
+PLIVO_WHATSAPP_OTP_TEMPLATE_LANG = config('PLIVO_WHATSAPP_OTP_TEMPLATE_LANG', default='en_US')
+# Legacy alias — prefer SMS_FORCE_SEND / WHATSAPP_FORCE_SEND
+PLIVO_FORCE_SEND = config('PLIVO_FORCE_SEND', default=False, cast=bool)
 
 # Email / AWS SES – all from .env; no credentials in code
 EMAIL_HOST = config('EMAIL_HOST', default='email-smtp.ap-south-1.amazonaws.com')
@@ -906,6 +1109,7 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.user.get_username',
     'social_core.pipeline.social_auth.associate_by_email',
     'social_core.pipeline.user.create_user',
+    'users.welcome_popup.set_social_registration_welcome_popup',
     'social_core.pipeline.social_auth.associate_user',
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details',
@@ -1007,13 +1211,13 @@ DEFAULT_DIRECT_INSTITUTE_MARKETING_ADMIN_USER_ID = config(
 )
 
 # Production indexing. Override with ALLOW_SEARCH_ENGINE_INDEX=true in .env when needed.
-ALLOW_SEARCH_ENGINE_INDEX = config(
-    'ALLOW_SEARCH_ENGINE_INDEX',
-    default=(ENVIRONMENT == 'production'),
-    cast=bool,
-)
+# ALLOW_SEARCH_ENGINE_INDEX = config(
+#     'ALLOW_SEARCH_ENGINE_INDEX',
+#     default=(ENVIRONMENT == 'production'),
+#     cast=bool,
+# )
 # demo.topteen.in / localhost: allow index for Lighthouse QA (robots.txt + meta robots).
-ALLOW_DEMO_SEARCH_INDEX = config('ALLOW_DEMO_SEARCH_INDEX', default=True, cast=bool)
+ALLOW_DEMO_SEARCH_INDEX = config('ALLOW_DEMO_SEARCH_INDEX', default=False, cast=bool)
 WEBADMINEMAIL = config('WEBADMINEMAIL', default='')
 # Daily new user report schedule: core.Configuration key DAILY_USER_REPORT_TIME (HH:MM, 24h, IST).
 # Celery Beat uses CELERY_TIMEZONE (default Asia/Kolkata). Edit in Service monitor or Admin → Configuration.

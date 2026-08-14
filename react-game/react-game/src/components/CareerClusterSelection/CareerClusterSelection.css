@@ -245,19 +245,22 @@
   bottom: 0;
   z-index: 10;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(6px);
   box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
 }
 
 .career-cluster-selection-footer .back-button {
+  flex: 1 1 0;
+  min-width: 0;
   min-height: 52px;
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 1rem;
   font-size: 1rem;
   font-weight: 600;
   border: 1px solid #25A4F2;
@@ -274,6 +277,25 @@
   border-color: #25A4F2;
   color:#ffffff;
 background: #25A4F2;
+}
+
+.career-cluster-selection-footer .continue-button {
+  flex: 1.1 1 0;
+  min-width: 0;
+  width: auto;
+  min-height: 52px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.02em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .continue-button {
@@ -337,10 +359,28 @@ background: #25A4F2;
   .cluster-name {
     font-size: 1.25rem;
   }
+}
 
-  .continue-button {
-    width: 100%;
+@media (min-width: 992px) {
+  .career-cluster-selection-footer {
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+  }
+
+  .career-cluster-selection-footer .back-button,
+  .career-cluster-selection-footer .continue-button {
+    flex: 0 1 auto;
+    width: auto;
     min-width: unset;
+  }
+
+  .career-cluster-selection-footer .continue-button {
+    min-width: 200px;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
   }
 }
 

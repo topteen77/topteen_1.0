@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.urls import path
 from . import views
+from . import llm_payment_views
+from . import ai_feature_quota_views
 
 app_name = 'core'
 urlpatterns = [
@@ -58,4 +60,37 @@ urlpatterns = [
     path("career-battle/api/eligibility-profile/", views.career_battle_eligibility_profile_api, name="career_battle_eligibility_profile_api"),
     path("career-battle/api/stream-sources/", views.career_battle_stream_sources_api, name="career_battle_stream_sources_api"),
     path("career-battle/api/shortlist-career/", views.career_battle_shortlist_career_api, name="career_battle_shortlist_career_api"),
+    # AI token freemium shop + checkout
+    path("ai-tokens/", llm_payment_views.LLMTokenPackagesView.as_view(), name="llm_token_packages"),
+    path("ai-tokens/wallet/", llm_payment_views.LLMWalletStatusAPI.as_view(), name="llm_wallet_status"),
+    path(
+        "ai-tokens/checkout/<slug:code>/",
+        llm_payment_views.LLMPackageCheckoutView.as_view(),
+        name="llm_package_checkout",
+    ),
+    path(
+        "ai-tokens/payment/update/",
+        llm_payment_views.UpdateLLMPackagePaymentView.as_view(),
+        name="llm_package_payment_update",
+    ),
+    path(
+        "ai-tokens/payment-success/<str:enc_id>/",
+        llm_payment_views.LLMPackagePaymentSuccessView.as_view(),
+        name="llm_package_payment_success",
+    ),
+    path(
+        "ai-tokens/payment-fail/<str:enc_id>/",
+        llm_payment_views.LLMPackagePaymentFailView.as_view(),
+        name="llm_package_payment_fail",
+    ),
+    path(
+        "ai-feature-quota/status/",
+        ai_feature_quota_views.AIFeatureQuotaStatusAPI.as_view(),
+        name="ai_feature_quota_status",
+    ),
+    path(
+        "ai-feature-quota/consume/",
+        ai_feature_quota_views.AIFeatureQuotaConsumeAPI.as_view(),
+        name="ai_feature_quota_consume",
+    ),
 ]

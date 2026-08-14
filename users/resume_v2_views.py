@@ -131,7 +131,20 @@ class ResumeV2DashboardView(TemplateView):
         ctx["breadcrumb"] = _v2_breadcrumb([{"title": "Dashboard", "text": "Dashboard", "url": ""}])
 
         user = request.user
-        resumes = list(UserResume.objects.filter(user=user).order_by("-modified"))
+        # Prefetch children once — resume_card_context / metrics otherwise N+1 per section.
+        resumes = list(
+            UserResume.objects.filter(user=user)
+            .select_related("user", "user__user_profile")
+            .prefetch_related(
+                "userresumeskill_set",
+                "userresumecertificate_set",
+                "userresumeactivity_set",
+                "userresumeinternship_set",
+                "userresumevolunteerinvolvement_set",
+                "user__user_profile__hobbies",
+            )
+            .order_by("-modified")
+        )
         profile_pct = user.get_profile_completion_percentage()
         autofill = ProfileAutofillDetector.detect(user)
         suggestions = ResumeSuggestionService.suggestions(user, resumes[0] if resumes else None)
@@ -139,6 +152,9 @@ class ResumeV2DashboardView(TemplateView):
 
         resume_cards = [resume_card_context(r, request) for r in resumes]
 
+        from core.ai_feature_quota import FEATURE_RESUME_CREATE, feature_status, shop_url
+
+        create_status = feature_status(user, FEATURE_RESUME_CREATE, request=request)
         ctx.update(
             {
                 "profile_completion": profile_pct,
@@ -149,6 +165,10 @@ class ResumeV2DashboardView(TemplateView):
                 "resume_count": len(resumes),
                 "latest_resume": resumes[0] if resumes else None,
                 "existing_resume_titles": [(r.title or "").strip() for r in resumes if (r.title or "").strip()],
+                "resume_create_locked": bool(create_status.get("locked")),
+                "resume_create_remaining": create_status.get("remaining"),
+                "ai_quota_shop_url": shop_url(),
+                "ai_quota_recharge_message": "AI tokens need to recharge — Buy now.",
             }
         )
         return ctx
@@ -164,7 +184,27 @@ class ResumeV2CreateView(View):
         if title_error:
             messages.error(request, title_error)
             return redirect("users:resume_v2_dashboard")
+        from core.ai_feature_quota import (
+            FEATURE_RESUME_CREATE,
+            AIFeatureQuotaExceeded,
+            consume_feature,
+            ensure_can_use_feature,
+            shop_url,
+        )
+
+        try:
+            ensure_can_use_feature(request.user, FEATURE_RESUME_CREATE, request=request)
+        except AIFeatureQuotaExceeded:
+            messages.error(
+                request,
+                "AI tokens need to recharge — Buy now.",
+            )
+            return redirect(shop_url())
         resume = UserResume.objects.create(user=request.user, title=title)
+        try:
+            consume_feature(request.user, FEATURE_RESUME_CREATE, request=request)
+        except Exception:
+            pass
         bootstrap_user_resume_from_profile(request.user, resume)
         messages.success(request, "Resume created. Choose your goal to continue.")
         return redirect("users:resume_v2_goal", resume_id=resume.pk)
@@ -340,6 +380,31 @@ class ResumeV2StudioView(TemplateView):
                 "has_ai_pending": get_ai_resume_pending(resume) is not None,
             }
         )
+        from core.ai_feature_quota import (
+            FEATURE_RESUME_AI,
+            feature_status,
+            quota_applies,
+            shop_url,
+        )
+        from core.llm_quota import get_balance
+
+        ai_status = feature_status(request.user, FEATURE_RESUME_AI, request=request)
+        try:
+            token_balance = int(get_balance(request.user, request=request) or 0)
+        except Exception:
+            token_balance = 0
+        ctx.update(
+            {
+                "resume_ai_locked": bool(ai_status.get("locked")),
+                "resume_ai_remaining": ai_status.get("remaining"),
+                "resume_ai_unlimited": bool(ai_status.get("unlimited")),
+                "resume_ai_quota_applies": quota_applies(request.user),
+                "ai_token_balance": token_balance,
+                "ai_quota_shop_url": shop_url(),
+                "ai_quota_status_url": reverse("core:ai_feature_quota_status"),
+                "ai_quota_recharge_message": "AI tokens need to recharge — Buy now.",
+            }
+        )
         return ctx
 
 
@@ -373,6 +438,17 @@ class ResumeV2AIView(View):
     http_method_names = ["post"]
 
     def post(self, request, resume_id, *args, **kwargs):
+        from core.ai_feature_quota import AIFeatureQuotaExceeded, feature_quota_error_response
+        from core.llm_quota import LLMQuotaExceeded, quota_error_response
+
+        try:
+            return self._handle_ai_post(request, resume_id, *args, **kwargs)
+        except AIFeatureQuotaExceeded as exc:
+            return feature_quota_error_response(exc)
+        except LLMQuotaExceeded as exc:
+            return quota_error_response(exc)
+
+    def _handle_ai_post(self, request, resume_id, *args, **kwargs):
         resume = get_object_or_404(UserResume, pk=resume_id, user=request.user)
         try:
             body = json.loads(request.body.decode("utf-8") or "{}")
@@ -570,6 +646,11 @@ class ResumeV2AIView(View):
                 for key, val in sync_kwargs.items():
                     if val:
                         personal_patch[key] = val
+
+            # Location is resume-only (always editable); empty clears the pin.
+            personal_patch["location"] = (
+                (body.get("location") or body.get("address") or "").strip()[:200]
+            )
 
             offer = offer_personal_profile_sync(request.user, resume, body)
             save_v2_meta(

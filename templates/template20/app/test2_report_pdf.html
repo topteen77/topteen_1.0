@@ -2,10 +2,35 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap">
   <link rel="preload stylesheet" href="{{ static('font/font-style.css') }}">
   <title>Stream Sorter Assessment Report - Interest</title>
   <style>
-    /* Browser preview styles - header visible */
+    @font-face {
+      font-family: 'Space Grotesk';
+      src: url("{{ static('font/space-grotesk/SpaceGrotesk-Regular.ttf') }}") format('truetype');
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Space Grotesk';
+      src: url("{{ static('font/space-grotesk/SpaceGrotesk-Medium.ttf') }}") format('truetype');
+      font-weight: 500;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Space Grotesk';
+      src: url("{{ static('font/space-grotesk/SpaceGrotesk-SemiBold.ttf') }}") format('truetype');
+      font-weight: 600;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Space Grotesk';
+      src: url("{{ static('font/space-grotesk/SpaceGrotesk-Bold.ttf') }}") format('truetype');
+      font-weight: 700;
+      font-style: normal;
+    }
+
     .page-header {
       width: 675px;
       padding: 0.3cm 0 0 0;
@@ -13,27 +38,23 @@
       display: block;
       margin-bottom: 1cm;
     }
-    
     .page-header-content {
       display: flex;
       align-items: center;
       margin-bottom: 0.3cm;
     }
-    
     .page-header-content img {
       width: 40px;
       height: auto;
     }
-    
     .page-header-content .logo-text {
       font-size: 18px;
       font-weight: bold;
       color: #494949;
-      font-family: 'Galano Grotesque';
+      font-family: 'Space Grotesk', sans-serif;
       text-transform: uppercase;
       margin-left: 10px;
     }
-    
     .page-header-line {
       width: 100%;
       height: 0;
@@ -44,16 +65,26 @@
       display: block;
       box-sizing: border-box;
     }
-    
-    /* PDF-specific: Use running header for page headers */
+
+    /* A4 decorative background — only on @page for PDF (avoids double paint) */
+    {% set _a4_bg = pdf_a4_bg_url if pdf_a4_bg_url is defined and pdf_a4_bg_url else static('images_new/new_report/a4-bg-img.png') %}
     @page {
-      @top-left {
-        content: element(page-header);
-      }
-      margin-top: 2.5cm;
+      size: A4;
+      margin: 0;
+      background-image: url("{{ _a4_bg }}");
+      background-size: 210mm 297mm;
+      background-position: center center;
+      background-repeat: no-repeat;
     }
-    
-    /* For PDF generation, make header a running element */
+    @page cover {
+      size: A4;
+      margin: 0;
+      background-image: url("{{ _a4_bg }}");
+      background-size: 210mm 297mm;
+      background-position: center center;
+      background-repeat: no-repeat;
+    }
+
     @media print {
       .page-header {
         position: running(page-header);
@@ -65,26 +96,279 @@
         box-sizing: border-box;
       }
     }
-    
+
     body {
       margin: 0;
       padding: 0;
       color: #494949;
-      font-family: 'Galano Grotesque';
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 10pt;
       counter-reset: chapters;
       print-color-adjust: exact;
       -webkit-print-color-adjust: exact;
-   
+      background: #e8e9ef;
     }
+    @media screen {
+      .page-header {
+        display: none !important;
+      }
+      body {
+        padding: 24px 0 40px;
+      }
+      .coverPage,
+      .chapterPage {
+        margin-left: auto !important;
+        margin-right: auto !important;
+        box-shadow: 0 10px 30px rgba(20, 24, 60, 0.18);
+        background-color: #ffffff;
+        background-image: url("{{ _a4_bg }}");
+        background-size: 210mm 297mm;
+        background-position: center center;
+        background-repeat: no-repeat;
+      }
+      .chapterPage {
+        margin-top: 28px !important;
+      }
+    }
+    @media print {
+      body {
+        background: transparent;
+        padding: 0;
+      }
+      .coverPage,
+      .chapterPage {
+        background-image: none !important;
+        background-color: transparent !important;
+      }
+    }
+
     ul { list-style-type: none; padding: 0; }
     li { margin-bottom: 5px; }
     div { margin-bottom: 10px; }
     a { color: inherit; text-decoration: none; }
     hr { height: 0; border: 0; border-top: 1px solid #494949; margin: 10px 0 10px 0; }
+    img { max-width: 100%; height: auto; }
     .coverPage, .chapterPage { page-break-after: always; }
-    .coverPage { margin: .5cm; }
-    .coverPage h1 { margin-top: 0.23cm; font-size: 35px; color: #3F37C9; }
+    .coverPage,
+    .chapterPage {
+      position: relative;
+      box-sizing: border-box;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+      overflow-x: hidden;
+    }
+
+    /* Cover page — same UI as test1 */
+    .coverPage {
+      page: cover;
+      width: 210mm;
+      min-height: 297mm;
+      height: 297mm;
+      max-height: 297mm;
+      margin: 0 auto;
+      padding: 1.1cm 1.4cm 1.8cm;
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+      overflow: hidden;
+      page-break-inside: avoid;
+    }
+    .coverPage div { margin-bottom: 0; }
+    .coverPage * {
+      font-family: 'Space Grotesk', sans-serif;
+      box-sizing: border-box;
+    }
+    .cover-inner {
+      width: 100%;
+      max-width: 172mm;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .cover-logo {
+      margin: 0 auto 8px;
+      text-align: center;
+    }
+    .cover-logo img {
+      width: 250px;
+      height: auto;
+      display: inline-block;
+    }
+    .cover-logo.main-cover-logo {
+      margin-top: 67px;
+      margin-bottom: 25px;
+    }
+    .cover-title {
+      margin: 0 0 12px;
+      text-align: center;
+    }
+    .cover-title .line-stream {
+      display: block;
+      margin: 0;
+      font-size: 37px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: #4341C9;
+      line-height: 1.15;
+      text-transform: uppercase;
+    }
+    .cover-title .line-report {
+      display: block;
+      margin: 4px 0 0;
+      font-size: 37px;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      color: #111111;
+      line-height: 1.15;
+      text-transform: uppercase;
+    }
+    .cover-hero {
+      width: 100%;
+      margin: 0 auto 14px;
+      border-radius: 6px;
+      padding: 0;
+      background: transparent;
+      text-align: center;
+    }
+    .cover-hero img {
+      width: 100%;
+      max-width: 155mm;
+      max-height: 88mm;
+      height: auto;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .cover-info-grid {
+      width: 153mm;
+      max-width: 153mm;
+      margin: 0 auto 14px;
+      border-collapse: separate;
+      border-spacing: 10px 10px;
+      table-layout: fixed;
+    }
+    .cover-info-grid td {
+      width: 50%;
+      vertical-align: middle;
+      padding: 0;
+      border: none;
+      background: transparent;
+    }
+    .cover-info-card {
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px solid #E8EAFF;
+      text-align: left;
+      padding: 10px 12px;
+      box-shadow: 0 2px 8px rgba(67, 65, 201, 0.06);
+    }
+    .cover-info-card-inner {
+      display: table;
+      width: 100%;
+      margin: 0;
+    }
+    .cover-info-icon {
+      display: table-cell;
+      vertical-align: middle;
+      width: 40px;
+      padding-right: 10px;
+    }
+    .cover-info-icon-box {
+      width: 34px;
+      height: 34px;
+      background: #4341C9;
+      border-radius: 8px;
+      text-align: center;
+      line-height: 34px;
+    }
+    .cover-info-icon-box svg {
+      width: 17px;
+      height: 17px;
+      vertical-align: middle;
+    }
+    .cover-info-text {
+      display: table-cell;
+      vertical-align: middle;
+      text-align: left;
+    }
+    .cover-info-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #4341C9;
+      line-height: 1.2;
+      margin: 0 0 2px;
+    }
+    .cover-info-value {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: #111111;
+      line-height: 1.25;
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+    .cover-disclaimer {
+      position: relative;
+      width: 153mm;
+      max-width: 153mm;
+      margin: 61px auto 0;
+      border: 1.5px solid #4341C9;
+      border-radius: 14px;
+      background: #ffffff;
+      padding: 16px 14px 12px;
+      text-align: left;
+    }
+    .cover-disclaimer-badge {
+      position: absolute;
+      top: -11px;
+      left: 50%;
+      margin-left: -48px;
+      width: 96px;
+      background: #4341C9;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 0;
+      border-radius: 999px;
+      white-space: nowrap;
+      line-height: 1.3;
+      text-align: center;
+    }
+    .cover-disclaimer-body {
+      display: table;
+      width: 100%;
+      margin: 0;
+    }
+    .cover-disclaimer-icon {
+      display: table-cell;
+      vertical-align: middle;
+      width: 32px;
+      padding-right: 8px;
+    }
+    .cover-disclaimer-icon svg {
+      width: 24px;
+      height: 24px;
+      display: block;
+    }
+    .cover-disclaimer-text {
+      display: table-cell;
+      vertical-align: middle;
+      font-size: 11.5px;
+      font-weight: 500;
+      color: #494949;
+      line-height: 1.4;
+      margin: 0;
+      text-align: left;
+    }
+
+    .chapterPage {
+      width: 210mm;
+      max-width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto;
+      padding: 1.5cm 1.6cm 1.6cm;
+      font-family: 'Space Grotesk', sans-serif;
+      box-sizing: border-box;
+      overflow-x: hidden;
+    }
     .top-info { display: flex; }
     .info-box { border: 1px solid #3F37C9; width: 100%; display: flex; margin-bottom: 26px; border-radius: 5px; }
     .top-info .info-box:last-child { margin-left: 26px; }
@@ -113,186 +397,1056 @@
     .cat-list { padding:6px; margin-top:0px; background: #F7F6FF; }
     .cat-list ul { column-count:3; list-style: none; padding: 0; }
     .cat-list ul li { list-style: none; padding: 0; margin: 0; }
-    .chapterPage h1 { margin-top: 1cm; text-transform: uppercase; }
-    .interest-part-opener h1 { margin-top: 0 !important; text-transform: none !important; }
-    .interest-part-opener div { margin-bottom: 0; }
+    .chapterPage h1 { margin-top: 0; text-transform: uppercase; font-family: 'Space Grotesk', sans-serif; }
+    /* INTRODUCTION page — same UI as test1 */
+    .intro-page {
+      display: block;
+      padding-top: 1.8cm;
+      padding-bottom: 1.5cm;
+      height: 297mm;
+      max-height: 297mm;
+      overflow: hidden;
+      page-break-inside: avoid;
+      text-align: center;
+    }
+    .intro-page div { margin-bottom: 0; }
+    .intro-panel {
+      position: relative;
+      width: 100%;
+      max-width: 172mm;
+      margin: 64px auto 0;
+      border: 1.5px solid #4341C9;
+      border-radius: 18px;
+      background: #ffffff;
+      padding: 28px 22px 22px;
+      box-sizing: border-box;
+      text-align: left;
+      overflow: visible;
+    }
+    .intro-panel-badge {
+      position: absolute;
+      top: -16px;
+      left: 50%;
+      margin-left: -85px;
+      width: 170px;
+      background: #4341C9;
+      color: #ffffff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-align: center;
+      text-transform: uppercase;
+      padding: 7px 10px;
+      border-radius: 8px;
+      line-height: 1.2;
+    }
+    .intro-panel p {
+      margin: 0 0 14px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px;
+      font-weight: 400;
+      color: #2f2f2f;
+      line-height: 1.55;
+      text-align: left;
+    }
+    .intro-panel p:last-child { margin-bottom: 0; }
+    .intro-panel .intro-highlight {
+      color: #4341C9;
+      font-weight: 700;
+    }
+    .intro-career-art {
+      width: 165mm;
+      max-width: 165mm;
+      margin: 0.9cm auto 0;
+      text-align: center;
+    }
+    .intro-career-art img {
+      width: 100%;
+      max-width: 165mm;
+      height: auto;
+      max-height: 115mm;
+      display: inline-block;
+      border-radius: 8px;
+    }
+    /* HOW TO USE THIS REPORT — same UI as test1 */
+    .howto-page {
+      padding-top: 1.4cm;
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+      height: 297mm;
+      max-height: 297mm;
+      overflow: hidden;
+      page-break-inside: avoid;
+    }
+    .howto-page div { margin-bottom: 0; }
+    .howto-page * { font-family: 'Space Grotesk', sans-serif; box-sizing: border-box; }
+    .howto-page .howto-title {
+      margin: 0 0 14px;
+      color: #4341C9;
+      font-size: 26px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+    }
+    .howto-title.h2-title {
+      margin-top: 64px;
+    }
+    .howto-page .howto-intro {
+      max-width: 168mm;
+      margin: 0 auto 18px;
+      font-size: 14px;
+      font-weight: 400;
+      color: #333;
+      line-height: 1.5;
+      text-align: center;
+    }
+    .howto-page .howto-intro .hl {
+      color: #4341C9;
+      font-weight: 700;
+    }
+    .howto-cards {
+      width: 160mm;
+      max-width: 160mm;
+      margin: 37px auto 39px;
+      border-collapse: separate;
+      border-spacing: 10px 0;
+      table-layout: fixed;
+      text-align: center;
+    }
+    .howto-cards td {
+      width: 33.33%;
+      vertical-align: top;
+      padding: 0;
+      border: none;
+      background: transparent;
+    }
+    .howto-card {
+      position: relative;
+      height: 138px;
+      background: #ffffff;
+      border: 1.5px solid #E4E1F6;
+      border-radius: 18px;
+      padding: 18px 12px 16px;
+      text-align: center;
+      overflow: hidden;
+      box-shadow: 0 3px 10px rgba(67, 65, 201, 0.08);
+    }
+    .howto-card-icon {
+      width: 68px;
+      height: 68px;
+      margin: 0 auto 10px;
+      border-radius: 50%;
+      background: #F5F4FF;
+      border: 1px solid #E8E6FA;
+      text-align: center;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+    .howto-card-icon img {
+      display: block;
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      margin: 14px auto 0;
+    }
+    .howto-card-label {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      font-size: 15px;
+      font-weight: 700;
+      color: #111;
+      line-height: 1.2;
+    }
+    .howto-card-accent {
+      position: absolute;
+      right: -28px;
+      bottom: -28px;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      z-index: 0;
+    }
+    .howto-card.personality .howto-card-accent { background: #7B6CF0; }
+    .howto-card.interest .howto-card-accent { background: #4A7DFF; }
+    .howto-card.aptitude .howto-card-accent { background: #2BB8C0; }
+    .howto-table-wrap {
+      width: 100%;
+      max-width: 172mm;
+      margin: 8px auto 16px;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #ffffff;
+      border: 1px solid #ECEAF8;
+      box-sizing: border-box;
+      text-align: left;
+    }
+    .howto-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .howto-table thead th {
+      background: #4341C9 !important;
+      color: #ffffff !important;
+      font-size: 15px !important;
+      font-weight: 700 !important;
+      padding: 11px 14px !important;
+      text-align: left !important;
+      border: none !important;
+    }
+    .howto-table thead th:first-child {
+      width: 42%;
+    }
+    .howto-table td {
+      border: none !important;
+      border-top: 1px solid #E6E4F2 !important;
+      padding: 12px 14px !important;
+      vertical-align: middle;
+      background: #fff;
+      text-align: left;
+      font-size: 15px;
+    }
+    .howto-part {
+      display: table;
+      width: 100%;
+    }
+    .howto-num {
+      display: table-cell;
+      width: 28px;
+      vertical-align: middle;
+    }
+    .howto-num span {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      line-height: 24px;
+    }
+    .howto-num.n1 span { background: #7B6CF0; }
+    .howto-num.n2 span { background: #4A7DFF; }
+    .howto-num.n3 span { background: #2BB8C0; }
+    .howto-part-text {
+      display: table-cell;
+      vertical-align: middle;
+      padding-left: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a1a1a;
+      line-height: 1.3;
+    }
+    .howto-desc {
+      font-size: 11.5px;
+      font-weight: 400;
+      color: #333;
+      line-height: 1.45;
+    }
+    .howto-desc .kw {
+      color: #4341C9;
+      font-weight: 700;
+    }
+    .howto-footer {
+      width: 100%;
+      max-width: 172mm;
+      margin: 33px auto 0;
+      background: #F1EEFF;
+      border-radius: 12px;
+      padding: 12px 14px;
+      text-align: center;
+    }
+    .howto-footer p {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 500;
+      color: #333;
+      line-height: 1.45;
+    }
+    /* Part-2 Interest Assessment page — same UI language as test1 Part-1 */
+    .interest-assessment-page,
+    .interest-part-opener {
+      padding-top: 1.2cm;
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+      height: 297mm;
+      max-height: 297mm;
+      overflow: hidden;
+      page-break-inside: avoid;
+    }
+    .interest-part-opener div { margin-bottom: 0 !important; }
+    .interest-part-opener * { font-family: 'Space Grotesk', sans-serif; box-sizing: border-box; }
+    .part-badge {
+      display: inline-block;
+      background: #4341C9;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 7px 24px;
+      border-radius: 10px;
+      margin: 0 auto 12px;
+      letter-spacing: 0.02em;
+    }
+    .part-badge.p-badge-2 {
+      margin-top: 48px;
+      margin-bottom: 16px;
+    }
+    .interest-part-opener .page-title {
+      margin: 0 0 12px !important;
+      color: #2C2A9E !important;
+      font-size: 24px !important;
+      font-weight: 700 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+      text-align: center;
+    }
+    .interest-part-opener .page-intro {
+      width: 100%;
+      max-width: 170mm;
+      margin: 0 auto 14px;
+      text-align: left;
+      font-size: 13.5px;
+      font-weight: 400;
+      color: #333;
+      line-height: 1.5;
+      box-sizing: border-box;
+    }
+    .interest-part-opener .page-intro strong {
+      color: #2C2A9E;
+      font-weight: 700;
+    }
+    .dominant-interest-block {
+      width: 100%;
+      max-width: 170mm;
+      margin: 0 auto 12px;
+      text-align: center;
+    }
+    .dominant-interest-label {
+      margin: 0 0 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #111;
+      text-align: center;
+    }
+    .dominant-interest-pill {
+      display: inline-block;
+      background: linear-gradient(90deg, #4341C9 0%, #6B68E0 100%);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 8px 22px;
+      border-radius: 999px;
+      line-height: 1.25;
+      margin: 0 auto 10px;
+      box-shadow: 0 4px 12px rgba(67, 65, 201, 0.2);
+    }
+    .interest-areas-stack {
+      width: 100%;
+      max-width: 172mm;
+      margin: 0 auto;
+      clear: both;
+      text-align: center;
+    }
+    .interest-areas-stack--opener {
+      margin-top: 4px !important;
+    }
+    .interest-area-block {
+      clear: both;
+      width: 100%;
+      max-width: 172mm;
+      margin: 0 auto 12px;
+      overflow: visible;
+      page-break-inside: avoid;
+      break-inside: avoid;
+      text-align: center;
+      float: none !important;
+    }
+    .interest-area-block--pdf {
+      margin-top: 8px;
+    }
+    .interest-trait-pill {
+      display: inline-block;
+      background: #4341C9;
+      color: #fff;
+      border-radius: 999px;
+      padding: 8px 22px 8px 10px;
+      margin: 0 auto 16px;
+      line-height: 1.2;
+      box-shadow: 0 4px 12px rgba(67, 65, 201, 0.22);
+      text-align: left;
+    }
+    .interest-trait-icon {
+      display: inline-block;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #ffffff;
+      text-align: center;
+      line-height: 28px;
+      vertical-align: middle;
+      margin-right: 10px;
+      overflow: hidden;
+    }
+    .interest-trait-icon img {
+      width: 16px;
+      height: 16px;
+      vertical-align: middle;
+      object-fit: contain;
+    }
+    .interest-trait-label {
+      display: inline-block;
+      vertical-align: middle;
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 0.01em;
+    }
+    .interest-strong-panel {
+      position: relative;
+      width: 100%;
+      max-width: 172mm;
+      margin: 8px auto 0;
+      border: 1.5px solid #4341C9;
+      border-radius: 16px;
+      background: #ffffff;
+      padding: 22px 16px 14px;
+      text-align: left;
+      box-sizing: border-box;
+      float: none !important;
+      margin-top:30px
+    }
+    .interest-strong-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      margin-left: -62px;
+      width: 124px;
+      background: #4341C9;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+      padding: 5px 10px;
+      border-radius: 8px;
+      line-height: 1.2;
+    }
+    .interest-strong-intro {
+      margin: 0 0 8px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+    .interest-strong-body {
+      margin: 0;
+      font-size: 12.5px;
+      font-weight: 400;
+      color: #444;
+      line-height: 1.5;
+    }
+    .interest-careers-title {
+      margin: 14px auto 6px;
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+    }
+    .interest-part-opener .riasec-careers-wheel--pdf {
+      max-width: 112mm !important;
+      width: 100% !important;
+      margin: 6px auto 0 !important;
+    }
+    .interest-part-opener .riasec-careers-wheel--pdf .rcw-svg {
+      width: 112mm !important;
+      height: auto !important;
+      max-width: 112mm !important;
+    }
+    .interest-part-continued {
+      padding-top: 1.2cm;
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .interest-part-continued .interest-trait-pill {
+      margin-top: 24px;
+    }
+    .interest-part-continued .riasec-careers-wheel--pdf {
+      max-width: 115mm !important;
+      width: 100% !important;
+      margin: 6px auto 0 !important;
+    }
+    .interest-part-continued .riasec-careers-wheel--pdf .rcw-svg {
+      width: 115mm !important;
+      height: auto !important;
+      max-width: 115mm !important;
+    }
     .disclaimer-heading { width: 120px; text-align: center; margin-bottom: 13px; }
-    .text-color-top { display: flex; justify-content: center; }
+    .text-color-top { display: block; text-align: center; }
     .top-layout { background: #3F37C9; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 28px; font-weight: 600; border-radius: 10px 10px 0 0; }
     .db-header { margin-top: 10px; text-align: center; }
     .db-header h1 { color: #3F37C9; font-size: 24pt; margin: 0 0 10px 0; }
     .test-title { color:#000; font-size:16px; font-weight: 600; margin-top: 10px; }
-    .interest-areas-stack { width: 100%; clear: both; }
-    .interest-area-block { clear: both; width: 100%; margin-bottom: 20px; overflow: visible; page-break-inside: avoid; break-inside: avoid; }
-    .interest-area-block .test-title { float: none !important; width: 100% !important; }
     .img-info { width: 100%; text-align: center; margin-top:30px; }
     .boxthree { margin: 20px 0 40px 0; float:left; width: 100%; }
     .graph { width:100%; text-align: center; margin-top: 40px; float: left; }
 
     .riasec-mini-card0-list {
-	display: flex;
-	justify-content: center;
-	flex-direction: column;
-	width: 100%;
-  align-items: center;
-}
-
-.riasec-mini-card0-list .test-title {
-	text-align: center;
-	width: 100% !important;
-}
-
-
-.riasec-mini-card0-list span {
-	display: flex;
-	justify-content: center;
-	background: #fafaff;
-	width: 315px;
-	padding: 7px 8px;
-	border-radius: 20px;
-margin-bottom:0px !important;
-}
-
-
-
+      display: block;
+      width: 100%;
+      text-align: center;
+    }
+    .riasec-mini-card0-list .test-title {
+      text-align: center;
+      width: 100% !important;
+    }
+    .riasec-mini-card0-list span {
+      display: inline-block;
+      background: #fafaff;
+      padding: 7px 14px;
+      border-radius: 20px;
+      margin-bottom: 0 !important;
+    }
+    /* Last page — Interest Assessment (same UI language as test1 graph page) */
+    .chapterPage.report-graph-page {
+      padding: 1.2cm 1.5cm 1.5cm !important;
+      overflow: hidden !important;
+      text-align: center;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .report-graph-page * {
+      font-family: 'Space Grotesk', sans-serif;
+      box-sizing: border-box;
+    }
+    .report-graph-page div { margin-bottom: 0; }
+    .graph-page-title {
+      margin: 48px auto 14px !important;
+      color: #4341C9 !important;
+      font-size: 22px !important;
+      font-weight: 700 !important;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      line-height: 1.2;
+      text-align: center;
+      border-bottom: 2px solid #4341C9;
+      display: inline-block;
+      padding-bottom: 4px;
+    }
+    .graph-frame {
+      width: 100%;
+      max-width: 172mm;
+      margin: 12px auto 16px;
+      border: 1.5px solid #7B8FE8;
+      border-radius: 14px;
+      background: #ffffff;
+      padding: 10px 12px 8px;
+      overflow: hidden;
+      margin-top:64px;
+    }
+    .graph-frame .report-graph-block,
+    .report-graph-block {
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 0 auto !important;
+      padding: 0 !important;
+      float: none !important;
+      clear: both;
+      text-align: center;
+      overflow: hidden;
+    }
+    .graph-frame img,
+    .report-graph-block img {
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      height: auto !important;
+      max-height: 100mm;
+      margin: 0 auto !important;
+    }
+    .stream-result-cards {
+      width: 165mm;
+      max-width: 165mm;
+      margin: 16px auto 18px;
+      border-collapse: separate;
+      border-spacing: 12px 0;
+      table-layout: fixed;
+    }
+    .stream-result-cards td {
+      width: 50%;
+      vertical-align: middle;
+      padding: 0;
+      border: none;
+      background: transparent;
+    }
+    .stream-result-cards td:only-child {
+      width: 100%;
+    }
+    .stream-result-cards td:only-child .stream-result-card {
+      max-width: 120mm;
+      margin: 0 auto;
+    }
+    .stream-result-card {
+      position: relative;
+      width: 100%;
+      min-height: 72px;
+      border-radius: 16px;
+      padding: 12px 14px;
+      overflow: hidden;
+      text-align: left;
+      border: 1px solid #E4E1F6;
+    }
+    .stream-result-card.accent-purple {
+      background: linear-gradient(90deg, #EDE9FF 0%, #F7F5FF 55%, #FFFFFF 100%);
+    }
+    .stream-result-card.accent-teal {
+      background: linear-gradient(90deg, #D9F4F6 0%, #EEFBFC 55%, #FFFFFF 100%);
+    }
+    .stream-result-card::before {
+      content: "";
+      position: absolute;
+      left: -18px;
+      top: -10px;
+      width: 56px;
+      height: 96px;
+      border-radius: 50%;
+      opacity: 0.9;
+    }
+    .stream-result-card.accent-purple::before { background: #8B7CF0; }
+    .stream-result-card.accent-teal::before { background: #2BB8C0; }
+    .stream-result-inner {
+      display: table;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+    .stream-result-icon {
+      display: table-cell;
+      vertical-align: middle;
+      width: 48px;
+      padding-right: 10px;
+    }
+    .stream-result-icon-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 1px solid #E8E6F8;
+      text-align: center;
+      line-height: 44px;
+      overflow: hidden;
+    }
+    .stream-result-icon-circle img {
+      width: 26px;
+      height: 26px;
+      vertical-align: middle;
+      object-fit: contain;
+    }
+    .stream-result-text {
+      display: table-cell;
+      vertical-align: middle;
+      text-align: left;
+    }
+    .stream-result-code {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: #2C2A9E;
+      line-height: 1.15;
+    }
+    .stream-result-name {
+      margin: 3px 0 0;
+      font-size: 12px;
+      font-weight: 500;
+      color: #555;
+      line-height: 1.25;
+      word-wrap: break-word;
+      overflow-wrap: anywhere;
+    }
+    .pathways-panel.next-steps-panel {
+      position: relative !important;
+      width: 100% !important;
+      max-width: 172mm !important;
+      margin: 64px auto 0 !important;
+      border: 1.5px solid #FF7D04 !important;
+      border-radius: 14px !important;
+      background: #ffffff !important;
+      padding: 26px 20px 18px !important;
+      text-align: left !important;
+      box-sizing: border-box !important;
+    }
+    .pathways-panel.next-steps-panel .pathways-badge {
+      position: absolute !important;
+      top: -13px !important;
+      left: 50% !important;
+      margin-left: -68px !important;
+      width: 136px !important;
+      background: #FF7D04 !important;
+      color: #ffffff !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      text-align: center !important;
+      padding: 6px 12px !important;
+      border-radius: 8px !important;
+      line-height: 1.2 !important;
+      letter-spacing: 0.02em !important;
+    }
+    .next-steps-list {
+      list-style: none !important;
+      margin: 4px 0 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
+    }
+    .next-steps-list li {
+      position: relative !important;
+      display: table !important;
+      width: 100% !important;
+      list-style: none !important;
+      margin: 0 0 12px !important;
+      padding: 0 !important;
+      font-size: 13px !important;
+      font-weight: 400 !important;
+      color: #333333 !important;
+      line-height: 1.45 !important;
+    }
+    .next-steps-list li:last-child {
+      margin-bottom: 2px !important;
+    }
+    .next-steps-list li::before,
+    .next-steps-list li::after {
+      content: none !important;
+      display: none !important;
+      border: none !important;
+      background: none !important;
+      box-shadow: none !important;
+    }
+    .next-steps-check {
+      display: table-cell !important;
+      vertical-align: top !important;
+      width: 22px !important;
+      padding: 1px 10px 0 0 !important;
+    }
+    .next-steps-check span {
+      display: block !important;
+      width: 16px !important;
+      height: 16px !important;
+      border-radius: 50% !important;
+      background: #FF7D04 !important;
+      text-align: center !important;
+      line-height: 16px !important;
+      overflow: hidden !important;
+    }
+    .next-steps-check svg {
+      width: 10px !important;
+      height: 10px !important;
+      vertical-align: middle !important;
+    }
+    .next-steps-text {
+      display: table-cell !important;
+      vertical-align: top !important;
+      text-align: left !important;
+    }
+    .next-steps-list strong {
+      color: #FF7D04 !important;
+      font-weight: 700 !important;
+    }
+    .next-steps-wish {
+      margin: 14px 0 0 !important;
+      padding-top: 14px !important;
+      border-top: 1px solid #E6E6E6 !important;
+      font-size: 13px !important;
+      font-style: normal !important;
+      color: #333333 !important;
+      text-align: left !important;
+      line-height: 1.5 !important;
+    }
+    .next-steps-wish strong {
+      color: #FF7D04 !important;
+      font-style: normal !important;
+      font-weight: 700 !important;
+    }
+    {% include 'template20/app/partials/next_steps_card_styles.html' %}
   </style>
   {% include 'template20/app/partials/riasec_careers_wheel_styles.html' %}
+  <style>
+    /* Override compact wheel styles so Part-2 matches test1 page chrome */
+    .interest-part-opener.interest-assessment-page {
+      padding-top: 1.2cm !important;
+      padding-bottom: 1.4cm !important;
+      text-align: center !important;
+    }
+    .interest-part-opener .part-badge {
+      display: inline-block !important;
+      background: #4341C9 !important;
+      color: #fff !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      padding: 7px 24px !important;
+      border-radius: 10px !important;
+      margin: 48px auto 16px !important;
+    }
+    .interest-part-opener .page-title {
+      margin: 0 0 12px !important;
+      color: #2C2A9E !important;
+      font-size: 24px !important;
+      font-weight: 700 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.02em !important;
+      line-height: 1.2 !important;
+    }
+    .interest-part-opener .page-intro {
+      max-width: 170mm !important;
+      margin: 0 auto 14px !important;
+      text-align: left !important;
+      font-size: 13.5px !important;
+      line-height: 1.5 !important;
+      color: #333 !important;
+    }
+    .interest-part-opener .dominant-interest-pill {
+      display: inline-block !important;
+      background: linear-gradient(90deg, #4341C9 0%, #6B68E0 100%) !important;
+      color: #fff !important;
+      font-size: 14px !important;
+      font-weight: 700 !important;
+      padding: 8px 22px !important;
+      border-radius: 999px !important;
+      margin: 0 auto 12px !important;
+    }
+    .interest-part-opener .interest-trait-pill {
+      margin-bottom: 18px !important;
+    }
+    .interest-part-opener .interest-strong-panel {
+      max-width: 172mm !important;
+      margin: 10px auto 0 !important;
+      padding: 22px 16px 14px !important;
+      border-radius: 16px !important;
+      background: #ffffff !important;
+    }
+    .interest-part-opener .interest-strong-intro {
+      font-size: 12.5px !important;
+      margin-bottom: 6px !important;
+    }
+    .interest-part-opener .interest-strong-body {
+      font-size: 12px !important;
+      line-height: 1.45 !important;
+    }
+    .interest-part-opener .interest-careers-title {
+      margin: 10px auto 4px !important;
+      font-size: 13px !important;
+    }
+    .interest-part-opener .riasec-careers-wheel--pdf {
+      max-width: 110mm !important;
+      width: 100% !important;
+    }
+    .interest-part-opener .riasec-careers-wheel--pdf .rcw-svg {
+      width: 110mm !important;
+      height: auto !important;
+      max-width: 110mm !important;
+    }
+  </style>
 </head>
 <body>
-
-  <div class="page-header">
+  <!-- <div class="page-header">
     <div class="page-header-content">
       <img style="width: 90px;"  src="{{ static('images/logo.png') }}" alt="TOPTEEN Logo" />
     </div>
     <hr class="page-header-line" />
-  </div>
+  </div> -->
 
   <div class="coverPage">
-    <div class="img-top" style="width: 100%; text-align: center;">
-      <img style="width: 200px;" src="{{ static('images/logo.png') }}" alt="logo" />
-    </div>
-    <div class="heading-cover" style="width: 100%; text-align: center;">
-      <h1 style="font-family: 'Galano Grotesque'; margin-top: 0.23cm; font-size: 35px; color: #3F37C9;">Stream Sorter Assessment Report</h1>
-    </div>
-    <div class="image-cover" style="width: 100%; text-align: center;">
-      <img style="width: 320px;" src="{{ static('images/report-image.png') }}" alt="img" />
-    </div>
-
-    {% if user_profile %}
-    <div class="student-detail-info" style="width:600px; margin-bottom:30px;">
-      <div class="top-info">
-        <div class="info-box">
-          <div class="dt-i-info" style="color:#fff; margin-bottom: 0px;"> Name </div>
-          <div class="output" style="margin-bottom: 0px;">
-            <p>{{ student_name }}</p>
-          </div>
-        </div>
-        <div class="info-box">
-          <div class="dt-i-info" style="color:#fff; width: 125px;margin-bottom: 0px;">School</div>
-          <div class="output">
-            <p>{{ user_profile.schoolname if user_profile.schoolname else '' }}</p>
-          </div>
-        </div>
+    <div class="cover-inner">
+      <div class="cover-logo main-cover-logo">
+        <img src="{{ static('images/logo.png') }}" alt="topteen" />
       </div>
-      <div class="top-info">
-        <div class="info-box">
-          <div class="dt-i-info" style="color:#fff; margin-bottom: 0px; "> Grade</div>
-          <div class="output" style="margin-bottom: 0px;">
-            <p>{{ user_profile.grade if user_profile.grade else '' }}</p>
-          </div>
-        </div>
-        <div class="info-box" style="margin-bottom: 0px; height: 47px;">
-          <div class="dt-i-info" style="width: 3cm;color:#fff; margin-bottom: 0px; "> Date of Test </div>
-          <div class="output" style="margin-bottom: 0px;">
-            <p>{{ created_date.strftime('%Y-%m-%d') if created_date else now.strftime('%Y-%m-%d') }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-    {% endif %}
 
-    <div style="width:100%; margin-top: 40px; float: left;">
-      <table style="width:100%; margin-top: 20px;">
-        <tbody>
-          <tr style="border: 1px solid #3F37CB; border-radius: 10px;">
-            <td>
-              <div class="disclaimer-heading" style="width:100%; text-align: center; color: #3F37CB; text-align: center; margin-top: -19px;">
-                <p style="background-color: #3F37CB; padding:2px; color: #fff; font-size: 12px; border-radius: 5px 5px 0 0; text-align: center; width:150px; margin: 0px auto;">Disclaimer</p>
+      <div class="cover-title">
+        <span class="line-stream">Stream Sorter</span>
+        <span class="line-report">Assessment Report</span>
+      </div>
+
+      <div class="cover-hero">
+        <img src="{{ static('images_new/new_report/cover-hero.png') }}" alt="Assessment report illustration" />
+      </div>
+
+      <table class="cover-info-grid" cellspacing="0" cellpadding="0">
+        <tr>
+          <td>
+            <div class="cover-info-card">
+              <div class="cover-info-card-inner">
+                <div class="cover-info-icon">
+                  <div class="cover-info-icon-box">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v1.2h19.2v-1.2c0-3.2-6.4-4.8-9.6-4.8z" fill="#ffffff"/>
+                    </svg>
+                  </div>
+                </div>
+                <div class="cover-info-text">
+                  <span class="cover-info-label">Name</span>
+                  <span class="cover-info-value">{{ student_name if student_name is defined and student_name else (user_name if user_name is defined else '') }}</span>
+                </div>
               </div>
-              <p style="width:100%; text-align: center;">The results of this assessment are based on the responses given by the individual on the self report questionnaire and are subject to change based on multiple factors.</p>
+            </div>
+          </td>
+          <td>
+            <div class="cover-info-card">
+              <div class="cover-info-card-inner">
+                <div class="cover-info-icon">
+                  <div class="cover-info-icon-box">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <path d="M12 3L2 8v2h20V8L12 3zM4 11v8h3v-5h4v5h3v-5h4v5h3v-8H4zm5 10h6v1H9v-1z" fill="#ffffff"/>
+                    </svg>
+                  </div>
+                </div>
+                <div class="cover-info-text">
+                  <span class="cover-info-label">School</span>
+                  <span class="cover-info-value">{% if user_profile and user_profile.schoolname %}{{ user_profile.schoolname }}{% else %}—{% endif %}</span>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="cover-info-card">
+              <div class="cover-info-card-inner">
+                <div class="cover-info-icon">
+                  <div class="cover-info-icon-box">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <path d="M12 3L1 9l11 6 9-4.9V17h2V9L12 3zm-7 9.2V15c0 1.7 3.1 3 7 3s7-1.3 7-3v-2.8l-7 3.8-7-3.8z" fill="#ffffff"/>
+                    </svg>
+                  </div>
+                </div>
+                <div class="cover-info-text">
+                  <span class="cover-info-label">Grade</span>
+                  <span class="cover-info-value">{% if user_profile and user_profile.grade %}{{ user_profile.grade }}{% else %}—{% endif %}</span>
+                </div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="cover-info-card">
+              <div class="cover-info-card-inner">
+                <div class="cover-info-icon">
+                  <div class="cover-info-icon-box">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <path d="M7 2h2v2h6V2h2v2h3v16H4V4h3V2zm11 8H6v8h12v-8zm0-4H6v2h12V6z" fill="#ffffff"/>
+                    </svg>
+                  </div>
+                </div>
+                <div class="cover-info-text">
+                  <span class="cover-info-label">Date of Test</span>
+                  <span class="cover-info-value">{{ created_date.strftime('%Y-%m-%d') if created_date else now.strftime('%Y-%m-%d') }}</span>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </table>
+
+      <div class="cover-disclaimer">
+        <div class="cover-disclaimer-badge">Disclaimer</div>
+        <div class="cover-disclaimer-body">
+          <div class="cover-disclaimer-icon">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5l8-3z" fill="#4341C9"/>
+              <path d="M10.2 15.4l-2.8-2.8 1.4-1.4 1.4 1.4 4.2-4.2 1.4 1.4-5.6 5.6z" fill="#ffffff"/>
+            </svg>
+          </div>
+          <p class="cover-disclaimer-text">The results of this assessment are based on the responses given by the individual on the self report questionnaire and are subject to change based on multiple factors.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapterPage intro-page">
+    <div class="intro-panel">
+      <div class="intro-panel-badge">Introduction</div>
+      <p>Selecting the right academic stream is a significant milestone in a student's educational journey. It's like choosing a path in a vast, exciting forest where each trail leads to unique adventures and destinations. This decision lays the foundation for future career prospects and academic pursuits, making it crucial for students to carefully evaluate their options.</p>
+      <p>Imagine standing at a crossroads with a map in hand, each route offering a glimpse into different worlds—science teeming with discoveries, commerce bustling with business acumen, and humanities rich with cultural insights. This pivotal choice is not just about subjects and exams; it's about uncovering your passions, unlocking potential, and setting the stage for your future. Whether you dream of becoming an engineer, an entrepreneur, or an artist, the right stream can be the launch pad to your aspirations, turning your academic journey into an exhilarating quest for knowledge and success.</p>
+      <p>The Stream Sorter Assessment Test aims to guide students in this decision by evaluating three key aspects: <span class="intro-highlight">Interest, Personality, and Aptitude.</span> These elements are essential in identifying the most suitable academic path for each individual.</p>
+    </div>
+    <div class="intro-career-art">
+      <img src="{{ static('images_new/new_report/career-hand.png') }}" alt="Career" />
+    </div>
+  </div>
+
+  <div class="chapterPage howto-page">
+    <h1 class="howto-title h2-title">How To Use This Report</h1>
+    <p class="howto-intro">This test typically consists of a series of questions in 3 parts that evaluate various aspects of a student's <span class="hl">Personality, Interest and Aptitude</span> and it helps you decide the suggested stream to consider in your high school.</p>
+
+    <table class="howto-cards" cellspacing="0" cellpadding="0">
+      <tr>
+        <td>
+          <div class="howto-card personality">
+            <div class="howto-card-accent"></div>
+            <div class="howto-card-icon">
+              <img src="{{ static('images/personality-icon.png') }}" alt="Personality" />
+            </div>
+            <p class="howto-card-label">Personality</p>
+          </div>
+        </td>
+        <td>
+          <div class="howto-card interest">
+            <div class="howto-card-accent"></div>
+            <div class="howto-card-icon">
+              <img src="{{ static('images/interest-icon.png') }}" alt="Interest" />
+            </div>
+            <p class="howto-card-label">Interest</p>
+          </div>
+        </td>
+        <td>
+          <div class="howto-card aptitude">
+            <div class="howto-card-accent"></div>
+            <div class="howto-card-icon">
+              <img src="{{ static('images/intelligence-icon.png') }}" alt="Aptitude" />
+            </div>
+            <p class="howto-card-label">Aptitude</p>
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <div class="howto-table-wrap">
+      <table class="howto-table">
+        <thead>
+          <tr>
+            <th>Part</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div class="howto-part">
+                <div class="howto-num n1"><span>1</span></div>
+                <div class="howto-part-text">Part 1 - Personality Assessment</div>
+              </div>
             </td>
+            <td class="howto-desc"><span class="kw">Personality</span> encompasses the traits &amp; characteristics that define how you interact with the world and approach tasks</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="howto-part">
+                <div class="howto-num n2"><span>2</span></div>
+                <div class="howto-part-text">Part 2 - Career Interest Assessment</div>
+              </div>
+            </td>
+            <td class="howto-desc"><span class="kw">Interest</span> refers to the subjects and activities that naturally engage and excite you</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="howto-part">
+                <div class="howto-num n3"><span>3</span></div>
+                <div class="howto-part-text">Part 3 - Aptitude Assessment</div>
+              </div>
+            </td>
+            <td class="howto-desc"><span class="kw">Aptitude</span> refers to your cognitive abilities, including logical reasoning, problem-solving skills, and understanding of complex concepts</td>
           </tr>
         </tbody>
       </table>
     </div>
-  </div>
 
-  <div class="chapterPage">
-    <div class="db-header" style="margin-top: 16px; text-align: center;">
-      <h1 style="color: #3F37C9;">INTRODUCTION</h1>
-    </div>
-    <table>
-      <tbody>
-        <tr style="background: #E7FEFF;">
-          <td>
-            <div class="intro-box" style="background: #E7FEFF; padding: 18px;">
-              <p style="font-family: 'Galano Grotesque';">Selecting the right academic stream is a significant milestone in a student's educational journey. It's like choosing a path in a vast, exciting forest where each trail leads to unique adventures and destinations. This decision lays the foundation for future career prospects and academic pursuits, making it crucial for students to carefully evaluate their options.</p>
-              <p style="font-family: 'Galano Grotesque';">Imagine standing at a crossroads with a map in hand, each route offering a glimpse into different worlds—science teeming with discoveries, commerce bustling with business acumen, and humanities rich with cultural insights. This pivotal choice is not just about subjects and exams; it's about uncovering your passions, unlocking potential, and setting the stage for your future. Whether you dream of becoming an engineer, an entrepreneur, or an artist, the right stream can be the launch pad to your aspirations, turning your academic journey into an exhilarating quest for knowledge and success.</p>
-              <p style="font-family: 'Galano Grotesque';">The Stream Sorter Assessment Test aims to guide students in this decision by evaluating three key aspects: <strong>Interest, Personality, and Aptitude</strong>. These elements are essential in identifying the most suitable academic path for each individual.</p>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <div class="img-info">
-      <img style="width:500px" src="{{ static('images/student-sitting.png') }}" alt="Student" />
-    </div>
-  </div>
-
-  <div class="chapterPage">
-    <div class="db-header" style="margin-top: 10px; text-align: center;">
-      <h1 style="color: #3F37C9;">HOW TO USE THIS REPORT</h1>
-    </div>
-    <div class="text-info-paragraph">
-      <p>This test typically consists of a series of questions in 3 parts that evaluate various aspects of a student's <strong>Personality, Interest and Aptitude</strong> and it helps you decide the suggested stream to consider in your high school.</p>
-    </div>
-    <div class="boxthree">
-      <div class="box-info" style="text-align: center;">
-        <div class="img"> <img style="width:50px;" src="{{ static('images/personality-icon.png') }}" alt="img" /> </div>
-        <h5>Personality</h5>
-      </div>
-      <div class="box-info" style="text-align: center;">
-        <div class="img"> <img style="width:50px;" src="{{ static('images/interest-icon.png') }}" alt="img" /> </div>
-        <h5>Interest</h5>
-      </div>
-      <div class="box-info" style="text-align: center;">
-        <div class="img"> <img style="width:50px;" src="{{ static('images/intelligence-icon.png') }}" alt="img" /> </div>
-        <h5>Aptitude</h5>
-      </div>
-    </div>
-    <table style="margin-bottom: 30px; margin-top:25px;">
-      <thead>
-        <tr>
-          <th style="background: #E7E5FF; color:#2720A7; padding: 21px 0 21px 14px; border-top-left-radius: 15px;">Part</th>
-          <th style="background: #E7E5FF; color:#2720A7; padding: 21px 3px; border-top-right-radius: 15px;">Description</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr style="border:1px solid #9490dd;">
-          <td style="width: 200px; padding-left:14px; color: #000; font-weight: 700;">Part 1- Personality Assessment</td>
-          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 16px;"><span style="color:#2720A7;">Personality</span> encompasses the traits and characteristics that define how you interact with the world and approach tasks</td>
-        </tr>
-        <tr style="border:1px solid #9490dd;">
-          <td style="padding-left:14px; color: #000; font-weight: 700;">Part 2- Career Interest Assessment</td>
-          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 16px;"><span style="color:#2720A7;">Interest</span> refers to the subjects and activities that naturally engage and excite you</td>
-        </tr>
-        <tr style="border:1px solid #9490dd;">
-          <td style="width: 200px; padding-left:14px; color: #000; font-weight: 700;">Part 3- Aptitude Assessment</td>
-          <td style="padding-top:10px; padding-bottom: 10px; color: #000; font-weight: 500; font-size: 16px;"><span style="color:#2720A7;">Aptitude</span> refers to your cognitive abilities, including logical reasoning, problem-solving skills, and understanding of complex concepts</td>
-        </tr>
-      </tbody>
-    </table>
-    <div class="text-info-paragraph">
+    <div class="howto-footer">
       <p>This comprehensive report ensures that you make informed decision about your academic path, leading to more successful and fulfilling career.</p>
     </div>
   </div>
@@ -302,29 +1456,17 @@ margin-bottom:0px !important;
   {% endwith %}
 
   {% if user_name and user_ID %}
-  <div class="chapterPage">
-    <div style="width:600px; text-align: center; margin-top: 30px; float: left; margin-bottom: 30px;">
-      <img style="width:550px;" src="{{ graph_image_media_url(user_name, user_ID, 'interest') }}" alt="graph"/>
+  <div class="chapterPage report-graph-page interest-graph-page">
+   
+
+    <div class="graph-frame">
+      <div class="report-graph-block">
+        <img src="{{ graph_image_media_url(user_name, user_ID, 'interest') }}" alt="Interest assessment graph" />
+      </div>
     </div>
 
-    <div style="width: 600px; float: left;">
-      <div class="text-color-top" style="display: flex; flex-direction: row; justify-content: center;">
-        <div class="top-layout" style="background: #FF7D04; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;">
-          Next Steps
-        </div>
-      </div>
-      <div style="width:600px; float: left; background:#FFF1E4; border: 1px solid #FF7D04; border-radius: 5px; padding: 10px;">
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #FF7D04;">• Explore Careers:</strong> Research the careers mentioned in this report to learn more about what they entail.</div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #FF7D04;">• Gain Experience:</strong> Seek out internships, volunteer opportunities, or part-time jobs in fields that interest you.</div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color:#FF7D04;">• Further Education:</strong> Consider the educational requirements for your desired careers and plan your academic path accordingly.</div>
-        <div style="width:100%; float: left; margin: 2px 0; font-size: 14px;"><strong style="color: #FF7D04;">• Seek Guidance:</strong> Talk to career counselors, mentors, and professionals in your fields of interest for advice and guidance.</div>
-      </div>
-      <div class="text-info-paragraph" style="width: 550px; margin: 0px auto;">
-        <p style="font-style: italic; text-align: center; font-size:14px;">By aligning your career choices with your interests, you can find a fulfilling and rewarding career that leverages your strengths and passions. <strong style="color:#FF7D04;">Best wishes!</strong></p>
-      </div>
-    </div>
+    {% include 'template20/app/partials/next_steps_card.html' %}
   </div>
   {% endif %}
 </body>
 </html>
-

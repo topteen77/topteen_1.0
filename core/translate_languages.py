@@ -199,6 +199,23 @@ def get_enabled_languages_csv():
     return ','.join(get_enabled_language_codes())
 
 
+def get_enabled_language_entries():
+    """Enabled languages as [{code, name}, ...] for the frontend language bar."""
+    codes = get_enabled_language_codes()
+    name_by_code = dict(TRANSLATE_LANGUAGE_CATALOG)
+    try:
+        from core.models import TranslateLanguage
+        for row in TranslateLanguage.objects.filter(code__in=codes).only('code', 'name'):
+            if row.name:
+                name_by_code[row.code] = row.name
+    except Exception:
+        pass
+    return [
+        {'code': code, 'name': name_by_code.get(code) or code}
+        for code in codes
+    ]
+
+
 def get_language_choices_for_admin():
     """Rows for admin checkbox UI: list of dicts with code, name, enabled, required."""
     try:

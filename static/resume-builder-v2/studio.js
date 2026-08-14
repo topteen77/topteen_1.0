@@ -17,6 +17,44 @@
   var queuedProfileSyncOffers = [];
   var LANGUAGE_LEVELS = ["Native", "Fluent", "Advanced", "Intermediate", "Basic", "Beginner"];
 
+  function normalizeLanguageLevel(raw) {
+    var s = (raw || "").trim();
+    if (!s) return "";
+    if (LANGUAGE_LEVELS.indexOf(s) >= 0) return s;
+    var lower = s.toLowerCase();
+    var i;
+    for (i = 0; i < LANGUAGE_LEVELS.length; i++) {
+      if (LANGUAGE_LEVELS[i].toLowerCase() === lower) return LANGUAGE_LEVELS[i];
+    }
+    var aliases = {
+      "native / mother tongue": "Native",
+      "mother tongue": "Native",
+      "native speaker": "Native",
+      "professional working proficiency": "Fluent",
+      "full professional proficiency": "Advanced",
+      "conversational": "Intermediate",
+      "intermediate (b1)": "Intermediate",
+      "intermediate (b2)": "Intermediate",
+      "elementary": "Basic",
+      "basic (a2)": "Basic",
+      "beginner (a1)": "Beginner",
+    };
+    return aliases[lower] || s;
+  }
+
+  function buildLanguageLevelOptions(selectedLevel) {
+    var level = normalizeLanguageLevel(selectedLevel);
+    var opts = ['<option value="">—</option>'];
+    if (level && LANGUAGE_LEVELS.indexOf(level) < 0) {
+      opts.push('<option value="' + esc(level) + '" selected>' + esc(level) + "</option>");
+    }
+    LANGUAGE_LEVELS.forEach(function (lv) {
+      var sel = level === lv ? " selected" : "";
+      opts.push('<option value="' + esc(lv) + '"' + sel + ">" + esc(lv) + "</option>");
+    });
+    return opts.join("");
+  }
+
   function $(sel, root) {
     return (root || document).querySelector(sel);
   }
@@ -227,7 +265,7 @@
       var nameEl = row.querySelector("[data-lang-name]");
       var levelEl = row.querySelector("[data-lang-level]");
       var name = nameEl ? nameEl.value.trim() : "";
-      var level = levelEl ? levelEl.value.trim() : "";
+      var level = levelEl ? normalizeLanguageLevel(levelEl.value) : "";
       if (!name && !level) return;
       if (name && !level) {
         setFieldErrorOnElement(levelEl, "Select a level");
@@ -597,7 +635,15 @@
       showValidationToast();
       return;
     }
-    setActiveSection(id);
+    setSavingState(true);
+    saveCurrentSection()
+      .then(function () {
+        setActiveSection(id);
+      })
+      .catch(function () {})
+      .finally(function () {
+        setSavingState(false);
+      });
   }
 
   function activeFormCard() {
@@ -1027,6 +1073,8 @@
     base.headline = trimVal("rb2Headline");
     var phoneEl = $("#rb2Phone");
     if (phoneEl && !phoneEl.readOnly) base.phone = trimVal("rb2Phone");
+    var locationEl = $("#rb2Location");
+    if (locationEl) base.address = locationEl.value.trim();
     var emailEl = $("#rb2Email");
     if (emailEl) base.email = emailEl.value.trim();
     var summaryField = $("#rb2SummaryField");
@@ -1286,6 +1334,7 @@
     var body = {
       action: "save_personal",
       headline: trimVal("rb2Headline"),
+      location: trimVal("rb2Location"),
     };
     var nameEl = $("#rb2Name");
     if (nameEl && !nameEl.readOnly) body.name = trimVal("rb2Name");
@@ -1609,15 +1658,12 @@
     langs.forEach(function (lg, idx) {
       var row = document.createElement("div");
       row.className = "rb2-lang-row";
-      var levelOpts = LANGUAGE_LEVELS.map(function (lv) {
-        var sel = (lg.level || "") === lv ? " selected" : "";
-        return "<option value=\"" + esc(lv) + "\"" + sel + ">" + esc(lv) + "</option>";
-      }).join("");
+      var levelOpts = buildLanguageLevelOptions(lg.level || "");
       row.innerHTML =
         "<div class=\"rb2-field\"><label>Language</label>" +
         "<input type=\"text\" data-lang-name placeholder=\"e.g. English\" value=\"" + esc(lg.name || "") + "\" /></div>" +
         "<div class=\"rb2-field\"><label>Level</label>" +
-        "<select data-lang-level><option value=\"\">—</option>" + levelOpts + "</select></div>" +
+        "<select data-lang-level>" + levelOpts + "</select></div>" +
         "<div class=\"rb2-lang-row__remove\">" +
         "<span class=\"rb2-lang-row__remove-label\" aria-hidden=\"true\">Remove</span>" +
         "<button type=\"button\" class=\"rb2-lang-remove\" title=\"Remove language\" aria-label=\"Remove language\">" +
@@ -1662,8 +1708,8 @@
       var nameEl = row.querySelector("[data-lang-name]");
       var levelEl = row.querySelector("[data-lang-level]");
       var name = nameEl ? nameEl.value.trim() : "";
-      var level = levelEl ? levelEl.value.trim() : "";
-      if (name) langs.push({ name: name, level: level });
+      var level = levelEl ? normalizeLanguageLevel(levelEl.value) : "";
+      if (name && level) langs.push({ name: name, level: level });
     });
     return langs;
   }
@@ -1965,26 +2011,56 @@
     if (removeBtn) removeBtn.hidden = !hasPhoto;
   }
 
+  function photoAvatarHtml() {
+    var initial = cfg.avatarInitial || "?";
+    return (
+      '<span class="rb2-photo-preview__avatar-initials" id="rb2PhotoPlaceholder">' +
+      esc(initial) +
+      "</span>"
+    );
+  }
+
+  function showPhotoAvatar(keepUploadState) {
+    var wrap = $("#rb2PhotoPreview");
+    if (!wrap) return;
+    wrap.innerHTML = photoAvatarHtml();
+    if (!keepUploadState) {
+      cfg.resumePhotoUrl = "";
+      setPhotoUploadLabel(false);
+    }
+  }
+
+  function bindPhotoImgFallback(img) {
+    if (!img || img.getAttribute("data-rb2-photo-bound") === "1") return;
+    img.setAttribute("data-rb2-photo-bound", "1");
+    img.addEventListener("error", function () {
+      // Broken/missing media → avatar initials instead of browser broken-image icon
+      showPhotoAvatar(false);
+    });
+    // Cached broken images may not fire error after bind — force check
+    if (img.complete && img.naturalWidth === 0) {
+      showPhotoAvatar(false);
+    }
+  }
+
   function setPhotoPreview(url) {
     var wrap = $("#rb2PhotoPreview");
     if (!wrap) return;
     cfg.resumePhotoUrl = url || "";
     if (url) {
-      var img = $("#rb2PhotoImg");
-      if (img) {
-        img.src = url;
-      } else {
-        wrap.innerHTML =
-          '<img src="' + esc(url) + '" alt="Your photo" class="rb2-photo-preview__img" id="rb2PhotoImg">';
-      }
+      wrap.innerHTML =
+        '<img src="' +
+        esc(url) +
+        '" alt="Your photo" class="rb2-photo-preview__img" id="rb2PhotoImg">' +
+        '<span class="rb2-photo-preview__avatar-initials" id="rb2PhotoPlaceholder" hidden>' +
+        esc(cfg.avatarInitial || "?") +
+        "</span>";
+      bindPhotoImgFallback($("#rb2PhotoImg"));
       setPhotoUploadLabel(true);
       scheduleLocalUiSync();
       return;
     }
-    var initial = cfg.avatarInitial || "?";
-    wrap.innerHTML =
-      '<span class="rb2-photo-preview__avatar-initials" id="rb2PhotoPlaceholder">' + esc(initial) + "</span>";
-    setPhotoUploadLabel(false);
+    showPhotoAvatar(false);
     scheduleLocalUiSync();
   }
 
@@ -2095,13 +2171,14 @@
     var pctEl = document.getElementById("rb2ProgressPct");
     var levelEl = document.getElementById("rb2ProgressLevel");
     var barWrap = document.getElementById("rb2ProgressBarWrap");
-    var key = progressLevelKey(level);
+    var complete = pct >= 100;
+    var key = complete ? "outstanding" : progressLevelKey(level);
     if (label) label.dataset.level = key;
     if (barWrap) {
       barWrap.dataset.level = key;
-      barWrap.setAttribute("aria-valuenow", String(pct));
+      barWrap.setAttribute("aria-valuenow", String(complete ? 100 : pct));
     }
-    if (pct >= 100) {
+    if (complete) {
       if (label) {
         label.innerHTML = '<span class="rb2-progress-pct rb2-progress-pct--complete">Resume complete!</span>';
       }
@@ -2112,8 +2189,9 @@
   }
 
   function updateProgress(pct, level) {
+    var complete = pct >= 100;
     var bar = document.getElementById("rb2ProgressBar");
-    if (bar) bar.style.width = pct + "%";
+    if (bar) bar.style.width = (complete ? 100 : pct) + "%";
     if (level == null) {
       var levelEl = document.getElementById("rb2ProgressLevel");
       level = levelEl ? levelEl.textContent.trim() : "Good";
@@ -2234,6 +2312,7 @@
         phone: trimVal("rb2Phone"),
         school: trimVal("rb2School"),
         email: trimVal("rb2Email"),
+        location: trimVal("rb2Location"),
       },
       summary: ($("#rb2SummaryField") || {}).value || "",
       skills: (payload.skills || []).map(function (s) { return s.title; }),
@@ -2303,6 +2382,168 @@
     return msg;
   }
 
+  function handleAiError(err, fallbackTitle) {
+    var payload = (err && err.payload) || {};
+    var msgs = window.RB2Messages;
+    if (payload.quota_exceeded) {
+      cfg.aiQuotaLocked = true;
+      applyAiQuotaLockUI();
+      var headline = payload.headline || payload.message || cfg.aiQuotaMessage || "AI tokens need to recharge — Buy now.";
+      var body = payload.body || payload.detail || headline;
+      if (msgs && typeof msgs.confirm === "function") {
+        msgs
+          .confirm({
+            title: headline,
+            message: body,
+            confirmLabel: payload.cta_label || "Buy now",
+            cancelLabel: "Not now",
+          })
+          .then(function (ok) {
+            if (ok) {
+              window.location.href = payload.cta_url || payload.shop_url || cfg.aiQuotaShopUrl || "/ai-tokens/";
+            }
+          });
+      } else if (window.confirm(headline)) {
+        window.location.href = payload.cta_url || payload.shop_url || cfg.aiQuotaShopUrl || "/ai-tokens/";
+      }
+      return;
+    }
+    if (msgs) {
+      msgs.toast(formatAiError(err), { type: "error", title: fallbackTitle || "AI writing" });
+    }
+  }
+
+  var AI_QUOTA_BTN_IDS = [
+    "rb2GenSummary",
+    "rb2ImproveSummary",
+    "rb2AtsSummary",
+    "rb2GenAchieve",
+    "rb2ImproveAchieve",
+    "rb2GenerateResumeAI",
+  ];
+
+  function updateAiBadgeUI() {
+    var badge = document.getElementById("rb2AiEditsBadge");
+    if (!badge) return;
+    var rem;
+    if (cfg.aiQuotaUnlimited) {
+      badge.textContent = "∞";
+      rem = null;
+    } else {
+      rem = cfg.aiQuotaRemaining;
+      if (rem === null || rem === undefined) rem = 0;
+      rem = Math.max(0, Number(rem) || 0);
+      badge.textContent = rem > 99 ? "99+" : String(rem);
+    }
+    badge.classList.toggle("is-empty", !cfg.aiQuotaUnlimited && rem === 0);
+    badge.classList.toggle("is-low", !cfg.aiQuotaUnlimited && rem > 0 && rem <= 1);
+    badge.setAttribute(
+      "aria-label",
+      cfg.aiQuotaUnlimited ? "Unlimited AI edits" : rem + " AI edits left"
+    );
+  }
+
+  function refreshAiQuotaStatus() {
+    if (!cfg.aiQuotaApplies || !cfg.aiQuotaStatusUrl) {
+      updateAiBadgeUI();
+      return Promise.resolve();
+    }
+    return fetch(cfg.aiQuotaStatusUrl, {
+      credentials: "same-origin",
+      headers: { Accept: "application/json" },
+    })
+      .then(function (r) {
+        if (!r.ok) throw new Error("status failed");
+        return r.json();
+      })
+      .then(function (payload) {
+        var feat = (payload && payload.features && payload.features.resume_ai) || {};
+        cfg.aiQuotaLocked = !!feat.locked;
+        cfg.aiQuotaUnlimited = !!feat.unlimited;
+        cfg.aiQuotaRemaining = feat.unlimited ? null : feat.remaining;
+        applyAiQuotaLockUI();
+      })
+      .catch(function () {
+        updateAiBadgeUI();
+      });
+  }
+
+  function applyAiQuotaLockUI() {
+    var locked = !!cfg.aiQuotaLocked;
+    var msg = cfg.aiQuotaMessage || "AI tokens need to recharge — Buy now.";
+    var shop = cfg.aiQuotaShopUrl || "/ai-tokens/";
+    AI_QUOTA_BTN_IDS.forEach(function (id) {
+      var btn = document.getElementById(id);
+      if (!btn) return;
+      // Keep Generate button hoverable when locked (native disabled blocks mouse events).
+      if (id === "rb2GenerateResumeAI") {
+        btn.disabled = false;
+        btn.classList.toggle("rb2-ai-locked", locked);
+        if (locked) {
+          btn.setAttribute("aria-disabled", "true");
+          btn.removeAttribute("title");
+        } else {
+          btn.removeAttribute("aria-disabled");
+          btn.setAttribute("title", "Enhance entire resume with AI for your goal");
+        }
+        return;
+      }
+      btn.disabled = locked;
+      btn.classList.toggle("rb2-ai-locked", locked);
+      if (locked) {
+        btn.setAttribute("aria-disabled", "true");
+        btn.setAttribute("title", msg);
+      } else {
+        btn.removeAttribute("aria-disabled");
+      }
+    });
+    var wrap = document.getElementById("rb2AiGenWrap");
+    if (wrap) {
+      wrap.classList.toggle("is-locked", locked);
+      if (!locked) wrap.classList.remove("is-open");
+    }
+    var infoIcon = document.getElementById("rb2AiQuotaInfoIcon");
+    if (infoIcon) infoIcon.hidden = !locked;
+    var msgEl = document.querySelector("#rb2AiQuotaInfoPop .rb2-ai-gen-info__msg");
+    if (msgEl) msgEl.textContent = msg;
+    var cta = document.getElementById("rb2AiQuotaInfoCta");
+    if (cta) cta.href = shop;
+    updateAiBadgeUI();
+  }
+
+  function bindAiQuotaInfoHover() {
+    var wrap = document.getElementById("rb2AiGenWrap");
+    if (!wrap || wrap.dataset.bound === "1") return;
+    wrap.dataset.bound = "1";
+    var genBtn = document.getElementById("rb2GenerateResumeAI");
+    var closeTimer = null;
+    function openPop() {
+      if (!wrap.classList.contains("is-locked")) return;
+      if (closeTimer) {
+        clearTimeout(closeTimer);
+        closeTimer = null;
+      }
+      wrap.classList.add("is-open");
+    }
+    function scheduleClose() {
+      if (closeTimer) clearTimeout(closeTimer);
+      closeTimer = setTimeout(function () {
+        wrap.classList.remove("is-open");
+      }, 140);
+    }
+    wrap.addEventListener("mouseenter", openPop);
+    wrap.addEventListener("mouseleave", scheduleClose);
+    if (genBtn) {
+      genBtn.addEventListener("focus", openPop);
+      genBtn.addEventListener("blur", scheduleClose);
+    }
+    var pop = document.getElementById("rb2AiQuotaInfoPop");
+    if (pop) {
+      pop.addEventListener("mouseenter", openPop);
+      pop.addEventListener("mouseleave", scheduleClose);
+    }
+  }
+
   function hideAiPendingBanner() {
     var banner = $("#rb2AiPendingBanner");
     if (banner) banner.hidden = true;
@@ -2347,6 +2588,11 @@
       console.error("RB2Messages failed to load");
       return;
     }
+    if (cfg.aiQuotaLocked) {
+      var wrapLocked = document.getElementById("rb2AiGenWrap");
+      if (wrapLocked) wrapLocked.classList.add("is-open");
+      return;
+    }
 
     function startGeneration() {
       var defaultHtml = btn.innerHTML;
@@ -2366,16 +2612,13 @@
           } else if (data.message) {
             msgs.toast(data.message, { type: "info", title: "AI generation" });
           }
+          refreshAiQuotaStatus();
         })
         .catch(function (err) {
           btn.disabled = false;
           btn.innerHTML = defaultHtml;
           if (err && err.message === "validation") return;
-          msgs.toast(
-            formatAiError(err) ||
-              "AI generation failed. Check admin AI settings and try again.",
-            { type: "error", title: "AI generation" }
-          );
+          handleAiError(err, "AI generation");
         });
     }
 
@@ -2465,6 +2708,7 @@
         return;
       }
       if (!validateAllSections()) return;
+      setSavingState(true);
       saveAllSections()
         .then(function () {
           var msgs = window.RB2Messages;
@@ -2474,7 +2718,10 @@
           var formMain = document.querySelector(".rb2-studio-form");
           if (formMain) formMain.scrollTop = 0;
         })
-        .catch(function () {});
+        .catch(function () {})
+        .finally(function () {
+          setSavingState(false);
+        });
     });
   }
 
@@ -2590,6 +2837,10 @@
     if (!btn) return;
     var defaultHtml = btn.innerHTML;
     btn.addEventListener("click", function () {
+      if (cfg.aiQuotaLocked) {
+        handleAiError({ payload: { quota_exceeded: true, message: cfg.aiQuotaMessage } }, "AI writing");
+        return;
+      }
       btn.disabled = true;
       btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Writing…";
       var p = getPayload();
@@ -2601,14 +2852,18 @@
         scheduleLocalUiSync();
         btn.disabled = false;
         btn.innerHTML = defaultHtml;
+        refreshAiQuotaStatus();
       }).catch(function (err) {
         btn.disabled = false;
         btn.innerHTML = defaultHtml;
-        var msgs = window.RB2Messages;
-        if (msgs) msgs.toast(formatAiError(err), { type: "error", title: "AI writing" });
+        handleAiError(err, "AI writing");
       });
     });
   }
+
+  applyAiQuotaLockUI();
+  bindAiQuotaInfoHover();
+  refreshAiQuotaStatus();
 
   bindAi("rb2GenSummary", "generate_summary", function () { return { career_goal: cfg.goal || "" }; });
   bindAi("rb2ImproveSummary", "improve_summary", function () {
@@ -2715,8 +2970,7 @@
       }).catch(function (err) {
         genProjBtn.disabled = false;
         genProjBtn.innerHTML = genProjDefaultHtml;
-        var msgs = window.RB2Messages;
-        if (msgs) msgs.toast(formatAiError(err), { type: "error", title: "AI writing" });
+        handleAiError(err, "AI writing");
       });
     });
   }
@@ -2728,14 +2982,12 @@
       if (!container) return;
       var row = document.createElement("div");
       row.className = "rb2-lang-row";
-      var levelOpts = LANGUAGE_LEVELS.map(function (lv) {
-        return "<option value=\"" + esc(lv) + "\">" + esc(lv) + "</option>";
-      }).join("");
+      var levelOpts = buildLanguageLevelOptions("");
       row.innerHTML =
         "<div class=\"rb2-field\"><label>Language</label>" +
         "<input type=\"text\" data-lang-name placeholder=\"e.g. Hindi\" /></div>" +
         "<div class=\"rb2-field\"><label>Level</label>" +
-        "<select data-lang-level><option value=\"\">—</option>" + levelOpts + "</select></div>" +
+        "<select data-lang-level>" + levelOpts + "</select></div>" +
         "<div class=\"rb2-lang-row__remove\">" +
         "<span class=\"rb2-lang-row__remove-label\" aria-hidden=\"true\">Remove</span>" +
         "<button type=\"button\" class=\"rb2-lang-remove\" title=\"Remove language\" aria-label=\"Remove language\">" +
@@ -3089,6 +3341,7 @@
 
   function bindPhotoUpload() {
     var input = $("#rb2PhotoInput");
+    bindPhotoImgFallback($("#rb2PhotoImg"));
     if (!input || !cfg.photoUploadUrl) return;
     input.addEventListener("change", function () {
       var file = input.files && input.files[0];

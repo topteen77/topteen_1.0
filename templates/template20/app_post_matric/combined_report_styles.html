@@ -7,10 +7,17 @@
     background: #fff;
   }
 
+  /* Keep long reports scrollable (avoid leftover splash overflow locks). */
+  html:has(body.combined-report-page) {
+    overflow-y: auto;
+  }
+
   .combined-report-page {
     padding-top: 0;
     background: #f4f6fb;
     min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
     color: var(--dash-heading, #1f2937);
   }
 

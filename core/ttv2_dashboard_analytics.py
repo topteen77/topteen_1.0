@@ -191,7 +191,10 @@ def _followups_all_time(
 
 
 def _psych_and_risk(user_ids: Sequence[int]) -> Tuple[int, int, int, float]:
-    """completed_count, total_students, on_track, avg_clarity_gap (legacy + post-matric)."""
+    """completed_count, total_students, on_track, avg_clarity_gap (legacy + post-matric).
+
+    Batched — no per-user TestCompletion / TestSession round-trips.
+    """
     from core.student_psychometric_metrics import psychometric_complete_user_ids
 
     uids = [int(x) for x in user_ids if x]
@@ -201,27 +204,40 @@ def _psych_and_risk(user_ids: Sequence[int]) -> Tuple[int, int, int, float]:
 
     complete_ids = psychometric_complete_user_ids(uids)
     completed = len(complete_ids)
-    gap_sum = 0.0
-    for uid in uids:
-        if uid in complete_ids:
-            continue
-        tc = (
-            TestCompletion.objects.filter(user_id=uid)
-            .values("test1_complete", "test2_complete", "test3_complete")
-            .first()
+    incomplete = [uid for uid in uids if uid not in complete_ids]
+    if not incomplete:
+        return completed, total, completed, 0.0
+
+    tc_by_uid = {
+        int(row["user_id"]): row
+        for row in TestCompletion.objects.filter(user_id__in=incomplete).values(
+            "user_id", "test1_complete", "test2_complete", "test3_complete"
         )
+    }
+
+    post_counts: Dict[int, int] = {}
+    need_post = [uid for uid in incomplete if uid not in tc_by_uid]
+    if need_post:
+        from app_post_matric.models import TestSession
+
+        for row in (
+            TestSession.objects.filter(user_id__in=need_post, is_completed=True)
+            .values("user_id")
+            .annotate(n=Count("test_id", distinct=True))
+        ):
+            post_counts[int(row["user_id"])] = int(row["n"] or 0)
+
+    gap_sum = 0.0
+    for uid in incomplete:
+        tc = tc_by_uid.get(uid)
         if tc:
-            sub = sum(bool(tc.get(k)) for k in tc)
+            sub = sum(
+                bool(tc.get(k))
+                for k in ("test1_complete", "test2_complete", "test3_complete")
+            )
             gap_sum += 100.0 * (1.0 - sub / 3.0) if sub < 3 else 0.0
         else:
-            from app_post_matric.models import TestSession
-
-            n = (
-                TestSession.objects.filter(user_id=uid, is_completed=True)
-                .values("test_id")
-                .distinct()
-                .count()
-            )
+            n = post_counts.get(uid, 0)
             gap_sum += 100.0 * (1.0 - min(n, 4) / 4.0)
 
     avg_clarity = round((gap_sum / total) if total else 0.0, 1)
@@ -401,15 +417,21 @@ def build_ttv2_analytics(
         )
 
     user_ids: List[int] = []
-    # KPI "total students" must match institute roster counts (Count(student_management)),
-    # including rows where student FK is still null; psychometrics use linked users only.
+    # KPI "total students" = paid seats only (exclude demo accounts).
+    # Psychometrics use linked non-demo users for paid KPIs; demos tracked separately.
     n_students = 0
+    n_demo_students = 0
     if student_management_qs is not None and hasattr(student_management_qs, "count"):
-        n_students = int(student_management_qs.count())
-        sm_alive = student_management_qs.filter(student__isnull=False)
+        n_demo_students = int(
+            student_management_qs.filter(student__is_demo_account=True).count()
+        )
+        paid_qs = student_management_qs.exclude(student__is_demo_account=True)
+        n_students = int(paid_qs.count())
+        sm_alive = paid_qs.filter(student__isnull=False)
         user_ids = list(sm_alive.values_list("student_id", flat=True).distinct())
     student_management_ids: List[int] = []
     if student_management_qs is not None and hasattr(student_management_qs, "values_list"):
+        # Follow-ups / sessions: include all SM rows (demo + paid) so demos can appear in journey.
         student_management_ids = list(
             student_management_qs.values_list("id", flat=True).distinct()
         )
@@ -542,20 +564,27 @@ def build_ttv2_analytics(
             student_management_ids=followup_student_management_ids,
         )
 
-    kira = (
-        f"Top stream concentration: {top_stream}. "
-        f"Encourage group sessions when multiple students share the same stream to reduce the clarity gap."
-    )
-    if psych_pct >= 80:
+    # Empty roster: no stream / psych insights yet — suppress KIRA toast noise.
+    if n_students <= 0:
+        kira = ""
+    elif psych_pct >= 80:
         kira = (
             f"Strong psychometric progress ({psych_pct}%). Consider scheduling career roadmap reviews "
             f"for the remaining {risk_at_risk} student(s)."
+        )
+    else:
+        kira = (
+            f"Top stream concentration: {top_stream}. "
+            f"Encourage group sessions when multiple students share the same stream to reduce the clarity gap."
         )
 
     if credit_left <= 0:
         cred_alert = (
             f"Credit alert: no remaining credits. Add students only after the institute top-up. "
         )
+    elif n_students <= 0:
+        # First-login welcome panel covers healthy credit messaging.
+        cred_alert = ""
     elif credit_left < 5:
         cred_alert = (
             f"Credit alert: {credit_left} credit(s) remaining. Plan sessions accordingly and request a top-up if needed."
@@ -608,7 +637,13 @@ def build_ttv2_analytics(
             "labels": ["Completed", "Pending"],
         }
 
-    if week_activity is not None:
+    if n_students <= 0:
+        _cred_ready = int(credit_left)
+        week_summary = (
+            f"You're set up with {_cred_ready} credit{'s' if _cred_ready != 1 else ''} ready. "
+            f"Enroll Class 10 or Class 12 students to unlock psychometric completion and counseling insights."
+        )
+    elif week_activity is not None:
         _prefix = "Selected range" if has_date_range else "This week"
         week_summary = (
             f"{_prefix}: {week_activity['enrollments']} new enrolments · "
@@ -644,6 +679,7 @@ def build_ttv2_analytics(
         "week_activity": week_activity,
         "kpi": {
             "total_students": n_students,
+            "demo_students": n_demo_students,
             "classes_active": distinct_classes,
             "sessions_week": sessions_week,
             "sessions_prev": sessions_prev,
@@ -691,6 +727,7 @@ def empty_ttv2_analytics() -> Dict[str, Any]:
         "week_activity": None,
         "kpi": {
             "total_students": 0,
+            "demo_students": 0,
             "classes_active": 0,
             "sessions_week": 0,
             "sessions_prev": 0,

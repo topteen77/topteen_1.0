@@ -57,6 +57,7 @@ def generate_seo_with_ai(
     current_description="",
     current_keywords="",
     page_content=None,
+    user=None,
 ):
     """
     Call AI to generate SEO title (≤70 chars), description (≤160 chars), keywords.
@@ -67,6 +68,19 @@ def generate_seo_with_ai(
     api_key = (getattr(settings, "OPENAI_API_KEY", None) or "").strip()
     if not api_key:
         return {"error": "AI is not configured. Set OPENAI_API_KEY in environment."}
+
+    try:
+        from core.llm_quota import LLMQuotaExceeded, ensure_can_use_llm
+
+        ensure_can_use_llm(user, feature="seo")
+    except LLMQuotaExceeded as exc:
+        pay = exc.payload or {}
+        return {
+            "error": pay.get("message") or "AI token limit reached",
+            "quota_exceeded": True,
+            "cta_url": pay.get("cta_url"),
+            "shop_url": pay.get("shop_url"),
+        }
 
     model = getattr(settings, "OPENAI_MODEL", None) or getattr(settings, "AI_MODEL", "gpt-4o-mini")
 
@@ -81,10 +95,10 @@ def generate_seo_with_ai(
     safe_title = (current_title or "(none)").replace("---", "")
     safe_desc = (current_description or "(none)").replace("---", "")
     safe_kw = (current_keywords or "(none)").replace("---", "")
-    prompt = """You are an SEO expert for "Top Teen", a career guidance and college counselling platform for students in India (classes 9–12).
+    prompt = """You are an SEO expert for "TopTeen", a career guidance and college counselling platform for students in India (classes 9–12).
 
 Generate meta title, meta description, and meta keywords for a web page. Rules:
-- Title: max 70 characters, include main keyword and "Top Teen" or the site context where natural.
+- Title: max 70 characters, include main keyword and "TopTeen" or the site context where natural.
 - Description: max 160 characters, compelling for search snippets, include a call-to-action or value proposition.
 - Keywords: comma-separated, 5–12 relevant keywords/phrases (e.g. career guidance, stream selection, India, students).
 
@@ -97,7 +111,7 @@ Current SEO (user may leave these empty):
     if page_content:
         prompt += "\nPage content (for context; use to align SEO with actual content):\n---\n{}\n---\n".format(page_content[:3500])
     else:
-        prompt += "\nNo page content was provided; base suggestions on the current SEO and Top Teen's focus (career, stream, college, India, students).\n"
+        prompt += "\nNo page content was provided; base suggestions on the current SEO and TopTeen's focus (career, stream, college, India, students).\n"
 
     prompt += """
 Reply with exactly three lines, no labels or bullets:
@@ -115,6 +129,19 @@ Line 3: Comma-separated keywords.
             temperature=0.6,
             max_tokens=400,
         )
+        try:
+            from core.llm_billing import log_openai_response
+            log_openai_response(
+                feature="seo",
+                response=response,
+                model=model,
+                call_type="chat",
+                user=user,
+                consume=True,
+                metadata={"source": "seo_dashboard.generate_seo_with_ai"},
+            )
+        except Exception:
+            pass
         raw = (response.choices[0].message.content or "").strip()
         lines = [ln.strip() for ln in raw.split("\n") if ln.strip()]
         title = (lines[0] if len(lines) > 0 else "")[:70]

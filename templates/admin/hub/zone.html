@@ -15,32 +15,23 @@
 
 {% block coltype %}colM{% endblock %}
 
+{% block content_title %}{% endblock %}
+
 {% block breadcrumbs %}
-<div class="breadcrumbs">
-  <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
-  &rsaquo; {% if hub_zone == 'configuration' %}{% trans 'Configuration' %}{% else %}{% trans 'Operations' %}{% endif %}
-</div>
+{% if hub_zone == 'configuration' %}
+  {% trans "Configuration" as tt_hub_zone_label %}
+{% elif hub_zone == 'education_loan' %}
+  {% trans "Education Loan" as tt_hub_zone_label %}
+{% else %}
+  {% trans "Operations" as tt_hub_zone_label %}
+{% endif %}
+{% include "admin/includes/hub_breadcrumbs.html" with hub_crumb_zone_label=tt_hub_zone_label %}
 {% endblock %}
 
 {% block content %}
 {% include "admin/hub/includes/zone_nav.html" %}
 
 <div class="tt-admin-hub tt-admin-hub--zone">
-  <header class="tt-admin-hero tt-admin-hero--{% if hub_zone == 'configuration' %}config{% else %}ops{% endif %}">
-    <div class="tt-admin-hero__glow" aria-hidden="true"></div>
-    <div class="tt-admin-hero__content">
-      <span class="tt-admin-hero__badge">
-        {% if hub_zone == 'configuration' %}{% trans 'Configuration hub' %}{% else %}{% trans 'Operations hub' %}{% endif %}
-      </span>
-      <h1>{{ title }}</h1>
-      <p class="tt-admin-hero__intro">{{ hub_intro }}</p>
-      <p class="tt-admin-hero__meta">
-        <span class="tt-admin-hero__stat">{{ hub_link_count }}</span>
-        {% trans 'shortcuts available for your account' %}
-      </p>
-    </div>
-  </header>
-
   <div class="tt-admin-hub__howto tt-admin-panel">
     <p class="tt-admin-hub__howto-title">
       <span class="tt-admin-panel__icon" aria-hidden="true">💡</span>

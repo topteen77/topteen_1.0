@@ -260,6 +260,19 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
     career_paths = models.ManyToManyField(CareerPath, blank=True)
     video_url=models.URLField(max_length=250,blank=True)
     videos = models.ManyToManyField("Videos", blank=True)
+    # Cached mindmap validation (columns already exist in DB; default required for inserts)
+    mindmap_validation_status = models.CharField(
+        max_length=20,
+        choices=(
+            ('not_checked', 'Not checked'),
+            ('valid', 'Valid'),
+            ('error', 'Error'),
+        ),
+        default='not_checked',
+        db_index=True,
+    )
+    mindmap_validated_at = models.DateTimeField(null=True, blank=True)
+    mindmap_validation_errors = models.TextField(null=True, blank=True)
 
     
     class Meta(BaseModel.Meta):
@@ -268,6 +281,28 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
             models.Index(fields=['object_status', 'publish_status']),
             models.Index(fields=['slug']),
         ]
+
+    def _make_unique_slug(self, base_slug):
+        """Build a unique slug against all rows (including soft-deleted)."""
+        from django.utils.text import slugify
+
+        base = slugify(base_slug or '') or 'career'
+        base = base[:240]
+        candidate = base
+        n = 2
+        qs = Career.objects.complete().filter(slug=candidate)
+        if self.pk:
+            qs = qs.exclude(pk=self.pk)
+        while qs.exists():
+            suffix = f'-{n}'
+            candidate = f'{base[:255 - len(suffix)]}{suffix}'
+            qs = Career.objects.complete().filter(slug=candidate)
+            if self.pk:
+                qs = qs.exclude(pk=self.pk)
+            n += 1
+            if n > 10000:
+                break
+        return candidate
 
     def url(self):
         return reverse('careers:careerdetail',args=[self.slug,self.id])
@@ -402,51 +437,45 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
     
     def validate_mindmap(self):
         """
-        Validate mindmap file for this career.
-        Returns tuple: (is_valid: bool, errors: list)
-        Checks:
-        1. If mindmap file exists
-        2. If title in XMind file matches career name
+        Admin-facing check: can this career serve a mindmap on the site?
+
+        Mindmaps are built from career.description (h2/h3). Legacy .xmind files
+        under career_mindmap/ may still be used silently by the JSON API for
+        production output parity, but admins are not required to manage XMind.
         """
         errors = []
-        
-        # Check if file exists
-        xmind_path = self.get_xmind_file_path()
-        if not xmind_path or not xmind_path.exists():
-            errors.append("Mindmap file not found")
-            return (False, errors)
-        
-        # Check if title matches
-        try:
-            import xmindparser
-            xmind_data = xmindparser.xmind_to_dict(str(xmind_path))
-            
-            if not xmind_data or not isinstance(xmind_data, list) or len(xmind_data) == 0:
-                errors.append("Invalid XMind file format")
-                return (False, errors)
-            
-            sheet = xmind_data[0]
-            root_topic = sheet.get('topic', {})
-            xmind_title = root_topic.get('title') or root_topic.get('label') or ''
-            
-            # Normalize both titles for comparison (case-insensitive, strip whitespace)
-            career_name_normalized = (self.name or '').strip().lower()
-            xmind_title_normalized = xmind_title.strip().lower()
-            
-            if career_name_normalized and xmind_title_normalized:
-                if career_name_normalized != xmind_title_normalized:
-                    errors.append(f"Title mismatch: XMind has '{xmind_title}' but career name is '{self.name}'")
-                    return (False, errors)
-            
-        except ImportError:
-            errors.append("xmindparser library not available")
-            return (False, errors)
-        except Exception as e:
-            errors.append(f"Error reading XMind file: {str(e)}")
-            return (False, errors)
-        
-        # All validations passed
-        return (True, [])
+        if self.has_career_mindmap_api_data():
+            return (True, [])
+        if not (self.description and str(self.description).strip()):
+            errors.append(
+                "No mindmap data: add a career description with clear section headings (h2)"
+            )
+        else:
+            errors.append(
+                "Could not build a mindmap from the description; use clear h2/h3 section headings"
+            )
+        return (False, errors)
+
+    def refresh_mindmap_validation(self, *, save=True):
+        """
+        Run mindmap checks and cache result on the career row.
+        Call after insert/update — not during the insert write itself.
+        """
+        import json
+        from django.utils import timezone
+
+        is_valid, errors = self.validate_mindmap()
+        self.mindmap_validation_status = 'valid' if is_valid else 'error'
+        self.mindmap_validation_errors = json.dumps(errors) if errors else None
+        self.mindmap_validated_at = timezone.now()
+        if save and self.pk:
+            self.save(update_fields=[
+                'mindmap_validation_status',
+                'mindmap_validation_errors',
+                'mindmap_validated_at',
+                'modified',
+            ])
+        return is_valid, errors
     
     def convert_description_to_jsmind_json(self):
         """
@@ -604,6 +633,24 @@ class Career(BaseModel,SlugModel,SeoModel,PublishableModel):
             if len(converted_name) > 500:
                 converted_name = converted_name[:497] + '...'
             self.name = converted_name
+
+        # Unique slug including soft-deleted rows (SlugModel only checks active → 500 on re-add)
+        update_fields = kwargs.get('update_fields', None)
+        if not update_fields or 'slug' in (update_fields or []):
+            if not self.slug or not str(self.slug).strip():
+                self.slug = self._make_unique_slug(self.name or 'career')
+                if update_fields is not None and 'slug' not in update_fields:
+                    update_fields = list(update_fields) + ['slug']
+                    kwargs['update_fields'] = update_fields
+            else:
+                conflict = Career.objects.complete().filter(slug=self.slug)
+                if self.pk:
+                    conflict = conflict.exclude(pk=self.pk)
+                if conflict.exists():
+                    self.slug = self._make_unique_slug(self.slug)
+                    if update_fields is not None and 'slug' not in update_fields:
+                        update_fields = list(update_fields) + ['slug']
+                        kwargs['update_fields'] = update_fields
 
         # Check if we're already updating description_json (to prevent recursion)
         update_fields = kwargs.get('update_fields', None)
@@ -851,11 +898,14 @@ class Videos(BaseModel,SlugModel):
     
     
     def get_video_or_url(self):
+        from core.s3_utils import rewrite_s3_url_to_cdn
+
         if self.link:
-            return self.link
+            # Legacy rows store absolute S3 URLs; rewrite to CloudFront when enabled.
+            return rewrite_s3_url_to_cdn(self.link)
         if self.upload_video:
-            return self.upload_video.url
-            
+            return rewrite_s3_url_to_cdn(self.upload_video.url)
+
         raise Exception('No video found')
 
     def get_caption_vtt_url(self):

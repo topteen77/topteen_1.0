@@ -21,8 +21,6 @@ from core.accordion_utils import (
     is_intro_heading,
 )
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from colleges.models import College
-from core.models import Country
 from core import choices
 from colleges.views import is_ajax
 from django.template.loader import render_to_string
@@ -39,9 +37,62 @@ from django.conf import settings
 import xmindparser
 import logging
 import re
+import traceback
+import uuid
 from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
+
+
+def _can_view_career_error_details(request):
+    """Staff/superuser or DEBUG: show technical error details on career error pages."""
+    user = getattr(request, 'user', None)
+    if getattr(settings, 'DEBUG', False):
+        return True
+    return bool(user and user.is_authenticated and (user.is_staff or user.is_superuser))
+
+
+def render_career_safe_error(request, exc, *, page_label='Career page', career_id=None, slug=None, status=200):
+    """
+    Never surface an unhandled 500 for career pages: render a friendly page with
+    error details (full traceback for staff/DEBUG).
+    """
+    error_id = uuid.uuid4().hex[:12]
+    tb = traceback.format_exc()
+    logger.error(
+        'Career page error [%s] %s career_id=%s slug=%s: %s',
+        error_id, page_label, career_id, slug, exc,
+        exc_info=True,
+    )
+    show_details = _can_view_career_error_details(request)
+    ctx = {
+        'html_head': build_html_head(title=f'{page_label} | Error'),
+        'page_label': page_label,
+        'error_id': error_id,
+        'error_type': type(exc).__name__,
+        'error_message': str(exc) or type(exc).__name__,
+        'career_id': career_id,
+        'career_slug': slug,
+        'show_error_details': show_details,
+        'error_traceback': tb if show_details else None,
+        'request_path': getattr(request, 'path', ''),
+    }
+    try:
+        return render(request, 'template20/career_error.html', ctx, status=status)
+    except Exception:
+        # Absolute fallback if the error template itself fails
+        logger.exception('Career error template failed [%s]', error_id)
+        body = (
+            f'<h1>Something went wrong loading this career page</h1>'
+            f'<p>Error ID: {error_id}</p>'
+            f'<p>{type(exc).__name__}: {exc}</p>'
+            f'<p><a href="/careers/">Back to careers</a></p>'
+        )
+        if show_details:
+            body += f'<pre style="white-space:pre-wrap;text-align:left">{tb}</pre>'
+        return HttpResponse(body, status=status, content_type='text/html; charset=utf-8')
+
+
 # Create your views here.
 class Careers(TemplateView):
     
@@ -72,8 +123,12 @@ class Careers(TemplateView):
                 if 'selected_clusters' not in ctx:
                     ctx['selected_clusters'] = request_data.getlist("cluster")
                 if 'clusters' not in ctx:
+                    from django.db.models import F
                     from .models import CareerCluster
-                    ctx['clusters'] = CareerCluster.objects.filter(object_status=1, parent__isnull=True)
+                    # Top-level tracks may use parent_id == self.id (not NULL).
+                    ctx['clusters'] = CareerCluster.objects.filter(
+                        object_status=1
+                    ).filter(Q(parent__isnull=True) | Q(parent_id=F('id')))
                 if 'professions' not in ctx:
                     from .models import Profession
                     ctx['professions'] = Profession.objects.filter(object_status=1)
@@ -143,40 +198,67 @@ class Careers(TemplateView):
         
     def get(self, request, *args, **kwargs):
         # Cluster page: store GET params in session for clean URL; clear session when no params (Reset)
-        url_cluster_id = kwargs.get('cluster_id')
-        if url_cluster_id is not None and request.method == 'GET':
-            session_key = 'career_cluster_%s' % url_cluster_id
-            if request.GET.getlist('career') or request.GET.get('page'):
-                request.session[session_key] = {
-                    'career_ids': request.GET.getlist('career'),
-                    'page': request.GET.get('page') or '1',
-                }
-                request.session.modified = True
-            else:
-                # Clean URL with no params (e.g. Reset): clear session so results are unfiltered
-                if session_key in request.session:
-                    del request.session[session_key]
+        try:
+            from careers.page_cache import (
+                list_html_cache_key,
+                store_anon_html_if_eligible,
+                try_serve_anon_html,
+            )
+
+            url_cluster_id = kwargs.get('cluster_id')
+            if url_cluster_id is not None and request.method == 'GET':
+                session_key = 'career_cluster_%s' % url_cluster_id
+                if request.GET.getlist('career') or request.GET.get('page'):
+                    request.session[session_key] = {
+                        'career_ids': request.GET.getlist('career'),
+                        'page': request.GET.get('page') or '1',
+                    }
                     request.session.modified = True
-        return render(request, self.template_name, self.get_context(request, args, kwargs))
+                else:
+                    # Clean URL with no params (e.g. Reset): clear session so results are unfiltered
+                    if session_key in request.session:
+                        del request.session[session_key]
+                        request.session.modified = True
+
+            cache_key = list_html_cache_key(request, cluster_id=url_cluster_id)
+            cached = try_serve_anon_html(request, cache_key)
+            if cached is not None:
+                return cached
+
+            response = render(request, self.template_name, self.get_context(request, args, kwargs))
+            return store_anon_html_if_eligible(request, cache_key, response)
+        except Http404:
+            raise
+        except Exception as e:
+            return render_career_safe_error(
+                request, e,
+                page_label='Careers',
+                career_id=kwargs.get('cluster_id'),
+                slug=kwargs.get('cluster_slug'),
+            )
     
     def post(self, request, *args, **kwargs):
         # SEO redirect: single cluster from form -> /careers/cluster/<slug>-<id>/
-        clusters_post = request.POST.getlist("cluster")
-        if len(clusters_post) == 1:
-            try:
-                cid = int(clusters_post[0])
-                cluster = CareerCluster.objects.filter(id=cid).first()
-                if cluster:
-                    return redirect(reverse("careers:career_cluster", args=[cluster.slug, cluster.id]))
-            except (ValueError, TypeError):
-                pass
-        return render(request, self.template_name, self.get_context(request, args, kwargs))
+        try:
+            clusters_post = request.POST.getlist("cluster")
+            if len(clusters_post) == 1:
+                try:
+                    cid = int(clusters_post[0])
+                    cluster = CareerCluster.objects.filter(id=cid).first()
+                    if cluster:
+                        return redirect(reverse("careers:career_cluster", args=[cluster.slug, cluster.id]))
+                except (ValueError, TypeError):
+                    pass
+            return render(request, self.template_name, self.get_context(request, args, kwargs))
+        except Http404:
+            raise
+        except Exception as e:
+            return render_career_safe_error(request, e, page_label='Careers')
     
     def get_fallback_context(self, request, url_cluster_id=None):
         from django.core.paginator import Paginator
-        from .models import Career, CareerCluster, CareerTags, Skill, ProspectiveEmploymentArea, ProspectiveRecruiter, Profession
-        from courses.models import Course
-        from django.db.models import Count, Prefetch
+        from .models import Career, CareerCluster
+        from django.db.models import Prefetch
 
         # Support both GET and POST requests
         request_data = request.POST if request.method == 'POST' else request.GET
@@ -194,153 +276,126 @@ class Careers(TemplateView):
             session_page = session_data.get('page')
         else:
             selected_career_ids = request_data.getlist("career")
-        
-        # Optimize prefetch_related to avoid N+1 queries in template
-        # Prefetch career_cluster with only active clusters to reduce data transfer
-        careers = Career.objects.filter(publish_status=1).select_related().prefetch_related(
-            'skills', 'career_tags', 'prospective_employment_areas', 'prospective_recruiters', 'courses',
-            Prefetch('career_cluster', queryset=CareerCluster.objects.filter(object_status=1))
-        ).order_by('name')
 
-        # Handle selected filters
         selected_professions = request_data.getlist("professions")
         selected_skills = request_data.getlist("skills")
-        
-        # Apply career filter (inner page: filter by selected career IDs)
-        if selected_career_ids:
-            try:
-                career_ids = [int(x) for x in selected_career_ids if str(x).strip().isdigit()]
-                if career_ids:
-                    careers = careers.filter(id__in=career_ids).distinct()
-            except (ValueError, TypeError):
-                pass
-        
-        # Apply cluster filtering (multi-select) - OR logic within clusters
-        if selected_clusters:
-            # Convert to integers if they're strings, filter out invalid values
-            cluster_ids = []
-            for c in selected_clusters:
+        search_query = (request_data.get('search', '') or '').strip()
+
+        # Browse landing (/careers/) only renders cluster cards — skip career pagination + unused facets.
+        show_cluster_landing = (
+            not selected_clusters
+            and not selected_career_ids
+            and not selected_professions
+            and not selected_skills
+            and not search_query
+            and url_cluster_id is None
+        )
+
+        # Cluster cards: cached result payload (skips annotate query on warm hits)
+        from careers.page_cache import get_or_set_clusters_with_counts, hydrate_clusters_with_counts
+
+        clusters_payload = get_or_set_clusters_with_counts()
+        clusters_with_counts = hydrate_clusters_with_counts(clusters_payload)
+        clusters = [item['cluster'] for item in clusters_with_counts]
+
+        careers_page = []
+        paginator_count = 0
+        if not show_cluster_landing:
+            # Cards only need first cluster — do not prefetch unused M2Ms (skills/tags/courses/…).
+            careers = Career.objects.filter(publish_status=1).prefetch_related(
+                Prefetch('career_cluster', queryset=CareerCluster.objects.filter(object_status=1))
+            ).order_by('name')
+
+            # Apply career filter (inner page: filter by selected career IDs)
+            if selected_career_ids:
                 try:
-                    cluster_ids.append(int(c))
+                    career_ids = [int(x) for x in selected_career_ids if str(x).strip().isdigit()]
+                    if career_ids:
+                        careers = careers.filter(id__in=career_ids).distinct()
                 except (ValueError, TypeError):
-                    continue
-            if cluster_ids:
-                careers = careers.filter(career_cluster__id__in=cluster_ids).distinct()
-        
-        # Apply profession filtering - OR logic within professions
-        # Match by exact name (handles trailing colons/spaces in database)
-        if selected_professions:
-            # Clean the profession names and filter
-            cleaned_professions = [p.strip() for p in selected_professions if p and p.strip()]
-            if cleaned_professions:
-                careers = careers.filter(profession__name__in=cleaned_professions).distinct()
-        
+                    pass
 
-        # Basic search filtering
-        search_query = request_data.get('search', '')
-        if search_query:
-            careers = careers.filter(
-                Q(name__icontains=search_query) | 
-                Q(summary__icontains=search_query) |
-                Q(description__icontains=search_query)
-            )
+            # Apply cluster filtering (multi-select) - OR logic within clusters
+            if selected_clusters:
+                cluster_ids = []
+                for c in selected_clusters:
+                    try:
+                        cluster_ids.append(int(c))
+                    except (ValueError, TypeError):
+                        continue
+                if cluster_ids:
+                    careers = careers.filter(career_cluster__id__in=cluster_ids).distinct()
 
-        mapped_param = request_data.get('mapped', '').strip().lower()
-        if mapped_param in ('1', 'true', 'yes') and url_cluster_id is not None:
-            from careers.vocational_cluster import vocational_career_cluster_id
+            # Apply profession filtering - OR logic within professions
+            if selected_professions:
+                cleaned_professions = [p.strip() for p in selected_professions if p and p.strip()]
+                if cleaned_professions:
+                    careers = careers.filter(profession__name__in=cleaned_professions).distinct()
 
-            if int(url_cluster_id) == vocational_career_cluster_id():
-                mapped_filter_active = True
+            if search_query:
                 careers = careers.filter(
-                    vocational_reasoning_mappings__object_status=choices.ObjectStatus.ACTIVE,
-                ).distinct()
+                    Q(name__icontains=search_query) |
+                    Q(summary__icontains=search_query) |
+                    Q(description__icontains=search_query)
+                )
 
-        reasoning_area_param = request_data.get('reasoning_area', '').strip()
-        if reasoning_area_param and url_cluster_id is not None:
-            from app.vocational_recommendations import normalize_reasoning_area_code
-            from careers.vocational_cluster import vocational_career_cluster_id
-            from core.choices import ReasoningArea
+            mapped_param = request_data.get('mapped', '').strip().lower()
+            if mapped_param in ('1', 'true', 'yes') and url_cluster_id is not None:
+                from careers.vocational_cluster import vocational_career_cluster_id
 
-            if int(url_cluster_id) == vocational_career_cluster_id():
-                area_code = normalize_reasoning_area_code(reasoning_area_param)
-                if area_code:
-                    reasoning_filter_active = True
-                    reasoning_filter_area = area_code
-                    reasoning_filter_label = ReasoningArea.label(area_code)
+                if int(url_cluster_id) == vocational_career_cluster_id():
+                    mapped_filter_active = True
                     careers = careers.filter(
-                        vocational_reasoning_mappings__reasoning_area=area_code,
                         vocational_reasoning_mappings__object_status=choices.ObjectStatus.ACTIVE,
                     ).distinct()
 
-        # Ensure deterministic ordering before pagination (distinct() may clear order_by)
-        careers = careers.order_by('name', 'id')
-        # Pagination: 15 results per page (use session page on cluster page for clean URL)
-        paginator = Paginator(careers, 15)
-        page = session_page if session_page is not None else request_data.get('page')
-        try:
-            careers_page = paginator.page(page)
-        except PageNotAnInteger:
-            careers_page = paginator.page(1)
-        except EmptyPage:
-            careers_page = paginator.page(paginator.num_pages)
-        
-        # Clusters with counts in one query (avoid N+1)
-        clusters_list = list(CareerCluster.objects.filter(
-            career_clusters__publish_status=1,
-            object_status=1
-        ).annotate(
-            career_count=Count('career_clusters', distinct=True)
-        ).filter(career_count__gt=0).distinct().order_by('name'))
-        clusters = clusters_list
-        clusters_with_counts = [{'cluster': c, 'count': c.career_count} for c in clusters_list]
+            reasoning_area_param = request_data.get('reasoning_area', '').strip()
+            if reasoning_area_param and url_cluster_id is not None:
+                from app.vocational_recommendations import normalize_reasoning_area_code
+                from careers.vocational_cluster import vocational_career_cluster_id
+                from core.choices import ReasoningArea
 
-        # Profession counts by name in one query (Profession has FK to Career; count distinct careers per name)
-        profession_name_to_count = dict(
-            Profession.objects.filter(
-                career__publish_status=1,
-                object_status=1
-            ).values('name').annotate(c=Count('career', distinct=True)).filter(c__gt=0).order_by('name').values_list('name', 'c')
-        )
-        profession_names_ordered = list(profession_name_to_count.keys())[:100]
-        # One Profession instance per name for template (any row per name)
-        profession_by_name = {p.name: p for p in Profession.objects.filter(
-            name__in=profession_names_ordered,
-            object_status=1
-        )}
-        professions_list = [profession_by_name[n] for n in profession_names_ordered if n in profession_by_name]
-        professions = professions_list
-        professions_with_counts = [{'profession': p, 'count': profession_name_to_count.get(p.name, 0)} for p in professions_list]
+                if int(url_cluster_id) == vocational_career_cluster_id():
+                    area_code = normalize_reasoning_area_code(reasoning_area_param)
+                    if area_code:
+                        reasoning_filter_active = True
+                        reasoning_filter_area = area_code
+                        reasoning_filter_label = ReasoningArea.label(area_code)
+                        careers = careers.filter(
+                            vocational_reasoning_mappings__reasoning_area=area_code,
+                            vocational_reasoning_mappings__object_status=choices.ObjectStatus.ACTIVE,
+                        ).distinct()
 
-        # Facets: same counts, first 30; filter by cluster when selected
-        if selected_clusters:
-            facet_names = list(
-                Profession.objects.filter(
-                    career__publish_status=1,
-                    career__career_cluster__id__in=selected_clusters,
-                    object_status=1
-                ).values_list('name', flat=True).distinct().order_by('name')[:30]
-            )
-        else:
-            facet_names = profession_names_ordered[:30]
-        profession_facets = [
-            (name, profession_name_to_count.get(name, 0), name in selected_professions)
-            for name in facet_names
-        ]
-        facets_filter = {
-            "profession": profession_facets,
-        }
+            # Ensure deterministic ordering before pagination (distinct() may clear order_by)
+            careers = careers.order_by('name', 'id')
+            # Pagination: 15 results per page (use session page on cluster page for clean URL)
+            paginator = Paginator(careers, 15)
+            page = session_page if session_page is not None else request_data.get('page')
+            try:
+                careers_page = paginator.page(page)
+            except PageNotAnInteger:
+                careers_page = paginator.page(1)
+            except EmptyPage:
+                careers_page = paginator.page(paginator.num_pages)
+            paginator_count = paginator.count
 
-        # Only load skills that have active careers AND are active themselves
-        skills = Skill.objects.filter(
-            career__publish_status=1,
-            object_status=1  # Only active skills
-        ).distinct().order_by('priority', 'name')[:200]  # Limit to 200 for performance
+            # Pre-process careers to convert ManyRelatedManager to list for template compatibility
+            for career in careers_page:
+                if hasattr(career, 'career_cluster'):
+                    try:
+                        career._career_cluster_list = list(career.career_cluster.all())
+                    except Exception:
+                        career._career_cluster_list = []
 
-        # Other models - only load if needed, limit results
-        tags = CareerTags.objects.all()[:50]  # Limit tags
-        employment_areas = ProspectiveEmploymentArea.objects.all()[:50]
-        recruiters = ProspectiveRecruiter.objects.all()[:50]
-        courses = Course.objects.all()[:50]
+        # Browse template does not render profession/skills/tags facet sidebars — keep empty stubs.
+        professions = []
+        professions_with_counts = []
+        facets_filter = {"profession": []}
+        skills = []
+        tags = []
+        employment_areas = []
+        recruiters = []
+        courses = []
 
         # Get shortlisted career IDs for authenticated users
         shortlisted_career_ids = []
@@ -349,18 +404,7 @@ class Careers(TemplateView):
             shortlisted_career_ids = list(CareerShortlist.objects.filter(
                 user=request.user
             ).values_list('career_id', flat=True))
-        
-        # Pre-process careers to convert ManyRelatedManager to list for template compatibility
-        # This prevents the "object of type 'ManyRelatedManager' has no len()" error
-        for career in careers_page:
-            # Convert career_cluster ManyRelatedManager to list
-            if hasattr(career, 'career_cluster'):
-                try:
-                    # Prefetch and convert to list to avoid ManyRelatedManager issues in template
-                    career._career_cluster_list = list(career.career_cluster.all())
-                except:
-                    career._career_cluster_list = []
-        
+
         # Current cluster for inner page (when viewing a single cluster)
         current_cluster_id = None
         current_cluster_slug = None
@@ -394,7 +438,6 @@ class Careers(TemplateView):
             try:
                 cids = [int(x) for x in selected_career_ids if str(x).strip().isdigit()]
                 if cids:
-                    from django.db.models import Prefetch
                     prefetch = Prefetch('career_cluster', queryset=CareerCluster.objects.filter(object_status=1))
                     for c in Career.objects.filter(id__in=cids).prefetch_related(prefetch).order_by('name'):
                         cluster_names = [cl.name for cl in c.career_cluster.all() if cl and cl.name]
@@ -404,15 +447,15 @@ class Careers(TemplateView):
             except (ValueError, TypeError):
                 pass
 
-        # All careers in this cluster for dropdown (load from memory, no AJAX delay)
+        # All careers in this cluster for dropdown (id/name only)
         cluster_careers_options = []
         if current_cluster_id and current_cluster_name:
             cluster_careers_qs = Career.objects.filter(
                 publish_status=1
             ).filter(
                 Q(career_cluster__id=current_cluster_id) | Q(career_cluster__parent_id=current_cluster_id)
-            ).distinct().order_by('name', 'id')
-            for c in cluster_careers_qs.only('id', 'name'):
+            ).distinct().order_by('name', 'id').only('id', 'name')
+            for c in cluster_careers_qs:
                 name = (c.name or '').strip() or 'Career'
                 text = f"{name}  [{current_cluster_name}]"
                 cluster_careers_options.append({
@@ -428,11 +471,11 @@ class Careers(TemplateView):
             'tags': tags,
             'skills': skills,
             'professions': professions,
-            'professions_with_counts': professions_with_counts,  # For template display with counts
+            'professions_with_counts': professions_with_counts,
             'employment_areas': employment_areas,
             'recruiters': recruiters,
             'courses': courses,
-            'total_careers': paginator.count,  # Use paginator count (already calculated)
+            'total_careers': paginator_count,
             'facets_filter': facets_filter,
             'selected_professions': selected_professions,
             'selected_skills': selected_skills,
@@ -448,9 +491,9 @@ class Careers(TemplateView):
             'reasoning_filter_active': reasoning_filter_active,
             'reasoning_filter_area': reasoning_filter_area,
             'reasoning_filter_label': reasoning_filter_label,
-            'reasoning_filter_count': paginator.count if reasoning_filter_active else 0,
+            'reasoning_filter_count': paginator_count if reasoning_filter_active else 0,
             'mapped_filter_active': mapped_filter_active,
-            'mapped_filter_count': paginator.count if mapped_filter_active and not reasoning_filter_active else 0,
+            'mapped_filter_count': paginator_count if mapped_filter_active and not reasoning_filter_active else 0,
         }
 
         # Parent -> Student context override for shortlist state
@@ -491,77 +534,108 @@ class CareerDetail(TemplateView):
     def get_context(self, request,career_id,slug, *args, **kwargs):
         ctx={}
         career=get_object_or_404(
-            Career.objects.prefetch_related('profession', 'career_cluster', 'videos'),
+            Career.objects.prefetch_related(
+                'profession',
+                'career_cluster',
+                'videos',
+                'courses',
+                'related_careers',
+            ),
             id=career_id, slug=slug,
         )
         ctx['career']=career
-        description_body, conclusion_paragraph_html = split_trailing_conclusion_from_description(
-            career.description or ''
-        )
-        intro_html = extract_intro_html_from_description(description_body)
-        # Do not show intro box when it is the same paragraph as the conclusion footer.
-        if intro_html and conclusion_paragraph_html:
-            intro_norm = conclusion_text_normalized(intro_html)
-            concl_norm = conclusion_text_normalized(conclusion_paragraph_html)
-            if intro_norm and intro_norm == concl_norm:
-                intro_html = ""
+        try:
+            description_body, conclusion_paragraph_html = split_trailing_conclusion_from_description(
+                career.description or ''
+            )
+            intro_html = extract_intro_html_from_description(description_body)
+            # Do not show intro box when it is the same paragraph as the conclusion footer.
+            if intro_html and conclusion_paragraph_html:
+                intro_norm = conclusion_text_normalized(intro_html)
+                concl_norm = conclusion_text_normalized(conclusion_paragraph_html)
+                if intro_norm and intro_norm == concl_norm:
+                    intro_html = ""
+        except Exception as e:
+            logger.warning('description split failed for career %s: %s', career_id, e, exc_info=True)
+            description_body = career.description or ''
+            conclusion_paragraph_html = ''
+            intro_html = ''
         ctx['description_intro_html'] = intro_html
         ctx['breadcrumb'] = self._breadcrumb(career)
-        country=Country.objects.all()
-        ctx['colleges'] = College.get_all_colleges()
-        ctx['countries']=country
+        # Accordion career detail template does not render colleges/countries — skip loading them.
         ctx['html_head'] = self.html_head(career)
         ctx['career_rating']=career.career_rating.all()
         ctx['career_rating_url']=reverse("careers:careerrating")
         try:
-            ctx['shortlisted_career'] = CareerShortlist.objects.get(user=request.user,career=career)
-        except:
+            if request.user.is_authenticated:
+                ctx['shortlisted_career'] = CareerShortlist.objects.get(user=request.user,career=career)
+            else:
+                ctx['shortlisted_career'] = None
+        except Exception:
              ctx['shortlisted_career'] = None
         
-        from careers.related_careers import get_related_careers
-        ctx['related_careers'] = get_related_careers(career, limit=6, published_only=True).prefetch_related(
-            'career_cluster', 'profession'
-        )
+        try:
+            from careers.related_careers import get_related_careers
+            ctx['related_careers'] = get_related_careers(career, limit=6, published_only=True).prefetch_related(
+                'career_cluster', 'profession'
+            )
+        except Exception as e:
+            logger.warning('related_careers failed for career %s: %s', career_id, e, exc_info=True)
+            ctx['related_careers'] = Career.objects.none()
 
         # Generate mindmap data (career clusters)
-        ctx['mindmap_data'] = self._get_mindmap_data(career)
+        try:
+            ctx['mindmap_data'] = self._get_mindmap_data(career)
+        except Exception as e:
+            logger.warning('mindmap_data failed for career %s: %s', career_id, e, exc_info=True)
+            ctx['mindmap_data'] = '{}'
         
         # Generate career aspect mindmap data (like HIPPOLOGY example)
-        ctx['career_aspect_mindmap'] = self._get_career_aspect_mindmap(career)
+        try:
+            ctx['career_aspect_mindmap'] = self._get_career_aspect_mindmap(career)
+        except Exception as e:
+            logger.warning('career_aspect_mindmap failed for career %s: %s', career_id, e, exc_info=True)
+            ctx['career_aspect_mindmap'] = None
 
         # Build accordion from live description HTML only (not description_json).
         # Stale JSON often embeds the full document in multiple sections and duplicates the conclusion.
-        accordion_source_html = description_body
-        if count_h2_in_html(description_body) == 0:
-            accordion_source_html, _ = convert_bold_candidates_to_h2(description_body)
+        try:
+            accordion_source_html = description_body
+            if count_h2_in_html(description_body) == 0:
+                accordion_source_html, _ = convert_bold_candidates_to_h2(description_body)
 
-        accordion_sections = build_description_accordion_sections(
-            accordion_source_html,
-            json_sections=None,
-        )
-        if conclusion_paragraph_html:
-            accordion_sections = strip_conclusion_from_accordion_sections(
-                accordion_sections,
-                conclusion_paragraph_html,
+            accordion_sections = build_description_accordion_sections(
+                accordion_source_html,
+                json_sections=None,
             )
-            accordion_sections = filter_blank_sections(accordion_sections)
+            if conclusion_paragraph_html:
+                accordion_sections = strip_conclusion_from_accordion_sections(
+                    accordion_sections,
+                    conclusion_paragraph_html,
+                )
+                accordion_sections = filter_blank_sections(accordion_sections)
 
-        accordion_sections, footer_html = split_trailing_untitled_section_for_frontend(
-            accordion_sections
-        )
-        # Career detail page already shows an intro/summary at the top (description_intro_html).
-        # Hide redundant intro-like sections (Overview/About/Intro) inside the accordion for careers only.
-        accordion_sections = [
-            s for s in accordion_sections
-            if (s.get("section_id") or "").strip().lower() != "overview"
-            and not is_intro_heading(s.get("title"))
-        ]
+            accordion_sections, footer_html = split_trailing_untitled_section_for_frontend(
+                accordion_sections
+            )
+            # Career detail page already shows an intro/summary at the top (description_intro_html).
+            # Hide redundant intro-like sections (Overview/About/Intro) inside the accordion for careers only.
+            accordion_sections = [
+                s for s in accordion_sections
+                if (s.get("section_id") or "").strip().lower() != "overview"
+                and not is_intro_heading(s.get("title"))
+            ]
 
-        ctx['accordion_sections'] = accordion_sections
-        ctx['career_footer_paragraph_html'] = conclusion_paragraph_html or footer_html
-        ctx['accordion_toc'] = toc_from_sections(accordion_sections)
+            ctx['accordion_sections'] = accordion_sections
+            ctx['career_footer_paragraph_html'] = conclusion_paragraph_html or footer_html
+            ctx['accordion_toc'] = toc_from_sections(accordion_sections)
+        except Exception as e:
+            logger.warning('accordion build failed for career %s: %s', career_id, e, exc_info=True)
+            ctx['accordion_sections'] = []
+            ctx['career_footer_paragraph_html'] = conclusion_paragraph_html or ''
+            ctx['accordion_toc'] = []
 
-        # Mindmap: API-backed radial/classic vs static SVG accordion navigator
+            # Mindmap: API-backed radial/classic vs static SVG accordion navigator
         try:
             from core.models import Configuration
 
@@ -572,9 +646,9 @@ class CareerDetail(TemplateView):
             ctx['career_detail_use_classic_mindmap'] = dmt in ('16', '17', '18', '19')
             ctx['career_detail_classic_layout'] = 'vertical' if dmt in ('17', '19') else 'horizontal'
             ctx['career_detail_classic_visual_ribbon'] = dmt in ('18', '19')
-            # Backward-compatible name used by some templates / logic
+            # Legacy template flag name; value is API availability (not disk XMind)
             ctx['has_xmind_file'] = ctx['career_mindmap_api_available']
-            ctx['xmind_file_path'] = str(career.get_xmind_file_path()) if career.has_xmind_file() else None
+            ctx['xmind_file_path'] = None
             # Pre-fetch clusters as list for Jinja2 template
             ctx['career_clusters'] = list(career.career_cluster.all())
         except Exception:
@@ -680,46 +754,57 @@ class CareerDetail(TemplateView):
             return None
     
     def _get_mindmap_data(self, current_career):
-        """Generate mindmap data structure from database"""
+        """Generate mindmap data structure from database (batched; no per-cluster N+1)."""
         import json
+        from django.db.models import F
+
         from .models import CareerCluster
-        
-        # Get all top-level clusters (no parent)
-        top_clusters = CareerCluster.objects.filter(parent__isnull=True)
-        
-        mindmap_data = {
-            "name": "Career Paths",
-            "children": []
-        }
-        
-        # Limit to 10 clusters for performance
-        for cluster in top_clusters[:10]:
-            # Get careers in this cluster (published only)
-            careers = Career.objects.filter(
-                career_cluster=cluster,
-                publish_status=choices.PublishStatus.PUBLISHED
-            ).distinct()[:8]  # Limit to 8 careers per cluster
-            
-            if careers.exists():
-                cluster_data = {
-                    "name": cluster.name,
-                    "children": []
-                }
-                
-                for career in careers:
-                    # Generate full URL for the career
-                    career_url = reverse('careers:careerdetail', args=[career.slug, career.id])
-                    career_data = {
-                        "name": career.name,
-                        "slug": career.slug,
-                        "id": career.id,
-                        "url": career_url,
-                        "is_current": (career.id == current_career.id)
+
+        # Top-level tracks in this DB are often parent_id == self.id (not NULL).
+        top_clusters = list(
+            CareerCluster.objects.filter(
+                Q(parent__isnull=True) | Q(parent_id=F("id"))
+            ).order_by("name")[:10]
+        )
+
+        mindmap_data = {"name": "Career Paths", "children": []}
+        if not top_clusters:
+            return json.dumps(mindmap_data)
+
+        cluster_ids = [c.id for c in top_clusters]
+        # One query: (cluster_id, career fields) for all top clusters, then cap in Python.
+        rows = (
+            Career.objects.filter(
+                career_cluster__id__in=cluster_ids,
+                publish_status=choices.PublishStatus.PUBLISHED,
+            )
+            .order_by("name", "id")
+            .values_list("career_cluster__id", "id", "name", "slug")
+        )
+        by_cluster = {cid: [] for cid in cluster_ids}
+        for cid, career_id, name, slug in rows:
+            bucket = by_cluster.get(cid)
+            if bucket is None or len(bucket) >= 8:
+                continue
+            bucket.append((career_id, name, slug))
+
+        for cluster in top_clusters:
+            children = by_cluster.get(cluster.id) or []
+            if not children:
+                continue
+            cluster_data = {"name": cluster.name, "children": []}
+            for career_id, name, slug in children:
+                cluster_data["children"].append(
+                    {
+                        "name": name,
+                        "slug": slug,
+                        "id": career_id,
+                        "url": reverse("careers:careerdetail", args=[slug, career_id]),
+                        "is_current": career_id == current_career.id,
                     }
-                    cluster_data["children"].append(career_data)
-                
-                mindmap_data["children"].append(cluster_data)
-        
+                )
+            mindmap_data["children"].append(cluster_data)
+
         return json.dumps(mindmap_data)
     
     def _parse_study_routes(self, career):
@@ -1483,13 +1568,37 @@ class CareerDetail(TemplateView):
         return get_breadcrumb(lst)
         
     def get(self, request,career_id,slug, *args, **kwargs):
-        data={}  
-        if is_ajax(request=request):
-            clgdf=CareerDocumentFilter()
-            ctx=clgdf.get_career_detail(request,slug,is_ajax=True)
-            html=render_to_string("topteenfrontend/includes/explore_college.html",ctx)
-            return HttpResponse(html)    
-        return render(request, self.template_name,self.get_context(request,career_id,slug, args, kwargs))
+        try:
+            from careers.page_cache import (
+                detail_html_cache_key,
+                store_anon_html_if_eligible,
+                try_serve_anon_html,
+            )
+
+            if is_ajax(request=request):
+                clgdf=CareerDocumentFilter()
+                ctx=clgdf.get_career_detail(request,slug,is_ajax=True)
+                html=render_to_string("topteenfrontend/includes/explore_college.html",ctx)
+                return HttpResponse(html)
+
+            cache_key = detail_html_cache_key(career_id, slug)
+            cached = try_serve_anon_html(request, cache_key)
+            if cached is not None:
+                return cached
+
+            response = render(
+                request, self.template_name, self.get_context(request, career_id, slug, args, kwargs)
+            )
+            return store_anon_html_if_eligible(request, cache_key, response)
+        except Http404:
+            raise
+        except Exception as e:
+            return render_career_safe_error(
+                request, e,
+                page_label='Career detail',
+                career_id=career_id,
+                slug=slug,
+            )
 
 
 def convert_xmind_to_jsmind_json(xmind_data, career_name=None):
@@ -1557,10 +1666,13 @@ def convert_xmind_to_jsmind_json(xmind_data, career_name=None):
 
 def career_mindmap_json_api(request, career_id, slug):
     """
-    API endpoint: Convert career's XMind file to JSON (jsMind format)
-    Falls back to parsing HTML from career.description if XMind file not found.
-    Uses career.get_xmind_file_path() which points to /career_mindmap directory.
-    Returns graceful 404 if neither XMind file nor description available.
+    API endpoint: return jsMind JSON for a career.
+
+    Production output order (do not change without an intentional migration):
+    1. Legacy .xmind under career_mindmap/ when present (richer trees for many careers)
+    2. Else parse career.description (h2/h3)
+
+    Admins no longer manage XMind; description is the supported authoring path.
     """
     if request.method == 'OPTIONS':
         response = HttpResponse()
@@ -1572,7 +1684,7 @@ def career_mindmap_json_api(request, career_id, slug):
     try:
         career = get_object_or_404(Career, id=career_id, slug=slug)
         
-        # Try XMind file first
+        # Legacy silent source: keep first for production mindmap parity
         xmind_file_path = career.get_xmind_file_path()
         
         if xmind_file_path and xmind_file_path.exists():
@@ -1592,7 +1704,7 @@ def career_mindmap_json_api(request, career_id, slug):
                 logger.warning(f'Error processing XMind file for career {career.name}: {str(e)}')
                 # Fall through to HTML parsing fallback
         
-        # Fallback: Parse HTML from career.description using model method
+        # Supported path: Parse HTML from career.description
         if career.description:
             try:
                 jsmind_json = career.convert_description_to_jsmind_json()
@@ -1613,14 +1725,25 @@ def career_mindmap_json_api(request, career_id, slug):
         response['Access-Control-Allow-Origin'] = '*'
         return response
     
+    except Http404:
+        raise
     except Exception as e:
-        # Catch-all for any unexpected errors
-        logger.error(f'Unexpected error in career_mindmap_json_api: {str(e)}')
-        
-        response = JsonResponse({
-            'error': 'Service temporarily unavailable',
-            'available': False
-        }, status=500)
+        # Never return HTTP 500 — clients (and Network tab) treat that as a hard failure.
+        error_id = uuid.uuid4().hex[:12]
+        logger.error(
+            'Unexpected error in career_mindmap_json_api [%s]: %s',
+            error_id, e, exc_info=True,
+        )
+        payload = {
+            'error': 'Mind map temporarily unavailable',
+            'available': False,
+            'error_id': error_id,
+            'error_type': type(e).__name__,
+            'error_message': str(e) or type(e).__name__,
+        }
+        if _can_view_career_error_details(request):
+            payload['error_details'] = traceback.format_exc()
+        response = JsonResponse(payload, status=200)
         response['Access-Control-Allow-Origin'] = '*'
         return response
 
@@ -2161,12 +2284,15 @@ class CareerMindmapView(TemplateView):
         ctx['breadcrumb'] = self._breadcrumb(career)
         ctx['html_head'] = self.html_head(career)
         
-        # Check if XMind file exists
+        # Mindmap available via description (or legacy silent XMind) — same as career detail API
         try:
-            ctx['has_xmind_file'] = career.has_xmind_file()
-            ctx['xmind_file_path'] = str(career.get_xmind_file_path()) if career.has_xmind_file() else None
+            ctx['has_career_mindmap'] = career.has_career_mindmap_api_data()
+            # Template still keys off has_xmind_file; keep name for layout, value = API availability
+            ctx['has_xmind_file'] = ctx['has_career_mindmap']
+            ctx['xmind_file_path'] = None
             ctx['career_clusters'] = list(career.career_cluster.all())
         except Exception:
+            ctx['has_career_mindmap'] = False
             ctx['has_xmind_file'] = False
             ctx['xmind_file_path'] = None
             ctx['career_clusters'] = []

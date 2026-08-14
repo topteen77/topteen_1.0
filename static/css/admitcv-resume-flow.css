@@ -2,7 +2,7 @@
    DESIGN TOKENS
 ───────────────────────────────────────────────────────── */
 :root {
-  /* Top Teen brand: purple primary + cyan secondary (maps AdmitCV “gold” tokens) */
+  /* TopTeen brand: purple primary + cyan secondary (maps AdmitCV “gold” tokens) */
   --accent-rgb:  92, 84, 212;
   --accent-rgb2: 60, 186, 224;
   --ink:       #060818;
@@ -1193,7 +1193,7 @@ html[data-theme="light"] .tpltile-mock--none{
 }
 
 /* ─────────────────────────────────────────────────────────
-   Top Teen embedded layout (hide global chrome)
+   TopTeen embedded layout (hide global chrome)
 ───────────────────────────────────────────────────────── */
 body.admitcv-elite-flow {
   background: var(--ink) !important;

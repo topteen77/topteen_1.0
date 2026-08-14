@@ -1,6 +1,6 @@
 {% extends "user_analytics/admin_base.html" %}
 
-{% block title_content %}Email logs | Top Teen{% endblock %}
+{% block title_content %}Email logs | TopTeen{% endblock %}
 {% block page_title %}Email logs{% endblock %}
 
 {% block content %}
@@ -9,7 +9,7 @@
     <div>
       <p class="text-muted small mb-1">
         Rows are appended when mail is sent through Django’s configured backend (<code>topteens.mail_backends.Logging*</code> by default).
-        If <code>EMAIL_BACKEND</code> in <code>.env</code> overrides to a plain Django backend, sends are not logged here.
+        Retention: entries older than 30 days are cleared, but the newest 10 rows are always kept.
       </p>
       <p class="text-muted small mb-0"><strong>File:</strong> <code>{{ log_path }}</code></p>
     </div>

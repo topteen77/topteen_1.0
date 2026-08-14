@@ -188,14 +188,6 @@ button:focus-visible {
 
 
 @media (max-width: 420px) {
-  .career-cluster-selection-footer, .stream-selection-footer {
-    flex-wrap: inherit !important; }
-
-    .continue-button {
-      min-width: 25% !important;
-      width: 40% !important;
-     }
-
      .stream-grid {
       grid-template-columns: repeat(2,1fr) !important;
     }

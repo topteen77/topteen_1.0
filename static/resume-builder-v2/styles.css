@@ -864,6 +864,19 @@ body:not(.rb2-studio-page) .rb2-page {
   overflow: hidden;
 }
 
+/* Cached CSS template silhouette (no per-card iframe / network preview) */
+.rb2-resume-card__thumb {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.rb2-resume-card__thumb-mock.rb2-tpl-mock,
+.rb2-resume-card__thumb .rb2-tpl-mock {
+  inset: 16px 18px 14px;
+  border-radius: 6px;
+}
+
 .rb2-resume-card__iframe {
   width: 200%;
   height: 200%;
@@ -894,6 +907,12 @@ body:not(.rb2-studio-page) .rb2-page {
 
 .rb2-resume-card:hover .rb2-resume-card__preview-link {
   opacity: 1;
+}
+
+@media (hover: none), (max-width: 768px) {
+  .rb2-resume-card__preview-link {
+    opacity: 1;
+  }
 }
 
 .rb2-resume-card__body {
@@ -1388,7 +1407,9 @@ body:not(.rb2-studio-page) .rb2-page {
   padding-bottom: 10px;
 }
 
-.rb2-studio-topbar--complete .rb2-strength-bar__fill {
+/* Win over level-colored fills (good=orange, etc.) when resume is 100% */
+.rb2-studio-topbar--complete .rb2-studio-topbar__progress .rb2-strength-bar--topbar .rb2-strength-bar__fill,
+.rb2-studio-topbar--complete .rb2-studio-topbar__progress .rb2-strength-bar--topbar[data-level] .rb2-strength-bar__fill {
   background: var(--rb2-success);
 }
 
@@ -1462,9 +1483,19 @@ body:not(.rb2-studio-page) .rb2-page {
 }
 
 .rb2-complete-sidebar__icon {
-  font-size: 28px;
-  color: var(--rb2-success);
-  margin-bottom: 8px;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.rb2-complete-sidebar__icon img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  display: block;
 }
 
 .rb2-complete-sidebar__title {
@@ -1553,6 +1584,96 @@ body:not(.rb2-studio-page) .rb2-page {
 .rb2-studio-nav .rb2-btn[disabled] {
   opacity: 0.45;
   pointer-events: none;
+}
+
+/* Shine border on Continue CTA */
+.rb2-btn-shine-wrap {
+  --rb2-shine-base: #4338ca;
+  --rb2-shine-mid: #6366f1;
+  --rb2-shine-glow: #a5b4fc;
+  --rb2-shine-white: #ffffff;
+  --rb2-shine-shadow: rgba(72, 61, 255, 0.32);
+
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  padding: 2px;
+  border-radius: 999px;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--rb2-shine-base);
+  box-shadow: 0 6px 14px var(--rb2-shine-shadow);
+  animation: rb2BtnShinePulse 3.6s ease-in-out infinite;
+}
+
+.rb2-btn-shine-wrap::before {
+  content: "";
+  position: absolute;
+  inset: -120%;
+  background: conic-gradient(
+    from 0deg,
+    var(--rb2-shine-base) 0deg,
+    var(--rb2-shine-base) 200deg,
+    var(--rb2-shine-mid) 230deg,
+    var(--rb2-shine-glow) 255deg,
+    var(--rb2-shine-white) 275deg,
+    var(--rb2-shine-glow) 295deg,
+    var(--rb2-shine-mid) 320deg,
+    var(--rb2-shine-base) 345deg,
+    var(--rb2-shine-base) 360deg
+  );
+  animation: rb2BtnShineRotate 4.5s linear infinite;
+  will-change: transform;
+  backface-visibility: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.rb2-btn-shine-wrap .rb2-btn {
+  position: relative;
+  z-index: 1;
+  border: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  background: linear-gradient(145deg, #6366f1 0%, #5249df 55%, #3f37c9 100%);
+}
+
+.rb2-btn-shine-wrap .rb2-btn:hover,
+.rb2-btn-shine-wrap .rb2-btn:focus,
+.rb2-btn-shine-wrap .rb2-btn:visited {
+  background: linear-gradient(145deg, #5558e8 0%, #4338ca 55%, #3730a3 100%);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transform: none;
+}
+
+.rb2-btn-shine-wrap:has(.rb2-btn[disabled]) {
+  opacity: 0.45;
+  pointer-events: none;
+  animation: none;
+}
+
+.rb2-btn-shine-wrap:has(.rb2-btn[disabled])::before {
+  animation: none;
+}
+
+.rb2-studio-nav .rb2-btn-shine-wrap .rb2-btn[disabled] {
+  opacity: 1;
+}
+
+@keyframes rb2BtnShineRotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes rb2BtnShinePulse {
+  0%, 100% {
+    box-shadow: 0 6px 14px rgba(72, 61, 255, 0.28);
+  }
+  50% {
+    box-shadow:
+      0 10px 22px rgba(72, 61, 255, 0.42),
+      0 0 0 1px rgba(165, 180, 252, 0.35);
+  }
 }
 
 .rb2-studio-app .rb2-complete-banner__actions .rb2-btn--ghost {
@@ -1725,8 +1846,171 @@ body:not(.rb2-studio-page) .rb2-page {
   justify-content: flex-end;
 }
 
+/* Generate-with-AI: topbar row alignment; count badge top-right; info icon to the right (nudged left) */
+.rb2-ai-gen-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  flex-shrink: 0;
+}
+.rb2-ai-gen-btn {
+  position: relative;
+  overflow: visible;
+}
+.rb2-ai-gen-info-icon {
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  margin-left: -9px;
+  margin-bottom: -6px; /* subscript-style: sit below the button baseline */
+  align-self: flex-end;
+  color: #b45309;
+  font-size: 13px;
+  line-height: 1;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+.rb2-ai-gen-info-icon[hidden] {
+  display: none !important;
+}
+.rb2-ai-gen-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  left: auto;
+  z-index: 2;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  box-shadow: 0 0 0 2px #fff;
+  pointer-events: none;
+}
+.rb2-ai-gen-badge.is-low {
+  background: #ea580c;
+}
+.rb2-ai-gen-badge.is-empty {
+  background: #94a3b8;
+}
+.rb2-ai-gen-info__pop {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  width: 240px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid #e4ebf5;
+  box-shadow: 0 12px 28px rgba(23, 49, 86, 0.16);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+  pointer-events: none;
+}
+.rb2-ai-gen-wrap.is-locked:hover .rb2-ai-gen-info__pop,
+.rb2-ai-gen-wrap.is-locked:focus-within .rb2-ai-gen-info__pop,
+.rb2-ai-gen-wrap.is-open .rb2-ai-gen-info__pop {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.rb2-ai-gen-info__msg {
+  margin: 0 0 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #173156;
+  font-weight: 600;
+}
+.rb2-ai-gen-info__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #1c4ed8;
+  color: #fff !important;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none !important;
+}
+.rb2-ai-gen-info__cta:hover {
+  background: #0f3cb8;
+}
+
 .rb2-topbar-exit {
   padding: 8px 12px;
+}
+
+.rb2-topbar-exit__text {
+  margin-left: 2px;
+}
+
+@media (max-width: 768px) {
+  .rb2-studio-topbar {
+    padding: 10px 12px;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .rb2-studio-topbar__left {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* Full-width action row so Download / Preview / exit are never clipped */
+  .rb2-studio-topbar__actions {
+    flex: 1 1 100%;
+    width: 100%;
+    max-width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    flex-shrink: 1;
+    gap: 8px;
+    box-sizing: border-box;
+  }
+
+  .rb2-studio-topbar__actions > .rb2-btn,
+  .rb2-studio-topbar__actions > .rb2-ai-gen-wrap {
+    flex: 0 0 auto;
+  }
+
+  /* Icon-only exit — text was overflowing off-screen */
+  .rb2-topbar-exit {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .rb2-topbar-exit__text {
+    display: none;
+  }
+}
+
+@media (max-width: 400px) {
+  /* Keep labels readable; allow wrap instead of clipping */
+  .rb2-studio-topbar__actions .rb2-btn--sm {
+    padding-left: 10px;
+    padding-right: 10px;
+    font-size: 12px;
+  }
 }
 
 .rb2-ai-pending-banner {
@@ -2076,6 +2360,37 @@ body:not(.rb2-studio-page) .rb2-page {
   height: 20px;
   flex-shrink: 0;
   color: var(--rb2-secondary);
+  animation: rb2TipsLampBlink 1.4s ease-in-out infinite;
+  transform-origin: center 60%;
+}
+
+@keyframes rb2TipsLampBlink {
+  0%, 100% {
+    opacity: 1;
+    filter: drop-shadow(0 0 0 transparent);
+    transform: scale(1);
+  }
+  40% {
+    opacity: 0.35;
+    filter: drop-shadow(0 0 0 transparent);
+    transform: scale(0.96);
+  }
+  55%, 70% {
+    opacity: 1;
+    filter: drop-shadow(0 0 5px rgba(124, 58, 237, 0.75));
+    transform: scale(1.06);
+  }
+  62% {
+    opacity: 0.55;
+    filter: drop-shadow(0 0 2px rgba(124, 58, 237, 0.35));
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rb2-tips-lamp {
+    animation: none;
+  }
 }
 
 .rb2-tips-list {
@@ -3250,6 +3565,17 @@ body:not(.rb2-studio-page) .rb2-page {
   .rb2-studio-preview {
     display: none;
   }
+}
+
+.rb2-ai-locked {
+  opacity: 0.55;
+  cursor: not-allowed !important;
+}
+.rb2-new-card--locked {
+  text-decoration: none;
+  color: inherit;
+  border-style: dashed;
+  opacity: 0.92;
 }
 
 @media (max-width: 768px) {

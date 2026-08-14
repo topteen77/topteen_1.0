@@ -1,9 +1,48 @@
 {% load i18n static %}
 <button class="sticky toggle-nav-sidebar" id="toggle-nav-sidebar" aria-label="{% translate 'Toggle navigation' %}"></button>
 <nav class="sticky" id="nav-sidebar" aria-label="{% translate 'Sidebar' %}">
-  <div class="tt-sidebar-help">
-    <strong>{% translate 'How to navigate' %}</strong>
+  <div class="tt-sidebar-help" id="tt-sidebar-help">
+    <div class="tt-sidebar-help__header">
+      <strong>{% translate 'How to navigate' %}</strong>
+      <button type="button" class="tt-sidebar-help__close" id="tt-sidebar-help-close"
+              aria-label="{% translate 'Close' %}" title="{% translate 'Close' %}">&times;</button>
+    </div>
     <p>{% translate 'Pick a functional area below. Each listing page groups related CRUD screens — you rarely need the advanced model list.' %}</p>
+    <label class="tt-sidebar-help__dont-show">
+      <input type="checkbox" id="tt-sidebar-help-dont-show">
+      <span>{% translate "Don't show on startup" %}</span>
+    </label>
+  </div>
+  <script>
+  (function () {
+    try {
+      if (localStorage.getItem('topteen.admin.sidebarHelpHidden') === '1') {
+        var el = document.getElementById('tt-sidebar-help');
+        if (el) el.setAttribute('hidden', '');
+      }
+    } catch (e) {}
+  })();
+  </script>
+
+  <div class="tt-sidebar-docx" id="tt-sidebar-docx">
+    <strong>{% translate 'Word → HTML' %}</strong>
+    <p>{% translate 'Upload a .docx temporarily (not saved). Convert with full formatting, then copy or insert into any HTML field on this page.' %}</p>
+    <button type="button" id="docx-sidebar-import-btn" class="tt-sidebar-docx__btn">
+      {% translate 'Import Word → HTML' %}
+    </button>
+    <input type="file" id="docx_sidebar_file_input"
+           accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+           hidden>
+    <div id="docx-sidebar-status" class="docx-processing-status" style="display: none;">
+      <div class="processing-header">
+        <div class="processing-spinner"></div>
+        <span class="processing-text">{% translate 'Converting…' %}</span>
+      </div>
+      <div class="processing-progress">
+        <div id="progress-bar" class="progress-bar"></div>
+      </div>
+      <div id="processing-message" class="processing-message"></div>
+    </div>
   </div>
 
   <ul class="tt-sidebar-nav">
@@ -49,9 +88,51 @@
       </ul>
       {% endif %}
     </li>
+
+    <li class="tt-sidebar-nav__group tt-sidebar-nav__group--loan{% if sidebar_active == 'education_loan' %} is-active is-open{% endif %}">
+      <a href="{% url 'admin:hub_education_loan' %}" data-sidebar-nav="education_loan">
+        <span class="tt-sidebar-nav__icon tt-sidebar-nav__icon--loan" aria-hidden="true">₹</span>
+        {% translate 'Education Loan' %}
+      </a>
+      {% if sidebar_loan_links %}
+      <ul class="tt-sidebar-nav__children">
+        {% for link in sidebar_loan_links %}
+        <li>
+          <a href="{{ link.url }}"
+             {% if sidebar_you_are_here and sidebar_you_are_here.page_label == link.label %}class="is-active"{% endif %}>{{ link.label }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% elif sidebar_loan_sections %}
+      <ul class="tt-sidebar-nav__children">
+        {% for section in sidebar_loan_sections %}
+        <li>
+          <a href="{% url 'admin:hub_education_loan' %}#{{ section.section_id }}"
+             data-sidebar-section="{{ section.section_id }}"
+             {% if sidebar_you_are_here and sidebar_you_are_here.section_id == section.section_id %}class="is-active"{% endif %}>{{ section.title }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </li>
+
+    <li class="tt-sidebar-nav__item{% if '/user-analytics/web-owner/services/' in request.path %} is-active{% endif %}">
+      <a href="{% url 'user_analytics:web_owner_services_monitor' %}" data-sidebar-nav="services">
+        <span class="tt-sidebar-nav__icon" aria-hidden="true">⏻</span>
+        {% translate 'Service monitor' %}
+      </a>
+    </li>
+
+    <li class="tt-sidebar-nav__item{% if '/seo-dashboard/' in request.path %} is-active{% endif %}">
+      <a href="{% url 'seo_dashboard:dashboard' %}" data-sidebar-nav="clear-cache">
+        <span class="tt-sidebar-nav__icon" aria-hidden="true">⟳</span>
+        {% translate 'Clear cache' %}
+      </a>
+    </li>
   </ul>
 
   {% if sidebar_you_are_here %}
+  {{ sidebar_you_are_here|json_script:"tt-admin-you-are-here" }}
   <div class="tt-sidebar-context" id="tt-sidebar-context">
     <strong>{% translate 'You are here' %}</strong>
     <p class="tt-sidebar-context__page">{{ sidebar_you_are_here.page_label }}</p>

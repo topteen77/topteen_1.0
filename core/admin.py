@@ -54,6 +54,16 @@ from .models import (
     DashboardPointRule,
     DashboardTrophyDefinition,
     DashboardStreakConfig,
+    LLMUsageLog,
+    LLMTokenPackage,
+    LLMRoleQuotaDefault,
+    UserLLMWallet,
+    LLMWalletLedger,
+    LLMAdminGrant,
+    LLMTokenPackagePayment,
+    LLMPricingSettings,
+    AIFeatureQuotaSettings,
+    UserAIFeatureUsage,
     StaticPage,
     StaticPageSection,
     PageSEO,
@@ -129,6 +139,44 @@ class Class12AptitudeReportSettingsForm(forms.Form):
             'Single - Above Average: use Above Average only when present, otherwise Average; '
             'if every area is a Growth Area, show the improvement note only.'
         ),
+    )
+
+
+class LLMShopDisplaySettingsForm(forms.Form):
+    """Show/hide FX rate and conversion note on the buyer /ai-tokens/ shop."""
+
+    usd_to_inr_rate = forms.DecimalField(
+        max_digits=10,
+        decimal_places=4,
+        min_value=0.0001,
+        label='USD → INR rate',
+        help_text='Used to convert package USD list prices into INR at checkout.',
+    )
+    show_price_inr = forms.BooleanField(
+        required=False,
+        label='Show INR price on shop',
+        help_text='Buyer-facing ₹ amount on /ai-tokens/ and checkout.',
+    )
+    show_price_usd = forms.BooleanField(
+        required=False,
+        label='Show USD price on shop',
+        help_text='Buyer-facing $ amount under each pack (e.g. $0.59).',
+    )
+    show_exchange_rate = forms.BooleanField(
+        required=False,
+        label='Show “Current rate: 1 USD = ₹ …” on shop',
+        help_text='Uncheck to hide the exchange rate under the balance and on each pack card.',
+    )
+    show_conversion_note = forms.BooleanField(
+        required=False,
+        label='Show conversion notes box on shop',
+        help_text='Uncheck to hide the grey USD→INR explanation box at the bottom of /ai-tokens/.',
+    )
+    conversion_note = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'rows': 4}),
+        label='Conversion note text',
+        help_text='Only shown when “Show conversion notes box” is checked.',
     )
 
 
@@ -212,6 +260,28 @@ class WebsiteSettingsForm(forms.Form):
             "When disabled, pages still load in the background with no overlay."
         ),
     )
+
+
+
+class VoiceToTextSettingsForm(forms.Form):
+    """Dedicated admin form for site-wide voice-to-text mode."""
+
+    VOICE_TO_TEXT_MODE = forms.ChoiceField(
+        choices=[],  # filled in __init__
+        required=True,
+        label="Voice-to-text mode",
+        help_text=(
+            "Site-wide speech-to-text for Notebook, login/signup fields, profile voice bar, and note editors. "
+            "Disabled: hide all mics. "
+            "Browser: free Web Speech API (Chrome/Edge; not Safari on iPhone). "
+            "OpenAI: gpt-4o-mini-transcribe via server (~$0.003/min; needs OPENAI_API_KEY; works on iPhone)."
+        ),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from core.voice_to_text import VOICE_TO_TEXT_MODE_CHOICES
+        self.fields['VOICE_TO_TEXT_MODE'].choices = VOICE_TO_TEXT_MODE_CHOICES
 
 
 DEFAULT_MINDMAP_CONFIG_KEY = 'DEFAULT_MINDMAP_TYPE'
@@ -387,8 +457,19 @@ class ConfigurationAdmin(admin.ModelAdmin):
             ),
             path('student-id-settings/', self.admin_site.admin_view(self.student_id_settings_view), name='core_configuration_student_id_settings'),
             path('website-settings/', self.admin_site.admin_view(self.website_settings_view), name='core_configuration_website_settings'),
+            path(
+                'voice-to-text-settings/',
+                self.admin_site.admin_view(self.voice_to_text_settings_view),
+                name='core_configuration_voice_to_text_settings',
+            ),
             path('language-bar-settings/', self.admin_site.admin_view(self.language_bar_settings_view), name='core_configuration_language_bar_settings'),
             path('dashboard-statistics/', self.admin_site.admin_view(self.dashboard_statistics_view), name='core_configuration_dashboard_statistics'),
+            path('llm-billing/', self.admin_site.admin_view(self.llm_billing_view), name='core_configuration_llm_billing'),
+            path(
+                'llm-shop-display/',
+                self.admin_site.admin_view(self.llm_shop_display_settings_view),
+                name='core_configuration_llm_shop_display',
+            ),
         ]
         return custom + urls
 
@@ -654,6 +735,57 @@ class ConfigurationAdmin(admin.ModelAdmin):
         }
         return render(request, 'admin/core/configuration/website_settings.html', context)
 
+    def voice_to_text_settings_view(self, request):
+        """Admin UI for site-wide voice-to-text mode (hub → Voice to text settings)."""
+        from core.models import Configuration
+        from core.voice_to_text import (
+            ENABLE_VOICE_TO_TEXT_KEY,
+            VOICE_TO_TEXT_MODE_KEY,
+            VOICE_TO_TEXT_MODES,
+            VOICE_TO_TEXT_OFF,
+            get_voice_to_text_mode,
+            normalize_voice_to_text_mode,
+            openai_transcribe_available,
+        )
+
+        if request.method == 'POST':
+            form = VoiceToTextSettingsForm(request.POST)
+            if form.is_valid():
+                mode = normalize_voice_to_text_mode(form.cleaned_data.get('VOICE_TO_TEXT_MODE'))
+                if mode not in VOICE_TO_TEXT_MODES:
+                    mode = VOICE_TO_TEXT_OFF
+                config, _ = Configuration.objects.get_or_create(
+                    key=VOICE_TO_TEXT_MODE_KEY, defaults={'value': mode, 'editable': True}
+                )
+                config.value = mode
+                config.save()
+                legacy_val = 'false' if mode == VOICE_TO_TEXT_OFF else 'true'
+                config, _ = Configuration.objects.get_or_create(
+                    key=ENABLE_VOICE_TO_TEXT_KEY, defaults={'value': legacy_val, 'editable': True}
+                )
+                config.value = legacy_val
+                config.save()
+                # Force every worker to drop stale config snapshots immediately.
+                Configuration.clear_cache()
+                messages.success(
+                    request,
+                    'Voice-to-text settings saved. Open pages pick this up immediately '
+                    '(within a few seconds, or on the next mic tap).',
+                )
+                return redirect('admin:core_configuration_voice_to_text_settings')
+        else:
+            form = VoiceToTextSettingsForm(initial={'VOICE_TO_TEXT_MODE': get_voice_to_text_mode()})
+
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'Voice to text settings',
+            'form': form,
+            'opts': self.model._meta,
+            'openai_key_configured': openai_transcribe_available(),
+            'current_mode': get_voice_to_text_mode(),
+        }
+        return render(request, 'admin/core/configuration/voice_to_text_settings.html', context)
+
     def language_bar_settings_view(self, request):
         """Admin UI to enable/disable languages shown in the site header translate bar."""
         from core.models import TranslateLanguage
@@ -733,6 +865,69 @@ class ConfigurationAdmin(admin.ModelAdmin):
             context['max_achievable_points'] = None
             context['max_achievable_points_class10'] = None
         return render(request, 'admin/core/configuration/dashboard_statistics.html', context)
+
+    def llm_billing_view(self, request):
+        """Staff dashboard: OpenAI actual costs vs amount collected + local logs."""
+        from core.llm_billing import get_billing_summary
+
+        try:
+            days = int(request.GET.get('days') or 30)
+        except (TypeError, ValueError):
+            days = 30
+        force_refresh = str(request.GET.get('refresh') or '').strip() in ('1', 'true', 'yes')
+        summary = get_billing_summary(days=days, force_refresh=force_refresh)
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'AI Cost / LLM Billing',
+            'opts': self.model._meta,
+            'summary': summary,
+            'usage_log_url': reverse('admin:core_llmusagelog_changelist'),
+            'forum_metrics_url': reverse('admin:forum_performancemetrics_changelist'),
+            'days_options': [7, 14, 30, 90, 180],
+        }
+        return render(request, 'admin/core/configuration/llm_billing.html', context)
+
+    def llm_shop_display_settings_view(self, request):
+        """Toggle buyer-facing rate / notes on /ai-tokens/ (and related checkout UI)."""
+        from core.models import LLMPricingSettings
+
+        settings_row = LLMPricingSettings.load()
+        if request.method == 'POST':
+            form = LLMShopDisplaySettingsForm(request.POST)
+            if form.is_valid():
+                settings_row.usd_to_inr_rate = form.cleaned_data['usd_to_inr_rate']
+                settings_row.show_price_inr = bool(form.cleaned_data.get('show_price_inr'))
+                settings_row.show_price_usd = bool(form.cleaned_data.get('show_price_usd'))
+                settings_row.show_exchange_rate = bool(form.cleaned_data.get('show_exchange_rate'))
+                settings_row.show_conversion_note = bool(form.cleaned_data.get('show_conversion_note'))
+                settings_row.conversion_note = (form.cleaned_data.get('conversion_note') or '').strip()
+                settings_row.save()
+                messages.success(
+                    request,
+                    'AI token shop display settings saved. Refresh /ai-tokens/ to verify.',
+                )
+                return redirect('admin:core_configuration_llm_shop_display')
+        else:
+            form = LLMShopDisplaySettingsForm(
+                initial={
+                    'usd_to_inr_rate': settings_row.usd_to_inr_rate,
+                    'show_price_inr': settings_row.show_price_inr,
+                    'show_price_usd': settings_row.show_price_usd,
+                    'show_exchange_rate': settings_row.show_exchange_rate,
+                    'show_conversion_note': settings_row.show_conversion_note,
+                    'conversion_note': settings_row.conversion_note,
+                }
+            )
+
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'AI token shop display (rate & notes)',
+            'form': form,
+            'opts': self.model._meta,
+            'shop_url': '/ai-tokens/',
+            'packages_url': reverse('admin:core_llmtokenpackage_changelist'),
+        }
+        return render(request, 'admin/core/configuration/llm_shop_display_settings.html', context)
 
 
 class CityAdmin(admin.ModelAdmin):
@@ -897,22 +1092,90 @@ class DashboardLevelBandAdmin(admin.ModelAdmin):
 
 
 class DashboardPointRuleAdmin(admin.ModelAdmin):
-    list_display = ('order', 'label_display', 'rule_key', 'points', 'applies_to', 'active', 'modified')
-    list_editable = ('order', 'points', 'applies_to', 'active')
-    list_display_links = ('label_display', 'rule_key')
+    list_display = ('drag_handle', 'label', 'rule_key', 'points', 'applies_to', 'active', 'modified')
+    list_editable = ('label', 'points', 'applies_to', 'active')
+    list_display_links = ('rule_key',)
     list_filter = ('active', 'applies_to')
     ordering = ('order', 'rule_key')
-    search_fields = ('rule_key',)
+    search_fields = ('rule_key', 'label')
+    list_per_page = 200
     change_list_template = 'admin/core/dashboardpointrule/change_list.html'
+    fields = ('rule_key', 'label', 'points', 'applies_to', 'active', 'created', 'modified')
     readonly_fields = ('created', 'modified')
 
-    @admin.display(description='Rule')
-    def label_display(self, obj):
-        from core.dashboard_stats import RULE_LABELS
-        return RULE_LABELS.get(obj.rule_key, obj.rule_key.replace('_', ' ').title())
+    class Media:
+        css = {'all': ('admin/css/dashboard_point_rule_reorder.css',)}
+        js = ('admin/js/dashboard_point_rule_reorder.js',)
+
+    @admin.display(description='')
+    def drag_handle(self, obj):
+        return format_html(
+            '<span class="dpr-drag-handle" title="Drag to reorder" aria-label="Drag to reorder" '
+            'data-rule-id="{}" draggable="true">⠿</span>',
+            obj.pk,
+        )
+
+    def get_urls(self):
+        info = self.model._meta.app_label, self.model._meta.model_name
+        urls = super().get_urls()
+        custom = [
+            path(
+                'reorder/',
+                self.admin_site.admin_view(self.reorder_view),
+                name='%s_%s_reorder' % info,
+            ),
+        ]
+        return custom + urls
+
+    def reorder_view(self, request):
+        import json
+        from django.db import transaction
+
+        if request.method != 'POST':
+            return JsonResponse({'ok': False, 'error': 'POST required'}, status=405)
+        try:
+            payload = json.loads(request.body.decode('utf-8') or '{}')
+            ids = payload.get('ids') or []
+            ids = [int(x) for x in ids]
+        except (TypeError, ValueError, json.JSONDecodeError):
+            return JsonResponse({'ok': False, 'error': 'Invalid payload'}, status=400)
+        if not ids:
+            return JsonResponse({'ok': False, 'error': 'No ids'}, status=400)
+        if len(ids) != len(set(ids)):
+            return JsonResponse({'ok': False, 'error': 'Duplicate ids'}, status=400)
+
+        qs = list(self.get_queryset(request).filter(pk__in=ids))
+        by_id = {obj.pk: obj for obj in qs}
+        if len(by_id) != len(ids):
+            return JsonResponse({'ok': False, 'error': 'One or more rules not found'}, status=400)
+
+        # Renumber in drop order (table is small; 1..N is the display sequence).
+        updated = 0
+        with transaction.atomic():
+            for index, pk in enumerate(ids, start=1):
+                obj = by_id[pk]
+                if obj.order != index:
+                    type(obj).objects.filter(pk=pk).update(order=index)
+                    updated += 1
+
+        from core.dashboard_cache import invalidate_dashboard_config_cache
+        invalidate_dashboard_config_cache()
+        return JsonResponse({'ok': True, 'count': len(ids), 'updated': updated})
+
+    def save_model(self, request, obj, form, change):
+        if not (obj.label or '').strip():
+            from core.dashboard_stats import RULE_LABELS
+            obj.label = RULE_LABELS.get(obj.rule_key, obj.rule_key.replace('_', ' ').title())
+        # Never let change-form save wipe display order (field is intentionally hidden).
+        if change and 'order' not in form.cleaned_data:
+            try:
+                obj.order = type(obj).objects.only('order').get(pk=obj.pk).order
+            except type(obj).DoesNotExist:
+                pass
+        super().save_model(request, obj, form, change)
 
     def changelist_view(self, request, extra_context=None):
-        from core.dashboard_points import get_active_point_rules_total, get_max_achievable_points_by_track
+        from core.dashboard_points import get_max_achievable_points_by_track
         from django.db.models import Sum
         extra_context = extra_context or {}
         qs = self.get_queryset(request)
@@ -926,6 +1189,7 @@ class DashboardPointRuleAdmin(admin.ModelAdmin):
         caps = get_max_achievable_points_by_track()
         extra_context['max_achievable_points'] = caps['post_matric']
         extra_context['max_achievable_points_class10'] = caps['class10']
+        extra_context['reorder_url'] = reverse('admin:gamification_dashboardpointrule_reorder')
         return super().changelist_view(request, extra_context=extra_context)
 
 
@@ -1054,6 +1318,261 @@ class CommonFAQAdmin(admin.ModelAdmin):
 admin.site.register(APILog)
 admin.site.register(Stories)
 admin.site.register(Contact,ContactAdmin)
+
+
+@admin.register(LLMUsageLog)
+class LLMUsageLogAdmin(admin.ModelAdmin):
+    list_display = (
+        'created_at', 'feature', 'provider', 'model', 'call_type',
+        'prompt_tokens', 'completion_tokens', 'total_tokens', 'cost_usd', 'success', 'user',
+    )
+    list_filter = ('feature', 'provider', 'call_type', 'success', 'created_at')
+    search_fields = ('model', 'request_id', 'error_message', 'feature', 'user__email')
+    readonly_fields = (
+        'feature', 'provider', 'model', 'call_type',
+        'prompt_tokens', 'completion_tokens', 'total_tokens', 'cost_usd',
+        'success', 'error_message', 'user', 'request_id', 'metadata', 'created_at',
+    )
+    ordering = ('-created_at',)
+    raw_id_fields = ('user',)
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+def _seed_llm_admin_defaults():
+    """Ensure packages, role quotas, and FX settings exist for admin screens."""
+    try:
+        from core.llm_payment_views import _seed_default_packages
+        from core.llm_quota import seed_role_defaults
+        from core.models import LLMPricingSettings
+
+        LLMPricingSettings.load()
+        seed_role_defaults()
+        _seed_default_packages()
+    except Exception:
+        # Tables may not exist yet until migrate; admin still loads.
+        pass
+
+
+@admin.register(LLMTokenPackage)
+class LLMTokenPackageAdmin(admin.ModelAdmin):
+    list_display = (
+        'name', 'code', 'tokens', 'price_usd', 'inr_preview', 'badge_label',
+        'is_featured', 'is_active', 'sort_order',
+    )
+    list_filter = ('is_active', 'is_featured')
+    search_fields = ('name', 'code', 'tagline', 'usage_examples')
+    prepopulated_fields = {'code': ('name',)}
+    ordering = ('sort_order', 'price_usd')
+    readonly_fields = ('amount', 'currency', 'inr_preview')
+    fields = (
+        'code', 'name', 'tagline', 'description', 'usage_examples', 'tokens', 'price_usd',
+        'inr_preview', 'amount', 'currency', 'badge_label', 'sort_order',
+        'is_featured', 'is_active',
+    )
+    change_list_template = 'admin/core/llmtokenpackage/change_list.html'
+
+    def changelist_view(self, request, extra_context=None):
+        _seed_llm_admin_defaults()
+        return super().changelist_view(request, extra_context=extra_context)
+
+    @admin.display(description='INR at current rate')
+    def inr_preview(self, obj):
+        if not obj:
+            return '—'
+        try:
+            from core.llm_fx import format_rate, get_usd_to_inr_rate
+
+            return f"₹ {obj.get_inr_amount()} ({format_rate(get_usd_to_inr_rate())})"
+        except Exception:
+            return '—'
+
+
+@admin.register(LLMPricingSettings)
+class LLMPricingSettingsAdmin(admin.ModelAdmin):
+    list_display = (
+        'usd_to_inr_rate',
+        'show_price_inr',
+        'show_price_usd',
+        'show_exchange_rate',
+        'show_conversion_note',
+        'updated_at',
+    )
+    fields = (
+        'usd_to_inr_rate',
+        'show_price_inr',
+        'show_price_usd',
+        'show_exchange_rate',
+        'show_conversion_note',
+        'conversion_note',
+        'updated_at',
+    )
+    readonly_fields = ('updated_at',)
+
+    def changelist_view(self, request, extra_context=None):
+        _seed_llm_admin_defaults()
+        return super().changelist_view(request, extra_context=extra_context)
+
+    def has_add_permission(self, request):
+        try:
+            return not LLMPricingSettings.objects.exists()
+        except Exception:
+            return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(LLMRoleQuotaDefault)
+class LLMRoleQuotaDefaultAdmin(admin.ModelAdmin):
+    list_display = (
+        'role_key', 'monthly_free_tokens', 'estimated_call_tokens', 'is_enabled', 'updated_at',
+    )
+    list_editable = ('monthly_free_tokens', 'estimated_call_tokens', 'is_enabled')
+    search_fields = ('role_key', 'marketing_headline')
+
+    def changelist_view(self, request, extra_context=None):
+        _seed_llm_admin_defaults()
+        return super().changelist_view(request, extra_context=extra_context)
+
+
+@admin.register(AIFeatureQuotaSettings)
+class AIFeatureQuotaSettingsAdmin(admin.ModelAdmin):
+    list_display = (
+        'resume_free_creates',
+        'resume_free_ai_edits',
+        'counsellor_message_limit',
+        'page_chat_message_limit',
+        'updated_at',
+    )
+
+    def has_add_permission(self, request):
+        try:
+            return not AIFeatureQuotaSettings.objects.exists()
+        except Exception:
+            return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def changelist_view(self, request, extra_context=None):
+        AIFeatureQuotaSettings.load()
+        return super().changelist_view(request, extra_context=extra_context)
+
+
+@admin.register(UserAIFeatureUsage)
+class UserAIFeatureUsageAdmin(admin.ModelAdmin):
+    list_display = (
+        'user',
+        'resume_creates_used',
+        'resume_ai_edits_used',
+        'counsellor_messages_used',
+        'page_chat_messages_used',
+        'resume_ai_bonus',
+        'counsellor_bonus',
+        'page_chat_bonus',
+        'updated_at',
+    )
+    search_fields = ('user__email', 'user__name')
+    raw_id_fields = ('user',)
+    readonly_fields = (
+        'user',
+        'resume_creates_used',
+        'resume_ai_edits_used',
+        'counsellor_messages_used',
+        'page_chat_messages_used',
+        'resume_create_bonus',
+        'resume_ai_bonus',
+        'counsellor_bonus',
+        'page_chat_bonus',
+        'created_at',
+        'updated_at',
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.register(UserLLMWallet)
+class UserLLMWalletAdmin(admin.ModelAdmin):
+    list_display = (
+        'user', 'balance_tokens', 'lifetime_credited', 'lifetime_consumed',
+        'free_period_key', 'updated_at',
+    )
+    search_fields = ('user__email', 'user__name')
+    readonly_fields = (
+        'user', 'balance_tokens', 'lifetime_credited', 'lifetime_consumed',
+        'free_period_key', 'created_at', 'updated_at',
+    )
+    raw_id_fields = ('user',)
+
+    def has_add_permission(self, request):
+        return False
+
+
+@admin.register(LLMWalletLedger)
+class LLMWalletLedgerAdmin(admin.ModelAdmin):
+    list_display = (
+        'created_at', 'wallet', 'entry_type', 'source', 'tokens',
+        'balance_after', 'feature', 'reference',
+    )
+    list_filter = ('entry_type', 'source', 'created_at')
+    search_fields = ('reference', 'note', 'wallet__user__email', 'feature')
+    readonly_fields = (
+        'wallet', 'entry_type', 'source', 'tokens', 'balance_after', 'feature',
+        'note', 'reference', 'created_by', 'metadata', 'created_at',
+    )
+    raw_id_fields = ('wallet', 'created_by')
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(LLMAdminGrant)
+class LLMAdminGrantAdmin(admin.ModelAdmin):
+    list_display = ('created_at', 'user', 'tokens', 'reason', 'granted_by', 'applied')
+    list_filter = ('applied', 'created_at')
+    search_fields = ('user__email', 'reason')
+    raw_id_fields = ('user', 'granted_by')
+    readonly_fields = ('applied', 'created_at')
+
+    def save_model(self, request, obj, form, change):
+        if not obj.granted_by_id:
+            obj.granted_by = request.user
+        super().save_model(request, obj, form, change)
+        if not obj.applied:
+            from core.llm_quota import apply_admin_grant
+
+            apply_admin_grant(obj)
+
+
+@admin.register(LLMTokenPackagePayment)
+class LLMTokenPackagePaymentAdmin(admin.ModelAdmin):
+    list_display = (
+        'id', 'user', 'package', 'tokens_granted',
+        'price_usd', 'usd_to_inr_rate', 'amount', 'price_breakdown',
+        'is_success', 'tokens_credited', 'created',
+    )
+    list_filter = ('is_success', 'tokens_credited', 'created')
+    search_fields = ('user__email', 'gateway_receipt', 'package__code')
+    raw_id_fields = ('user', 'package')
+    readonly_fields = (
+        'tokens_credited', 'price_usd', 'usd_to_inr_rate', 'amount', 'currency',
+        'price_breakdown', 'created', 'modified',
+    )
+
+    @admin.display(description='USD → INR breakdown')
+    def price_breakdown(self, obj):
+        if not obj:
+            return '—'
+        return obj.get_price_breakdown_display()
 
 
 @admin.register(CareerBattleFight)

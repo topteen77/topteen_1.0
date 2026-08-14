@@ -1,0 +1,110 @@
+{% extends "admin/hub/loan_model_change_form.html" %}
+{% load i18n static %}
+
+{% block after_related_objects %}{{ block.super }}{% endblock %}
+
+{% block admin_change_form_document_ready %}
+{{ block.super }}
+<script>
+(function () {
+  function ready(fn) {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
+    else fn();
+  }
+
+  ready(function () {
+    var enabled = document.getElementById('id_daily_report_enabled');
+    var timesField = document.getElementById('id_daily_report_times');
+    var emailsField = document.getElementById('id_manager_report_emails');
+    if (!enabled || !timesField) return;
+
+    var timesRow = timesField.closest('.form-row') || timesField.parentElement;
+    var emailsRow = emailsField ? (emailsField.closest('.form-row') || emailsField.parentElement) : null;
+
+    // Build multi-time UI next to the textarea (keep textarea as source of truth).
+    timesField.style.display = 'none';
+    var wrap = document.createElement('div');
+    wrap.id = 'tt-loan-report-times';
+    wrap.style.marginTop = '6px';
+    wrap.innerHTML =
+      '<div class="tt-loan-times-list" style="display:flex;flex-direction:column;gap:8px;max-width:280px;"></div>' +
+      '<button type="button" class="button" id="tt-loan-add-time" style="margin-top:8px;">Add time</button>' +
+      '<p class="help" style="margin-top:8px;">Times are IST. Each time creates a separate Celery Beat schedule.</p>';
+    timesField.parentNode.insertBefore(wrap, timesField.nextSibling);
+
+    var list = wrap.querySelector('.tt-loan-times-list');
+    var addBtn = wrap.querySelector('#tt-loan-add-time');
+
+    function parseTimes(raw) {
+      return String(raw || '')
+        .split(/[\s,;]+/)
+        .map(function (s) { return s.trim(); })
+        .filter(function (s) { return /^\d{1,2}:\d{2}$/.test(s); });
+    }
+
+    function syncToTextarea() {
+      var vals = [];
+      list.querySelectorAll('input[type="time"]').forEach(function (inp) {
+        if (inp.value) vals.push(inp.value);
+      });
+      // normalize HH:MM
+      timesField.value = vals.join('\n');
+    }
+
+    function addTimeRow(value) {
+      var row = document.createElement('div');
+      row.style.display = 'flex';
+      row.style.gap = '8px';
+      row.style.alignItems = 'center';
+      var inp = document.createElement('input');
+      inp.type = 'time';
+      inp.value = value || '09:30';
+      inp.style.minWidth = '140px';
+      inp.addEventListener('change', syncToTextarea);
+      var rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'button';
+      rm.textContent = 'Remove';
+      rm.addEventListener('click', function () {
+        if (list.children.length <= 1) {
+          inp.value = '09:30';
+          syncToTextarea();
+          return;
+        }
+        row.remove();
+        syncToTextarea();
+      });
+      row.appendChild(inp);
+      row.appendChild(rm);
+      list.appendChild(row);
+      syncToTextarea();
+    }
+
+    var initial = parseTimes(timesField.value);
+    if (!initial.length) initial = ['09:30'];
+    initial.forEach(addTimeRow);
+
+    addBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      addTimeRow('17:00');
+    });
+
+    function toggleDailyFields() {
+      var on = !!enabled.checked;
+      if (timesRow) timesRow.style.display = on ? '' : 'none';
+      if (emailsRow) emailsRow.style.display = on ? '' : 'none';
+      wrap.style.display = on ? '' : 'none';
+    }
+    enabled.addEventListener('change', toggleDailyFields);
+    toggleDailyFields();
+
+    var form = timesField.form;
+    if (form) {
+      form.addEventListener('submit', function () {
+        syncToTextarea();
+      });
+    }
+  });
+})();
+</script>
+{% endblock %}

@@ -1,12 +1,12 @@
 {% extends 'template20/user/student_base.html' %}
 
-{% block title_content %}Build Resume | Top Teen{% endblock %}
+{% block title_content %}Build Resume | TopTeen{% endblock %}
 {% block student_bodyclass %}rb2-studio-page user-dashboard-fullscreen{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
 <link rel="stylesheet" href="{{ static('resume-builder-prototype/styles.css') }}?v=56">
-<link rel="stylesheet" href="{{ static('resume-builder-v2/styles.css') }}?v=38">
+<link rel="stylesheet" href="{{ static('resume-builder-v2/styles.css') }}?v=46">
 <link rel="stylesheet" href="{{ static('resume-builder-v2/messages.css') }}?v=4">
 <link rel="stylesheet" href="{{ static('resume-builder-v2/ai-review.css') }}?v=2">
 <style>
@@ -26,11 +26,14 @@
   }
   body.rb2-studio-page .user-dashboard-container { max-width: 100%; padding: 0; }
   body.rb2-studio-page .student-dash-shell.row { margin: 0; min-height: 0; }
-  /* Keep sidebar toggle visible and icon rendered on studio */
-  body.rb2-studio-page .std-shell-sidebar-toggle {
-    display: inline-flex !important;
+  /* Sidebar toggle is desktop-only; mobile uses .std-shell-menu (avoid double hamburgers) */
+  @media (min-width: 992px) {
+    body.rb2-studio-page .std-shell-sidebar-toggle {
+      display: inline-flex !important;
+    }
   }
-  body.rb2-studio-page .std-shell-sidebar-toggle i.bx::before {
+  body.rb2-studio-page .std-shell-sidebar-toggle i.bx::before,
+  body.rb2-studio-page .std-shell-menu i.bx::before {
     font-family: "boxicons" !important;
   }
 </style>
@@ -47,9 +50,9 @@
 {% block student_row_class %}row g-0 student-dash-shell{% endblock %}
 
 {% block student_main %}
-<div class="rb2-studio-app">
+<div class="rb2-studio-app{% if overall_completion >= 100 %} rb2-studio-app--complete{% endif %}">
   {# ——— Top bar ——— #}
-  <header class="rb2-studio-topbar mt-8">
+  <header class="rb2-studio-topbar mt-8{% if overall_completion >= 100 %} rb2-studio-topbar--complete{% endif %}">
     <div class="rb2-studio-topbar__left">
       <a href="{{ url('users:resume_v2_dashboard') }}" class="rb2-studio-back" title="Back to resumes">
         <i class='bx bx-arrow-back'></i>
@@ -62,10 +65,13 @@
       </div>
     </div>
     <div class="rb2-studio-topbar__progress">
-      <div class="rb2-strength-bar rb2-strength-bar--topbar" id="rb2ProgressBarWrap" data-level="{{ strength.level|lower }}" role="progressbar" aria-valuenow="{{ overall_completion }}" aria-valuemin="0" aria-valuemax="100" aria-label="Resume completion">
+      <div class="rb2-strength-bar rb2-strength-bar--topbar" id="rb2ProgressBarWrap" data-level="{% if overall_completion >= 100 %}outstanding{% else %}{{ strength.level|lower }}{% endif %}" role="progressbar" aria-valuenow="{{ overall_completion }}" aria-valuemin="0" aria-valuemax="100" aria-label="Resume completion">
         <div class="rb2-strength-bar__fill" id="rb2ProgressBar" style="width:{{ overall_completion }}%"></div>
       </div>
-      <p class="rb2-studio-topbar__progress-label" id="rb2ProgressLabel" data-level="{{ strength.level|lower }}">
+      <p class="rb2-studio-topbar__progress-label" id="rb2ProgressLabel" data-level="{% if overall_completion >= 100 %}outstanding{% else %}{{ strength.level|lower }}{% endif %}">
+        {% if overall_completion >= 100 %}
+        <span class="rb2-progress-pct rb2-progress-pct--complete">Resume complete!</span>
+        {% else %}
         <span class="rb2-progress-pct" id="rb2ProgressPct">{{ overall_completion }}% done</span>
         <span class="rb2-progress-sep" aria-hidden="true">·</span>
         <span class="rb2-progress-level" id="rb2ProgressLevel">{{ strength.level }}</span>
@@ -73,13 +79,30 @@
         <span class="rb2-progress-sep" aria-hidden="true">·</span>
         <span class="rb2-progress-goal">Goal: {{ goal_label }}</span>
         {% endif %}
+        {% endif %}
       </p>
     </div>
     <div class="rb2-studio-topbar__actions">
-      <button type="button" class="rb2-btn rb2-btn--soft rb2-btn--sm" id="rb2GenerateResumeAI" title="Enhance entire resume with AI for your goal">
-        <svg class="rb2-ai-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M7.5 5.6 10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.9959.9959 0 0 0-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"></path></svg>
-        Generate with AI
-      </button>
+      <div class="rb2-ai-gen-wrap{% if resume_ai_locked %} is-locked{% endif %}" id="rb2AiGenWrap">
+        <button type="button" class="rb2-btn rb2-btn--soft rb2-btn--sm rb2-ai-gen-btn{% if resume_ai_locked %} rb2-ai-locked{% endif %}" id="rb2GenerateResumeAI" title="Enhance entire resume with AI for your goal"{% if resume_ai_locked %} aria-disabled="true"{% endif %} aria-describedby="rb2AiQuotaInfoPop">
+          <svg class="rb2-ai-icon" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M7.5 5.6 10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.9959.9959 0 0 0-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z"></path></svg>
+          Generate with AI
+          {% if resume_ai_quota_applies %}
+          <span class="rb2-ai-gen-badge{% if not resume_ai_unlimited and (resume_ai_remaining|default(0)|int) <= 0 %} is-empty{% elif not resume_ai_unlimited and (resume_ai_remaining|default(0)|int) <= 1 %} is-low{% endif %}" id="rb2AiEditsBadge" aria-label="AI edits left">
+            {% if resume_ai_unlimited %}∞{% else %}{{ resume_ai_remaining if resume_ai_remaining is not none else 0 }}{% endif %}
+          </span>
+          {% endif %}
+        </button>
+        {% if resume_ai_quota_applies %}
+        <span class="rb2-ai-gen-info-icon" id="rb2AiQuotaInfoIcon" {% if not resume_ai_locked %}hidden{% endif %} aria-hidden="true">
+          <i class='bx bx-info-circle'></i>
+        </span>
+        <div class="rb2-ai-gen-info__pop" id="rb2AiQuotaInfoPop" role="tooltip">
+          <p class="rb2-ai-gen-info__msg">{{ ai_quota_recharge_message|default('AI tokens need to recharge — Buy now.') }}</p>
+          <a class="rb2-ai-gen-info__cta" id="rb2AiQuotaInfoCta" href="{{ ai_quota_shop_url|default('/ai-tokens/') }}">Buy now</a>
+        </div>
+        {% endif %}
+      </div>
       <a href="{{ pdf_url }}" class="rb2-btn rb2-btn--primary rb2-btn--sm" id="rb2DownloadPdf" target="_blank" rel="noopener">
         <i class='bx bx-download'></i> Download PDF
       </a>
@@ -152,7 +175,9 @@
       {% endif %}
 
       <div class="rb2-complete-sidebar {% if overall_completion >= 100 %}is-visible{% endif %}" id="rb2CompleteSidebar">
-        <div class="rb2-complete-sidebar__icon"><i class='bx bx-party'></i></div>
+        <div class="rb2-complete-sidebar__icon">
+          <img src="{{ static('resume-builder-v2/images/celebrations.gif') }}" alt="" width="56" height="56" decoding="async">
+        </div>
         <h3 class="rb2-complete-sidebar__title">You're all set!</h3>
         <p class="rb2-complete-sidebar__text">Your resume is ready. Use the header actions to download or preview.</p>
       </div>
@@ -175,7 +200,14 @@
           <div class="rb2-photo-row">
             <div class="rb2-photo-preview" id="rb2PhotoPreview">
               {% if resume_photo_url %}
-              <img src="{{ resume_photo_url }}" alt="Your photo" class="rb2-photo-preview__img" id="rb2PhotoImg">
+              <img
+                src="{{ resume_photo_url }}"
+                alt="Your photo"
+                class="rb2-photo-preview__img"
+                id="rb2PhotoImg"
+                onerror="this.onerror=null;this.hidden=true;var p=document.getElementById('rb2PhotoPlaceholder');if(p){p.hidden=false;}var l=document.getElementById('rb2PhotoUploadLabel');if(l){l.textContent='Add photo';}var r=document.getElementById('rb2PhotoRemove');if(r){r.hidden=true;}"
+              >
+              <span class="rb2-photo-preview__avatar-initials" id="rb2PhotoPlaceholder" hidden>{{ avatar_initial }}</span>
               {% else %}
               <span class="rb2-photo-preview__avatar-initials" id="rb2PhotoPlaceholder">{{ avatar_initial }}</span>
               {% endif %}
@@ -218,6 +250,12 @@
                 {% if pf.can_edit_phone %}placeholder="Phone number"{% else %}readonly{% endif %}
                 class="{% if not pf.can_edit_phone %}rb2-field--readonly{% endif %}">
               {% if pf.can_edit_phone %}<p class="rb2-field-hint">Add a phone number so employers can reach you.</p>{% endif %}
+            </div>
+            <div class="rb2-field">
+              <label>Location</label>
+              <input type="text" id="rb2Location" value="{{ pf.location|default('', true)|e }}"
+                placeholder="e.g. Mumbai, India" maxlength="200">
+              <p class="rb2-field-hint">City or area shown with the pin on your resume.</p>
             </div>
             {% if pf.school or pf.can_edit_school %}
             <div class="rb2-field">
@@ -504,9 +542,11 @@
         <i class='bx bx-chevron-left'></i> Back
       </button>
       <span class="rb2-studio-nav__step" id="rb2NavStepLabel">About you</span>
-      <button type="button" class="rb2-btn rb2-btn--primary rb2-btn--sm" id="rb2NavContinue">
-        Continue <i class='bx bx-chevron-right'></i>
-      </button>
+      <span class="rb2-btn-shine-wrap">
+        <button type="button" class="rb2-btn rb2-btn--primary rb2-btn--sm" id="rb2NavContinue">
+          Continue <i class='bx bx-chevron-right'></i>
+        </button>
+      </span>
     </div>
   </nav>
 
@@ -628,9 +668,16 @@ window.__RB2_STUDIO = {
   prototypePayload: {{ prototype_payload|tojson_for_script }},
   sectionMetrics: {{ section_metrics|tojson_for_script }},
   profileSchool: {{ personal_fields.school|default('', true)|tojson }},
+  aiQuotaLocked: {{ resume_ai_locked|default(false)|tojson }},
+  aiQuotaRemaining: {{ resume_ai_remaining|tojson }},
+  aiQuotaUnlimited: {{ resume_ai_unlimited|default(false)|tojson }},
+  aiQuotaApplies: {{ resume_ai_quota_applies|default(false)|tojson }},
+  aiQuotaShopUrl: {{ ai_quota_shop_url|default('/ai-tokens/')|tojson }},
+  aiQuotaStatusUrl: {{ ai_quota_status_url|default('/ai-feature-quota/status/')|tojson }},
+  aiQuotaMessage: {{ ai_quota_recharge_message|default('AI tokens need to recharge — Buy now.')|tojson }},
 };
 </script>
 <script src="{{ static('resume-builder-v2/messages.js') }}?v=3"></script>
 <script src="{{ static('resume-builder-v2/ai-review-modal.js') }}?v=3"></script>
-<script src="{{ static('resume-builder-v2/studio.js') }}?v=64"></script>
+<script src="{{ static('resume-builder-v2/studio.js') }}?v=72"></script>
 {% endblock %}

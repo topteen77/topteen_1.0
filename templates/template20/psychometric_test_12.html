@@ -4,7 +4,7 @@
 {% block owl_carousel_scripts %}{% include 'template20/includes/owl_carousel_scripts.html' %}{% endblock %}
 
 {% block title_content %}
-Career Direction Psychometric Test | Top Teen
+Career Direction Psychometric Test | TopTeen
 {% endblock %}
 
 {% block description_content %}
@@ -56,7 +56,7 @@ Test. Make informed decisions and choose the right career path.
 {% block content %}
 
   <!-- Hero Section -->
-  <section class="hero-section-inner pt-md-18 pt-14 pb-5 position-relative">
+  <section class="hero-section-inner pt-md-18 pt-10 pb-5 position-relative">
     <div class="rounded-blur-circle">
       <div class="blur-cricle-1"></div>
       <div class="blur-cricle-two"></div>
@@ -884,12 +884,12 @@ Test. Make informed decisions and choose the right career path.
                     <h2 class="accordion-header">
                       <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                         data-bs-target="#faqFour" aria-expanded="false" aria-controls="faqFour">
-                        How does the Top Teen Career assessment test help?
+                        How does the TopTeen Career assessment test help?
                       </button>
                     </h2>
                     <div id="faqFour" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
                       <div class="accordion-body">
-                        The Top Teen Career Assessment helps you discover top career options based on personality, aptitude, and interests with detailed guidance.
+                        The TopTeen Career Assessment helps you discover top career options based on personality, aptitude, and interests with detailed guidance.
                       </div>
                     </div>
                   </div>
@@ -960,6 +960,36 @@ Test. Make informed decisions and choose the right career path.
     }
     return cookieValue;
   }
+
+  function getCsrfToken() {
+    var input = document.querySelector('#paymentForm input[name="csrfmiddlewaretoken"]')
+      || document.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (input && input.value) return input.value;
+    var fromCookie = getCookie('csrftoken');
+    if (fromCookie) return fromCookie;
+    return '{{ csrf_token }}';
+  }
+
+  function psychometricPayHeaders() {
+    return {
+      'X-CSRFToken': getCsrfToken(),
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
+    };
+  }
+
+  function parsePaymentError(response, data) {
+    data = data || {};
+    var msg = data.error || data.detail || data.message || '';
+    if (!msg && response && response.status === 403) {
+      msg = 'Security check failed. Please refresh the page and try again.';
+    }
+    if (!msg && response && (response.status === 401 || data.session_expired)) {
+      msg = 'Your session has expired. Please sign in again.';
+    }
+    return msg || 'Payment request failed';
+  }
   
   function resetPsychometricPayButtons() {
     document.querySelectorAll('.js-psychometric-pay-btn').forEach(function (btn) {
@@ -1001,15 +1031,25 @@ Test. Make informed decisions and choose the right career path.
     var data = { test_type: testTypeInput.value };
     fetch('{{ psychometric_test_payment_url }}', {
       method: 'POST',
-      headers: { 'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/json' },
+      headers: psychometricPayHeaders(),
       body: JSON.stringify(data),
       credentials: 'same-origin'
     })
     .then(function(response) {
-      if (!response.ok) return response.json().then(function(d) { throw new Error(d.error || 'Payment request failed'); });
-      return response.json();
+      return response.json().catch(function() { return {}; }).then(function(d) {
+        if (!response.ok) {
+          if (d && d.redirect && (response.status === 401 || d.session_expired)) {
+            window.location.href = d.redirect + (d.redirect.indexOf('?') >= 0 ? '&' : '?')
+              + 'next=' + encodeURIComponent(window.location.pathname + window.location.search);
+            return null;
+          }
+          throw new Error(parsePaymentError(response, d));
+        }
+        return d;
+      });
     })
     .then(function(data) {
+      if (!data) return;
       if (data && data.free_access && data.redirect_url) { window.location.href = data.redirect_url; return; }
       if (data && data.already_paid && data.redirect_url) { window.location.href = data.redirect_url; return; }
       if (data.error) throw new Error(data.error);
@@ -1061,7 +1101,7 @@ Test. Make informed decisions and choose the right career path.
     function capturePaymentStatus(status, detail) {
       fetch('/user-analytics/api/payment-status/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        headers: psychometricPayHeaders(),
         body: JSON.stringify({
           status: status,
           gateway: 'razorpay',
@@ -1090,7 +1130,7 @@ Test. Make informed decisions and choose the right career path.
   function updatePayment(test_id, pay_id, test_type, response, success_url, fail_url) {
     fetch('{{ payment_update_url }}', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      headers: psychometricPayHeaders(),
       body: JSON.stringify({
         gateway_order_id: response.razorpay_order_id,
         gateway_payment_id: response.razorpay_payment_id,
@@ -1106,7 +1146,7 @@ Test. Make informed decisions and choose the right career path.
     if (!confirm('Are you sure you want to clear the demo test?')) return;
     fetch('{{ delete_demo_payment_url }}', {
       method: 'POST',
-      headers: { 'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/json' }
+      headers: psychometricPayHeaders()
     }).then(function(r) { return r.json(); }).then(function(d) { if (d.success) { alert('Demo test cleared.'); location.reload(); } else alert('Error.'); }).catch(function() { alert('Error.'); });
   };
   {% endif %}

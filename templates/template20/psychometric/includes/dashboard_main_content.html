@@ -58,7 +58,21 @@
               <div class="modern-card-footer">
                 <div class="report-card-actions">
                   <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test1_report_html', args=[report_user_id]) }}{% else %}{{ url('app:test1_report_html') }}{% endif %}" class="btn-view" title="View report" aria-label="View Personality report"><i class='bx bx-show'></i> View</a>
-                  <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test1_report_pdf', args=[report_user_id]) }}{% else %}{{ url('app:test1_report_pdf') }}{% endif %}" class="btn-download" title="Download PDF" aria-label="Download Personality PDF" target="_blank" rel="noopener"><i class='bx bx-download'></i> PDF</a>
+                  {% if report_user_id is defined and report_user_id %}
+                    {% set t1_pdf = url('app:test1_report_pdf', args=[report_user_id]) %}
+                  {% else %}
+                    {% set t1_pdf = url('app:test1_report_pdf') %}
+                  {% endif %}
+                  <a href="{{ t1_pdf }}"
+                     class="btn-download js-report-pdf-btn is-preparing"
+                     data-pdf-url="{{ t1_pdf }}"
+                     data-label-default="PDF"
+                     data-label-preparing="Preparing…"
+                     aria-disabled="true"
+                     aria-busy="true"
+                     tabindex="-1"
+                     title="Download PDF"
+                     aria-label="Download Personality PDF"><i class='bx bx-download'></i> Preparing…</a>
                 </div>
               </div>
             </div>
@@ -122,7 +136,21 @@
                 {% endif %}
                 <div class="report-card-actions">
                   <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test2_report_html', args=[report_user_id]) }}{% else %}{{ url('app:test2_report_html') }}{% endif %}" class="btn-view" title="View report" aria-label="View Interest report"><i class='bx bx-show'></i> View</a>
-                  <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test2_report_pdf', args=[report_user_id]) }}{% else %}{{ url('app:test2_report_pdf') }}{% endif %}" class="btn-download" title="Download PDF" aria-label="Download Interest PDF" target="_blank" rel="noopener"><i class='bx bx-download'></i> PDF</a>
+                  {% if report_user_id is defined and report_user_id %}
+                    {% set t2_pdf = url('app:test2_report_pdf', args=[report_user_id]) %}
+                  {% else %}
+                    {% set t2_pdf = url('app:test2_report_pdf') %}
+                  {% endif %}
+                  <a href="{{ t2_pdf }}"
+                     class="btn-download js-report-pdf-btn is-preparing"
+                     data-pdf-url="{{ t2_pdf }}"
+                     data-label-default="PDF"
+                     data-label-preparing="Preparing…"
+                     aria-disabled="true"
+                     aria-busy="true"
+                     tabindex="-1"
+                     title="Download PDF"
+                     aria-label="Download Interest PDF"><i class='bx bx-download'></i> Preparing…</a>
                 </div>
               </div>
             </div>
@@ -177,7 +205,21 @@
               <div class="modern-card-footer">
                 <div class="report-card-actions">
                   <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test3_report_html', args=[report_user_id]) }}{% else %}{{ url('app:test3_report_html') }}{% endif %}" class="btn-view" title="View report" aria-label="View Intelligence report"><i class='bx bx-show'></i> View</a>
-                  <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:test3_report_pdf', args=[report_user_id]) }}{% else %}{{ url('app:test3_report_pdf') }}{% endif %}" class="btn-download" title="Download PDF" aria-label="Download Intelligence PDF" target="_blank" rel="noopener"><i class='bx bx-download'></i> PDF</a>
+                  {% if report_user_id is defined and report_user_id %}
+                    {% set t3_pdf = url('app:test3_report_pdf', args=[report_user_id]) %}
+                  {% else %}
+                    {% set t3_pdf = url('app:test3_report_pdf') %}
+                  {% endif %}
+                  <a href="{{ t3_pdf }}"
+                     class="btn-download js-report-pdf-btn is-preparing"
+                     data-pdf-url="{{ t3_pdf }}"
+                     data-label-default="PDF"
+                     data-label-preparing="Preparing…"
+                     aria-disabled="true"
+                     aria-busy="true"
+                     tabindex="-1"
+                     title="Download PDF"
+                     aria-label="Download Intelligence PDF"><i class='bx bx-download'></i> Preparing…</a>
                 </div>
               </div>
             </div>
@@ -185,7 +227,19 @@
         </div>
         <div class="text-center psych-cta-row d-flex flex-wrap gap-2 gap-md-3 justify-content-center align-items-stretch">
           <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:class10_combined_report', args=[report_user_id]) }}{% else %}{{ url('app:class10_combined_report_own') }}{% endif %}" class="btn view-report-btn"><i class='bx bx-file-blank fs-18'></i> View combined report</a>
-          <a href="{% if report_user_id is defined and report_user_id %}{{ url('app:class10_report_download_pdf', args=[report_user_id]) }}{% else %}{{ url('app:class10_report_download_pdf_own') }}{% endif %}" class="btn download-report-btn" target="_blank" rel="noopener"><i class='bx bx-download fs-18'></i> Download PDF</a>
+          {% if report_user_id is defined and report_user_id %}
+            {% set combined_pdf = url('app:class10_report_download_pdf', args=[report_user_id]) %}
+          {% else %}
+            {% set combined_pdf = url('app:class10_report_download_pdf_own') %}
+          {% endif %}
+          <a href="{{ combined_pdf }}"
+             class="btn download-report-btn js-report-pdf-btn is-preparing"
+             data-pdf-url="{{ combined_pdf }}"
+             data-label-default="Download PDF"
+             data-label-preparing="Preparing PDF…"
+             aria-disabled="true"
+             aria-busy="true"
+             tabindex="-1"><i class='bx bx-download fs-18'></i> Preparing PDF…</a>
         </div>
       </div>
 

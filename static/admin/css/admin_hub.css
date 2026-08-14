@@ -9,9 +9,12 @@
   --tt-config-soft: #dbeafe;
   --tt-ops: #059669;
   --tt-ops-soft: #d1fae5;
+  --tt-loan: #7c3aed;
+  --tt-loan-soft: #ede9fe;
   --tt-hero-home: linear-gradient(135deg, #1e3a5f 0%, #2563eb 45%, #0d9488 100%);
   --tt-hero-config: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #6366f1 100%);
   --tt-hero-ops: linear-gradient(135deg, #064e3b 0%, #059669 50%, #14b8a6 100%);
+  --tt-hero-loan: linear-gradient(135deg, #4c1d95 0%, #7c3aed 50%, #a855f7 100%);
 }
 
 html[data-theme="dark"] {
@@ -65,6 +68,10 @@ html[data-theme="dark"] {
 
 .tt-admin-hero--ops {
   background: var(--tt-hero-ops);
+}
+
+.tt-admin-hero--loan {
+  background: var(--tt-hero-loan);
 }
 
 .tt-admin-hero__glow {
@@ -185,6 +192,11 @@ html[data-theme="dark"] {
   border-color: var(--tt-ops);
 }
 
+.tt-admin-hub-nav__item--loan.is-active,
+.tt-admin-hub-nav__item--loan:hover {
+  border-color: var(--tt-loan);
+}
+
 .tt-admin-hub-nav__item.is-active {
   color: #fff;
   border-color: transparent;
@@ -197,6 +209,10 @@ html[data-theme="dark"] {
 
 .tt-admin-hub-nav__item--ops.is-active {
   background: linear-gradient(135deg, #059669, #0d9488);
+}
+
+.tt-admin-hub-nav__item--loan.is-active {
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
 }
 
 .tt-admin-hub-nav__count {
@@ -309,12 +325,15 @@ html[data-theme="dark"] {
 .tt-admin-hub__section {
   --section-accent: var(--primary, #417690);
   margin-bottom: 32px;
-  padding: 20px 20px 8px;
+  padding: 20px 20px 16px;
   background: var(--body-bg);
   border: 1px solid var(--hairline-color);
   border-radius: var(--tt-hub-radius);
   box-shadow: var(--tt-hub-shadow);
   scroll-margin-top: 20px;
+  overflow: hidden;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 .tt-admin-hub__section-head {
@@ -435,6 +454,15 @@ html[data-theme="dark"] {
 .tt-admin-hub__section--topteen-cms-media { --section-accent: #0f766e; }
 .tt-admin-hub__section--topteen-cms-media .tt-admin-hub__section-icon::before { content: "📝"; }
 
+.tt-admin-hub__section--loan-team { --section-accent: #7c3aed; }
+.tt-admin-hub__section--loan-team .tt-admin-hub__section-icon::before { content: "👥"; }
+
+.tt-admin-hub__section--enquiries-follow-up { --section-accent: #2563eb; }
+.tt-admin-hub__section--enquiries-follow-up .tt-admin-hub__section-icon::before { content: "📋"; }
+
+.tt-admin-hub__section--loan-settings { --section-accent: #0f766e; }
+.tt-admin-hub__section--loan-settings .tt-admin-hub__section-icon::before { content: "⚙"; }
+
 /* Link cards */
 .tt-admin-hub__links {
   display: grid;
@@ -443,10 +471,20 @@ html[data-theme="dark"] {
   list-style: none;
   margin: 0;
   padding: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  float: none;
+  clear: both;
 }
 
 .tt-admin-hub__link-card {
   margin: 0;
+  float: none;
+  width: auto;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   animation: tt-card-in 0.4s ease backwards;
 }
 
@@ -467,6 +505,9 @@ html[data-theme="dark"] {
   flex-direction: column;
   gap: 6px;
   height: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 14px 40px 14px 16px;
   text-decoration: none;
   background: var(--darkened-bg);
@@ -579,6 +620,10 @@ html[data-theme="dark"] {
   background: linear-gradient(135deg, transparent 40%, rgba(5, 150, 105, 0.08) 100%);
 }
 
+.tt-admin-home__card--loan::after {
+  background: linear-gradient(135deg, transparent 40%, rgba(124, 58, 237, 0.1) 100%);
+}
+
 .tt-admin-home__card:hover {
   transform: translateY(-4px);
   box-shadow: var(--tt-hub-shadow-hover);
@@ -609,12 +654,21 @@ html[data-theme="dark"] {
   color: var(--tt-ops);
 }
 
+.tt-admin-home__card--loan .tt-admin-home__card-icon {
+  background: var(--tt-loan-soft);
+  color: var(--tt-loan);
+}
+
 .tt-admin-home__card--config {
   border-top: 4px solid var(--tt-config);
 }
 
 .tt-admin-home__card--ops {
   border-top: 4px solid var(--tt-ops);
+}
+
+.tt-admin-home__card--loan {
+  border-top: 4px solid var(--tt-loan);
 }
 
 .tt-admin-home__card h2 {
@@ -645,6 +699,14 @@ html[data-theme="dark"] {
 
 .tt-admin-home__card--ops .tt-admin-home__card-cta {
   color: var(--tt-ops);
+}
+
+.tt-admin-home__card--loan .tt-admin-home__card-cta {
+  color: var(--tt-loan);
+}
+
+.tt-admin-home__card--loan .tt-admin-home__card-cta {
+  color: var(--tt-loan);
 }
 
 .tt-admin-home__card-arrow {
@@ -707,6 +769,18 @@ body.dashboard.colMS #content,
 body.tt-admin-home-page #content,
 body.tt-admin-hub-page #content {
   margin-right: 0;
+}
+
+/* Hub pages: suppress Django default title card (content lives in hub layout) */
+body.tt-admin-hub-page #content > h1,
+body.tt-admin-home-page #content > h1 {
+  display: none !important;
+}
+
+.tt-admin-hub--zone {
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: clip;
 }
 
 #content-main {

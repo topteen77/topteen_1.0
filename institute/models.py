@@ -47,6 +47,23 @@ class InstituteMarketingGroup(BaseModel):
         related_name="marketing_group",
         limit_choices_to={'user_type': choices.UserType.MARKETINGGROUPADMIN}  # Changed from MARKETING to MARKETINGGROUPADMIN
     )
+    whatsapp_notifications_enabled = models.BooleanField(
+        default=True,
+        verbose_name="WhatsApp notifications",
+        help_text=_(
+            "When enabled (and global WhatsApp is ready), send WhatsApp alerts to the "
+            "marketing admin for demo-institute activity (students added, test results, "
+            "all demos completed)."
+        ),
+    )
+    email_notifications_enabled = models.BooleanField(
+        default=True,
+        verbose_name="Email notifications",
+        help_text=_(
+            "When enabled, email the marketing admin for demo-institute activity "
+            "(students added, test results, all demos completed)."
+        ),
+    )
 
     def __str__(self):
         return self.m_group_name
@@ -208,6 +225,14 @@ class Institute(BaseModel, SlugModel):
         verbose_name="System demo",
         help_text=_("Set only by the system for the fixed demo dataset. Only such data can be reset. Do not edit."),
     )
+    demo_seed_count = models.PositiveSmallIntegerField(
+        default=0,
+        verbose_name="Demo seed runs",
+        help_text=_(
+            "How many times marketing has seeded Class 10/12 demo students for this institute "
+            "(max 3)."
+        ),
+    )
 
     # Seat Capacity fields for streams
     pcm = models.PositiveIntegerField(
@@ -248,6 +273,18 @@ class Institute(BaseModel, SlugModel):
         """String representation of the Institute."""
         return self.name
 
+    def get_demo_student_password(self) -> str:
+        """
+        Fixed login password for marketing-seeded demo students at this institute.
+
+        Example: institute name ``demo2`` → ``demo2@12345``.
+        """
+        import re
+
+        raw = (self.name or "").strip().lower()
+        key = re.sub(r"[^a-z0-9]+", "", raw) or f"ins{self.pk or 0}"
+        return f"{key}@12345"
+
     @property
     def tieup_form_initial(self):
         """Tie-up billing field defaults for marketing edit institute modal."""
@@ -255,27 +292,28 @@ class Institute(BaseModel, SlugModel):
 
         return get_tieup_billing_form_initial(self)
 
+    def paid_student_seat_count(self):
+        """Enrolled students that consume paid exam credits (excludes demo accounts)."""
+        return (
+            StudentManagement.objects.filter(institute=self)
+            .exclude(student__is_demo_account=True)
+            .count()
+        )
+
     def get_current_credits_count(self):
         """
-        Calculate and return the current available credits.
-        
-        Returns:
-            int: Number of remaining credits
+        Calculate and return the current available paid seats.
+
+        Demo students (User.is_demo_account) do not consume credit_counts.
         """
-        sm = StudentManagement.objects.filter(institute=self).count()
-        current_credits = self.credit_counts - sm
-        return current_credits
+        return int(self.credit_counts or 0) - self.paid_student_seat_count()
     
     def is_valid_credit_count(self):
         """
-        Check if the institute has valid credit count.
-        
-        Returns:
-            bool: True if credit count is valid, False otherwise
+        Check if the institute has at least one paid seat remaining.
         """
-        sm = StudentManagement.objects.filter(institute=self).count()
-        current_credits = self.credit_counts - sm
-        return 0 < current_credits <= self.credit_counts
+        current_credits = self.get_current_credits_count()
+        return 0 < current_credits <= int(self.credit_counts or 0)
 
     def has_assignment_credits(self, amount):
         return int(self.assignment_credits or 0) >= int(amount or 0)
@@ -387,7 +425,7 @@ def get_cached_student_management(user):
         return cached
     sm = (
         StudentManagement.objects.filter(student=user)
-        .select_related('class_and_section')
+        .select_related('class_and_section', 'institute')
         .first()
     )
     try:

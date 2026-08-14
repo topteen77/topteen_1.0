@@ -1,0 +1,335 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/admin_hub.css' %}">
+<style>
+  .tt-loan-team { max-width: 980px; margin: 1.25rem auto 2rem; }
+  .tt-loan-team__toolbar {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    justify-content: space-between; margin-bottom: 1rem;
+  }
+  .tt-loan-team__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tt-loan-team__btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 0; border-radius: 8px; padding: 9px 14px;
+    font-weight: 700; cursor: pointer; color: #fff; text-decoration: none;
+  }
+  .tt-loan-team__btn--manager { background: #7c3aed; }
+  .tt-loan-team__btn--executive { background: #2563eb; }
+  .tt-loan-team__btn--ghost {
+    background: #fff; color: #334155; border: 1px solid #cbd5e1;
+  }
+  .tt-loan-team__flash {
+    display: none; margin-bottom: 12px; padding: 10px 12px; border-radius: 8px; font-weight: 600;
+  }
+  .tt-loan-team__flash.is-ok { display: block; background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+  .tt-loan-team__flash.is-err { display: block; background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+  .tt-loan-team table { width: 100%; border-collapse: collapse; background: #fff; }
+  .tt-loan-team th, .tt-loan-team td {
+    padding: 10px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 13px;
+  }
+  .tt-loan-team th { background: #f8fafc; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: #64748b; }
+  .tt-loan-badge {
+    display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+  }
+  .tt-loan-badge--manager { background: #ede9fe; color: #6d28d9; }
+  .tt-loan-badge--executive { background: #dbeafe; color: #1d4ed8; }
+  .tt-loan-status { font-weight: 600; }
+  .tt-loan-status.is-on { color: #047857; }
+  .tt-loan-status.is-off { color: #b91c1c; }
+  .tt-loan-row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tt-loan-row-actions button {
+    border: 1px solid #cbd5e1; background: #fff; border-radius: 6px;
+    padding: 4px 8px; font-size: 12px; cursor: pointer;
+  }
+  .tt-loan-empty { padding: 24px; text-align: center; color: #64748b; }
+
+  .tt-loan-modal-backdrop {
+    display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, .45);
+    z-index: 1000; align-items: center; justify-content: center; padding: 16px;
+  }
+  .tt-loan-modal-backdrop.is-open { display: flex; }
+  .tt-loan-modal {
+    width: 100%; max-width: 480px; background: #fff; border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0,0,0,.25); padding: 18px 18px 16px;
+  }
+  .tt-loan-modal h2 { margin: 0 0 4px; font-size: 1.15rem; }
+  .tt-loan-modal .hint { color: #64748b; font-size: 12px; margin-bottom: 14px; }
+  .tt-loan-field { margin-bottom: 12px; }
+  .tt-loan-field label { display: block; font-weight: 600; font-size: 12px; margin-bottom: 4px; }
+  .tt-loan-field input[type=text],
+  .tt-loan-field input[type=email],
+  .tt-loan-field input[type=password] {
+    width: 100%; box-sizing: border-box; padding: 9px 10px; border: 1px solid #cbd5e1; border-radius: 8px;
+  }
+  .tt-loan-field .help { font-size: 11px; color: #94a3b8; margin-top: 3px; }
+  .tt-loan-modal__footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+  .tt-loan-modal__footer .default { background: #7c3aed; color: #fff; border: 0; border-radius: 8px; padding: 9px 14px; font-weight: 700; cursor: pointer; }
+  .tt-loan-modal__footer .cancel { background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 9px 14px; cursor: pointer; }
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+{% url 'admin:hub_education_loan' as tt_loan_hub_url %}
+{% trans "Education Loan" as tt_loan_zone %}
+{% trans "Loan team" as tt_loan_team %}
+{% include "admin/includes/hub_breadcrumbs.html" with hub_crumb_zone_label=tt_loan_zone hub_crumb_zone_url=tt_loan_hub_url hub_crumb_page_label=tt_loan_team %}
+{% endblock %}
+
+{% block content %}
+{% include "admin/hub/includes/zone_nav.html" %}
+
+<div class="tt-loan-team">
+  <div class="tt-loan-team__toolbar">
+    <div>
+      <h1 style="margin:0 0 4px;">{% trans 'Loan team' %}</h1>
+      <p class="help" style="margin:0;">{% trans 'Managers and executives for the Loan Desk PWA. Add, edit, and enable/disable here.' %}</p>
+    </div>
+    <div class="tt-loan-team__actions">
+      <button type="button" class="tt-loan-team__btn tt-loan-team__btn--manager" id="ttLoanAddManager">
+        + {% trans 'Add Loan Manager' %}
+      </button>
+      <button type="button" class="tt-loan-team__btn tt-loan-team__btn--executive" id="ttLoanAddExecutive">
+        + {% trans 'Add Loan Executive' %}
+      </button>
+      <a href="{% url 'admin:hub_education_loan' %}" class="tt-loan-team__btn tt-loan-team__btn--ghost">{% trans 'Back to hub' %}</a>
+    </div>
+  </div>
+
+  <div id="ttLoanFlash" class="tt-loan-team__flash" role="status" aria-live="polite"></div>
+
+  <div class="tt-admin-panel" style="padding:0; overflow:hidden;">
+    <table>
+      <thead>
+        <tr>
+          <th>{% trans 'Role' %}</th>
+          <th>{% trans 'Name' %}</th>
+          <th>{% trans 'Email' %}</th>
+          <th>{% trans 'Mobile' %}</th>
+          <th>{% trans 'Status' %}</th>
+          <th>{% trans 'Actions' %}</th>
+        </tr>
+      </thead>
+      <tbody id="ttLoanTeamBody">
+        {% if not members %}
+        <tr class="tt-loan-empty-row"><td colspan="6" class="tt-loan-empty">{% trans 'No loan team members yet. Use the buttons above to add one.' %}</td></tr>
+        {% endif %}
+        {% for m in members %}
+        <tr data-id="{{ m.id }}">
+          <td><span class="tt-loan-badge tt-loan-badge--{{ m.role_badge }}">{{ m.role }}</span></td>
+          <td>{{ m.name|default:"—" }}</td>
+          <td>{{ m.email }}</td>
+          <td>{{ m.mobile|default:"—" }}</td>
+          <td><span class="tt-loan-status {% if m.enabled %}is-on{% else %}is-off{% endif %}">{% if m.enabled %}{% trans 'Enabled' %}{% else %}{% trans 'Disabled' %}{% endif %}</span></td>
+          <td>
+            <div class="tt-loan-row-actions">
+              <button type="button" data-edit="{{ m.id }}">{% trans 'Edit' %}</button>
+              <button type="button" data-toggle="{{ m.id }}">{% if m.enabled %}{% trans 'Disable' %}{% else %}{% trans 'Enable' %}{% endif %}</button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="tt-loan-modal-backdrop" id="ttLoanModal" aria-hidden="true">
+  <div class="tt-loan-modal" role="dialog" aria-modal="true" aria-labelledby="ttLoanModalTitle">
+    <h2 id="ttLoanModalTitle">{% trans 'Add Loan Manager' %}</h2>
+    <p class="hint" id="ttLoanModalHint">{% trans 'Account can sign in at /loan-desk/' %}</p>
+    <form id="ttLoanTeamForm">
+      <input type="hidden" name="id" id="ttLoanId" value="">
+      <input type="hidden" name="user_type" id="ttLoanUserType" value="{{ loan_manager_type }}">
+      <div class="tt-loan-field">
+        <label for="ttLoanName">{% trans 'Name' %}</label>
+        <input type="text" id="ttLoanName" name="name" required maxlength="200">
+      </div>
+      <div class="tt-loan-field">
+        <label for="ttLoanEmail">{% trans 'Login email' %}</label>
+        <input type="email" id="ttLoanEmail" name="email" required>
+      </div>
+      <div class="tt-loan-field">
+        <label for="ttLoanMobile">{% trans 'Mobile (optional)' %}</label>
+        <input type="text" id="ttLoanMobile" name="mobile" maxlength="15">
+      </div>
+      <div class="tt-loan-field">
+        <label for="ttLoanPassword">{% trans 'Password' %}</label>
+        <input type="password" id="ttLoanPassword" name="password" autocomplete="new-password">
+        <p class="help" id="ttLoanPasswordHelp">{% trans 'Leave blank on create to auto-generate. Leave blank on edit to keep current password.' %}</p>
+      </div>
+      <div class="tt-loan-field">
+        <label><input type="checkbox" id="ttLoanEnabled" name="enabled" checked> {% trans 'Enabled (can sign in)' %}</label>
+      </div>
+      <div class="tt-loan-modal__footer">
+        <button type="button" class="cancel" id="ttLoanModalCancel">{% trans 'Cancel' %}</button>
+        <button type="submit" class="default" id="ttLoanModalSave">{% trans 'Save' %}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+(function () {
+  var csrf = '{{ csrf_token }}';
+  var saveUrl = '{% url "admin:hub_education_loan_team_save" %}';
+  var getUrlTpl = '{% url "admin:hub_education_loan_team_get" 0 %}'.replace('/0/', '/__ID__/');
+  var toggleUrlTpl = '{% url "admin:hub_education_loan_team_toggle" 0 %}'.replace('/0/', '/__ID__/');
+  var managerType = {{ loan_manager_type }};
+  var executiveType = {{ loan_executive_type }};
+  var listUrl = '{% url "admin:hub_education_loan_team" %}';
+
+  var modal = document.getElementById('ttLoanModal');
+  var form = document.getElementById('ttLoanTeamForm');
+  var flash = document.getElementById('ttLoanFlash');
+  var body = document.getElementById('ttLoanTeamBody');
+  var titleEl = document.getElementById('ttLoanModalTitle');
+  var saveBtn = document.getElementById('ttLoanModalSave');
+
+  function showFlash(ok, message) {
+    flash.className = 'tt-loan-team__flash ' + (ok ? 'is-ok' : 'is-err');
+    flash.textContent = message || (ok ? 'Saved.' : 'Something went wrong.');
+  }
+
+  function openModal(opts) {
+    opts = opts || {};
+    document.getElementById('ttLoanId').value = opts.id || '';
+    document.getElementById('ttLoanUserType').value = opts.user_type || managerType;
+    document.getElementById('ttLoanName').value = opts.name || '';
+    document.getElementById('ttLoanEmail').value = opts.email || '';
+    document.getElementById('ttLoanMobile').value = opts.mobile || '';
+    document.getElementById('ttLoanPassword').value = '';
+    document.getElementById('ttLoanEnabled').checked = opts.enabled !== false;
+    var isManager = String(opts.user_type || managerType) === String(managerType);
+    titleEl.textContent = opts.id
+      ? ('Edit ' + (isManager ? 'Loan Manager' : 'Loan Executive'))
+      : ('Add ' + (isManager ? 'Loan Manager' : 'Loan Executive'));
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.getElementById('ttLoanName').focus();
+  }
+
+  function closeModal() {
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function renderRows(members) {
+    if (!members || !members.length) {
+      body.innerHTML = '<tr class="tt-loan-empty-row"><td colspan="6" class="tt-loan-empty">No loan team members yet. Use the buttons above to add one.</td></tr>';
+      return;
+    }
+    body.innerHTML = members.map(function (m) {
+      return (
+        '<tr data-id="' + m.id + '">' +
+          '<td><span class="tt-loan-badge tt-loan-badge--' + escapeHtml(m.role_badge) + '">' + escapeHtml(m.role) + '</span></td>' +
+          '<td>' + escapeHtml(m.name || '—') + '</td>' +
+          '<td>' + escapeHtml(m.email) + '</td>' +
+          '<td>' + escapeHtml(m.mobile || '—') + '</td>' +
+          '<td><span class="tt-loan-status ' + (m.enabled ? 'is-on' : 'is-off') + '">' + (m.enabled ? 'Enabled' : 'Disabled') + '</span></td>' +
+          '<td><div class="tt-loan-row-actions">' +
+            '<button type="button" data-edit="' + m.id + '">Edit</button>' +
+            '<button type="button" data-toggle="' + m.id + '">' + (m.enabled ? 'Disable' : 'Enable') + '</button>' +
+          '</div></td>' +
+        '</tr>'
+      );
+    }).join('');
+  }
+
+  function postJson(url, payload) {
+    return fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrf,
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify(payload || {})
+    }).then(function (r) {
+      return r.json().then(function (data) {
+        return { ok: r.ok, status: r.status, data: data };
+      });
+    });
+  }
+
+  document.getElementById('ttLoanAddManager').addEventListener('click', function () {
+    openModal({ user_type: managerType, enabled: true });
+  });
+  document.getElementById('ttLoanAddExecutive').addEventListener('click', function () {
+    openModal({ user_type: executiveType, enabled: true });
+  });
+  document.getElementById('ttLoanModalCancel').addEventListener('click', closeModal);
+  modal.addEventListener('click', function (e) {
+    if (e.target === modal) closeModal();
+  });
+
+  body.addEventListener('click', function (e) {
+    var editId = e.target.getAttribute('data-edit');
+    var toggleId = e.target.getAttribute('data-toggle');
+    if (editId) {
+      fetch(getUrlTpl.replace('__ID__', editId), {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'same-origin'
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data.success) {
+            showFlash(false, data.message || 'Could not load member.');
+            return;
+          }
+          openModal(data.member);
+        })
+        .catch(function () { showFlash(false, 'Network error while loading member.'); });
+    }
+    if (toggleId) {
+      postJson(toggleUrlTpl.replace('__ID__', toggleId), {})
+        .then(function (res) {
+          showFlash(!!res.data.success, res.data.message);
+          if (res.data.success && res.data.members) renderRows(res.data.members);
+        })
+        .catch(function () { showFlash(false, 'Network error while updating status.'); });
+    }
+  });
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    saveBtn.disabled = true;
+    var payload = {
+      id: document.getElementById('ttLoanId').value || 0,
+      user_type: document.getElementById('ttLoanUserType').value,
+      name: document.getElementById('ttLoanName').value,
+      email: document.getElementById('ttLoanEmail').value,
+      mobile: document.getElementById('ttLoanMobile').value,
+      password: document.getElementById('ttLoanPassword').value,
+      enabled: document.getElementById('ttLoanEnabled').checked
+    };
+    postJson(saveUrl, payload)
+      .then(function (res) {
+        saveBtn.disabled = false;
+        showFlash(!!res.data.success, res.data.message);
+        if (res.data.success) {
+          closeModal();
+          if (res.data.members) renderRows(res.data.members);
+          // Stay on listing view (refresh URL without leaving page)
+          if (window.history && window.history.replaceState) {
+            window.history.replaceState({}, '', listUrl);
+          }
+        }
+      })
+      .catch(function () {
+        saveBtn.disabled = false;
+        showFlash(false, 'Network error while saving.');
+      });
+  });
+})();
+</script>
+{% endblock %}

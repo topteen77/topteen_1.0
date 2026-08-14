@@ -1,30 +1,357 @@
-/* PWA launch screen — once per app session (standalone mode only) */
+/* PWA launch screen — standalone app first load */
 .pwa-launch-screen {
   position: fixed;
   inset: 0;
-  z-index: 200000;
-  background: #ffffff;
-  transition: opacity 0.35s ease, visibility 0.35s ease;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #120f2e;
+  background-image:
+    radial-gradient(ellipse 120% 80% at 50% -10%, rgba(124, 108, 255, 0.45) 0%, transparent 55%),
+    radial-gradient(ellipse 90% 60% at 100% 100%, rgba(76, 201, 240, 0.22) 0%, transparent 50%),
+    linear-gradient(165deg, #0a0820 0%, #15104a 42%, #2a2494 78%, #3f37c9 100%);
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .pwa-launch-screen[hidden] {
   display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
 }
 
 .pwa-launch-screen.is-hiding {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+  transform: scale(1.01);
 }
 
-.pwa-launch-screen__art {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-html.pwa-launch-active,
-html.pwa-launch-active body {
+/* Background layers */
+.pwa-launch-screen__bg {
+  position: absolute;
+  inset: 0;
   overflow: hidden;
+  pointer-events: none;
+}
+
+.pwa-launch-screen__mesh {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(167, 139, 250, 0.18) 0%, transparent 42%),
+    radial-gradient(circle at 80% 70%, rgba(56, 189, 248, 0.14) 0%, transparent 40%);
+  animation: pwa-mesh-shift 10s ease-in-out infinite alternate;
+}
+
+@keyframes pwa-mesh-shift {
+  from { transform: scale(1) translateY(0); }
+  to { transform: scale(1.06) translateY(-8px); }
+}
+
+.pwa-launch-screen__orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(72px);
+  opacity: 0.6;
+  animation: pwa-orb-float 9s ease-in-out infinite;
+}
+
+.pwa-launch-screen__orb--1 {
+  width: 300px;
+  height: 300px;
+  top: -80px;
+  right: -50px;
+  background: radial-gradient(circle, #8b7cff 0%, transparent 68%);
+}
+
+.pwa-launch-screen__orb--2 {
+  width: 340px;
+  height: 340px;
+  bottom: -100px;
+  left: -70px;
+  background: radial-gradient(circle, #38bdf8 0%, transparent 68%);
+  animation-delay: -3s;
+}
+
+.pwa-launch-screen__orb--3 {
+  width: 220px;
+  height: 220px;
+  top: 38%;
+  left: 58%;
+  background: radial-gradient(circle, #c4b5fd 0%, transparent 68%);
+  animation-delay: -6s;
+}
+
+.pwa-launch-screen__spark {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
+  animation: pwa-spark 3s ease-in-out infinite;
+}
+
+.pwa-launch-screen__spark--1 { top: 22%; left: 18%; animation-delay: 0s; }
+.pwa-launch-screen__spark--2 { top: 68%; right: 20%; animation-delay: 1.4s; }
+
+@keyframes pwa-spark {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+.pwa-launch-screen__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse 85% 75% at 50% 45%, black 15%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 85% 75% at 50% 45%, black 15%, transparent 100%);
+}
+
+@keyframes pwa-orb-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(16px, -12px) scale(1.05); }
+  66% { transform: translate(-10px, 14px) scale(0.97); }
+}
+
+/* Content */
+.pwa-launch-screen__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: min(88vw, 340px);
+  padding: 2.5rem 1.25rem 2rem;
+  text-align: center;
+  animation: pwa-content-in 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes pwa-content-in {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Logo — single clean wordmark */
+.pwa-launch-screen__logo-wrap {
+  position: relative;
+  margin-bottom: 1.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pwa-launch-screen__logo-glow {
+  position: absolute;
+  inset: -20px -28px;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.18) 0%, transparent 72%);
+  animation: pwa-glow-pulse 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes pwa-glow-pulse {
+  0%, 100% { opacity: 0.45; transform: scale(0.98); }
+  50% { opacity: 0.9; transform: scale(1); }
+}
+
+.pwa-launch-screen__logo-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  max-width: min(92vw, 220px);
+  padding: 18px 28px;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow:
+    0 20px 44px rgba(8, 6, 28, 0.38),
+    0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+  animation: pwa-logo-pop 0.7s cubic-bezier(0.34, 1.4, 0.64, 1) 0.12s both;
+}
+
+@keyframes pwa-logo-pop {
+  from { opacity: 0; transform: scale(0.82); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.pwa-launch-screen__logo {
+  display: block;
+  width: 100%;
+  max-width: 164px;
+  height: auto;
+  aspect-ratio: 156 / 46;
+  object-fit: contain;
+  object-position: center;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Text */
+.pwa-launch-screen__eyebrow {
+  margin: 0 0 0.65rem;
+  font-family: "Space Grotesk", system-ui, -apple-system, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  animation: pwa-content-in 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+}
+
+.pwa-launch-screen__tagline {
+  margin: 0 0 2rem;
+  font-family: "Space Grotesk", system-ui, -apple-system, sans-serif;
+  font-size: clamp(1rem, 4.2vw, 1.12rem);
+  font-weight: 500;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.92);
+  animation: pwa-content-in 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.28s both;
+}
+
+.pwa-launch-screen__tagline-accent {
+  font-weight: 700;
+  background: linear-gradient(92deg, #ffffff 0%, #ddd6fe 45%, #7dd3fc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Loader */
+.pwa-launch-screen__loader {
+  width: min(100%, 260px);
+  animation: pwa-content-in 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.36s both;
+}
+
+.pwa-launch-screen__loader-track {
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.pwa-launch-screen__loader-bar {
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #a78bfa 0%, #38bdf8 50%, #818cf8 100%);
+  background-size: 200% 100%;
+  animation: pwa-bar-shimmer 1.4s linear infinite;
+  transition: width 0.35s ease;
+  box-shadow: 0 0 12px rgba(129, 140, 248, 0.6);
+}
+
+@keyframes pwa-bar-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+.pwa-launch-screen__loader-label {
+  margin: 0;
+  font-family: "Space Grotesk", system-ui, -apple-system, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+html:not(.pwa-launch-active) #pwa-launch-screen {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+}
+
+/*
+  While splash is visible the fixed overlay already blocks interaction.
+  Do NOT use overflow:hidden !important on html/body — if the splash class
+  is left behind (bfcache / interrupted hide), long pages like student
+  reports become permanently unscrollable.
+*/
+html.pwa-launch-active {
+  overscroll-behavior: none;
+}
+
+html.pwa-launch-active #cb-fab-wrap,
+html.pwa-launch-active #cb-backdrop,
+html.pwa-launch-active #cb-panel,
+html.pwa-launch-active .pwa-update-banner {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pwa-launch-screen__mesh,
+  .pwa-launch-screen__orb,
+  .pwa-launch-screen__spark,
+  .pwa-launch-screen__logo-glow,
+  .pwa-launch-screen__logo-card,
+  .pwa-launch-screen__content,
+  .pwa-launch-screen__eyebrow,
+  .pwa-launch-screen__tagline,
+  .pwa-launch-screen__loader,
+  .pwa-launch-screen__loader-bar {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .pwa-launch-screen__loader-bar {
+    width: 70% !important;
+  }
+}
+
+@media (max-height: 640px) {
+  .pwa-launch-screen__content {
+    padding-top: 1.5rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .pwa-launch-screen__logo-card {
+    padding: 14px 22px;
+    max-width: min(88vw, 196px);
+  }
+
+  .pwa-launch-screen__logo {
+    max-width: 148px;
+  }
+
+  .pwa-launch-screen__logo-wrap {
+    margin-bottom: 1rem;
+  }
+
+  .pwa-launch-screen__tagline {
+    margin-bottom: 1.25rem;
+    font-size: 0.92rem;
+  }
+}
+
+/* Tablet: scale brand block so it doesn’t look undersized */
+@media (min-width: 768px) {
+  .pwa-launch-screen__content {
+    width: min(70vw, 26rem);
+  }
+
+  .pwa-launch-screen__logo-card {
+    max-width: min(48vw, 16rem);
+    padding: 20px 32px;
+  }
+
+  .pwa-launch-screen__logo {
+    max-width: 12.5rem;
+  }
+
+  .pwa-launch-screen__tagline {
+    font-size: 1.2rem;
+  }
 }

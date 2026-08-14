@@ -1358,7 +1358,7 @@ function initStep7TemplatesEmbed(){
 }
 
 function doGenerate(rewrite){
-  /* Top Teen: validate → server OpenAI → progress UI → inline preview → user continues to editor */
+  /* TopTeen: validate → server OpenAI → progress UI → inline preview → user continues to editor */
   if (rewrite) {
     toast('Use the classic resume editor to refine your sections.');
     return;

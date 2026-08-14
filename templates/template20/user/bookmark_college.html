@@ -1,6 +1,6 @@
 {% extends 'template20/user/student_base.html' %}
 
-{% block title_content %}My Colleges | Top Teen{% endblock %}
+{% block title_content %}My Colleges | TopTeen{% endblock %}
 {% block description_content %}View your bookmarked colleges.{% endblock %}
 
 {% block student_bodyclass %}bookmark-college-page{% endblock %}
@@ -248,7 +248,7 @@
         <!-- College Heading -->
         <div class="d-md-flex d-none justify-content-between align-items-center mb-4 border-bottom pb-3 mb-4">
           <h1 class="fs-24 fw-semibold mb-0">Colleges</h1>
-          {% if colleges %}
+          {% if colleges or indian_colleges %}
           <a href="{{ url('colleges:college') }}" class="btn custom-button purple-button">
             Browse Colleges
           </a>
@@ -266,7 +266,7 @@
         {% include 'template20/includes/parent_suggested_section.html' %}
 
         <!-- Colleges Content -->
-        {% if colleges %}
+        {% if colleges or indian_colleges %}
         <div class="college-grid">
           {% for college in colleges %}
           <div class="college-card">
@@ -301,6 +301,38 @@
                   <i class='bx bxs-star' style="font-size: 14px; color: #ffc107;"></i>
                   <span class="fs-13 text-gray">{{ college.rating|round(1) }}</span>
                 </div>
+                {% endif %}
+              </figcaption>
+            </figure>
+          </div>
+          {% endfor %}
+
+          {% for college in indian_colleges %}
+          <div class="college-card">
+            <div class="bookmark-btn active"
+                 id="indian_college_{{ college.external_college_id }}"
+                 onclick="indianCollegeShortlist({{ college.external_college_id }}, this)">
+              <i class='bx bxs-bookmark' style="font-size: 18px; color: #28a745;"></i>
+            </div>
+            <figure class="mb-0">
+              <div class="college-image" style="background: #f7f7fa; display: flex; align-items: center; justify-content: center;">
+                <i class='bx bx-buildings' style="font-size: 48px; color: #ccc;"></i>
+              </div>
+              <figcaption class="px-3 pb-3">
+                <a href="{{ url('colleges:indian_collegedetail', args=[college.external_college_id]) }}" class="text-decoration-none">
+                  <h5 class="mb-2">{{ college.name }}</h5>
+                </a>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <i class='bx bx-map-pin' style="font-size: 14px; color: #666;"></i>
+                  <span class="fs-13 text-gray">
+                    India{% if college.state_name %}, {{ college.state_name }}{% endif %}{% if college.city_name %}, {{ college.city_name }}{% endif %}
+                  </span>
+                </div>
+                {% if college.college_type %}
+                <div class="fs-13 text-gray mb-1">{{ college.college_type }}</div>
+                {% endif %}
+                {% if college.avg_fees %}
+                <div class="fs-13 text-gray">{{ college.avg_fees }}</div>
                 {% endif %}
               </figcaption>
             </figure>
@@ -400,6 +432,29 @@
         } catch(e) {
           fireAlert("Internal Server Error", "error");
         }
+      }
+    });
+  }
+
+  function indianCollegeShortlist(collegeId, btnEl) {
+    const csrfToken = getCookie('csrftoken');
+    $.ajax({
+      url: "{{ url('colleges:shortlist_indian_college') }}",
+      type: 'POST',
+      data: {
+        college_id: collegeId,
+        csrfmiddlewaretoken: csrfToken
+      },
+      success: function (data) {
+        if (data && data.shortlisted === false) {
+          fireAlert("College removed from shortlist", "success");
+          setTimeout(function() { window.location.reload(); }, 800);
+        } else {
+          fireAlert("College shortlisted", "success");
+        }
+      },
+      error: function() {
+        fireAlert("Error updating shortlist", "error");
       }
     });
   }

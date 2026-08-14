@@ -1,0 +1,33 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+
+{% block content %}
+<div style="max-width:900px;margin:0 0 20px;padding:14px 16px;border:1px solid #d1d5db;border-radius:8px;background:#f8fafc;">
+  <strong>SMS settings</strong>
+  <p style="margin:8px 0 0;line-height:1.45;color:#374151;">
+    Configure provider and keys → fetch/set From → sandbox test → enable for live OTP.
+    Server env (read-only): ENVIRONMENT=<code>{{ messaging_environment }}</code>
+    · DEBUG=<code>{{ messaging_debug }}</code>
+  </p>
+  <p style="margin:8px 0 0;">
+    Status:
+    {% if sms_is_ready %}<strong style="color:#166534;">LIVE READY</strong>
+    {% elif sms_config_ok %}<strong style="color:#1d4ed8;">CONFIG OK</strong> — turn Enable on for live
+    {% else %}<strong style="color:#9a3412;">INCOMPLETE</strong> — {{ sms_status }}{% endif %}
+  </p>
+  {% if original and original.pk %}
+  <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;">
+    <form method="post" action="{% url 'admin:communication_smssettings_fetch_plivo_sms' original.pk %}" style="margin:0;">
+      {% csrf_token %}
+      <button type="submit" class="button" style="padding:8px 14px;">Fetch SMS From numbers (Plivo)</button>
+    </form>
+    <form method="post" action="{% url 'admin:communication_smssettings_send_test' original.pk %}" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0;">
+      {% csrf_token %}
+      <input type="text" name="test_destination" value="{{ original.test_destination }}" placeholder="+91…" style="padding:6px 8px;min-width:160px;">
+      <button type="submit" class="button default" style="padding:8px 14px;">Send sandbox test</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+{{ block.super }}
+{% endblock %}

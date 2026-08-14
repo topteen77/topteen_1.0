@@ -1,6 +1,6 @@
 {% extends "template20/base.html" %}
 
-{% block title_content %}Create Account | Top Teen{% endblock %}
+{% block title_content %}Create Account | TopTeen{% endblock %}
 {% block description_content %}Create a TopTeen student account using email or mobile. Verify OTP and set password.{% endblock %}
 
 {% block footer_cta %}{% endblock %}
@@ -84,7 +84,7 @@
                 </div>
 
                 <div class="d-flex justify-content-center align-items-center mt-2">
-                  Already have an account?  <a href="#" class="text-purple fw-600 text-decoration-none student-login-popup-trigger ms-3" role="button"> Login </a>
+                  Already have an account?  <a href="{{ url('users:login') }}" class="text-purple fw-600 text-decoration-none ms-3"> Sign In </a>
                 </div>
               </div>
             </div>
@@ -242,7 +242,7 @@
         // Existing user: show error message
         _showSignupError('Account already exists. Please login.');
         setTimeout(function () {
-          window.location.href = "{{ url('student_login') }}?u=" + encodeURIComponent(username);
+          window.location.href = "{{ url('users:login') }}?u=" + encodeURIComponent(username);
         }, 2000);
       },
       error: function (xhr, status, error) {

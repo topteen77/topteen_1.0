@@ -1,7 +1,7 @@
 {% extends 'template20/base.html' %}
 
 {% block title_content %}
-Every Student, Career Ready | Top Teen
+Every Student, Career Ready | TopTeen
 {% endblock %}
 
 {% block description_content %}
@@ -58,7 +58,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
 {% block content %}
 
   <!-- Hero Section -->
-  <section class="hero-section pt-md-18 pt-14 pb-5" style="background: url('{{ static('images_new/careers/career-hero-banner.svg') }}'); background-repeat: no-repeat; background-position: 100% 72%; min-height: 679px;">
+  <section class="hero-section pt-md-18 pt-12 pb-5" style="background: url('{{ static('images_new/careers/career-hero-banner.svg') }}'); background-repeat: no-repeat; background-position: 100% 72%; min-height: 679px;">
     <div class="container">
       <div class="row">
 
@@ -76,8 +76,8 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
 
           <div class="hero-button d-flex flex-row mt-md-8 mt-5">
             {% if not request.user.is_authenticated %}
-            <button onclick="window.location.href='{{ url('student_login') }}'" type="button"
-              class="btn custom-button purple-button me-3">Get
+            <button type="button"
+              class="btn custom-button purple-button me-3 student-signup-popup-trigger">Get
               Started</button>
             {% endif %}
             <button type="button" class=" btn custom-button  blue-button d-flex align-items-center"
@@ -188,6 +188,34 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
     </div>
   </section>
   <!-- find direction-->
+
+  <!-- Gateway Higher Education / Entrance Exam -->
+  <section class="gateway mt-md-0 mt-5">
+    <div class="container">
+      <div class="cta-purple px-5 py-md-10 py-5">
+        <div class="row">
+          <div
+            class="col-md-7 d-flex justify-content-center align-items-start flex-column order-md-1 order-2 mt-md-0 mt-5">
+            <span class="highlighter text-gray fw-400">
+              <img class="position-relative top--10" src="{{ static('images_new/icons/entrance-exam.svg') }}" alt="icon" /> Entrance Exam
+            </span>
+            <h3 class="title-two mt-3 fs-38 fs-sm-28 fw-700 my-4 text-white">Your Ultimate Bridge from Student to Success Story!
+            </h3>
+            <p class="text-white fs-16">Master every milestone of your academic journey with expert-led guidance on entrance exams, prestigious Olympiads, and competitive government assessments. Whether you're navigating post-10th decisions, 12th-grade crossroads, or post-graduation opportunities, access cutting-edge resources, real-time eligibility updates, and strategic career insights that transform potential into achievement.</p>
+            <div class="com-btn mt-3">
+              <a href="{{ url('core:entrance_test_prep') }}" class="btn custom-button blue-button me-2 mb-md-0 mb-2">Explore More</a>
+            </div>
+          </div>
+          <div class="col-md-5 d-flex justify-content-center align-items-center order-md-2 order-1">
+            <div class="cta-image">
+              <img class="img-fluid" src="{{ static('images_new/general/gateway.svg') }}" alt="Entrance Exam" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- Gateway Higher Education / Entrance Exam -->
 
   <!-- Vocational Course Section -->
   <section class="vocational-course mt-md-10 mt-5">
@@ -470,7 +498,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
         <div class="video-box">
 
           <a href="#" class="video-link" data-bs-toggle="modal" data-bs-target="#videoModal"
-            data-video="https://topteenc.s3.ap-northeast-1.amazonaws.com/Agriculture%2C+Food+and+Natural+Resources/Farmers_Ranchers_and_Other_Agricultural_Managers_Career_Video.mp4">
+            data-video="{{ cdn_url('https://topteenc.s3.ap-northeast-1.amazonaws.com/Agriculture%2C+Food+and+Natural+Resources/Farmers_Ranchers_and_Other_Agricultural_Managers_Career_Video.mp4') }}">
             <div class="text-in">
               <span class=" d-inline-block text-truncate bg-blue text-white fs-12 px-2 text-center">
                 Agriculture
@@ -485,7 +513,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
             <div class="video-thumb-auto">
               <video class="videoPlayer" controls preload="none">
                 <source
-                  src="https://topteenc.s3.ap-northeast-1.amazonaws.com/Agriculture%2C+Food+and+Natural+Resources/Farmers_Ranchers_and_Other_Agricultural_Managers_Career_Video.mp4"
+                  src="{{ cdn_url('https://topteenc.s3.ap-northeast-1.amazonaws.com/Agriculture%2C+Food+and+Natural+Resources/Farmers_Ranchers_and_Other_Agricultural_Managers_Career_Video.mp4') }}"
                   type="video/mp4">
               </video>
               <canvas class="thumbnailCanvas"></canvas>
@@ -496,7 +524,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
 
         <div class="video-box">
           <a href="#" class="video-link" data-bs-toggle="modal" data-bs-target="#videoModal"
-            data-video="https://topteenc.s3.ap-northeast-1.amazonaws.com/Information+Technology/Web_Administrators_Career_Video.mp4">
+            data-video="{{ cdn_url('https://topteenc.s3.ap-northeast-1.amazonaws.com/Information+Technology/Web_Administrators_Career_Video.mp4') }}">
             <div class="text-in">
               <span class=" d-inline-block text-truncate bg-blue text-white fs-12 px-2 text-center">
                 Information
@@ -510,7 +538,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
             <div class="video-thumb-auto">
               <video class="videoPlayer" controls preload="none">
                 <source
-                  src="https://topteenc.s3.ap-northeast-1.amazonaws.com/Information+Technology/Web_Administrators_Career_Video.mp4"
+                  src="{{ cdn_url('https://topteenc.s3.ap-northeast-1.amazonaws.com/Information+Technology/Web_Administrators_Career_Video.mp4') }}"
                   type="video/mp4">
               </video>
               <canvas class="thumbnailCanvas"></canvas>
@@ -520,7 +548,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
 
         <div class="video-box">
           <a href="#" class="video-link" data-bs-toggle="modal" data-bs-target="#videoModal"
-            data-video="https://topteenc.s3.ap-northeast-1.amazonaws.com/Business+Management+and+Administration/Customer_Service_Representatives_Career_Video.mp4">
+            data-video="{{ cdn_url('https://topteenc.s3.ap-northeast-1.amazonaws.com/Business+Management+and+Administration/Customer_Service_Representatives_Career_Video.mp4') }}">
             <div class="text-in">
               <span class=" d-inline-block text-truncate bg-blue text-white fs-12 px-2 text-center">
                 Business
@@ -533,7 +561,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
             <div class="video-thumb-auto">
               <video class="videoPlayer" controls preload="none">
                 <source
-                  src="https://topteenc.s3.ap-northeast-1.amazonaws.com/Business+Management+and+Administration/Customer_Service_Representatives_Career_Video.mp4"
+                  src="{{ cdn_url('https://topteenc.s3.ap-northeast-1.amazonaws.com/Business+Management+and+Administration/Customer_Service_Representatives_Career_Video.mp4') }}"
                   type="video/mp4">
               </video>
               <canvas class="thumbnailCanvas"></canvas>
@@ -543,7 +571,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
 
         <div class="video-box">
           <a href="#" class="video-link" data-bs-toggle="modal" data-bs-target="#videoModal"
-            data-video="https://topteenc.s3.ap-northeast-1.amazonaws.com/Human+services/39-9041.00.mp4">
+            data-video="{{ cdn_url('https://topteenc.s3.ap-northeast-1.amazonaws.com/Human+services/39-9041.00.mp4') }}">
             <div class="text-in">
               <span class=" d-inline-block text-truncate bg-blue text-white fs-12 px-2 text-center">
                 Human Services
@@ -555,7 +583,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
             </div>
             <div class="video-thumb-auto">
               <video class="videoPlayer" controls preload="none">
-                <source src="https://topteenc.s3.ap-northeast-1.amazonaws.com/Human+services/39-9041.00.mp4"
+                <source src="{{ cdn_url('https://topteenc.s3.ap-northeast-1.amazonaws.com/Human+services/39-9041.00.mp4') }}"
                   type="video/mp4">
               </video>
               <canvas class="thumbnailCanvas"></canvas>
@@ -1236,7 +1264,7 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
 <script>
   // Home hero video modal: thumbnail first (if present), then play on click; on close reset
   document.addEventListener('DOMContentLoaded', function() {
-    var homeVideoEmbedUrl = {{ home_video_embed_url|default('https://topteenc.s3.ap-northeast-1.amazonaws.com/media/TopTeen_1080P.mp4')|tojson }};
+    var homeVideoEmbedUrl = {{ cdn_url(home_video_embed_url|default('https://topteenc.s3.ap-northeast-1.amazonaws.com/media/TopTeen_1080P.mp4'))|tojson }};
     var staticDemoModal = document.getElementById('staticDemo');
     var staticDemoVideo = document.getElementById('staticDemoVideo');
     var homeThumb = document.getElementById('homeVideoModalThumbnail');
@@ -1303,5 +1331,5 @@ TopTeen helps students find their perfect career path with confidence. Join 10k+
     }
   });
 </script>
-<script src="{{ static('js_new/careerBattlePopup.js') }}"></script>
+<script src="{{ static('js_new/careerBattlePopup.js') }}?v=20260803-login1"></script>
 {% endblock %}

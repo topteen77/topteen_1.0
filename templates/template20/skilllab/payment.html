@@ -1,6 +1,6 @@
 {% extends 'template20/logged-in-base.html' %}
 
-{% block title_content %}Payment - {{ skilllab.name }} | Top Teen{% endblock %}
+{% block title_content %}Payment - {{ skilllab.name }} | TopTeen{% endblock %}
 {% block description_content %}Complete payment for {{ skilllab.name }}{% endblock %}
 
 {% block bodyclass %}{{ super() }} skilllab-payment-page{% endblock %}
@@ -103,6 +103,7 @@
 {% endblock %}
 
 {% block content %}
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 <section class="skilllab-payment-page pb-5">
   <div class="container">
     <div class="row justify-content-center">
@@ -172,10 +173,7 @@
     function capturePaymentStatus(status, detail) {
       fetch('/user-analytics/api/payment-status/', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': getCookie('csrftoken')
-        },
+        headers: paymentCsrfHeaders(),
         body: JSON.stringify({
           status: status,
           gateway: 'razorpay',
@@ -233,10 +231,7 @@
 
     fetch('{{ url("skilllabcourse:updateskilllcaourseeazypay") }}', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': getCookie('csrftoken')
-      },
+      headers: paymentCsrfHeaders(),
       body: JSON.stringify(data),
       credentials: 'same-origin'
     })
@@ -254,7 +249,6 @@
     });
   }
 
-  // Helper function to get CSRF token from cookies
   function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -268,6 +262,23 @@
       }
     }
     return cookieValue;
+  }
+
+  function getCsrfToken() {
+    var input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (input && input.value) return input.value;
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.getAttribute('content')) return meta.getAttribute('content');
+    return getCookie('csrftoken') || '{{ csrf_token }}';
+  }
+
+  function paymentCsrfHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-CSRFToken': getCsrfToken()
+    };
   }
 
   // Load Razorpay script and auto-open when ready

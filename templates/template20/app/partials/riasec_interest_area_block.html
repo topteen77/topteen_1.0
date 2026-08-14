@@ -1,12 +1,31 @@
 {% set section = riasec_sections[riasec_code] %}
-<div class="interest-area-block" id="riasec-{{ riasec_code }}">
+<div class="interest-area-block{% if pdf_mode %} interest-area-block--pdf{% endif %}" id="riasec-{{ riasec_code }}">
+  {% if pdf_mode %}
+  <div class="interest-trait-pill">
+    <span class="interest-trait-icon">
+      <img src="{{ static('images_new/new_report/target-line 2.png') }}" alt="" />
+    </span>
+    <span class="interest-trait-label">{{ section.label }}</span>
+  </div>
+
+  <div class="interest-strong-panel" style="border-color: {{ section.color }};">
+    <div class="interest-strong-badge" style="background: {{ section.color }};">Strong Points</div>
+    <p class="interest-strong-intro" style="color: {{ section.color }};">{{ section.description_intro }}</p>
+    {% if section.description_body %}
+    <p class="interest-strong-body">{{ section.description_body }}</p>
+    {% endif %}
+  </div>
+
+  <div class="interest-careers-title" style="color: {{ section.color }};">Careers to Choose:</div>
+  {% include 'template20/app/partials/riasec_careers_wheel.html' %}
+  {% else %}
   <div class="text-color-top" style="display: flex; justify-content: center;">
     <div class="top-layout" style="background: {{ section.color }}; color: #fff; font-size: 16px; padding: 11px 38px; margin-top: 8px; font-weight: 600; border-radius: 10px 10px 0 0;">
       {{ section.label }}
     </div>
   </div>
   <div class="test-title" style="color:{{ section.color }}; font-weight: 600; margin-top: 5px; margin-bottom: 5px; font-size: 16px;">Strong Points:</div>
-  <div style="width:100%;{% if pdf_mode %} max-width:600px;{% endif %} float: left; background:{{ section.bg }}; border: 1px solid {{ section.color }}; border-radius: 5px; padding: 12px 14px;">
+  <div style="width:100%; float: left; background:{{ section.bg }}; border: 1px solid {{ section.color }}; border-radius: 5px; padding: 12px 14px;">
     <p style="width:100%; margin: 0 0 10px; font-size: 14px; color: #494949; line-height: 1.6;">
       <strong style="color: {{ section.color }};">{{ section.description_intro }}</strong>
     </p>
@@ -16,4 +35,5 @@
   </div>
   <div class="test-title" style="color:{{ section.color }}; font-weight: 600; margin-top: 15px; margin-bottom: 15px; font-size: 16px; float: left; width:600px; text-align:center;">Careers to Choose:</div>
   {% include 'template20/app/partials/riasec_careers_wheel.html' %}
+  {% endif %}
 </div>

@@ -207,7 +207,14 @@
               right     .3s ease,
               bottom    .3s ease,
               border-radius .3s ease;
-              height: clamp(400px, 70vh, 700px);
+}
+
+/* Mobile/tablet + short viewports only — keep desktop #pc-win at --pc-window-h */
+@media (max-width: 991.98px), (max-height: 560px) {
+  #pc-win {
+    height: min(700px, max(320px, 70vh));
+    max-height: calc(100dvh - 116px);
+  }
 }
 
 #pc-win.pc-hide {
@@ -379,8 +386,12 @@
    7. MESSAGES AREA
 ============================================================ */
 #pc-msgs {
-  flex:       1;
+  flex:       1 1 0%;
+  min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   padding:    20px 18px 10px;
   display:    flex;
   flex-direction: column;
@@ -682,20 +693,25 @@
    11. INPUT AREA
 ============================================================ */
 #pc-input-area {
-  padding:     12px 18px 16px;
+  padding:     12px 18px max(16px, env(safe-area-inset-bottom, 0px));
   background:  var(--pc-surface);
   flex-shrink: 0;
   border-top:  1.5px solid var(--pc-header-border);
+  min-width:   0;
 }
 
 #pc-input-row {
   display:     flex;
   align-items: flex-end;
   gap:         10px;
+  min-width:   0;
+  width:       100%;
+  max-width:   100%;
 }
 
 #pc-input {
-  flex:         1;
+  flex:         1 1 auto;
+  min-width:    0;
   padding:      12px 16px;
   border:       1.5px solid var(--pc-input-border);
   border-radius: var(--pc-radius-input);
@@ -811,27 +827,182 @@
 /* ============================================================
    14. MOBILE RESPONSIVE
 ============================================================ */
-@media (max-width: 480px) {
-  #pc-win {
-    width:  100vw  !important;
+@media (max-width: 767.98px) {
+  #pc-win:not(.pc-kb-open) {
+    top:    0      !important;
+    width:  100%   !important;
+    max-width: 100% !important;
     height: 100dvh !important;
+    max-height: none !important;
     bottom: 0      !important;
     left:   0      !important;
     right:  0      !important;
     border-radius: 0 !important;
+    transform: none !important;
   }
 
-  #pc-win.pc-fullscreen {
+  #pc-win.pc-fullscreen:not(.pc-kb-open) {
     top:    0 !important;
     left:   0 !important;
     right:  0 !important;
     bottom: 0 !important;
     width:  100%   !important;
+    max-width: 100% !important;
     height: 100dvh !important;
+    max-height: none !important;
     border-radius: 0 !important;
+    transform: none !important;
+  }
+
+  /* Keyboard-open: JS sets top/height from visualViewport; keep composer fully visible */
+  #pc-win.pc-kb-open {
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 0 !important;
+    transform: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  #pc-win.pc-kb-open #pc-input-hint {
+    display: none;
+  }
+
+  #pc-win.pc-kb-open #pc-msgs {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  #pc-win.pc-kb-open #pc-input-area {
+    flex-shrink: 0 !important;
+    padding-bottom: 8px !important;
+  }
+
+  #pc-input-area {
+    padding: 10px 12px max(10px, env(safe-area-inset-bottom, 0px));
+  }
+
+  #pc-input {
+    font-size: 16px; /* avoid iOS focus zoom that clips the send button */
+  }
+
+  /* Keep close/fullscreen controls clear of the status bar.
+     height:auto — border-box + fixed height was eating the tap target. */
+  #pc-hdr {
+    flex-shrink: 0 !important;
+    position: relative;
+    z-index: 6;
+    height: auto !important;
+    min-height: calc(var(--pc-header-h) + env(safe-area-inset-top, 0px));
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-left: max(18px, env(safe-area-inset-left, 0px));
+    padding-right: max(18px, env(safe-area-inset-right, 0px));
+    box-sizing: border-box;
+  }
+
+  #pc-hdr-actions {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    flex-shrink: 0;
+  }
+
+  .pc-hdr-btn {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    touch-action: manipulation;
   }
 
   /* On mobile, shift FAB up a bit and hide text label */
-  #pc-fab        { bottom: 18px; left: 18px; padding: 0 14px; }
+  #pc-fab        { bottom: max(18px, env(safe-area-inset-bottom, 0px)); left: max(18px, env(safe-area-inset-left, 0px)); padding: 0 14px; }
   #pc-fab-label  { display: none; }
+}
+
+/* Phone landscape / short tablets: keep Ask AI panel fully on-screen */
+@media (max-height: 560px) {
+  #pc-win:not(.pc-fullscreen) {
+    top: 8px !important;
+    bottom: 8px !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+}
+
+/* Report sticky bar: keep message list scrollable above bottom chrome (mobile/tablet only) */
+@media (max-width: 991.98px) {
+  /* Tablet only — on phones fullscreen rules below must win */
+  body.cb-standalone-report-page #pc-win:not(.pc-hide):not(.pc-fullscreen) {
+    max-height: calc(100dvh - 100px);
+  }
+
+  body.report-page #pc-win:not(.pc-hide):not(.pc-fullscreen),
+  body.combined-report-page #pc-win:not(.pc-hide):not(.pc-fullscreen) {
+    max-height: calc(100dvh - 100px);
+  }
+}
+
+@media (max-width: 480px) {
+  body.cb-standalone-report-page #pc-win:not(.pc-hide),
+  body.report-page #pc-win:not(.pc-hide),
+  body.combined-report-page #pc-win:not(.pc-hide) {
+    max-height: none !important;
+  }
+}
+
+@media (max-width: 991.98px) {
+  /*
+    Long report pages steal touch/wheel scroll from the chat.
+    Lock page scroll while Ask AI is open — desktop (≥992) unchanged.
+    JS also adds .pc-scroll-lock (position:fixed) for iOS rubber-band.
+  */
+  html.pc-scroll-lock,
+  html.pc-scroll-lock body,
+  body.report-page:has(#pc-win:not(.pc-hide)),
+  body.combined-report-page:has(#pc-win:not(.pc-hide)),
+  body.cb-standalone-report-page:has(#pc-win:not(.pc-hide)) {
+    overflow: hidden !important;
+    overscroll-behavior: none;
+    touch-action: none;
+  }
+
+  body.pc-scroll-lock {
+    position: fixed !important;
+    left: 0;
+    right: 0;
+    width: 100%;
+  }
+
+  body.report-page:has(#pc-win:not(.pc-hide)) #pc-win,
+  body.combined-report-page:has(#pc-win:not(.pc-hide)) #pc-win,
+  body.cb-standalone-report-page:has(#pc-win:not(.pc-hide)) #pc-win,
+  html.pc-scroll-lock #pc-win {
+    touch-action: auto;
+  }
+
+  body.report-page #pc-msgs,
+  body.combined-report-page #pc-msgs,
+  body.cb-standalone-report-page #pc-msgs,
+  html.pc-scroll-lock #pc-msgs {
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+  }
+
+  /* Hide FAB while panel is open so it doesn’t cover the composer */
+  #pc-root:has(#pc-win:not(.pc-hide)) #pc-fab {
+    visibility: hidden;
+    pointer-events: none;
+  }
 }

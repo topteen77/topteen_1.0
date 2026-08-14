@@ -105,7 +105,7 @@ def _load_active_point_rules() -> List[Dict]:
     return list(
         DashboardPointRule.objects.filter(active=True)
         .order_by('order', 'rule_key')
-        .values('rule_key', 'points', 'order', 'applies_to')
+        .values('rule_key', 'label', 'points', 'order', 'applies_to')
     )
 
 
@@ -128,7 +128,7 @@ def get_point_rules_with_applies_to(active_only: bool = True) -> List[Dict]:
         rows = list(
             DashboardPointRule.objects.all()
             .order_by('order', 'rule_key')
-            .values('rule_key', 'points', 'order', 'applies_to')
+            .values('rule_key', 'label', 'points', 'order', 'applies_to')
         )
     if rows:
         return rows

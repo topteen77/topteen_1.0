@@ -115,6 +115,16 @@
     {% endif %}
   </div>
 
+  {# First-login institute: welcome + setup wizard instead of empty charts. #}
+  {% set _show_institute_welcome = (
+    _ttv2_role == 'institute'
+    and (ttv2_analytics.kpi.total_students|default(0)|int == 0)
+  ) %}
+  {% if _show_institute_welcome %}
+  <div class="ttv2-card ttv2-welcome-setup-card mb-0">
+    {% include "template_v2/includes/ttv2_institute_welcome_setup.html" %}
+  </div>
+  {% else %}
   {# Chart rows: per-chart donut loaders (see ttv2_dashboard_analytics.js). #}
   <div class="ttv2-da-charts-area" data-ttv2-charts-area>
   {% set _single_row_charts = (_ttv2_role == 'institute' or _ttv2_role == 'institute_group' or _ttv2_role == 'counselor') %}
@@ -327,5 +337,6 @@
   </div>
   {% endif %}
   </div>
+  {% endif %}{# end not _show_institute_welcome #}
 </div>
 {% endif %}

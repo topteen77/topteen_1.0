@@ -512,10 +512,18 @@
       this._sendBtn.innerHTML = IC.send;
 
       const hint = el('div', { id: 'cb-input-hint', textContent: 'Enter ↵ to send · Shift+Enter for new line' });
+      this._quotaInfo = el('div', { id: 'cb-quota-info', className: 'ai-quota-info' });
+      this._quotaInfo.hidden = true;
+      this._quotaInfo.innerHTML =
+        '<a class="ai-quota-info__link" href="/ai-tokens/">' +
+        '<i class="bx bx-info-circle" aria-hidden="true"></i> ' +
+        '<span class="ai-quota-info__text">AI tokens need to recharge — Buy now.</span></a>';
       inputRow.appendChild(this._input);
       inputRow.appendChild(this._sendBtn);
       inputArea.appendChild(inputRow);
       inputArea.appendChild(hint);
+      inputArea.appendChild(this._quotaInfo);
+      this._inputArea = inputArea;
 
       /* ---- Assemble ---- */
       this._win.appendChild(hdr);
@@ -549,9 +557,123 @@
       this._input.addEventListener('input', () => {
         this._input.style.height = '46px';
         this._input.style.height = Math.min(this._input.scrollHeight, 120) + 'px';
+        if (this._inputFocused) this._syncKeyboardViewport();
       });
 
+      this._bindKeyboardViewport();
       this._showFabTooltip();
+      this._refreshQuota();
+    }
+
+    /*
+      iPhone / mobile keyboards shrink the visual viewport; a fixed 100dvh panel
+      leaves the composer under the keyboard so the send button is half-cut.
+      Pin #cb-window to visualViewport while the input is focused.
+    */
+    _bindKeyboardViewport() {
+      if (this._vvBound) return;
+      this._vvBound = true;
+      this._inputFocused = false;
+      this._onVvChange = () => this._syncKeyboardViewport();
+
+      this._input.addEventListener('focus', () => {
+        this._inputFocused = true;
+        this._syncKeyboardViewport();
+        setTimeout(() => this._syncKeyboardViewport(), 80);
+        setTimeout(() => this._syncKeyboardViewport(), 320);
+      });
+      this._input.addEventListener('blur', () => {
+        this._inputFocused = false;
+        this._clearKeyboardViewport();
+      });
+
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', this._onVvChange);
+        window.visualViewport.addEventListener('scroll', this._onVvChange);
+      }
+      window.addEventListener('orientationchange', this._onVvChange);
+    }
+
+    _shouldFitVisualViewport() {
+      return window.matchMedia('(max-width: 767.98px)').matches;
+    }
+
+    _syncKeyboardViewport() {
+      if (!this._isOpen || !this._inputFocused || !this._shouldFitVisualViewport()) {
+        this._clearKeyboardViewport();
+        return;
+      }
+      const vv = window.visualViewport;
+      if (!vv) return;
+
+      const top = Math.max(0, Math.round(vv.offsetTop));
+      const height = Math.max(240, Math.round(vv.height));
+      this._win.classList.add('cb-kb-open');
+      this._win.style.setProperty('top', top + 'px', 'important');
+      this._win.style.setProperty('left', '0px', 'important');
+      this._win.style.setProperty('right', '0px', 'important');
+      this._win.style.setProperty('bottom', 'auto', 'important');
+      this._win.style.setProperty('width', '100%', 'important');
+      this._win.style.setProperty('height', height + 'px', 'important');
+      this._win.style.setProperty('max-height', height + 'px', 'important');
+
+      // Keep composer from eating the visible area while typing
+      if (this._input) {
+        const maxH = height < 420 ? 64 : 96;
+        this._input.style.height = '46px';
+        this._input.style.height = Math.min(this._input.scrollHeight, maxH) + 'px';
+      }
+
+      if (this._inputArea && typeof this._inputArea.scrollIntoView === 'function') {
+        try {
+          this._inputArea.scrollIntoView({ block: 'end', inline: 'nearest' });
+        } catch (e) {}
+      }
+    }
+
+    _clearKeyboardViewport() {
+      if (!this._win) return;
+      this._win.classList.remove('cb-kb-open');
+      this._win.style.removeProperty('top');
+      this._win.style.removeProperty('left');
+      this._win.style.removeProperty('right');
+      this._win.style.removeProperty('bottom');
+      this._win.style.removeProperty('width');
+      this._win.style.removeProperty('height');
+      this._win.style.removeProperty('max-height');
+    }
+
+    _refreshQuota() {
+      const api = global.AIFeatureQuota;
+      if (!api || typeof api.fetchStatus !== 'function') return;
+      api.fetchStatus().then((payload) => {
+        this._quotaLocked = api.featureLocked(payload, 'counsellor');
+        this._applyQuotaLockUI(payload);
+      }).catch(() => {});
+    }
+
+    _applyQuotaLockUI(payload) {
+      const locked = !!this._quotaLocked;
+      const msg =
+        (payload && payload.message) ||
+        (global.AIFeatureQuota && global.AIFeatureQuota.RECHARGE_MESSAGE) ||
+        'AI tokens need to recharge — Buy now.';
+      const shop =
+        (payload && payload.shop_url) ||
+        (global.AIFeatureQuota && global.AIFeatureQuota.config && global.AIFeatureQuota.config.shopUrl) ||
+        '/ai-tokens/';
+      if (this._quotaInfo) {
+        this._quotaInfo.hidden = !locked;
+        const link = this._quotaInfo.querySelector('.ai-quota-info__link');
+        const text = this._quotaInfo.querySelector('.ai-quota-info__text');
+        if (link) link.href = shop;
+        if (text) text.textContent = msg;
+      }
+      if (locked) {
+        this._input.disabled = true;
+        this._sendBtn.disabled = true;
+        this._input.placeholder = msg;
+      }
     }
 
     _showFabTooltip() {
@@ -578,7 +700,12 @@
       this._syncBackdrop();
       if (this._isOpen) {
         this._clearUnread();
-        setTimeout(() => this._input.focus(), 350);
+        setTimeout(() => {
+          if (this._input && !this._input.disabled) this._input.focus();
+        }, 350);
+      } else {
+        this._inputFocused = false;
+        this._clearKeyboardViewport();
       }
     }
 
@@ -892,34 +1019,58 @@
     _send() {
       const text = this._input.value.trim();
       if (!text || !this._ws || this._ws.readyState !== WebSocket.OPEN || this._isStreaming) return;
-
-      // Remove any visible suggestion chips before sending
-      this._msgArea.querySelectorAll('.cb-suggestions').forEach(s => s.remove());
-
-      let messageToSend = text;
-
-      // Check if this is the first message and student data exists in localStorage
-      if (!this._firstMessageSent) {
-        const studentId = localStorage.getItem('student_id');
-        const studentClass = localStorage.getItem('student_class');
-        const class10Status = localStorage.getItem('psychometric_class10_status');
-        const class12Status = localStorage.getItem('psychometric_class12_status');
-
-        // If all student fields exist, append the system message
-        if (studentId && studentClass && class10Status && class12Status) {
-          const systemMessage = `\n\n------ system message bellow ------\n\nhere is the student details to access his Psychometric Test\n\nstudent_id : ${studentId}\nstudent_class : ${studentClass}\npsychometric_class10_status : ${class10Status}\npsychometric_class12_status : ${class12Status}`;
-          messageToSend = text + systemMessage;
-        }
-
-        this._firstMessageSent = true;
+      if (this._quotaLocked) {
+        this._applyQuotaLockUI();
+        return;
       }
 
-      this._appendMessage('user', text);
-      this._input.value = '';
-      this._input.style.height = '46px';
-      this._scrollToBottom();
+      const proceed = () => {
+        // Remove any visible suggestion chips before sending
+        this._msgArea.querySelectorAll('.cb-suggestions').forEach(s => s.remove());
 
-      this._ws.send(JSON.stringify({ message: messageToSend }));
+        let messageToSend = text;
+
+        // Check if this is the first message and student data exists in localStorage
+        if (!this._firstMessageSent) {
+          const studentId = localStorage.getItem('student_id');
+          const studentClass = localStorage.getItem('student_class');
+          const class10Status = localStorage.getItem('psychometric_class10_status');
+          const class12Status = localStorage.getItem('psychometric_class12_status');
+
+          // If all student fields exist, append the system message
+          if (studentId && studentClass && class10Status && class12Status) {
+            const systemMessage = `\n\n------ system message bellow ------\n\nhere is the student details to access his Psychometric Test\n\nstudent_id : ${studentId}\nstudent_class : ${studentClass}\npsychometric_class10_status : ${class10Status}\npsychometric_class12_status : ${class12Status}`;
+            messageToSend = text + systemMessage;
+          }
+
+          this._firstMessageSent = true;
+        }
+
+        this._appendMessage('user', text);
+        this._input.value = '';
+        this._input.style.height = '46px';
+        this._scrollToBottom();
+
+        this._ws.send(JSON.stringify({ message: messageToSend }));
+      };
+
+      const api = global.AIFeatureQuota;
+      if (!api || typeof api.consume !== 'function') {
+        proceed();
+        return;
+      }
+      api.consume('counsellor').then((res) => {
+        if (!res.ok || (res.data && res.data.quota_exceeded)) {
+          this._quotaLocked = true;
+          this._applyQuotaLockUI(res.data || {});
+          return;
+        }
+        if (res.data && res.data.locked) {
+          this._quotaLocked = true;
+          this._applyQuotaLockUI(res.data);
+        }
+        proceed();
+      }).catch(() => proceed());
     }
 
     /* ── new conversation ───────────────────────────────────── */

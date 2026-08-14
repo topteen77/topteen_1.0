@@ -1,0 +1,262 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  .llm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 12px 0 20px; }
+  .llm-card { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 14px; }
+  .llm-card--primary { border-color: #417690; box-shadow: 0 0 0 1px rgba(65,118,144,.15); }
+  .llm-card--good { border-color: #2e7d32; }
+  .llm-card--warn { border-color: #c62828; }
+  .llm-card .label { font-size: 12px; color: #666; margin-bottom: 4px; }
+  .llm-card .value { font-size: 20px; font-weight: 700; color: #111; }
+  .llm-card .sub { font-size: 12px; color: #777; margin-top: 4px; }
+  .llm-toolbar { margin: 0 0 16px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .llm-toolbar a { padding: 4px 10px; border: 1px solid #ccc; border-radius: 4px; text-decoration: none; background: #f8f8f8; }
+  .llm-toolbar a.active { background: #417690; color: #fff; border-color: #417690; }
+  .llm-note { color: #666; margin-bottom: 16px; }
+  .llm-alert { padding: 10px 12px; border-radius: 6px; margin-bottom: 16px; border: 1px solid #f0c36d; background: #fff8e6; color: #5c4500; }
+  .llm-alert--ok { border-color: #a5d6a7; background: #e8f5e9; color: #1b5e20; }
+  .llm-table { width: 100%; border-collapse: collapse; }
+  .llm-table th, .llm-table td { padding: 8px 10px; border-bottom: 1px solid #eee; text-align: left; font-size: 13px; }
+  .llm-table th { background: #f5f5f5; }
+  .llm-table td.num, .llm-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .module + .module { margin-top: 18px; }
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:hub_configuration' %}">Website &amp; platform configuration</a>
+&rsaquo; AI Cost / LLM Billing
+</div>
+{% endblock %}
+
+{% block content %}
+<p class="llm-toolbar" style="margin-bottom:14px">
+  <a href="{% url 'admin:hub_configuration' %}#ai-tokens-freemium">AI tokens hub</a>
+  <a href="{% url 'admin:core_configuration_llm_shop_display' %}">Shop display (rate &amp; notes)</a>
+  <a href="{% url 'admin:core_llmtokenpackage_changelist' %}">LLM packages</a>
+  <a href="{% url 'admin:core_llmpricingsettings_changelist' %}">USD-INR pricing</a>
+  <a href="{% url 'admin:core_llmrolequotadefault_changelist' %}">Role quotas</a>
+  <a href="{% url 'admin:core_userllmwallet_changelist' %}">User wallets</a>
+  <a href="{% url 'admin:core_llmtokenpackagepayment_changelist' %}">Pack payments</a>
+  <a href="{{ usage_log_url }}">Usage logs</a>
+</p>
+<p class="llm-note">{{ summary.pricing_note }}
+  Using <code>OPENAI_API_KEY</code> / <code>GOOGLE_API_KEY</code>,
+  models <code>{{ summary.config_models.ai_model|default:summary.config_models.openai_model }}</code>
+  + <code>{{ summary.config_models.gemini_model }}</code>.
+  FX: <strong>1 USD = ₹{{ summary.usd_to_inr }}</strong>.
+</p>
+
+{% if not summary.config_models.openai_key_set %}
+<div class="llm-alert">
+  <strong>OPENAI_API_KEY missing.</strong> Set it in <code>.env</code> (same key used by forum/resume/SEO).
+</div>
+{% elif summary.openai_usage.ok and summary.openai_usage.empty_usage %}
+<div class="llm-alert llm-alert--ok">
+  Connected with <code>OPENAI_API_KEY</code>. OpenAI <code>/v1/usage</code> returned no rows for this window,
+  so OpenAI expense uses local token logs × <code>{{ summary.local_expense.openai.model }}</code>.
+  <a href="?days={{ summary.days }}&amp;refresh=1">Refresh</a>
+</div>
+{% elif summary.openai_usage.ok %}
+<div class="llm-alert llm-alert--ok">
+  OpenAI usage loaded via <code>OPENAI_API_KEY</code>{% if summary.openai_usage.fetched_at %} at {{ summary.openai_usage.fetched_at }}{% endif %}.
+  <a href="?days={{ summary.days }}&amp;refresh=1">Refresh now</a>
+</div>
+{% elif summary.openai_usage.error %}
+<div class="llm-alert">
+  <strong>OpenAI usage API:</strong> {{ summary.openai_usage.error }}
+  Falling back to local logs × <code>{{ summary.local_expense.openai.model }}</code>.
+</div>
+{% endif %}
+
+<div class="llm-toolbar">
+  <span>Period:</span>
+  {% for d in days_options %}
+    <a href="?days={{ d }}" class="{% if summary.days == d %}active{% endif %}">{{ d }} days</a>
+  {% endfor %}
+  <span style="margin-left:auto;">
+    <a href="{{ usage_log_url }}">Local usage logs</a>
+    &nbsp;|&nbsp;
+    <a href="{{ forum_metrics_url }}">Forum daily metrics</a>
+  </span>
+</div>
+
+<div class="module">
+  <h2>Expense vs amount collected ({{ summary.days }} days)</h2>
+  <div class="llm-grid">
+    <div class="llm-card llm-card--primary">
+      <div class="label">Total AI expense</div>
+      <div class="value">${{ summary.pnl.actual_cost_usd|floatformat:4 }}</div>
+      <div class="sub">≈ ₹{{ summary.pnl.actual_cost_inr }} (OpenAI + Gemini)</div>
+    </div>
+    <div class="llm-card">
+      <div class="label">OpenAI expense</div>
+      <div class="value">${{ summary.pnl.openai_cost_usd|floatformat:4 }}</div>
+      <div class="sub">{{ summary.pnl.openai_source }}</div>
+    </div>
+    <div class="llm-card">
+      <div class="label">Gemini expense</div>
+      <div class="value">${{ summary.pnl.gemini_cost_usd|floatformat:4 }}</div>
+      <div class="sub">{{ summary.pnl.gemini_source }}{% if not summary.config_models.google_key_set %} · GOOGLE_API_KEY not set{% endif %}</div>
+    </div>
+    <div class="llm-card llm-card--primary">
+      <div class="label">AI amount collected</div>
+      <div class="value">₹{{ summary.pnl.llm_collected_inr }}</div>
+      <div class="sub">{{ summary.collected.llm_payment_count }} LLM token pack payments</div>
+    </div>
+    <div class="llm-card {% if summary.pnl.margin_inr >= 0 %}llm-card--good{% else %}llm-card--warn{% endif %}">
+      <div class="label">Margin (collected − expense)</div>
+      <div class="value">₹{{ summary.pnl.margin_inr }}</div>
+      <div class="sub">Positive = packs cover AI spend</div>
+    </div>
+    <div class="llm-card">
+      <div class="label">All products collected</div>
+      <div class="value">₹{{ summary.collected.total_collected_inr }}</div>
+      <div class="sub">{{ summary.collected.total_payment_count }} successful payments</div>
+    </div>
+  </div>
+</div>
+
+{% if summary.openai_actual.completions.by_model %}
+<div class="module">
+  <h2>OpenAI usage by model (from API)</h2>
+  <table class="llm-table">
+    <thead>
+      <tr>
+        <th>Model</th>
+        <th class="num">Requests</th>
+        <th class="num">Input</th>
+        <th class="num">Output</th>
+        <th class="num">Est. cost</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in summary.openai_actual.completions.by_model %}
+      <tr>
+        <td>{{ row.model }}</td>
+        <td class="num">{{ row.num_requests }}</td>
+        <td class="num">{{ row.input_tokens }}</td>
+        <td class="num">{{ row.output_tokens }}</td>
+        <td class="num">${{ row.cost_usd|floatformat:6 }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% if summary.openai_actual.daily_costs %}
+<div class="module">
+  <h2>OpenAI daily cost (from API)</h2>
+  <table class="llm-table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th class="num">Cost (USD)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in summary.openai_actual.daily_costs %}
+      <tr>
+        <td>{{ row.day }}</td>
+        <td class="num">${{ row.cost_usd|floatformat:6 }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% if summary.collected.llm_daily %}
+<div class="module">
+  <h2>AI token pack collections (daily)</h2>
+  <table class="llm-table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th class="num">Payments</th>
+        <th class="num">Amount (INR)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in summary.collected.llm_daily %}
+      <tr>
+        <td>{{ row.day }}</td>
+        <td class="num">{{ row.count }}</td>
+        <td class="num">₹{{ row.amount }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<div class="module">
+  <h2>App feature breakdown (local logs)</h2>
+  {% if summary.by_feature %}
+  <table class="llm-table">
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th class="num">Calls</th>
+        <th class="num">Tokens</th>
+        <th class="num">Cost (USD)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in summary.by_feature %}
+      <tr>
+        <td>{{ row.feature }}</td>
+        <td class="num">{{ row.calls }}</td>
+        <td class="num">{{ row.total_tokens|default:0 }}</td>
+        <td class="num">${{ row.cost_usd|floatformat:6 }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>No local LLM usage logged in this period yet.</p>
+  {% endif %}
+</div>
+
+<div class="module">
+  <h2>Recent local calls</h2>
+  {% if summary.recent %}
+  <table class="llm-table">
+    <thead>
+      <tr>
+        <th>When</th>
+        <th>Feature</th>
+        <th>Provider</th>
+        <th>Model</th>
+        <th class="num">Tokens</th>
+        <th class="num">Cost</th>
+        <th>OK</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in summary.recent %}
+      <tr>
+        <td>{{ row.created_at }}</td>
+        <td>{{ row.feature }}</td>
+        <td>{{ row.provider }}</td>
+        <td>{{ row.model|default:"—" }}</td>
+        <td class="num">{{ row.total_tokens }}</td>
+        <td class="num">${{ row.cost_usd }}</td>
+        <td>{% if row.success %}✓{% else %}✗{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>No local usage logs yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

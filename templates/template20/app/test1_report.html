@@ -1,6 +1,6 @@
 {% extends 'template20/logged-in-base.html' %}
 
-{% block title_content %}Personality Assessment Report | Top Teen{% endblock %}
+{% block title_content %}Personality Assessment Report | TopTeen{% endblock %}
 {% block description_content %}View your Personality Assessment report.{% endblock %}
 
 {% block chatbot %}{% endblock %}
@@ -8,7 +8,7 @@
 {% block chatbot_js %}{% endblock %}
 {% block footer_cta %}{% endblock %}
 
-{% block bodyclass %}{{ super() }} report-page{% endblock %}
+{% block bodyclass %}{{ super() }} report-page cb-standalone-report-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
@@ -316,6 +316,82 @@
   display: grid;
   grid-template-columns: repeat(3,1fr);
 }
+
+/* Mobile/tablet report layout — do not change desktop (≥992px) */
+@media (max-width: 991.98px) {
+  .report-container {
+    max-width: 100%;
+    margin: 0px auto ;
+    padding-left: 12px;
+    padding-right: 12px;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+
+  .chapterPage {
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+
+  .report-container table {
+    table-layout: fixed;
+    width: 100% !important;
+    max-width: 100%;
+  }
+
+  .report-container td,
+  .report-container th {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    box-sizing: border-box;
+  }
+
+  .report-container td:first-child {
+    width: 28% !important;
+    max-width: 96px !important;
+  }
+
+  .report-container td:first-child img {
+    max-width: 40px !important;
+    height: auto !important;
+  }
+
+  .report-container td:last-child {
+    width: 72% !important;
+  }
+
+  .report-container table td[style*="width"] {
+    /* Override fixed PDF-oriented widths on small screens only */
+    max-width: 100%;
+  }
+
+  .cat-list {
+    padding: 4px 12px !important;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .cat-list ul {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    column-count: 1 !important;
+  }
+
+  .cat-head h4 {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .cat-box.cat-one-box {
+    max-width: 100%;
+  }
+
+
+  .footer-main.border-bottom-t {
+  display: none;
+}
+}
 </style>
 {% endblock %}
 
@@ -497,11 +573,37 @@
     {% else %}
       {% set pdf_url = url('app:test1_report_pdf') %}
     {% endif %}
-    <a href="{{ pdf_url }}" class="sticky-download-btn">
-      <i class="fas fa-download"></i> Download PDF
+    <a href="{{ pdf_url }}"
+       class="sticky-download-btn js-report-pdf-btn is-preparing"
+       data-pdf-url="{{ pdf_url }}"
+       data-label-default="Download PDF"
+       data-label-preparing="Preparing PDF…"
+       aria-disabled="true"
+       aria-busy="true"
+       tabindex="-1">
+      <i class="fas fa-download"></i> Preparing PDF…
     </a>
   </div>
   {% endif %}
 </div>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+{% include 'template20/app/partials/report_pdf_async_download.html' %}
+<script>
+/* iPhone: clear leftover splash locks; prefer overflow-x:clip so body is not a scrollport */
+(function () {
+  try {
+    document.documentElement.classList.remove('pwa-launch-active');
+    document.documentElement.style.removeProperty('overflow');
+    if (document.body) {
+      document.body.style.removeProperty('overflow');
+      document.body.style.removeProperty('touch-action');
+      document.body.style.setProperty('overflow-x', 'clip');
+    }
+  } catch (e) { /* ignore */ }
+})();
+</script>
 {% endblock %}
 

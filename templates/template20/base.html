@@ -13,16 +13,18 @@
   <meta name="googlebot" content="noindex, nofollow">
   <meta name="google-site-verification" content="4INRnzEd4oO_v_yluNYcCEmoouoM94LjRi_Ez0qO_Vo" />
   {% endif %}
+  <meta name="facebook-domain-verification" content="80fczxf7zf2ysu54gokd497v0b09zu" />
   {% endblock %}
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="csrf-token" content="{{ csrf_token }}">
   <link rel="apple-touch-icon" sizes="180x180" href="{{ static('images_new/fav-icon/apple-touch-icon.png') }}">
   <link rel="icon" type="image/png" sizes="32x32" href="{{ static('images_new/fav-icon/favicon-32x32.png') }}">
   <link rel="icon" type="image/png" sizes="16x16" href="{{ static('images_new/fav-icon/favicon-16x16.png') }}">
   <link rel="mask-icon" href="{{ static('images_new/fav-icon/safari-pinned-tab.svg') }}" color="#5bbad5">
   <meta name="msapplication-TileColor" content="#da532c">
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#ffffff">
-  <link rel="stylesheet" href="{{ static('css_new/pwa-splash.css') }}?v=2">
+  <meta name="theme-color" content="#1a1464">
+  <link rel="stylesheet" href="{{ static('css_new/pwa-splash.css') }}?v=9">
   <link rel="apple-touch-startup-image" href="{{ static('images_new/fav-icon/pwa-splash-1170x2532.png') }}" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
   <link rel="apple-touch-startup-image" href="{{ static('images_new/fav-icon/pwa-splash-1284x2778.png') }}" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
   <link rel="apple-touch-startup-image" href="{{ static('images_new/fav-icon/pwa-splash-1080x1920.png') }}" media="(orientation: portrait)">
@@ -33,9 +35,9 @@
   
   {% block title %}
   {% if html_head and html_head.title %}
-  <title>{{ html_head.title }} | Top Teen</title>
+  <title>{{ html_head.title }} | TopTeen</title>
   {% else %}
-  <title>{% block title_content %}Every Student, Career Ready | Top Teen{% endblock %}</title>
+  <title>{% block title_content %}Every Student, Career Ready | TopTeen{% endblock %}</title>
   {% endif %}
   {% endblock %}
   
@@ -63,14 +65,14 @@
   {% if not _seo_url and request %}{% set _seo_url = request.build_absolute_uri(request.path) %}{% endif %}
   {% if _seo_url %}<link rel="canonical" href="{{ _seo_url }}">{% endif %}
   <meta property="og:type" content="{{ html_head.og_type if (html_head and html_head.og_type) else 'website' }}">
-  <meta property="og:site_name" content="Top Teen">
-  <meta property="og:title" content="{{ _seo_title }} | Top Teen">
+  <meta property="og:site_name" content="TopTeen">
+  <meta property="og:title" content="{{ _seo_title }} | TopTeen">
   <meta property="og:description" content="{{ _seo_desc }}">
   <meta property="og:image" content="{{ _seo_image }}">
   {% if _seo_url %}<meta property="og:url" content="{{ _seo_url }}">{% endif %}
   <meta property="og:locale" content="en_IN">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="{{ _seo_title }} | Top Teen">
+  <meta name="twitter:title" content="{{ _seo_title }} | TopTeen">
   <meta name="twitter:description" content="{{ _seo_desc }}">
   <meta name="twitter:image" content="{{ _seo_image }}">
   {% endblock %}
@@ -78,13 +80,15 @@
   {% include 'template20/includes/seo_schema.html' %}
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="{{ static('css_new/bootstrap.min.css') }}">
-  <link rel="stylesheet" href="{{ static('css_new/custom-min.css') }}?v=20260714-2" type="text/css" media="all" />
-  {% if show_ai_counsellor_bot %}<link rel="stylesheet" href="{{ static('css_new/chatbot-widget.css') }}?v=20260326" type="text/css" media="all" />{% endif %}
-  {% if show_page_chat_widget %}<link rel="stylesheet" href="{{ static('css_new/page-chat-widget.css') }}?v=20260326" type="text/css" media="all" />{% endif %}
+  <link rel="stylesheet" href="{{ static('css_new/custom-min.css') }}?v=20260728-smart1" type="text/css" media="all" />
+  {% if show_ai_counsellor_bot %}<link rel="stylesheet" href="{{ static('css_new/chatbot-widget.css') }}?v=20260728e" type="text/css" media="all" />{% endif %}
+  {% if show_page_chat_widget %}<link rel="stylesheet" href="{{ static('css_new/page-chat-widget.css') }}?v=20260728h" type="text/css" media="all" />{% endif %}
   <link rel="stylesheet" href="{{ static('css_new/search.css') }}" type="text/css" media="all" />
   {% block chatbot_css %}
   {% if show_chatbot %}<link rel="stylesheet" href="{{ static('css_new/chatbot.css') }}" type="text/css" media="all" />{% endif %}
   {% endblock %}
+  {# After header + chat CSS so safe-area insets win over fixed heights #}
+  <link rel="stylesheet" href="{{ static('css_new/pwa-safe-area.css') }}?v=6" type="text/css" media="all" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
@@ -151,7 +155,7 @@
 
   {% block additionalcss %}
   {% if show_ai_counsellor_bot or show_page_chat_widget %}
-  <link rel="stylesheet" href="{{ static('css_new/chatbot-rule-widgets-layout.css') }}?v=20260704" type="text/css" media="all" />
+  <link rel="stylesheet" href="{{ static('css_new/chatbot-rule-widgets-layout.css') }}?v=20260728f" type="text/css" media="all" />
   {% endif %}
   {# cb-root position & same-side stack: body classes via chatbot_widget_body_class + chatbot-widget.css #}
   {% endblock %}
@@ -226,28 +230,47 @@
   <script src="{{ static('topteenfrontend/assets/js/otp_input.js') }}" defer></script>
   {# Use Bootstrap bundle which includes Popper (v2) to avoid Popper v1 / Bootstrap v5 mismatch #}
   <script src="{{ static('js_new/bootstrap.bundle.min.js') }}" defer></script>
-  <script src="{{ static('js_new/main.js') }}?v=20260714-2" defer></script>
+  <script src="{{ static('js_new/main.js') }}?v=20260803-csrf1" defer></script>
   <script src="{{ static('js_new/search.js') }}" defer></script>
-  <script src="{{ static('js_new/pwa-splash.js') }}?v=2"></script>
-  <script src="{{ static('js_new/pwa-register.js') }}?v=1" defer></script>
+  <script src="{{ static('js_new/pwa-register.js') }}?v=2" defer></script>
 
+  {% if show_ai_counsellor_bot or show_page_chat_widget %}
+  <script>
+    window.AIFeatureQuotaConfig = {
+      statusUrl: {{ url('core:ai_feature_quota_status')|tojson }},
+      consumeUrl: {{ url('core:ai_feature_quota_consume')|tojson }},
+      shopUrl: {{ url('core:llm_token_packages')|tojson }},
+      csrfToken: "{{ csrf_token }}",
+      message: "AI tokens need to recharge — Buy now.",
+      ctaLabel: "Buy now"
+    };
+  </script>
+  <script src="{{ static('js_new/ai-feature-quota.js') }}?v=2" defer></script>
+  {% endif %}
   {# When both widgets load, page-chat must mount first so cb-root is later in DOM (same z-index stacking). #}
   {% if show_page_chat_widget and show_ai_counsellor_bot %}
-  <script src="{{ static('js_new/page-chat-widget.js') }}" defer></script>
-  <script src="{{ static('js_new/chatbot-widget.js') }}" defer></script>
+  <script src="{{ static('js_new/page-chat-widget.js') }}?v=20260728-kb2" defer></script>
+  <script src="{{ static('js_new/chatbot-widget.js') }}?v=20260728-kb2" defer></script>
   {% else %}
-  {% if show_ai_counsellor_bot %}<script src="{{ static('js_new/chatbot-widget.js') }}" defer></script>{% endif %}
-  {% if show_page_chat_widget %}<script src="{{ static('js_new/page-chat-widget.js') }}" defer></script>{% endif %}
+  {% if show_ai_counsellor_bot %}<script src="{{ static('js_new/chatbot-widget.js') }}?v=20260728-kb2" defer></script>{% endif %}
+  {% if show_page_chat_widget %}<script src="{{ static('js_new/page-chat-widget.js') }}?v=20260728-kb2" defer></script>{% endif %}
   {% endif %}
 
   {% block chatbot_js %}
-  {% if show_chatbot %}<script src="{{ static('js_new/chatbot-widget.js') }}" defer></script>{% endif %}
+  {% if show_chatbot %}<script src="{{ static('js_new/chatbot-widget.js') }}?v=20260728-kb2" defer></script>{% endif %}
   {% endblock %}
   <script>
     window.TT_INCLUDED_LANGUAGES = {{ translate_enabled_languages_csv | tojson }};
+    window.TT_ENABLED_LANGUAGES = {{ translate_enabled_languages | tojson }};
     window.TT_TRANSLATE_COMPLEXITY_ENABLED = {{ translate_complexity_enabled | tojson }};
     window.TT_TRANSLATE_COMPLEXITY_API = {{ translate_complexity_api_url | tojson }};
+    window.TT_VOICE_TO_TEXT_ENABLED = {{ enable_voice_to_text | default(true) | tojson }};
+    window.TT_VOICE_TO_TEXT_MODE = {{ voice_to_text_mode | default('browser') | tojson }};
+    window.TT_VOICE_TRANSCRIBE_API = {{ voice_transcribe_api_url | default('/api/voice/transcribe/') | tojson }};
+    window.TT_VOICE_SETTINGS_API = {{ voice_settings_api_url | default('/api/voice/settings/') | tojson }};
   </script>
+  {# Always load helper so open tabs can hide mics immediately when admin disables voice. #}
+  <script src="{{ static('js_new/tt-speech-input.js') }}?v=20260806-speech11" defer></script>
   <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" defer></script>
 
   {% if request and request.user and request.user.is_authenticated %}

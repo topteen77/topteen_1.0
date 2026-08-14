@@ -29,7 +29,8 @@ from django.views import View
 from django.views.generic import TemplateView
 from .models import Counselor, FollowUpStatus
 from django.contrib.auth import get_user_model
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+from django.views.decorators.cache import never_cache
 
 from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 
@@ -1781,6 +1782,8 @@ def Students_follow_up(request, coun_id):
     )
     return render(request, tpl, context)
 
+@never_cache
+@ensure_csrf_cookie
 def CounselorCoursepayment(request):
     from django.conf import settings
     import razorpay
@@ -5863,26 +5866,19 @@ class CounselorLoginView(TemplateView):
         except Exception:
             # Fallback if build_html_head is not available
             context['html_head'] = None
-        # Demo accounts toggle (controlled by existing Core Configuration keys)
-        try:
-            from core.models import Configuration
-            from django.conf import settings
-            env = str(getattr(settings, "ENVIRONMENT", "") or "").strip().lower()
-            is_production = (env == "production") if env else (not bool(getattr(settings, "DEBUG", False)))
-            key = "SHOW_DEMO_ACCOUNT_ON_PRODUCTION" if is_production else "SHOW_DEMO_ACCOUNT_ON_DEVELOPMENT"
-            show_demo = str(Configuration.get(key, default="false", editable=True)).lower() in ("true", "1", "yes", "on")
-        except Exception:
-            show_demo = False
+        # Demo accounts: never on ENVIRONMENT=production
+        from users.demo_accounts import (
+            get_demo_login_context,
+            empty_demo_login_context,
+            should_show_demo_accounts,
+        )
+        from core import choices
 
-        if show_demo:
-            from users.demo_accounts import get_demo_login_context
-            from core import choices
+        if should_show_demo_accounts():
             context.update(get_demo_login_context(
                 self.request,
                 user_types=[choices.UserType.COUNSELOR],
             ))
         else:
-            context["demo_accounts"] = []
-            context["demo_login_url"] = ""
-            context["demo_csrf_token"] = ""
+            context.update(empty_demo_login_context())
         return context

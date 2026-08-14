@@ -405,16 +405,19 @@ body.ttv2-shell .ttv2-topbar-pay-now {
         u.searchParams.set('embed', '1');
         var pathMatch = String(url || '').match(/combined_report\/(\d+)/);
         var pathId = pathMatch ? pathMatch[1] : null;
-        var sid = (studentId && String(studentId)) || pathId;
+        var testReportMatch = String(u.pathname || '').match(/\/test([123])_report(?:\/(\d+))?\/?$/);
+        var sid = (studentId && String(studentId)) || pathId || (testReportMatch && testReportMatch[2]) || null;
         if (sid) {
           u.searchParams.set('user_id', String(sid));
           if (u.pathname.indexOf('combined_report') !== -1) {
             u.pathname = u.pathname.replace(/combined_report\/\d+/, 'combined_report/' + String(sid));
           }
-          if (/\/test[123]_report\/?$/.test(u.pathname)) {
-            u.pathname = u.pathname.replace(/\/test[123]_report\/?$/, function (m) {
-              return m.replace(/\/?$/, '/') + String(sid);
-            });
+          if (testReportMatch) {
+            var testNum = testReportMatch[1];
+            u.pathname = u.pathname.replace(
+              /\/test[123]_report(?:\/\d+)?\/?$/,
+              '/test' + testNum + '_report/' + String(sid) + '/'
+            );
           }
           if (u.pathname.indexOf('/dashboard/') !== -1 && !/\/dashboard\/\d+/.test(u.pathname)) {
             u.pathname = u.pathname.replace(/\/dashboard\/?$/, '/dashboard/' + String(sid));
@@ -624,6 +627,7 @@ body.ttv2-shell .ttv2-topbar-pay-now {
   })();
 </script>
 
+<script src="{{ staticv('js_new/ttv2_auth.js') }}"></script>
 <script>
   // Shared: AJAX page navigation into #ttv2AjaxContent (PJAX-style).
   // - Sidebar links are real URLs (so refresh/deeplink works)
@@ -846,9 +850,26 @@ body.ttv2-shell .ttv2-topbar-pay-now {
         }, 400);
       }
 
-      fetch(u.toString(), {headers: {'X-Requested-With': 'XMLHttpRequest'}})
-        .then(function(r){ return r.text(); })
+      fetch(u.toString(), (typeof window.ttv2AjaxFetchOptions === 'function' ? window.ttv2AjaxFetchOptions() : {headers: {'X-Requested-With': 'XMLHttpRequest'}, redirect: 'manual', credentials: 'same-origin'}))
+        .then(function(r){
+          if (typeof window.ttv2HandleAuthResponse === 'function' && window.ttv2HandleAuthResponse(r)) {
+            clearTimers();
+            removeOverlay();
+            setBusy(host, false);
+            return null;
+          }
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.text();
+        })
         .then(function(html){
+          if (!html) return;
+          if (typeof window.ttv2IsLoginPageHtml === 'function' && window.ttv2IsLoginPageHtml(html)) {
+            clearTimers();
+            removeOverlay();
+            setBusy(host, false);
+            if (typeof window.ttv2PromptLogin === 'function') window.ttv2PromptLogin();
+            return;
+          }
           clearTimers();
           removeOverlay();
           host.innerHTML = html;
@@ -890,8 +911,20 @@ body.ttv2-shell .ttv2-topbar-pay-now {
 
     // Sidebar link interception
     document.addEventListener('click', function(e){
-      var a = e.target && (e.target.closest ? e.target.closest('.ttv2-counselor-nav a.ttv2-nav-link, .ttv2-counselor-nav a[data-ttv2-nav]') : null);
+      var a = e.target && (e.target.closest ? e.target.closest('.ttv2-counselor-nav a') : null);
       if (!a) return;
+      // Progressive unlock: blocked until account has matching data.
+      if (a.classList && a.classList.contains('ttv2-nav-disabled')) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      if (a.getAttribute('aria-disabled') === 'true') {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      if (!a.classList.contains('ttv2-nav-link') && !a.getAttribute('data-ttv2-nav')) return;
       if (!shouldAjaxifyLink(a)) return;
       var host = document.getElementById('ttv2AjaxContent');
       if (!host) return;

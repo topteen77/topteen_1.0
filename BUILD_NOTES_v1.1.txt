@@ -1,0 +1,108 @@
+===================================================
+TopTeen 1.1 — Build / Release Notes
+===================================================
+Release tag:     v1.1
+Branch:          master
+Base release:    v1.0
+Commit:          see `git rev-list -n 1 v1.1`
+Release date:    2026-07-20
+Platform:        Django (topteen_1.0) — career guidance & student platform
+
+What changed since v1.0: performance/speed fixes merged from
+institutedashboard, Class 10 report caching + async PDF generation,
+demo-account production safety, and GitHub release documentation.
+
+---------------------------------------------------
+1. WHAT UPDATED (summary)
+---------------------------------------------------
+- Merged institutedashboard into master (speed + demo-account work)
+- Class 10 (Stream Sorter) combined report Redis cache (app/report_cache.py)
+- Class 10 web report PDF: Celery enqueue for combined / test1 / test2 / test3
+- Faster PDF delivery (presigned S3 / ready-cache; less Gunicorn streaming)
+- Student dashboard / Skill Lab / resume / nav context caching
+- Demo accounts hidden in production (ENVIRONMENT=production)
+- Search indexing defaults tightened for demo (ALLOW_DEMO_SEARCH_INDEX=false)
+- readme.txt: documented that git tag ≠ GitHub Release (gh release create)
+
+Commits included since v1.0:
+  796c8d04  demo accounts issu
+  cf334801  fix speed
+  49e97e7d  fix speed
+  05c6009f  fix speed
+  478b3314  Merge branch 'institutedashboard' into master
+  (+ this release-notes commit)
+
+---------------------------------------------------
+2. DEMO ACCOUNTS (security / ops)
+---------------------------------------------------
+- Demo login cards never show when ENVIRONMENT=production
+- Non-production gated by Configuration SHOW_DEMO_ACCOUNT_ON_DEVELOPMENT
+- Shared helpers: should_show_demo_accounts(), empty_demo_login_context()
+- Wired through users / institute / counselor login views
+
+---------------------------------------------------
+3. CLASS 10 REPORTS & PDFS
+---------------------------------------------------
+- New Redis helpers: app/report_cache.py
+  - Combined report context cache (~20 min TTL) + lock + HTML key tracking
+- Celery tasks: enqueue/generate Class 10 web report PDFs
+  (combined, test1, test2, test3)
+- PDF helpers in core/utils.py:
+  - Stable filenames, ready-marker cache, delete/exists checks
+  - Presigned download URL / serve without streaming bytes via Gunicorn
+- app/views.py slimmed to use cache + async PDF path
+
+---------------------------------------------------
+4. PERFORMANCE / SPEED FIXES
+---------------------------------------------------
+- Student nav / student-id context caching (topteens/context_processor.py)
+- Nav “explore” featured set cached (no RAND() on every request)
+- Avoid get_or_create(search=None) on every authenticated page hit
+- Skill Lab dashboard items + eligible course count caching
+- Resume V2: DB-backed section counts, template catalog short TTL + invalidate
+- Dashboard stats / assessment access query tweaks
+- user_dashboard template small updates for faster path
+
+---------------------------------------------------
+5. SETTINGS / SEO
+---------------------------------------------------
+- ALLOW_DEMO_SEARCH_INDEX default changed to False
+- ALLOW_SEARCH_ENGINE_INDEX block commented (use env / prior policy as needed)
+
+---------------------------------------------------
+6. DOCS
+---------------------------------------------------
+- BUILD_NOTES_v1.1.txt (this file)
+- readme.txt Git Version Release section: Step for gh release create
+  so the GitHub Releases page is not left empty after tagging
+
+---------------------------------------------------
+7. FILES TOUCHED (high level)
+---------------------------------------------------
+  app/report_cache.py (new)
+  app/task.py, app/views.py
+  core/utils.py, core/assessment_access.py, core/dashboard_stats.py
+  users/demo_accounts.py, users/views.py, users/skilllab_dashboard.py
+  users/resume_v2_*.py, users/resume_payload.py
+  topteens/context_processor.py, topteens/settings.py
+  counselor/views.py, institute/views.py, institute/models.py
+  templates/template20/user/user_dashboard.html
+  readme.txt, BUILD_NOTES_v1.1.txt
+
+---------------------------------------------------
+8. HOW TO CHECK OUT THIS RELEASE
+---------------------------------------------------
+  git fetch --tags
+  git checkout v1.1
+
+  # Diff vs previous release
+  git log --oneline v1.0..v1.1
+  git diff v1.0..v1.1 --stat
+
+Full git / GitHub release commands:
+  see section "Git Version Release (v1.0)" in readme.txt
+  (same steps; replace v1.0 with v1.1 and BUILD_NOTES_v1.1.txt)
+
+===================================================
+END BUILD NOTES — TopTeen v1.1
+===================================================

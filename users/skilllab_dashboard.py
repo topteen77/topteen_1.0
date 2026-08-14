@@ -1,7 +1,7 @@
 """Skill Lab course progress helpers for student and parent dashboards."""
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from django.templatetags.static import static
 from django.urls import reverse
@@ -116,11 +116,18 @@ def skilllab_course_enrolled(user, course) -> bool:
 def skilllab_course_cta(user, course, *, enrolled: Optional[bool] = None) -> str:
     if enrolled is None:
         enrolled = skilllab_course_enrolled(user, course)
+    completed = skilllab_course_completed(user, course)
+    started = course.user_has_started(user)
+    return skilllab_cta_from_flags(enrolled=enrolled, started=started, completed=completed)
+
+
+def skilllab_cta_from_flags(*, enrolled: bool, started: bool, completed: bool) -> str:
+    """CTA label from already-computed flags (no extra queries)."""
     if not enrolled:
         return "Enroll"
-    if skilllab_course_completed(user, course):
+    if completed:
         return "Completed"
-    if course.user_has_started(user):
+    if started:
         return "Resume"
     return "Start"
 
@@ -161,8 +168,37 @@ def skilllab_is_career_readiness_grade_student(user) -> bool:
     return bucket in ("10", "12")
 
 
+def skilllab_eligible_course_count(user) -> int:
+    """Fast count for dashboard browse CTA (M2M + rare ungraded name fallback)."""
+    from django.db.models import Count
+
+    from skilllab.models import SkillLabCourse
+
+    grade_num = _extract_grade_number(user)
+    if grade_num is None:
+        return 0
+    count = (
+        SkillLabCourse.objects.filter(grades__grade_number=grade_num)
+        .distinct()
+        .count()
+    )
+    ungraded = SkillLabCourse.objects.annotate(_gc=Count("grades")).filter(_gc=0)
+    if not ungraded.exists():
+        return count
+    for course in ungraded.iterator(chunk_size=100):
+        if course.matches_skilllab_filters(grade=grade_num):
+            count += 1
+    return count
+
+
 def skilllab_eligible_courses_queryset(user):
-    """Courses whose Grades M2M includes the student's class number."""
+    """Courses whose Grades M2M includes the student's class number.
+
+    Avoids iterating the full course catalog on every dashboard hit. Name-based
+    grade fallback only runs for courses with no Grades M2M (usually none).
+    """
+    from django.db.models import Count
+
     from skilllab.models import SkillLabCourse
 
     grade_num = _extract_grade_number(user)
@@ -172,11 +208,30 @@ def skilllab_eligible_courses_queryset(user):
     matched_ids = set(
         base.filter(grades__grade_number=grade_num).values_list("id", flat=True)
     )
-    # Include courses with unset grades M2M that still resolve to this class via name.
-    for course in base.exclude(id__in=matched_ids).prefetch_related("grades").iterator():
-        if course.matches_skilllab_filters(grade=grade_num):
-            matched_ids.add(course.id)
+    ungraded = base.annotate(_grade_count=Count("grades")).filter(_grade_count=0)
+    if ungraded.exists():
+        for course in ungraded.iterator(chunk_size=100):
+            if course.matches_skilllab_filters(grade=grade_num):
+                matched_ids.add(course.id)
     return base.filter(id__in=matched_ids)
+
+_SKILLLAB_DASH_CACHE_TTL = 90
+_SKILLLAB_DASH_CACHE_PREFIX = "skilllab:dash:items:v2:"
+
+
+def invalidate_skilllab_dashboard_items_cache(user_id: int) -> None:
+    try:
+        from django.core.cache import cache
+
+        cache.delete(f"{_SKILLLAB_DASH_CACHE_PREFIX}{int(user_id)}")
+    except Exception:
+        pass
+    try:
+        from users.parent_dashboard_cache import invalidate_parent_caches_for_student
+
+        invalidate_parent_caches_for_student(user_id)
+    except Exception:
+        pass
 
 
 def skilllab_active_course_ids_for_user(user) -> Set[int]:
@@ -400,7 +455,130 @@ def _bulk_skilllab_status(user, courses) -> Dict[str, Dict[int, Any]]:
     }
 
 
+def bulk_skilllab_status_for_users(
+    user_ids: List[int], courses
+) -> Dict[int, Dict[str, Dict[int, Any]]]:
+    """
+    Enrolled / progress / completed / started for many users × courses
+    in a fixed number of queries (avoids N×M per-course helpers).
+    Returns {user_id: {"enrolled": {cid: bool}, "progress_pct": {...}, ...}}.
+    """
+    from skilllab.models import (
+        SkillLabCertification,
+        SkillLabCourseChapter,
+        SkillLabCourseProgress,
+        SkillLabCourseProgressSummary,
+        SkillLabCourseResume,
+        SkilllabCoursePayment,
+    )
+
+    empty = {"enrolled": {}, "progress_pct": {}, "completed": {}, "started": {}}
+    if not user_ids or not courses:
+        return {int(uid): {k: dict(v) for k, v in empty.items()} for uid in user_ids}
+
+    ids = [c.id for c in courses]
+    uid_set = {int(u) for u in user_ids}
+
+    paid: Set[Tuple[int, int]] = set(
+        SkilllabCoursePayment.objects.filter(
+            user_id__in=uid_set,
+            skilllab_course_id__in=ids,
+            is_success=choices.YesNoChoices.YES,
+        ).values_list("user_id", "skilllab_course_id")
+    )
+    resume: Set[Tuple[int, int]] = set(
+        SkillLabCourseResume.objects.filter(
+            user_id__in=uid_set, skilllab_course_id__in=ids
+        ).values_list("user_id", "skilllab_course_id")
+    )
+    cert: Set[Tuple[int, int]] = set(
+        SkillLabCertification.objects.filter(
+            user_id__in=uid_set, skilllab_course_id__in=ids
+        ).values_list("user_id", "skilllab_course_id")
+    )
+    summary: Dict[Tuple[int, int], int] = {
+        (uid, cid): int(pct or 0)
+        for uid, cid, pct in SkillLabCourseProgressSummary.objects.filter(
+            user_id__in=uid_set, skilllab_course_id__in=ids
+        ).values_list("user_id", "skilllab_course_id", "progress_percentage")
+    }
+
+    progress_pairs: Set[Tuple[int, int]] = set()
+    done_chapters: Dict[Tuple[int, int], Set[int]] = {}
+    for uid, cid, chid, comp in SkillLabCourseProgress.objects.filter(
+        user_id__in=uid_set, skilllab_course_id__in=ids
+    ).values_list("user_id", "skilllab_course_id", "chapter_id", "completed"):
+        progress_pairs.add((uid, cid))
+        if comp and chid:
+            done_chapters.setdefault((uid, cid), set()).add(chid)
+
+    chapters_by_course: Dict[int, Set[int]] = {}
+    for cid, chid in SkillLabCourseChapter.objects.filter(
+        skilllab_id__in=ids
+    ).values_list("skilllab_id", "id"):
+        chapters_by_course.setdefault(cid, set()).add(chid)
+
+    free_by_course: Dict[int, bool] = {}
+    for course in courses:
+        try:
+            amount = float(course.amount or 0)
+        except (TypeError, ValueError):
+            amount = 0
+        free_by_course[course.id] = amount <= 0
+
+    out: Dict[int, Dict[str, Dict[int, Any]]] = {
+        uid: {"enrolled": {}, "progress_pct": {}, "completed": {}, "started": {}}
+        for uid in uid_set
+    }
+    for uid in uid_set:
+        for course in courses:
+            cid = course.id
+            is_started = (
+                (uid, cid) in resume
+                or summary.get((uid, cid), 0) > 0
+                or (uid, cid) in progress_pairs
+            )
+            out[uid]["started"][cid] = is_started
+            is_free = free_by_course.get(cid, False)
+            enrolled = ((uid, cid) in paid) or (is_free and is_started)
+            out[uid]["enrolled"][cid] = enrolled
+
+            chapters = chapters_by_course.get(cid, set())
+            done_ch = done_chapters.get((uid, cid), set())
+            if (uid, cid) in cert:
+                completed = True
+            elif not chapters:
+                completed = summary.get((uid, cid), 0) >= 100
+            else:
+                completed = len(done_ch & chapters) >= len(chapters)
+            out[uid]["completed"][cid] = completed
+
+            if (uid, cid) in cert:
+                pct = 100
+            elif (uid, cid) in summary:
+                pct = summary[(uid, cid)]
+            elif not chapters:
+                pct = 0
+            else:
+                pct = int((len(done_ch & chapters) / len(chapters)) * 100)
+            out[uid]["progress_pct"][cid] = pct
+
+    return out
+
+
 def build_student_skilllab_dashboard_items(user) -> List[Dict[str, Any]]:
+    from django.core.cache import cache
+
+    uid = int(getattr(user, "id", 0) or 0)
+    cache_key = f"{_SKILLLAB_DASH_CACHE_PREFIX}{uid}" if uid else None
+    if cache_key:
+        try:
+            cached = cache.get(cache_key)
+            if cached is not None:
+                return cached
+        except Exception:
+            pass
+
     courses = list(skilllab_dashboard_courses_for_user(user))
     if courses:
         status = _bulk_skilllab_status(user, courses)
@@ -418,13 +596,23 @@ def build_student_skilllab_dashboard_items(user) -> List[Dict[str, Any]]:
     else:
         items = []
     if items or not skilllab_is_career_readiness_grade_student(user):
+        if cache_key:
+            try:
+                cache.set(cache_key, items, _SKILLLAB_DASH_CACHE_TTL)
+            except Exception:
+                pass
         return items
 
-    eligible_count = skilllab_eligible_courses_queryset(user).count()
+    eligible_count = skilllab_eligible_course_count(user)
     if eligible_count <= 0:
+        if cache_key:
+            try:
+                cache.set(cache_key, items, _SKILLLAB_DASH_CACHE_TTL)
+            except Exception:
+                pass
         return items
 
-    return [
+    items = [
         {
             "kind": "skilllab",
             "kind_badge": "CAREER",
@@ -438,6 +626,12 @@ def build_student_skilllab_dashboard_items(user) -> List[Dict[str, Any]]:
             "icon_bg": "#eef6ff",
         }
     ]
+    if cache_key:
+        try:
+            cache.set(cache_key, items, _SKILLLAB_DASH_CACHE_TTL)
+        except Exception:
+            pass
+    return items
 
 
 def skilllab_student_status(user, course) -> Dict[str, Any]:

@@ -65,17 +65,18 @@ def complexity_needs_adjustment(level):
 def build_adjustment_prompt(texts, target_lang, level):
     lang_label = _LANGUAGE_NAMES.get(target_lang, target_lang)
     instruction = _LEVEL_INSTRUCTIONS[level]
+    segments = [segment.strip() for segment in texts if segment and segment.strip()]
     numbered = '\n\n'.join(
-        f'[{index + 1}]\n{segment.strip()}'
-        for index, segment in enumerate(texts)
-        if segment and segment.strip()
+        f'[{index + 1}]\n{segment}'
+        for index, segment in enumerate(segments)
     )
     return (
         f'You adjust translated web page text for reading difficulty.\n'
         f'Target language: {lang_label} ({target_lang}).\n'
         f'Level: {level}.\n'
         f'Instruction: {instruction}\n\n'
-        f'Return ONLY a JSON array of strings — one adjusted string per input block, '
-        f'in the same order. Do not add markdown fences or commentary.\n\n'
+        f'Return ONLY valid JSON in this exact shape (no markdown fences, no commentary):\n'
+        f'{{"texts": ["adjusted block 1", "adjusted block 2", ...]}}\n'
+        f'The "texts" array must have exactly {len(segments)} strings, same order as input blocks.\n\n'
         f'Input blocks:\n{numbered}'
     )

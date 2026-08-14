@@ -30,6 +30,7 @@
         {% set _no_ajax = (item.get('no_ajax') if item is mapping else (item.no_ajax if item.no_ajax is defined else false)) %}
         {% set _quicklink = (item.get('quicklink') if item is mapping else (item.quicklink if item.quicklink is defined else false)) %}
         {% set _label = (item.get('label') if item is mapping else (item.label if item.label is defined else 'Link')) %}
+        {% set _title = (item.get('title') if item is mapping else (item.title if item.title is defined else '')) %}
         {% if not _icon %}
           {% set _lookup = (_key|default('')|lower|replace(' ', '_')|replace('-', '_')) %}
           {% if not _lookup %}
@@ -97,7 +98,8 @@
         <a href="{{ _href|default('#') }}"
            {% if _key %}data-ttv2-nav="{{ _key }}"{% endif %}
            class="ttv2-counselor-quicklink{% if _active %} active{% endif %}{% if _disabled %} ttv2-nav-disabled{% endif %}"
-           {% if _disabled %}aria-disabled="true"{% endif %}
+           {% if _disabled %}aria-disabled="true" tabindex="-1"{% endif %}
+           {% if _title %}title="{{ _title }}"{% endif %}
            {% if _active %}aria-current="page"{% endif %}
            {% if _no_ajax %}data-no-ttv2-ajax="1"{% endif %}>
           <i class="{{ _icon }}" aria-hidden="true"></i> {{ _label|default('Link') }}
@@ -106,7 +108,8 @@
         <a href="{{ _href|default('#') }}"
            {% if _key %}data-ttv2-nav="{{ _key }}"{% endif %}
            class="ttv2-nav-link{% if _active %} active{% endif %}{% if _disabled %} ttv2-nav-disabled{% endif %}"
-           {% if _disabled %}aria-disabled="true"{% endif %}
+           {% if _disabled %}aria-disabled="true" tabindex="-1"{% endif %}
+           {% if _title %}title="{{ _title }}"{% endif %}
            {% if _active %}aria-current="page"{% endif %}
            {% if _no_ajax %}data-no-ttv2-ajax="1"{% endif %}>
           <span class="ttv2-counselor-nav-icon" aria-hidden="true"><i class="{{ _icon }}"></i></span>

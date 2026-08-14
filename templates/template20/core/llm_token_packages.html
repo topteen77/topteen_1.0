@@ -1,0 +1,517 @@
+{% extends 'template20/logged-in-base.html' %}
+
+{% block title_content %}AI Tokens | TopTeen{% endblock %}
+{% block description_content %}Recharge AI for resumes, tutor chat, and more — pick a pack that matches how you use TopTeen.{% endblock %}
+
+{% block bodyclass %}{{ super() }} llm-tokens-page{% endblock %}
+
+{% block footer %}
+{{ super() }}
+{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  body.logged-in.llm-tokens-page {
+    --llm-ink: #0f172a;
+    --llm-muted: #64748b;
+    --llm-brand: #2563eb;
+    --llm-brand-deep: #1d4ed8;
+    --llm-accent: #7c3aed;
+    --llm-success: #059669;
+    --llm-surface: #ffffff;
+    --llm-ring: rgba(37, 99, 235, 0.35);
+    padding-top: 88px;
+    min-height: calc(100vh - 88px);
+    background-color: #f1f5f9;
+    background-image:
+      radial-gradient(900px 480px at 12% -5%, rgba(37, 99, 235, 0.14) 0%, transparent 55%),
+      radial-gradient(700px 420px at 88% 8%, rgba(124, 58, 237, 0.1) 0%, transparent 50%),
+      radial-gradient(600px 400px at 50% 100%, rgba(5, 150, 105, 0.06) 0%, transparent 45%);
+    position: relative;
+    overflow-x: hidden;
+  }
+  body.logged-in.llm-tokens-page .footer-area {
+    display: block !important;
+    visibility: visible !important;
+    position: relative;
+    clear: both;
+    width: 100%;
+  }
+  body.logged-in.llm-tokens-page .footer-cta {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: initial !important;
+    overflow: visible !important;
+    position: relative !important;
+    width: 100% !important;
+    margin: initial !important;
+    padding: initial !important;
+    pointer-events: auto !important;
+    line-height: initial !important;
+    font-size: initial !important;
+  }
+  .llm-tokens-section {
+    position: relative;
+    overflow: hidden;
+  }
+  .llm-tokens-section::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2394a3b8' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+    opacity: 0.5;
+  }
+  .llm-tokens-section .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1180px;
+  }
+  .llm-hero {
+    max-width: 680px;
+    margin: 0 auto 40px;
+    text-align: center;
+  }
+  .llm-hero__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--llm-brand-deep);
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(37, 99, 235, 0.2);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+  }
+  .llm-hero__eyebrow svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 1px 2px rgba(180, 83, 9, 0.35));
+  }
+  .llm-hero h1 {
+    font-size: clamp(1.65rem, 3.5vw, 2.25rem);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    color: var(--llm-ink);
+    margin-bottom: 12px;
+  }
+  .llm-hero h1 span {
+    background: linear-gradient(120deg, var(--llm-brand-deep) 0%, var(--llm-accent) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .llm-hero > p {
+    color: var(--llm-muted);
+    margin: 0;
+    font-size: 1.05rem;
+    line-height: 1.55;
+    max-width: 540px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .llm-feature-quota {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 22px;
+  }
+  .llm-feature-quota span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(5, 150, 105, 0.25);
+    color: #047857;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    backdrop-filter: blur(8px);
+  }
+  .llm-feature-quota span::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+  }
+  .llm-fx-rate {
+    display: inline-block;
+    margin-top: 14px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: rgba(37, 99, 235, 0.08);
+    color: var(--llm-brand-deep);
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+  .llm-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 20px;
+    align-items: stretch;
+  }
+  @media (max-width: 1100px) {
+    .llm-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 580px) {
+    .llm-grid {
+      grid-template-columns: 1fr;
+    }
+    .llm-card.is-featured {
+      transform: none;
+    }
+  }
+  .llm-card {
+    background: var(--llm-surface);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 20px;
+    padding: 24px 22px 22px;
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 12px 32px rgba(15, 23, 42, 0.06);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  .llm-card:hover {
+    transform: translateY(-4px);
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 20px 40px rgba(15, 23, 42, 0.1);
+    border-color: rgba(37, 99, 235, 0.25);
+  }
+  .llm-card.is-featured {
+    border: 2px solid transparent;
+    background:
+      linear-gradient(#fff, #fff) padding-box,
+      linear-gradient(145deg, var(--llm-brand) 0%, var(--llm-accent) 55%, #ec4899 100%) border-box;
+    box-shadow:
+      0 0 0 1px rgba(37, 99, 235, 0.08),
+      0 24px 48px rgba(37, 99, 235, 0.18);
+    transform: scale(1.02);
+    z-index: 2;
+  }
+  .llm-card.is-featured:hover {
+    transform: scale(1.02) translateY(-4px);
+    box-shadow:
+      0 0 0 1px rgba(37, 99, 235, 0.12),
+      0 28px 56px rgba(37, 99, 235, 0.22);
+  }
+  .llm-card.is-active {
+    border-color: rgba(5, 150, 105, 0.45);
+    background: linear-gradient(165deg, #ecfdf5 0%, #fff 42%);
+    box-shadow: 0 16px 40px rgba(5, 150, 105, 0.12);
+  }
+  .llm-card.is-active:hover {
+    border-color: rgba(5, 150, 105, 0.55);
+  }
+  .llm-badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    color: #92400e;
+    border-radius: 999px;
+    padding: 5px 11px;
+    box-shadow: 0 2px 8px rgba(146, 64, 14, 0.15);
+  }
+  .llm-badge.is-active-badge {
+    background: linear-gradient(135deg, #a7f3d0 0%, #6ee7b7 100%);
+    color: #065f46;
+    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.2);
+  }
+  .llm-card h2 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin: 0 0 8px;
+    color: var(--llm-ink);
+    padding-right: 76px;
+    letter-spacing: -0.02em;
+  }
+  .llm-card .tagline {
+    color: var(--llm-muted);
+    font-size: 0.88rem;
+    margin-bottom: 16px;
+    line-height: 1.45;
+  }
+  .llm-uses {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px;
+    flex: 1;
+  }
+  .llm-uses li {
+    position: relative;
+    padding: 7px 0 7px 28px;
+    color: #334155;
+    font-size: 0.875rem;
+    line-height: 1.45;
+  }
+  .llm-uses li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 10px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(37, 99, 235, 0.1);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%232563eb'%3E%3Cpath fill-rule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clip-rule='evenodd'/%3E%3C/svg%3E");
+    background-size: 11px 11px;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+  .llm-card.is-active .llm-uses li::before {
+    background-color: rgba(5, 150, 105, 0.12);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23059669'%3E%3Cpath fill-rule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clip-rule='evenodd'/%3E%3C/svg%3E");
+  }
+  .llm-price-block {
+    margin-bottom: 16px;
+    padding-top: 4px;
+  }
+  .llm-card .price {
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--llm-ink);
+    margin-bottom: 2px;
+    line-height: 1.1;
+  }
+  .llm-card .price-usd {
+    font-size: 0.82rem;
+    color: var(--llm-muted);
+    margin-bottom: 0;
+    line-height: 1.4;
+  }
+  .llm-card .btn-active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 12px;
+    padding: 13px 16px;
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.92rem;
+    margin-top: auto;
+    pointer-events: none;
+    cursor: default;
+    box-shadow: 0 8px 20px rgba(5, 150, 105, 0.28);
+  }
+  .llm-card .btn-buy {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 12px;
+    padding: 13px 16px;
+    background: linear-gradient(135deg, var(--llm-brand) 0%, var(--llm-brand-deep) 100%);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.92rem;
+    margin-top: auto;
+    box-shadow: 0 8px 22px rgba(37, 99, 235, 0.32);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  }
+  .llm-card .btn-buy:hover {
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 12px 28px rgba(37, 99, 235, 0.38);
+    filter: brightness(1.05);
+  }
+  .llm-card .btn-buy:focus-visible {
+    outline: 2px solid var(--llm-brand);
+    outline-offset: 3px;
+  }
+  .llm-card.is-featured .btn-buy {
+    background: linear-gradient(135deg, #1d4ed8 0%, var(--llm-accent) 100%);
+    box-shadow: 0 10px 26px rgba(124, 58, 237, 0.35);
+  }
+  .llm-card.is-featured .btn-buy:hover {
+    box-shadow: 0 14px 32px rgba(124, 58, 237, 0.42);
+  }
+  .llm-foot {
+    margin-top: 36px;
+    text-align: center;
+  }
+  .llm-note {
+    display: inline-block;
+     color: var(--llm-muted);
+    font-size: 0.9rem;
+    line-height: 1.55;
+    margin: 0;
+      border-radius: 14px;
+      backdrop-filter: blur(6px);
+  }
+  .llm-fx-note {
+    max-width: 720px;
+    margin: 20px auto 0;
+    padding: 14px 18px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(37, 99, 235, 0.15);
+    color: #475569;
+    font-size: 0.88rem;
+    text-align: left;
+    line-height: 1.5;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+  }
+</style>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof window.showFooterAfterContent === 'function') {
+      window.showFooterAfterContent();
+    }
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+<section class="llm-tokens-section ">
+  <div class="container py-4">
+    <div class="llm-hero">
+      <div class="llm-hero__eyebrow">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <linearGradient id="llmEyebrowCoinFace" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#fff9db"/>
+              <stop offset="45%" stop-color="#fbbf24"/>
+              <stop offset="100%" stop-color="#b45309"/>
+            </linearGradient>
+            <linearGradient id="llmEyebrowCoinRim" x1="0%" y1="50%" x2="100%" y2="50%">
+              <stop offset="0%" stop-color="#92400e"/>
+              <stop offset="50%" stop-color="#fde68a"/>
+              <stop offset="100%" stop-color="#78350f"/>
+            </linearGradient>
+            <radialGradient id="llmEyebrowCoinShine" cx="30%" cy="28%" r="65%">
+              <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85"/>
+              <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <circle cx="12" cy="12" r="10.5" fill="url(#llmEyebrowCoinRim)"/>
+          <circle cx="12" cy="12" r="9" fill="url(#llmEyebrowCoinFace)"/>
+          <circle cx="12" cy="12" r="9" fill="url(#llmEyebrowCoinShine)"/>
+          <circle cx="12" cy="12" r="7.2" fill="none" stroke="#f59e0b" stroke-width="0.75" opacity="0.55"/>
+          <text x="12" y="13.6" text-anchor="middle" font-size="5.5" font-weight="800" fill="#92400e" font-family="DM Sans, system-ui, sans-serif">AI</text>
+        </svg>
+        AI credits
+      </div>
+      <h1>Pick AI help that <span>matches your goal</span></h1>
+      <p>Choose a pack by what you want to do — build a resume, ask the AI tutor, or both. No subscription lock-in.</p>
+      {% if feature_quota %}
+      <div class="llm-feature-quota">
+        <span>AI resumes left: {{ feature_quota.resume_creates_remaining if feature_quota.resume_creates_remaining is not none else '—' }}</span>
+        <span>AI edits left: {{ feature_quota.resume_ai_remaining if feature_quota.resume_ai_remaining is not none else '—' }}</span>
+      </div>
+      {% endif %}
+      {% if show_exchange_rate and rate_display %}
+      <div class="llm-fx-rate">Current rate: {{ rate_display }}</div>
+      {% endif %}
+    </div>
+
+    {% if packages %}
+    <div class="llm-grid">
+      {% for pkg in packages %}
+      {% set pricing = package_pricing.get(pkg.id) %}
+      {% set uses = pkg.get_usage_examples_list() %}
+      {% set is_active = active_package_id and pkg.id == active_package_id %}
+      {% set code_l = (pkg.code or '')|lower %}
+      {% set name_l = (pkg.name or '')|lower %}
+      {% set is_free_starter = code_l in ['test-spark', 'testspark', 'test_spark'] or name_l == 'test spark' %}
+      <article class="llm-card{% if is_active %} is-active{% elif pkg.is_featured %} is-featured{% endif %}">
+        {% if is_active %}
+        <span class="llm-badge is-active-badge">Active</span>
+        {% elif pkg.badge_label %}
+        <span class="llm-badge">{{ pkg.badge_label }}</span>
+        {% endif %}
+        <h2>{{ pkg.name }}</h2>
+        {% if pkg.tagline %}<p class="tagline">{{ pkg.tagline }}</p>{% endif %}
+        {% if uses %}
+        <ul class="llm-uses">
+          {% for line in uses %}
+          <li>{{ line }}</li>
+          {% endfor %}
+        </ul>
+        {% elif is_free_starter %}
+        <ul class="llm-uses">
+          <li>1 AI resume</li>
+          <li>2 AI edits</li>
+          <li>Included free for students &amp; parents</li>
+        </ul>
+        {% elif pkg.description %}
+        <p class="tagline">{{ pkg.description }}</p>
+        {% endif %}
+        <div class="llm-price-block">
+        {% if is_free_starter %}
+        <div class="price">₹ 0</div>
+        <div class="price-usd">Free starter allowance</div>
+        {% else %}
+        {% if pricing and pricing.show_price_inr and pricing.amount_inr_display %}
+        <div class="price">{{ pricing.amount_inr_display }}</div>
+        {% elif show_price_inr %}
+        <div class="price">{{ pkg.get_display_price() }}</div>
+        {% endif %}
+        {% if pricing and (pricing.show_price_usd or pricing.show_exchange_rate) %}
+        <div class="price-usd">
+          {% if pricing.show_price_usd and pricing.price_usd_display %}{{ pricing.price_usd_display }}{% endif %}
+          {% if pricing.show_price_usd and pricing.show_exchange_rate and pricing.price_usd_display and pricing.rate_display %} · {% endif %}
+          {% if pricing.show_exchange_rate and pricing.rate_display %}{{ pricing.rate_display }}{% endif %}
+        </div>
+        {% endif %}
+        {% endif %}
+        </div>
+        {% if is_active %}
+        <span class="btn-active">Active package</span>
+        {% elif is_free_starter %}
+        <span class="btn-active">Included free</span>
+        {% else %}
+        <a class="btn-buy" href="{{ url('core:llm_package_checkout', kwargs={'code': pkg.code}) }}">Buy {{ pkg.name }}</a>
+        {% endif %}
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-center text-muted">No AI packages are available yet. Please check back soon.</p>
+    {% endif %}
+
+    <div class="llm-foot">
+      {% if show_conversion_note and conversion_note %}
+      <div class="llm-fx-note">{{ conversion_note }}</div>
+      {% endif %}
+      <p class="llm-note">One wallet powers resume AI, tutor chat, career search AI, and more. Use what you buy anytime.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}

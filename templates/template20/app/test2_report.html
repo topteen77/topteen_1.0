@@ -1,6 +1,6 @@
 {% extends 'template20/logged-in-base.html' %}
 
-{% block title_content %}Career Interest Assessment Report | Top Teen{% endblock %}
+{% block title_content %}Career Interest Assessment Report | TopTeen{% endblock %}
 {% block description_content %}View your Career Interest Assessment report.{% endblock %}
 
 {% block chatbot %}{% endblock %}
@@ -8,7 +8,7 @@
 {% block chatbot_js %}{% endblock %}
 {% block footer_cta %}{% endblock %}
 
-{% block bodyclass %}{{ super() }} report-page{% endblock %}
+{% block bodyclass %}{{ super() }} report-page cb-standalone-report-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
@@ -245,6 +245,18 @@
 	/* font-size: 26px !important; */
 }
 
+
+@media (max-width: 991.98px) {
+.footer-main.border-bottom-t {
+  display: none;
+}
+
+.report-container {
+       margin: 0px auto ;
+  }
+
+}
+
 </style>
 {% endblock %}
 
@@ -278,7 +290,7 @@
 
     <div class="riasec-mini-card0-list">
 
-    <div class="test-title" style="color:#000; font-size:16px; font-weight: 600; margin-top: 5px; width:600px;">
+    <div class="test-title" style="color:#000; font-size:16px; font-weight: 600; margin-top: 5px; width:100%; max-width:600px;">
       Your Dominant Interest {% if dominant_interest_tied %}areas are{% else %}area is{% endif %}:
     </div>
     {% if dominant_interest_labels %}
@@ -306,7 +318,7 @@
   {% if user_name and user_ID %}
   <div class="chapterPage">
     <div class="graph">
-      <img style="width:550px;" src="{{ graph_image_media_url(user_name, user_ID, 'interest') }}" alt="graph" />
+      <img style="width:100%; max-width:550px;" src="{{ graph_image_media_url(user_name, user_ID, 'interest') }}" alt="graph" />
     </div>
 
     <!-- Next Steps -->
@@ -352,11 +364,23 @@
     {% else %}
       {% set pdf_url = url('app:test2_report_pdf') %}
     {% endif %}
-    <a href="{{ pdf_url }}" class="sticky-download-btn">
-      <i class="fas fa-download"></i> Download PDF
+    <a href="{{ pdf_url }}"
+       class="sticky-download-btn js-report-pdf-btn is-preparing"
+       data-pdf-url="{{ pdf_url }}"
+       data-label-default="Download PDF"
+       data-label-preparing="Preparing PDF…"
+       aria-disabled="true"
+       aria-busy="true"
+       tabindex="-1">
+      <i class="fas fa-download"></i> Preparing PDF…
     </a>
   </div>
   {% endif %}
 </div>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+{% include 'template20/app/partials/report_pdf_async_download.html' %}
 {% endblock %}
 

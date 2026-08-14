@@ -73,6 +73,34 @@
             cancelButton: 'parent-swal-cancel'
           }
         });
+      },
+      confirmDeleteNote: function (noteLabel) {
+        if (typeof Swal === 'undefined') {
+          return Promise.resolve({ isConfirmed: window.confirm('Delete this note?') });
+        }
+        var safeLabel = escapeHtml(noteLabel || '');
+        var detail = safeLabel
+          ? '<p class="parent-swal-html mt-2 mb-0">“<strong style="color:#1f2937;">' + safeLabel + '</strong>” will be permanently removed.</p>'
+          : '<p class="parent-swal-html mt-2 mb-0">This note will be permanently removed.</p>';
+        return Swal.fire({
+          title: 'Delete this note?',
+          html: 'You can’t undo this action.' + detail,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Delete note',
+          cancelButtonText: 'Keep note',
+          confirmButtonColor: '#dc2626',
+          cancelButtonColor: '#94a3b8',
+          reverseButtons: true,
+          focusCancel: true,
+          customClass: {
+            popup: 'parent-swal-popup',
+            title: 'parent-swal-title',
+            htmlContainer: 'parent-swal-html',
+            confirmButton: 'parent-swal-confirm',
+            cancelButton: 'parent-swal-cancel'
+          }
+        });
       }
     };
   })();

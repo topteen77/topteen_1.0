@@ -1,12 +1,15 @@
 {% extends 'template20/user/student_base.html' %}
 
-{% block title_content %}{% if note.id %}Edit Note{% else %}Create Note{% endif %} | Top Teen{% endblock %}
+{% block title_content %}{% if note.id %}Edit Note{% else %}Create Note{% endif %} | TopTeen{% endblock %}
 {% block description_content %}Create or edit your note to keep track of your thoughts and reminders.{% endblock %}
 
 {% block student_bodyclass %}create-note-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
+{% if is_parent_shell|default(false) %}
+<link rel="stylesheet" href="{{ static('css/parent-sidebar.css') }}">
+{% endif %}
 <style>
   .create-note-page {
     padding-top: 47px;
@@ -106,6 +109,40 @@
 	padding: 0px;
 }
 
+  .note-content-wrap {
+    position: relative;
+  }
+  .note-content-wrap .note-content-textarea {
+    padding-right: 52px;
+  }
+  .note-mic-btn {
+    position: absolute;
+    right: 0;
+    bottom: 8px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid #d6ddf6;
+    background: #fff;
+    color: #4f46e5;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    z-index: 2;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .note-mic-btn:hover { background: rgba(79, 70, 229, 0.08); }
+  .note-mic-btn.is-listening {
+    color: #fff;
+    background: #4f46e5;
+    border-color: #4f46e5;
+  }
+  .note-content-textarea.is-speech-listening {
+    border-bottom-color: #5d3fd3;
+  }
+
   
 </style>
 {% endblock %}
@@ -113,6 +150,30 @@
 {% block student_shell_vars %}
 {{ super() }}
 {% set student_shell_subtitle = 'Note' %}
+{% endblock %}
+
+{% block student_shell_topbar %}
+{% if is_parent_shell|default(false) %}
+{% include "template20/parents/includes/parent_shell_topbar.html" %}
+{% else %}
+{{ super() }}
+{% endif %}
+{% endblock %}
+
+{% block student_sidebar %}
+{% if is_parent_shell|default(false) %}
+{% include "template20/parents/includes/parent_sidebar.html" %}
+{% else %}
+{{ super() }}
+{% endif %}
+{% endblock %}
+
+{% block student_shell_offcanvas %}
+{% if is_parent_shell|default(false) %}
+{% include "template20/parents/includes/parent_offcanvas.html" %}
+{% else %}
+{{ super() }}
+{% endif %}
 {% endblock %}
 
 {% block student_section_class %}create-note-page std-shell-main{% endblock %}
@@ -157,11 +218,19 @@
                id="noteTitle" />
       </div>
 
-      <div class="mt-3 note-field">
+      <div class="mt-3 note-field note-content-wrap{% if enable_voice_to_text|default(true) %} tt-speech-wrap{% endif %}">
         <textarea name="content" 
                   id="noteContent"
                   class="note-content-textarea" 
-                  placeholder="Tap here to continue...">{% if note.content %}{{ note.content }}{% endif %}</textarea>
+                  placeholder="{% if enable_voice_to_text|default(true) %}Tap here to continue… or use the mic to speak{% else %}Tap here to continue…{% endif %}"
+                  {% if enable_voice_to_text|default(true) %}data-tt-speech="text"{% endif %}>{% if note.content %}{{ note.content }}{% endif %}</textarea>
+        {% if enable_voice_to_text|default(true) %}
+        <button type="button" class="btn note-mic-btn student-popup-mic tt-speech-mic" id="noteContentMic" hidden
+          title="Speak to write"
+          aria-label="Speak to write" aria-pressed="false" aria-hidden="true">
+          <i class='bx bx-microphone' aria-hidden="true"></i>
+        </button>
+        {% endif %}
       </div>
     </form>
 
@@ -180,8 +249,24 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{% if enable_voice_to_text|default(true) %}
+<script src="{{ static('js_new/tt-speech-input.js') }}?v=20260806-speech11"></script>
 
 <script>
+  // Voice-to-text on note body (same Web Speech approach as parent notebook)
+  document.addEventListener('DOMContentLoaded', function () {
+    var ta = document.getElementById('noteContent');
+    var mic = document.getElementById('noteContentMic');
+    if (!ta || !mic || !window.TTSpeechInput) return;
+    if (window.TTSpeechInput.voiceFeatureEnabled && !window.TTSpeechInput.voiceFeatureEnabled()) return;
+    try {
+      window.TTSpeechInput.bind(ta, { mode: 'text', micBtn: mic });
+    } catch (e) {}
+  });
+</script>
+{% endif %}
+<script>
+
   // Sweet Alert Helper
   const fireAlert = async function (
     title,

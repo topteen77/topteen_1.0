@@ -1,0 +1,541 @@
+{% extends "template20/loan_desk/base.html" %}
+{% block title %}{{ page_title }} · Loan Desk{% endblock %}
+{% block content %}
+{% set queue_labels = {
+  'not_started': 'Not started',
+  'new': 'Not started',
+  'not_followed_up': 'Not followed up',
+  'today': 'Today follow-up',
+  'missed_yesterday': 'Missed yesterday',
+  'pending': 'In progress',
+  'qualified': 'Qualified',
+  'not_qualified': 'Not qualified',
+  'unassigned': 'Unassigned',
+  'all': 'Total leads'
+} %}
+{% set queue_hints = {
+  'not_started': 'New enquiries — no desk work started yet.',
+  'new': 'New enquiries — no desk work started yet.',
+  'not_followed_up': 'In pipeline, but no follow-up has been logged yet.',
+  'today': 'Follow-ups and callbacks due today (still open).',
+  'missed_yesterday': 'Follow-ups that were due yesterday and are still open.',
+  'pending': 'Callback, in progress, and follow-up statuses.',
+  'qualified': 'Leads marked qualified for bank handoff.',
+  'not_qualified': 'Leads marked not qualified.',
+  'unassigned': 'Open leads with no owner.',
+  'all': 'Every unique lead in your scope (all statuses).'
+} %}
+<div class="ld-page-head">
+  <div>
+    <h1>{% if search_q %}Search clients{% else %}{{ queue_labels.get(queue, 'Loan Desk') }}{% endif %}</h1>
+    <p class="ld-page-sub">
+      {% if search_q %}
+      Results for “{{ search_q }}” · {{ applications|length }} on this page
+      {% else %}
+      {{ queue_hints.get(queue, 'Work your queue — call, follow up, then qualify.') }}
+      {% endif %}
+    </p>
+  </div>
+  {% if queue == 'all' and not search_q %}
+  <form method="get" class="d-flex gap-2 align-items-center">
+    <input type="hidden" name="queue" value="all">
+    <select name="status" class="form-select form-select-sm" style="width:auto;border-radius:10px;" onchange="this.form.submit()">
+      <option value="">All statuses</option>
+      {% for val, label in status_choices %}
+        {% if val != 0 %}
+        <option value="{{ val }}" {% if filter_status == (val|string) %}selected{% endif %}>{{ label }}</option>
+        {% endif %}
+      {% endfor %}
+    </select>
+  </form>
+  {% endif %}
+</div>
+
+<form class="ld-search-bar" method="get" action="{{ url('loan_desk:home') }}" role="search">
+  <div class="ld-search-row">
+    <i class='bx bx-search'></i>
+    <input type="search" name="q" value="{{ search_q or '' }}" placeholder="Search client by name, mobile, email, institute…" autocomplete="off">
+  </div>
+  <button type="submit" class="ld-btn"><i class='bx bx-search'></i> Search</button>
+  {% if search_q %}
+  <a class="ld-btn ld-btn-outline" href="{{ url('loan_desk:home') }}?queue=all">Clear</a>
+  {% endif %}
+</form>
+
+<div class="ld-kpi-row ld-kpi-row-4">
+  <a class="ld-kpi{% if queue == 'all' %} is-active{% endif %}" href="{{ url('loan_desk:home') }}?queue=all">
+    <span class="ld-kpi-label">Total</span>
+    <span class="ld-kpi-value">{{ queue_counts.total }}</span>
+  </a>
+  <a class="ld-kpi{% if queue == 'not_started' %} is-active{% endif %}" href="{{ url('loan_desk:home') }}?queue=not_started">
+    <span class="ld-kpi-label">Not started</span>
+    <span class="ld-kpi-value">{{ queue_counts.not_started }}</span>
+  </a>
+  <a class="ld-kpi{% if queue == 'today' %} is-active{% endif %}" href="{{ url('loan_desk:home') }}?queue=today">
+    <span class="ld-kpi-label">Today</span>
+    <span class="ld-kpi-value">{{ queue_counts.today }}</span>
+  </a>
+  <a class="ld-kpi{% if queue == 'missed_yesterday' %} is-active{% endif %}" href="{{ url('loan_desk:home') }}?queue=missed_yesterday">
+    <span class="ld-kpi-label">Missed</span>
+    <span class="ld-kpi-value">{{ queue_counts.missed_yesterday }}</span>
+  </a>
+</div>
+
+<nav class="ld-queues" aria-label="Enquiry queues">
+  <a class="ld-queue-tab{% if queue == 'all' %} active{% endif %}" href="{{ url('loan_desk:home') }}?queue=all">
+    Total <span class="ld-count">{{ queue_counts.total }}</span>
+  </a>
+  <a class="ld-queue-tab{% if queue == 'not_started' %} active{% endif %}" href="{{ url('loan_desk:home') }}?queue=not_started">
+    Not started <span class="ld-count">{{ queue_counts.not_started }}</span>
+  </a>
+  <a class="ld-queue-tab{% if queue == 'not_followed_up' %} active{% endif %}" href="{{ url('loan_desk:home') }}?queue=not_followed_up">
+    Not followed up <span class="ld-count">{{ queue_counts.not_followed_up }}</span>
+  </a>
+  <a class="ld-queue-tab{% if queue == 'today' %} active{% endif %}" href="{{ url('loan_desk:home') }}?queue=today">
+    Today <span class="ld-count">{{ queue_counts.today }}</span>
+  </a>
+  <a class="ld-queue-tab{% if queue == 'missed_yesterday' %} active{% endif %}" href="{{ url('loan_desk:home') }}?queue=missed_yesterday">
+    Missed yesterday <span class="ld-count">{{ queue_counts.missed_yesterday }}</span>
+  </a>
+  <a class="ld-queue-tab{% if queue == 'qualified' %} active{% endif %}" href="{{ url('loan_desk:home') }}?queue=qualified">
+    Qualified <span class="ld-count">{{ queue_counts.qualified }}</span>
+  </a>
+  <a class="ld-queue-tab{% if queue == 'not_qualified' %} active{% endif %}" href="{{ url('loan_desk:home') }}?queue=not_qualified">
+    Not qualified <span class="ld-count">{{ queue_counts.not_qualified }}</span>
+  </a>
+  <a class="ld-queue-tab{% if queue == 'pending' %} active{% endif %}" href="{{ url('loan_desk:home') }}?queue=pending">
+    In progress <span class="ld-count">{{ queue_counts.pending }}</span>
+  </a>
+</nav>
+
+{% if not applications %}
+<div class="ld-card ld-empty">
+  <i class='bx bx-folder-open'></i>
+  <h3>Queue is clear</h3>
+  <p class="ld-meta mb-0">No enquiries in {{ queue_labels.get(queue, 'this queue')|lower }}.</p>
+</div>
+{% endif %}
+
+{% for app in applications %}
+{% set can_follow_up = app.status in open_statuses %}
+<article class="ld-card ld-lead{% if queue in ('today', 'missed_yesterday') %} ld-lead-followup{% endif %}{% if not app.assigned_to_id and is_manager %} ld-card-unassigned{% endif %}">
+  <div class="ld-lead-top">
+    <div>
+      <div class="ld-lead-id">#{{ app.id }}{% if app.mobile %} · {{ app.mobile }}{% endif %}</div>
+      <h2 class="ld-lead-title">
+        <a href="{{ url('loan_desk:detail', args=[app.id]) }}">{{ app.student_name or 'Student' }}</a>
+      </h2>
+      {% if app.parent_name or app.email %}
+      <p class="ld-meta mb-0" style="margin-top:4px;">
+        {% if app.parent_name %}{{ app.parent_name }}{% endif %}
+        {% if app.parent_name and app.email %} · {% endif %}
+        {% if app.email %}<span class="ld-lead-email">{{ app.email }}</span>{% endif %}
+      </p>
+      {% endif %}
+    </div>
+    <div class="text-end">
+      {% set st = app.status %}
+      <span class="ld-badge
+        {% if st == 1 %}ld-badge-new
+        {% elif st in (2,3,4) %}ld-badge-pending
+        {% elif st == 6 %}ld-badge-ok
+        {% elif st == 7 %}ld-badge-bad
+        {% elif st == 5 %}ld-badge-closed
+        {% endif %}">{{ app.get_status_display() }}</span>
+      {% if app.is_reenquired %}
+      <div class="mt-1">
+        <span class="ld-chip ld-chip-warn">Re-enquired{% if app.enquiry_count and app.enquiry_count > 1 %} · {{ app.enquiry_count }}x{% endif %}</span>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if app.follow_up_when_label or app.follow_up_label %}
+  <div class="ld-followup-callout{% if queue == 'missed_yesterday' %} is-missed{% elif queue == 'today' %} is-today{% endif %}">
+    <div class="ld-followup-what">
+      <i class='bx {% if app.follow_up_action and app.follow_up_action.kind == 'callback' %}bx-phone-call{% else %}bx-calendar-check{% endif %}'></i>
+      <strong>What:</strong> {{ app.follow_up_label or 'Call lead' }}
+    </div>
+    <div class="ld-followup-when">
+      <strong>When:</strong>
+      {% if app.follow_up_when_label %}
+        {{ app.follow_up_when_label }}
+      {% else %}
+        Not scheduled — call now
+      {% endif %}
+    </div>
+    {% if app.follow_up_note %}
+    <div class="ld-followup-note"><strong>Note:</strong> {{ app.follow_up_note }}</div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <dl class="ld-loan-details">
+    {% if app.email %}
+    <div>
+      <dt>Email</dt>
+      <dd>{{ app.email }}</dd>
+    </div>
+    {% endif %}
+    <div>
+      <dt>Loan amount</dt>
+      <dd>{% if app.loan_amount %}₹{{ '{:,.0f}'.format(app.loan_amount|float) }}{% else %}Not set{% endif %}</dd>
+    </div>
+    <div>
+      <dt>Institute</dt>
+      <dd>{{ app.institute_name or '—' }}</dd>
+    </div>
+    {% if app.course_name %}
+    <div>
+      <dt>Course</dt>
+      <dd>{{ app.course_name }}</dd>
+    </div>
+    {% endif %}
+    {% if app.country_preference %}
+    <div>
+      <dt>Country</dt>
+      <dd>{{ app.country_preference }}</dd>
+    </div>
+    {% endif %}
+  </dl>
+
+  <div class="ld-call-notes">
+    <div class="ld-call-notes-head">
+      <i class='bx bx-message-detail'></i>
+      Previous call comments
+      {% if app.recent_remark_count and app.recent_remark_count > 0 %}
+      <span class="ld-count">{{ app.recent_remark_count }}</span>
+      {% endif %}
+    </div>
+    {% if app.recent_remarks %}
+      {% for note in app.recent_remarks %}
+      <div class="ld-call-note">
+        <div class="ld-call-note-meta">
+          {{ note.when_label }}
+          {% if note.author %} · {{ note.author }}{% endif %}
+          {% if note.is_prior_enquiry %} · prior enquiry{% endif %}
+        </div>
+        {% if note.call_outcome_label %}
+        <div class="mb-1">
+          <span class="ld-chip {% if note.call_outcome == 'connected' %}ld-chip-ok{% else %}ld-chip-warn{% endif %}">{{ note.call_outcome_label }}</span>
+        </div>
+        {% endif %}
+        {% if note.body %}
+        <div class="ld-call-note-body">{{ note.body }}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+      {% if app.recent_remark_count and app.recent_remark_count > app.recent_remarks|length %}
+      <div class="ld-meta mt-1"><a href="{{ url('loan_desk:detail', args=[app.id]) }}">Open lead for full history</a></div>
+      {% endif %}
+    {% else %}
+      <p class="ld-meta mb-0">No call comments yet — add notes after this call.</p>
+    {% endif %}
+  </div>
+
+  <div class="d-flex flex-wrap gap-1 mt-2">
+    {% if not app.assigned_to_id %}
+    <span class="ld-chip ld-chip-warn">Unassigned</span>
+    {% endif %}
+    {% if app.assigned_to_id %}
+    <span class="ld-chip"><i class='bx bx-user'></i> {{ app.lead_follow_username }}</span>
+    {% endif %}
+    {% if app.bank_email_status == bank_email_sent %}
+    <span class="ld-chip ld-chip-ok">Email sent</span>
+    {% elif app.bank_email_status == bank_email_error %}
+    <span class="ld-chip ld-chip-err">Email error</span>
+    {% endif %}
+    {% if app.crm_sync_status == crm_success %}
+    <span class="ld-chip ld-chip-ok">API ok</span>
+    {% elif app.crm_sync_status == crm_error %}
+    <span class="ld-chip ld-chip-err">API error</span>
+    {% endif %}
+  </div>
+
+  <div class="ld-lead-actions">
+    {% if app.whatsapp_url %}
+    <a class="ld-btn ld-btn-outline" href="{{ app.whatsapp_url }}" target="_blank" rel="noopener noreferrer"><i class='bx bxl-whatsapp'></i> Call</a>
+    {% elif app.mobile %}
+    <a class="ld-btn ld-btn-outline" href="tel:{{ app.mobile }}"><i class='bx bx-phone'></i> Call</a>
+    {% endif %}
+    <a class="ld-btn ld-btn-soft" href="{{ url('loan_desk:detail', args=[app.id]) }}"><i class='bx bx-show'></i> Open</a>
+    {% if can_follow_up %}
+    <button type="button" class="ld-btn" data-ld-followup-toggle aria-expanded="false">
+      <i class='bx bx-check-circle'></i> Follow up
+    </button>
+    {% endif %}
+  </div>
+
+  {% if can_follow_up %}
+  <form method="post" action="{{ url('loan_desk:detail', args=[app.id]) }}" class="ld-inline-followup" hidden novalidate>
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+    <input type="hidden" name="action" value="log_follow_up">
+    <input type="hidden" name="next" value="{{ queue_return_url }}">
+    <h3 class="ld-section-title">Log this follow-up</h3>
+    <div class="ld-field mb-2">
+      <span class="ld-field-label">Call status</span>
+      <div class="ld-outcome-row" role="radiogroup" aria-label="Call status">
+        <label class="ld-outcome-opt">
+          <input type="radio" name="call_outcome" value="connected" required>
+          <span>Call connected</span>
+        </label>
+        <label class="ld-outcome-opt">
+          <input type="radio" name="call_outcome" value="not_connected" required>
+          <span>Call not connected</span>
+        </label>
+      </div>
+      <div class="ld-field-error" data-error-for="call_outcome"></div>
+    </div>
+    <div class="ld-field mb-2">
+      <label for="body_{{ app.id }}">Call notes</label>
+      <textarea id="body_{{ app.id }}" name="body" rows="3" required minlength="3" maxlength="5000" placeholder="What did you discuss? What’s next?"></textarea>
+      <div class="ld-field-error"></div>
+    </div>
+    <div class="ld-field mb-2">
+      <span class="ld-field-label">Next follow-up <span class="ld-meta">(optional)</span></span>
+      <div class="ld-dt-picker" data-ld-dt-picker>
+        <input type="hidden" name="next_follow_up_at" value="">
+        <button type="button" class="ld-dt-toggle is-placeholder" data-ld-dt-toggle aria-expanded="false">
+          <span data-ld-dt-label>Select date &amp; time</span>
+          <i class='bx bx-calendar'></i>
+        </button>
+        <div class="ld-dt-panel" data-ld-dt-panel hidden>
+          <div class="ld-dt-grid">
+            <div class="ld-field mb-0">
+              <label>Date</label>
+              <input type="date" data-ld-dt-date>
+            </div>
+            <div class="ld-field mb-0">
+              <label>Time</label>
+              <input type="time" data-ld-dt-time>
+            </div>
+          </div>
+          <div class="ld-dt-actions">
+            <button type="button" class="ld-btn ld-btn-outline" data-ld-dt-clear>Clear</button>
+            <button type="button" class="ld-btn" data-ld-dt-set><i class='bx bx-check'></i> Set</button>
+          </div>
+        </div>
+      </div>
+      <div class="ld-field-error" data-error-for="next_follow_up_at"></div>
+    </div>
+    <div class="ld-btn-row">
+      <button type="submit" class="ld-btn"><i class='bx bx-check'></i> Save follow-up</button>
+      <button type="button" class="ld-btn ld-btn-outline" data-ld-followup-cancel>Cancel</button>
+    </div>
+  </form>
+  {% endif %}
+</article>
+{% endfor %}
+
+{% if page_obj and page_obj.paginator.num_pages > 1 %}
+<nav class="d-flex justify-content-between align-items-center mt-2 mb-3">
+  {% if page_obj.has_previous() %}
+  <a class="ld-btn ld-btn-outline" href="?queue={{ queue }}&page={{ page_obj.previous_page_number }}{% if filter_status %}&status={{ filter_status }}{% endif %}">Previous</a>
+  {% else %}
+  <span></span>
+  {% endif %}
+  <span class="ld-meta">Page {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next() %}
+  <a class="ld-btn ld-btn-outline" href="?queue={{ queue }}&page={{ page_obj.next_page_number }}{% if filter_status %}&status={{ filter_status }}{% endif %}">Next</a>
+  {% else %}
+  <span></span>
+  {% endif %}
+</nav>
+{% endif %}
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function toDateValue(d) {
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+  function toTimeValue(d) {
+    return pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+  function formatDisplay(raw) {
+    if (!raw) return 'Select date & time';
+    var parsed = new Date(raw);
+    if (isNaN(parsed.getTime())) return raw;
+    return parsed.toLocaleString('en-IN', {
+      day: 'numeric', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
+  function setFieldError(fieldWrap, message) {
+    if (!fieldWrap) return;
+    fieldWrap.classList.toggle('is-invalid', !!message);
+    var err = fieldWrap.querySelector('.ld-field-error');
+    if (err) err.textContent = message || '';
+  }
+
+  function initDtPicker(root) {
+    if (!root || root._ldReady) return;
+    root._ldReady = true;
+    var hidden = root.querySelector('input[name="next_follow_up_at"]');
+    var toggle = root.querySelector('[data-ld-dt-toggle]');
+    var panel = root.querySelector('[data-ld-dt-panel]');
+    var label = root.querySelector('[data-ld-dt-label]');
+    var dateInput = root.querySelector('[data-ld-dt-date]');
+    var timeInput = root.querySelector('[data-ld-dt-time]');
+    var clearBtn = root.querySelector('[data-ld-dt-clear]');
+    var setBtn = root.querySelector('[data-ld-dt-set]');
+    var fieldWrap = root.closest('.ld-field');
+
+    function applyMinNow() {
+      var now = new Date();
+      if (dateInput) dateInput.min = toDateValue(now);
+      if (timeInput && dateInput && dateInput.value === toDateValue(now)) {
+        timeInput.min = toTimeValue(now);
+      } else if (timeInput) {
+        timeInput.removeAttribute('min');
+      }
+    }
+    function syncDisplay() {
+      var raw = (hidden && hidden.value) || '';
+      if (label) label.textContent = formatDisplay(raw);
+      if (toggle) toggle.classList.toggle('is-placeholder', !raw);
+    }
+    function setOpen(open) {
+      if (!panel || !toggle) return;
+      panel.hidden = !open;
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) {
+        applyMinNow();
+        var raw = (hidden && hidden.value) || '';
+        if (raw) {
+          var parsed = new Date(raw);
+          if (!isNaN(parsed.getTime())) {
+            if (dateInput) dateInput.value = toDateValue(parsed);
+            if (timeInput) timeInput.value = toTimeValue(parsed);
+          }
+        } else {
+          var soon = new Date(Date.now() + 60 * 60 * 1000);
+          if (dateInput && !dateInput.value) dateInput.value = toDateValue(soon);
+          if (timeInput && !timeInput.value) timeInput.value = toTimeValue(soon);
+        }
+      }
+    }
+    function clearValue() {
+      if (hidden) hidden.value = '';
+      if (dateInput) dateInput.value = '';
+      if (timeInput) timeInput.value = '';
+      setFieldError(fieldWrap, '');
+      syncDisplay();
+      setOpen(false);
+    }
+    function setValue() {
+      applyMinNow();
+      var dateVal = (dateInput && dateInput.value) || '';
+      var timeVal = (timeInput && timeInput.value) || '';
+      if (!dateVal || !timeVal) {
+        setFieldError(fieldWrap, 'Choose both a date and a time, then press Set.');
+        return false;
+      }
+      var combined = dateVal + 'T' + timeVal;
+      var parsed = new Date(combined);
+      if (isNaN(parsed.getTime())) {
+        setFieldError(fieldWrap, 'Enter a valid date and time.');
+        return false;
+      }
+      if (parsed.getTime() < Date.now() - 60000) {
+        setFieldError(fieldWrap, 'Next follow-up must be from now onwards.');
+        return false;
+      }
+      if (hidden) hidden.value = combined;
+      setFieldError(fieldWrap, '');
+      syncDisplay();
+      setOpen(false);
+      return true;
+    }
+
+    if (toggle) {
+      toggle.addEventListener('click', function () {
+        setOpen(panel && panel.hidden);
+      });
+    }
+    if (clearBtn) clearBtn.addEventListener('click', clearValue);
+    if (setBtn) setBtn.addEventListener('click', setValue);
+    if (dateInput) dateInput.addEventListener('change', applyMinNow);
+    syncDisplay();
+    root._ldSetOpen = setOpen;
+    root._ldApplyMin = applyMinNow;
+  }
+
+  document.querySelectorAll('[data-ld-dt-picker]').forEach(initDtPicker);
+
+  document.querySelectorAll('[data-ld-followup-toggle]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var card = btn.closest('.ld-lead');
+      if (!card) return;
+      var form = card.querySelector('.ld-inline-followup');
+      if (!form) return;
+      var open = form.hasAttribute('hidden');
+      form.hidden = !open;
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) {
+        var picker = form.querySelector('[data-ld-dt-picker]');
+        if (picker) {
+          initDtPicker(picker);
+          if (picker._ldApplyMin) picker._ldApplyMin();
+        }
+        var outcome = form.querySelector('input[name="call_outcome"]');
+        if (outcome) outcome.focus();
+      }
+    });
+  });
+
+  document.querySelectorAll('[data-ld-followup-cancel]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var card = btn.closest('.ld-lead');
+      if (!card) return;
+      var form = card.querySelector('.ld-inline-followup');
+      var toggle = card.querySelector('[data-ld-followup-toggle]');
+      if (form) {
+        var picker = form.querySelector('[data-ld-dt-picker]');
+        if (picker && picker._ldSetOpen) picker._ldSetOpen(false);
+        form.hidden = true;
+      }
+      if (toggle) toggle.setAttribute('aria-expanded', 'false');
+    });
+  });
+
+  document.querySelectorAll('.ld-inline-followup').forEach(function (form) {
+    form.addEventListener('submit', function (e) {
+      var outcome = form.querySelector('input[name="call_outcome"]:checked');
+      var outcomeWrap = form.querySelector('.ld-outcome-row');
+      var outcomeField = outcomeWrap && outcomeWrap.closest('.ld-field');
+      if (!outcome) {
+        e.preventDefault();
+        setFieldError(outcomeField, 'Select whether the call connected.');
+        return;
+      }
+      setFieldError(outcomeField, '');
+
+      var body = form.querySelector('[name="body"]');
+      var bodyField = body && body.closest('.ld-field');
+      var text = (body && body.value || '').trim();
+      if (!text || text.length < 3) {
+        e.preventDefault();
+        setFieldError(bodyField, 'Add call notes (at least 3 characters).');
+        if (body) body.focus();
+        return;
+      }
+      setFieldError(bodyField, '');
+
+      var hidden = form.querySelector('input[name="next_follow_up_at"]');
+      var dtField = form.querySelector('[data-ld-dt-picker]');
+      dtField = dtField && dtField.closest('.ld-field');
+      var raw = (hidden && hidden.value) || '';
+      if (raw) {
+        var when = new Date(raw);
+        if (isNaN(when.getTime()) || when.getTime() < Date.now() - 60000) {
+          e.preventDefault();
+          setFieldError(dtField, 'Next follow-up must be from now onwards. Press Set after choosing date & time.');
+        }
+      }
+    });
+  });
+})();
+</script>
+{% endblock %}

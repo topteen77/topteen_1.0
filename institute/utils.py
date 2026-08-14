@@ -219,37 +219,54 @@ def aggregate_student_career_data(students_queryset, demographic_type='grade'):
     """
     career_clusters = get_career_clusters()
     aggregated_data = {}
+
+    # Materialize once with related rows already loaded by callers.
+    students_list = list(students_queryset)
+    user_ids = [
+        int(sm.student_id)
+        for sm in students_list
+        if getattr(sm, "student_id", None)
+    ]
+
+    # Batch Results — avoid 3×N queries (was ~600 queries for ~200 students).
+    results_by_user = {}
+    if user_ids:
+        for row in Results.objects.filter(
+            user_id__in=user_ids,
+            test_paper__in=["test1", "test2", "test3"],
+        ).only("id", "user_id", "test_paper", "scores", "results"):
+            results_by_user.setdefault(int(row.user_id), {})[row.test_paper] = row
     
-    for student_mgmt in students_queryset:
+    for student_mgmt in students_list:
         student = student_mgmt.student
         if not student:
             continue
+        uid = int(getattr(student, "id", 0) or 0)
+        by_paper = results_by_user.get(uid) or {}
         
         # Get demographic value
+        class_section = student_mgmt.class_and_section
         if demographic_type == 'grade':
             # Extract grade from class_and_section (e.g., "Class 10 A" -> "Class 10")
-            class_section = student_mgmt.class_and_section
             if class_section and class_section.class_and_section:
-                grade = class_section.class_and_section.split()[0] + ' ' + class_section.class_and_section.split()[1] if len(class_section.class_and_section.split()) >= 2 else 'Unknown'
+                parts = class_section.class_and_section.split()
+                grade = (parts[0] + ' ' + parts[1]) if len(parts) >= 2 else 'Unknown'
             else:
                 grade = 'Unknown'
             demographic_key = grade
         elif demographic_type == 'section':
-            class_section = student_mgmt.class_and_section
             label = class_section.class_and_section if class_section and class_section.class_and_section else None
             demographic_key = _extract_section_demographic(label)
         else:  # stream
-            class_section = student_mgmt.class_and_section
             demo_raw = class_section.stream if class_section and class_section.stream else None
             norm = _normalize_stream(demo_raw)
             if not norm:
                 norm = _infer_stream_from_institute(student_mgmt)
             demographic_key = norm if norm else 'Unknown'
         
-        # Get test results
-        test1_result = Results.objects.filter(user=student, test_paper='test1').first()
-        test2_result = Results.objects.filter(user=student, test_paper='test2').first()
-        test3_result = Results.objects.filter(user=student, test_paper='test3').first()
+        test1_result = by_paper.get('test1')
+        test2_result = by_paper.get('test2')
+        test3_result = by_paper.get('test3')
         
         # Calculate metrics
         interest = calculate_interest_level(student, test2_result)
@@ -331,76 +348,22 @@ def get_heatmap_data_for_group(group_admin, group_type='institute', demographic_
         institute_group = InstituteGroup.objects.filter(institute_group_admin=group_admin).first()
         if not institute_group:
             return get_empty_heatmap_data()
-        students = StudentManagement.objects.filter(institute__institute_group=institute_group).select_related(
-            "student", "class_and_section", "institute"
+        students = list(
+            StudentManagement.objects.filter(institute__institute_group=institute_group).select_related(
+                "student", "class_and_section", "institute"
+            )
         )
     else:  # marketing — all students under institutes whose marketing group lists this admin
-        students = StudentManagement.objects.filter(
-            institute__marketing_group__marketing_group_admin=group_admin
-        ).select_related("student", "class_and_section", "institute")
-    
-    # Aggregate data first
-    heatmap_data = aggregate_student_career_data(students, demographic_type)
-    
-    # Extract demographics from the heatmap data (this includes "Unknown" if present)
-    demographics = {
-        'grade': [],
-        'section': [],
-        'stream': []
-    }
-    
-    # Get unique demographics from heatmap data
-    for data in heatmap_data:
-        demo = data.get('demographic', '')
-        if demo and demo not in demographics[demographic_type]:
-            demographics[demographic_type].append(demo)
-    
-    # Also get from students for completeness (in case some students don't have test results)
-    for student_mgmt in students.select_related('class_and_section').distinct():
-        class_section = student_mgmt.class_and_section
-        if demographic_type == 'grade':
-            if class_section and class_section.class_and_section:
-                parts = class_section.class_and_section.split()
-                if len(parts) >= 2:
-                    grade = f"{parts[0]} {parts[1]}"
-                    if grade not in demographics['grade']:
-                        demographics['grade'].append(grade)
-        elif demographic_type == 'section':
-            if class_section and class_section.class_and_section:
-                section = _extract_section_demographic(class_section.class_and_section)
-                if section not in demographics['section']:
-                    demographics['section'].append(section)
-        elif demographic_type == 'stream':
-            raw = class_section.stream if class_section and class_section.stream else None
-            norm = _normalize_stream(raw)
-            if not norm:
-                norm = _infer_stream_from_institute(student_mgmt)
-            if norm and norm not in demographics['stream']:
-                demographics['stream'].append(norm)
-    
-    # Sort demographics (put Unknown at the end)
-    demographics['grade'] = sorted(demographics['grade'], key=lambda x: (
-        int(x.split()[-1]) if x.split()[-1].isdigit() and x != 'Unknown' else 999
-    ))
-    demographics['section'] = sorted(
-        demographics['section'],
-        key=lambda x: (x == 'Section Unknown', x),
+        students = list(
+            StudentManagement.objects.filter(
+                institute__marketing_group__marketing_group_admin=group_admin
+            ).select_related("student", "class_and_section", "institute")
+        )
+
+    return _finalize_heatmap_payload(
+        aggregate_student_career_data(students, demographic_type),
+        demographic_type,
     )
-    demographics['stream'] = sorted(demographics['stream'])
-    
-    # Calculate stats
-    stats = {
-        'highRisk': len([d for d in heatmap_data if d['category'] == 'High Risk']),
-        'aligned': len([d for d in heatmap_data if d['category'] == 'High Alignment']),
-        'avgClarityGap': round(sum(d['clarityGap'] for d in heatmap_data) / len(heatmap_data), 1) if heatmap_data else 0
-    }
-    
-    return {
-        'heatmapData': heatmap_data,
-        'stats': stats,
-        'demographics': demographics,
-        'colorPalette': HEATMAP_CATEGORY_COLORS,
-    }
 
 
 def get_heatmap_data_for_institute(institute, demographic_type='grade'):
@@ -416,58 +379,33 @@ def get_heatmap_data_for_institute(institute, demographic_type='grade'):
     """
     if not institute:
         return get_empty_heatmap_data()
-    
-    students = StudentManagement.objects.filter(institute=institute).select_related(
-        "student", "class_and_section", "institute"
+
+    students = list(
+        StudentManagement.objects.filter(institute=institute).select_related(
+            "student", "class_and_section", "institute"
+        )
     )
-    
-    # Aggregate data first
-    heatmap_data = aggregate_student_career_data(students, demographic_type)
-    
-    # Extract demographics from the heatmap data (this includes "Unknown" if present)
+    return _finalize_heatmap_payload(
+        aggregate_student_career_data(students, demographic_type),
+        demographic_type,
+    )
+
+
+def _finalize_heatmap_payload(heatmap_data, demographic_type='grade'):
+    """Build demographics + stats from aggregated cells (no extra DB pass)."""
     demographics = {
         'grade': [],
         'section': [],
         'stream': []
     }
-    
-    # Get unique demographics from heatmap data - PRIMARY SOURCE
-    # This ensures we get demographics that actually have data
     for data in heatmap_data:
         demo = data.get('demographic', '')
-        # Include even if it's "Unknown" or empty - we'll handle empty separately
-        if demo:  # Non-empty string
+        if demo:
             if demo not in demographics[demographic_type]:
                 demographics[demographic_type].append(demo)
-        elif not demo and heatmap_data:  # If we have data but no demographic, add "Unknown"
-            if 'Unknown' not in demographics[demographic_type]:
-                demographics[demographic_type].append('Unknown')
-    
-    # Also get from students for completeness (in case some students don't have test results)
-    # This helps populate demographics even if they don't have test data yet
-    for student_mgmt in students.select_related('class_and_section').distinct():
-        class_section = student_mgmt.class_and_section
-        if demographic_type == 'grade':
-            if class_section and class_section.class_and_section:
-                parts = class_section.class_and_section.split()
-                if len(parts) >= 2:
-                    grade = f"{parts[0]} {parts[1]}"
-                    if grade not in demographics['grade']:
-                        demographics['grade'].append(grade)
-        elif demographic_type == 'section':
-            if class_section and class_section.class_and_section:
-                section = _extract_section_demographic(class_section.class_and_section)
-                if section not in demographics['section']:
-                    demographics['section'].append(section)
-        elif demographic_type == 'stream':
-            raw = class_section.stream if class_section and class_section.stream else None
-            norm = _normalize_stream(raw)
-            if not norm:
-                norm = _infer_stream_from_institute(student_mgmt)
-            if norm and norm not in demographics['stream']:
-                demographics['stream'].append(norm)
-    
-    # Sort demographics (put Unknown at the end)
+        elif heatmap_data and 'Unknown' not in demographics[demographic_type]:
+            demographics[demographic_type].append('Unknown')
+
     demographics['grade'] = sorted(demographics['grade'], key=lambda x: (
         int(x.split()[-1]) if x.split()[-1].isdigit() and x != 'Unknown' else 999
     ))
@@ -476,14 +414,13 @@ def get_heatmap_data_for_institute(institute, demographic_type='grade'):
         key=lambda x: (x == 'Section Unknown', x),
     )
     demographics['stream'] = sorted(demographics['stream'])
-    
-    # Calculate stats
+
     stats = {
         'highRisk': len([d for d in heatmap_data if d['category'] == 'High Risk']),
         'aligned': len([d for d in heatmap_data if d['category'] == 'High Alignment']),
         'avgClarityGap': round(sum(d['clarityGap'] for d in heatmap_data) / len(heatmap_data), 1) if heatmap_data else 0
     }
-    
+
     return {
         'heatmapData': heatmap_data,
         'stats': stats,

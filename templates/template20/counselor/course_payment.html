@@ -1,7 +1,7 @@
 {% extends 'template20/base.html' %}
 {% set _cp = course_page|default({}) %}
 
-{% block title_content %}{{ _cp.hero_heading|default('Career Counseling Course') }} | Top Teen{% endblock %}
+{% block title_content %}{{ _cp.hero_heading|default('Career Counseling Course') }} | TopTeen{% endblock %}
 {% block description_content %}{{ _cp.hero_description|default('Enroll in the Career Counseling Course and enhance your counseling skills.') }}{% endblock %}
 
 {% block bodyclass %}course-payment-page{% endblock %}
@@ -71,6 +71,7 @@
 {% endblock %}
 
 {% block content %}
+<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 <main class="py-test-page">
   <!-- Hero Section -->
   <section class="hero-section-inner four-pillars-hero-section  position-relative pt-md-3">
@@ -338,13 +339,28 @@
     }
     return cookieValue;
   }
+  function getCsrfToken() {
+    var input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+    if (input && input.value) return input.value;
+    var meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.getAttribute('content')) return meta.getAttribute('content');
+    return getCookie('csrftoken') || '{{ csrf_token }}';
+  }
+  function paymentCsrfHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-CSRFToken': getCsrfToken()
+    };
+  }
   const userAuthenticated = {% if user_authenticated %}true{% else %}false{% endif %};
   const counselorCourseEnrolled = {% if counselor_course_enrolled %}true{% else %}false{% endif %};
   const loginUrl = "{{ url('counselor:login') }}?next=" + encodeURIComponent("{{ (request.get_full_path() if request else url('counselor:CounselorCoursepayment')) }}");
   function capturePaymentStatus(payload) {
     fetch('/user-analytics/api/payment-status/', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      headers: paymentCsrfHeaders(),
       body: JSON.stringify(payload),
       credentials: 'same-origin'
     }).catch(function() {});
@@ -371,13 +387,13 @@
     "key": "{{ key }}",
     "amount": "{{ payment.amount }}",
     "currency": "{{ razorpay_currency|default('INR') }}",
-    "name": "Top Teen",
+    "name": "TopTeen",
     "description": "Career Counseling Course",
     "image": "{% if request %}{{ request.build_absolute_uri(static('images_new/logos/logo.svg')) }}{% endif %}",
     "order_id": "{{ payment.id }}",
     "handler": function (response) {
       const paymentData = { payment_id: {% if payment_record_id %}{{ payment_record_id }}{% else %}0{% endif %}, gateway_payment_id: response.razorpay_payment_id, gateway_order_id: response.razorpay_order_id, gateway_signature: response.razorpay_signature };
-      fetch("{{ url('counselor:update_counselor_course_payment') }}", { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') }, body: JSON.stringify(paymentData) })
+      fetch("{{ url('counselor:update_counselor_course_payment') }}", { method: 'POST', headers: paymentCsrfHeaders(), body: JSON.stringify(paymentData) })
         .then(r => r.json()).then(data => {
           if (data.success) {
             if (data.already_paid) { (typeof Swal !== 'undefined' && Swal.fire({ title: 'Payment Already Processed', icon: 'info', timer: 2000 })); setTimeout(function(){ window.location.href = "{{ counselor_course_payment_success_url|default(url('counselor:counselor_enrolled_course')) }}"; }, 1500); return; }

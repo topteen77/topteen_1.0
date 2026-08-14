@@ -1,22 +1,28 @@
 <div class="section-worksheet" data-activity-id="{{ activity.id }}" data-downloaded="{{ 'true' if downloaded else 'false' }}">
-  <div class="worksheet-card d-flex align-items-center gap-3 p-4 rounded" style="background: #f8f9fa; border-left: 4px solid #5249DF;">
-    <i class='bx bx-download' style="font-size: 2rem; color: #5249DF;"></i>
-    <div class="flex-grow-1">
-      <h4 class="mb-2">{{ activity.name }}</h4>
-      {% if activity.content %}<div class="text-muted small">{{ activity.content|striptags|truncate(120) }}</div>{% endif %}
+  <div class="worksheet-card">
+    <i class='bx bx-download worksheet-card__icon' aria-hidden="true"></i>
+    <div class="worksheet-card__body">
+      <h4 class="worksheet-card__title">{{ activity.name }}</h4>
+      {% if activity.content %}
+      <div class="worksheet-card__desc">{{ activity.content|striptags|truncate(120) }}</div>
+      {% endif %}
     </div>
-    {% if worksheet_download_url %}
-    <a href="{{ worksheet_download_url }}" class="btn-download-worksheet btn-mark-complete" data-activity-id="{{ activity.id }}" target="_blank" rel="noopener" style="text-decoration: none;">
-      <i class='bx bx-download'></i> Download Worksheet
-    </a>
-    {% else %}
-    <button type="button" class="btn-download-worksheet btn-mark-complete" data-activity-id="{{ activity.id }}" style="text-decoration: none; border: none; cursor: pointer;">
-      <i class='bx bx-check'></i> Continue (No file)
-    </button>
-    {% endif %}
+    <div class="worksheet-card__action">
+      {% if downloaded %}
+      <span class="worksheet-downloaded-badge"><i class='bx bx-check-circle'></i> Downloaded</span>
+      {% elif worksheet_download_url %}
+      <a href="{{ worksheet_download_url }}" class="btn-download-worksheet btn-mark-complete" data-activity-id="{{ activity.id }}" target="_blank" rel="noopener">
+        <i class='bx bx-download'></i> Download Worksheet
+      </a>
+      {% else %}
+      <button type="button" class="btn-download-worksheet btn-mark-complete" data-activity-id="{{ activity.id }}">
+        <i class='bx bx-check'></i> Continue (No file)
+      </button>
+      {% endif %}
+    </div>
   </div>
   {% if downloaded %}
-  <p class="text-success mt-3"><i class='bx bx-check-circle'></i> Worksheet downloaded.</p>
+  <p class="worksheet-downloaded-note text-success mt-3"><i class='bx bx-check-circle'></i> Worksheet downloaded.</p>
   {% elif worksheet_download_url %}
   <p class="text-muted small mt-3"><i class='bx bx-info-circle'></i> The Next button will appear below once you download the worksheet.</p>
   {% endif %}

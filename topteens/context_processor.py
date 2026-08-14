@@ -1,7 +1,7 @@
 from careers.models import Career, CareerTags, Videos, CareerCluster
 from core.models import Configuration
 from core.pwa_version import get_pwa_cache_version
-from core.translate_languages import get_enabled_languages_csv
+from core.translate_languages import get_enabled_languages_csv, get_enabled_language_entries
 from core.translation_service import translation_complexity_available
 from core.translation_complexity import DEFAULT_TRANSLATION_COMPLEXITY
 from core.seo_schema import get_organization_schema, get_website_schema
@@ -23,6 +23,7 @@ from django.conf import settings
 from django.urls import reverse
 from django.db import connection
 from django.core.cache import cache
+from django.utils import timezone
 import json
 import logging
 import re
@@ -137,14 +138,14 @@ def _careervideos_count():
 def _seo_organization_schema():
     """SEO Organization JSON-LD schema (site-wide)."""
     base = getattr(settings, "ENQUIRY_SOURCE_BASE_URL", "https://www.topteen.in").rstrip("/")
-    return get_organization_schema(base, site_name="Top Teen")
+    return get_organization_schema(base, site_name="TopTeen")
 
 
 def _seo_website_schema():
     """SEO WebSite JSON-LD schema with optional search URL."""
     base = getattr(settings, "ENQUIRY_SOURCE_BASE_URL", "https://www.topteen.in").rstrip("/")
     search_url = getattr(settings, "SEO_WEBSITE_SEARCH_URL", None)  # e.g. "/search/?q={search_term_string}"
-    return get_website_schema(base, site_name="Top Teen", search_url=search_url)
+    return get_website_schema(base, site_name="TopTeen", search_url=search_url)
 
 
 def _config_bool(key, settings_default=True):
@@ -201,6 +202,12 @@ def _should_show_chatbot(request):
     return False
 
 
+_STUDENT_LS_CACHE_TTL = 90
+_STUDENT_LS_CACHE_PREFIX = "ctx:student_ls:v1:"
+_NAV_EXPLORE_CACHE_KEY = "ctx:nav_explore:v2"
+_NAV_EXPLORE_CACHE_TTL = 300
+
+
 def _student_localstorage_data(request):
     """
     For students only: return dict to store in localStorage (student_id, student_class,
@@ -212,12 +219,21 @@ def _student_localstorage_data(request):
         return None
     if getattr(request.user, 'user_type', None) != choices.UserType.STUDENT:
         return None
+    user = request.user
+    uid = int(getattr(user, "id", 0) or 0)
+    cache_key = f"{_STUDENT_LS_CACHE_PREFIX}{uid}" if uid else None
+    if cache_key:
+        try:
+            cached = cache.get(cache_key)
+            if isinstance(cached, dict) and "student_id" in cached:
+                return cached
+        except Exception:
+            pass
     try:
         from app.models import Results
         from institute.models import get_cached_student_management
         from psychometric_tests.models import CandidateTest
         import re
-        user = request.user
         student_class = "10"
         if hasattr(user, 'user_profile') and user.user_profile and getattr(user.user_profile, 'grade', None):
             student_class = str(user.user_profile.grade).strip() or "10"
@@ -250,14 +266,72 @@ def _student_localstorage_data(request):
             psychometric_class12_status = "completed"
         else:
             psychometric_class12_status = "inprocess"
-        return {
+        data = {
             "student_id": user.id,
             "student_class": student_class,
             "psychometric_class10_status": psychometric_class10_status,
             "psychometric_class12_status": psychometric_class12_status,
         }
+        if cache_key:
+            try:
+                cache.set(cache_key, data, _STUDENT_LS_CACHE_TTL)
+            except Exception:
+                pass
+        return data
     except Exception:
         return None
+
+
+def _nav_explore_context():
+    """Cached lists used by legacy nav/search UIs (avoid order_by('?') and full blog dumps)."""
+    try:
+        cached = cache.get(_NAV_EXPLORE_CACHE_KEY)
+        if isinstance(cached, dict) and "popular_category_ids" in cached:
+            return cached
+    except Exception:
+        cached = None
+
+    popular_category_ids = list(
+        Blog.objects.values("category")
+        .annotate(count=Count("category"))
+        .order_by("-count")
+        .values_list("category", flat=True)[:20]
+    )
+    popular_tag_ids = list(
+        Career.objects.values("career_tags")
+        .annotate(count=Count("career_tags"))
+        .order_by("-count")
+        .values_list("career_tags", flat=True)[:20]
+    )
+    # Deterministic “featured” set (no RAND()) — enough for sidebar/footer samples.
+    most_search_career_ids = list(
+        Career.objects.filter(publish_status=choices.PublishStatus.PUBLISHED)
+        .order_by("-modified")
+        .values_list("id", flat=True)[:8]
+    )
+    most_search_college_ids = list(
+        College.objects.order_by("id").values_list("id", flat=True)[:5]
+    )
+    try:
+        blog_ids = list(
+            Blog.get_published_objects().order_by("-modified").values_list("id", flat=True)[:12]
+        )
+    except Exception:
+        blog_ids = list(Blog.objects.order_by("-id").values_list("id", flat=True)[:12])
+
+    payload = {
+        "popular_category_ids": [i for i in popular_category_ids if i],
+        "popular_tag_ids": [i for i in popular_tag_ids if i],
+        "most_search_career_ids": most_search_career_ids,
+        "most_search_college_ids": most_search_college_ids,
+        "blog_ids": blog_ids,
+        "trending_blog_ids": blog_ids,
+    }
+    try:
+        cache.set(_NAV_EXPLORE_CACHE_KEY, payload, _NAV_EXPLORE_CACHE_TTL)
+    except Exception:
+        pass
+    return payload
 
 
 def _student_localstorage_context(request):
@@ -487,16 +561,18 @@ def globals(request):
     career_list=[]
     college_list=[]
     exam_list=[] 
-    input=request.GET.get('search')
+    search_input = (request.GET.get('search') or '').strip()
     login_user=request.user
-    if login_user.is_authenticated:
+    # Only touch search history when the user actually searched — dashboard/nav
+    # hits previously did get_or_create(search=None) on every authenticated page.
+    if login_user.is_authenticated and search_input:
         try:
-            usersearch,_=UserSearchHistory.objects.get_or_create(user=login_user,search=input)
+            usersearch,_=UserSearchHistory.objects.get_or_create(user=login_user,search=search_input)
         except UserSearchHistory.MultipleObjectsReturned:
             # If multiple objects exist, get the first one
-            usersearch = UserSearchHistory.objects.filter(user=login_user,search=input).first()
+            usersearch = UserSearchHistory.objects.filter(user=login_user,search=search_input).first()
             if not usersearch:
-                usersearch = UserSearchHistory.objects.create(user=login_user,search=input)
+                usersearch = UserSearchHistory.objects.create(user=login_user,search=search_input)
 
         user_search_hisotry=UserSearchHistory.objects.filter(user=login_user.id,search__isnull=False).order_by('-modified').values_list('search',flat=True)
         if user_search_hisotry.exists():
@@ -530,11 +606,7 @@ def globals(request):
                 logger.warning("Context processor exam_list raw SQL failed: %s", e)
                 exam_list = []
 
-        
-    popular_categories = Blog.objects.values("category").annotate(count=Count('category')).order_by("-count").values_list('category')
-    popular_tags = Career.objects.values("career_tags").annotate(count=Count('career_tags')).order_by("-count").values_list('career_tags')
-    # for p in popular_tags:
-        # popular_tag_count=Career.objects.filter(career_tags=p).count()
+    nav = _nav_explore_context()
     # Freetrail: seconds guest can view gated content before login popup (used by ebook/vocational/extracurricular detail and any freetrail-gated page)
     legacy_chatbot_enabled = _config_bool('legacy_chatbot_engine', False)
     page_chat_enabled = _config_bool('chat_this_page_engine', True)
@@ -588,6 +660,18 @@ def globals(request):
         chatbot_widget_body_class = ' '.join(body_class_parts)
 
     from core.seo_indexing import resolve_allow_search_engine_index
+    from core.voice_to_text import get_voice_to_text_mode, voice_to_text_enabled
+
+    _voice_mode = get_voice_to_text_mode()
+    _voice_enabled = voice_to_text_enabled(_voice_mode)
+    try:
+        _voice_transcribe_url = reverse("api_voice_transcribe")
+    except Exception:
+        _voice_transcribe_url = "/api/voice/transcribe/"
+    try:
+        _voice_settings_url = reverse("api_voice_settings")
+    except Exception:
+        _voice_settings_url = "/api/voice/settings/"
 
     kwargs = {
         "allow_search_engine_index": resolve_allow_search_engine_index(request),
@@ -603,25 +687,31 @@ def globals(request):
         "enable_auto_forward": _config_bool('ENABLE_AUTO_FORWARD', getattr(settings, 'ENABLE_AUTO_FORWARD', True)),
         "show_missing_answers_validation": _config_bool('SHOW_MISSING_ANSWERS_VALIDATION', getattr(settings, 'SHOW_MISSING_ANSWERS_VALIDATION', True)),
         "enable_career_mindmap": _config_bool('ENABLE_CAREER_MINDMAP', True),
+        "enable_voice_to_text": _voice_enabled,
+        "voice_to_text_mode": _voice_mode,
+        "voice_transcribe_api_url": _voice_transcribe_url,
+        "voice_settings_api_url": _voice_settings_url,
+        "openai_transcribe_model": getattr(settings, 'OPENAI_TRANSCRIBE_MODEL', 'gpt-4o-mini-transcribe'),
         "default_mindmap_type": coerce_default_mindmap_type(
             Configuration.get('DEFAULT_MINDMAP_TYPE', '6', editable=True) or '6'
         ),
         "mindmap_type_choices": MINDMAP_TYPE_CHOICES,
         "counselor_mindmap_map_type": get_counselor_mindmap_map_type(),
         "translate_enabled_languages_csv": get_enabled_languages_csv(),
+        "translate_enabled_languages": get_enabled_language_entries(),
         "translate_complexity_enabled": translation_complexity_available(),
         "translate_complexity_default": DEFAULT_TRANSLATION_COMPLEXITY,
         "translate_complexity_api_url": reverse("api_translate_complexity"),
-        "popular_categories":BlogCategory.objects.filter(id__in=popular_categories),
-        "popular_tags":CareerTags.objects.filter(id__in=popular_tags),
-        "blogs":Blog.get_published_objects().all(),
-        "seo_year":"2025",
+        "popular_categories": BlogCategory.objects.filter(id__in=nav["popular_category_ids"]),
+        "popular_tags": CareerTags.objects.filter(id__in=nav["popular_tag_ids"]),
+        "blogs": Blog.get_published_objects().filter(id__in=nav["blog_ids"]),
+        "seo_year": str(timezone.now().year),
         "recentcareer":career_list,
         "recentcollege":college_list,
         "recentexam":exam_list,
-        "most_searchcareers":Career.objects.filter(publish_status=choices.PublishStatus.PUBLISHED).order_by('?')[:8],
-        'most_searchcolleges':College.objects.all().order_by('id')[:5],
-        'tranding_content':Blog.objects.all(),
+        "most_searchcareers": Career.objects.filter(id__in=nav["most_search_career_ids"]),
+        "most_searchcolleges": College.objects.filter(id__in=nav["most_search_college_ids"]),
+        "tranding_content": Blog.objects.filter(id__in=nav["trending_blog_ids"]),
         "careervideos_count":_careervideos_count(),
         # Footer: top-level career clusters for "Trending Career Paths" (links to /careers/cluster/<slug>-<id>/)
         "footer_career_clusters": _footer_career_clusters(),

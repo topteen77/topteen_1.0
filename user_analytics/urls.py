@@ -54,6 +54,22 @@ urlpatterns = [
         views.web_owner_revoke_all_celery_tasks,
         name='web_owner_revoke_all_celery_tasks',
     ),
+    path(
+        'web-owner/services/celery/tasks/',
+        views.web_owner_celery_tasks_json,
+        name='web_owner_celery_tasks_json',
+    ),
+    path(
+        'web-owner/services/<slug:service_key>/process/',
+        views.web_owner_service_process_action,
+        name='web_owner_service_process_action',
+    ),
+    # After fixed routes: per-service restart / list / error / log (docker | systemd | supervisor)
+    path(
+        'web-owner/services/<slug:service_key>/<slug:action>/',
+        views.web_owner_service_action,
+        name='web_owner_service_action',
+    ),
     path('web-owner/email-logs/', views.web_owner_email_logs, name='web_owner_email_logs'),
     
     # User Journey

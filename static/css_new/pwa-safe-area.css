@@ -1,0 +1,48 @@
+/**
+ * PWA bottom chrome only.
+ *
+ * Do NOT use viewport-fit=cover + global top safe-area padding:
+ * that padded nav while content still drew under the status bar, and
+ * added empty space on desktop/dashboard pages.
+ *
+ * With apple-mobile-web-app-status-bar-style=default and no viewport-fit=cover,
+ * iOS keeps the webview below the status bar — top insets are not needed.
+ * Keep bottom insets for the home indicator on fixed FABs / update banner.
+ */
+
+/* PWA update toast — clear home indicator */
+.pwa-update-banner {
+  left: max(16px, env(safe-area-inset-left, 0px)) !important;
+  right: max(16px, env(safe-area-inset-right, 0px)) !important;
+  bottom: max(16px, env(safe-area-inset-bottom, 0px)) !important;
+}
+
+/* Career Counsellor + Ask AI FABs / input (mobile only) */
+@media (max-width: 767.98px) {
+  #cb-input-area {
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  #cb-window.cb-kb-open #cb-input-area {
+    padding-bottom: 10px !important;
+  }
+
+  #cb-fab-wrap {
+    bottom: max(18px, env(safe-area-inset-bottom, 0px)) !important;
+    right: max(18px, env(safe-area-inset-right, 0px)) !important;
+  }
+
+  body.cb-ai-pos-left #cb-fab-wrap {
+    left: max(18px, env(safe-area-inset-left, 0px)) !important;
+    right: auto !important;
+  }
+
+  #pc-input-area {
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  #pc-fab {
+    bottom: max(18px, env(safe-area-inset-bottom, 0px)) !important;
+    left: max(18px, env(safe-area-inset-left, 0px)) !important;
+  }
+}

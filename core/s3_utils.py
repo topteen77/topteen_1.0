@@ -141,8 +141,8 @@ class S3UploadService:
                 ACL='public-read'  # Make file publicly accessible
             )
             
-            # Build S3 URL
-            s3_url = urljoin(self.s3_base_url.rstrip('/') + '/', s3_key)
+            # Public URL (CloudFront when S3_MEDIA_ACCESS_MODE=cloudfront/public)
+            s3_url = cdn_url_for_s3_key(s3_key)
             
             # Save to database
             s3_upload = S3FileUpload.objects.create(
@@ -441,17 +441,25 @@ class S3UploadService:
 
     def s3_key_from_url(self, url):
         """
-        Extract S3 object key from a full S3 URL.
+        Extract S3 object key from a full S3 or CloudFront URL.
         E.g. https://bucket.s3.region.amazonaws.com/path/to/file.pdf -> path/to/file.pdf
+             https://dxxxx.cloudfront.net/path/to/file.pdf -> path/to/file.pdf
         """
         if not url:
             return None
         from urllib.parse import urlparse, unquote
+        candidates = []
         base = getattr(settings, 'S3_BUCKET_BASE_URL', '').rstrip('/') + '/'
-        if url.startswith(base):
-            key = url[len(base):].lstrip('/')
-            return unquote(key) if key else None
-        # Try parsing generic S3 URL format (path is the key)
+        if base and base != '/':
+            candidates.append(base)
+        cf = getattr(settings, 'CLOUDFRONT_DOMAIN', '') or ''
+        if cf:
+            candidates.append(f'https://{cf}/')
+        for prefix in candidates:
+            if url.startswith(prefix):
+                key = url[len(prefix):].lstrip('/')
+                return unquote(key) if key else None
+        # Try parsing generic S3/CloudFront URL format (path is the key)
         parsed = urlparse(url)
         path = parsed.path.lstrip('/')
         return unquote(path) if path else None
@@ -518,6 +526,95 @@ class S3UploadService:
                 'success': False,
                 'error': f'Delete folder failed: {str(e)}'
             }
+
+
+def cloudfront_media_enabled():
+    """True when public media URLs should use the CloudFront host."""
+    domain = (getattr(settings, 'CLOUDFRONT_DOMAIN', '') or '').strip()
+    mode = (getattr(settings, 'S3_MEDIA_ACCESS_MODE', '') or '').strip().lower()
+    return bool(domain) and mode in ('cloudfront', 'public')
+
+
+def cdn_url_for_s3_key(s3_key):
+    """
+    Build a public URL for an S3 object key.
+
+    Uses CloudFront when enabled; otherwise the configured S3_BUCKET_BASE_URL
+    (or direct bucket URL).
+    """
+    key = (s3_key or '').lstrip('/')
+    if not key:
+        return ''
+    if cloudfront_media_enabled():
+        domain = (settings.CLOUDFRONT_DOMAIN or '').strip().strip('/')
+        return f'https://{domain}/{key}'
+    base = (getattr(settings, 'S3_BUCKET_BASE_URL', '') or '').rstrip('/') + '/'
+    if base == '/':
+        bucket = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', 'topteenc')
+        region = getattr(settings, 'AWS_REGION', 'ap-northeast-1')
+        base = f'https://{bucket}.s3.{region}.amazonaws.com/'
+    return urljoin(base, key)
+
+
+def rewrite_s3_url_to_cdn(url):
+    """
+    Rewrite absolute S3 object URLs to CloudFront when CDN mode is on.
+
+    Leaves YouTube/Vimeo/relative/already-CDN URLs unchanged. Keeps the
+    original path encoding (only swaps host) and strips S3 signature query
+    strings (not valid on CloudFront unsigned URLs).
+    """
+    if not url or not isinstance(url, str):
+        return url
+    raw = url.strip()
+    if not raw or not cloudfront_media_enabled():
+        return url
+
+    from urllib.parse import urlparse, urlunparse
+
+    parsed = urlparse(raw)
+    if parsed.scheme not in ('http', 'https'):
+        return url
+
+    host = (parsed.netloc or '').lower()
+    cf_domain = (settings.CLOUDFRONT_DOMAIN or '').strip().lower()
+    if not host or host == cf_domain or host.endswith('.cloudfront.net'):
+        return url
+
+    bucket = (getattr(settings, 'AWS_STORAGE_BUCKET_NAME', 'topteenc') or 'topteenc').lower()
+    region = (getattr(settings, 'AWS_REGION', 'ap-northeast-1') or 'ap-northeast-1').lower()
+    # Keep encoding as stored (e.g. %2C+); do not unquote/re-encode.
+    path = parsed.path or ''
+    path_lstrip = path.lstrip('/')
+
+    virtual_hosts = {
+        f'{bucket}.s3.{region}.amazonaws.com',
+        f'{bucket}.s3.amazonaws.com',
+        f'{bucket}.s3-{region}.amazonaws.com',
+        f'{bucket}.s3.{region}.amazonaws.com.cn',
+    }
+    path_hosts = {
+        f's3.{region}.amazonaws.com',
+        's3.amazonaws.com',
+        f's3-{region}.amazonaws.com',
+    }
+
+    new_path = None
+    if host in virtual_hosts or (
+        host.endswith('.amazonaws.com') and host.startswith(f'{bucket}.s3')
+    ):
+        new_path = path if path.startswith('/') else ('/' + path_lstrip if path_lstrip else '/')
+    elif host in path_hosts or (host.endswith('.amazonaws.com') and host.startswith('s3')):
+        parts = path_lstrip.split('/', 1)
+        if len(parts) == 2 and parts[0].lower() == bucket:
+            new_path = '/' + parts[1]
+        elif path_lstrip:
+            new_path = '/' + path_lstrip
+
+    if not new_path or new_path == '/':
+        return url
+
+    return urlunparse(('https', cf_domain, new_path, '', '', ''))
 
 
 def get_s3_upload_service():

@@ -1,6 +1,6 @@
 {% extends "user_analytics/admin_base.html" %}
 
-{% block title_content %}Service monitor | Top Teen{% endblock %}
+{% block title_content %}Service monitor | TopTeen{% endblock %}
 {% block page_title %}Service monitor{% endblock %}
 
 {% block content %}
@@ -38,6 +38,23 @@
         One or more required services are unhealthy. Open each service card for diagnostics and log-based hints.
       </div>
     {% endif %}
+    {% if action_result %}
+      <div class="alert {% if action_result.ok %}alert-success{% else %}alert-warning{% endif %} mt-3 mb-0" id="service-action-result">
+        <div class="d-flex flex-wrap justify-content-between gap-2 align-items-start">
+          <div>
+            <strong>{{ action_result.action|upper }}</strong> · {{ action_result.service_key }}
+            {% if action_result.control_label %}
+              <span class="text-muted">via {{ action_result.control_label }}</span>
+            {% endif %}
+            <div class="mt-1">{{ action_result.message }}</div>
+          </div>
+          <a class="btn btn-sm btn-outline-secondary" href="{{ request.path }}">Dismiss</a>
+        </div>
+        {% if action_result.output %}
+          <pre class="mt-2 mb-0" style="max-height: 360px; overflow: auto; background: #0b1020; color: #e7e7e7; padding: 12px; border-radius: 6px; font-size: 12px; white-space: pre-wrap;">{{ action_result.output }}</pre>
+        {% endif %}
+      </div>
+    {% endif %}
     <div class="row g-2 mt-1">
       {% for row in services %}
       <div class="col-md-3 service-card-wrap" data-source="{{ row.runtime_source.type if row.runtime_source else 'unknown' }}">
@@ -64,6 +81,23 @@
             {% endif %}
             {% if row.key == 'celery' %}
               <small class="d-block mt-1 text-dark">Open tasks: {{ row.open_tasks or 0 }}</small>
+            {% endif %}
+            {% if row.control and row.key in ('celery', 'gunicorn', 'redis') %}
+              <div class="mt-2 d-flex flex-wrap gap-1" onclick="event.preventDefault(); event.stopPropagation();">
+                <a class="btn btn-sm btn-outline-secondary py-0 px-1" style="font-size: 11px;"
+                   href="{{ url('user_analytics:web_owner_service_action', args=[row.key, 'list']) }}">List</a>
+                <a class="btn btn-sm btn-outline-danger py-0 px-1" style="font-size: 11px;"
+                   href="{{ url('user_analytics:web_owner_service_action', args=[row.key, 'error']) }}">Error</a>
+                <a class="btn btn-sm btn-outline-primary py-0 px-1" style="font-size: 11px;"
+                   href="{{ url('user_analytics:web_owner_service_action', args=[row.key, 'log']) }}">Log</a>
+                {% if row.control.can_restart %}
+                <form method="post" action="{{ url('user_analytics:web_owner_service_action', args=[row.key, 'restart']) }}" class="d-inline"
+                      onsubmit="return confirm('Restart {{ row.label }} via {{ row.control.backend }}?');">
+                  {{ csrf_input_tag()|safe }}
+                  <button type="submit" class="btn btn-sm btn-warning py-0 px-1" style="font-size: 11px;">Restart</button>
+                </form>
+                {% endif %}
+              </div>
             {% endif %}
             {% if not row.required %}
               <small class="text-muted d-block">Optional (disabled in env)</small>
@@ -92,6 +126,12 @@
               <div class="mt-1"><strong>Runtime source:</strong> {{ row.runtime_source.label }}</div>
               {% if row.runtime_source.via %}
                 <div class="small text-muted">via: {{ row.runtime_source.via }}</div>
+              {% endif %}
+              {% if row.control %}
+                <div class="small mt-1">
+                  Control: <code>{{ row.control.backend }}</code>
+                  {% if row.control.label %} · {{ row.control.label }}{% endif %}
+                </div>
               {% endif %}
               {% if row.runtime_source.compose_project %}
                 <div class="small mt-1">
@@ -172,59 +212,148 @@
                 <div class="mt-2 text-danger"><strong>Inspect error:</strong> {{ row.inspect_error }}</div>
               {% endif %}
             {% endif %}
-            {% if row.process_details %}
-              <div class="mt-2"><strong>Processes:</strong></div>
-              {% for proc in row.process_details %}
-                <code class="d-block text-break">{{ proc }}</code>
-              {% endfor %}
-            {% else %}
-              <div class="text-muted mt-2">No process snapshot available.</div>
+            {% if row.control and row.key in ('celery', 'gunicorn', 'redis') %}
+            <div class="mt-3 pt-3 border-top">
+              <h6 class="mb-2">Service controls</h6>
+              <p class="small text-muted mb-2">
+                Uses <strong>{{ row.control.backend }}</strong>
+                {% if row.control.label %} ({{ row.control.label }}){% endif %}.
+                Logs load only when you click <strong>Error</strong> or <strong>Log</strong>.
+              </p>
+              <div class="d-flex flex-wrap gap-2">
+                <a class="btn btn-sm btn-outline-secondary"
+                   href="{{ url('user_analytics:web_owner_service_action', args=[row.key, 'list']) }}">List</a>
+                <a class="btn btn-sm btn-outline-danger"
+                   href="{{ url('user_analytics:web_owner_service_action', args=[row.key, 'error']) }}">Error</a>
+                <a class="btn btn-sm btn-outline-primary"
+                   href="{{ url('user_analytics:web_owner_service_action', args=[row.key, 'log']) }}">Log</a>
+                {% if row.control.can_restart %}
+                <form method="post" action="{{ url('user_analytics:web_owner_service_action', args=[row.key, 'restart']) }}" class="d-inline"
+                      onsubmit="return confirm('Restart {{ row.label }} via {{ row.control.backend }}?\n{{ row.control.label }}\n\nThis may briefly interrupt traffic.');">
+                  {{ csrf_input_tag()|safe }}
+                  <button type="submit" class="btn btn-sm btn-warning">Restart</button>
+                </form>
+                {% else %}
+                <button type="button" class="btn btn-sm btn-outline-secondary" disabled title="No systemd unit / Docker container / supervisor program resolved">Restart</button>
+                {% endif %}
+              </div>
+              {% if info.path %}
+                <small class="text-muted d-block mt-2">Log file (on demand): <code>{{ info.path }}</code></small>
+              {% endif %}
+            </div>
             {% endif %}
           </div>
         </div>
         <div class="col-lg-8">
           <div class="border rounded p-3 h-100">
-            <h6 class="mb-2">Detected errors and hints</h6>
-            {% if info.path %}
-              <small class="text-muted d-block mb-2">Log path: {{ info.path }}</small>
-            {% else %}
-              <small class="text-muted d-block mb-2">No readable log file found for this service.</small>
-            {% endif %}
-
-            {% if info.error_highlights %}
-              <div class="mb-2"><strong>Recent error lines</strong></div>
-              {% for line in info.error_highlights %}
-                <div class="small text-danger mb-1">{{ line }}</div>
+            <h6 class="mb-2">Processes</h6>
+            <p class="small text-muted mb-2">Each process/container is listed separately. Stop sends SIGTERM (or <code>docker stop</code>); Restart signals that unit only.</p>
+            {% if row.process_rows %}
+              {% for proc in row.process_rows %}
+              <div class="table-responsive mb-2">
+                <table class="table table-sm table-bordered mb-0 align-middle" style="font-size: 12px;">
+                  <thead class="table-light">
+                    <tr>
+                      <th style="width: 90px;">Type</th>
+                      <th style="width: 80px;">ID</th>
+                      <th style="width: 70px;">Role</th>
+                      <th style="width: 60px;">CPU</th>
+                      <th style="width: 60px;">Mem</th>
+                      <th style="width: 90px;">Uptime</th>
+                      <th>Command</th>
+                      <th style="width: 140px;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        {% if proc.kind == 'docker' %}
+                          <span class="badge bg-info-subtle text-info-emphasis">docker</span>
+                        {% else %}
+                          <span class="badge bg-secondary-subtle">pid</span>
+                        {% endif %}
+                      </td>
+                      <td>
+                        {% if proc.kind == 'docker' %}
+                          <code>{{ proc.container or proc.args }}</code>
+                        {% else %}
+                          <code>{{ proc.pid or '—' }}</code>
+                        {% endif %}
+                      </td>
+                      <td>{{ proc.role or '—' }}{% if proc.status %} <span class="text-muted">({{ proc.status }})</span>{% endif %}</td>
+                      <td>{{ proc.cpu or '—' }}</td>
+                      <td>{{ proc.mem or '—' }}</td>
+                      <td class="text-nowrap">{{ proc.etime or '—' }}</td>
+                      <td class="text-break"><code style="font-size: 11px;">{{ proc.command or proc.line or '—' }}</code></td>
+                      <td>
+                        {% if proc.can_stop or proc.can_restart %}
+                          <div class="d-flex flex-wrap gap-1">
+                            {% if proc.can_stop %}
+                            <form method="post" action="{{ url('user_analytics:web_owner_service_process_action', args=[row.key]) }}" class="d-inline"
+                                  onsubmit="return confirm('Stop this {{ proc.kind }}?\n{{ proc.container or proc.pid }}');">
+                              {{ csrf_input_tag()|safe }}
+                              <input type="hidden" name="kind" value="{{ proc.kind }}">
+                              <input type="hidden" name="target" value="{{ proc.container if proc.kind == 'docker' else proc.pid }}">
+                              <input type="hidden" name="action" value="stop">
+                              <button type="submit" class="btn btn-sm btn-outline-danger">Stop</button>
+                            </form>
+                            {% endif %}
+                            {% if proc.can_restart %}
+                            <form method="post" action="{{ url('user_analytics:web_owner_service_process_action', args=[row.key]) }}" class="d-inline"
+                                  onsubmit="return confirm('Restart this {{ proc.kind }}?\n{{ proc.container or proc.pid }}');">
+                              {{ csrf_input_tag()|safe }}
+                              <input type="hidden" name="kind" value="{{ proc.kind }}">
+                              <input type="hidden" name="target" value="{{ proc.container if proc.kind == 'docker' else proc.pid }}">
+                              <input type="hidden" name="action" value="restart">
+                              <button type="submit" class="btn btn-sm btn-warning">Restart</button>
+                            </form>
+                            {% endif %}
+                          </div>
+                        {% else %}
+                          <span class="text-muted">—</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
               {% endfor %}
             {% else %}
-              <div class="text-muted mb-2">No recent error keywords found in log tail.</div>
+              <div class="text-muted">No process snapshot available.</div>
             {% endif %}
-
-            {% if info.failure_hints %}
-              <div class="mb-1"><strong>Likely issue hints</strong></div>
-              {% for hint in info.failure_hints %}
-                <div class="small mb-1">{{ hint }}</div>
-              {% endfor %}
+            {% if action_result and action_result.service_key == row.key and action_result.action in ('log', 'error', 'list') %}
+              <div class="mt-3 pt-3 border-top">
+                <h6 class="mb-2">{{ action_result.action|upper }} output</h6>
+                <pre class="mb-0" style="max-height: 320px; overflow: auto; background: #0b1020; color: #e7e7e7; padding: 12px; border-radius: 6px; font-size: 12px; white-space: pre-wrap;">{{ action_result.output or '(empty)' }}</pre>
+              </div>
             {% endif %}
           </div>
         </div>
         {% if row.key == 'celery' %}
         <div class="col-12 mt-2">
-          <div class="border rounded p-3">
+          <div class="border rounded p-3" id="celery-tasks-panel"
+               data-open-tasks="{{ row.open_tasks or 0 }}"
+               data-tasks-url="{{ url('user_analytics:web_owner_celery_tasks_json') }}"
+               data-revoke-url="{{ url('user_analytics:web_owner_revoke_celery_task') }}">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
               <h6 class="mb-0">Running / queued tasks</h6>
-              <div class="d-flex flex-wrap gap-2">
-                <a class="btn btn-sm btn-outline-secondary" href="{{ request.path }}#service-celery">Refresh</a>
-                {% if row.task_rows %}
-                <form method="post" action="{{ url('user_analytics:web_owner_revoke_all_celery_tasks') }}" class="d-inline"
+              <div class="d-flex flex-wrap gap-2 align-items-center">
+                <span id="celery-tasks-auto-badge" class="small text-muted{% if not row.open_tasks %} d-none{% endif %}">Auto-refresh on</span>
+                <a class="btn btn-sm btn-outline-secondary" href="{{ request.path }}#service-celery" id="celery-tasks-refresh-btn">Refresh</a>
+                <form method="post" action="{{ url('user_analytics:web_owner_revoke_all_celery_tasks') }}" class="d-inline{% if not row.task_rows %} d-none{% endif %}" id="celery-tasks-stop-all-form"
                       onsubmit="return confirm('Stop ALL open Celery tasks listed below? Active workers will be interrupted.');">
                   {{ csrf_input_tag()|safe }}
                   <button type="submit" class="btn btn-sm btn-outline-danger">Stop all open</button>
                 </form>
-                {% endif %}
               </div>
             </div>
-            <p class="small text-muted mb-2">Live snapshot from Celery inspect (active + reserved + scheduled). Use Stop to revoke/terminate a task. Periodic beat jobs may be re-queued later.</p>
+            <p class="small text-muted mb-2">
+              Live snapshot from Celery inspect (active + reserved + scheduled).
+              Workers up: <strong id="celery-tasks-workers">{{ row.workers_up or 0 }}</strong> ·
+              Open: <strong id="celery-tasks-open">{{ row.open_tasks or 0 }}</strong>.
+              Use Stop to revoke/terminate a task. Periodic beat jobs may be re-queued later.
+            </p>
+            <div id="celery-tasks-body">
             {% if row.task_rows %}
             <div class="table-responsive">
               <table class="table table-sm table-bordered mb-0 align-middle" style="font-size: 12px;">
@@ -239,7 +368,7 @@
                     <th style="width: 90px;">Action</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody id="celery-tasks-tbody">
                   {% for t in row.task_rows %}
                   <tr>
                     <td>
@@ -278,8 +407,9 @@
               </table>
             </div>
             {% else %}
-            <p class="text-muted small mb-0">No active, reserved, or scheduled tasks right now.</p>
+            <p class="text-muted small mb-0" id="celery-tasks-empty">No active, reserved, or scheduled tasks right now.</p>
             {% endif %}
+            </div>
           </div>
         </div>
         {% endif %}
@@ -336,10 +466,6 @@
         </div>
         {% endif %}
       </div>
-      <div class="mt-3">
-        <h6 class="mb-2">Log tail</h6>
-        <pre class="mb-0" style="max-height: 320px; overflow: auto; background: #0b1020; color: #e7e7e7; padding: 12px; border-radius: 6px; font-size: 12px; white-space: pre-wrap;">{{ info.tail or 'No log output available.' }}</pre>
-      </div>
     </div>
     {% endif %}
   {% endfor %}
@@ -391,6 +517,119 @@
         setFilter(btn.getAttribute('data-source'));
       });
     });
+  })();
+
+  (function () {
+    var panel = document.getElementById('celery-tasks-panel');
+    if (!panel) return;
+    var tasksUrl = panel.getAttribute('data-tasks-url');
+    var revokeUrl = panel.getAttribute('data-revoke-url');
+    var csrfInput = document.querySelector('input[name=csrfmiddlewaretoken]');
+    var csrf = csrfInput ? csrfInput.value : '';
+    var POLL_MS = 3500;
+    var timer = null;
+    var inFlight = false;
+    var hadOpen = parseInt(panel.getAttribute('data-open-tasks') || '0', 10) > 0;
+
+    function esc(s) {
+      var d = document.createElement('div');
+      d.textContent = s == null ? '' : String(s);
+      return d.innerHTML;
+    }
+
+    function stateBadge(state) {
+      if (state === 'active') {
+        return '<span class="badge bg-success-subtle text-success-emphasis">active</span>';
+      }
+      if (state === 'reserved') {
+        return '<span class="badge bg-warning-subtle text-warning-emphasis">reserved</span>';
+      }
+      return '<span class="badge bg-secondary-subtle">' + esc(state || '') + '</span>';
+    }
+
+    function render(data) {
+      var open = data.open_tasks || 0;
+      var workersEl = document.getElementById('celery-tasks-workers');
+      var openEl = document.getElementById('celery-tasks-open');
+      var badge = document.getElementById('celery-tasks-auto-badge');
+      var stopAll = document.getElementById('celery-tasks-stop-all-form');
+      var body = document.getElementById('celery-tasks-body');
+      if (workersEl) workersEl.textContent = String(data.workers_up || 0);
+      if (openEl) openEl.textContent = String(open);
+      panel.setAttribute('data-open-tasks', String(open));
+      if (badge) badge.classList.toggle('d-none', open <= 0);
+      if (stopAll) stopAll.classList.toggle('d-none', !(data.task_rows && data.task_rows.length));
+
+      if (!body) return;
+      var rows = data.task_rows || [];
+      if (!rows.length) {
+        body.innerHTML = '<p class="text-muted small mb-0" id="celery-tasks-empty">No active, reserved, or scheduled tasks right now.</p>';
+        scheduleNext(false);
+        return;
+      }
+      var html = '<div class="table-responsive"><table class="table table-sm table-bordered mb-0 align-middle" style="font-size: 12px;">' +
+        '<thead class="table-light"><tr>' +
+        '<th>State</th><th>Task</th><th>Task id</th><th>Worker</th><th>Started / ETA</th><th>Args</th><th style="width: 90px;">Action</th>' +
+        '</tr></thead><tbody id="celery-tasks-tbody">';
+      rows.forEach(function (t) {
+        var id = t.id || '';
+        var name = t.name || '';
+        var state = t.state || '';
+        var args = esc(t.args || '');
+        if (t.kwargs && t.kwargs !== '{}') {
+          args += '<br>' + esc(t.kwargs);
+        }
+        var action = '—';
+        if (id) {
+          action = '<form method="post" action="' + esc(revokeUrl) + '" class="d-inline"' +
+            ' onsubmit="return confirm(' + JSON.stringify('Stop this Celery task?\n' + name + '\n' + id) + ');">' +
+            '<input type="hidden" name="csrfmiddlewaretoken" value="' + esc(csrf) + '">' +
+            '<input type="hidden" name="task_id" value="' + esc(id) + '">' +
+            '<input type="hidden" name="task_name" value="' + esc(name) + '">' +
+            '<input type="hidden" name="state" value="' + esc(state) + '">' +
+            '<button type="submit" class="btn btn-sm btn-outline-danger">Stop</button></form>';
+        }
+        html += '<tr><td>' + stateBadge(state) + '</td>' +
+          '<td class="text-break"><code>' + esc(name) + '</code></td>' +
+          '<td class="text-break"><code>' + esc(id || '—') + '</code></td>' +
+          '<td class="text-break small">' + esc(t.worker || '') + '</td>' +
+          '<td class="text-nowrap small">' + esc(t.started || t.eta || '—') + '</td>' +
+          '<td class="text-break small text-muted">' + args + '</td>' +
+          '<td>' + action + '</td></tr>';
+      });
+      html += '</tbody></table></div>';
+      body.innerHTML = html;
+      scheduleNext(true);
+    }
+
+    function scheduleNext(keepGoing) {
+      if (timer) clearTimeout(timer);
+      timer = null;
+      if (keepGoing) timer = setTimeout(poll, POLL_MS);
+    }
+
+    function poll() {
+      if (inFlight || !tasksUrl) return;
+      inFlight = true;
+      fetch(tasksUrl, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+        .then(function (r) { if (!r.ok) throw new Error('status ' + r.status); return r.json(); })
+        .then(render)
+        .catch(function () { scheduleNext(true); })
+        .finally(function () { inFlight = false; });
+    }
+
+    var refreshBtn = document.getElementById('celery-tasks-refresh-btn');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        poll();
+      });
+    }
+
+    // Auto-poll while tasks are open; also poll once on load if hash is celery.
+    if (hadOpen || (window.location.hash || '') === '#service-celery') {
+      scheduleNext(true);
+    }
   })();
 </script>
 {% endblock %}

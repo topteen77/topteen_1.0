@@ -1,0 +1,27 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block content_title %}
+<h1>{{ title }}</h1>
+<p style="margin:0 0 12px;max-width:720px;color:#555;font-size:13px;line-height:1.45">
+  Buyer-facing packs for <code>/ai-tokens/</code>. Edit <strong>Usage examples</strong> (one line per use case)
+  so shoppers see goals like “Build 1 resume” / “~10 AI tutor chats” instead of raw tokens.
+  Set USD list price here; INR charged uses <a href="{% url 'admin:core_llmpricingsettings_changelist' %}">LLM pricing settings</a>.
+</p>
+{% endblock %}
+
+{% block object-tools-items %}
+<li>
+  <a href="{% url 'admin:hub_configuration' %}#ai-tokens-freemium" class="historylink">AI tokens hub</a>
+</li>
+<li>
+  <a href="{% url 'admin:core_llmpricingsettings_changelist' %}" class="historylink">USD-INR pricing</a>
+</li>
+<li>
+  <a href="{% url 'admin:core_llmrolequotadefault_changelist' %}" class="historylink">Role quotas</a>
+</li>
+<li>
+  <a href="{% url 'admin:core_configuration_llm_billing' %}" class="historylink">AI billing</a>
+</li>
+{{ block.super }}
+{% endblock %}

@@ -17,9 +17,9 @@
   
   {% block title %}
   {% if html_head and html_head.title %}
-  <title>{{ html_head.title }} | Top Teen</title>
+  <title>{{ html_head.title }} | TopTeen</title>
   {% else %}
-  <title>{% block title_content %}Counselor Login | Top Teen{% endblock %}</title>
+  <title>{% block title_content %}Counselor Login | TopTeen{% endblock %}</title>
   {% endif %}
   {% endblock %}
   
@@ -116,10 +116,11 @@
     integrity="sha512-bPs7Ae6pVvhOSiIcyUClR7/q2OAsRiovw4vAkX+zJbw3ShAeeqezq50RIIcIURq7Oa20rW2n2q+fyXBNcU9lrw=="
     crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="{{ static('js_new/bootstrap.min.js') }}"></script>
-  <script src="{{ static('js_new/main.js') }}?v=20260706-4"></script>
+  <script src="{{ static('js_new/main.js') }}?v=20260722-1"></script>
   <script src="{{ static('js_new/search.js') }}"></script>
   <script>
     window.TT_INCLUDED_LANGUAGES = {{ translate_enabled_languages_csv | tojson }};
+    window.TT_ENABLED_LANGUAGES = {{ translate_enabled_languages | default([]) | tojson }};
     window.TT_TRANSLATE_COMPLEXITY_ENABLED = {{ translate_complexity_enabled | tojson }};
     window.TT_TRANSLATE_COMPLEXITY_API = {{ translate_complexity_api_url | tojson }};
   </script>

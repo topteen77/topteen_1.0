@@ -79,43 +79,77 @@ class ComService:
         # Return as is if we can't determine (fallback)
         return phone_str
 
-    def get_otp(self,user,otp_type):
-        user_otp=OTP.objects.filter(user=user,type=otp_type)
-        if user_otp.exists():
-            user_otp = user_otp.first()
-            return user_otp.otp
-        new_otp =self.generate_otp()
-        OTP.objects.create(user=user,otp=new_otp,type=otp_type)
+    def get_otp(self, user, otp_type, *, refresh=False):
+        """Return OTP for user+type. refresh=True issues a new code (used on send)."""
+        user_key = str(user).strip()
+        qs = OTP.objects.filter(user=user_key, type=otp_type)
+        if qs.exists() and not refresh:
+            return qs.first().otp
+        qs.delete()
+        new_otp = self.generate_otp()
+        OTP.objects.create(user=user_key, otp=new_otp, type=otp_type)
         return new_otp
 
 
     def send_mail(self,subject,to,text_content, html_content,attachment=None,attachment_name=None,attachment_type=None):
         status = False
-        to_list = [to] if not isinstance(to, list) else to
+        to_list = [to] if not isinstance(to, list) else list(to)
+        to_list = [str(addr).strip() for addr in to_list if str(addr or "").strip()]
         html_content = ensure_email_html_wrapped(html_content, preheader=subject)
         if not text_content or text_content == html_content:
             text_content = strip_tags(html_content) or html_content
+        send_error = None
         try:
+            if not to_list:
+                raise ValueError("No email recipients provided.")
             msg = EmailMultiAlternatives(subject, text_content, self.from_email, to_list)
             msg.attach_alternative(html_content, "text/html")
             if attachment and attachment_name and attachment_type:
                 msg.attach(attachment_name, attachment, attachment_type)
+            # Prefer ComService JSONL audit; logging mail backends skip when this is set.
+            setattr(msg, "_topteen_logged_by_comservice", True)
             msg.send(fail_silently=False)
             status = True
             logger.info("Email sent to %s subject=%s", to_list, subject[:50] if subject else "")
         except Exception as e:
+            send_error = str(e)
             logger.warning("Email sending failed to %s subject=%s: %s", to_list, subject[:50] if subject else "", e)
+        self._append_email_send_audit(
+            to_list=to_list,
+            subject=subject,
+            status="sent" if status else "failed",
+            error=send_error,
+        )
         # Convert to string if it's a list for logging purposes
         # log_to = to if isinstance(to, str) else ", ".join(to)
-        self.make_log_entry(to, html_content, choices.CommunicationTypeChooices.EMAIL, status)
+        self.make_log_entry(to_list, html_content, choices.CommunicationTypeChooices.EMAIL, status)
         return status
+
+    def _append_email_send_audit(self, *, to_list, subject, status, error=None):
+        """Write to logs/email_send.jsonl (Email logs admin page), especially on failure."""
+        try:
+            from topteens.email_logging import append_email_send_log
+
+            append_email_send_log(
+                to_emails=to_list or [],
+                subject=subject or "",
+                from_email=self.from_email or "",
+                status=status,
+                error=error,
+            )
+        except Exception as exc:
+            logger.warning("email_send.jsonl append from ComService failed: %s", exc)
 
     def make_log_entry(self,to,body,com_type,response):
         from communication.utils import mysql_text_safe
         try:
             log_response = response if isinstance(response, str) else ('success' if response else 'failed')
+            if isinstance(to, (list, tuple)):
+                to_value = ", ".join(str(x) for x in to if x)
+            else:
+                to_value = str(to or "")
             CommunicationLog.objects.create(
-                to=mysql_text_safe(to) if isinstance(to, str) else to,
+                to=mysql_text_safe(to_value)[:500],
                 body=mysql_text_safe(body),
                 type=com_type,
                 response=log_response,
@@ -135,7 +169,7 @@ class ComService:
         print()
         print(f"From Con_service",">"*30,user)
         print()
-        otp = self.get_otp(user,choices.CommunicationTypeChooices.EMAIL)
+        otp = self.get_otp(user, choices.CommunicationTypeChooices.EMAIL, refresh=True)
         to=user
         subject, text_content, html_content = render_transactional_email(
             'email_otp',
@@ -179,97 +213,285 @@ class ComService:
         )
         return self.send_mail(subject,to,text_content,html_content)
 
-    def send_mobile_otp(self,user):
+    def _sms_cfg(self):
+        from communication.messaging_config import get_sms_settings
+        return get_sms_settings()
+
+    def _whatsapp_cfg(self):
+        from communication.messaging_config import get_whatsapp_settings
+        return get_whatsapp_settings()
+
+    def _channel_enabled(self, channel='sms'):
+        from communication.messaging_config import channel_enabled
+        return channel_enabled(channel)
+
+    def _should_send_mobile_message(self, log_key, channel='sms'):
+        from communication.messaging_config import should_send_mobile_message
+        return should_send_mobile_message(
+            log_key,
+            channel=channel,
+            check_duplicate=self.check_duplicate_sms,
+        )
+
+    def _skip_send_reason(self, log_key, channel='sms'):
+        from communication.messaging_config import skip_send_reason
+        return skip_send_reason(
+            log_key,
+            channel=channel,
+            check_duplicate=self.check_duplicate_sms,
+        )
+
+    def send_mobile_otp(self, user):
+        """Send OTP via SMS settings (independent of WhatsApp)."""
+        from communication.providers import get_provider
+
         try:
             user = int(user)
-            otp = self.get_otp(user, choices.CommunicationTypeChooices.SMS)
+            otp = self.get_otp(user, choices.CommunicationTypeChooices.SMS, refresh=True)
             print("sending mobile otp for {} is {}".format(user, otp))
-            
-            # Format phone number with country code (default 91 for Indian numbers)
+
             formatted_phone = self.format_phone_number_with_country_code(user)
             print(f"Formatted phone number: {formatted_phone} (original: {user})")
-            
-            # SmartPing SMS API implementation
-            # Format message using template from settings
-            message_template = getattr(settings, 'SMARTPING_SMS_MESSAGE_TEMPLATE', '{otp} is your verification code for TestprepGPT AI')
+
+            cfg = self._sms_cfg()
+            provider_key = (cfg.provider or 'smartping').strip().lower()
+            provider = get_provider(provider_key)
+            message_template = (
+                cfg.message_template
+                or getattr(settings, 'SMARTPING_SMS_MESSAGE_TEMPLATE', None)
+                or '{otp} is your verification code for TestprepGPT AI'
+            )
             message = message_template.format(otp=otp)
-            
-            # Prepare API parameters
-            # formatted_phone already has country code without + sign
-            params = {
-                'username': getattr(settings, 'SMARTPING_SMS_USERNAME', 'Testprepgpt.trans'),
-                'password': getattr(settings, 'SMARTPING_SMS_PASSWORD', 'sW2gV'),
-                'unicode': getattr(settings, 'SMARTPING_SMS_UNICODE', 'false'),
-                'from': getattr(settings, 'SMARTPING_SMS_FROM', 'TSTGPT'),
-                'to': formatted_phone,
-                'dltContentId': getattr(settings, 'SMARTPING_SMS_DLT_CONTENT_ID', '1707175152949044040'),
-                'dltPrincipalEntityId': getattr(settings, 'SMARTPING_SMS_DLT_PRINCIPAL_ENTITY_ID', '1701172845816093698'),
-                'text': message
-            }
-            
-            # Build the API URL
-            api_url = getattr(settings, 'SMARTPING_SMS_API_URL', 'https://pgapi.smartping.ai/fe/api/v1/send')
-            url = f"{api_url}?{urlencode(params)}"
-            
-            # Send SMS
-            response_text = "DEBUG"
+            log_key = f"{provider_key}:sms:{formatted_phone}:{message}"
+            response_text = 'DEBUG'
             response_status = False
-            
-            # Allow forcing SMS send in DEBUG via SMARTPING_SMS_FORCE_SEND env var (default: False).
-            force_send_in_debug = getattr(settings, 'SMARTPING_SMS_FORCE_SEND', False)
-            should_send = (not settings.DEBUG or force_send_in_debug) and (not self.check_duplicate_sms(url))
-            if should_send:
-                try:
-                    response = requests.get(url, timeout=10)
-                    # Safely extract response content
-                    if hasattr(response, 'content') and response.content:
-                        try:
-                            response_text = response.content.decode('utf-8')
-                        except (UnicodeDecodeError, AttributeError):
-                            response_text = str(response.content)
-                    else:
-                        response_text = f"Status: {response.status_code}" if hasattr(response, 'status_code') else "No content"
-                    
-                    # Check response status
-                    if hasattr(response, 'status_code'):
-                        response_status = response.status_code == 200
-                        print(f"SmartPing SMS API Response: {response_text} (Status: {response.status_code})")
-                    else:
-                        response_status = False
-                        print(f"SmartPing SMS API Response: {response_text} (No status code)")
-                except requests.exceptions.RequestException as e:
-                    print(f"Error sending SMS via SmartPing API: {str(e)}")
-                    response_text = f"Error: {str(e)}"
-                    response_status = False
-                except Exception as e:
-                    print(f"Unexpected error sending SMS via SmartPing API: {str(e)}")
-                    import traceback
-                    traceback.print_exc()
-                    response_text = f"Unexpected Error: {str(e)}"
-                    response_status = False
+
+            if not provider or not provider.supports_sms:
+                reason = f'SMS provider {provider_key!r} not available'
+                print(f"SMS skipped ({reason}). OTP={otp}")
+                self.make_log_entry(user, log_key, choices.CommunicationTypeChooices.SMS, f'SKIPPED: {reason}')
+                return True
+
+            if self._should_send_mobile_message(log_key, channel='sms'):
+                result = provider.send_sms(
+                    formatted_phone,
+                    message,
+                    config=cfg.provider_config(),
+                )
+                response_text = result.get('response') or result.get('error') or ''
+                log_key = result.get('log_key') or log_key
+                response_status = bool(result.get('success'))
+                print(f"{provider_key} SMS Response: {response_text} (success={response_status})")
             else:
-                print(f"DEBUG mode or duplicate SMS detected. URL: {url}")
-                response_status = True  # Return True in DEBUG mode or when duplicate detected
-            
-            # Log the communication
-            self.make_log_entry(user, url, choices.CommunicationTypeChooices.SMS, response_text)
+                reason = self._skip_send_reason(log_key, channel='sms')
+                print(f"SMS send skipped ({reason}). OTP={otp} phone={formatted_phone}")
+                response_text = f"SKIPPED: {reason}"
+                response_status = True
+
+            self.make_log_entry(user, log_key, choices.CommunicationTypeChooices.SMS, response_text)
             return response_status
-            
+
         except Exception as e:
             print(f"Invalid mobile_number {user}: {str(e)}")
             import traceback
             traceback.print_exc()
             return False
 
-    def send_otp(self,user,otp_type):
+    def send_whatsapp_otp(self, user, otp_type=None):
+        """Send OTP via WhatsApp settings (independent of SMS)."""
+        from communication.providers import get_provider
+
+        cfg = self._whatsapp_cfg()
+        if not cfg.is_enabled:
+            logger.warning('WhatsApp OTP skipped: WhatsApp disabled in admin')
+            return False
+
+        if otp_type is None:
+            otp_type = choices.CommunicationTypeChooices.WHATSAPP
+
+        try:
+            user = int(user)
+            otp = self.get_otp(user, otp_type, refresh=True)
+            formatted_phone = self.format_phone_number_with_country_code(user)
+            provider_key = (cfg.provider or 'plivo').strip().lower()
+            provider = get_provider(provider_key)
+            log_key = f"{provider_key}:whatsapp-otp:{formatted_phone}:{otp}"
+            response_text = 'DEBUG'
+            response_status = False
+
+            if not provider or not provider.supports_whatsapp:
+                reason = f'WhatsApp provider {provider_key!r} not available'
+                print(f"WhatsApp OTP skipped ({reason}). OTP={otp}")
+                self.make_log_entry(user, log_key, choices.CommunicationTypeChooices.WHATSAPP, f'SKIPPED: {reason}')
+                return True
+
+            if self._should_send_mobile_message(log_key, channel='whatsapp'):
+                result = provider.send_whatsapp_template(
+                    formatted_phone,
+                    template_name=cfg.otp_template,
+                    language=cfg.otp_template_lang or 'en',
+                    body_params=[str(otp)],
+                    auth_copy_code=True,
+                    config=cfg.provider_config(),
+                )
+                response_text = result.get('response') or result.get('error') or ''
+                log_key = result.get('log_key') or log_key
+                response_status = bool(result.get('success'))
+                print(f"{provider_key} WhatsApp OTP Response: {response_text} (success={response_status})")
+            else:
+                reason = self._skip_send_reason(log_key, channel='whatsapp')
+                print(f"WhatsApp OTP skipped ({reason}). OTP={otp} phone={formatted_phone}")
+                response_text = f"SKIPPED: {reason}"
+                response_status = True
+
+            self.make_log_entry(user, log_key, choices.CommunicationTypeChooices.WHATSAPP, response_text)
+            return response_status
+        except Exception as e:
+            logger.exception('WhatsApp OTP failed for %s: %s', user, e)
+            return False
+
+    def send_admin_test_otp(self, destination, *, channel='sms'):
+        """
+        Staff sandbox test. Bypasses is_enabled; still requires credentials + assets.
+        channel: 'sms' | 'whatsapp'
+        """
+        from communication.providers import get_provider
+
+        dest = str(destination or '').strip()
+        channel = (channel or '').strip().lower()
+        if not dest:
+            return {'success': False, 'error': 'Missing test destination'}
+        if channel not in ('sms', 'whatsapp'):
+            return {'success': False, 'error': 'channel must be sms or whatsapp'}
+
+        formatted_phone = self.format_phone_number_with_country_code(dest)
+        otp = self.generate_otp()
+
+        try:
+            if channel == 'sms':
+                cfg = self._sms_cfg()
+                if not cfg.config_ready_for_test():
+                    return {
+                        'success': False,
+                        'error': cfg.missing_config_message() or 'SMS config incomplete for test',
+                    }
+                provider_key = (cfg.provider or 'smartping').strip().lower()
+                provider = get_provider(provider_key)
+                if not provider or not provider.supports_sms:
+                    return {'success': False, 'error': f'SMS provider {provider_key!r} unavailable'}
+                message_template = cfg.message_template or '{otp} is your verification code for TopTeen'
+                message = message_template.format(otp=otp)
+                result = provider.send_sms(
+                    formatted_phone,
+                    message,
+                    config=cfg.provider_config(),
+                )
+                log_key = result.get('log_key') or f'admin-test:sms:{formatted_phone}:{otp}'
+                self.make_log_entry(
+                    dest,
+                    log_key,
+                    choices.CommunicationTypeChooices.SMS,
+                    result.get('response') or result.get('error') or '',
+                )
+                return {
+                    'success': bool(result.get('success')),
+                    'detail': result.get('response') or result.get('message_uuid') or f'OTP {otp}',
+                    'error': None if result.get('success') else (result.get('error') or 'send failed'),
+                    'otp': otp,
+                }
+
+            cfg = self._whatsapp_cfg()
+            if not cfg.config_ready_for_test():
+                return {
+                    'success': False,
+                    'error': cfg.missing_config_message() or 'WhatsApp config incomplete for test',
+                }
+            provider_key = (cfg.provider or 'plivo').strip().lower()
+            provider = get_provider(provider_key)
+            if not provider or not provider.supports_whatsapp:
+                return {'success': False, 'error': f'WhatsApp provider {provider_key!r} unavailable'}
+            result = provider.send_whatsapp_template(
+                formatted_phone,
+                template_name=cfg.otp_template,
+                language=cfg.otp_template_lang or 'en',
+                body_params=[str(otp)],
+                auth_copy_code=True,
+                config=cfg.provider_config(),
+            )
+            log_key = result.get('log_key') or f'admin-test:wa:{formatted_phone}:{otp}'
+            self.make_log_entry(
+                dest,
+                log_key,
+                choices.CommunicationTypeChooices.WHATSAPP,
+                result.get('response') or result.get('error') or '',
+            )
+            return {
+                'success': bool(result.get('success')),
+                'detail': result.get('response') or result.get('message_uuid') or f'OTP {otp}',
+                'error': None if result.get('success') else (result.get('error') or 'send failed'),
+                'otp': otp,
+            }
+        except Exception as exc:
+            logger.exception('Admin test send failed')
+            return {'success': False, 'error': str(exc)}
+
+    def send_whatsapp_message(self, to_number, text=None, *, template_name=None, body_params=None):
+        """Send WhatsApp via WhatsApp settings; disabled if not ready."""
+        from communication.providers import get_provider
+
+        cfg = self._whatsapp_cfg()
+        if not cfg.is_ready():
+            logger.warning(
+                'WhatsApp message skipped: %s',
+                self._skip_send_reason('whatsapp-msg', channel='whatsapp'),
+            )
+            return False
+
+        provider_key = (cfg.provider or 'plivo').strip().lower()
+        provider = get_provider(provider_key)
+        if not provider or not provider.supports_whatsapp:
+            return False
+
+        formatted_phone = self.format_phone_number_with_country_code(to_number)
+        pconfig = cfg.provider_config()
+        if template_name is not None or body_params is not None:
+            result = provider.send_whatsapp_template(
+                formatted_phone,
+                template_name=template_name or cfg.otp_template,
+                language=cfg.otp_template_lang or 'en',
+                body_params=body_params,
+                config=pconfig,
+            )
+        elif text:
+            result = provider.send_whatsapp_text(formatted_phone, text, config=pconfig)
+        else:
+            logger.warning('WhatsApp send requires text or template_name/body_params')
+            return False
+
+        response_text = result.get('response') or result.get('error') or ''
+        self.make_log_entry(
+            to_number,
+            response_text or text or template_name or 'whatsapp',
+            choices.CommunicationTypeChooices.WHATSAPP,
+            response_text,
+        )
+        return bool(result.get('success'))
+
+    def send_otp(self, user, otp_type):
         if otp_type == choices.CommunicationTypeChooices.EMAIL:
             return self.send_email_otp(user)
-        elif otp_type == choices.CommunicationTypeChooices.SMS:
+        if otp_type == choices.CommunicationTypeChooices.WHATSAPP:
+            return self.send_whatsapp_otp(user)
+        if otp_type == choices.CommunicationTypeChooices.SMS:
+            # Prefer WhatsApp only when fully ready; otherwise SMS (staging/production safe)
+            if self._channel_enabled('whatsapp'):
+                return self.send_whatsapp_otp(user, otp_type=choices.CommunicationTypeChooices.SMS)
             return self.send_mobile_otp(user)
         return None
         
-    def verify_otp(self,user,otp,otp_type,delete=True):
-        user_otp=OTP.objects.filter(user=user,otp=otp,type=otp_type)
+    def verify_otp(self, user, otp, otp_type, delete=True):
+        user_key = str(user).strip()
+        user_otp = OTP.objects.filter(user=user_key, otp=otp, type=otp_type)
         if user_otp.exists():
             if delete:
                 user_otp.delete()

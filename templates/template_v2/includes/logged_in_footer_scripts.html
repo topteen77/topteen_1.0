@@ -5,7 +5,7 @@
   integrity="sha512-bPs7Ae6pVvhOSiIcyUClR7/q2OAsRiovw4vAkX+zJbw3ShAeeqezq50RIIcIURq7Oa20rW2n2q+fyXBNcU9lrw=="
   crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="{{ static('js_new/bootstrap.bundle.min.js') }}"></script>
-<script src="{{ static('js_new/main.js') }}?v=20260706-4"></script>
+<script src="{{ static('js_new/main.js') }}?v=20260722-1"></script>
 <script src="{{ static('js_new/search.js') }}"></script>
 
 <script>
@@ -43,19 +43,37 @@
   })();
 </script>
 
+{% if show_ai_counsellor_bot or show_page_chat_widget %}
+<script>
+  window.AIFeatureQuotaConfig = {
+    statusUrl: {{ url('core:ai_feature_quota_status')|tojson }},
+    consumeUrl: {{ url('core:ai_feature_quota_consume')|tojson }},
+    shopUrl: {{ url('core:llm_token_packages')|tojson }},
+    csrfToken: "{{ csrf_token }}",
+    message: "AI tokens need to recharge — Buy now.",
+    ctaLabel: "Buy now"
+  };
+</script>
+<script src="{{ static('js_new/ai-feature-quota.js') }}?v=2"></script>
+{% endif %}
 {% if show_page_chat_widget and show_ai_counsellor_bot %}
-<script src="{{ static('js_new/page-chat-widget.js') }}"></script>
-<script src="{{ static('js_new/chatbot-widget.js') }}"></script>
+<script src="{{ static('js_new/page-chat-widget.js') }}?v=20260728-kb2"></script>
+<script src="{{ static('js_new/chatbot-widget.js') }}?v=20260728-kb2"></script>
 {% else %}
-{% if show_ai_counsellor_bot %}<script src="{{ static('js_new/chatbot-widget.js') }}"></script>{% endif %}
-{% if show_page_chat_widget %}<script src="{{ static('js_new/page-chat-widget.js') }}"></script>{% endif %}
+{% if show_ai_counsellor_bot %}<script src="{{ static('js_new/chatbot-widget.js') }}?v=20260728-kb2"></script>{% endif %}
+{% if show_page_chat_widget %}<script src="{{ static('js_new/page-chat-widget.js') }}?v=20260728-kb2"></script>{% endif %}
 {% endif %}
 
-{% if show_chatbot %}<script src="{{ static('js_new/chatbot-widget.js') }}"></script>{% endif %}
+{% if show_chatbot %}<script src="{{ static('js_new/chatbot-widget.js') }}?v=20260728-kb2"></script>{% endif %}
 <script>
   window.TT_INCLUDED_LANGUAGES = {{ translate_enabled_languages_csv | tojson }};
+    window.TT_ENABLED_LANGUAGES = {{ translate_enabled_languages | default([]) | tojson }};
   window.TT_TRANSLATE_COMPLEXITY_ENABLED = {{ translate_complexity_enabled | tojson }};
   window.TT_TRANSLATE_COMPLEXITY_API = {{ translate_complexity_api_url | tojson }};
+  window.TT_VOICE_TO_TEXT_ENABLED = {{ enable_voice_to_text | default(true) | tojson }};
+  window.TT_VOICE_TO_TEXT_MODE = {{ voice_to_text_mode | default('browser') | tojson }};
+  window.TT_VOICE_TRANSCRIBE_API = {{ voice_transcribe_api_url | default('/api/voice/transcribe/') | tojson }};
+  window.TT_VOICE_SETTINGS_API = {{ voice_settings_api_url | default('/api/voice/settings/') | tojson }};
 </script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 {% if request and request.user and request.user.is_authenticated %}

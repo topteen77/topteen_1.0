@@ -1,0 +1,110 @@
+{% extends "template20/loan_desk/base.html" %}
+{% block title %}Email templates · Loan Desk{% endblock %}
+{% block content %}
+<div class="ld-page-head">
+  <div>
+    <h1>Email templates</h1>
+    <p class="ld-page-sub">
+      Templates appear in the enquiry Email compose dropdown. Placeholders like
+      <code>{{ '{{student_name}}' }}</code> are filled when sending.
+    </p>
+  </div>
+</div>
+
+<article class="ld-card mb-3">
+  <h2 class="ld-section-title">{% if edit_template %}Edit template{% else %}New template{% endif %}</h2>
+  <form method="post" class="ld-validate-form" novalidate>
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+    <input type="hidden" name="action" value="{% if edit_template %}update{% else %}create{% endif %}">
+    {% if edit_template %}
+    <input type="hidden" name="template_id" value="{{ edit_template.id }}">
+    {% endif %}
+    <div class="ld-field mb-2">
+      <label for="tpl_name">Name</label>
+      <input type="text" name="name" id="tpl_name" required maxlength="120"
+             value="{{ edit_template.name if edit_template else '' }}"
+             placeholder="e.g. First follow-up">
+    </div>
+    <div class="ld-field mb-2">
+      <label for="tpl_subject">Subject</label>
+      <input type="text" name="subject" id="tpl_subject" required maxlength="200"
+             value="{{ edit_template.subject if edit_template else sample_email_subject }}">
+    </div>
+    <div class="ld-field mb-2">
+      <label for="tpl_body">Message body</label>
+      <textarea name="body" id="tpl_body" rows="14" required maxlength="8000">{% if edit_template %}{{ edit_template.body }}{% else %}{{ sample_email_body }}{% endif %}</textarea>
+      <p class="ld-meta mt-1 mb-0">Sample uses every placeholder — edit freely before saving.</p>
+    </div>
+    <div class="ld-field mb-2" style="max-width:140px;">
+      <label for="tpl_sort">Sort order</label>
+      <input type="number" name="sort_order" id="tpl_sort" min="0" max="9999"
+             value="{{ edit_template.sort_order if edit_template else 0 }}">
+    </div>
+    <label class="ld-check mb-3" style="display:flex;align-items:center;gap:8px;font-size:0.9rem;">
+      <input type="checkbox" name="is_active" value="1"
+             {% if not edit_template or edit_template.is_active %}checked{% endif %}>
+      Active (show in compose dropdown)
+    </label>
+    <div class="ld-btn-row">
+      <button type="submit" class="ld-btn">
+        <i class='bx bx-save'></i>
+        {% if edit_template %}Save changes{% else %}Create template{% endif %}
+      </button>
+      {% if edit_template %}
+      <a class="ld-btn ld-btn-outline" href="{{ url('loan_desk:email_templates') }}">Cancel edit</a>
+      {% endif %}
+    </div>
+  </form>
+  {% if placeholder_vars %}
+  <p class="ld-meta mt-3 mb-1">Available placeholders</p>
+  <ul class="ld-meta" style="margin:0;padding-left:1.1rem;">
+    {% for key, label in placeholder_vars %}
+    <li><code>{{ '{{' }}{{ key }}{{ '}}' }}</code> — {{ label }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</article>
+
+<section aria-label="Saved templates">
+  <h2 class="ld-section-title">Saved templates</h2>
+  {% if templates %}
+  <div class="ld-stack">
+    {% for tpl in templates %}
+    <article class="ld-card">
+      <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;">
+        <div>
+          <h3 style="margin:0 0 4px;font-size:1rem;font-weight:700;">{{ tpl.name }}</h3>
+          <p class="ld-meta mb-1">
+            {% if tpl.is_active %}<span class="ld-chip ld-chip-ok">Active</span>
+            {% else %}<span class="ld-chip">Inactive</span>{% endif %}
+            · order {{ tpl.sort_order }}
+          </p>
+          <p class="ld-meta mb-0"><strong>Subject:</strong> {{ tpl.subject }}</p>
+        </div>
+        <div class="ld-btn-row" style="flex-wrap:wrap;">
+          <a class="ld-btn ld-btn-outline" href="{{ url('loan_desk:email_templates') }}?edit={{ tpl.id }}">Edit</a>
+          <form method="post" style="display:inline;">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            <input type="hidden" name="action" value="toggle">
+            <input type="hidden" name="template_id" value="{{ tpl.id }}">
+            <button type="submit" class="ld-btn ld-btn-outline">
+              {% if tpl.is_active %}Deactivate{% else %}Activate{% endif %}
+            </button>
+          </form>
+          <form method="post" style="display:inline;" onsubmit="return confirm('Delete this template?');">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="template_id" value="{{ tpl.id }}">
+            <button type="submit" class="ld-btn ld-btn-outline" style="color:var(--ld-danger);">Delete</button>
+          </form>
+        </div>
+      </div>
+      <pre class="ld-meta" style="white-space:pre-wrap;margin:12px 0 0;padding:10px 12px;background:var(--ld-accent-soft);border-radius:10px;font-size:0.82rem;">{{ tpl.body }}</pre>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="ld-meta">No templates yet. Create one above — compose will stay on Custom email until then.</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -5,6 +5,12 @@ const OFFLINE_URL = '/offline/';
 const OFFLINE_ASSETS = [
   OFFLINE_URL,
   '/static/images_new/general/offline-mode.png',
+  /* Resume Builder v2 — hero + CSS cached for mobile & desktop revisits */
+  '/static/images_new/general/resume-hero-sm.webp?v=opt1',
+  '/static/images_new/general/resume-hero-md.webp?v=opt1',
+  '/static/images_new/general/resume-hero.webp?v=opt1',
+  '/static/images_new/general/resume-hero.png?v=opt1',
+  '/static/resume-builder-v2/styles.css?v=12',
 ];
 
 const SKIP_PREFIXES = [
@@ -25,7 +31,8 @@ self.addEventListener('install', function (event) {
       );
     })
   );
-  self.skipWaiting();
+  // Do not skipWaiting here — wait for the user to tap Refresh so the
+  // update banner can dismiss cleanly after controllerchange.
 });
 
 self.addEventListener('activate', function (event) {

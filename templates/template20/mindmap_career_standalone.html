@@ -1,7 +1,7 @@
 {% extends 'template20/base.html' %}
 
 {% block title_content %}
-{{ career.name }} - Mind Map | Top Teen
+{{ career.name }} - Mind Map | TopTeen
 {% endblock %}
 
 {% block description_content %}
@@ -102,7 +102,7 @@
       <div class="col-12">
         <div class="alert alert-info shadow-sm">
           <h5 class="alert-heading">No mind map for this career</h5>
-          <p class="mb-0">This career does not have mind map data (no XMind file or structured headings in description).</p>
+          <p class="mb-0">This career does not have mind map data. Add a description with clear section headings (h2/h3).</p>
           <hr>
           <a href="{{ career_detail_url }}" class="btn btn-primary btn-sm">View career detail</a>
         </div>

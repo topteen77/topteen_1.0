@@ -1,7 +1,17 @@
 import time
 from django.shortcuts import redirect, render
 from core.breadcrumbs import get_breadcrumb
-from core.utils import ensure_user_pdf_folder, save_user_pdf
+from core.utils import (
+    class10_assessment_pdf_filename,
+    class10_combined_report_pdf_filename,
+    class10_web_report_pdf_filename,
+    delete_user_pdf,
+    ensure_user_pdf_folder,
+    save_user_pdf,
+    serve_user_pdf_response,
+    user_pdf_browser_url,
+    user_pdf_exists,
+)
 from django.http import HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 from .forms import UploadFileForm
@@ -13,6 +23,11 @@ import json
 from django.contrib import messages
 
 import os
+# Non-GUI backend required for Django/runserver (TkAgg crashes with Tcl_AsyncDelete)
+os.environ.setdefault("MPLBACKEND", "Agg")
+import matplotlib
+
+matplotlib.use("Agg", force=True)
 import matplotlib.pyplot as plt
 import shutil
 
@@ -1064,257 +1079,207 @@ def _add_no_cache_headers(response):
     return response
 
 
+def _pdf_preparing_response():
+    """Fallback HTML if the download URL is opened directly (no JS button flow)."""
+    return HttpResponse(
+        """<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta http-equiv="refresh" content="2"/>
+<title>Preparing report…</title>
+<style>
+ body{margin:0;min-height:100vh;background:#f7f8fa;display:flex;align-items:center;justify-content:center;
+  font-family:system-ui,-apple-system,sans-serif;color:#334155}
+ .box{text-align:center;padding:2rem;max-width:22rem}
+ .spin{width:2rem;height:2rem;margin:0 auto 1rem;border:3px solid #cbd5e1;border-top-color:#4f46e5;
+  border-radius:50%;animation:s .8s linear infinite}
+ @keyframes s{to{transform:rotate(360deg)}}
+ h1{font-size:1.1rem;font-weight:600;margin:0 0 .5rem}
+ p{margin:0;font-size:.9rem;color:#64748b;line-height:1.45}
+</style>
+</head>
+<body><div class="box"><div class="spin" aria-hidden="true"></div>
+<h1>Preparing your report</h1>
+<p>This usually takes a few seconds. This tab will open the PDF when it is ready.</p>
+</div>
+<script>setTimeout(function(){location.reload()},2000)</script>
+</body></html>""",
+        content_type="text/html; charset=utf-8",
+    )
+
+
+def _pdf_wants_async_api(request):
+    """True for button/prefetch JSON flows (do not return the wait HTML page)."""
+    if (request.GET.get("status") or "").strip() == "1":
+        return True
+    if (request.GET.get("prefetch") or "").strip() == "1":
+        return True
+    accept = (request.META.get("HTTP_ACCEPT") or "").lower()
+    return "application/json" in accept
+
+
+def _try_serve_or_enqueue_web_report_pdf(request, target_user, report_kind, *, _sync_generate=False):
+    """
+    Serve a stored PDF or enqueue Celery generation.
+
+    Query flags used by the report-page button UX:
+      - prefetch=1 → enqueue only, HTTP 204
+      - status=1 (or Accept: application/json) → {"ready": bool, "url": "..."}
+      - force=1 / regen=1 → delete cached PDF and regenerate sync
+
+    Returns an HttpResponse when handled; None means caller should generate sync.
+    """
+    force_regen = (request.GET.get("force") or request.GET.get("regen") or "").strip().lower() in (
+        "1", "true", "yes",
+    )
+    if _sync_generate or force_regen or (request.GET.get("debug") or "").strip() == "true":
+        if force_regen:
+            try:
+                delete_user_pdf(
+                    target_user.id,
+                    class10_web_report_pdf_filename(target_user, report_kind),
+                )
+            except Exception:
+                logger.exception(
+                    "force regen delete failed user=%s kind=%s",
+                    getattr(target_user, "id", None),
+                    report_kind,
+                )
+        return None
+
+    is_prefetch = (request.GET.get("prefetch") or "").strip() == "1"
+    wants_api = _pdf_wants_async_api(request)
+    filename = class10_web_report_pdf_filename(target_user, report_kind)
+    fallback_open = request.build_absolute_uri(request.path)
+
+    try:
+        # Status/prefetch polls may probe storage so buttons flip to ready
+        # automatically once the PDF lands on S3/CloudFront.
+        exists = user_pdf_exists(
+            target_user.id,
+            filename,
+            probe_storage=bool(is_prefetch or wants_api),
+        )
+        if exists:
+            open_url = user_pdf_browser_url(target_user.id, filename, download_name=filename) or fallback_open
+            if is_prefetch:
+                return HttpResponse(status=204)
+            if wants_api:
+                return JsonResponse({"ready": True, "url": open_url, "preparing": False})
+            served = serve_user_pdf_response(
+                target_user.id, filename, download_name=filename, inline=True
+            )
+            if served is not None:
+                return served
+    except Exception:
+        logger.exception(
+            "web report PDF exists-check failed user=%s kind=%s",
+            getattr(target_user, "id", None),
+            report_kind,
+        )
+
+    enqueued = False
+    try:
+        from app.task import enqueue_class10_web_report_pdf
+
+        enqueued = bool(
+            enqueue_class10_web_report_pdf(
+                target_user.id,
+                report_kind,
+                request.build_absolute_uri("/"),
+            )
+        )
+    except Exception:
+        logger.exception(
+            "web report PDF enqueue failed user=%s kind=%s; falling back to sync",
+            getattr(target_user, "id", None),
+            report_kind,
+        )
+        if is_prefetch or wants_api:
+            return JsonResponse(
+                {"ready": False, "preparing": False, "error": "enqueue_failed"},
+                status=503,
+            )
+        return None
+
+    if is_prefetch:
+        return HttpResponse(status=204) if enqueued else HttpResponse(status=503)
+
+    if wants_api:
+        if not enqueued:
+            return JsonResponse(
+                {"ready": False, "preparing": False, "error": "celery_unavailable"},
+                status=503,
+            )
+        return JsonResponse({"ready": False, "url": None, "preparing": True})
+
+    if enqueued:
+        return _pdf_preparing_response()
+    return None
+
+
 @login_required(login_url=reverse_lazy('users:login'))
 def class10_combined_report(request, user_id=None):
     """
-    View to generate and display the combined assessment report for Class 10 students.
-    Similar to Class 12's CombinedReport but adapted for Class 10 structure.
+    Class 10 combined assessment report.
+
+    Uses Redis-cached context (and a short HTML cache) so repeat views stay fast.
     """
     try:
+        from django.core.cache import cache
+        from app.class10_combined_report_context import build_class10_combined_report_context
+        from app.report_cache import (
+            CLASS10_HTML_CACHE_TTL,
+            class10_combined_report_html_cache_key,
+            get_or_build_class10_combined_report_context,
+        )
+
         embed_mode = (request.GET.get("embed") or "").strip() == "1"
-        # Get the target user (student) whose report we want to view
-        if user_id:
-            target_user = get_object_or_404(User, id=user_id)
+        route_user_id = int(user_id) if user_id else None
+        if route_user_id:
+            target_user = get_object_or_404(User, id=route_user_id)
         else:
             target_user = request.user
+            route_user_id = int(target_user.id)
 
-        # Ensure user PDF folder exists (for later download)
-        ensure_user_pdf_folder(target_user.id)
-        
-        # Check if user has attempted tests
-        if not has_attempted_test(target_user):
-            resp = render(request, 'template20/app/class10_combined_report.html', {
-                'error': 'No completed test found. Please complete all tests first.',
-                'no_results': True,
-                'user': target_user,
-                'user_id': target_user.id,
-                'breadcrumb': get_breadcrumb([
-                    {'text': 'Dashboard', 'url': reverse('app:dashboard')},
-                    {'text': 'Combined Report', 'url': ''},
-                ]),
-                'embed_mode': embed_mode,
-            })
-            return _add_no_cache_headers(resp)
-        
-        # Get test completion status
-        try:
-            test_completion = TestCompletion.objects.get(user=target_user)
-        except TestCompletion.DoesNotExist:
-            test_completion = None
-        
-        # Check if all 3 tests are completed
-        test1_completed = Results.objects.filter(user=target_user, test_paper='test1').exists()
-        test2_completed = Results.objects.filter(user=target_user, test_paper='test2').exists()
-        test3_completed = Results.objects.filter(user=target_user, test_paper='test3').exists()
-        
-        all_tests_completed = test1_completed and test2_completed and test3_completed
-        
-        if not all_tests_completed:
-            resp = render(request, 'template20/app/class10_combined_report_new.html', {
-                'error': 'Please complete all three tests (Personality, Interest, and Aptitude) to view your combined report.',
-                'no_results': True,
-                'user': target_user,
-                'user_id': target_user.id,
-                'test1_completed': test1_completed,
-                'test2_completed': test2_completed,
-                'test3_completed': test3_completed,
-                'breadcrumb': get_breadcrumb([
-                    {'text': 'Dashboard', 'url': reverse('app:dashboard')},
-                    {'text': 'Combined Report', 'url': ''},
-                ]),
-                'embed_mode': embed_mode,
-            })
-            return _add_no_cache_headers(resp)
-        
-        # Get user profile
-        try:
-            user_profile = target_user.user_profile
-        except UserProfile.DoesNotExist:
-            user_profile = None
-        
-        # Get test results using db_results_inst_user function
-        try:
-            top_category, streamsubject, courseName, max_length, min_length, below, avg, above_avg, top_categories = db_results_inst_user(target_user)
-        except UserHasNotAttemptedTestException:
-            resp = render(request, 'template20/app/class10_combined_report_new.html', {
-                'error': 'User hasn\'t attempted the test yet. Please complete the test first.',
-                'no_results': True,
-                'user': target_user,
-                'embed_mode': embed_mode,
-            })
-            return _add_no_cache_headers(resp)
-        except Exception as e:
-            import traceback
-            logger.exception(f"Error in db_results_inst_user for user {target_user.id}: {str(e)}")
-            top_category = None
-            streamsubject = set()
-            courseName = set()
-            max_length = ''
-            min_length = ''
-            below = []
-            avg = []
-            above_avg = []
-            top_categories = []
-        
-        # Get individual test results
-        test1_result = None
-        test2_result = None
-        test3_result = None
-        
-        try:
-            test1_result = Results.objects.get(user=target_user, test_paper='test1')
-        except Results.DoesNotExist:
-            pass
-        
-        try:
-            test2_result = Results.objects.get(user=target_user, test_paper='test2')
-        except Results.DoesNotExist:
-            pass
-        
-        try:
-            test3_result = Results.objects.get(user=target_user, test_paper='test3')
-        except Results.DoesNotExist:
-            pass
-        
-        # Process personality test data (test1)
-        personality_data = {}
-        if test1_result and test1_result.results:
-            sorted_results = sorted(test1_result.results.items(), key=lambda x: x[1], reverse=True)
-            personality_data = {
-                'results': dict(sorted_results),
-                'top_categories': top_categories,
-                'top_category': top_category
-            }
-        
-        # Process interest test data (test2)
-        interest_data = {}
-        if test2_result and test2_result.scores:
-            interest_data = {
-                'scores': test2_result.scores,
-                'max_category': max_length,
-                'min_category': min_length
-            }
-        
-        # Process intelligence test data (test3)
-        intelligence_data = {}
-        if test3_result and test3_result.scores:
-            scores = {label.split("_")[0].upper(): value for label, value in test3_result.scores.items()}
-            intelligence_data = {
-                'scores': scores,
-                'below_avg': below,
-                'average': avg,
-                'above_avg': above_avg
-            }
-        
-        # Ensure graph images exist for report (personality, interest, intelligence)
-        from app.graph_media_utils import graph_image_basenames, graph_images_directory
-
-        graph_dir = graph_images_directory()
-        graph_basename_name = (getattr(target_user, 'name', None) or target_user.email)
-        graph_files = graph_image_basenames(graph_basename_name, target_user.id)
-        need_graphs = any(not os.path.exists(os.path.join(graph_dir, f)) for f in graph_files)
-        if need_graphs:
-            original_user = getattr(request, 'user', None)
+        # Fast path: cached full HTML (skip for debug / incomplete reports need fresh errors)
+        html_key = class10_combined_report_html_cache_key(target_user.id, embed_mode)
+        if not request.GET.get('nocache'):
             try:
-                request.user = target_user
-                gernate_graph(request)
-            except Exception as e:
-                logger.warning("class10_combined_report: could not generate graphs for user %s: %s", target_user.id, e)
-            finally:
-                if original_user is not None:
-                    request.user = original_user
-        
-        # Student info for first page (shared with PDF content)
-        from datetime import datetime as dt
-        _now = dt.now()
-        _student_name = getattr(target_user, 'name', None) or target_user.email
-        _created_date = None
-        if test1_result and hasattr(test1_result, 'created'):
-            _created_date = test1_result.created
-        if _created_date is None:
-            _created_date = getattr(target_user, 'date_joined', None)
+                cached_html = cache.get(html_key)
+            except Exception:
+                cached_html = None
+            if cached_html:
+                resp = HttpResponse(cached_html, content_type='text/html; charset=utf-8')
+                return _add_no_cache_headers(resp)
 
-        # Build context
-        context = {
-            'user': target_user,
-            'user_profile': user_profile,
-            'student_name': _student_name,
-            'created_date': _created_date,
-            'now': _now,
-            'all_tests_completed': all_tests_completed,
-            'test1_completed': test1_completed,
-            'test2_completed': test2_completed,
-            'test3_completed': test3_completed,
-            
-            # Test results
-            'test1_result': test1_result,
-            'test2_result': test2_result,
-            'test3_result': test3_result,
-            
-            # Processed data
-            'personality_data': personality_data,
-            'interest_data': interest_data,
-            'intelligence_data': intelligence_data,
-            
-            # Recommendations
-            'top_category': top_category,
-            'streamsubject': streamsubject,
-            'courseName': courseName,
-            'stream_career_sections': get_stream_career_sections(top_category),
-            'top_categories': top_categories,
-            
-            # Additional data
-            'max_length': max_length,
-            'min_length': min_length,
-            'below': below,
-            'avg': avg,
-            'above_avg': above_avg,
-            'no_results': False,
-            'viewing_as_admin': user_id is not None and user_id != request.user.id,
-            'user_id': user_id if user_id else target_user.id,
-            'user_name': _student_name,
-            'user_ID': target_user.id,
-            'embed_mode': embed_mode,
-        }
-        from app.interest_report_utils import interest_report_context_fields
-        context.update(
-            interest_report_context_fields(
-                scores=test2_result.scores if test2_result and test2_result.scores else None,
-                max_length=max_length,
-                min_length=min_length,
-            )
+        context = get_or_build_class10_combined_report_context(
+            request,
+            target_user,
+            build_class10_combined_report_context,
+            route_user_id=route_user_id,
+            embed_mode=embed_mode,
         )
 
-        from app.report_visibility import should_show_extended_career_pathways
-        from app.vocational_recommendations import vocational_guidance_context_for_below_areas
-
-        context.update(vocational_guidance_context_for_below_areas(below, user=target_user))
-        context['student_below_average'] = not should_show_extended_career_pathways(below, avg, above_avg)
-
-        stream_recommendation = recommend_streams_from_tiers(above_avg, avg, below_avg=below)
-        context['stream_recommendation'] = stream_recommendation
-
-        if should_show_extended_career_pathways(below, avg, above_avg):
-            from app.stream_sorter_guidance import build_report_stream_guidance
-            aptitude_streams = streamsubject_from_recommendation(stream_recommendation)
-            context['stream_sorter_guidance'] = (
-                build_report_stream_guidance(aptitude_streams, top_category=top_category)
-                if aptitude_streams
-                else None
-            )
-        else:
-            context['stream_sorter_guidance'] = None
-
-        from app.aptitude_report_utils import aptitude_report_context_fields
-        context.update(
-            aptitude_report_context_fields(
-                test3_result.scores if test3_result and test3_result.scores else None
-            )
+        template_name = (
+            'template20/app/class10_combined_report.html'
+            if context.get('no_results') and (context.get('error') or '').startswith('No completed')
+            else 'template20/app/class10_combined_report_new.html'
         )
+        resp = render(request, template_name, context)
+        resp = _add_no_cache_headers(resp)
 
-        resp = render(request, 'template20/app/class10_combined_report_new.html', context)
-        return _add_no_cache_headers(resp)
-        
+        if (
+            resp.status_code == 200
+            and not context.get('no_results')
+            and not context.get('error')
+        ):
+            try:
+                cache.set(html_key, resp.content, CLASS10_HTML_CACHE_TTL)
+            except Exception:
+                pass
+        return resp
+
     except Exception as e:
         import traceback
         trace = traceback.format_exc()
@@ -1329,9 +1294,12 @@ def class10_combined_report(request, user_id=None):
 
 
 @login_required(login_url=reverse_lazy('users:login'))
-def class10_report_download_pdf(request, user_id=None):
+def class10_report_download_pdf(request, user_id=None, _sync_generate=False):
     """
     Generate and download PDF for Class 10 combined report.
+
+    Serves a stored copy when available; otherwise enqueues Celery (WeasyPrint off-request).
+    Pass ``_sync_generate=True`` from the worker.
     """
     target_user = None
     try:
@@ -1347,6 +1315,12 @@ def class10_report_download_pdf(request, user_id=None):
 
         # Ensure user PDF folder exists
         ensure_user_pdf_folder(target_user.id)
+
+        early = _try_serve_or_enqueue_web_report_pdf(
+            request, target_user, 'combined', _sync_generate=_sync_generate
+        )
+        if early is not None:
+            return early
         
         # Check if user has attempted tests
         if not has_attempted_test(target_user):
@@ -1409,16 +1383,33 @@ def class10_report_download_pdf(request, user_id=None):
                 'above_avg': above_avg
             }
         
-        # Refresh graph images before PDF so chart layout/margins stay current
-        original_user = getattr(request, 'user', None)
-        try:
-            request.user = target_user
-            gernate_graph(request)
-        except Exception as e:
-            logger.warning("class10_report_download_pdf: could not generate graphs for user %s: %s", target_user.id, e)
-        finally:
-            if original_user is not None:
-                request.user = original_user
+        # Refresh graph images before PDF (skip if already present — avoids long regen)
+        from app.graph_media_utils import graph_image_path
+
+        graph_user_name = getattr(target_user, 'name', None) or target_user.email
+        force_graphs = (request.GET.get('force_graphs') or '').strip() in ('1', 'true', 'yes')
+        missing_graphs = any(
+            not os.path.exists(graph_image_path(graph_user_name, target_user.id, kind))
+            for kind in ('personality', 'interest', 'intelligence')
+        )
+        if force_graphs or missing_graphs:
+            original_user = getattr(request, 'user', None)
+            try:
+                request.user = target_user
+                gernate_graph(request)
+            except Exception as e:
+                logger.warning(
+                    "class10_report_download_pdf: could not generate graphs for user %s: %s",
+                    target_user.id,
+                    e,
+                )
+            finally:
+                if original_user is not None:
+                    request.user = original_user
+                try:
+                    plt.close('all')
+                except Exception:
+                    pass
         
         # Student info for first page (same as test1 report)
         student_name = getattr(target_user, 'name', None) or target_user.email
@@ -1428,8 +1419,6 @@ def class10_report_download_pdf(request, user_id=None):
         if created_date is None:
             created_date = getattr(target_user, 'date_joined', None)
         now = datetime.now()
-
-        graph_user_name = getattr(target_user, 'name', None) or target_user.email
 
         # Build context for PDF (same as HTML report so content include matches)
         # show_student_info_on_cover: only True for PDF so student info appears on first page of download only
@@ -1493,6 +1482,12 @@ def class10_report_download_pdf(request, user_id=None):
             )
         )
 
+        pdf_a4_bg_web_url, pdf_a4_bg_file_url = _pdf_a4_background_urls(request)
+        is_debug_html = (request.GET.get('debug') or '').strip() == 'true'
+        context['pdf_a4_bg_url'] = pdf_a4_bg_web_url if is_debug_html else pdf_a4_bg_file_url
+        context['pdf_a4_bg_web_url'] = pdf_a4_bg_web_url
+        context['is_combined_pdf'] = True
+
         # Render HTML with Jinja2 so PDF template (uses {% set %}, .items()) is correct
         pdf_template_name = 'template20/app/class10_combined_report_pdf.html'
         try:
@@ -1501,15 +1496,16 @@ def class10_report_download_pdf(request, user_id=None):
         except (KeyError, Exception):
             template = get_template(pdf_template_name)
         html = template.render(context)
-        html = _resolve_static_urls_to_local_paths(html, request.build_absolute_uri('/'))
-        
-        # Debug: return raw HTML to verify template/CSS (?debug=true)
-        if request.GET.get('debug') == 'true':
+
+        # Debug: return raw HTML before file:// rewrite so browser can load /static/
+        if is_debug_html:
             from django.http import HttpResponse as HttpResp
             r = HttpResp(html, content_type='text/html; charset=utf-8')
             r['Content-Disposition'] = 'inline; filename=combined-report-debug.html'
             r['Cache-Control'] = 'no-store, no-cache, must-revalidate'
             return r
+
+        html = _resolve_static_urls_to_local_paths(html, request.build_absolute_uri('/'))
         
         # Generate PDF (WeasyPrint) - wrap for clear production logging if it fails
         try:
@@ -1519,7 +1515,7 @@ def class10_report_download_pdf(request, user_id=None):
                 pdf_file = weasyprint.HTML(
                     string=html,
                     base_url=request.build_absolute_uri('/')
-                ).write_pdf()
+                ).write_pdf(optimize_images=True)
             finally:
                 ssl._create_default_https_context = original_ssl_context
         except Exception as pdf_err:
@@ -1532,12 +1528,10 @@ def class10_report_download_pdf(request, user_id=None):
                 status=500
             )
         
-        # Create response (prevent any caching of PDF)
+        # Open in browser tab (inline) so the wait tab becomes the PDF viewer
         response = HttpResponse(content_type='application/pdf')
-        user_name = getattr(target_user, 'name', None) or getattr(target_user, 'email', 'user')
-        safe_name = re.sub(r'[^\w\s-]', '', str(user_name)).strip()[:50] or 'user'
-        filename = f"{safe_name}-Stream_Sorter_Combined_Report.pdf"
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        filename = class10_combined_report_pdf_filename(target_user)
+        response['Content-Disposition'] = f'inline; filename="{filename}"'
         response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
         response['Pragma'] = 'no-cache'
         response['Expires'] = '0'
@@ -1968,6 +1962,11 @@ def test3_view(request):
                     'selected_answers': existing_selected_answers
                 }
             )
+            try:
+                from app.report_cache import invalidate_class10_report_cache
+                invalidate_class10_report_cache(request.user.id)
+            except Exception:
+                pass
     
     try:
         user_profile = UserProfile.objects.get(user=request.user)
@@ -2304,7 +2303,12 @@ def generate_pdf(request):
                 test1_result.selected_answers['submitted_answers'] = submitted_answers_dict
 
                 # Save updated results back to the database
-                test1_result.save()        
+                test1_result.save()
+                try:
+                    from app.report_cache import invalidate_class10_report_cache
+                    invalidate_class10_report_cache(user.id)
+                except Exception:
+                    pass
 
             # return score, selected_options
             
@@ -2450,6 +2454,25 @@ def submit_clicks(request):
             test_completion, _ = TestCompletion.objects.get_or_create(user=request.user)
             test_completion.test2_complete = True
             test_completion.save(update_fields=['test2_complete'])
+            try:
+                from app.report_cache import invalidate_class10_report_cache
+                invalidate_class10_report_cache(request.user.id)
+            except Exception:
+                pass
+
+            # Generate Interest Assessment PDF in background (avoids blocking under load).
+            try:
+                from app.task import enqueue_class10_assessment_pdf
+                enqueue_class10_assessment_pdf(
+                    request.user.id,
+                    'test2',
+                    request.build_absolute_uri('/'),
+                )
+            except Exception:
+                logger.exception(
+                    "submit_clicks: failed to enqueue test2 PDF for user_id=%s",
+                    getattr(request.user, 'id', None),
+                )
             
             return JsonResponse({'message': 'Success'}, status=200)
         except json.JSONDecodeError:
@@ -2764,21 +2787,62 @@ def gernate_graph(request):
         logger.warning("Error creating intelligence assessment graph: %s", e)
         personality = ''
 
+    try:
+        plt.close('all')
+    except Exception:
+        pass
+
     return below, avg, above_avg, personality, min_length, max_length
      
 
-def download_pdf(request,test_paper):
+def download_pdf(request, test_paper, _sync_generate=False):
+    """
+    Class 10 assessment PDF entrypoint.
+
+    Under normal web/Locust traffic WeasyPrint runs in Celery. Pass
+    ``_sync_generate=True`` only from the Celery worker (or Celery-disabled fallback).
+    """
     if request.method == 'POST':
-        test_paper = request.POST.get('test_paper')
-        questions = Question.objects.filter(test_paper=test_paper)      
+        test_paper = request.POST.get('test_paper') or test_paper
+        questions = Question.objects.filter(test_paper=test_paper)
 
         if not questions:
             return HttpResponse("No questions found for this test.", status=404)
-        
+
+    # Fast path: PDF already stored — do not regenerate on the web worker.
+    try:
+        existing_name = class10_assessment_pdf_filename(request.user, test_paper)
+        if user_pdf_exists(request.user.id, existing_name):
+            return redirect('app:app_submit')
+    except Exception:
+        logger.exception(
+            "download_pdf: exists-check failed user_id=%s test_paper=%s",
+            getattr(request.user, 'id', None),
+            test_paper,
+        )
+
+    # Prefer background generation so concurrent downloads do not saturate Gunicorn.
+    if not _sync_generate:
+        try:
+            from app.task import enqueue_class10_assessment_pdf
+            if enqueue_class10_assessment_pdf(
+                request.user.id,
+                test_paper,
+                request.build_absolute_uri('/'),
+            ):
+                return redirect('app:app_submit')
+        except Exception:
+            logger.exception(
+                "download_pdf: enqueue failed user_id=%s test_paper=%s; falling back to sync",
+                getattr(request.user, 'id', None),
+                test_paper,
+            )
+
     top_3_categories = ""
     top_categories = []
     questions= Question.objects.all()
-    
+    score = 0
+
     if questions is not None:
         test1_result = Results.objects.get(user = request.user, test_paper='test1')
         sorted_results = sorted(test1_result.results.items(), key=lambda x: x[1], reverse=True)
@@ -2941,18 +3005,7 @@ def download_pdf(request,test_paper):
                 # Restore original SSL context
                 ssl._create_default_https_context = original_ssl_context
             response = HttpResponse(content_type='application/pdf')
-            # Safe filename for Gmail/email usernames (no @, . or other chars that break on some filesystems)
-            raw_name = getattr(request.user, 'name', None) or getattr(request.user, 'email', None) or str(request.user)
-            safe_name = re.sub(r'[^\w\s-]', '', str(raw_name)).strip()[:50] or 'user'
-            # Define the filename based on the test_paper value
-            if test_paper == 'test1':
-                filename = f"{safe_name}-Personality_Assessment_report.pdf"
-            elif test_paper == 'test2':
-                filename = f"{safe_name}-Interest_Assessment_report.pdf"
-            elif test_paper == 'test3':
-                filename = f"{safe_name}-Aptitude_Assessment_report.pdf"
-            else:
-                filename = f"{safe_name}-Final_Assessment_report.pdf"
+            filename = class10_assessment_pdf_filename(request.user, test_paper)
 
             # Persist the generated PDF to media storage (S3 when enabled).
             if not save_user_pdf(request.user.id, filename, pdf_file):
@@ -3314,52 +3367,100 @@ def _resolve_static_urls_to_local_paths(html_content, base_url):
     Replace /static/ and /media/ URLs in HTML with local file paths
     to avoid HTTP requests during PDF generation.
     This significantly speeds up PDF generation by eliminating network requests.
+    Also rewrites CSS url(/static/...) so @page / background-image assets load.
     """
-    def replace_static(match):
-        quote_char = match.group(1)  # Captured quote character (" or ')
-        static_path = match.group(2)  # Path after /static/
-        # Try to find the static file using Django's staticfiles finder
+    from pathlib import Path
+
+    def _static_to_file_uri(static_path):
         found_path = finders.find(static_path)
-        if found_path:
-            # Normalize path separators for file:// URLs (use forward slashes)
-            normalized_path = found_path.replace('\\', '/')
-            # Convert to file:// URL with proper formatting
-            return f'{match.group(0)[:match.start(2)-match.start()]}file:///{normalized_path}{quote_char}'
-        # If not found, return original
-        return match.group(0)
-    
-    def replace_media(match):
-        quote_char = match.group(1)  # Captured quote character (" or ')
-        media_path = match.group(2)  # Path after /media/
-        # Construct full media file path
+        if not found_path:
+            return None
+        return Path(found_path).resolve().as_uri()
+
+    def _media_to_file_uri(media_path):
         media_file_path = os.path.join(settings.MEDIA_ROOT, media_path)
-        if os.path.exists(media_file_path):
-            # Normalize path separators for file:// URLs (use forward slashes)
-            normalized_path = media_file_path.replace('\\', '/')
-            # Convert to file:// URL with proper formatting
-            return f'{match.group(0)[:match.start(2)-match.start()]}file:///{normalized_path}{quote_char}'
-        # If not found, return original
-        return match.group(0)
-    
-    # Replace /static/ URLs in src and href attributes (capture quote and path separately)
+        if not os.path.exists(media_file_path):
+            return None
+        return Path(media_file_path).resolve().as_uri()
+
+    # Replace /static/ URLs in src and href attributes
+    def replace_attr_static(match):
+        attr, quote, static_path = match.group(1), match.group(2), match.group(3)
+        uri = _static_to_file_uri(static_path)
+        if not uri:
+            return match.group(0)
+        return f'{attr}={quote}{uri}{quote}'
+
     html_content = re.sub(
         r'(src|href)=(["\'])/static/([^"\']+)\2',
-        lambda m: f'{m.group(1)}={m.group(2)}file:///{finders.find(m.group(3)).replace(chr(92), "/")}{m.group(2)}' if finders.find(m.group(3)) else m.group(0),
-        html_content
+        replace_attr_static,
+        html_content,
     )
-    
-    # Replace /media/ URLs in src and href attributes (capture quote and path separately)
+
+    # Replace /media/ URLs in src and href attributes
+    def replace_attr_media(match):
+        attr, quote, media_path = match.group(1), match.group(2), match.group(3)
+        uri = _media_to_file_uri(media_path)
+        if not uri:
+            return match.group(0)
+        return f'{attr}={quote}{uri}{quote}'
+
     html_content = re.sub(
         r'(src|href)=(["\'])/media/([^"\']+)\2',
-        lambda m: (lambda path, quote: f'{m.group(1)}={quote}file:///{path.replace(chr(92), "/")}{quote}' if os.path.exists(path) else m.group(0))(os.path.join(settings.MEDIA_ROOT, m.group(3)), m.group(2)),
-        html_content
+        replace_attr_media,
+        html_content,
     )
-    
+
+    # Replace CSS url("/static/...") and url('/static/...') and url(/static/...)
+    def replace_css_static(match):
+        quote, static_path = match.group(1) or '', match.group(2)
+        uri = _static_to_file_uri(static_path)
+        if not uri:
+            return match.group(0)
+        q = quote or '"'
+        return f'url({q}{uri}{q})'
+
+    html_content = re.sub(
+        r'url\((["\']?)/static/([^"\')]+)\1\)',
+        replace_css_static,
+        html_content,
+    )
+
+    # Absolute http(s) static URLs (from static() / build_absolute_uri)
+    def replace_css_abs_static(match):
+        quote, static_path = match.group(1) or '', match.group(2)
+        uri = _static_to_file_uri(static_path)
+        if not uri:
+            return match.group(0)
+        q = quote or '"'
+        return f'url({q}{uri}{q})'
+
+    html_content = re.sub(
+        r'url\((["\']?)https?://[^"\')]+/static/([^"\')]+)\1\)',
+        replace_css_abs_static,
+        html_content,
+    )
+
     return html_content
 
 
+def _pdf_a4_background_urls(request):
+    """
+    Return (web_url, file_uri) for the Class 10 A4 report background image.
+    web_url works in browser debug preview; file_uri is preferred by WeasyPrint.
+    """
+    from pathlib import Path
+    from django.templatetags.static import static as static_tag
+
+    rel = 'images_new/new_report/a4-bg-img.png'
+    web_url = request.build_absolute_uri(static_tag(rel))
+    found = finders.find(rel)
+    file_uri = Path(found).resolve().as_uri() if found else web_url
+    return web_url, file_uri
+
+
 @login_required(login_url=reverse_lazy('users:login'))
-def test1_report_pdf(request, user_id=None):
+def test1_report_pdf(request, user_id=None, _sync_generate=False):
     """
     PDF download view for Test 1 (Personality Assessment)
     """
@@ -3376,6 +3477,12 @@ def test1_report_pdf(request, user_id=None):
 
         # Ensure user PDF folder exists
         ensure_user_pdf_folder(target_user.id)
+
+        early = _try_serve_or_enqueue_web_report_pdf(
+            request, target_user, 'test1', _sync_generate=_sync_generate
+        )
+        if early is not None:
+            return early
         
         # Check if test1 is completed
         try:
@@ -3423,6 +3530,8 @@ def test1_report_pdf(request, user_id=None):
         # Get created_date and student_name
         created_date = test1_result.created if hasattr(test1_result, 'created') else target_user.created
         student_name = target_user.name if target_user.name else target_user.email
+        pdf_a4_bg_web_url, pdf_a4_bg_file_url = _pdf_a4_background_urls(request)
+        is_debug_html = (request.GET.get('debug') or '').strip() == 'true'
         
         context = {
             'user': target_user,
@@ -3438,6 +3547,9 @@ def test1_report_pdf(request, user_id=None):
             'student_name': student_name,
             'created_date': created_date,
             'now': datetime.now(),
+            # Browser debug preview needs http(s); WeasyPrint uses local file URI
+            'pdf_a4_bg_url': pdf_a4_bg_web_url if is_debug_html else pdf_a4_bg_file_url,
+            'pdf_a4_bg_web_url': pdf_a4_bg_web_url,
         }
         
         # Render HTML template
@@ -3445,11 +3557,14 @@ def test1_report_pdf(request, user_id=None):
         html = template.render(context)
         
         # Debug: return raw HTML (?debug=true)
-        if request.GET.get('debug') == 'true':
+        if is_debug_html:
             r = HttpResponse(html, content_type='text/html; charset=utf-8')
             r['Content-Disposition'] = 'inline; filename=test1-personality-report-debug.html'
             r['Cache-Control'] = 'no-store, no-cache, must-revalidate'
             return r
+        
+        # Resolve /static/ (incl. CSS background url()) to local file:// paths for WeasyPrint
+        html = _resolve_static_urls_to_local_paths(html, request.build_absolute_uri('/'))
         
         # Generate PDF with optimizations
         # Keep HTTP base_url for proper static/media resolution
@@ -3469,10 +3584,8 @@ def test1_report_pdf(request, user_id=None):
         
         # Create response (safe filename for Gmail/email users)
         response = HttpResponse(pdf_file, content_type='application/pdf')
-        raw_name = getattr(target_user, 'name', None) or getattr(target_user, 'email', 'user')
-        safe_name = re.sub(r'[^\w\s-]', '', str(raw_name)).strip()[:50] or 'user'
-        filename = f"{safe_name}-Personality_Assessment_report.pdf"
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        filename = class10_assessment_pdf_filename(target_user, 'test1')
+        response['Content-Disposition'] = f'inline; filename="{filename}"'
         
         # Persist a copy to media storage (S3 when enabled) - best-effort.
         save_user_pdf(target_user.id, filename, pdf_file)
@@ -3485,7 +3598,7 @@ def test1_report_pdf(request, user_id=None):
 
 
 @login_required(login_url=reverse_lazy('users:login'))
-def test2_report_pdf(request, user_id=None):
+def test2_report_pdf(request, user_id=None, _sync_generate=False):
     """
     PDF download view for Test 2 (Interest Assessment)
     """
@@ -3502,6 +3615,12 @@ def test2_report_pdf(request, user_id=None):
 
         # Ensure user PDF folder exists
         ensure_user_pdf_folder(target_user.id)
+
+        early = _try_serve_or_enqueue_web_report_pdf(
+            request, target_user, 'test2', _sync_generate=_sync_generate
+        )
+        if early is not None:
+            return early
         
         # Check if test2 is completed
         try:
@@ -3555,6 +3674,8 @@ def test2_report_pdf(request, user_id=None):
         student_name = target_user.name if target_user.name else target_user.email
         
         from app.interest_report_utils import interest_report_context_fields
+        pdf_a4_bg_web_url, pdf_a4_bg_file_url = _pdf_a4_background_urls(request)
+        is_debug_html = (request.GET.get('debug') or '').strip() == 'true'
         context = {
             'user': target_user,
             'user_profile': user_profile,
@@ -3566,6 +3687,8 @@ def test2_report_pdf(request, user_id=None):
             'student_name': student_name,
             'created_date': created_date,
             'now': datetime.now(),
+            'pdf_a4_bg_url': pdf_a4_bg_web_url if is_debug_html else pdf_a4_bg_file_url,
+            'pdf_a4_bg_web_url': pdf_a4_bg_web_url,
             **interest_report_context_fields(
                 scores=test2_result.scores if test2_result else None,
                 max_length=max_length,
@@ -3578,16 +3701,16 @@ def test2_report_pdf(request, user_id=None):
         html = template.render(context)
         
         # Debug: return raw HTML (?debug=true)
-        if request.GET.get('debug') == 'true':
+        if is_debug_html:
             r = HttpResponse(html, content_type='text/html; charset=utf-8')
             r['Content-Disposition'] = 'inline; filename=test2-interest-report-debug.html'
             r['Cache-Control'] = 'no-store, no-cache, must-revalidate'
             return r
         
+        # Resolve /static/ (incl. CSS background url()) to local file:// paths for WeasyPrint
+        html = _resolve_static_urls_to_local_paths(html, request.build_absolute_uri('/'))
+        
         # Generate PDF with optimizations
-        # Keep HTTP base_url for proper static/media resolution
-        # The main optimization is graph generation check (skip if exists)
-        # and image optimization for smaller file size
         import ssl
         original_ssl_context = ssl._create_default_https_context
         ssl._create_default_https_context = ssl._create_unverified_context
@@ -3601,11 +3724,9 @@ def test2_report_pdf(request, user_id=None):
             ssl._create_default_https_context = original_ssl_context
         
         # Create response (safe filename for Gmail/email users)
-        raw_name = getattr(target_user, 'name', None) or getattr(target_user, 'email', 'user')
-        safe_name = re.sub(r'[^\w\s-]', '', str(raw_name)).strip()[:50] or 'user'
-        filename = f"{safe_name}-Interest_Assessment_report.pdf"
+        filename = class10_assessment_pdf_filename(target_user, 'test2')
         response = HttpResponse(pdf_file, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response['Content-Disposition'] = f'inline; filename="{filename}"'
         # Persist a copy to media storage (S3 when enabled) - best-effort.
         save_user_pdf(target_user.id, filename, pdf_file)
         return response
@@ -3616,7 +3737,7 @@ def test2_report_pdf(request, user_id=None):
 
 
 @login_required(login_url=reverse_lazy('users:login'))
-def test3_report_pdf(request, user_id=None):
+def test3_report_pdf(request, user_id=None, _sync_generate=False):
     """
     PDF download view for Test 3 (Aptitude Assessment)
     """
@@ -3633,6 +3754,12 @@ def test3_report_pdf(request, user_id=None):
 
         # Ensure user PDF folder exists
         ensure_user_pdf_folder(target_user.id)
+
+        early = _try_serve_or_enqueue_web_report_pdf(
+            request, target_user, 'test3', _sync_generate=_sync_generate
+        )
+        if early is not None:
+            return early
         
         # Check if test3 is completed
         try:
@@ -3691,6 +3818,9 @@ def test3_report_pdf(request, user_id=None):
         from app.report_visibility import student_all_growth_areas
         from app.vocational_recommendations import vocational_guidance_context_for_below_areas
 
+        pdf_a4_bg_web_url, pdf_a4_bg_file_url = _pdf_a4_background_urls(request)
+        is_debug_html = (request.GET.get('debug') or '').strip() == 'true'
+
         context = {
             'user': target_user,
             'user_profile': user_profile,
@@ -3706,6 +3836,8 @@ def test3_report_pdf(request, user_id=None):
             'stream_recommendation': recommend_streams_from_tiers(above_avg, avg, below_avg=below),
             'student_below_average': student_all_growth_areas(below, avg, above_avg),
             'show_student_info_on_cover': True,
+            'pdf_a4_bg_url': pdf_a4_bg_web_url if is_debug_html else pdf_a4_bg_file_url,
+            'pdf_a4_bg_web_url': pdf_a4_bg_web_url,
         }
         context.update(vocational_guidance_context_for_below_areas(below, user=target_user))
 
@@ -3721,16 +3853,16 @@ def test3_report_pdf(request, user_id=None):
         html = template.render(context)
         
         # Debug: return raw HTML (?debug=true)
-        if request.GET.get('debug') == 'true':
+        if is_debug_html:
             r = HttpResponse(html, content_type='text/html; charset=utf-8')
             r['Content-Disposition'] = 'inline; filename=test3-intelligence-report-debug.html'
             r['Cache-Control'] = 'no-store, no-cache, must-revalidate'
             return r
         
+        # Resolve /static/ (incl. CSS background url()) to local file:// paths for WeasyPrint
+        html = _resolve_static_urls_to_local_paths(html, request.build_absolute_uri('/'))
+        
         # Generate PDF with optimizations
-        # Keep HTTP base_url for proper static/media resolution
-        # The main optimization is graph generation check (skip if exists)
-        # and image optimization for smaller file size
         import ssl
         original_ssl_context = ssl._create_default_https_context
         ssl._create_default_https_context = ssl._create_unverified_context
@@ -3744,11 +3876,9 @@ def test3_report_pdf(request, user_id=None):
             ssl._create_default_https_context = original_ssl_context
         
         # Create response (safe filename for Gmail/email users)
-        raw_name = getattr(target_user, 'name', None) or getattr(target_user, 'email', 'user')
-        safe_name = re.sub(r'[^\w\s-]', '', str(raw_name)).strip()[:50] or 'user'
-        filename = f"{safe_name}-Aptitude_Assessment_report.pdf"
+        filename = class10_assessment_pdf_filename(target_user, 'test3')
         response = HttpResponse(pdf_file, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response['Content-Disposition'] = f'inline; filename="{filename}"'
         # Persist a copy to media storage (S3 when enabled) - best-effort.
         save_user_pdf(target_user.id, filename, pdf_file)
         return response

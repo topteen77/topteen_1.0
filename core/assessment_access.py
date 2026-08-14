@@ -18,13 +18,9 @@ def _get_institute_for_user(user):
     if not user or not getattr(user, 'is_authenticated', False):
         return None
     try:
-        from institute.models import StudentManagement
+        from institute.models import get_cached_student_management
 
-        sm = (
-            StudentManagement.objects.filter(student=user)
-            .select_related('institute')
-            .first()
-        )
+        sm = get_cached_student_management(user)
         return sm.institute if sm else None
     except Exception:
         return None
@@ -270,14 +266,45 @@ CLASS10_ENGINE_REPORT_URL = {
     'test3': 'app:test3_report_html',
 }
 
+# Stable path templates for roster hot paths — avoid reverse() (lazy URLconf import).
+# Keep in sync with app/urls.py + app_post_matric/urls.py mounts in topteens/urls.py.
+CLASS10_ENGINE_REPORT_PATH = {
+    'test1': '/psychometric/web/test1_report/{uid}/',
+    'test2': '/psychometric/web/test2_report/{uid}/',
+    'test3': '/psychometric/web/test3_report/{uid}/',
+}
+CLASS10_COMBINED_REPORT_PATH = '/psychometric/web/combined_report/{uid}/'
+POST_MATRIC_RESULTS_PATH = '/api/web/results/'
+POST_MATRIC_COMBINED_REPORT_PATH = '/api/web/combined_report/{uid}/'
+
 
 def _class10_report_url_for_user_id(user_id: int, engine_key: str) -> str:
-    from django.urls import reverse
-
-    route = CLASS10_ENGINE_REPORT_URL.get(engine_key)
-    if not route:
+    tmpl = CLASS10_ENGINE_REPORT_PATH.get(engine_key)
+    if not tmpl:
         return ''
-    return reverse(route, args=[user_id])
+    return tmpl.format(uid=int(user_id))
+
+
+def get_roster_assessment_report_url(user, *, is_senior: bool, engine_key: str) -> str:
+    """Per-assessment report URL for institute roster Completed chips."""
+    uid = int(getattr(user, 'id', 0) or 0)
+    key = (engine_key or '').strip()
+    if not uid or not key:
+        return ''
+
+    if is_senior:
+        return f'{POST_MATRIC_RESULTS_PATH}?test_id={key}&user_id={uid}'
+
+    return _class10_report_url_for_user_id(uid, key)
+
+
+def roster_combined_report_url(*, user_id: int, is_senior: bool) -> str:
+    """Combined report URL without reverse() — safe for roster AJAX hot paths."""
+    uid = int(user_id or 0)
+    if not uid:
+        return ''
+    tmpl = POST_MATRIC_COMBINED_REPORT_PATH if is_senior else CLASS10_COMBINED_REPORT_PATH
+    return tmpl.format(uid=uid)
 
 
 def get_institute_roster_report_url(user, *, is_senior: bool) -> tuple:
@@ -306,7 +333,7 @@ def get_institute_roster_report_url(user, *, is_senior: bool) -> tuple:
                 return True, reverse('post_matric:combined_report', kwargs={'user_id': uid})
             return False, ''
         if _class10_legacy_all_complete(user):
-            return True, reverse('app:dashboard_for_user', args=[uid])
+            return True, reverse('app:class10_combined_report', args=[uid])
         return False, ''
 
     entitled = get_student_entitled_assessment_codes(user)
@@ -332,7 +359,7 @@ def get_institute_roster_report_url(user, *, is_senior: bool) -> tuple:
 
     if not _class10_legacy_all_complete(user):
         return False, ''
-    return True, reverse('app:dashboard_for_user', args=[uid])
+    return True, reverse('app:class10_combined_report', args=[uid])
 
 
 def _class10_has_any_attempt(user) -> bool:
@@ -396,7 +423,29 @@ def get_student_psychometric_dashboard_cta(user) -> dict:
     CTA for the student dashboard "My courses & tests" psychometric card.
 
     Returns action_label, action_variant ('start' | 'report'), and url.
+    Cached briefly — progress changes infrequently relative to dashboard refresh.
     """
+    from django.core.cache import cache
+
+    uid = int(getattr(user, "id", 0) or 0)
+    cache_key = f"psych:dash_cta:v1:{uid}" if uid else None
+    if cache_key:
+        try:
+            cached = cache.get(cache_key)
+            if isinstance(cached, dict) and "url" in cached:
+                return cached
+        except Exception:
+            pass
+    result = _compute_student_psychometric_dashboard_cta(user)
+    if cache_key and isinstance(result, dict):
+        try:
+            cache.set(cache_key, result, 90)
+        except Exception:
+            pass
+    return result
+
+
+def _compute_student_psychometric_dashboard_cta(user) -> dict:
     from django.urls import reverse
 
     track = get_student_psychometric_track(user)

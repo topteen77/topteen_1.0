@@ -24,6 +24,8 @@ from core import choices
 from django.shortcuts import redirect,HttpResponseRedirect
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import ensure_csrf_cookie
 from .task import send_skillabcourse_payment_success_mail
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -39,7 +41,11 @@ from skilllab.learner_header import (
     related_skilllab_courses,
     skilllab_course_queryset,
 )
-from skilllab.certificate import issue_skilllab_certificate_if_eligible, is_skilllab_course_completed
+from skilllab.certificate import (
+    issue_skilllab_certificate_if_eligible,
+    is_skilllab_course_completed,
+    skilllab_completion_payload,
+)
 import logging
 
 logger = logging.getLogger(__name__)
@@ -725,7 +731,10 @@ class SkillLabSaveResumeView(APIView):
         summary = SkillLabCourseProgressSummary.objects.get(
             user=request.user, skilllab_course=skilllab_course
         )
-        return Response({'success': True, 'progress_percentage': summary.progress_percentage})
+        payload = skilllab_completion_payload(
+            request.user, skilllab_course, summary.progress_percentage
+        )
+        return Response({'success': True, **payload})
 
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
@@ -751,8 +760,16 @@ class SkillLabMarkChapterCompleteView(APIView):
             chapter=chapter,
             defaults={'completed': True, 'completed_at': timezone.now()}
         )
-        issue_skilllab_certificate_if_eligible(request.user, skilllab_course)
-        return Response({'success': True, 'completed': progress.completed})
+        update_skilllab_course_progress_summary(request.user, skilllab_course)
+        summary = SkillLabCourseProgressSummary.objects.filter(
+            user=request.user, skilllab_course=skilllab_course
+        ).first()
+        payload = skilllab_completion_payload(
+            request.user,
+            skilllab_course,
+            summary.progress_percentage if summary else None,
+        )
+        return Response({'success': True, 'completed': progress.completed, **payload})
 
 
 def _get_course_and_check_access(request, course_slug):
@@ -1433,7 +1450,10 @@ class SkillLabMarkWorksheetDownloadedView(View):
         summary = SkillLabCourseProgressSummary.objects.get(
             user=request.user, skilllab_course=skilllab_course
         )
-        return JsonResponse({'success': True, 'progress_percentage': summary.progress_percentage})
+        payload = skilllab_completion_payload(
+            request.user, skilllab_course, summary.progress_percentage
+        )
+        return JsonResponse({'success': True, **payload})
 
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')), name='dispatch')
@@ -1491,13 +1511,16 @@ class SkillLabSubmitMCQView(View):
         summary = SkillLabCourseProgressSummary.objects.get(
             user=request.user, skilllab_course=skilllab_course
         )
+        payload = skilllab_completion_payload(
+            request.user, skilllab_course, summary.progress_percentage
+        )
         return JsonResponse({
             'success': True,
-            'progress_percentage': summary.progress_percentage,
             'score': score,
             'total': total,
             'percentage': int((score / total * 100)) if total else 0,
             'result_detail': result_detail,
+            **payload,
         })
 
 
@@ -1615,6 +1638,8 @@ class SkilllabCoursePaymentFail(TemplateView):
     def get(self, request,enc_id,*args, **kwargs):
         return render(request, self.template_name, self.get_context(request,enc_id,*args, **kwargs))
     
+@method_decorator(never_cache, name="dispatch")
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 class CreateSkilllabCoursePaymentWithEazyPay(View):
     def get_payment_url(self,request,slug,*args, **kwargs):
@@ -1804,6 +1829,12 @@ class UpdateSkilllabCoursePaymentWithEazyPay(APIView):
                     redirect_url = sp.get_payment_success_fail_url().get("success_url")
                     sp.is_success = choices.YesNoChoices.YES
                     sp.save()
+                    try:
+                        from users.skilllab_dashboard import invalidate_skilllab_dashboard_items_cache
+
+                        invalidate_skilllab_dashboard_items_cache(sp.user_id)
+                    except Exception:
+                        pass
                     send_skillabcourse_payment_success_mail.delay(sp.id)
                     return Response({'success': True, 'redirect_url': redirect_url}, status=status.HTTP_200_OK)
                 else:
@@ -1857,6 +1888,12 @@ class UpdateSkilllabCoursePaymentWithEazyPay(APIView):
             redirect_url=sp.get_payment_success_fail_url().get("success_url")
             sp.is_success=choices.YesNoChoices.YES
             sp.save()
+            try:
+                from users.skilllab_dashboard import invalidate_skilllab_dashboard_items_cache
+
+                invalidate_skilllab_dashboard_items_cache(sp.user_id)
+            except Exception:
+                pass
             send_skillabcourse_payment_success_mail.delay(sp.id)
         else:
             redirect_url=sp.get_payment_success_fail_url().get("fail_url")

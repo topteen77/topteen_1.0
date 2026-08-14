@@ -3,6 +3,7 @@ Seed dashboard point rules: deactivate legacy rules and activate the current set
 Point values and applies-to track remain editable in Admin > Core > Dashboard Point Rules.
 """
 from django.core.management.base import BaseCommand
+from core.dashboard_stats import RULE_LABELS
 from core.models import DashboardPointRule, DashboardRuleAppliesTo
 
 
@@ -26,9 +27,11 @@ class Command(BaseCommand):
         self.stdout.write(self.style.WARNING(f'Deactivated {deactivated} existing rule(s).'))
 
         for rule_key, points, order, applies_to in ACTIVE_POINT_RULES:
+            label = RULE_LABELS.get(rule_key, rule_key.replace('_', ' ').title())
             rule, created = DashboardPointRule.objects.update_or_create(
                 rule_key=rule_key,
                 defaults={
+                    'label': label,
                     'points': points,
                     'order': order,
                     'applies_to': applies_to,
@@ -38,7 +41,7 @@ class Command(BaseCommand):
             action = 'Created' if created else 'Updated'
             self.stdout.write(
                 self.style.SUCCESS(
-                    f'{action} {rule.rule_key}: {rule.points} pts, {rule.applies_to} (active)'
+                    f'{action} {rule.rule_key} ({rule.label}): {rule.points} pts, {rule.applies_to} (active)'
                 )
             )
 

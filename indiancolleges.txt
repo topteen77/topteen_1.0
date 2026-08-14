@@ -1,0 +1,202 @@
+Indian Colleges API – Postman / Manual Testing Guide
+====================================================
+Upstream host (canamuni): http://35.154.133.230:8000
+Frontend reference:       http://35.154.133.230:5173
+
+TopTeen local pages (proxy via Django):
+  List:   http://localhost:8002/colleges/
+  Detail: http://localhost:8002/colleges/institute/<college_id>/admission/
+
+Common headers for all POST/GET JSON calls:
+  Content-Type: application/json
+  Accept: application/json
+
+
+-------------------------------------------------------------------
+1) FILTERS
+-------------------------------------------------------------------
+Method: POST
+URL:    {{base}}/colleges/filters/
+
+Body (empty – load all filter options):
+{
+  "selected_filters": {}
+}
+
+Body (state selected – cities / dependent options refresh):
+{
+  "selected_filters": {
+    "state": { "id": 28 }
+  }
+}
+
+Body (stream selected – sub_streams / courses may refresh):
+{
+  "selected_filters": {
+    "stream": { "id": 10 }
+  }
+}
+
+Response shape:
+{
+  "selected_filters": { ... },
+  "filters": {
+    "static": {
+      "state": [{ "id": 28, "name": "Punjab" }, ...],
+      "stream": [{ "id": 10, "name": "Engineering" }, ...],
+      "course_type": [{ "id": 1, "name": "Degree" }, ...],
+      "college_type": [{ "id": 3, "name": "Private Un-Aided" }, ...],
+      "entrance_exams": [{ "id": 12, "name": "neet" }, ...],
+      "college_avg_fee": [{ "id": 3, "fees": "0-25K" }, ...],
+      "course_duration": [{ "id": 5, "name": "..." } or duration field, ...],
+      "college_category": [{ "id": 1, "name": "..." }, ...],
+      "gender": [{ "id": 2, "gender": "coed" }, ...]
+    },
+    "dynamic": {
+      "cities": [{ "id": 415, "name": "Amritsar", "state": 28 }, ...],
+      "sub_streams": [...],
+      "courses": [...]
+    }
+  }
+}
+
+Filter value shapes used by list API (selected_filters):
+  Single select:   "state": { "id": 28 }
+  Multi select:    "cities": [{ "id": 415 }, { "id": 170 }]
+  With name:       "college_type": { "id": 3, "name": "Private Un-Aided" }
+  Fee label field: "college_avg_fee": { "id": 3 }
+  Gender field:    "gender": { "id": 2 }
+
+
+-------------------------------------------------------------------
+2) COLLEGE LIST
+-------------------------------------------------------------------
+Method: POST
+URL:    {{base}}/colleges/colleges-list-view/
+
+Body (basic / IP-local default when selected_filters is empty):
+{
+  "selected_filters": {},
+  "page": 1,
+  "page_size": 12,
+  "detail_view": true,
+  "sort_by": "name",
+  "sort_order": "asc"
+}
+
+Body (with common filters):
+{
+  "selected_filters": {
+    "state": { "id": 28 },
+    "cities": [{ "id": 415 }],
+    "stream": { "id": 10 },
+    "sub_streams": [{ "id": 430 }],
+    "courses": { "id": 2952, "name": "Bachelor of Dental Surgery [BDS]" },
+    "course_type": { "id": 1, "name": "Degree" },
+    "college_type": { "id": 3, "name": "Private Un-Aided" },
+    "college_avg_fee": { "id": 3 },
+    "course_duration": { "id": 5 },
+    "college_category": { "id": 1 },
+    "entrance_exams": [{ "id": 12 }],
+    "gender": { "id": 2 }
+  },
+  "page": 1,
+  "page_size": 12,
+  "detail_view": true,
+  "sort_by": "name",
+  "sort_order": "asc"
+}
+
+Important response fields:
+  total, page, page_size, total_pages, has_next, has_previous, data[], location_debug
+
+Example data item fields:
+  college_id, college_name, college_url, city_name, state_name,
+  college_type, stream_name, course_name, avg_fees_array, gender_name
+
+
+-------------------------------------------------------------------
+3) COLLEGE BASE DETAILS
+-------------------------------------------------------------------
+Method: GET
+URL:    {{base}}/colleges/college-details/?id=19912
+
+Example college id: 19912 (Brahmrishi College of Education)
+
+
+-------------------------------------------------------------------
+4) COLLEGE TAB DETAILS (markdown content)
+-------------------------------------------------------------------
+Method: GET
+URL:    {{base}}/colleges/college-details/?id=19912&tab_name=admission
+
+Supported tab_name values:
+  admission
+  cut_off
+  placement
+  faculty
+  ranking
+  hostel
+
+Enabled/publishable content typically looks like:
+  status: COMPLETED
+  valid_content: true
+  content_validation_state: approved
+  has_content: true
+  markdown_content: "## Overview\n..."
+
+If tab has no content:
+  { "error": "No data found for tab 'placement'.", "location": {...} }
+
+
+-------------------------------------------------------------------
+5) COURSES AND FEES
+-------------------------------------------------------------------
+Method: GET
+URL:    {{base}}/colleges/19912/courses-fees/streams/
+
+Method: GET
+URL:    {{base}}/colleges/19912/courses-fees/streams/education/
+
+
+-------------------------------------------------------------------
+6) TOPTEEN LOCAL ROUTES (after integration)
+-------------------------------------------------------------------
+List page:
+  GET http://localhost:8002/colleges/
+  GET http://localhost:8002/colleges/?state=28&page=1
+  GET http://localhost:8002/colleges/?state=28&city=415&stream=10&course_type=1&avg_fee=3&gender=2
+
+Detail page:
+  GET http://localhost:8002/colleges/institute/19912/
+  GET http://localhost:8002/colleges/institute/19912/admission/
+  GET http://localhost:8002/colleges/institute/19912/courses/?stream=education
+  GET http://localhost:8002/colleges/institute/19912/cut-off/
+  GET http://localhost:8002/colleges/institute/19912/hostel/
+
+Query params supported on list (Indian colleges mode):
+  state, city (multi), stream, sub_stream (multi), course,
+  course_type, college_type, avg_fee, course_duration,
+  college_category, entrance_exam (multi), gender,
+  page, page_size, sort_order
+
+
+-------------------------------------------------------------------
+7) POSTMAN QUICK SETUP
+-------------------------------------------------------------------
+1. Create environment variable:
+     base = http://35.154.133.230:8000
+2. Create requests for sections 1–5 above.
+3. For list/filter POSTs, use Body → raw → JSON.
+4. Start with filters empty, copy an id from response, then call list with that id.
+
+
+-------------------------------------------------------------------
+8) NOTES
+-------------------------------------------------------------------
+- Empty selected_filters on list may auto-scope by IP location.
+- Selecting state overrides location scope.
+- TopTeen only lists/details colleges with enabled Admission content
+  (COMPLETED / approved / has_content).
+- Detail page only shows tabs that are enabled.
+- DEFAULT_PAGE_SIZE on TopTeen list is 12; total comes from API `total`.

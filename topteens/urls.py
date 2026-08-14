@@ -21,7 +21,7 @@ from django.conf.urls import handler404
 from users import views as users_views
 from user_analytics import views as user_analytics_views
 from core import views as core_views
-from core.seo_views import robots_txt, sitemap_xml
+from core.seo_views import robots_txt, sitemap_xml, facebook_domain_verification
 from core.pwa_views import manifest_json, service_worker_js
 from core.sitemaps import (
     BlogSitemap,
@@ -59,6 +59,11 @@ urlpatterns = [
     ),
     path("sitemap.xml", sitemap_xml, {"sitemaps": sitemaps}, name="sitemap"),
     path("robots.txt", robots_txt, name="robots_txt"),
+    path(
+        "80fczxf7zf2ysu54gokd497v0b09zu.html",
+        facebook_domain_verification,
+        name="facebook_domain_verification",
+    ),
     # S3 media proxy: serve S3 files through Django when S3_MEDIA_ACCESS_MODE=proxy (only your site can show media)
     path('media/s3/<path:path>', core_views.s3_media_proxy, name='s3_media_proxy'),
     path('admin/', admin.site.urls),
@@ -76,6 +81,7 @@ urlpatterns = [
     path("blogs/",include('blog.urls')),
     
     path('user/', include('users.urls',namespace='users')),
+    path('loan-desk/', include('loan_desk.urls', namespace='loan_desk')),
     # Role-specific auth landing pages (Jinja templates)
     path('student/login/', users_views.StudentLoginView.as_view(), name='student_login'),
     path('student/signup/', users_views.StudentSignupView.as_view(), name='student_signup'),
@@ -86,6 +92,7 @@ urlpatterns = [
     path('parents/student/<int:student_id>/buy/skilllab/<slug:slug>/', users_views.ParentStudentBuySkilllabView.as_view(), name='parents_student_buy_skilllab'),
     path('parents/education-loan-calculator/', users_views.ParentsEducationLoanCalculatorView.as_view(), name='parents_education_loan_calculator'),
     path('parents/education-loan-calculator/save/', users_views.ParentEducationLoanApplicationSaveView.as_view(), name='parents_education_loan_save'),
+    path('parents/education-loan-calculator/callback/', users_views.ParentEducationLoanCallbackView.as_view(), name='parents_education_loan_callback'),
     path('parents/education-loan-applications/', users_views.ParentsEducationLoanApplicationsView.as_view(), name='parents_education_loan_applications'),
     path('parents/careers/', users_views.ParentContentListView.as_view(), {'kind': 'careers'}, name='parents_careers'),
     path('parents/blogs/', users_views.ParentContentListView.as_view(), {'kind': 'blogs'}, name='parents_blogs'),
@@ -107,6 +114,8 @@ urlpatterns = [
     path('parents/student/<int:student_id>/suggestions/<str:kind>/', users_views.ParentStudentSuggestedListView.as_view(), name='parents_student_suggestions'),
     path('api/loan/calculate', users_views.LoanCalculatorAPIView.as_view(), name='api_loan_calculate'),
     path('api/translate-complexity/', core_views.translate_complexity_api, name='api_translate_complexity'),
+    path('api/voice/transcribe/', core_views.voice_transcribe_api, name='api_voice_transcribe'),
+    path('api/voice/settings/', core_views.voice_settings_api, name='api_voice_settings'),
     path('oauth/', include('social_django.urls', namespace='social')),
     path('api/v1/', include('apis.urls')),
     path("institute/",include('institute.urls', namespace='institute')),

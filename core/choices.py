@@ -202,10 +202,11 @@ class UniversityType(object):
 class CommunicationTypeChooices(object):
     EMAIL=1
     SMS=2
+    WHATSAPP=3
     CHOICES = (
         (EMAIL, 'Email'),
-        (SMS, 'SMS')
-
+        (SMS, 'SMS'),
+        (WHATSAPP, 'WhatsApp'),
     )
 
 class SalaryType(object):
@@ -301,11 +302,13 @@ class PaymentObjectType(object):
     SKILLLABCOURSE=20
     COUNSELOR=30
     INSTITUTE_TIEUP=40
+    LLM_TOKEN_PACKAGE=50
     CHOICES=(
         (PYSCHOMETRICTESTDETAIL,"PsychometricTestDetail"),
         (SKILLLABCOURSE,"Skilllabcourse"),
         (COUNSELOR,"Counselor"),
         (INSTITUTE_TIEUP,"Institute Tie-Up"),
+        (LLM_TOKEN_PACKAGE,"LLM Token Package"),
     )
 
 
@@ -450,6 +453,8 @@ class UserType(object):
     COUNSELOR=4
     MARKETINGGROUPADMIN=5
     PARENT=6
+    LOAN_MANAGER=7
+    LOAN_EXECUTIVE=8
     CHOICES=(
         (STUDENT,"Student"),
         (INSTITUTE,"Institute"),
@@ -457,7 +462,11 @@ class UserType(object):
         (COUNSELOR,"Counselor"),
         (MARKETINGGROUPADMIN,"Marketing Group Admin"),
         (PARENT,"Parent"),
+        (LOAN_MANAGER,"Loan Manager"),
+        (LOAN_EXECUTIVE,"Loan Executive"),
     )
+
+    LOAN_DESK_TYPES = (LOAN_MANAGER, LOAN_EXECUTIVE)
 
 class UserStatus(object):
     BLOCK=1
@@ -576,14 +585,42 @@ class ReasoningArea:
 
 class EducationLoanApplicationStatus(object):
     DRAFT = 0
-    ENQUIRY_SENT = 1
+    ENQUIRY_SENT = 1  # legacy label; treated as NEW in loan desk
+    CALLBACK_SCHEDULED = 2
+    IN_PROGRESS = 3
+    FOLLOW_UP = 4
+    CLOSED = 5
+    QUALIFIED = 6
+    NOT_QUALIFIED = 7
     CHOICES = (
         (DRAFT, "Draft"),
-        (ENQUIRY_SENT, "Application Enquiry Sent"),
+        (ENQUIRY_SENT, "New Enquiry"),
+        (CALLBACK_SCHEDULED, "Callback Scheduled"),
+        (IN_PROGRESS, "In Progress"),
+        (FOLLOW_UP, "Follow Up"),
+        (CLOSED, "Closed"),
+        (QUALIFIED, "Qualified"),
+        (NOT_QUALIFIED, "Not Qualified"),
+    )
+
+    # Pre-qualification working pipeline (reminders / pending work)
+    OPEN_STATUSES = (
+        ENQUIRY_SENT,
+        CALLBACK_SCHEDULED,
+        IN_PROGRESS,
+        FOLLOW_UP,
+    )
+
+    PENDING_STATUSES = (
+        CALLBACK_SCHEDULED,
+        IN_PROGRESS,
+        FOLLOW_UP,
     )
 
 
 class EducationLoanCRMSyncStatus(object):
+    """Bank API push state (DB column crm_sync_*; UI label: Bank API)."""
+
     PENDING = 0
     SENT = 1
     SUCCESS = 2
@@ -593,6 +630,49 @@ class EducationLoanCRMSyncStatus(object):
         (SENT, "Sent"),
         (SUCCESS, "Success"),
         (ERROR, "Error"),
+    )
+
+
+class EducationLoanBankEmailStatus(object):
+    NONE = 0
+    PENDING = 1
+    SENT = 2
+    ERROR = 3
+    CHOICES = (
+        (NONE, "Not sent"),
+        (PENDING, "Pending"),
+        (SENT, "Sent"),
+        (ERROR, "Error"),
+    )
+
+
+class EducationLoanBankApiHttpMethod(object):
+    GET = "GET"
+    POST = "POST"
+    PUT = "PUT"
+    PATCH = "PATCH"
+    CHOICES = (
+        (GET, "GET"),
+        (POST, "POST"),
+        (PUT, "PUT"),
+        (PATCH, "PATCH"),
+    )
+
+
+class EducationLoanDisqualifyReason(object):
+    INCOMPLETE = "incomplete"
+    NOT_ELIGIBLE = "not_eligible"
+    DUPLICATE = "duplicate"
+    WITHDRAWN = "withdrawn"
+    LOW_AMOUNT = "low_amount"
+    OTHER = "other"
+    CHOICES = (
+        (INCOMPLETE, "Incomplete documents / details"),
+        (NOT_ELIGIBLE, "Not eligible"),
+        (DUPLICATE, "Duplicate enquiry"),
+        (WITHDRAWN, "Parent withdrew"),
+        (LOW_AMOUNT, "Amount / profile not suitable"),
+        (OTHER, "Other"),
     )
 
 

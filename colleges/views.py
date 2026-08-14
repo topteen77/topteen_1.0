@@ -3,7 +3,7 @@ from urllib import request
 from django.shortcuts import render
 from django.http import JsonResponse
 from colleges.document_filters import CollegeDocumentFilter
-from .models import College,CollegeShortlist
+from .models import College, CollegeShortlist, IndianCollegeShortlist
 from django.shortcuts import get_object_or_404
 from django.views.generic import TemplateView
 from courses.models import Course
@@ -165,10 +165,12 @@ class CollegeList(TemplateView):
         return build_html_head(title=name, description=name)
 
     def get_context(self, request,state, *args, **kwargs):
+        from django.conf import settings
         from django.urls import reverse
-        from django.core.paginator import Paginator
-        from django.db.models import Q
-        
+
+        if getattr(settings, "USE_INDIAN_COLLEGES_API", False):
+            return self.get_indian_api_context(request)
+
         try:
             clg=CollegeDocumentFilter()
             ctx=clg.get_college_list_context(request,state)
@@ -178,6 +180,7 @@ class CollegeList(TemplateView):
             ctx = self.get_fallback_context(request, state)
         
         ctx['html_head'] = self.__html_head()
+        ctx['use_indian_colleges_api'] = False
         counrty=request.GET.getlist('country')
         state_list=request.GET.getlist('state')
         city=request.GET.getlist('city')
@@ -210,6 +213,66 @@ class CollegeList(TemplateView):
                     ctx['parent_student_id'] = int(student_id)
         except Exception:
             pass
+        from users.parent_suggestions import apply_student_parent_suggestions_context, maybe_mark_parent_suggestions_seen
+        apply_student_parent_suggestions_context(ctx, request, "colleges")
+        maybe_mark_parent_suggestions_seen(
+            request, "colleges", is_parent_student_context=ctx.get("is_parent_student_context", False)
+        )
+        return ctx
+
+    def get_indian_api_context(self, request):
+        from django.urls import reverse
+        from colleges.external_api import get_college_list_context_from_api
+
+        try:
+            ctx = get_college_list_context_from_api(request)
+        except Exception as e:
+            print(f"Indian colleges API unavailable, falling back to local colleges: {e}")
+            ctx = self.get_fallback_context(request, None)
+            ctx['use_indian_colleges_api'] = False
+            ctx['api_error'] = str(e)
+            country = request.GET.getlist('country')
+            state_list = request.GET.getlist('state')
+            city = request.GET.getlist('city')
+            ctx['query_list'] = state_list + city
+            ctx['get_updated_url'] = "&".join(
+                [f"country={c}" for c in country]
+                + [f"state={s}" for s in state_list]
+                + [f"city={ci}" for ci in city]
+            )
+
+        ctx['html_head'] = self.__html_head()
+        ctx['breadcrumb'] = get_breadcrumb([{'text': 'Colleges', 'url': reverse('colleges:college')}])
+        ctx['is_parent_student_context'] = False
+        ctx['parent_student_id'] = None
+        ctx['indian_shortlisted_ids'] = []
+        ctx['psychometric_match'] = None
+        ctx['psychometric_match_courses'] = []
+        if request.user.is_authenticated:
+            ctx['indian_shortlisted_ids'] = list(
+                IndianCollegeShortlist.objects.filter(user_id=request.user.id)
+                .values_list('external_college_id', flat=True)
+            )
+            try:
+                from colleges.psychometric_match import (
+                    get_matched_courses,
+                    get_psychometric_match_profile,
+                )
+
+                # Local DB + short cache only — no upstream on list SSR.
+                profile = get_psychometric_match_profile(request.user)
+                ctx['psychometric_match'] = profile
+                if profile:
+                    # Cache-only preview so list page stays fast.
+                    ctx['psychometric_match_courses'] = get_matched_courses(
+                        profile['stream_id'],
+                        stream_name=profile.get('stream_name') or '',
+                        limit=6,
+                        cache_only=True,
+                    )
+            except Exception:
+                ctx['psychometric_match'] = None
+                ctx['psychometric_match_courses'] = []
         from users.parent_suggestions import apply_student_parent_suggestions_context, maybe_mark_parent_suggestions_seen
         apply_student_parent_suggestions_context(ctx, request, "colleges")
         maybe_mark_parent_suggestions_seen(
@@ -303,6 +366,91 @@ class CollegeList(TemplateView):
     def get(self, request,*args, **kwargs):      
         return render(request, self.template_name, self.get_context(request,args, kwargs))
 
+
+class IndianCollegeDetails(TemplateView):
+    """College detail page backed by the Indian colleges API."""
+
+    template_name = "template20/indian_college_detail.html"
+
+    def get(self, request, college_id, tab=None, *args, **kwargs):
+        from django.http import Http404
+        from django.shortcuts import redirect
+        from django.urls import reverse
+        from colleges.external_api import (
+            CollegeContentDisabled,
+            get_college_detail_context_from_api,
+            resolve_detail_tab,
+        )
+
+        active = resolve_detail_tab(tab)
+        # Canonicalize aliases like cut_off -> cut-off
+        if tab and tab != active["path"]:
+            url = reverse(
+                "colleges:indian_collegedetail_tab",
+                kwargs={"college_id": college_id, "tab": active["path"]},
+            )
+            stream = request.GET.get("stream")
+            course = request.GET.get("course")
+            qs = []
+            if stream:
+                qs.append(f"stream={stream}")
+            if course:
+                qs.append(f"course={course}")
+            if qs:
+                url = f"{url}?{'&'.join(qs)}"
+            return redirect(url)
+
+        try:
+            ctx = get_college_detail_context_from_api(
+                college_id=college_id,
+                tab=active["path"],
+                stream_slug=request.GET.get("stream"),
+                highlight_course_slug=request.GET.get("course"),
+            )
+            ctx["api_error"] = None
+        except CollegeContentDisabled:
+            raise Http404("College details are not available yet.")
+        except Exception as e:
+            print(f"Indian college detail API error: {e}")
+            raise Http404("Unable to load college details right now.")
+
+        ctx["is_indian_shortlisted"] = False
+        if request.user.is_authenticated:
+            ctx["is_indian_shortlisted"] = IndianCollegeShortlist.objects.filter(
+                user_id=request.user.id,
+                external_college_id=int(college_id),
+            ).exists()
+
+        redirect_tab = ctx.get("redirect_tab")
+        if redirect_tab and redirect_tab != active["path"]:
+            url = reverse(
+                "colleges:indian_collegedetail_tab",
+                kwargs={"college_id": college_id, "tab": redirect_tab},
+            )
+            stream = request.GET.get("stream")
+            course = request.GET.get("course")
+            qs = []
+            if stream:
+                qs.append(f"stream={stream}")
+            if course:
+                qs.append(f"course={course}")
+            if qs:
+                url = f"{url}?{'&'.join(qs)}"
+            return redirect(url)
+
+        ctx["html_head"] = build_html_head(
+            title=ctx.get("college_name") or "College",
+            description=ctx.get("college_location") or "College details",
+        )
+        ctx["breadcrumb"] = get_breadcrumb(
+            [
+                {"text": "Colleges", "url": reverse("colleges:college")},
+                {"text": ctx.get("college_name") or "Details", "url": ""},
+            ]
+        )
+        return render(request, self.template_name, ctx)
+
+
 def shortlist_college_view(request):
     if not request.user.is_authenticated:
         return JsonResponse({'success': False, 'error': 'User not authenticated'}, status=401)
@@ -323,3 +471,309 @@ def shortlist_college_view(request):
             return JsonResponse({'success':'true'})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+def shortlist_indian_college_view(request):
+    """Toggle shortlist for an external Indian college (student dashboard scrapbook)."""
+    if not request.user.is_authenticated:
+        return JsonResponse(
+            {"success": False, "error": "User not authenticated"},
+            status=401,
+        )
+
+    college_id = request.POST.get("college_id") or request.GET.get("college_id")
+    if not college_id:
+        return JsonResponse(
+            {"success": False, "error": "College ID is required"},
+            status=400,
+        )
+    try:
+        college_id = int(college_id)
+    except (TypeError, ValueError):
+        return JsonResponse(
+            {"success": False, "error": "Invalid college ID"},
+            status=400,
+        )
+
+    name = (request.POST.get("name") or request.GET.get("name") or "").strip()
+    city_name = (request.POST.get("city_name") or "").strip()
+    state_name = (request.POST.get("state_name") or "").strip()
+    college_type = (request.POST.get("college_type") or "").strip()
+    avg_fees = (request.POST.get("avg_fees") or "").strip()
+
+    existing = IndianCollegeShortlist.objects.filter(
+        user=request.user,
+        external_college_id=college_id,
+    ).first()
+    if existing and existing.object_status == 1:
+        existing.delete(hard_delete=True)
+        return JsonResponse(
+            {
+                "success": True,
+                "message": "Removed Shortlisted",
+                "shortlisted": False,
+            }
+        )
+
+    if existing:
+        existing.object_status = 1
+        existing.name = name or existing.name or f"College {college_id}"
+        existing.city_name = city_name or existing.city_name
+        existing.state_name = state_name or existing.state_name
+        existing.college_type = college_type or existing.college_type
+        existing.avg_fees = avg_fees or existing.avg_fees
+        existing.save()
+    else:
+        IndianCollegeShortlist.objects.create(
+            user=request.user,
+            external_college_id=college_id,
+            name=name or f"College {college_id}",
+            city_name=city_name,
+            state_name=state_name,
+            college_type=college_type,
+            avg_fees=avg_fees,
+        )
+    return JsonResponse(
+        {
+            "success": True,
+            "message": "College Shortlisted",
+            "shortlisted": True,
+        }
+    )
+
+
+class MatchedCoursesView(TemplateView):
+    """Dedicated page: psychometric-matched courses (one cached filters call)."""
+
+    template_name = "template20/matched_courses.html"
+
+    def get(self, request, *args, **kwargs):
+        from django.urls import reverse
+        from colleges.psychometric_match import (
+            get_matched_courses,
+            get_psychometric_match_profile,
+            resolve_stream_for_user,
+        )
+
+        profile = None
+        if request.user.is_authenticated:
+            try:
+                profile = get_psychometric_match_profile(request.user)
+            except Exception:
+                profile = None
+
+        stream_param = request.GET.get("stream")
+        stream_id = None
+        try:
+            if stream_param:
+                stream_id = int(stream_param)
+        except (TypeError, ValueError):
+            stream_id = None
+
+        search_query = (request.GET.get("q") or "").strip()
+        active = None
+        courses = []
+        if profile and request.user.is_authenticated:
+            active = resolve_stream_for_user(request.user, stream_id=stream_id)
+            if active:
+                courses = get_matched_courses(
+                    active["stream_id"],
+                    stream_name=active.get("stream_name") or "",
+                    q=search_query,
+                    limit=200,
+                )
+
+        ctx = {
+            "html_head": build_html_head(
+                title="Matched Courses",
+                description="Courses matched to your psychometric profile",
+            ),
+            "breadcrumb": get_breadcrumb(
+                [
+                    {"text": "Colleges", "url": reverse("colleges:college")},
+                    {"text": "Matched Courses", "url": ""},
+                ]
+            ),
+            "psychometric_match": profile,
+            "courses": courses,
+            "search_query": search_query,
+            "active_stream_id": active["stream_id"] if active else None,
+            "active_stream_name": active["stream_name"] if active else "",
+            "active_stream_query": (
+                f"stream={active['stream_id']}" if active else ""
+            ),
+        }
+        return render(request, self.template_name, ctx)
+
+
+def psychometric_match_courses_api(request):
+    """Async JSON preview of matched courses (cached filters; list-page safe)."""
+    if not request.user.is_authenticated:
+        return JsonResponse({"ok": False, "reason": "auth"}, status=401)
+    try:
+        from colleges.psychometric_match import (
+            get_matched_courses,
+            get_psychometric_match_profile,
+            resolve_stream_for_user,
+        )
+
+        stream_param = request.GET.get("stream")
+        stream_id = None
+        try:
+            if stream_param:
+                stream_id = int(stream_param)
+        except (TypeError, ValueError):
+            stream_id = None
+
+        active = resolve_stream_for_user(request.user, stream_id=stream_id)
+        if not active:
+            return JsonResponse({"ok": False, "reason": "no_profile"})
+
+        courses = get_matched_courses(
+            active["stream_id"],
+            stream_name=active.get("stream_name") or "",
+            limit=8,
+            cache_only=False,
+        )
+        return JsonResponse(
+            {
+                "ok": True,
+                "stream_id": active["stream_id"],
+                "stream_name": active["stream_name"],
+                "courses": courses,
+                "matched_courses_url": (
+                    f"/colleges/matched-courses/?stream={active['stream_id']}"
+                ),
+            }
+        )
+    except Exception as e:
+        return JsonResponse({"ok": False, "reason": "error", "error": str(e)})
+
+
+class IndianCourseDetailView(TemplateView):
+    """Separate course page linked from college Courses & Fees table."""
+
+    template_name = "template20/indian_course_detail.html"
+
+    def get(self, request, course_id, *args, **kwargs):
+        from django.urls import reverse
+        from colleges.course_pages import build_course_detail_page
+
+        course_name = (request.GET.get("name") or f"Course {course_id}").strip()
+        degree_level = (request.GET.get("degree") or "").strip()
+        stream_name = (request.GET.get("stream") or "").strip()
+        stream_slug = (request.GET.get("stream_slug") or "").strip()
+        course_slug = (request.GET.get("course_slug") or "").strip()
+        stream_id = request.GET.get("stream_id")
+        from_college_id = request.GET.get("from_college")
+        try:
+            from_college_id = int(from_college_id) if from_college_id else None
+        except (TypeError, ValueError):
+            from_college_id = None
+        try:
+            stream_id = int(stream_id) if stream_id else None
+        except (TypeError, ValueError):
+            stream_id = None
+
+        try:
+            course_id_int = int(course_id)
+        except (TypeError, ValueError):
+            course_id_int = 0
+
+        # Map stream label → id for matched-course links that only send the name.
+        if stream_id is None and stream_name:
+            from colleges.psychometric_match import RIASEC_TO_STREAMS
+
+            want = stream_name.strip().lower()
+            for rows in RIASEC_TO_STREAMS.values():
+                for row in rows:
+                    if (row.get("name") or "").strip().lower() == want:
+                        stream_id = int(row["id"])
+                        break
+                if stream_id is not None:
+                    break
+
+        page = build_course_detail_page(
+            course_name=course_name,
+            course_id=course_id_int,
+            course_slug=course_slug,
+            stream_name=stream_name,
+            stream_slug=stream_slug,
+            stream_id=stream_id,
+            from_college_id=from_college_id,
+            college_limit=8,
+        )
+        colleges = page.get("colleges") or []
+        overview = page.get("overview") or {}
+        course_html = overview.get("html") or ""
+        if course_html and not str(course_html).strip():
+            course_html = ""
+        course_slug = overview.get("course_slug") or course_slug
+        degree_level = overview.get("degree_level") or degree_level
+        if overview.get("stream_name"):
+            stream_name = overview.get("stream_name") or stream_name
+        stream_slug = overview.get("stream_slug") or stream_slug
+        overview_college_id = overview.get("college_id") or from_college_id
+        overview_college_name = (overview.get("college_name") or "").strip()
+        overview_college_city = (overview.get("college_city") or "").strip()
+        overview_college_state = (overview.get("college_state") or "").strip()
+        if not overview_college_name and overview_college_id:
+            for row in colleges:
+                try:
+                    if int(row.get("id")) == int(overview_college_id):
+                        overview_college_name = (row.get("name") or "").strip()
+                        overview_college_city = (row.get("city") or "").strip()
+                        overview_college_state = (row.get("state") or "").strip()
+                        break
+                except (TypeError, ValueError, AttributeError):
+                    continue
+
+        crumbs = [{"text": "Colleges", "url": reverse("colleges:college")}]
+        if from_college_id:
+            crumbs.append(
+                {
+                    "text": overview_college_name or "College",
+                    "url": reverse(
+                        "colleges:indian_collegedetail_tab",
+                        kwargs={"college_id": from_college_id, "tab": "courses"},
+                    ),
+                }
+            )
+        elif overview_college_id and overview_college_name:
+            crumbs.append(
+                {
+                    "text": overview_college_name,
+                    "url": reverse(
+                        "colleges:indian_collegedetail_tab",
+                        kwargs={
+                            "college_id": overview_college_id,
+                            "tab": "courses",
+                        },
+                    ),
+                }
+            )
+        crumbs.append({"text": course_name, "url": ""})
+
+        ctx = {
+            "html_head": build_html_head(
+                title=course_name,
+                description=f"{course_name} colleges and course details",
+            ),
+            "breadcrumb": get_breadcrumb(crumbs),
+            "course_id": course_id_int,
+            "course_name": course_name,
+            "degree_level": degree_level,
+            "stream_name": stream_name,
+            "stream_slug": stream_slug,
+            "course_slug": course_slug,
+            "from_college_id": from_college_id,
+            "overview_college_id": overview_college_id,
+            "overview_college_name": overview_college_name,
+            "overview_college_city": overview_college_city,
+            "overview_college_state": overview_college_state,
+            "course_html": course_html,
+            "has_course_html": bool(str(course_html or "").strip()),
+            "colleges": colleges,
+            "filter_query": page.get("filter_query") or "",
+        }
+        return render(request, self.template_name, ctx)

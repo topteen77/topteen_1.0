@@ -1,7 +1,7 @@
 {% extends 'template20/base.html' %}
 
 {% block title_content %}
-{{ career.name }} | Top Teen
+{{ career.name }} | TopTeen
 {% endblock %}
 
 {% block description_content %}
@@ -41,6 +41,10 @@
     cursor: pointer;
   }
 
+  .blogDetail.careerDetail ul li span {
+  font-family: "Space Grotesk", serif !important;
+}
+
   .career-intro-content .career-intro-paras p { margin-bottom: 1rem; }
   .career-intro-content .career-intro-paras p:last-child { margin-bottom: 0; }
   .career-intro-content .career-intro-paras h2 { display: none; }
@@ -77,29 +81,103 @@
   .cat-main-content th,
   .cat-main-content thead,
   .cat-main-content tr {
-    border-color: inherit;
+    border-color: #e4e7fb;
     border-style: solid;
-    border-width: 1px;
+    border-width: 0;
     font-weight: 400;
+    font-size: 15px;
+  }
+
+  .cat-main-content table,
+  .blogDetail.careerDetail table,
+  .cat-accordion .accordion-body table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 1.25rem 0;
+    background: #fff;
+    border: 1px solid #e4e7fb;
+    border-radius: 12px;
+    overflow: hidden;
+    table-layout: fixed;
+  }
+
+  .cat-main-content table th,
+  .cat-main-content table td,
+  .blogDetail.careerDetail table th,
+  .blogDetail.careerDetail table td,
+  .cat-accordion .accordion-body table th,
+  .cat-accordion .accordion-body table td {
+    padding: 14px 18px;
+    line-height: 1.6;
+    vertical-align: top;
+    border: 1px solid #e8eaf6;
+    color: #2d2a4a;
+    word-break: break-word;
+    hyphens: auto;
+  }
+
+  .cat-main-content table tr:first-child th,
+  .cat-main-content table tr:first-child td,
+  .blogDetail.careerDetail table tr:first-child th,
+  .blogDetail.careerDetail table tr:first-child td,
+  .cat-accordion .accordion-body table tr:first-child th,
+  .cat-accordion .accordion-body table tr:first-child td {
+    background: #f2f0ff;
+    font-weight: 600;
+    color: #3f37c9;
+    text-align: center;
     font-size: 16px;
+    padding: 16px 18px;
+  }
+
+  .cat-main-content table tbody tr:nth-child(even) td,
+  .blogDetail.careerDetail table tbody tr:nth-child(even) td,
+  .cat-accordion .accordion-body table tbody tr:nth-child(even) td {
+    background: #fafbff;
   }
 
   .cat-main-content .table tr:first-child {
-    background: #F2F0FF;
+    background: #f2f0ff;
   }
 
   .cat-main-content .table tr th,
   .cat-main-content .table tr td {
-    padding: 8px;
+    padding: 14px 18px;
   }
 
-  .cat-main-content .table tr td p {
-    margin: 0px;
+  .cat-main-content .table tr td p,
+  .blogDetail.careerDetail table td p,
+  .cat-accordion .accordion-body table td p {
+    margin: 0;
+    line-height: 1.6;
   }
 
-  .cat-main-content .table tr td a {
+  .cat-main-content .table tr td a,
+  .blogDetail.careerDetail table td a {
     color: #5046E5;
     text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    .cat-main-content table,
+    .blogDetail.careerDetail table,
+    .cat-accordion .accordion-body table {
+      display: block;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .cat-main-content table th,
+    .cat-main-content table td,
+    .blogDetail.careerDetail table th,
+    .blogDetail.careerDetail table td,
+    .cat-accordion .accordion-body table th,
+    .cat-accordion .accordion-body table td {
+      padding: 12px 14px;
+      font-size: 14px;
+      min-width: 140px;
+    }
   }
 
   .cat-main-content ol li {
@@ -818,6 +896,9 @@
     -webkit-overflow-scrolling: touch;
   }
 
+  .car-rel-video.video-vertical .video-box {
+  width: 100%;
+}
 
   }
 </style>
@@ -826,7 +907,7 @@
 {% block content %}
 
 <!-- Hero Section -->
-<section class="career-hero mt-md-18 mt-13 pb-8">
+<section class="career-hero mt-md-18 mt-10 pb-8">
   <div class="container">
     <div class="row">
       <!--breadcrumb-->
@@ -837,7 +918,7 @@
 
       <div class="col-lg-8 single-track-col">
         <div class="track-header">
-          <h1 class="cat-title">{{ career.name }}</h1>
+          <h1 class="cat-title fs-sm-28 fw-bold">{{ career.name }}</h1>
           
           {% if description_intro_html %}
           <div class="blog-summary-box career-intro-content">
@@ -904,7 +985,7 @@
           {% endif %}
 
           <!-- ============================================ -->
-          <!-- NEW SVG-based Mindmap (Active) - When API mindmap unavailable (no XMind / no parsable description) -->
+          <!-- Static SVG mindmap when API mindmap unavailable -->
           <!-- ============================================ -->
           {% if enable_career_mindmap and not career_mindmap_api_available %}
           <div class="mindmap-wrapper mt-5 mb-5" id="career-svg-mindmap-section">
@@ -1083,7 +1164,7 @@
           })();
           </script>
           {% else %}
-          <div class="mindmap-wrapper mt-5 mb-5" id="career-xmind-mindmap-section">
+          <div class="mindmap-wrapper mt-5 mb-5" id="career-radial-mindmap-section">
             <div class="card" style="border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15); background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
               <div class="card-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 25px;">
                 <h5 class="mb-0">✨ Radial Mind Map - {{ career.name }}</h5>
@@ -1113,7 +1194,7 @@
           <script src="{{ static('js/radial-mindmap.js') }}"></script>
           <script>
           (function() {
-            if (!document.getElementById('career-xmind-mindmap-section')) return;
+            if (!document.getElementById('career-radial-mindmap-section')) return;
             function run() {
               if (typeof window.RadialMindmap === 'undefined') { setTimeout(run, 50); return; }
               window.RadialMindmap.init({
@@ -1597,7 +1678,7 @@
       <div class="col-lg-4">
         <!-- Knowledge & Skills You Will Learn Sidebar -->
         {% if (infographics.skills_industry_trends and infographics.skills_industry_trends.skills) or career.skills.all() %}
-        <div class="skills-sidebar-card mb-4">
+        <div class="skills-sidebar-card mb-4 d-none">
           <div class="skills-sidebar-header">
             <div class="skills-icon-wrapper">
               <i class='bx bx-brain'></i>
@@ -1632,21 +1713,43 @@
           <h3 class="sidebar-title">Career Video</h3>
           <div class="car-rel-video video-vertical flex-column">
             {% for video in career.videos.all()[:2] %}
+            {% set video_url = video.get_video_or_url() %}
+            {% set thumb_url = video.get_thumbnail_url() %}
+            {% set is_youtube = video_url and ('youtube.com' in video_url or 'youtu.be' in video_url) %}
+            {% set is_direct = video.upload_video or (video_url and not is_youtube and ('.mp4' in video_url.lower() or '.webm' in video_url.lower() or '.mov' in video_url.lower())) %}
             <div class="video-box mb-3">
-              <a href="{{ url('careers:videodetail', args=[video.slug]) }}" class="video-link">
+              <a href="#"
+                 class="js-career-detail-video-open"
+                 data-bs-toggle="modal"
+                 data-bs-target="#careerDetailVideoModal"
+                 data-video="{{ video_url }}"
+                 data-video-id="{{ video.id }}"
+                 data-title="{{ video.name|e }}"
+                 role="button"
+                 aria-label="Play video: {{ video.name|e }}">
                 <div class="text-b">
                   <div class="blankdiv"></div>
                   <div class="video-play"><img src="{{ static('images_new/icons/video-play.svg') }}" alt="Play Icon" /></div>
                 </div>
-                <div class="video-thumb-auto">
-                  {% if video.upload_video %}
-                  <video class="videoPlayer">
-                    <source src="{{ video.upload_video.url }}" type="video/mp4">
+                <div class="video-thumb-auto position-relative">
+                  {% if thumb_url %}
+                  <img src="{{ thumb_url }}"
+                       alt="{{ video.name }}"
+                       class="img-fluid career-video-sidebar-thumb"
+                       loading="lazy"
+                       decoding="async"
+                       onerror="this.onerror=null; this.style.display='none'; var ph=this.nextElementSibling; if(ph){ph.style.display='flex';}">
+                  <div class="career-video-sidebar-placeholder bg-gray d-flex align-items-center justify-content-center w-100 h-100" style="display:none;">
+                    <i class='bx bx-play-circle fs-48'></i>
+                  </div>
+                  {% elif is_direct %}
+                  {# Capture first frame as screenshot for uploaded/S3 MP4s (muted; never used for playback) #}
+                  <video class="career-video-thumb-source videoPlayer" muted playsinline preload="metadata" crossorigin="anonymous">
+                    <source src="{{ video_url }}" type="video/mp4">
                   </video>
-                  {% elif video.video_image %}
-                  <img src="{{ video.video_image.url }}" alt="{{ video.name }}" class="img-fluid" loading="lazy" decoding="async">
+                  <canvas class="thumbnailCanvas" aria-hidden="true"></canvas>
                   {% else %}
-                  <div class="bg-gray p-4 text-center">
+                  <div class="career-video-sidebar-placeholder bg-gray d-flex align-items-center justify-content-center w-100 h-100">
                     <i class='bx bx-play-circle fs-48'></i>
                   </div>
                   {% endif %}
@@ -1656,6 +1759,38 @@
             {% endfor %}
           </div>
         </div>
+        <style>
+          .video-vertical .video-thumb-auto .career-video-sidebar-thumb {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+          }
+          .video-vertical .video-thumb-auto .career-video-sidebar-placeholder {
+            width: 100%;
+            height: 100%;
+            min-height: 180px;
+            background: #e9ecef;
+          }
+          .video-vertical .video-thumb-auto .thumbnailCanvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+          }
+          .video-vertical a.js-career-detail-video-open {
+            width: 100%;
+            display: block;
+            cursor: pointer;
+          }
+          .video-vertical .career-video-thumb-source {
+            display: none;
+          }
+
+          .blog-sidebar {
+	padding: 15px;
+}
+        </style>
         {% endif %}
 
         <!-- Leading Professions Sidebar -->
@@ -1673,7 +1808,7 @@
                 {% endif %}
               </div>
               <div class="prf-content">
-                <h3 class="prf-title mt-0">{{ profession.name }}</h3>
+                <h3 class="prf-title mt-0 fs-sm-15">{{ profession.name }}</h3>
                 {% if profession.summary %}
                 <p class="blog-excerpt">{{ profession.summary|truncate(150) }}</p>
                 {% endif %}
@@ -1781,19 +1916,22 @@
 </section>
 {% endif %}
 
-<!-- Video Modal -->
-<div class="modal fade" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
+<!-- Career detail video modal (own IDs — do not share #videoModal/#videoFrame with main.js) -->
+<div class="modal fade career-video-modal" id="careerDetailVideoModal" tabindex="-1" aria-labelledby="careerDetailVideoModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="videoModalLabel">Career Video</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      <div class="modal-header position-relative" style="z-index: 10;">
+        <h5 class="modal-title" id="careerDetailVideoModalLabel">Career Video</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="position: relative; z-index: 11;"></button>
       </div>
-      <div class="modal-body">
-        <video id="modalVideo" class="w-100" controls>
-          <source src="" type="video/mp4">
-          Your browser does not support the video tag.
-        </video>
+      <div class="modal-body p-0 position-relative" style="z-index: 1;">
+        <div class="ratio ratio-16x9 bg-dark">
+          <iframe id="careerDetailVideoFrame" src="" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" style="display:none; border:0;" title="Career video"></iframe>
+          <video id="careerDetailModalVideo" class="w-100 h-100" controls playsinline controlsList="nodownload" oncontextmenu="return false;" style="display:none; background:#000; object-fit:contain;">
+            <source id="careerDetailModalVideoSource" src="" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
       </div>
     </div>
   </div>
@@ -1822,27 +1960,131 @@
     careerAspectMindmap = null;
   }
   
-  // Video modal handler
+  // Video modal — isolated from main.js (#videoModal / .video-link) to avoid double audio echo
   document.addEventListener('DOMContentLoaded', function() {
-    const videoModal = document.getElementById('videoModal');
-    const modalVideo = document.getElementById('modalVideo');
-    
-    if (videoModal) {
-      videoModal.addEventListener('show.bs.modal', function(event) {
-        const button = event.relatedTarget;
-        const videoUrl = button.getAttribute('data-video');
-        if (modalVideo && videoUrl) {
-          modalVideo.src = videoUrl;
-        }
-      });
-      
-      videoModal.addEventListener('hide.bs.modal', function() {
-        if (modalVideo) {
-          modalVideo.pause();
-          modalVideo.src = '';
-        }
+    const videoModal = document.getElementById('careerDetailVideoModal');
+    const modalTitleEl = document.getElementById('careerDetailVideoModalLabel');
+    const videoFrame = document.getElementById('careerDetailVideoFrame');
+    const modalVideo = document.getElementById('careerDetailModalVideo');
+    const modalVideoSource = document.getElementById('careerDetailModalVideoSource');
+
+    function toYouTubeEmbed(url) {
+      if (!url) return '';
+      if (url.indexOf('youtube.com/watch') !== -1) {
+        const videoId = (url.split('v=')[1] || '').split('&')[0];
+        return videoId ? ('https://www.youtube.com/embed/' + videoId + '?autoplay=1') : url;
+      }
+      if (url.indexOf('youtu.be/') !== -1) {
+        const videoId = (url.split('youtu.be/')[1] || '').split('?')[0];
+        return videoId ? ('https://www.youtube.com/embed/' + videoId + '?autoplay=1') : url;
+      }
+      if (url.indexOf('youtube.com/embed/') !== -1) {
+        return url.indexOf('autoplay=') === -1
+          ? (url + (url.indexOf('?') === -1 ? '?autoplay=1' : '&autoplay=1'))
+          : url;
+      }
+      return url;
+    }
+
+    function isYouTube(url) {
+      return !!(url && (url.indexOf('youtube.com') !== -1 || url.indexOf('youtu.be') !== -1));
+    }
+
+    function isDirectVideo(url) {
+      if (!url) return false;
+      const u = String(url).toLowerCase();
+      return u.indexOf('.mp4') !== -1 || u.indexOf('.webm') !== -1 || u.indexOf('.mov') !== -1;
+    }
+
+    function setModalTitle(title) {
+      if (!modalTitleEl) return;
+      modalTitleEl.textContent = (title && String(title).trim()) ? title : 'Career Video';
+    }
+
+    function silenceSidebarThumbVideos() {
+      document.querySelectorAll('.career-video-thumb-source, .video-vertical .videoPlayer').forEach(function(v) {
+        try {
+          v.muted = true;
+          v.pause();
+          v.currentTime = 0;
+        } catch (e) {}
       });
     }
+
+    function stopPlayers() {
+      if (videoFrame) {
+        videoFrame.src = '';
+        videoFrame.style.display = 'none';
+      }
+      if (modalVideo) {
+        try { modalVideo.pause(); } catch (e) {}
+        if (modalVideoSource) modalVideoSource.src = '';
+        try { modalVideo.removeAttribute('src'); } catch (e) {}
+        try { modalVideo.load(); } catch (e) {}
+        modalVideo.style.display = 'none';
+      }
+      silenceSidebarThumbVideos();
+    }
+
+    document.querySelectorAll('.js-career-detail-video-open').forEach(function(el) {
+      el.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+    });
+
+    if (videoModal) {
+      videoModal.addEventListener('show.bs.modal', function(event) {
+        stopPlayers();
+        silenceSidebarThumbVideos();
+
+        const button = event.relatedTarget;
+        const videoUrl = button ? button.getAttribute('data-video') : '';
+        const title = button ? button.getAttribute('data-title') : '';
+        setModalTitle(title);
+
+        if (isYouTube(videoUrl)) {
+          if (modalVideo) modalVideo.style.display = 'none';
+          if (videoFrame) {
+            videoFrame.style.display = 'block';
+            videoFrame.src = toYouTubeEmbed(videoUrl);
+          }
+        } else if (isDirectVideo(videoUrl)) {
+          if (videoFrame) {
+            videoFrame.src = '';
+            videoFrame.style.display = 'none';
+          }
+          if (modalVideo && modalVideoSource) {
+            modalVideoSource.src = videoUrl;
+            modalVideo.load();
+            modalVideo.style.display = 'block';
+            try { modalVideo.play(); } catch (e) {}
+          }
+        } else if (videoUrl) {
+          if (modalVideo) modalVideo.style.display = 'none';
+          if (videoFrame) {
+            videoFrame.style.display = 'block';
+            videoFrame.src = videoUrl;
+          }
+        }
+      });
+
+      videoModal.addEventListener('hide.bs.modal', function() {
+        setModalTitle('Career Video');
+        stopPlayers();
+      });
+
+      videoModal.addEventListener('hidden.bs.modal', function() {
+        stopPlayers();
+      });
+    }
+
+    // Ensure first-frame thumbnails for MP4s without video_image
+    if (typeof generateThumbnails === 'function') {
+      try { generateThumbnails(); } catch (e) {}
+    }
+    // Keep thumb sources muted after canvas capture
+    setTimeout(silenceSidebarThumbVideos, 1500);
 
     // Copy link functionality
     const copyLinks = document.querySelectorAll('.copy-link');

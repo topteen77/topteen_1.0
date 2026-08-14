@@ -1,0 +1,78 @@
+{% extends "admin/hub/loan_model_change_form.html" %}
+
+{% block after_field_sets %}
+{{ block.super }}
+<div class="module aligned" id="tt-bank-api-variables" style="margin-top:16px;">
+  <h2>Available variables</h2>
+  <div class="form-row">
+    <div>
+      <p class="help" style="margin-bottom:10px;">
+        Click a variable to insert it into the Parameters field (or into the API URL if that field is focused).
+        Placeholders look like <code>&#123;&#123;student_name&#125;&#125;</code>.
+      </p>
+      <div id="tt-bank-var-chips" style="display:flex;flex-wrap:wrap;gap:8px;">
+        {% for name, label in bank_api_variables %}
+        <button type="button" class="button tt-bank-var-chip" data-var="{{ name }}" title="{{ label }}">
+          &#123;&#123;{{ name }}&#125;&#125;
+        </button>
+        {% endfor %}
+      </div>
+      <p class="help" style="margin-top:12px;">
+        Example:
+        <code>"student_name": "&#123;&#123;student_name&#125;&#125;"</code>
+        &nbsp;·&nbsp;
+        GET → query string &nbsp;·&nbsp; POST/PUT/PATCH → JSON body
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block admin_change_form_document_ready %}
+{{ block.super }}
+<script>
+(function () {
+  function ready(fn) {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
+    else fn();
+  }
+
+  function insertAtCursor(field, text) {
+    if (!field) return;
+    field.focus();
+    var start = field.selectionStart;
+    var end = field.selectionEnd;
+    var value = field.value || '';
+    if (typeof start === 'number' && typeof end === 'number') {
+      field.value = value.slice(0, start) + text + value.slice(end);
+      var pos = start + text.length;
+      field.selectionStart = field.selectionEnd = pos;
+    } else {
+      field.value = value + text;
+    }
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  ready(function () {
+    var params = document.getElementById('id_parameters_template');
+    var urlField = document.getElementById('id_api_url');
+    var lastFocus = params;
+    [params, urlField].forEach(function (el) {
+      if (!el) return;
+      el.addEventListener('focus', function () { lastFocus = el; });
+    });
+
+    document.querySelectorAll('.tt-bank-var-chip').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        var name = btn.getAttribute('data-var');
+        if (!name) return;
+        var token = '{' + '{' + name + '}' + '}';
+        var target = lastFocus || params || urlField;
+        insertAtCursor(target, token);
+      });
+    });
+  });
+})();
+</script>
+{% endblock %}

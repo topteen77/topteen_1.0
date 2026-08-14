@@ -267,13 +267,14 @@
       this._indArea = el('div', { id: 'pc-ind-area' });
 
       /* ---- Input area ---- */
-      const inputArea = el('div', { id: 'pc-input-area' });
+      this._inputArea = el('div', { id: 'pc-input-area' });
       const inputRow  = el('div', { id: 'pc-input-row' });
 
       this._input = el('textarea', {
         id          : 'pc-input',
         placeholder : 'Ask anything about this page…',
         rows        : '1',
+        enterKeyHint: 'send',
       });
       this._input.disabled = true;
 
@@ -285,15 +286,22 @@
       inputRow.appendChild(this._sendBtn);
 
       const hint = el('div', { id: 'pc-input-hint', textContent: 'Enter to send · Shift+Enter for new line' });
-      inputArea.appendChild(inputRow);
-      inputArea.appendChild(hint);
+      this._quotaInfo = el('div', { id: 'pc-quota-info', className: 'ai-quota-info' });
+      this._quotaInfo.hidden = true;
+      this._quotaInfo.innerHTML =
+        '<a class="ai-quota-info__link" href="/ai-tokens/">' +
+        '<i class="bx bx-info-circle" aria-hidden="true"></i> ' +
+        '<span class="ai-quota-info__text">AI tokens need to recharge — Buy now.</span></a>';
+      this._inputArea.appendChild(inputRow);
+      this._inputArea.appendChild(hint);
+      this._inputArea.appendChild(this._quotaInfo);
 
       /* ---- Assemble window ---- */
       this._win.appendChild(hdr);
       this._win.appendChild(this._overlay);
       this._win.appendChild(this._msgArea);
       this._win.appendChild(this._indArea);
-      this._win.appendChild(inputArea);
+      this._win.appendChild(this._inputArea);
 
       /* ---- Assemble root ---- */
       this._root.appendChild(this._fab);
@@ -313,6 +321,107 @@
         this._input.style.height = '46px';
         this._input.style.height = Math.min(this._input.scrollHeight, 120) + 'px';
       });
+      this._bindKeyboardViewport();
+      this._refreshQuota();
+    }
+
+    /*
+      Mobile keyboards shrink the visual viewport; fixed 100dvh panels keep the
+      composer under the keyboard so the send button is only half-visible.
+      Pin #pc-win to visualViewport while the input is focused (phones only).
+    */
+    _bindKeyboardViewport() {
+      if (this._vvBound) return;
+      this._vvBound = true;
+      this._inputFocused = false;
+      this._onVvChange = () => this._syncKeyboardViewport();
+
+      this._input.addEventListener('focus', () => {
+        this._inputFocused = true;
+        this._syncKeyboardViewport();
+        setTimeout(() => this._syncKeyboardViewport(), 80);
+        setTimeout(() => this._syncKeyboardViewport(), 320);
+      });
+      this._input.addEventListener('blur', () => {
+        this._inputFocused = false;
+        this._clearKeyboardViewport();
+      });
+
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', this._onVvChange);
+        window.visualViewport.addEventListener('scroll', this._onVvChange);
+      }
+      window.addEventListener('orientationchange', this._onVvChange);
+    }
+
+    _shouldFitVisualViewport() {
+      return window.matchMedia('(max-width: 767.98px)').matches;
+    }
+
+    _syncKeyboardViewport() {
+      if (!this._isOpen || !this._inputFocused || !this._shouldFitVisualViewport()) {
+        this._clearKeyboardViewport();
+        return;
+      }
+      const vv = window.visualViewport;
+      if (!vv) return;
+
+      const top = Math.max(0, Math.round(vv.offsetTop));
+      const height = Math.max(240, Math.round(vv.height));
+      this._win.classList.add('pc-kb-open');
+      this._win.style.setProperty('top', top + 'px', 'important');
+      this._win.style.setProperty('bottom', 'auto', 'important');
+      this._win.style.setProperty('height', height + 'px', 'important');
+      this._win.style.setProperty('max-height', height + 'px', 'important');
+
+      // Keep send button in the visible area after keyboard animation
+      if (this._inputArea && typeof this._inputArea.scrollIntoView === 'function') {
+        try {
+          this._inputArea.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        } catch (e) {}
+      }
+    }
+
+    _clearKeyboardViewport() {
+      if (!this._win) return;
+      this._win.classList.remove('pc-kb-open');
+      this._win.style.removeProperty('top');
+      this._win.style.removeProperty('bottom');
+      this._win.style.removeProperty('height');
+      this._win.style.removeProperty('max-height');
+    }
+
+    _refreshQuota() {
+      const api = global.AIFeatureQuota;
+      if (!api || typeof api.fetchStatus !== 'function') return;
+      api.fetchStatus().then((payload) => {
+        this._quotaLocked = api.featureLocked(payload, 'page_chat');
+        this._applyQuotaLockUI(payload);
+      }).catch(() => {});
+    }
+
+    _applyQuotaLockUI(payload) {
+      const locked = !!this._quotaLocked;
+      const msg =
+        (payload && payload.message) ||
+        (global.AIFeatureQuota && global.AIFeatureQuota.RECHARGE_MESSAGE) ||
+        'AI tokens need to recharge — Buy now.';
+      const shop =
+        (payload && payload.shop_url) ||
+        (global.AIFeatureQuota && global.AIFeatureQuota.config && global.AIFeatureQuota.config.shopUrl) ||
+        '/ai-tokens/';
+      if (this._quotaInfo) {
+        this._quotaInfo.hidden = !locked;
+        const link = this._quotaInfo.querySelector('.ai-quota-info__link');
+        const text = this._quotaInfo.querySelector('.ai-quota-info__text');
+        if (link) link.href = shop;
+        if (text) text.textContent = msg;
+      }
+      if (locked) {
+        this._input.disabled = true;
+        this._sendBtn.disabled = true;
+        this._input.placeholder = msg;
+      }
     }
 
     /* ── Toggle window open / close ────────────────────────── */
@@ -320,13 +429,84 @@
       this._isOpen = !this._isOpen;
       this._win.classList.toggle('pc-hide', !this._isOpen);
       this._syncBackdrop();
+      this._syncPageScrollLock();
 
       if (this._isOpen) {
         this._clearUnread();
         // Kick off init on first open
         if (!this._isInitialized && !this._ws) this._initChat();
         setTimeout(() => { if (!this._input.disabled) this._input.focus(); }, 350);
+      } else {
+        this._inputFocused = false;
+        this._clearKeyboardViewport();
       }
+    }
+
+    /* iOS: CSS overflow:hidden alone still rubber-bands the page behind chat */
+    _shouldLockPageScroll() {
+      return window.matchMedia('(max-width: 991.98px)').matches;
+    }
+
+    _syncPageScrollLock() {
+      if (this._isOpen && this._shouldLockPageScroll()) {
+        this._lockPageScroll();
+      } else {
+        this._unlockPageScroll();
+      }
+    }
+
+    _lockPageScroll() {
+      if (this._scrollLocked) return;
+      this._scrollLocked = true;
+      this._lockScrollY = window.scrollY || window.pageYOffset || 0;
+      document.documentElement.classList.add('pc-scroll-lock');
+      document.body.classList.add('pc-scroll-lock');
+      document.body.style.top = '-' + this._lockScrollY + 'px';
+
+      this._onTouchStart = (e) => {
+        this._touchStartY = e.touches && e.touches[0] ? e.touches[0].clientY : 0;
+      };
+      this._onTouchMove = (e) => {
+        if (!e.cancelable) return;
+        const target = e.target;
+        const msgs = target && target.closest ? target.closest('#pc-msgs') : null;
+        if (msgs) {
+          const y = e.touches && e.touches[0] ? e.touches[0].clientY : 0;
+          const dy = y - (this._touchStartY || 0);
+          const atTop = msgs.scrollTop <= 0;
+          const atBottom = msgs.scrollTop + msgs.clientHeight >= msgs.scrollHeight - 1;
+          // At edge: block so rubber-band does not scroll the page behind
+          if ((atTop && dy > 0) || (atBottom && dy < 0)) {
+            e.preventDefault();
+          }
+          return;
+        }
+        // Touches outside the message list (header/input/backdrop) must not move page
+        if (target && target.closest && target.closest('#pc-win')) {
+          e.preventDefault();
+          return;
+        }
+        e.preventDefault();
+      };
+      document.addEventListener('touchstart', this._onTouchStart, { passive: true, capture: true });
+      document.addEventListener('touchmove', this._onTouchMove, { passive: false, capture: true });
+    }
+
+    _unlockPageScroll() {
+      if (!this._scrollLocked) return;
+      this._scrollLocked = false;
+      document.documentElement.classList.remove('pc-scroll-lock');
+      document.body.classList.remove('pc-scroll-lock');
+      document.body.style.removeProperty('top');
+      if (this._onTouchStart) {
+        document.removeEventListener('touchstart', this._onTouchStart, true);
+        this._onTouchStart = null;
+      }
+      if (this._onTouchMove) {
+        document.removeEventListener('touchmove', this._onTouchMove, true);
+        this._onTouchMove = null;
+      }
+      window.scrollTo(0, this._lockScrollY || 0);
     }
 
     /* ── Toggle fullscreen (20 % margin) ───────────────────── */
@@ -443,19 +623,43 @@
     _send() {
       const text = this._input.value.trim();
       if (!text || !this._ws || this._ws.readyState !== WebSocket.OPEN || this._isStreaming) return;
+      if (this._quotaLocked) {
+        this._applyQuotaLockUI();
+        return;
+      }
 
-      // Remove suggestion chips before sending
-      this._msgArea.querySelectorAll('.pc-suggestions').forEach(s => s.remove());
+      const proceed = () => {
+        // Remove suggestion chips before sending
+        this._msgArea.querySelectorAll('.pc-suggestions').forEach(s => s.remove());
 
-      this._appendUserMsg(text);
-      this._input.value      = '';
-      this._input.style.height = '46px';
-      this._isStreaming      = true;
-      this._input.disabled   = true;
-      this._sendBtn.disabled = true;
-      this._scrollToBottom();
+        this._appendUserMsg(text);
+        this._input.value      = '';
+        this._input.style.height = '46px';
+        this._isStreaming      = true;
+        this._input.disabled   = true;
+        this._sendBtn.disabled = true;
+        this._scrollToBottom();
 
-      this._ws.send(JSON.stringify({ type: 'message', message: text }));
+        this._ws.send(JSON.stringify({ type: 'message', message: text }));
+      };
+
+      const api = global.AIFeatureQuota;
+      if (!api || typeof api.consume !== 'function') {
+        proceed();
+        return;
+      }
+      api.consume('page_chat').then((res) => {
+        if (!res.ok || (res.data && res.data.quota_exceeded)) {
+          this._quotaLocked = true;
+          this._applyQuotaLockUI(res.data || {});
+          return;
+        }
+        if (res.data && res.data.locked) {
+          this._quotaLocked = true;
+          this._applyQuotaLockUI(res.data);
+        }
+        proceed();
+      }).catch(() => proceed());
     }
 
     /* ── DOM: user message ──────────────────────────────────── */

@@ -1,7 +1,7 @@
 {% extends 'template20/base.html' %}
 
 {% block title_content %}
-{{ skilllab.name }} | Top Teen
+{{ skilllab.name }} | TopTeen
 {% endblock %}
 
 {% block description_content %}
@@ -19,16 +19,20 @@
 .course-meta { display: flex; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 1.5rem; }
 .meta-item { display: flex; align-items: center; color: #666; }
 .meta-item i { margin-right: 0.5rem; color: #5249DF; }
-.course-tabs { margin-bottom: 2rem; border: 1px solid #eee;  border-radius: 10px;}
-.tab-buttons { display: flex; border-bottom: 2px solid #eee; margin-bottom: 2rem; gap: 0;background: #f6f6f6; }
-.tab-button { background: none; border: none; padding: 1rem 2rem; font-size: 1.1rem; font-weight: 600; color: #666; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s ease; position: relative; top: 2px; display: flex; align-items: center; gap: 0.5rem; }
+.course-tabs { margin-bottom: 1rem; border: 1px solid #eee; border-radius: 10px; }
+.tab-buttons { display: flex; flex-wrap: nowrap; border-bottom: 2px solid #eee; margin-bottom: 1rem; gap: 0; background: #f6f6f6; }
+.tab-button { background: none; border: none; padding: 1rem 2rem; font-size: 1.1rem; font-weight: 600; color: #666; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s ease; position: relative; top: 2px; display: flex; align-items: center; gap: 0.5rem; white-space: nowrap; }
 .tab-button:hover { color: #5249DF; }
 .tab-button.active { color: #5249DF; border-bottom-color: #5249DF; }
-.tab-content { display: none; }
-.tab-content.active { display: block; }
+/* Scope pane visibility — avoid clashing with Bootstrap .tab-content wrappers */
+.course-tabs .course-tab-pane { display: none !important; }
+.course-tabs .course-tab-pane.active { display: block !important; }
 .course-introduction { line-height: 1.8; color: #555; }
 .course-introduction p:first-child { margin-top: 0; }
 .course-introduction p { margin-bottom: 1rem; }
+.course-introduction > *:last-child { margin-bottom: 0 !important; }
+.course-introduction p:empty,
+.course-introduction p:has(> br:only-child) { display: none; }
 .course-introduction h2, .course-introduction h3, .course-introduction h4 { font-size: 1.25rem; color: #333; margin-top: 1.5rem; margin-bottom: 0.75rem; font-weight: 700; }
 .course-introduction strong { font-weight: 700; color: #333; }
 .course-introduction ul { list-style: none; padding-left: 0; margin: 0.5rem 0 1rem 0; }
@@ -77,7 +81,12 @@
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center; }
-.course-index-preamble { margin-bottom: 1.5rem; }
+.course-index-preamble { margin-bottom: 0.75rem; }
+.course-index-preamble > *:last-child { margin-bottom: 0 !important; }
+.course-index-from-html .course-index-accordion { margin-top: 0; }
+.course-index-from-html .course-index-preamble + .course-index-accordion {
+  margin-top: 0.5rem;
+}
 .payment-card { background-color: #fff; border-radius: 12px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); padding: 1.5rem; position: sticky; top: 100px; }
 .price-container { display: flex; align-items: center; margin-bottom: 1.5rem; }
 .current-price { font-size: 2rem; font-weight: 700; color: #333; }
@@ -117,36 +126,105 @@
 .related-course-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
 .view-course-btn { display: inline-flex; align-items: center; gap: 0.5rem; color: #5249DF; font-weight: 600; font-size: 0.95rem; text-decoration: none; transition: all 0.3s ease; padding: 0.5rem 1rem; border-radius: 6px; background: #f0eaff; }
 .view-course-btn:hover { background: #5249DF; color: #fff; }
-@media (max-width: 991px) { .payment-card { position: static; margin-top: 2rem; } .related-courses-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 576px) {   .tab-buttons {
+@media (max-width: 991px) {
+  /*
+   * Fixed mobile header is min-height 56px (see .tt-header .navbar.container).
+   * Clear it with a measured offset — not 0.75rem (content under nav) and not
+   * oversized utility padding that leaves a blank band.
+   */
+  .hero-section-inner {
+    padding-top: calc(56px + 0.75rem) !important;
+    padding-bottom: 0.5rem !important;
+  }
+  .hero-section-inner .breadcrumb {
+    margin-bottom: 0.5rem !important;
+  }
+  .course-detail-container { padding: 0.5rem 0 1.25rem; }
+  .course-image { margin-bottom: 0.85rem; }
+  .course-meta { margin-bottom: 0.85rem; gap: 0.75rem; }
+  .course-tabs { margin-bottom: 0.75rem; }
+  .tab-buttons { margin-bottom: 0; }
+  .course-tabs .course-tab-pane { padding: 0.65rem 0.75rem !important; }
+  .course-tabs .course-tab-pane.active > :last-child { margin-bottom: 0; }
+  .course-index-preamble { margin-bottom: 0.35rem; }
+  .course-index-from-html .course-index-preamble + .course-index-accordion {
+    margin-top: 0.35rem;
+  }
+  .course-index-accordion .accordion-item { margin-bottom: 0.65rem; }
+  .course-index-accordion .accordion-item:last-child { margin-bottom: 0; }
+  .accordion-header { padding: 0.9rem 1rem; }
+  .accordion-title { font-size: 0.95rem; line-height: 1.35; }
+  .payment-card { position: static; margin-top: 0.75rem; }
+  .related-courses-section { margin-top: 2rem; padding-top: 1.5rem; }
+  .related-courses-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 576px) {
+  .course-detail-container h1.mb-3 {
+    font-size: 1.35rem;
+    margin-bottom: 0.65rem !important;
+  }
+  .tab-buttons {
     flex-direction: row;
+    flex-wrap: nowrap;
     position: sticky;
-    top: 62px;
+    top: 56px;
     background: #fff;
-    z-index: 999999;
-    padding: 8px 12px;
+    z-index: 777;
+    padding: 6px 8px;
+    margin-bottom: 0;
   }
 
   .meta-item {
-  white-space: nowrap;
-}
+    white-space: nowrap;
+  }
 
-.course-meta {
-  display: grid;
-  grid-template-columns: repeat(3,1fr);
-  overflow-y: scroll;
-  gap: 10px;
-  font-size: 14px;
-}
+  .course-meta {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.65rem 0.85rem;
+    margin-bottom: 0.65rem;
+    font-size: 13px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .course-meta::-webkit-scrollbar {
+    display: none;
+    height: 0;
+  }
 
-.tab-button {
-    width: 100%;
-    font-size: 14px;
-    padding: 15px 5px;
-  } .related-courses-grid { grid-template-columns: 1fr; } }
+  .tab-button {
+    flex: 1 1 0;
+    width: auto;
+    font-size: 13px;
+    padding: 10px 6px;
+    justify-content: center;
+  }
+  .tab-button span { overflow: hidden; text-overflow: ellipsis; }
+  .course-tabs .course-tab-pane { padding: 0.55rem 0.65rem !important; }
+  .course-introduction p { margin-bottom: 0.65rem; }
+  .course-introduction h2,
+  .course-introduction h3,
+  .course-introduction h4 {
+    margin-top: 0.85rem;
+    margin-bottom: 0.45rem;
+  }
+  .course-index-preamble {
+    margin-bottom: 0.25rem;
+  }
+  .course-index-from-html .course-index-preamble + .course-index-accordion {
+    margin-top: 0.25rem;
+  }
+  .payment-card { margin-top: 0.5rem; padding: 1.15rem; }
+  .related-courses-grid { grid-template-columns: 1fr; }
+  .related-courses-section { margin-top: 1.5rem; padding-top: 1.25rem; }
+  .course-detail-container { padding-bottom: 1rem; }
+}
 </style>
 
-<section class="hero-section-inner pt-md-18 pt-14 pb-5">
+<section class="hero-section-inner pt-md-18 pt-10">
   <div class="container">
     <div class="row">
       <div class="col-md-12">
@@ -173,7 +251,7 @@
           <img src="{{ static('images_new/short-courses/course-placeholder.png') }}" alt="{{ skilllab.name }}" />
           {% endif %}
         </div>
-        <div class="course-meta">
+        <div class="course-meta d-md-flex d-none">
           <div class="meta-item"><i class='bx bx-category'></i><span>{{ course_topic_category }}</span></div>
           <div class="meta-item"><i class='bx bx-book-open'></i><span>{{ course_grade_label }}</span></div>
           <div class="meta-item"><i class='bx bx-book'></i><span>{{ skilllab.skilllabcoursechapter.all()|length }} Chapters</span></div>
@@ -189,7 +267,7 @@
           </div>
 
           <!-- Introduction Tab (course_intro_html) -->
-          <div id="tab-introduction" class="tab-content active p-3">
+          <div id="tab-introduction" class="course-tab-pane active p-3">
             <div class="course-introduction ckeditorStyles">
               {% if skilllab.course_intro_html %}
               {{ skilllab.course_intro_html|safe }}
@@ -202,7 +280,7 @@
           </div>
 
           <!-- Course Index Tab (course_index_html) -->
-          <div id="tab-index" class="tab-content p-3">
+          <div id="tab-index" class="course-tab-pane p-3">
             {% if skilllab.course_index_html %}
             <div id="course-index-html-wrapper" class="course-index-from-html">
               <div class="course-introduction ckeditorStyles">
@@ -371,8 +449,8 @@
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  const tabButtons = document.querySelectorAll('.tab-button');
-  const tabContents = document.querySelectorAll('.tab-content');
+  const tabButtons = document.querySelectorAll('.course-tabs .tab-button');
+  const tabContents = document.querySelectorAll('.course-tabs .course-tab-pane');
   tabButtons.forEach(button => {
     button.addEventListener('click', function() {
       const targetTab = this.getAttribute('data-tab');
@@ -413,6 +491,14 @@ document.addEventListener('DOMContentLoaded', function() {
   if (htmlWrapper) {
     const introDiv = htmlWrapper.querySelector('.course-introduction');
     if (introDiv) {
+      function isBlankNode(node) {
+        if (!node || node.nodeType !== 1) return true;
+        var text = (node.textContent || '').replace(/\u00a0/g, ' ').trim();
+        if (text) return false;
+        // Keep media/embeds even if they have no text
+        return !node.querySelector('img, video, iframe, table');
+      }
+
       const children = Array.from(introDiv.childNodes);
       const accordionContainer = document.createElement('div');
       accordionContainer.className = 'course-index-accordion';
@@ -434,15 +520,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const node = children[i];
         if (node.nodeType !== 1) continue; // skip non-elements
         const tag = node.tagName ? node.tagName.toLowerCase() : '';
-        const text = (node.textContent || '').trim();
+        const text = (node.textContent || '').replace(/\u00a0/g, ' ').trim();
         if (tag === 'p' && /Chapter\s+\d+/i.test(text)) {
           flushChapter();
           currentChapter = node;
           currentContent = [];
         } else if (currentChapter && tag === 'ul') {
           currentContent.push(node);
-        } else if (!currentChapter && (tag === 'p' || tag === 'ul')) {
-          preamble.push(node.cloneNode(true));
+        } else if (!currentChapter && (tag === 'p' || tag === 'ul' || tag === 'h2' || tag === 'h3' || tag === 'h4')) {
+          if (!isBlankNode(node)) preamble.push(node.cloneNode(true));
         }
       }
       flushChapter();

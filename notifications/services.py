@@ -51,6 +51,24 @@ DEFAULT_TYPE_CONFIGS = {
     'course.allocated': dict(category=NotificationCategory.COURSE, description='Course allocated', requires_celery=False, requires_email=False),
     'institute.student_registered': dict(category=NotificationCategory.INSTITUTE, description='Institute student registration', requires_celery=False, requires_email=False),
     'marketing.new_lead': dict(category=NotificationCategory.MARKETING, description='New lead for marketing team', requires_celery=False, requires_email=False),
+    'marketing.demo_institute_students_added': dict(
+        category=NotificationCategory.MARKETING,
+        description='Demo institute enrolled students',
+        requires_celery=False,
+        requires_email=False,
+    ),
+    'marketing.demo_institute_test_result': dict(
+        category=NotificationCategory.MARKETING,
+        description='Demo institute student generated a test result',
+        requires_celery=False,
+        requires_email=False,
+    ),
+    'marketing.demo_institute_all_demos_completed': dict(
+        category=NotificationCategory.MARKETING,
+        description='All demo students at a demo institute completed tests',
+        requires_celery=False,
+        requires_email=False,
+    ),
     'accounts.new_registration': dict(
         category=NotificationCategory.MARKETING,
         description='New end-user registration (analytics)',
@@ -78,6 +96,12 @@ DEFAULT_TYPE_CONFIGS = {
     'parent.suggestion_liked': dict(
         category=NotificationCategory.SYSTEM,
         description='Student liked a parent career recommendation',
+        requires_celery=False,
+        requires_email=False,
+    ),
+    'llm.recharge_reminder': dict(
+        category=NotificationCategory.SYSTEM,
+        description='AI token wallet low / insufficient for next AI call — recharge reminder (max once per 24h)',
         requires_celery=False,
         requires_email=False,
     ),
@@ -142,6 +166,13 @@ DEFAULT_NOTIFICATION_MESSAGE_TEMPLATES = {
     'parent.suggestion_liked': {
         'title': '{student_name} liked your career suggestion',
         'body': '{student_name} is interested in "{career_name}" that you recommended.',
+    },
+    'llm.recharge_reminder': {
+        'title': 'Recharge AI tokens',
+        'body': (
+            'Your AI token balance ({balance_display}) is too low for your next AI action'
+            '{feature_clause}. Recharge a small pack to keep using resume AI, tutor chat, and more.'
+        ),
     },
 }
 
@@ -331,6 +362,18 @@ def _project_identity():
         ),
         'supervisor_gunicorn': _csv_setting(
             'SERVICE_MONITOR_SUPERVISOR_GUNICORN', 'gunicorn,gunicorn_topteen,topteens_gunicorn'
+        ),
+        'systemd_gunicorn': _csv_setting(
+            'SERVICE_MONITOR_SYSTEMD_GUNICORN',
+            'topteen-in-prod-website,topteen-new-website,gunicorn-topteens',
+        ),
+        'systemd_celery': _csv_setting(
+            'SERVICE_MONITOR_SYSTEMD_CELERY',
+            'celery,celery-worker,topteen-celery,celery_worker',
+        ),
+        'systemd_redis': _csv_setting(
+            'SERVICE_MONITOR_SYSTEMD_REDIS',
+            'redis-server,redis',
         ),
     }
 
@@ -622,6 +665,16 @@ def _resolve_runtime_source(service_key):
                 'via': redis_url or docker_redis,
                 **{k: payload[k] for k in payload},
             }
+        systemd_units = _loaded_systemd_units(ident.get('systemd_redis') or [])
+        if systemd_units:
+            systemd_units = _active_systemd_units(ident.get('systemd_redis') or []) or systemd_units[:1]
+            return {
+                'type': 'local',
+                'label': 'Installed (systemd)',
+                'via': 'systemctl: ' + ', '.join(systemd_units),
+                'systemd_units': systemd_units,
+                **payload,
+            }
         if src != 'unknown':
             return {'type': src, 'label': label, 'via': redis_url, **payload}
         return {'type': 'local', 'label': 'Local host', 'via': redis_url, **payload}
@@ -638,19 +691,33 @@ def _resolve_runtime_source(service_key):
         src, label = _source_from_host(db_host)
         return {'type': src, 'label': label, 'via': db_host}
 
-    # Celery: host env/supervisor first, else this project's Docker celery
+    # Celery: Docker if matched; else systemd; else host process/supervisor
     if service_key == 'celery':
-        if _topteen_celery_on_host():
-            via = 'celery -A %s' % ident['celery_app']
-            if payload['supervisor_running']:
-                via = 'supervisor: ' + ', '.join(payload['supervisor_running'])
+        docker_name = _docker_container_for_topteen_service('celery')
+        if docker_name and not _topteen_celery_on_host():
             return {
-                'type': 'local',
-                'label': 'Local host (env / supervisor)',
-                'via': via,
+                'type': 'docker',
+                'label': f'Docker ({docker_name})',
+                'via': docker_name,
                 **payload,
             }
-        docker_name = _docker_container_for_topteen_service('celery')
+        systemd_units = _loaded_systemd_units(ident.get('systemd_celery') or [])
+        if systemd_units:
+            systemd_units = _active_systemd_units(ident.get('systemd_celery') or []) or systemd_units[:1]
+        if systemd_units or _topteen_celery_on_host():
+            via = 'celery -A %s' % ident['celery_app']
+            if systemd_units:
+                via = 'systemctl: ' + ', '.join(systemd_units)
+            elif payload['supervisor_running']:
+                via = 'supervisor: ' + ', '.join(payload['supervisor_running'])
+            label = 'Installed (systemd)' if systemd_units else 'Local host (env / supervisor)'
+            return {
+                'type': 'local',
+                'label': label,
+                'via': via,
+                'systemd_units': systemd_units,
+                **payload,
+            }
         if docker_name:
             return {
                 'type': 'docker',
@@ -664,23 +731,32 @@ def _resolve_runtime_source(service_key):
             'type': 'local',
             'label': 'Local host (not detected)',
             'via': f"expected {', '.join(payload['expected_containers'])}",
+            'systemd_units': [],
             **payload,
         }
 
     if service_key == 'gunicorn':
-        if _topteen_gunicorn_on_host():
+        docker_name = _docker_container_for_topteen_service('gunicorn')
+        systemd_units = _loaded_systemd_units(ident.get('systemd_gunicorn') or [])
+        if systemd_units:
+            systemd_units = _active_systemd_units(ident.get('systemd_gunicorn') or []) or systemd_units[:1]
+        # Prefer installed/systemd when host process or unit is present (prod TopTeen is not Docker).
+        if systemd_units or _topteen_gunicorn_on_host():
             via = 'gunicorn %s' % ident['gunicorn_module']
-            if payload['supervisor_running']:
+            if systemd_units:
+                via = 'systemctl: ' + ', '.join(systemd_units)
+            elif payload['supervisor_running']:
                 via = 'supervisor: ' + ', '.join(payload['supervisor_running'])
             elif payload['app_port_listening']:
                 via = f"{via}; APP_PORT={payload['app_port']} listening"
+            label = 'Installed (systemd)' if systemd_units else 'Local host (env / supervisor)'
             return {
                 'type': 'local',
-                'label': 'Local host (env / supervisor)',
+                'label': label,
                 'via': via,
+                'systemd_units': systemd_units,
                 **payload,
             }
-        docker_name = _docker_container_for_topteen_service('gunicorn')
         if docker_name:
             port_note = ''
             if payload['app_port_listening']:
@@ -697,6 +773,7 @@ def _resolve_runtime_source(service_key):
             'type': 'local',
             'label': 'Local host (not detected)',
             'via': f"expected {', '.join(payload['expected_containers'])}; APP_PORT={payload['app_port']}",
+            'systemd_units': [],
             **payload,
         }
 
@@ -705,9 +782,408 @@ def _resolve_runtime_source(service_key):
     return {'type': 'local', 'label': 'Local host', 'via': ''}
 
 
+_SAFE_UNIT_RE = re.compile(r'^[A-Za-z0-9@_.\-]+$')
+SERVICE_MONITOR_CONTROLLABLE_KEYS = frozenset({'celery', 'gunicorn', 'redis'})
+SERVICE_MONITOR_ACTIONS = frozenset({'restart', 'list', 'error', 'log'})
+
+
+def _normalize_systemd_unit(name):
+    name = (name or '').strip()
+    if not name or not _SAFE_UNIT_RE.match(name):
+        return ''
+    if not name.endswith('.service') and not name.endswith('.socket'):
+        name = f'{name}.service'
+    return name
+
+
+def _loaded_systemd_units(candidates):
+    """Return unit names from candidates that systemd reports as loaded."""
+    loaded = []
+    seen = set()
+    for raw in candidates or []:
+        unit = _normalize_systemd_unit(raw)
+        if not unit or unit in seen:
+            continue
+        seen.add(unit)
+        ok, out, _ = _run_command(['systemctl', 'show', '-p', 'LoadState', '--value', unit], timeout=2)
+        if ok and (out or '').strip() == 'loaded':
+            loaded.append(unit.replace('.service', ''))
+    return loaded
+
+
+def _control_cmd(cmd):
+    """Optionally prefix with sudo -n for passwordless privileged control."""
+    use_sudo = bool(getattr(settings, 'SERVICE_MONITOR_CONTROL_USE_SUDO', True))
+    if use_sudo and cmd and cmd[0] != 'sudo':
+        return ['sudo', '-n'] + list(cmd)
+    return list(cmd)
+
+
+def _docker_targets_for_service(service_key):
+    found = _find_project_docker_services()
+    if service_key == 'gunicorn':
+        return [found[k]['name'] for k in ('web', 'nginx') if k in found]
+    if service_key == 'celery':
+        return [found[k]['name'] for k in ('celery', 'celery_beat') if k in found]
+    if service_key == 'redis':
+        return [found['redis']['name']] if 'redis' in found else []
+    return []
+
+
+def _supervisor_status_for_programs(program_names):
+    """
+    Return (available, matching_names, raw_output).
+    available=False if supervisorctl is missing / unusable.
+    """
+    if not program_names:
+        return False, [], ''
+    ok, out, err = _run_command(['supervisorctl', 'status'], timeout=3)
+    text = out or err or ''
+    if not ok and 'unix://' not in text.lower() and 'no such file' in text.lower():
+        return False, [], text
+    if not text.strip() and not ok:
+        return False, [], text
+    wanted = {n.lower() for n in program_names}
+    matched = []
+    for line in text.splitlines():
+        parts = line.split()
+        if not parts:
+            continue
+        name = parts[0]
+        # supervisor may show group:program
+        base = name.split(':')[-1].lower()
+        if name.lower() in wanted or base in wanted:
+            matched.append(name)
+    # supervisorctl present if we got structured lines or explicit connection error with socket
+    available = bool(matched) or (ok and bool(text.strip()))
+    if not matched and not ok:
+        return False, [], text
+    return available, matched, text
+
+
+def _active_systemd_units(candidates):
+    """Prefer units that are loaded+active; return at most one primary unit."""
+    loaded = _loaded_systemd_units(candidates)
+    if not loaded:
+        return []
+    for unit in loaded:
+        u = _normalize_systemd_unit(unit)
+        ok, out, _ = _run_command(['systemctl', 'show', '-p', 'ActiveState', '--value', u], timeout=2)
+        if ok and (out or '').strip() == 'active':
+            return [unit]
+    return loaded[:1]
+
+
+def _resolve_service_control(service_key):
+    """
+    Decide how to control a service: docker | systemd | supervisor | process.
+    Returns dict with backend, targets, label, can_restart.
+    """
+    if service_key not in SERVICE_MONITOR_CONTROLLABLE_KEYS:
+        return {
+            'backend': 'none',
+            'targets': [],
+            'label': 'Not controllable',
+            'can_restart': False,
+            'can_list': False,
+            'can_log': True,
+            'can_error': True,
+        }
+
+    runtime = _resolve_runtime_source(service_key)
+    ident = _project_identity()
+
+    docker_targets = _docker_targets_for_service(service_key)
+    if runtime.get('type') == 'docker' and docker_targets:
+        return {
+            'backend': 'docker',
+            'targets': docker_targets,
+            'label': 'Docker: ' + ', '.join(docker_targets),
+            'can_restart': True,
+            'can_list': True,
+            'can_log': True,
+            'can_error': True,
+            'runtime': runtime,
+        }
+
+    unit_key = {
+        'gunicorn': 'systemd_gunicorn',
+        'celery': 'systemd_celery',
+        'redis': 'systemd_redis',
+    }.get(service_key)
+    systemd_units = list(runtime.get('systemd_units') or [])
+    if unit_key:
+        # Prefer active units from configured allowlist
+        preferred = _active_systemd_units(ident.get(unit_key) or [])
+        if preferred:
+            systemd_units = preferred
+        elif not systemd_units:
+            systemd_units = _loaded_systemd_units(ident.get(unit_key) or [])
+    if systemd_units:
+        return {
+            'backend': 'systemd',
+            'targets': systemd_units,
+            'label': 'systemd: ' + ', '.join(systemd_units),
+            'can_restart': True,
+            'can_list': True,
+            'can_log': True,
+            'can_error': True,
+            'runtime': runtime,
+        }
+
+    supervisor_key = {
+        'gunicorn': 'supervisor_gunicorn',
+        'celery': 'supervisor_celery',
+    }.get(service_key)
+    if supervisor_key:
+        configured = list(ident.get(supervisor_key) or [])
+        available, matched, _raw = _supervisor_status_for_programs(configured)
+        if available and matched:
+            return {
+                'backend': 'supervisor',
+                'targets': matched,
+                'label': 'supervisor: ' + ', '.join(matched),
+                'can_restart': True,
+                'can_list': True,
+                'can_log': True,
+                'can_error': True,
+                'runtime': runtime,
+            }
+
+    return {
+        'backend': 'process',
+        'targets': [],
+        'label': (runtime or {}).get('label') or 'Host process',
+        'can_restart': False,
+        'can_list': True,
+        'can_log': True,
+        'can_error': True,
+        'runtime': runtime,
+    }
+
+
+def _tail_service_log_file(service_key, lines=80):
+    log_key = 'django' if service_key == 'redis' else service_key
+    if service_key == 'gunicorn':
+        log_key = 'gunicorn'
+    candidates = _service_log_candidates().get(log_key) or _service_log_candidates().get('django') or []
+    existing = _existing_paths_with_glob(candidates)
+    path = existing[0] if existing else ''
+    return path, _tail_file(path, lines=lines)
+
+
+def run_service_monitor_action(service_key, action):
+    """
+    Run restart / list / error / log for a controllable service.
+    Uses Docker, systemd, or supervisor based on how the service is installed.
+    """
+    service_key = (service_key or '').strip().lower()
+    action = (action or '').strip().lower()
+    if service_key not in SERVICE_MONITOR_CONTROLLABLE_KEYS:
+        return {'ok': False, 'message': f'Service "{service_key}" is not controllable.', 'output': '', 'control': {}}
+    if action not in SERVICE_MONITOR_ACTIONS:
+        return {'ok': False, 'message': f'Unknown action "{action}".', 'output': '', 'control': {}}
+
+    control = _resolve_service_control(service_key)
+    backend = control.get('backend')
+    targets = list(control.get('targets') or [])
+    chunks = []
+    ok = True
+    message = ''
+
+    try:
+        if action == 'list':
+            if backend == 'docker' and targets:
+                for name in targets:
+                    cok, out, err = _run_command(
+                        [
+                            'docker',
+                            'inspect',
+                            '--format',
+                            '{{.Name}} status={{.State.Status}} started={{.State.StartedAt}} image={{.Config.Image}}',
+                            name,
+                        ],
+                        timeout=5,
+                    )
+                    chunks.append(out or err or f'(no inspect for {name})')
+                    if not cok:
+                        ok = False
+                cok2, out2, _err2 = _run_command(
+                    [
+                        'docker',
+                        'ps',
+                        '-a',
+                        '--format',
+                        'table {{.Names}}\t{{.Status}}\t{{.Image}}\t{{.Ports}}',
+                    ],
+                    timeout=5,
+                )
+                if cok2 and out2:
+                    filtered = [
+                        ln
+                        for ln in out2.splitlines()
+                        if any(t in ln for t in targets) or ln.startswith('NAMES')
+                    ]
+                    chunks.append('\n'.join(filtered))
+            elif backend == 'systemd' and targets:
+                for unit in targets:
+                    u = _normalize_systemd_unit(unit)
+                    cok, out, err = _run_command(
+                        _control_cmd(['systemctl', 'status', u, '--no-pager', '-l']),
+                        timeout=8,
+                    )
+                    # status returns non-zero when inactive; still useful output
+                    chunks.append(out or err or f'(no status for {u})')
+                    if not (out or err):
+                        ok = False
+            elif backend == 'supervisor' and targets:
+                cok, out, err = _run_command(_control_cmd(['supervisorctl', 'status'] + targets), timeout=5)
+                chunks.append(out or err)
+                ok = cok
+            else:
+                # Process snapshot
+                if service_key == 'celery':
+                    details = _get_process_details(
+                        'celery', limit=12, cmdline_filter=lambda row: _is_topteen_celery_cmdline(row)
+                    )
+                elif service_key == 'gunicorn':
+                    details = _get_process_details(
+                        'gunicorn', limit=12, cmdline_filter=lambda row: _is_topteen_gunicorn_cmdline(row)
+                    )
+                    if not details:
+                        details = _get_process_details('gunicorn', limit=8)
+                else:
+                    details = _get_process_details('redis-server', limit=8)
+                lines = []
+                for d in details:
+                    if isinstance(d, dict):
+                        lines.append(d.get('line') or d.get('command') or '')
+                    else:
+                        lines.append(str(d))
+                chunks.append('\n'.join(lines) if lines else 'No matching host processes found.')
+                message = 'Listed host processes (no systemd/docker target resolved).'
+
+        elif action == 'log':
+            if backend == 'docker' and targets:
+                for name in targets:
+                    cok, out, err = _run_command(['docker', 'logs', '--tail', '120', name], timeout=15)
+                    chunks.append(f'===== docker logs {name} =====\n' + (out or err or '(empty)'))
+                    if not cok and not out:
+                        ok = False
+            elif backend == 'systemd' and targets:
+                for unit in targets:
+                    u = _normalize_systemd_unit(unit)
+                    cok, out, err = _run_command(
+                        _control_cmd(['journalctl', '-u', u, '-n', '120', '--no-pager', '-o', 'short-iso']),
+                        timeout=12,
+                    )
+                    chunks.append(f'===== journalctl -u {u} =====\n' + (out or err or '(empty)'))
+                    if not (out or err):
+                        ok = False
+            else:
+                path, text = _tail_service_log_file(service_key, lines=120)
+                chunks.append(f'===== file {path or "(none)"} =====\n' + (text or '(empty)'))
+                if not path:
+                    ok = False
+                    message = 'No log file found for this service.'
+
+        elif action == 'error':
+            if backend == 'docker' and targets:
+                for name in targets:
+                    cok, out, err = _run_command(['docker', 'logs', '--tail', '250', name], timeout=15)
+                    raw = out or err or ''
+                    highlights = _extract_error_highlights(raw, max_items=30)
+                    body = '\n'.join(highlights) if highlights else '(no error keywords in recent docker logs)'
+                    chunks.append(f'===== errors from {name} =====\n' + body)
+            elif backend == 'systemd' and targets:
+                for unit in targets:
+                    u = _normalize_systemd_unit(unit)
+                    cok, out, err = _run_command(
+                        _control_cmd([
+                            'journalctl', '-u', u, '-p', 'err', '-n', '80', '--no-pager', '-o', 'short-iso',
+                        ]),
+                        timeout=12,
+                    )
+                    chunks.append(f'===== journalctl -p err -u {u} =====\n' + (out or err or '(no err-level entries)'))
+            else:
+                path, text = _tail_service_log_file(service_key, lines=200)
+                highlights = _extract_error_highlights(text, max_items=30)
+                body = '\n'.join(highlights) if highlights else '(no error keywords in log file)'
+                chunks.append(f'===== errors from {path or "(none)"} =====\n' + body)
+
+        elif action == 'restart':
+            if not control.get('can_restart'):
+                return {
+                    'ok': False,
+                    'message': (
+                        f'Cannot restart {service_key}: no Docker container, systemd unit, or supervisor '
+                        'program resolved. Set SERVICE_MONITOR_SYSTEMD_* or run via Docker/supervisor.'
+                    ),
+                    'output': '',
+                    'control': control,
+                }
+            if backend == 'docker' and targets:
+                for name in targets:
+                    cok, out, err = _run_command(['docker', 'restart', name], timeout=60)
+                    chunks.append(f'docker restart {name}: ' + ((out or err or ('ok' if cok else 'failed'))))
+                    if not cok:
+                        ok = False
+                message = f'Restarted Docker container(s): {", ".join(targets)}' if ok else 'Docker restart had failures.'
+            elif backend == 'systemd' and targets:
+                for unit in targets:
+                    u = _normalize_systemd_unit(unit)
+                    cok, out, err = _run_command(_control_cmd(['systemctl', 'restart', u]), timeout=60)
+                    chunks.append(f'systemctl restart {u}: ' + ((out or err or ('ok' if cok else 'failed'))))
+                    if not cok:
+                        ok = False
+                        if 'password' in (err or '').lower() or 'a password is required' in (err or '').lower():
+                            message = (
+                                'sudo -n failed (password required). Grant passwordless sudo for '
+                                f'systemctl restart on {u}, or set SERVICE_MONITOR_CONTROL_USE_SUDO=False '
+                                'if the app user can restart units.'
+                            )
+                if ok and not message:
+                    message = f'Restarted systemd unit(s): {", ".join(targets)}'
+            elif backend == 'supervisor' and targets:
+                cok, out, err = _run_command(_control_cmd(['supervisorctl', 'restart'] + targets), timeout=60)
+                chunks.append(out or err or ('ok' if cok else 'failed'))
+                ok = cok
+                message = f'Restarted supervisor program(s): {", ".join(targets)}' if ok else (err or 'supervisor restart failed')
+            else:
+                ok = False
+                message = f'No restart target for backend={backend}.'
+
+    except Exception as exc:
+        logger.exception('service monitor action failed: %s %s', service_key, action)
+        return {
+            'ok': False,
+            'message': f'Action failed: {exc}',
+            'output': '',
+            'control': control,
+        }
+
+    output = '\n\n'.join(c for c in chunks if c is not None).strip()
+    if len(output) > 50000:
+        output = output[-50000:]
+    if not message:
+        if ok:
+            message = f'{action.title()} completed for {service_key} via {control.get("label") or backend}.'
+        else:
+            message = f'{action.title()} finished with errors for {service_key}.'
+    return {
+        'ok': ok,
+        'message': message,
+        'output': output,
+        'control': control,
+        'service_key': service_key,
+        'action': action,
+    }
+
+
 def _get_process_details(pattern, limit=4, cmdline_filter=None):
     """
-    List matching processes. Optional cmdline_filter(str)->bool keeps only this app's rows.
+    List matching processes as structured dicts (legacy string form via 'line').
+    Keys: pid, ppid, cpu, mem, rss, etime, comm, args, line, role.
     """
     ok, out, _err = _run_command(['pgrep', '-f', pattern], timeout=1)
     if not ok or not out:
@@ -718,19 +1194,297 @@ def _get_process_details(pattern, limit=4, cmdline_filter=None):
         if len(details) >= limit:
             break
         ps_ok, ps_out, _ = _run_command(
-            ['ps', '-p', pid, '-o', 'pid,ppid,%cpu,%mem,rss,etime,comm,args'],
+            ['ps', '-p', pid, '-o', 'pid=,ppid=,%cpu=,%mem=,rss=,etime=,comm=,args='],
             timeout=1,
         )
         if not ps_ok or not ps_out:
             continue
-        lines = [line for line in ps_out.splitlines() if line.strip()]
-        if len(lines) < 2:
+        row = ps_out.strip()
+        if not row:
             continue
-        row = lines[-1].strip()
         if cmdline_filter and not cmdline_filter(row):
             continue
-        details.append(row)
+        parsed = _parse_ps_line(row)
+        if not parsed:
+            # Fallback: older ps format with headers
+            ps_ok2, ps_out2, _ = _run_command(
+                ['ps', '-p', pid, '-o', 'pid,ppid,%cpu,%mem,rss,etime,comm,args'],
+                timeout=1,
+            )
+            if not ps_ok2 or not ps_out2:
+                continue
+            lines = [line for line in ps_out2.splitlines() if line.strip()]
+            if len(lines) < 2:
+                continue
+            raw = lines[-1].strip()
+            if cmdline_filter and not cmdline_filter(raw):
+                continue
+            parsed = _parse_ps_line_legacy(raw)
+            if not parsed:
+                continue
+        details.append(parsed)
+    # Mark master vs worker by lowest ppid among gunicorn/celery groups
+    if details:
+        by_ppid = {}
+        for d in details:
+            by_ppid.setdefault(d.get('ppid') or '', []).append(d)
+        pids_set = {d['pid'] for d in details if d.get('pid')}
+        for d in details:
+            ppid = d.get('ppid') or ''
+            if ppid and ppid not in pids_set:
+                d['role'] = 'master'
+            else:
+                d['role'] = 'worker'
     return details
+
+
+def _parse_ps_line(row):
+    """Parse `ps -o pid=,ppid=,...args=` output (leading spaces on columns)."""
+    text = (row or '').strip()
+    if not text:
+        return None
+    parts = text.split(None, 7)
+    if len(parts) < 7:
+        return _parse_ps_line_legacy(text)
+    pid, ppid, cpu, mem, rss, etime, comm = parts[:7]
+    args = parts[7] if len(parts) > 7 else comm
+    if not pid.isdigit():
+        return None
+    return {
+        'pid': pid,
+        'ppid': ppid,
+        'cpu': cpu,
+        'mem': mem,
+        'rss': rss,
+        'etime': etime,
+        'comm': comm,
+        'args': args,
+        'command': args,
+        'line': text,
+        'kind': 'pid',
+        'role': 'process',
+        'can_stop': True,
+        'can_restart': True,
+    }
+
+
+def _parse_ps_line_legacy(row):
+    """Parse classic `ps -o pid,ppid,...` data line."""
+    text = (row or '').strip()
+    if not text:
+        return None
+    parts = text.split(None, 7)
+    if len(parts) < 7:
+        return None
+    pid = parts[0]
+    if not pid.isdigit():
+        return None
+    return {
+        'pid': pid,
+        'ppid': parts[1],
+        'cpu': parts[2],
+        'mem': parts[3],
+        'rss': parts[4],
+        'etime': parts[5],
+        'comm': parts[6],
+        'args': parts[7] if len(parts) > 7 else parts[6],
+        'command': parts[7] if len(parts) > 7 else parts[6],
+        'line': text,
+        'kind': 'pid',
+        'role': 'process',
+        'can_stop': True,
+        'can_restart': True,
+    }
+
+
+def _docker_process_rows_for_service(service_key):
+    """Structured rows for matched Docker containers (stop/restart via docker)."""
+    targets = _docker_targets_for_service(service_key)
+    rows = []
+    for name in targets:
+        cok, out, _ = _run_command(
+            [
+                'docker',
+                'inspect',
+                '--format',
+                '{{.State.Status}}\t{{.State.StartedAt}}\t{{.Config.Image}}\t{{.Id}}',
+                name,
+            ],
+            timeout=5,
+        )
+        status, started, image, cid = '', '', '', ''
+        if cok and out:
+            parts = out.split('\t')
+            while len(parts) < 4:
+                parts.append('')
+            status, started, image, cid = parts[0], parts[1], parts[2], parts[3][:12]
+        rows.append({
+            'kind': 'docker',
+            'pid': '',
+            'ppid': '',
+            'cpu': '',
+            'mem': '',
+            'rss': '',
+            'etime': started[:19] if started else '',
+            'comm': 'docker',
+            'args': name,
+            'command': f'{name} ({image})' if image else name,
+            'line': name,
+            'container': name,
+            'status': status or 'unknown',
+            'role': 'container',
+            'can_stop': True,
+            'can_restart': True,
+            'id_short': cid,
+        })
+    return rows
+
+
+def _build_service_process_rows(service_key, process_details, runtime_source=None):
+    """
+    Combine host PIDs + matched Docker containers into display rows.
+    process_details may be list of dicts or legacy strings.
+    """
+    rows = []
+    for item in process_details or []:
+        if isinstance(item, dict):
+            rows.append(item)
+        elif isinstance(item, str) and item.strip():
+            parsed = _parse_ps_line_legacy(item.strip())
+            if parsed:
+                rows.append(parsed)
+            else:
+                rows.append({
+                    'kind': 'pid',
+                    'pid': '',
+                    'command': item,
+                    'line': item,
+                    'role': 'process',
+                    'can_stop': False,
+                    'can_restart': False,
+                })
+    # Prefer docker rows when runtime is docker or matched containers exist
+    docker_rows = _docker_process_rows_for_service(service_key)
+    if docker_rows:
+        # Put containers first when docker is the control backend
+        rs = runtime_source or {}
+        if rs.get('type') == 'docker' or (rs.get('matched_containers')):
+            rows = docker_rows + rows
+        else:
+            rows = rows + docker_rows
+    return rows
+
+
+def _pid_belongs_to_service(pid, service_key):
+    """Safety check: only allow stop/restart if cmdline still matches this service."""
+    pid = str(pid or '').strip()
+    if not pid.isdigit():
+        return False, 'Invalid PID'
+    ok, out, _ = _run_command(['ps', '-p', pid, '-o', 'args='], timeout=2)
+    if not ok or not (out or '').strip():
+        return False, f'PID {pid} not found'
+    cmdline = out.strip()
+    if service_key == 'celery':
+        if not _is_topteen_celery_cmdline(cmdline):
+            return False, 'PID is not a TopTeen Celery process'
+    elif service_key == 'gunicorn':
+        if not _is_topteen_gunicorn_cmdline(cmdline):
+            return False, 'PID is not a TopTeen Gunicorn process'
+    elif service_key == 'redis':
+        if 'redis-server' not in cmdline.lower():
+            return False, 'PID is not redis-server'
+    else:
+        return False, 'Unsupported service'
+    return True, cmdline
+
+
+def run_service_process_action(service_key, action, kind, target):
+    """
+    Stop or restart a single process (PID) or Docker container for a service.
+    """
+    service_key = (service_key or '').strip().lower()
+    action = (action or '').strip().lower()
+    kind = (kind or '').strip().lower()
+    target = (target or '').strip()
+
+    if service_key not in SERVICE_MONITOR_CONTROLLABLE_KEYS:
+        return {'ok': False, 'message': 'Service not controllable.', 'output': ''}
+    if action not in ('stop', 'restart'):
+        return {'ok': False, 'message': 'Action must be stop or restart.', 'output': ''}
+    if kind not in ('pid', 'docker'):
+        return {'ok': False, 'message': 'Target kind must be pid or docker.', 'output': ''}
+    if not target:
+        return {'ok': False, 'message': 'Missing target.', 'output': ''}
+
+    if kind == 'docker':
+        allowed = set(_docker_targets_for_service(service_key))
+        # Also allow names from matched project containers
+        found = _find_project_docker_services()
+        for meta in found.values():
+            if meta.get('name'):
+                allowed.add(meta['name'])
+        if target not in allowed:
+            return {
+                'ok': False,
+                'message': f'Container "{target}" is not a matched TopTeen {service_key} container.',
+                'output': '',
+            }
+        if action == 'stop':
+            cok, out, err = _run_command(['docker', 'stop', target], timeout=60)
+        else:
+            cok, out, err = _run_command(['docker', 'restart', target], timeout=60)
+        return {
+            'ok': cok,
+            'message': (
+                f'Docker {action} {target}: ok' if cok else f'Docker {action} {target} failed: {err or out}'
+            ),
+            'output': (out or err or '').strip(),
+            'service_key': service_key,
+            'action': action,
+        }
+
+    # PID
+    belongs, info = _pid_belongs_to_service(target, service_key)
+    if not belongs:
+        return {'ok': False, 'message': info, 'output': ''}
+
+    if action == 'stop':
+        cok, out, err = _run_command(_control_cmd(['kill', '-TERM', target]), timeout=5)
+        if not cok:
+            # try without sudo
+            cok, out, err = _run_command(['kill', '-TERM', target], timeout=5)
+        return {
+            'ok': cok,
+            'message': (
+                f'Sent SIGTERM to PID {target}.' if cok else f'Failed to stop PID {target}: {err or out or info}'
+            ),
+            'output': info,
+            'service_key': service_key,
+            'action': action,
+        }
+
+    # restart single PID: TERM worker (master respawns) or full service restart for master
+    cok, out, err = _run_command(_control_cmd(['kill', '-TERM', target]), timeout=5)
+    if not cok:
+        cok, out, err = _run_command(['kill', '-TERM', target], timeout=5)
+    if cok:
+        return {
+            'ok': True,
+            'message': (
+                f'Restart signal sent to PID {target} (SIGTERM). '
+                'Gunicorn/Celery master should respawn a worker if this was a worker.'
+            ),
+            'output': info,
+            'service_key': service_key,
+            'action': action,
+        }
+    return {
+        'ok': False,
+        'message': f'Failed to restart PID {target}: {err or out}',
+        'output': info,
+        'service_key': service_key,
+        'action': action,
+    }
 
 
 def _tail_file(path, lines=40, max_chars=12000):
@@ -990,30 +1744,42 @@ def get_runtime_service_status():
     for service_name, paths in _service_log_candidates().items():
         existing = _existing_paths_with_glob(paths)
         selected = existing[0] if existing else ''
-        tail_text = _tail_file(selected)
+        # Do not load log tails on every page view — Log / Error buttons fetch on demand.
         logs[service_name] = {
             'path': selected,
-            'tail': tail_text,
-            'error_highlights': _extract_error_highlights(tail_text),
-            'failure_hints': _detect_failure_hints(tail_text),
+            'tail': '',
+            'error_highlights': [],
+            'failure_hints': [],
         }
 
     service_map = {row['key']: row for row in service_rows}
     service_map['redis']['anchor'] = 'service-redis'
-    service_map['redis']['process_details'] = _get_process_details('redis-server')
+    redis_procs = _get_process_details('redis-server')
+    service_map['redis']['process_details'] = [
+        p.get('line') if isinstance(p, dict) else p for p in redis_procs
+    ]
     service_map['redis']['clickable'] = True
     service_map['redis']['log_key'] = 'django'
     service_map['redis']['runtime_source'] = _resolve_runtime_source('redis')
+    service_map['redis']['process_rows'] = _build_service_process_rows(
+        'redis', redis_procs, service_map['redis']['runtime_source']
+    )
 
     service_map['celery']['anchor'] = 'service-celery'
-    service_map['celery']['process_details'] = _get_process_details(
+    celery_procs = _get_process_details(
         'celery',
         limit=8,
         cmdline_filter=lambda row: _is_topteen_celery_cmdline(row),
     )
+    service_map['celery']['process_details'] = [
+        p.get('line') if isinstance(p, dict) else p for p in celery_procs
+    ]
     service_map['celery']['clickable'] = True
     service_map['celery']['log_key'] = 'celery'
     service_map['celery']['runtime_source'] = _resolve_runtime_source('celery')
+    service_map['celery']['process_rows'] = _build_service_process_rows(
+        'celery', celery_procs, service_map['celery']['runtime_source']
+    )
     service_map['celery']['open_tasks'] = celery_diag['open_tasks']
     service_map['celery']['workers_up'] = celery_diag['workers_up']
     service_map['celery']['active_tasks'] = celery_diag['active_tasks']
@@ -1024,29 +1790,40 @@ def get_runtime_service_status():
     service_map['celery']['inspect_error'] = celery_diag['inspect_error']
 
     service_map['gunicorn']['anchor'] = 'service-gunicorn'
-    guni_details = _get_process_details(
+    guni_procs = _get_process_details(
         'gunicorn',
         limit=6,
         cmdline_filter=lambda row: _is_topteen_gunicorn_cmdline(row),
     )
-    if not guni_details:
-        guni_details = _get_process_details('gunicorn', limit=4)
-    service_map['gunicorn']['process_details'] = guni_details
+    if not guni_procs:
+        guni_procs = _get_process_details('gunicorn', limit=4)
+    service_map['gunicorn']['process_details'] = [
+        p.get('line') if isinstance(p, dict) else p for p in guni_procs
+    ]
     service_map['gunicorn']['clickable'] = True
     service_map['gunicorn']['log_key'] = 'gunicorn'
     service_map['gunicorn']['runtime_source'] = _resolve_runtime_source('gunicorn')
+    service_map['gunicorn']['process_rows'] = _build_service_process_rows(
+        'gunicorn', guni_procs, service_map['gunicorn']['runtime_source']
+    )
 
     service_map['email']['anchor'] = 'service-email'
     service_map['email']['process_details'] = []
+    service_map['email']['process_rows'] = []
     service_map['email']['clickable'] = True
     service_map['email']['log_key'] = 'django'
     service_map['email']['runtime_source'] = _resolve_runtime_source('email')
 
     service_map['db']['anchor'] = 'service-db'
     service_map['db']['process_details'] = []
+    service_map['db']['process_rows'] = []
     service_map['db']['clickable'] = False
     service_map['db']['log_key'] = 'django'
     service_map['db']['runtime_source'] = _resolve_runtime_source('db')
+
+    for key in SERVICE_MONITOR_CONTROLLABLE_KEYS:
+        if key in service_map:
+            service_map[key]['control'] = _resolve_service_control(key)
 
     all_required_ok = True
     for row in service_rows:

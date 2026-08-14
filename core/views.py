@@ -52,7 +52,7 @@ from pathlib import Path
 
 # Anonymous homepage HTML is shared across all visitors (cookie-independent).
 # Django's cache_page keys on Vary: Cookie, so Locust/session cookies bust it under load.
-HOME_ANON_HTML_CACHE_KEY = 'home:anon:html:v1'
+HOME_ANON_HTML_CACHE_KEY = 'home:anon:html:v2'
 HOME_ANON_HTML_CACHE_TTL = 900  # 15 minutes
 HOME_ANON_HTML_LOCK_KEY = 'home:anon:html:lock'
 HOME_ANON_HTML_LOCK_TTL = 45
@@ -204,6 +204,8 @@ class Home(TemplateView):
         for c in clusters:
             if not c.name:
                 continue
+            from core.s3_utils import rewrite_s3_url_to_cdn
+
             icon_url = (
                 getattr(c, 'career_track_icon_s3_url', None)
                 or (c.career_track_icon.url if (c.career_track_icon and c.career_track_icon.name) else None)
@@ -211,7 +213,7 @@ class Home(TemplateView):
             )
             career_track_cards.append({
                 'label': (c.name or '').strip(),
-                'icon_url': icon_url,
+                'icon_url': rewrite_s3_url_to_cdn(icon_url) if icon_url else icon_url,
                 'url': f"{careers_base_url}?mode=view-mode&cluster={c.id}",
             })
         if career_track_cards:
@@ -253,6 +255,8 @@ class Home(TemplateView):
     def _home_video_context(self):
         from core.models import Configuration
 
+        from core.s3_utils import rewrite_s3_url_to_cdn
+
         default_home_video = 'https://topteenc.s3.ap-northeast-1.amazonaws.com/media/TopTeen_1080P.mp4'
         home_video_url = (
             Configuration.get('HOME_VIDEO_URL', default=default_home_video, editable=True)
@@ -278,6 +282,11 @@ class Home(TemplateView):
                     home_video_thumbnail_url = (
                         'https://img.youtube.com/vi/' + home_video_yt_id + '/maxresdefault.jpg'
                     )
+        # Legacy config may store absolute S3 URLs — rewrite when CloudFront is enabled.
+        if not home_video_yt_id:
+            home_video_url = rewrite_s3_url_to_cdn(home_video_url) or home_video_url
+            home_video_embed_url = rewrite_s3_url_to_cdn(home_video_embed_url) or home_video_embed_url
+        home_video_thumbnail_url = rewrite_s3_url_to_cdn(home_video_thumbnail_url) or home_video_thumbnail_url
         return {
             'home_video_url': home_video_url,
             'home_video_thumbnail_url': home_video_thumbnail_url,
@@ -827,7 +836,7 @@ class EntranceTestPrepListView(TemplateView):
         ctx = {}
         ctx["html_head"] = get_page_seo_html_head(
             self.url_key,
-            "Entrance Exam | Top Teen",
+            "Entrance Exam | TopTeen",
             "Expert guidance and trusted resources to help you confidently prepare for entrance exams after 10th, 12th, or graduation.",
             request=request,
         )
@@ -1203,6 +1212,9 @@ class EmotionalIntelligencesAssessmentView(LoginRequiredMixin, TemplateView):
         if referer and url_has_allowed_host_and_scheme(referer, allowed_hosts={request.get_host()}):
             if urlparse(referer).path.rstrip("/") != request.path.rstrip("/"):
                 return referer
+        subject, read_only = _mieq_assessment_subject(request)
+        if read_only and getattr(subject, "id", None):
+            return reverse("parents_student_dashboard", args=[subject.id])
         return reverse("users:userdashboard")
 
     def html_head(self):
@@ -1212,6 +1224,7 @@ class EmotionalIntelligencesAssessmentView(LoginRequiredMixin, TemplateView):
         )
 
     def get_context(self, request, *args, **kwargs):
+        subject, read_only = _mieq_assessment_subject(request)
         ctx = {}
         ctx["html_head"] = self.html_head()
         ctx["back_url"] = self.get_back_url(request)
@@ -1219,10 +1232,15 @@ class EmotionalIntelligencesAssessmentView(LoginRequiredMixin, TemplateView):
             {"text": "Emotional Intelligences", "url": reverse("core:emotional_intelligences")},
             {"text": "Assessment", "url": reverse("core:emotional_intelligences_assessment")},
         ])
-        ctx["save_eq_url"] = reverse("core:save_eq_assessment")
-        ctx["eq_report_pdf_url"] = reverse("core:eq_report_pdf")
-        if getattr(request, "user", None) and request.user.is_authenticated:
-            latest = EQAssessmentResult.objects.filter(user=request.user).order_by("-updated_at").first()
+        ctx["save_eq_url"] = "" if read_only else reverse("core:save_eq_assessment")
+        if read_only and getattr(subject, "id", None):
+            ctx["eq_report_pdf_url"] = reverse("core:eq_report_pdf_user", args=[subject.id])
+        else:
+            ctx["eq_report_pdf_url"] = reverse("core:eq_report_pdf")
+        ctx["assessment_read_only"] = read_only
+        ctx["assessment_subject_name"] = getattr(subject, "name", "") or "Student"
+        if getattr(subject, "is_authenticated", False) or getattr(subject, "id", None):
+            latest = EQAssessmentResult.objects.filter(user=subject).order_by("-updated_at").first()
             if latest:
                 ctx["saved_eq_responses"] = json.dumps(latest.responses)
                 from core.eq_scoring import calculate_eq_result, get_subscale_band
@@ -1289,6 +1307,9 @@ class MultipleIntelligencesAssessmentView(LoginRequiredMixin, TemplateView):
         if referer and url_has_allowed_host_and_scheme(referer, allowed_hosts={request.get_host()}):
             if urlparse(referer).path.rstrip("/") != request.path.rstrip("/"):
                 return referer
+        subject, read_only = _mieq_assessment_subject(request)
+        if read_only and getattr(subject, "id", None):
+            return reverse("parents_student_dashboard", args=[subject.id])
         return reverse("users:userdashboard")
 
     def html_head(self):
@@ -1298,6 +1319,7 @@ class MultipleIntelligencesAssessmentView(LoginRequiredMixin, TemplateView):
         )
 
     def get_context(self, request, *args, **kwargs):
+        subject, read_only = _mieq_assessment_subject(request)
         ctx = {}
         ctx["html_head"] = self.html_head()
         ctx["back_url"] = self.get_back_url(request)
@@ -1305,10 +1327,15 @@ class MultipleIntelligencesAssessmentView(LoginRequiredMixin, TemplateView):
             {"text": "Multiple Intelligences", "url": reverse("core:multiple_intelligences")},
             {"text": "Assessment", "url": reverse("core:multiple_intelligences_assessment")},
         ])
-        ctx["save_mi_url"] = reverse("core:save_mi_assessment")
-        ctx["mi_report_pdf_url"] = reverse("core:mi_report_pdf")
-        if getattr(request, "user", None) and request.user.is_authenticated:
-            latest = MIAssessmentResult.objects.filter(user=request.user).order_by("-updated_at").first()
+        ctx["save_mi_url"] = "" if read_only else reverse("core:save_mi_assessment")
+        if read_only and getattr(subject, "id", None):
+            ctx["mi_report_pdf_url"] = reverse("core:mi_report_pdf_user", args=[subject.id])
+        else:
+            ctx["mi_report_pdf_url"] = reverse("core:mi_report_pdf")
+        ctx["assessment_read_only"] = read_only
+        ctx["assessment_subject_name"] = getattr(subject, "name", "") or "Student"
+        if getattr(subject, "is_authenticated", False) or getattr(subject, "id", None):
+            latest = MIAssessmentResult.objects.filter(user=subject).order_by("-updated_at").first()
             if latest:
                 ctx["saved_mi_answers"] = json.dumps(latest.answers)
                 ctx["saved_mi_result"] = json.dumps({
@@ -1628,7 +1655,7 @@ class EbookListView(TemplateView):
     template_name = "template20/ebook.html"
 
     def html_head(self):
-        name = "E-Books | Top Teen"
+        name = "E-Books | TopTeen"
         return build_html_head(title=name, description="Explore our collection of career guidance e-books")
 
     def get_context(self, request, *args, **kwargs):
@@ -1664,7 +1691,7 @@ class EbookDetailView(FreetrailContentMixin, TemplateView):
     freetrail_back_url = "core:ebook_list"
 
     def html_head(self):
-        name = "E-Book Reader | Top Teen"
+        name = "E-Book Reader | TopTeen"
         return build_html_head(title=name, description="Read our interactive career guidance e-book")
 
     def get(self, request, *args, **kwargs):
@@ -2391,6 +2418,7 @@ def save_mi_assessment(request):
         style_name=str(style_name),
         style_summary=str(style_summary),
     )
+    _invalidate_parent_mieq_caches_for_student(request.user)
     return JsonResponse({"ok": True})
 
 
@@ -2431,7 +2459,18 @@ def save_eq_assessment(request):
         adaptive_eq=float(s.get("SC", 0) + s.get("SM", 0)),
         band_label=str(band_label) if band_label is not None else "",
     )
+    _invalidate_parent_mieq_caches_for_student(request.user)
     return JsonResponse({"ok": True})
+
+
+def _invalidate_parent_mieq_caches_for_student(student) -> None:
+    """Clear parent dashboard Redis caches for every linked parent."""
+    try:
+        from users.parent_dashboard_cache import invalidate_parent_caches_for_student
+
+        invalidate_parent_caches_for_student(student)
+    except Exception:
+        pass
 
 
 def _docx_path_to_html(docx_path):
@@ -2497,6 +2536,25 @@ def _can_view_assessment_report(viewer, target_user):
     except Exception:
         pass
     return False
+
+
+def _mieq_assessment_subject(request):
+    """Subject user for MI/EQ pages: self, or linked student via ?student_id= (read-only)."""
+    from django.core.exceptions import PermissionDenied
+
+    raw = (request.GET.get("student_id") or "").strip()
+    if not raw or not getattr(request, "user", None) or not request.user.is_authenticated:
+        return request.user, False
+    try:
+        sid = int(raw)
+    except (TypeError, ValueError):
+        return request.user, False
+    if sid == int(getattr(request.user, "id", 0) or 0):
+        return request.user, False
+    subject = get_object_or_404(User, id=sid)
+    if not _can_view_assessment_report(request.user, subject):
+        raise PermissionDenied("You are not allowed to view this assessment report.")
+    return subject, True
 
 
 def _resolve_assessment_report_user(request, user_id=None):
@@ -2949,9 +3007,120 @@ def translate_complexity_api(request):
         return JsonResponse({'ok': False, 'error': 'Translation complexity is not configured'}, status=503)
 
     try:
-        adjusted = adjust_text_complexity(texts, target_lang, level)
+        adjusted, stats = adjust_text_complexity(
+            texts, target_lang, level, user=request.user, request=request
+        )
     except Exception as exc:
-        logger.exception('translate_complexity_api failed')
-        return JsonResponse({'ok': False, 'error': str(exc)}, status=500)
+        from core.llm_quota import LLMQuotaExceeded, quota_error_response
 
-    return JsonResponse({'ok': True, 'texts': adjusted, 'level': level})
+        if isinstance(exc, LLMQuotaExceeded):
+            return quota_error_response(exc)
+        # Never return HTML or opaque 500 bodies — frontend expects JSON.
+        # Fall back to original Google Translate text so the page stays usable.
+        logger.exception('translate_complexity_api failed: %s', exc)
+        return JsonResponse({
+            'ok': True,
+            'texts': [str(t or '') for t in texts],
+            'level': level,
+            'fallback': True,
+            'cache': {
+                'cache_hits': 0,
+                'cache_misses': len(texts) if isinstance(texts, list) else 0,
+                'llm_calls': 0,
+                'stored': 0,
+                'from_cache': False,
+            },
+        })
+
+    return JsonResponse({
+        'ok': True,
+        'texts': adjusted,
+        'level': level,
+        'cache': stats,
+    })
+
+
+@require_GET
+def voice_settings_api(request):
+    """
+    Live voice-to-text mode for open browser tabs.
+    Reads DB directly so admin changes apply without waiting for config cache TTL.
+    """
+    from core.voice_to_text import voice_settings_payload
+
+    return JsonResponse(voice_settings_payload())
+
+
+@require_POST
+def voice_transcribe_api(request):
+    """
+    Transcribe short mic audio via OpenAI gpt-4o-mini-transcribe.
+    Only available when Admin voice mode is 'openai'.
+    POST multipart: audio=<file>, optional language=
+    """
+    from core.voice_to_text import (
+        OPENAI_TRANSCRIBE_MODEL,
+        VOICE_TO_TEXT_OPENAI,
+        get_voice_to_text_mode_live,
+        openai_transcribe_available,
+    )
+
+    if get_voice_to_text_mode_live() != VOICE_TO_TEXT_OPENAI:
+        return JsonResponse({'ok': False, 'error': 'Cloud voice-to-text is disabled'}, status=403)
+    if not openai_transcribe_available():
+        return JsonResponse({'ok': False, 'error': 'OpenAI API key is not configured'}, status=503)
+
+    # Light rate limit (anonymous login fields + logged-in notebook)
+    client_ip = (
+        (request.META.get('HTTP_X_FORWARDED_FOR') or '').split(',')[0].strip()
+        or request.META.get('REMOTE_ADDR')
+        or 'unknown'
+    )
+    rate_key = f'tt_voice_stt:{client_ip}'
+    hits = cache.get(rate_key) or 0
+    if hits >= 60:
+        return JsonResponse({'ok': False, 'error': 'Too many voice requests. Try again later.'}, status=429)
+    cache.set(rate_key, hits + 1, timeout=3600)
+
+    audio = request.FILES.get('audio')
+    if not audio:
+        return JsonResponse({'ok': False, 'error': 'Missing audio file'}, status=400)
+
+    max_bytes = 5 * 1024 * 1024  # 5 MB
+    if getattr(audio, 'size', 0) and audio.size > max_bytes:
+        return JsonResponse({'ok': False, 'error': 'Audio too large (max 5 MB)'}, status=400)
+
+    language = (request.POST.get('language') or '').strip() or None
+    model = getattr(settings, 'OPENAI_TRANSCRIBE_MODEL', None) or OPENAI_TRANSCRIBE_MODEL
+    filename = getattr(audio, 'name', None) or 'audio.webm'
+
+    try:
+        import io
+        import openai
+
+        client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+        try:
+            audio.seek(0)
+        except Exception:
+            pass
+        raw = audio.read()
+        if not raw:
+            return JsonResponse({'ok': False, 'error': 'Empty audio'}, status=400)
+        if len(raw) > max_bytes:
+            return JsonResponse({'ok': False, 'error': 'Audio too large (max 5 MB)'}, status=400)
+        bio = io.BytesIO(raw)
+        bio.name = filename
+        kwargs = {'model': model, 'file': bio}
+        if language:
+            kwargs['language'] = language[:16]
+        result = client.audio.transcriptions.create(**kwargs)
+        text = (getattr(result, 'text', None) or str(result) or '').strip()
+    except Exception as exc:
+        logger.exception('voice_transcribe_api failed: %s', exc)
+        return JsonResponse({'ok': False, 'error': 'Transcription failed. Please try again.'}, status=502)
+
+    return JsonResponse({
+        'ok': True,
+        'text': text,
+        'model': model,
+    })

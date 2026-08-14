@@ -1,6 +1,6 @@
 {% extends 'template20/user/student_base.html' %}
 
-{% block title_content %}User Dashboard | Top Teen{% endblock %}
+{% block title_content %}User Dashboard | TopTeen{% endblock %}
 {% block description_content %}Access your personalized dashboard with statistics, quick links, and recent activity.{% endblock %}
 {% block student_bodyclass %}user-dashboard user-dashboard-fullscreen{% endblock %}
 
@@ -520,10 +520,14 @@
   }
 
   /* Dashboard stats - Duolingo-style */
+  .dashboard-stat-cards {
+    overflow: visible;
+  }
   .dashboard-stat-col {
     opacity: 0;
     transform: translateY(12px);
     animation: dashboardStatIn 0.4s ease-out forwards;
+    overflow: visible;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -989,13 +993,112 @@
     margin-bottom: 0;
   }
 
+  .profile-alert-btn-wrap {
+    --pap-border-base: #4338ca;
+    --pap-border-shine: #ffffff;
+    --pap-border-glow: #a5b4fc;
+    --pap-glow: rgba(72, 61, 255, 0.32);
+
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+    padding: 2px;
+    border-radius: 999px;
+    overflow: hidden;
+    isolation: isolate;
+    background: var(--pap-border-base);
+    box-shadow: 0 6px 14px var(--pap-glow);
+    animation: profileAlertBtnPulse 3.6s ease-in-out infinite;
+  }
+
+  .profile-alert-btn-wrap::before {
+    content: "";
+    position: absolute;
+    inset: -120%;
+    background: conic-gradient(
+      from 0deg,
+      var(--pap-border-base) 0deg,
+      var(--pap-border-base) 200deg,
+      #6366f1 230deg,
+      var(--pap-border-glow) 255deg,
+      var(--pap-border-shine) 275deg,
+      var(--pap-border-glow) 295deg,
+      #6366f1 320deg,
+      var(--pap-border-base) 345deg,
+      var(--pap-border-base) 360deg
+    );
+    animation: profileAlertBorderRotate 4.5s linear infinite;
+    will-change: transform;
+    backface-visibility: hidden;
+    z-index: 0;
+    pointer-events: none;
+  }
+
   .profile-alert-btn {
+    position: relative;
+    z-index: 1;
+    border: none !important;
     border-radius: 999px;
     font-size: 12px;
-    font-weight: 600;
+    font-weight: 700;
     padding: 7px 14px !important;
-    box-shadow: 0 6px 12px rgba(72, 61, 255, 0.24);
     white-space: nowrap;
+    color: #fff !important;
+    background: linear-gradient(145deg, #6366f1 0%, #3f37c9 55%, #312e81 100%) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  }
+
+  .profile-alert-btn:hover,
+  .profile-alert-btn:focus {
+    color: #fff !important;
+    background: linear-gradient(145deg, #818cf8 0%, #5249df 55%, #3730a3 100%) !important;
+  }
+
+  .profile-alert-btn-wrap.profile-alert-btn-shake .profile-alert-btn {
+    animation: profileAlertBtnShake 0.75s ease-in-out;
+  }
+
+  @keyframes profileAlertBorderRotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes profileAlertBtnPulse {
+    0%, 100% {
+      box-shadow: 0 6px 14px rgba(72, 61, 255, 0.28);
+    }
+    50% {
+      box-shadow:
+        0 10px 22px rgba(72, 61, 255, 0.42),
+        0 0 14px rgba(165, 180, 252, 0.28);
+    }
+  }
+
+  @keyframes profileAlertBtnShake {
+    0%, 100% { transform: translateX(0) rotate(0deg); }
+    10% { transform: translateX(-8px) rotate(-3deg); }
+    20% { transform: translateX(8px) rotate(3deg); }
+    30% { transform: translateX(-6px) rotate(-2deg); }
+    40% { transform: translateX(6px) rotate(2deg); }
+    50% { transform: translateX(-4px) rotate(-1.5deg); }
+    60% { transform: translateX(4px) rotate(1.5deg); }
+    70% { transform: translateX(-3px) rotate(-1deg); }
+    80% { transform: translateX(3px) rotate(1deg); }
+    90% { transform: translateX(-1px) rotate(0deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .profile-alert-btn-wrap::before {
+      animation-duration: 8s;
+    }
+
+    .profile-alert-btn-wrap {
+      animation: none;
+    }
+
+    .profile-alert-btn-wrap.profile-alert-btn-shake .profile-alert-btn {
+      animation: none;
+    }
   }
 
   @media (max-width: 575px) {
@@ -1059,7 +1162,7 @@
           <i class='bx bx-gift'></i>
         </div>
         <h2 class="refer-modal-title" id="referModalTitle">Invite a friend</h2>
-        <p class="refer-modal-sub text-white">Share Top Teen with someone who’d benefit from career guidance, tests, and planning
+        <p class="refer-modal-sub text-white">Share TopTeen with someone who’d benefit from career guidance, tests, and planning
           tools.</p>
       </div>
       <div class="modal-body refer-modal-body text-center">
@@ -1117,9 +1220,11 @@
               <p class="profile-alert-subtitle">Your profile is {{ hub_profile_completion|default(0) }}% complete. Finish it to get better recommendations and matches.</p>
             </div>
           </div>
-          <a href="{{ url('users:profiledetails') }}" class="btn btn-sm custom-button purple-button profile-alert-btn">
-            Update Profile
-          </a>
+          <span class="profile-alert-btn-wrap" id="profileAlertBtnWrap">
+            <a href="{{ url('users:profiledetails') }}" class="btn btn-sm custom-button purple-button profile-alert-btn" id="profileAlertBtn">
+              Update Profile
+            </a>
+          </span>
         </div>
         {% endif %}
 
@@ -1127,96 +1232,104 @@
           <h2 class="fs-24 fw-semibold mb-3">Statistics</h2>
           <div class="row g-3 dashboard-stat-cards">
             <div class="col-6 col-md-3 dashboard-stat-col" style="animation-delay: 0.1s;">
-              <div class="stat-card stat-card-trophies">
+              <div class="stat-card-wrap">
                 {% with tooltip_text='Trophies you unlock by completing milestones such as your profile, psychometric tests, aptitude sections, career direction, and payment.' %}
                 {% include 'template20/includes/stat_card_info_btn.html' %}
                 {% endwith %}
-                <div class="stat-card-icon">
-                  <img src="{{ static('images_new/icons/champion-winner-icon.svg') }}" style="max-width:35px;"
-                    alt="Trophies" />
-                </div>
-                <div>
-                  <p class="fs-18 fw-semibold mb-0 stat-value stat-value-trigger" id="stat-trophies"
-                    data-value="{{ trophies_unlocked|default(0) }}"
-                    data-bs-toggle="modal" data-bs-target="#dashboardStatTrophiesModal"
-                    role="button" tabindex="0" title="View trophy details">0</p>
-                  <p class="text-gray fs-10 mb-0">Trophies Unlocked</p>
+                <div class="stat-card stat-card-trophies stat-card-clickable"
+                  data-bs-toggle="modal" data-bs-target="#dashboardStatTrophiesModal"
+                  role="button" tabindex="0" title="View trophy details" aria-label="View trophy details">
+                  <div class="stat-card-icon">
+                    <img src="{{ static('images_new/icons/champion-winner-icon.svg') }}" style="max-width:35px;"
+                      alt="Trophies" />
+                  </div>
+                  <div>
+                    <p class="fs-18 fw-semibold mb-0 stat-value" id="stat-trophies"
+                      data-value="{{ trophies_unlocked|default(0) }}">0</p>
+                    <p class="text-gray fs-10 mb-0">Trophies Unlocked</p>
+                  </div>
                 </div>
               </div>
             </div>
             <div class="col-6 col-md-3 dashboard-stat-col" style="animation-delay: 0.2s;">
-              <div class="stat-card stat-card-points">
+              <div class="stat-card-wrap">
                 {% with tooltip_text='Total points earned from activities like registration, profile completion, finishing tests, and other achievements on TopTeen.' %}
                 {% include 'template20/includes/stat_card_info_btn.html' %}
                 {% endwith %}
-                <div class="stat-card-icon">
-                  <img src="{{ static('images_new/icons/rewards.svg') }}" style="max-width:35px;" alt="Total Points" />
-                </div>
-                <div>
-                  <p class="fs-18 fw-semibold mb-0 stat-value stat-value-trigger" id="stat-points"
-                    data-value="{{ total_points|default(0) }}"
-                    data-bs-toggle="modal" data-bs-target="#dashboardStatPointsModal"
-                    role="button" tabindex="0" title="View points breakdown">0</p>
-                  <p class="text-gray fs-10 mb-0">Total Points</p>
+                <div class="stat-card stat-card-points stat-card-clickable"
+                  data-bs-toggle="modal" data-bs-target="#dashboardStatPointsModal"
+                  role="button" tabindex="0" title="View points breakdown" aria-label="View points breakdown">
+                  <div class="stat-card-icon">
+                    <img src="{{ static('images_new/icons/rewards.svg') }}" style="max-width:35px;" alt="Total Points" />
+                  </div>
+                  <div>
+                    <p class="fs-18 fw-semibold mb-0 stat-value" id="stat-points"
+                      data-value="{{ total_points|default(0) }}">0</p>
+                    <p class="text-gray fs-10 mb-0">Total Points</p>
+                  </div>
                 </div>
               </div>
             </div>
             <div class="col-6 col-md-3 dashboard-stat-col" style="animation-delay: 0.3s;">
-              <div
-                class="stat-card stat-card-streak {% if streak_days|default(0) > 0 %}stat-card-streak-active{% endif %}">
+              <div class="stat-card-wrap">
                 {% with tooltip_text='Consecutive days you have been active on TopTeen. Log in or complete an activity each day to keep your streak going.' %}
                 {% include 'template20/includes/stat_card_info_btn.html' %}
                 {% endwith %}
-                <div class="stat-card-icon streak-icon-wrap">
-                  <img src="{{ static('images_new/icons/streak-icom.svg') }}" style="max-width:35px;"
-                    alt="Streak" />
-                </div>
-                <div>
-                  <p class="fs-18 fw-semibold mb-0 stat-value stat-value-trigger" id="stat-streak"
-                    data-value="{{ streak_days|default(0) }}"
-                    data-streak-format="day-label"
-                    data-bs-toggle="modal" data-bs-target="#dashboardStatStreakModal"
-                    role="button" tabindex="0" title="View streak details">Day 0</p>
-                  <p class="text-gray fs-10 mb-0" id="stat-streak-label">Streak</p>
+                <div
+                  class="stat-card stat-card-streak stat-card-clickable {% if streak_days|default(0) > 0 %}stat-card-streak-active{% endif %}"
+                  data-bs-toggle="modal" data-bs-target="#dashboardStatStreakModal"
+                  role="button" tabindex="0" title="View streak details" aria-label="View streak details">
+                  <div class="stat-card-icon streak-icon-wrap">
+                    <img src="{{ static('images_new/icons/streak-icom.svg') }}" style="max-width:35px;"
+                      alt="Streak" />
+                  </div>
+                  <div>
+                    <p class="fs-18 fw-semibold mb-0 stat-value" id="stat-streak"
+                      data-value="{{ streak_days|default(0) }}"
+                      data-streak-format="day-label">Day 0</p>
+                    <p class="text-gray fs-10 mb-0" id="stat-streak-label">Streak</p>
+                  </div>
                 </div>
               </div>
             </div>
             <div class="col-6 col-md-3 dashboard-stat-col" style="animation-delay: 0.4s;">
-              <div class="stat-card stat-card-level">
+              <div class="stat-card-wrap">
                 {% with tooltip_text='Your rank based on total points: Rookie (0+), Explorer (500+), Champion (1,000+), Legend (2,000+). The bar shows progress to the next level.' %}
                 {% include 'template20/includes/stat_card_info_btn.html' %}
                 {% endwith %}
-                <div class="level-badge-icon">
-                  {% set level_name = current_level|default('Rookie') %}
-                  {% if level_name|lower == 'rookie' %}
-                  {% set level_badge_path = 'images_new/badges/rookie.png' %}
-                  {% elif level_name|lower == 'explorer' %}
-                  {% set level_badge_path = 'images_new/badges/explorer.png' %}
-                  {% elif level_name|lower == 'champion' %}
-                  {% set level_badge_path = 'images_new/badges/champion.png' %}
-                  {% elif level_name|lower == 'legend' %}
-                  {% set level_badge_path = 'images_new/badges/Legend.png' %}
-                  {% else %}
-                  {% set level_badge_path = 'images_new/icons/explore-icon.svg' %}
-                  {% endif %}
-                  <img src="{{ static(level_badge_path) }}" alt="{{ level_name }} badge" />
-                </div>
-                <div>
-                  <p class="fs-18 fw-semibold mb-0 stat-value stat-level-label stat-value-trigger" id="stat-level"
-                    data-bs-toggle="modal" data-bs-target="#dashboardStatLevelModal"
-                    role="button" tabindex="0" title="View level details">{{
-                    current_level|default('Rookie') }}</p>
-                  <p class="text-gray fs-10 mb-0">Current Level</p>
-                  {% if level_details and not level_details.is_max_level and next_level_min_points is not none %}
-                  <div class="level-progress-wrap mt-1" style="max-width: 80px;"
-                    title="{{ level_details.points_in_band|default(0) }}/{{ level_details.band_span_points|default(0) }} XP to {{ level_details.next_level_name|default('next level') }}">
-                    <div class="level-progress-bar" style="width: {{ level_details.level_progress_percent|default(level_progress_percent|default(0)) }}%; min-width: {% if (level_details.level_progress_percent|default(0)) > 0 %}6px{% else %}0{% endif %};"></div>
+                <div class="stat-card stat-card-level stat-card-clickable"
+                  data-bs-toggle="modal" data-bs-target="#dashboardStatLevelModal"
+                  role="button" tabindex="0" title="View level details" aria-label="View level details">
+                  <div class="level-badge-icon">
+                    {% set level_name = current_level|default('Rookie') %}
+                    {% if level_name|lower == 'rookie' %}
+                    {% set level_badge_path = 'images_new/badges/rookie.png' %}
+                    {% elif level_name|lower == 'explorer' %}
+                    {% set level_badge_path = 'images_new/badges/explorer.png' %}
+                    {% elif level_name|lower == 'champion' %}
+                    {% set level_badge_path = 'images_new/badges/champion.png' %}
+                    {% elif level_name|lower == 'legend' %}
+                    {% set level_badge_path = 'images_new/badges/Legend.png' %}
+                    {% else %}
+                    {% set level_badge_path = 'images_new/icons/explore-icon.svg' %}
+                    {% endif %}
+                    <img src="{{ static(level_badge_path) }}" alt="{{ level_name }} badge" />
                   </div>
-                  {% elif next_level_min_points is not none and level_progress_percent is not none %}
-                  <div class="level-progress-wrap mt-1" style="max-width: 80px;">
-                    <div class="level-progress-bar" style="width: {{ level_progress_percent }}%; min-width: {% if level_progress_percent > 0 %}6px{% else %}0{% endif %};"></div>
+                  <div>
+                    <p class="fs-18 fw-semibold mb-0 stat-value stat-level-label" id="stat-level">{{
+                      current_level|default('Rookie') }}</p>
+                    <p class="text-gray fs-10 mb-0">Current Level</p>
+                    {% if level_details and not level_details.is_max_level and next_level_min_points is not none %}
+                    <div class="level-progress-wrap mt-1" style="max-width: 80px;"
+                      title="{{ level_details.points_in_band|default(0) }}/{{ level_details.band_span_points|default(0) }} XP to {{ level_details.next_level_name|default('next level') }}">
+                      <div class="level-progress-bar" style="width: {{ level_details.level_progress_percent|default(level_progress_percent|default(0)) }}%; min-width: {% if (level_details.level_progress_percent|default(0)) > 0 %}6px{% else %}0{% endif %};"></div>
+                    </div>
+                    {% elif next_level_min_points is not none and level_progress_percent is not none %}
+                    <div class="level-progress-wrap mt-1" style="max-width: 80px;">
+                      <div class="level-progress-bar" style="width: {{ level_progress_percent }}%; min-width: {% if level_progress_percent > 0 %}6px{% else %}0{% endif %};"></div>
+                    </div>
+                    {% endif %}
                   </div>
-                  {% endif %}
                 </div>
               </div>
             </div>
@@ -1367,9 +1480,9 @@
               </div>
 
               {% elif central_test_candidate %}
-              <div class="quick-link-card" {% if central_test_candidate.last_test_is_success()
-                %}onclick="window.location='{{ central_test_candidate.get_test_report_or_test_link() }}'" {% else
-                %}onclick="window.open('{{ central_test_candidate.get_test_report_or_test_link() }}','_blank')" {% endif
+              <div class="quick-link-card" {% if central_test_is_success
+                %}onclick="window.location='{{ central_test_link }}'" {% else
+                %}onclick="window.open('{{ central_test_link }}','_blank')" {% endif
                 %}>
                 <div class="d-flex align-items-center gap-3">
                   <div class="dashboard-quicklinks-icon" style="background: #9D98F4;">
@@ -1377,7 +1490,7 @@
                       alt="Dashboard" />
                   </div>
                   <div>
-                    {% if central_test_candidate.last_test_is_success() %}
+                    {% if central_test_is_success %}
                     <p class="fs-13 fw-semibold text-success mb-1">Psychometric Test Reports</p>
                     <p class="text-success text-opacity-70 fs-10 mb-0">Access past reports</p>
                     {% else %}
@@ -2029,6 +2142,65 @@
         }).catch(() => setErr('Unable to verify OTP'));
       });
     }
+
+    (function initProfileAlertBtnShake() {
+      var wrap = document.getElementById('profileAlertBtnWrap');
+      var btn = document.getElementById('profileAlertBtn');
+      if (!wrap || !btn) return;
+
+      var shakeDelayMs = 20000;
+      var shakeTimer = null;
+      var prefersReducedMotion =
+        window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function clearShakeTimer() {
+        if (shakeTimer) {
+          clearTimeout(shakeTimer);
+          shakeTimer = null;
+        }
+      }
+
+      function isShakeAnimation(name) {
+        return name === 'profileAlertBtnShake' ||
+          (name && name.indexOf('profileAlertBtnShake') !== -1);
+      }
+
+      function triggerShake() {
+        if (prefersReducedMotion) return;
+        var finished = false;
+
+        function finishShake() {
+          if (finished) return;
+          finished = true;
+          wrap.classList.remove('profile-alert-btn-shake');
+          btn.removeEventListener('animationend', onShakeEnd);
+        }
+
+        function onShakeEnd(event) {
+          if (event.target !== btn || !isShakeAnimation(event.animationName)) return;
+          finishShake();
+        }
+
+        wrap.classList.remove('profile-alert-btn-shake');
+        void btn.offsetWidth;
+        wrap.classList.add('profile-alert-btn-shake');
+        btn.addEventListener('animationend', onShakeEnd);
+        setTimeout(finishShake, 900);
+      }
+
+      function scheduleShake() {
+        clearShakeTimer();
+        if (prefersReducedMotion) return;
+        shakeTimer = setTimeout(function () {
+          shakeTimer = null;
+          triggerShake();
+          scheduleShake();
+        }, shakeDelayMs);
+      }
+
+      scheduleShake();
+    })();
   });
 </script>
 

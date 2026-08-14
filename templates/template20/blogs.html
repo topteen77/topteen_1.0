@@ -1,7 +1,7 @@
 {% extends 'template20/base.html' %}
 
 {% block title_content %}
-{% if search_blogs %}{{ search_blogs }} - Search Blogs{% elif category %}{{ category.name|blog_category_display }} - Blogs{% elif blogtag %}{{ blogtag.name }} - Blogs{% else %}TopTeen Blogs | Insights for Better Career Decisions{% endif %} | Top Teen
+{% if search_blogs %}{{ search_blogs }} - Search Blogs{% elif category %}{{ category.name|blog_category_display }} - Blogs{% elif blogtag %}{{ blogtag.name }} - Blogs{% else %}TopTeen Blogs | Insights for Better Career Decisions{% endif %} | TopTeen
 {% endblock %}
 
 {% block description_content %}
@@ -75,7 +75,7 @@
 {% block content %}
 
 <!-- Hero Section -->
-<section class="hero-section-inner pt-md-18 pt-14 pb-5">
+<section class="hero-section-inner pt-md-18 pt-10 pb-5">
   <div class="container">
     <div class="row">
       <!--breadcrumb-->

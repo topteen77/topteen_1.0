@@ -397,11 +397,6 @@ def Tests(request):
         packages_enabled,
     )
     
-    # Debug logging
-    print("\n" + "="*80)
-    print(f"[TESTS VIEW] User: {request.user.email} (ID: {request.user.id})")
-    print("="*80)
-    
     # Check if user is an institute-registered student (exempt from payment check)
     is_institute_student = StudentManagement.objects.filter(student=request.user).exists()
     
@@ -427,101 +422,70 @@ def Tests(request):
     test_type_map = {}  # Will store {test_id: test_type}
     
     try:
-        # Debug: Check all sessions first
-        all_sessions = TestSession.objects.filter(user=request.user)
-        print(f"[DEBUG] Total sessions for user: {all_sessions.count()}")
-        for sess in all_sessions:
-            print(f"  - Session ID {sess.id}: Test ID {sess.test.id} ({sess.test.title}), Completed: {sess.is_completed}, End Time: {sess.end_time}")
-        
-        # Check for latest completed session for each test (1, 2, 3, 4) - fixes issue with multiple sessions
-        print("\n[DEBUG] Checking completed sessions for each test:")
-        for test_id in [1, 2, 3, 4]:
-            # Get the latest completed session for this test (same pattern as Home view)
-            latest_session = TestSession.objects.filter(
+        # One ordered query; keep first (latest) session per test_id
+        completed = (
+            TestSession.objects.filter(
                 user=request.user,
-                test_id=test_id,
-                is_completed=True
-            ).order_by('-end_time').first()
-            
-            if latest_session:
-                print(f"  ✅ Test {test_id}: Found completed session (ID: {latest_session.id}, End: {latest_session.end_time})")
-                test_title = latest_session.test.title.lower().strip()
-                
-                # Identify test type for popup mapping
-                if 'personality assessment' in test_title:
-                    test_type_map[test_id] = 'personality'
-                elif 'motivation assessment' in test_title:
-                    test_type_map[test_id] = 'motivation'
-                elif 'career interest inventory' in test_title or str(test_id) == '3':
-                    test_type_map[test_id] = 'career_interest'
-                elif 'aptitude assessment' in test_title:
-                    test_type_map[test_id] = 'aptitude'
-                
-                if test_id == 4:
-                    # For test 4 (Aptitude), check section sessions
-                    section_sessions = SectionSession.objects.filter(session=latest_session)
-                    sections_status = {}
-                    
-                    for section_session in section_sessions:
-                        sections_status[section_session.section.title] = {
-                            'completed': section_session.is_completed,
-                            'session_id': section_session.id
-                        }
-                    
-                    test_status[4].update({
-                        'completed': latest_session.is_completed,
-                        'session_id': latest_session.id,
-                        'total_sections': section_sessions.count(),
-                        'completed_sections': section_sessions.filter(is_completed=True).count(),
-                        'sections_status': sections_status
-                    })
-                else:
-                    # For tests 1, 2, 3
-                    test_status[test_id] = {
-                        'completed': latest_session.is_completed,
-                        'session_id': latest_session.id
+                test_id__in=[1, 2, 3, 4],
+                is_completed=True,
+            )
+            .select_related('test')
+            .order_by('test_id', '-end_time')
+        )
+        latest_by_test = {}
+        for sess in completed:
+            if sess.test_id not in latest_by_test:
+                latest_by_test[sess.test_id] = sess
+
+        for test_id, latest_session in latest_by_test.items():
+            test_title = (latest_session.test.title or '').lower().strip()
+
+            if 'personality assessment' in test_title:
+                test_type_map[test_id] = 'personality'
+            elif 'motivation assessment' in test_title:
+                test_type_map[test_id] = 'motivation'
+            elif 'career interest inventory' in test_title or test_id == 3:
+                test_type_map[test_id] = 'career_interest'
+            elif 'aptitude assessment' in test_title:
+                test_type_map[test_id] = 'aptitude'
+
+            if test_id == 4:
+                section_sessions = list(
+                    SectionSession.objects.filter(session=latest_session)
+                    .select_related('section')
+                )
+                sections_status = {
+                    ss.section.title: {
+                        'completed': ss.is_completed,
+                        'session_id': ss.id,
                     }
+                    for ss in section_sessions
+                }
+                completed_sections = sum(1 for ss in section_sessions if ss.is_completed)
+                test_status[4].update({
+                    'completed': latest_session.is_completed,
+                    'session_id': latest_session.id,
+                    'total_sections': len(section_sessions),
+                    'completed_sections': completed_sections,
+                    'sections_status': sections_status,
+                })
             else:
-                print(f"  ❌ Test {test_id}: No completed session found")
-        
-        # Debug: Print final test status
-        print("\n[DEBUG] Final Test Status:")
-        for test_id, status in test_status.items():
-            completed = status.get('completed', False)
-            session_id = status.get('session_id', 'N/A')
-            status_icon = "✅" if completed else "❌"
-            print(f"  {status_icon} Test {test_id}: completed={completed}, session_id={session_id}")
+                test_status[test_id] = {
+                    'completed': latest_session.is_completed,
+                    'session_id': latest_session.id,
+                }
     except Exception as test_status_error:
-        import traceback
-        print(f"\n[ERROR] Error building test_status: {str(test_status_error)}")
-        traceback.print_exc()
-        print("[ERROR] Continuing with default test_status")
+        logger.exception('Error building test_status: %s', test_status_error)
     
     # Check which popups have been answered (handle missing table gracefully)
-    # This is separate from test_status building so errors here don't affect test status
     answered_popups = set()
     try:
-        # Use raw SQL check first to see if table exists, then query
-        from django.db import connection
-        with connection.cursor() as cursor:
-            cursor.execute("SHOW TABLES LIKE 'app_post_matric_testcompletionpopup'")
-            table_exists = cursor.fetchone() is not None
-        
-        if table_exists:
-            popup_answers = TestCompletionPopup.objects.filter(user=request.user)
-            answered_popups = {popup.test_type for popup in popup_answers}
-            print(f"\n[DEBUG] Answered popups: {answered_popups}")
-        else:
-            print(f"[DEBUG] TestCompletionPopup table does not exist - skipping popup check")
-            answered_popups = set()
-    except Exception as popup_error:
-        # Table might not exist in production DB copy - this is OK, just log it
-        print(f"[DEBUG] TestCompletionPopup query error (non-critical): {str(popup_error)}")
-        print(f"[DEBUG] Continuing without popup data (this is OK)")
+        popup_answers = TestCompletionPopup.objects.filter(user=request.user)
+        answered_popups = {popup.test_type for popup in popup_answers}
+    except Exception:
         answered_popups = set()
     
     # Determine which popups need to be shown
-    # Popup should be shown if: test is completed AND popup hasn't been answered
     popup_status = {
         'personality': False,
         'motivation': False,
@@ -529,16 +493,11 @@ def Tests(request):
         'aptitude': False
     }
     
-    # Check each completed test to see if popup needs to be shown
     for test_id, status_info in test_status.items():
         if status_info.get('completed', False):
             test_type = test_type_map.get(test_id)
             if test_type and test_type not in answered_popups:
                 popup_status[test_type] = True
-    
-    print(f"[DEBUG] Popup status: {popup_status}")
-    print(f"[DEBUG] Test type map: {test_type_map}")
-    print("="*80 + "\n")
     
     context = {
         'test_status': json.dumps(test_status),
@@ -547,7 +506,6 @@ def Tests(request):
         'breadcrumb': get_breadcrumb([{'text': 'Tests', 'url': ''}]),
     }
     
-    print(f"[SUCCESS] Returning context with test_status: {test_status}")
     return render(request, "template20/app_post_matric/tests.html", context)
 
 
@@ -1803,7 +1761,7 @@ def build_combined_report_context(request, target_user):
     completed_sessions = TestSession.objects.filter(
         user=target_user,
         is_completed=True
-    ).order_by('-end_time')
+    ).select_related('test').order_by('-end_time')
     
     if not completed_sessions:
         return {
@@ -2026,32 +1984,9 @@ def build_combined_report_context(request, target_user):
     import json as _json
     context['test_results_json'] = _json.dumps(test_results_data)
     
-    # Check if all 4 tests are completed FOR THE TARGET USER
-    test1_completed = TestSession.objects.filter(
-        user=target_user, 
-        test__id=1,
-        is_completed=True
-    ).exists()
-    
-    test2_completed = TestSession.objects.filter(
-        user=target_user, 
-        test__id=2,
-        is_completed=True
-    ).exists()
-    
-    test3_completed = TestSession.objects.filter(
-        user=target_user, 
-        test__id=3,
-        is_completed=True
-    ).exists()
-    
-    test4_completed = TestSession.objects.filter(
-        user=target_user, 
-        test__id=4,
-        is_completed=True
-    ).exists()
-    
-    all_tests_completed = test1_completed and test2_completed and test3_completed and test4_completed
+    # Derive completion from sessions already loaded (avoid 4 extra EXISTS queries)
+    completed_test_ids = {t.get('test_id') for t in context.get('completed_tests', [])}
+    all_tests_completed = {1, 2, 3, 4}.issubset(completed_test_ids)
     context['all_tests_completed'] = all_tests_completed
     
     # Process each test type if available
@@ -2783,11 +2718,13 @@ def CombinedReport(request, user_id=None):
             target_user = request.user
             route_student_id = int(request.user.id)
 
-        context = build_combined_report_context(request, target_user)
-        context['embed_mode'] = embed_mode
-        context['viewing_student_report'] = bool(
-            route_student_id is not None and route_student_id != int(request.user.id)
+        from .report_cache import get_or_build_combined_report_context
+
+        context = get_or_build_combined_report_context(
+            request, target_user, build_combined_report_context
         )
+        # Overlay already sets embed_mode / viewing flags; keep embed from query explicit
+        context['embed_mode'] = embed_mode
         return render(request, "template20/app_post_matric/combined_report.html", context)
 
     except Exception as e:
@@ -4313,6 +4250,31 @@ class TestSessionViewSet(viewsets.ModelViewSet):
                 session.is_completed = True
                 session.end_time = timezone.now()
                 session.save()
+
+            # Invalidate (and warm when all 4 Career Direction tests are done)
+            try:
+                from .report_cache import (
+                    invalidate_combined_report_cache,
+                    warm_combined_report_cache,
+                )
+                invalidate_combined_report_cache(session.user_id)
+                if session.is_completed:
+                    done_ids = set(
+                        TestSession.objects.filter(
+                            user=session.user,
+                            is_completed=True,
+                            test_id__in=[1, 2, 3, 4],
+                        ).values_list('test_id', flat=True).distinct()
+                    )
+                    if {1, 2, 3, 4}.issubset(done_ids):
+                        warm_combined_report_cache(
+                            request, session.user, build_combined_report_context
+                        )
+            except Exception:
+                logger.exception(
+                    'C12 report cache invalidate/warm failed for user %s',
+                    session.user_id,
+                )
 
             # Return the result
             serializer = TestResultSerializer(test_result)

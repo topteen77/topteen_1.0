@@ -1,6 +1,6 @@
 {% extends "template20/user/student_base.html" %}
 
-{% block title_content %}Courses & Tests | Top Teen{% endblock %}
+{% block title_content %}Courses & Tests | TopTeen{% endblock %}
 {% block description_content %}Courses and tests for your linked students{% endblock %}
 {% block student_bodyclass %}user-dashboard user-dashboard-fullscreen{% endblock %}
 
@@ -490,7 +490,7 @@
           <i class='bx bx-arrow-back'></i>Back to dashboard
         </a>
       </div>
-      <p class="parent-page-subtitle mb-0">Pick a student, then view and enroll them in courses and tests. Progress shows the selected student's journey.</p>
+      <p class="parent-page-subtitle mb-0">Pick a student, then view and enroll them in College &amp; Career Readiness courses. Progress shows the selected student's journey.</p>
       {% if linked_students and linked_students|length %}
       <div class="parent-student-tabs" role="tablist" aria-label="Select student" id="catalogStudentTabs">
         {% for s in linked_students %}
@@ -713,32 +713,38 @@
       footer.style.display = 'grid';
       cta = sd.cta || 'Start';
       var studentDash = sd.student_dashboard_url || studentDashboardTpl.replace('99999', String(selectedStudentId));
+      var progressUrl = sd.progress_url || sd.start_url || detailUrl || studentDash;
+      var progressLabel = sd.action_label || (sd.completed ? 'View report' : 'View progress');
+      var progressBlank = (progressUrl.indexOf('report-pdf') !== -1 || progressUrl.indexOf('inline=1') !== -1)
+        ? ' target="_blank" rel="noopener noreferrer"'
+        : '';
       if (kind === 'skilllab' && cta === 'Completed') {
         var certUrl = sd.certificate_url || detailUrl;
         footer.innerHTML =
-          catalogBtn('catalog-btn-outline', studentDash, 'Dashboard', 'bx-grid-alt') +
+          catalogBtn('catalog-btn-outline', detailUrl, 'Details', 'bx-info-circle') +
           catalogBtn('catalog-btn-accent', certUrl, 'Certificate', 'bx-certification', ' target="_blank" rel="noopener noreferrer"');
       } else if (kind === 'skilllab' && (cta === 'Start' || cta === 'Resume')) {
         var ctaIcon = cta === 'Resume' ? 'bx-play-circle' : 'bx-play';
+        var skillUrl = sd.start_url || detailUrl;
         footer.innerHTML =
-          catalogBtn('catalog-btn-outline', detailUrl, 'Details', 'bx-info-circle', ' target="_blank" rel="noopener noreferrer"') +
-          catalogBtn('catalog-btn-primary', studentDash, cta, ctaIcon);
+          catalogBtn('catalog-btn-outline', detailUrl, 'Details', 'bx-info-circle') +
+          catalogBtn('catalog-btn-primary', skillUrl, cta, ctaIcon);
       } else {
         footer.classList.add('is-single');
-        footer.innerHTML = catalogBtn('catalog-btn-primary', studentDash, 'View progress', 'bx-line-chart');
+        footer.innerHTML = catalogBtn('catalog-btn-primary', progressUrl, progressLabel, 'bx-line-chart', progressBlank);
       }
     } else {
       footer.style.display = 'grid';
       var enrollSteps = (sd.steps || []).some(function (s) { return s.state === 'action'; });
       if (enrollSteps) {
         footer.innerHTML =
-          catalogBtn('catalog-btn-outline', detailUrl, 'Details', 'bx-info-circle', ' target="_blank" rel="noopener noreferrer"') +
+          catalogBtn('catalog-btn-outline', detailUrl, 'Details', 'bx-info-circle') +
           '<button type="button" class="catalog-btn catalog-btn-primary catalog-enrol-action">' +
             "<i class='bx bx-plus-circle'></i>Enroll" +
           '</button>';
       } else {
         footer.classList.add('is-single');
-        footer.innerHTML = catalogBtn('catalog-btn-outline', detailUrl, 'View details', 'bx-info-circle', ' target="_blank" rel="noopener noreferrer"');
+        footer.innerHTML = catalogBtn('catalog-btn-outline', detailUrl, 'View details', 'bx-info-circle');
       }
     }
   }

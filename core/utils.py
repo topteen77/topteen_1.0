@@ -104,10 +104,281 @@ def save_user_pdf(user_id, filename, content):
         # missing key on both S3 and local storage), and we avoid default_storage.exists()
         # which is unreliable with this S3 configuration.
         default_storage.delete(key)
-        return default_storage.save(key, content)
+        saved = default_storage.save(key, content)
+        mark_user_pdf_ready(user_id, filename, True)
+        return saved
     except Exception as e:
         logger.warning("save_user_pdf failed for user_id=%s file=%s: %s", user_id, filename, e)
         return None
+
+
+def class10_assessment_pdf_filename(user, test_paper):
+    """Stable PDF filename used by Class 10 download_pdf / Celery generation."""
+    raw_name = getattr(user, 'name', None) or getattr(user, 'email', None) or str(user)
+    safe_name = re.sub(r'[^\w\s-]', '', str(raw_name)).strip()[:50] or 'user'
+    if test_paper == 'test1':
+        return f"{safe_name}-Personality_Assessment_report.pdf"
+    if test_paper == 'test2':
+        return f"{safe_name}-Interest_Assessment_report.pdf"
+    if test_paper == 'test3':
+        return f"{safe_name}-Aptitude_Assessment_report.pdf"
+    return f"{safe_name}-Final_Assessment_report.pdf"
+
+
+def class10_combined_report_pdf_filename(user):
+    """Stable filename for Stream Sorter combined report PDF downloads."""
+    raw_name = getattr(user, 'name', None) or getattr(user, 'email', None) or str(user)
+    safe_name = re.sub(r'[^\w\s-]', '', str(raw_name)).strip()[:50] or 'user'
+    return f"{safe_name}-Stream_Sorter_Combined_Report.pdf"
+
+
+def class10_web_report_pdf_filename(user, report_kind):
+    """
+    Filename for web report PDF buttons.
+
+    report_kind: 'combined' | 'test1' | 'test2' | 'test3'
+    """
+    kind = (report_kind or '').strip().lower()
+    if kind == 'combined':
+        return class10_combined_report_pdf_filename(user)
+    return class10_assessment_pdf_filename(user, kind)
+
+
+def delete_user_pdf(user_id, filename):
+    """Best-effort delete of a stored user PDF (local or S3)."""
+    if not user_id or not filename:
+        return False
+    key = user_pdf_key(user_id, filename)
+    try:
+        default_storage.delete(key)
+        mark_user_pdf_ready(user_id, filename, False)
+        return True
+    except Exception as e:
+        logger.warning("delete_user_pdf failed for user_id=%s file=%s: %s", user_id, filename, e)
+        return False
+
+
+def _user_pdf_s3_object_key(storage_relative_key: str) -> str:
+    """Full S3 object key including the media location prefix."""
+    from storages.utils import clean_name
+
+    relative = clean_name(storage_relative_key)
+    normalize = getattr(default_storage, "_normalize_name", None)
+    if callable(normalize):
+        return normalize(relative).lstrip("/")
+    location = (getattr(settings, "S3_MEDIA_LOCATION", None) or getattr(default_storage, "location", "") or "").strip("/")
+    if location:
+        return f"{location}/{relative.lstrip('/')}"
+    return relative.lstrip("/")
+
+
+def user_pdf_cdn_url(user_id, filename):
+    """
+    Public CloudFront URL for a stored report PDF when CDN mode is enabled.
+
+    Returns None when CloudFront is not active (caller should use presigned/proxy).
+    """
+    if not user_id or not filename:
+        return None
+    if not getattr(settings, "USE_S3_FOR_MEDIA", False):
+        return None
+    try:
+        from core.s3_utils import cdn_url_for_s3_key, cloudfront_media_enabled
+
+        if not cloudfront_media_enabled():
+            return None
+        return cdn_url_for_s3_key(_user_pdf_s3_object_key(user_pdf_key(user_id, filename)))
+    except Exception as e:
+        logger.warning("user_pdf_cdn_url failed user_id=%s file=%s: %s", user_id, filename, e)
+        return None
+
+
+def user_pdf_presigned_download_url(user_id, filename, download_name=None, expires_in=600, inline=True):
+    """
+    Short-lived S3 GET URL for a stored report PDF.
+
+    ``inline=True`` (default) opens in the browser tab; ``False`` forces download.
+    Works even when S3_MEDIA_ACCESS_MODE=proxy. Returns None when not on S3 or signing fails.
+    """
+    if not user_id or not filename:
+        return None
+    if not getattr(settings, "USE_S3_FOR_MEDIA", False):
+        return None
+    if not getattr(default_storage, "bucket_name", None):
+        return None
+
+    name = download_name or filename
+    safe_name = re.sub(r"[^\w.\- ]+", "", str(name)).strip()[:120] or "report.pdf"
+    if not safe_name.lower().endswith(".pdf"):
+        safe_name = f"{safe_name}.pdf"
+    disposition = "inline" if inline else "attachment"
+
+    try:
+        s3_key = _user_pdf_s3_object_key(user_pdf_key(user_id, filename))
+        client = default_storage.connection.meta.client
+        return client.generate_presigned_url(
+            "get_object",
+            Params={
+                "Bucket": default_storage.bucket_name,
+                "Key": s3_key,
+                "ResponseContentType": "application/pdf",
+                "ResponseContentDisposition": f'{disposition}; filename="{safe_name}"',
+            },
+            ExpiresIn=int(expires_in),
+        )
+    except Exception as e:
+        logger.warning(
+            "user_pdf_presigned_download_url failed user_id=%s file=%s: %s",
+            user_id,
+            filename,
+            e,
+        )
+        return None
+
+
+def user_pdf_browser_url(user_id, filename, download_name=None):
+    """
+    Best URL for opening a stored report PDF in the browser.
+
+    Prefers CloudFront, then a short-lived S3 signed URL. Returns None when
+    neither is available (caller may fall back to the Django download view).
+    """
+    if not user_id or not filename:
+        return None
+    cdn = user_pdf_cdn_url(user_id, filename)
+    if cdn:
+        return cdn
+    return user_pdf_presigned_download_url(
+        user_id, filename, download_name=download_name or filename, inline=True
+    )
+
+
+def serve_user_pdf_response(user_id, filename, download_name=None, inline=True):
+    """
+    Deliver a stored report PDF without streaming bytes through Gunicorn.
+
+    Prefer CloudFront (when S3_MEDIA_ACCESS_MODE=cloudfront), else a 302 to a
+    short-lived S3 signed URL. Fall back to FileResponse for local storage.
+
+    ``inline=True`` (default) opens the PDF in the browser tab so a
+    "Preparing…" wait page is replaced by the viewer instead of a download.
+    """
+    if not user_id or not filename:
+        return None
+
+    name = download_name or filename
+    from django.http import HttpResponseRedirect
+
+    cdn = user_pdf_cdn_url(user_id, filename)
+    if cdn:
+        response = HttpResponseRedirect(cdn)
+        response["Cache-Control"] = "private, max-age=300"
+        return response
+
+    signed = user_pdf_presigned_download_url(
+        user_id, filename, download_name=name, inline=inline
+    )
+    if signed:
+        response = HttpResponseRedirect(signed)
+        response["Cache-Control"] = "no-store"
+        return response
+
+    # Local filesystem / non-S3 fallback
+    key = user_pdf_key(user_id, filename)
+    try:
+        from django.http import FileResponse
+
+        handle = default_storage.open(key, "rb")
+        response = FileResponse(handle, content_type="application/pdf")
+        safe_name = re.sub(r"[^\w.\- ]+", "", str(name)).strip()[:120] or "report.pdf"
+        disposition = "inline" if inline else "attachment"
+        response["Content-Disposition"] = f'{disposition}; filename="{safe_name}"'
+        response["Cache-Control"] = "private, max-age=300"
+        return response
+    except Exception as e:
+        logger.warning("serve_user_pdf_response failed for user_id=%s file=%s: %s", user_id, filename, e)
+        mark_user_pdf_ready(user_id, filename, False)
+        return None
+
+
+def _pdf_ready_cache():
+    """
+    Cache used for user PDF ready-flags.
+
+    Prefer a real Redis alias when ENABLE_REDIS is on so flags survive across
+    requests even if default cache is DummyCache (DEBUG + DISABLE_CACHE_FOR_DEV).
+    """
+    from django.core.cache import caches
+
+    if getattr(settings, "ENABLE_REDIS", False):
+        for alias in ("translations", "sessions", "default"):
+            try:
+                backend = (settings.CACHES.get(alias) or {}).get("BACKEND", "")
+                if "DummyCache" in backend:
+                    continue
+                return caches[alias]
+            except Exception:
+                continue
+    try:
+        return caches["default"]
+    except Exception:
+        from django.core.cache import cache
+
+        return cache
+
+
+def mark_user_pdf_ready(user_id, filename, ready=True):
+    """Redis (or shared) flag — S3 exists() is unreliable in this project's storage config."""
+    if not user_id or not filename:
+        return
+    try:
+        c = _pdf_ready_cache()
+        key = f"user_pdf_ready:v1:{user_id}:{filename}"
+        if ready:
+            c.set(key, 1, 60 * 60 * 24 * 14)
+        else:
+            c.delete(key)
+    except Exception:
+        pass
+
+
+def user_pdf_exists(user_id, filename, *, probe_storage=False):
+    """
+    True if a previously generated report PDF is already available.
+
+    Prefer the Redis ready-flag on the hot path. When ``probe_storage=True``
+    (status polling only), also check default_storage and re-mark the flag if
+    the object is found — so dashboard buttons auto-enable after generation.
+    """
+    if not user_id or not filename:
+        return False
+    key = f"user_pdf_ready:v1:{user_id}:{filename}"
+    try:
+        if bool(_pdf_ready_cache().get(key)):
+            return True
+    except Exception:
+        pass
+
+    if not probe_storage:
+        return False
+
+    storage_key = user_pdf_key(user_id, filename)
+    try:
+        if default_storage.exists(storage_key):
+            mark_user_pdf_ready(user_id, filename, True)
+            return True
+    except Exception as e:
+        logger.warning(
+            "user_pdf_exists storage probe failed user_id=%s file=%s: %s",
+            user_id,
+            filename,
+            e,
+        )
+    return False
+
+
+def class10_pdf_lock_key(user_id, test_paper):
+    return f"class10_pdf_gen:{user_id}:{test_paper}"
 
 
 def sort_colleges(colleges,request):

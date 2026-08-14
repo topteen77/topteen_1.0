@@ -21,9 +21,14 @@ class SEOIndexingRobotsTests(TestCase):
         request = RequestFactory().get('/robots.txt', HTTP_HOST='staging.example.com')
         with override_settings(ALLOW_SEARCH_ENGINE_INDEX=False, ALLOW_DEMO_SEARCH_INDEX=False):
             response = robots_txt(request)
+        body = response.content.decode()
         self.assertEqual(response.status_code, 200)
         self.assertIn('text/plain', response['Content-Type'])
-        self.assertIn('Disallow: /', response.content.decode())
+        self.assertIn('User-agent: facebookexternalhit', body)
+        self.assertIn('User-agent: Facebot', body)
+        self.assertIn('Disallow: /', body)
+        # Meta bots must be allowed before the catch-all Disallow.
+        self.assertLess(body.index('facebookexternalhit'), body.index('User-agent: *'))
 
     def test_robots_txt_allows_when_demo_indexable(self):
         request = RequestFactory().get('/robots.txt', HTTP_HOST='demo.topteen.in')

@@ -209,3 +209,26 @@ class CollegeMoneyValue(CollegeChildModel,BaseMoneyModel):
 class CollegeShortlist(BaseModel):
     user=models.ForeignKey(User,null=True,on_delete=models.CASCADE,related_name="college_shortlists")
     college=models.ForeignKey(College,null=True,on_delete=models.CASCADE,related_name="college_shortslists")
+
+
+class IndianCollegeShortlist(BaseModel):
+    """Student shortlist for external Indian colleges API institutes."""
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="indian_college_shortlists",
+    )
+    external_college_id = models.PositiveIntegerField(db_index=True)
+    name = models.CharField(max_length=255)
+    city_name = models.CharField(max_length=120, blank=True, default="")
+    state_name = models.CharField(max_length=120, blank=True, default="")
+    college_type = models.CharField(max_length=120, blank=True, default="")
+    avg_fees = models.CharField(max_length=255, blank=True, default="")
+
+    class Meta:
+        unique_together = ("user", "external_college_id")
+        ordering = ("-id",)
+
+    def __str__(self):
+        return f"{self.name} ({self.external_college_id})"

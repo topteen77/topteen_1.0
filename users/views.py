@@ -38,6 +38,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from users.decorators import institute_dashboard_roles_only
 from users.session_utils import login_user_with_session
+from users.welcome_popup import set_registration_welcome_popup
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from careers.models import Videos,Career,CareerTags
 from core.models import EntranceTestPrepExam
@@ -197,6 +198,8 @@ def is_safe_post_login_redirect_path(path):
         return False
     base = (p.split('?')[0] or '').lower()
     if '/notifications/api/' in base:
+        return False
+    if base.startswith('/ai-feature-quota/'):
         return False
     if base.startswith('/api/v1/'):
         return False
@@ -532,62 +535,95 @@ class LoginView(TemplateView):
         return get_breadcrumb(l)
 
     def __html_head(self):
-        name='Login Signup'
+        name = "Sign In"
         return build_html_head(title=name, description=name)
 
-    def get_context(self,request,enc_id=None,*args,**kwargs):
-        ctx={}
-        ctx['html_head']=self.__html_head()
-        ctx['breadcrumb']=self.__breadcrumb()
+    def get_context(self, request, enc_id=None, *args, **kwargs):
+        ctx = {}
+        ctx["html_head"] = self.__html_head()
+        ctx["breadcrumb"] = self.__breadcrumb()
+        # Smart Sign In: one entry for students, parents, and partner roles (via password/OTP).
+        ctx["login_mode"] = "smart"
+        ctx["login_only"] = True
         # If user is already authenticated and still hits a login URL, the UI should
         # prompt for logout instead of showing the login form.
-        ctx["already_logged_in"] = bool(getattr(request, "user", None) and request.user.is_authenticated)
+        ctx["already_logged_in"] = bool(
+            getattr(request, "user", None) and request.user.is_authenticated
+        )
         try:
             ctx["logout_url"] = reverse("users:logout")
         except Exception:
             ctx["logout_url"] = "/user/logout/"
         try:
-            ctx["dashboard_url"] = reverse("users:userdashboard")
+            u = getattr(request, "user", None)
+            if u and u.is_authenticated:
+                ctx["dashboard_url"] = get_dashboard_url_for_user(request, u)
+            else:
+                ctx["dashboard_url"] = reverse("users:userdashboard")
         except Exception:
             ctx["dashboard_url"] = "/user/dashboard/"
         try:
             u = getattr(request, "user", None)
-            ctx["logged_in_as"] = (getattr(u, "name", None) or getattr(u, "email", None) or "").strip()
+            ctx["logged_in_as"] = (
+                getattr(u, "name", None) or getattr(u, "email", None) or ""
+            ).strip()
         except Exception:
             ctx["logged_in_as"] = ""
         if enc_id:
-            ctx['enc_referral_user']=enc_id
+            ctx["enc_referral_user"] = enc_id
         else:
-            ctx['enc_referral_user']=False
+            ctx["enc_referral_user"] = False
         # Preserve ?next= for redirect after login (e.g. back to psychometric payment page)
-        next_url = (request.GET.get('next') or '').strip()
+        next_url = (request.GET.get("next") or "").strip()
         if next_url:
             from django.utils.http import url_has_allowed_host_and_scheme
+
             full_url = request.build_absolute_uri(next_url)
             if not url_has_allowed_host_and_scheme(full_url, request.get_host()):
-                next_url = ''
+                next_url = ""
             elif not is_safe_post_login_redirect_path(next_url):
-                next_url = ''
+                next_url = ""
             else:
                 # Store in session as fallback if client doesn't send next in login POST
-                request.session['login_next_url'] = next_url
-        ctx['next_url'] = next_url
+                request.session["login_next_url"] = next_url
+        ctx["next_url"] = next_url
         # When login is shown in an iframe (e.g. career swipe), show context-specific copy
-        if request.GET.get('embed') == '1':
-            if 'career_swipe' in (next_url or ''):
-                ctx['login_embed_heading'] = 'Sign in to save your careers'
-                ctx['login_embed_subtitle'] = 'Enter your email or mobile below. After you sign in, this window will close and your choices will be saved.'
+        if request.GET.get("embed") == "1":
+            if "career_swipe" in (next_url or ""):
+                ctx["login_embed_heading"] = "Sign in to save your careers"
+                ctx["login_embed_subtitle"] = (
+                    "Enter your email or mobile below. After you sign in, this window will close and your choices will be saved."
+                )
             else:
-                ctx['login_embed_heading'] = 'Sign in'
-                ctx['login_embed_subtitle'] = 'Enter your details below to continue.'
+                ctx["login_embed_heading"] = "Sign in"
+                ctx["login_embed_subtitle"] = "Enter your details below to continue."
         else:
-            ctx['login_embed_heading'] = None
-            ctx['login_embed_subtitle'] = None
-        # Demo accounts for all roles; pass URL and CSRF so template works with Jinja2 and Django
+            ctx["login_embed_heading"] = "Sign in to TopTeen"
+            ctx["login_embed_subtitle"] = (
+                "One Sign In for students, parents, schools, counselors, and partners. We’ll take you to the right dashboard."
+            )
+        try:
+            ctx["student_signup_url"] = reverse("student_signup")
+        except Exception:
+            ctx["student_signup_url"] = "/student/signup/"
+        try:
+            ctx["institute_login_url"] = reverse("institute:login")
+        except Exception:
+            ctx["institute_login_url"] = "/institute/auth/login/"
+        try:
+            ctx["counselor_login_url"] = reverse("counselor:login")
+        except Exception:
+            ctx["counselor_login_url"] = "/counselor/auth/login/"
+        try:
+            ctx["marketing_login_url"] = reverse("marketing:login")
+        except Exception:
+            ctx["marketing_login_url"] = "/marketing-auth/login/"
+        # Demo accounts: never on ENVIRONMENT=production; gated elsewhere via Configuration.
         from .demo_accounts import get_demo_login_context
+
         ctx.update(get_demo_login_context(request))
-        ctx['show_demo_credentials'] = False
-        ctx['demo_credentials'] = []
+        ctx["show_demo_credentials"] = False
+        ctx["demo_credentials"] = []
         return ctx
 
     def get(self, request, *args, **kwargs):
@@ -616,13 +652,22 @@ def csrf_failure(request, reason=""):
         login_path = settings.LOGIN_URL
 
     message = "Your session has expired. Please sign in again."
+    content_type = (request.headers.get("Content-Type") or "").lower()
     wants_json = (
         request.headers.get("X-Requested-With") == "XMLHttpRequest"
         or "application/json" in (request.headers.get("Accept") or "")
+        or "application/json" in content_type
     )
     if wants_json:
         return JsonResponse(
-            {"success": False, "message": message, "redirect": login_path, "session_expired": True},
+            {
+                "success": False,
+                "error": message,
+                "message": message,
+                "detail": message,
+                "redirect": login_path,
+                "session_expired": True,
+            },
             status=401,
         )
     try:
@@ -657,20 +702,53 @@ class DemoLoginView(View):
     def _login_fallback_url(self, request):
         return redirect(self._login_fallback_path(request))
 
+    def _safe_client_redirect(self, request, redirect_url):
+        """
+        Prefer a same-origin path for the PWA/AJAX client.
+        Never hand the browser an http:// absolute URL on an HTTPS site (iPhone PWA).
+        """
+        url = (redirect_url or '').strip() or self._login_fallback_path(request)
+        if url.startswith('http://') or url.startswith('https://'):
+            url = _force_https_absolute_url(request, url)
+            try:
+                from urllib.parse import urlparse
+
+                parsed = urlparse(url)
+                if parsed.netloc and parsed.netloc == request.get_host():
+                    return parsed.path + (f'?{parsed.query}' if parsed.query else '') + (
+                        f'#{parsed.fragment}' if parsed.fragment else ''
+                    )
+            except Exception:
+                pass
+            return url
+        if not url.startswith('/'):
+            url = '/' + url
+        return url
+
     def _ajax_or_redirect(self, request, redirect_url, *, success=False, message=''):
+        client_url = self._safe_client_redirect(request, redirect_url)
         if self._is_ajax(request):
-            payload = {'success': success, 'redirect': redirect_url}
+            payload = {'success': success, 'redirect': client_url}
             if message:
                 payload['message'] = message
             return JsonResponse(payload, status=200 if success else 400)
         if success:
-            return redirect(redirect_url)
+            return redirect(client_url)
         messages.error(request, message or 'Unable to sign in with this demo account.')
-        return redirect(redirect_url)
+        return redirect(client_url)
 
     def post(self, request):
+        from .demo_accounts import should_show_demo_accounts
+
         token = (request.POST.get('token') or '').strip()
         fallback = self._login_fallback_path(request)
+        if not should_show_demo_accounts():
+            return self._ajax_or_redirect(
+                request,
+                fallback,
+                success=False,
+                message='Demo login is disabled in this environment.',
+            )
         if not token:
             return self._ajax_or_redirect(
                 request, fallback, success=False, message='Invalid demo login request.'
@@ -713,33 +791,9 @@ class DemoLoginView(View):
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class StudentLoginView(LoginView):
     """
-    Student login landing page (/student/login/).
-    OTP-first by default via template context.
-    Demo accounts: only Student role.
+    Legacy /student/login/ — redirects to unified smart Sign In.
     """
     template_name = "template20/student_login.html"
-
-    def get_context(self, request, enc_id=None, *args, **kwargs):
-        ctx = super().get_context(request, enc_id, *args, **kwargs)
-        # Demo accounts toggle (controlled by existing Core Configuration keys)
-        try:
-            from core.models import Configuration
-            from django.conf import settings
-            env = str(getattr(settings, "ENVIRONMENT", "") or "").strip().lower()
-            is_production = (env == "production") if env else (not bool(getattr(settings, "DEBUG", False)))
-            key = "SHOW_DEMO_ACCOUNT_ON_PRODUCTION" if is_production else "SHOW_DEMO_ACCOUNT_ON_DEVELOPMENT"
-            show_demo = str(Configuration.get(key, default="false", editable=True)).lower() in ("true", "1", "yes", "on")
-        except Exception:
-            show_demo = False
-
-        if show_demo:
-            from .demo_accounts import get_demo_login_context
-            ctx.update(get_demo_login_context(request, user_types=[choices.UserType.STUDENT]))
-        else:
-            ctx["demo_accounts"] = []
-            ctx["demo_login_url"] = ""
-            ctx["demo_csrf_token"] = ""
-        return ctx
 
     def get(self, request, *args, **kwargs):
         if (
@@ -748,9 +802,11 @@ class StudentLoginView(LoginView):
             and request.session.pop("fresh_login", False)
         ):
             return redirect(get_dashboard_url_for_user(request, request.user))
-        ctx = self.get_context(request, *args, **kwargs)
-        ctx['login_mode'] = 'student'
-        return render(request, self.template_name, ctx)
+        url = reverse("users:login")
+        qs = request.GET.urlencode()
+        if qs:
+            url = f"{url}?{qs}"
+        return redirect(url)
 
 
 class StudentSignupView(LoginView):
@@ -762,42 +818,47 @@ class StudentSignupView(LoginView):
 
     def get(self, request, *args, **kwargs):
         ctx = self.get_context(request, *args, **kwargs)
-        ctx['login_mode'] = 'student'
+        ctx["login_mode"] = "student"
+        ctx["login_only"] = False
+        ctx["login_embed_heading"] = "Create your student account"
+        ctx["login_embed_subtitle"] = (
+            "Sign up with email or mobile. After verifying OTP, set a password to continue."
+        )
         return render(request, self.template_name, ctx)
 
 
 class ParentsLoginView(LoginView):
     """
     Parents login landing page (/parents/login/).
-    Mobile + OTP only.
+    Mobile + OTP only. No direct parent signup — account must already exist
+    (created when a student links a parent).
     Demo accounts: only Parent role.
     """
 
     def get_context(self, request, enc_id=None, *args, **kwargs):
         ctx = super().get_context(request, enc_id, *args, **kwargs)
-        # Demo accounts toggle (controlled by existing Core Configuration keys)
-        try:
-            from core.models import Configuration
-            from django.conf import settings
-            env = str(getattr(settings, "ENVIRONMENT", "") or "").strip().lower()
-            is_production = (env == "production") if env else (not bool(getattr(settings, "DEBUG", False)))
-            key = "SHOW_DEMO_ACCOUNT_ON_PRODUCTION" if is_production else "SHOW_DEMO_ACCOUNT_ON_DEVELOPMENT"
-            show_demo = str(Configuration.get(key, default="false", editable=True)).lower() in ("true", "1", "yes", "on")
-        except Exception:
-            show_demo = False
+        from .demo_accounts import get_demo_login_context, empty_demo_login_context, should_show_demo_accounts
 
-        if show_demo:
-            from .demo_accounts import get_demo_login_context
+        if should_show_demo_accounts():
             ctx.update(get_demo_login_context(request, user_types=[choices.UserType.PARENT]))
         else:
-            ctx["demo_accounts"] = []
-            ctx["demo_login_url"] = ""
-            ctx["demo_csrf_token"] = ""
+            ctx.update(empty_demo_login_context())
         return ctx
 
     def get(self, request, *args, **kwargs):
+        if (
+            getattr(request, "user", None)
+            and request.user.is_authenticated
+            and request.session.pop("fresh_login", False)
+        ):
+            return redirect(get_dashboard_url_for_user(request, request.user))
         ctx = self.get_context(request, *args, **kwargs)
-        ctx['login_mode'] = 'parent'
+        ctx["login_mode"] = "parent"
+        ctx["login_only"] = True
+        ctx["login_embed_heading"] = "Parent Sign In"
+        ctx["login_embed_subtitle"] = (
+            "Enter the mobile number linked by your child. Parents cannot create accounts here."
+        )
         return render(request, self.template_name, ctx)
 
 
@@ -809,74 +870,131 @@ class ParentsDashboardView(TemplateView):
             return redirect('parents_login')
         if request.user.user_type != choices.UserType.PARENT:
             return redirect(get_dashboard_url_for_user(request, request.user))
-        from users.models import ParentStudentLink
-        linked = ParentStudentLink.objects.filter(parent=request.user).select_related('student')
-        students = [x.student for x in linked if x.student]
 
-        psychometric_students = []
-        students_dashboard_payload = []
+        from users.parent_dashboard_cache import get_or_build_parent_dashboard_payload
+        from users.parent_student_insights import linked_students_for_parent
 
-        # The parent dashboard only renders each student's name, email, mobile,
-        # class and grade in the switcher — so build a lightweight payload and
-        # skip the expensive assessment / AI-insight computations that used to
-        # run per student on every page load.
-        for s in students:
+        parent = request.user
+        parent_id = int(getattr(parent, "id", 0) or 0)
+
+        def _build_dashboard_payload() -> dict:
+            students = linked_students_for_parent(parent)
+            students_dashboard_payload = []
+            student_ids = []
+
+            for s in students:
+                try:
+                    basic = build_student_dashboard_basic(s)
+                except Exception:
+                    bucket_key, bucket_label = resolve_student_grade(s)
+                    basic = {
+                        "id": int(getattr(s, "id", 0) or 0),
+                        "name": getattr(s, "name", "") or "Student",
+                        "email": getattr(s, "email", "") or "",
+                        "mobile": getattr(s, "mobile", None) or "—",
+                        "class_display": "—",
+                        "grade_label": bucket_label,
+                        "grade_bucket": bucket_key,
+                    }
+                students_dashboard_payload.append(basic)
+                if basic.get("id"):
+                    student_ids.append(int(basic["id"]))
+
+            course_suggestions_by_student = {}
+            mieq_by_student = {}
             try:
-                basic = build_student_dashboard_basic(s)
-            except Exception:
-                bucket_key, bucket_label = resolve_student_grade(s)
-                basic = {
-                    "id": int(getattr(s, "id", 0) or 0),
-                    "name": getattr(s, "name", "") or "Student",
-                    "email": getattr(s, "email", "") or "",
-                    "mobile": getattr(s, "mobile", None) or "—",
-                    "class_display": "—",
-                    "grade_label": bucket_label,
-                    "grade_bucket": bucket_key,
+                from users.parent_courses_catalog import (
+                    _student_payload,
+                    build_parent_skilllab_suggestions,
+                )
+                from users.parent_dashboard_cache import (
+                    get_or_build_cached,
+                    parent_skilllab_suggest_cache_key,
+                    PARENT_DASH_TTL,
+                )
+                from users.parent_mieq_dashboard import build_parent_mieq_by_student
+
+                student_payloads = [_student_payload(s) for s in students]
+                student_users_by_id = {
+                    int(s.id): s for s in students if getattr(s, "id", None)
                 }
 
-            students_dashboard_payload.append(basic)
-            psychometric_students.append({
-                "student": s,
-                "grade_label": basic.get("grade_label", "Other"),
-                "grade_bucket": basic.get("grade_bucket", "other"),
-            })
+                def _build_skilllab():
+                    return build_parent_skilllab_suggestions(
+                        student_payloads, student_users_by_id, preview_limit=4
+                    )
 
-        selected_student = psychometric_students[0] if psychometric_students else None
-        selected_student_id = (
-            getattr(selected_student.get("student"), "id", None) if selected_student else None
-        )
+                course_suggestions_by_student = get_or_build_cached(
+                    parent_skilllab_suggest_cache_key(parent_id),
+                    _build_skilllab,
+                    ttl=PARENT_DASH_TTL,
+                    lock_key=f"{parent_skilllab_suggest_cache_key(parent_id)}:lock",
+                    validate=lambda v: isinstance(v, dict),
+                )
+                mieq_by_student = build_parent_mieq_by_student(parent, students)
+            except Exception:
+                course_suggestions_by_student = {}
+                mieq_by_student = {}
 
-        # Assessment reports are expensive to build, so never render them
-        # inline on page load. Each pane is an empty placeholder that is
-        # fetched lazily over AJAX (with a spinner) when the student is first
-        # selected, then cached client-side (show/hide) for instant switching.
-        student_assessment_reports = [
-            {"student_id": s.id, "html": "", "loaded": False}
-            for s in students
+            selected_student_id = student_ids[0] if student_ids else None
+            return {
+                "students_dashboard_payload": students_dashboard_payload,
+                "student_ids": student_ids,
+                "selected_student_id": selected_student_id,
+                "course_suggestions": course_suggestions_by_student or {},
+                "mieq_assessments": mieq_by_student or {},
+            }
+
+        if parent_id:
+            payload = get_or_build_parent_dashboard_payload(
+                parent_id, _build_dashboard_payload
+            )
+        else:
+            payload = _build_dashboard_payload()
+
+        students_dashboard_payload = payload.get("students_dashboard_payload") or []
+        student_ids = payload.get("student_ids") or [
+            int(s["id"]) for s in students_dashboard_payload if s.get("id")
         ]
+        selected_student_id = payload.get("selected_student_id")
+        if selected_student_id is None and student_ids:
+            selected_student_id = student_ids[0]
+        course_suggestions_by_student = payload.get("course_suggestions") or {}
+        mieq_by_student = payload.get("mieq_assessments") or {}
 
-        course_suggestions_by_student = {}
-        try:
-            from users.parent_courses_catalog import (
-                _student_payload,
-                build_parent_skilllab_suggestions,
-            )
-
-            student_payloads = [_student_payload(s) for s in students]
-            student_users_by_id = {int(s.id): s for s in students if getattr(s, "id", None)}
-            course_suggestions_by_student = build_parent_skilllab_suggestions(
-                student_payloads, student_users_by_id, preview_limit=4
-            )
-        except Exception:
-            pass
+        # Lightweight shells for report panes (HTML loaded lazily via AJAX + Redis).
+        student_assessment_reports = [
+            {"student_id": sid, "html": "", "loaded": False} for sid in student_ids
+        ]
+        # Keep template vars that expect student objects for the switcher labels.
+        psychometric_students = [
+            {
+                "student": type(
+                    "S",
+                    (),
+                    {
+                        "id": s.get("id"),
+                        "name": s.get("name") or "Student",
+                    },
+                )(),
+                "grade_label": s.get("grade_label", "Other"),
+                "grade_bucket": s.get("grade_bucket", "other"),
+            }
+            for s in students_dashboard_payload
+        ]
+        selected_student = psychometric_students[0] if psychometric_students else None
 
         ctx = {
-            "linked_students": students,
+            "linked_students": [],  # payload drives UI; avoid re-querying User rows
             "psychometric_students": psychometric_students,
             "selected_student": selected_student,
-            "students_dashboard_payload_json": mark_safe(json.dumps(students_dashboard_payload)),
-            "course_suggestions_json": mark_safe(json.dumps(course_suggestions_by_student)),
+            "students_dashboard_payload_json": mark_safe(
+                json.dumps(students_dashboard_payload)
+            ),
+            "course_suggestions_json": mark_safe(
+                json.dumps(course_suggestions_by_student)
+            ),
+            "mieq_assessments_json": mark_safe(json.dumps(mieq_by_student)),
             "selected_student_id": selected_student_id,
             "student_assessment_reports": student_assessment_reports,
         }
@@ -885,7 +1003,7 @@ class ParentsDashboardView(TemplateView):
 
 @method_decorator(login_required(login_url=reverse_lazy('parents_login')), name='dispatch')
 class ParentCoursesCatalogView(TemplateView):
-    """Parent catalog of courses, tests, and assessments for linked students."""
+    """Parent catalog of courses for linked students (Redis-first query payloads)."""
     template_name = "template20/parents/courses_catalog.html"
 
     def get(self, request, *args, **kwargs):
@@ -893,8 +1011,21 @@ class ParentCoursesCatalogView(TemplateView):
             return redirect(get_dashboard_url_for_user(request, request.user))
 
         from users.parent_courses_catalog import build_parent_courses_catalog
+        from users.parent_dashboard_cache import get_or_build_parent_catalog_payload
 
-        payload = build_parent_courses_catalog(request.user)
+        parent = request.user
+        parent_id = int(getattr(parent, "id", 0) or 0)
+
+        def _build():
+            return build_parent_courses_catalog(parent)
+
+        if parent_id:
+            payload = get_or_build_parent_catalog_payload(parent_id, _build)
+        else:
+            payload = _build()
+
+        # JSON-serializable rebuild: sections may contain model-backed fields from
+        # uncached path; cached path stores only plain data from build_parent_courses_catalog.
         ctx = {
             "page_title": "Courses & Tests",
             "sections": payload.get("sections") or [],
@@ -968,6 +1099,7 @@ class ParentsEducationLoanCalculatorView(TemplateView):
                 )
             ),
             "loan_save_url": reverse("parents_education_loan_save"),
+            "loan_callback_url": reverse("parents_education_loan_callback"),
             "loan_applications_url": reverse("parents_education_loan_applications"),
         }
         return render(request, self.template_name, ctx)
@@ -1025,11 +1157,18 @@ class ParentEducationLoanApplicationSaveView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        message = (
-            "Draft saved successfully."
-            if as_draft
-            else "Application enquiry sent successfully. Our team will contact you soon."
-        )
+        if as_draft:
+            message = "Draft saved successfully."
+        elif getattr(app, "callback_preferred_at", None):
+            message = (
+                "Application enquiry sent and callback scheduled. "
+                "Our team will call you at your preferred time."
+            )
+        else:
+            message = (
+                "Application enquiry sent successfully. "
+                "Our team will call you within 2 days."
+            )
         return Response(
             {
                 "success": True,
@@ -1037,6 +1176,74 @@ class ParentEducationLoanApplicationSaveView(APIView):
                 "application": serialize_education_loan_application(app),
                 "status": app.status,
                 "status_label": app.get_status_display(),
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class ParentEducationLoanCallbackView(APIView):
+    """Parent schedules preferred callback date/time after enquiry submit."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        if request.user.user_type != choices.UserType.PARENT:
+            return Response(
+                {"success": False, "message": "Not allowed"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        from datetime import datetime
+
+        from django.utils.dateparse import parse_datetime
+        from users.education_loan_application import (
+            schedule_education_loan_callback,
+            serialize_education_loan_application,
+        )
+
+        app_id = request.data.get("application_id") or request.POST.get("application_id")
+        raw_dt = (
+            request.data.get("callback_preferred_at")
+            or request.POST.get("callback_preferred_at")
+            or ""
+        ).strip()
+        note = (
+            request.data.get("callback_note")
+            or request.POST.get("callback_note")
+            or ""
+        )
+        dt = None
+        if raw_dt:
+            dt = parse_datetime(raw_dt.replace("T", " ", 1))
+            if dt is None:
+                for fmt in ("%Y-%m-%dT%H:%M", "%Y-%m-%d %H:%M", "%Y-%m-%dT%H:%M:%S"):
+                    try:
+                        dt = datetime.strptime(raw_dt, fmt)
+                        break
+                    except ValueError:
+                        dt = None
+        if raw_dt and dt is None:
+            return Response(
+                {
+                    "success": False,
+                    "message": "Enter a valid preferred date and time.",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if dt is not None and timezone.is_naive(dt):
+            dt = timezone.make_aware(dt, timezone.get_current_timezone())
+        app, err = schedule_education_loan_callback(
+            request.user, app_id, preferred_at=dt, note=note
+        )
+        if err:
+            return Response(
+                {"success": False, "message": err},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return Response(
+            {
+                "success": True,
+                "message": "Callback scheduled. Our team will call you at your preferred time.",
+                "application": serialize_education_loan_application(app),
             },
             status=status.HTTP_200_OK,
         )
@@ -1183,8 +1390,7 @@ class ParentStudentAssessmentReportFragmentView(View):
     """Returns inline assessment report HTML for the parent dashboard (no iframe).
 
     The report build is expensive, so the rendered HTML fragment is cached per
-    student (both in-process and via the Django cache backend). Pass ?refresh=1
-    to force a rebuild (e.g. right after a student completes an assessment).
+    student (in-process + parents Redis alias). Pass ?refresh=1 to force a rebuild.
     """
 
     CACHE_TTL_SECONDS = 900  # 15 minutes
@@ -1194,30 +1400,41 @@ class ParentStudentAssessmentReportFragmentView(View):
         import logging
         import time
 
-        from django.core.cache import cache
         from django.http import HttpResponse
+
+        from users.parent_dashboard_cache import (
+            get_cached_json,
+            parent_report_html_cache_key,
+            set_cached_json,
+        )
 
         logger = logging.getLogger(__name__)
 
         student = _get_parent_linked_student_or_404(request, student_id)
-        cache_key = f"parent_report_html:{self.CACHE_VERSION}:{student.id}"
+        cache_key = parent_report_html_cache_key(student.id, self.CACHE_VERSION)
         force_refresh = (request.GET.get("refresh") or "").strip() == "1"
 
         if force_refresh:
             _PARENT_REPORT_HTML_CACHE.pop(cache_key, None)
+            try:
+                from users.parent_dashboard_cache import invalidate_parent_report_cache
+
+                invalidate_parent_report_cache(student.id)
+            except Exception:
+                pass
 
         html = None
         now = time.monotonic()
 
-        # 1) In-process cache (works even under DummyCache / without Redis).
+        # 1) In-process cache (fastest; works even without Redis).
         if not force_refresh:
             entry = _PARENT_REPORT_HTML_CACHE.get(cache_key)
             if entry and (now - entry[0]) < _PARENT_REPORT_HTML_TTL_SECONDS:
                 html = entry[1]
 
-        # 2) Shared Django cache (Redis in production).
+        # 2) Shared parents Redis alias (not DummyCache default in DEBUG).
         if html is None and not force_refresh:
-            html = cache.get(cache_key)
+            html = get_cached_json(cache_key)
 
         # 3) Build it.
         if html is None:
@@ -1235,10 +1452,7 @@ class ParentStudentAssessmentReportFragmentView(View):
                 html = parent_assessment_report_empty_html(student)
 
             _PARENT_REPORT_HTML_CACHE[cache_key] = (now, html)
-            try:
-                cache.set(cache_key, html, self.CACHE_TTL_SECONDS)
-            except Exception:
-                pass
+            set_cached_json(cache_key, html, self.CACHE_TTL_SECONDS)
 
         return HttpResponse(html)
 
@@ -1307,96 +1521,87 @@ class ParentContentListView(TemplateView):
     def get(self, request, kind, *args, **kwargs):
         kind = (kind or "").lower()
         user_ids = _parent_all_bookmark_user_ids(request)
-        from django.contrib.contenttypes.models import ContentType
-        from users.models import ParentStudentBookmark
+        from users.parent_student_insights import linked_students_for_parent, resolve_student_grade
+
+        raw_students = linked_students_for_parent(request.user)
+        linked_students = []
+        students_by_id = {}
+        for s in raw_students:
+            _, grade_label = resolve_student_grade(s)
+            sid = int(s.id)
+            students_by_id[sid] = s
+            linked_students.append({
+                "id": sid,
+                "name": getattr(s, "name", "") or "Student",
+                "grade_label": grade_label,
+            })
+        selected_student_id = None
+        raw_sid = (request.GET.get("student_id") or "").strip()
+        if raw_sid.isdigit():
+            sid = int(raw_sid)
+            if sid in students_by_id:
+                selected_student_id = sid
+        if selected_student_id is None and linked_students:
+            selected_student_id = linked_students[0]["id"]
+        selected_student = students_by_id.get(selected_student_id) if selected_student_id else None
+
+        career_cards = []
+        blog_cards = []
+        video_cards = []
+        items = []
 
         if kind == "careers":
-            from careers.models import Career, CareerShortlist
             page_title = "Careers"
             browse_url = reverse("careers:career")
-            careers = []
-            seen = set()
-            for cs in CareerShortlist.objects.filter(
-                user_id__in=user_ids, career__isnull=False
-            ).select_related("career").order_by("-id"):
-                if cs.career_id and cs.career_id not in seen and cs.career:
-                    careers.append(cs.career)
-                    seen.add(cs.career_id)
-            ct = ContentType.objects.get_for_model(Career)
-            for bm in ParentStudentBookmark.objects.filter(
-                parent=request.user, content_type=ct
-            ).order_by("-created"):
-                obj = Career.objects.filter(id=bm.object_id).first()
-                if obj and obj.id not in seen:
-                    careers.append(obj)
-                    seen.add(obj.id)
-            items = careers
             from users.career_interests import build_parent_career_shortlist_cards
 
-            career_cards = build_parent_career_shortlist_cards(request.user, user_ids)
+            career_cards = build_parent_career_shortlist_cards(
+                request.user, user_ids, student=selected_student
+            )
+            items = [c.get("career") for c in career_cards if c.get("career")]
         elif kind == "blogs":
-            from blog.models import BlogShortlist, Blog as BlogModel
             page_title = "Blogs"
             browse_url = reverse("blog:blogs")
-            blogs = []
-            seen = set()
-            for bs in BlogShortlist.objects.filter(
-                user_id__in=user_ids, blog__isnull=False
-            ).select_related("blog").order_by("-id"):
-                if bs.blog_id and bs.blog_id not in seen and bs.blog:
-                    blogs.append(bs.blog)
-                    seen.add(bs.blog_id)
-            ct = ContentType.objects.get_for_model(BlogModel)
-            for bm in ParentStudentBookmark.objects.filter(
-                parent=request.user, content_type=ct
-            ).order_by("-created"):
-                obj = BlogModel.get_published_objects().filter(id=bm.object_id).first()
-                if obj and obj.id not in seen:
-                    blogs.append(obj)
-                    seen.add(obj.id)
-            if seen:
-                published_ids = set(
-                    BlogModel.get_published_objects().filter(id__in=list(seen)).values_list("id", flat=True)
-                )
-                blogs = [b for b in blogs if b and b.id in published_ids]
-            items = blogs
+            from users.parent_saved_items import build_parent_blog_cards
+
+            blog_cards = build_parent_blog_cards(
+                request.user, user_ids, student=selected_student
+            )
+            items = [c.get("blog") for c in blog_cards if c.get("blog")]
         elif kind == "videos":
             page_title = "Videos"
             browse_url = reverse("careers:careervideos")
-            videos = []
-            seen = set()
-            for vid in Videos.objects.filter(shortlist__in=user_ids).distinct().order_by("-id"):
-                if vid.id not in seen:
-                    videos.append(vid)
-                    seen.add(vid.id)
-            ct = ContentType.objects.get_for_model(Videos)
-            for bm in ParentStudentBookmark.objects.filter(
-                parent=request.user, content_type=ct
-            ).order_by("-created"):
-                obj = Videos.objects.filter(id=bm.object_id).first()
-                if obj and obj.id not in seen:
-                    videos.append(obj)
-                    seen.add(obj.id)
-            items = videos
+            from users.parent_saved_items import build_parent_video_cards
+
+            video_cards = build_parent_video_cards(
+                request.user, user_ids, student=selected_student
+            )
+            items = [c.get("video") for c in video_cards if c.get("video")]
         else:
             raise Http404("Invalid kind")
+
+        if selected_student_id:
+            sep = "&" if "?" in browse_url else "?"
+            browse_url = f"{browse_url}{sep}student_id={selected_student_id}"
 
         ctx = {
             "kind": kind,
             "page_title": page_title,
             "browse_url": browse_url,
+            "browse_url_base": reverse(
+                "careers:career" if kind == "careers" else (
+                    "blog:blogs" if kind == "blogs" else "careers:careervideos"
+                )
+            ),
             "browse_label": "Browse More",
             "items": items,
             "remove_saved_url": reverse("parents_remove_saved", args=[kind]),
+            "linked_students": linked_students,
+            "selected_student_id": selected_student_id,
+            "career_cards": career_cards,
+            "blog_cards": blog_cards,
+            "video_cards": video_cards,
         }
-        if kind == "careers":
-            ctx["career_cards"] = career_cards
-        elif kind == "blogs":
-            from users.parent_saved_items import build_parent_blog_cards
-            ctx["blog_cards"] = build_parent_blog_cards(request.user, user_ids)
-        elif kind == "videos":
-            from users.parent_saved_items import build_parent_video_cards
-            ctx["video_cards"] = build_parent_video_cards(request.user, user_ids)
         return render(request, self.template_name, ctx)
 
 
@@ -1415,11 +1620,16 @@ class ParentRemoveSavedItemView(APIView):
             remove_parent_saved_video,
         )
 
+        student_id = None
+        raw_sid = (request.POST.get("student_id") or "").strip()
+        if raw_sid.isdigit():
+            student_id = int(raw_sid)
+
         if kind == "careers":
             career_slug = (request.POST.get("careerslug") or request.POST.get("career_slug") or "").strip()
             if not career_slug:
                 return Response({"success": False, "message": "Career slug is required"}, status=status.HTTP_400_BAD_REQUEST)
-            ok = remove_parent_saved_career(request.user, career_slug=career_slug)
+            ok = remove_parent_saved_career(request.user, career_slug=career_slug, student_id=student_id)
             msg = "Career removed" if ok else "Career not found"
         elif kind == "blogs":
             blog_id = request.POST.get("blog_id")
@@ -1427,7 +1637,7 @@ class ParentRemoveSavedItemView(APIView):
                 blog_id_int = int(blog_id)
             except (TypeError, ValueError):
                 return Response({"success": False, "message": "Blog id is required"}, status=status.HTTP_400_BAD_REQUEST)
-            ok = remove_parent_saved_blog(request.user, blog_id=blog_id_int)
+            ok = remove_parent_saved_blog(request.user, blog_id=blog_id_int, student_id=student_id)
             msg = "Blog removed" if ok else "Blog not found"
         elif kind == "videos":
             video_id = request.POST.get("video_id")
@@ -1435,7 +1645,7 @@ class ParentRemoveSavedItemView(APIView):
                 video_id_int = int(video_id)
             except (TypeError, ValueError):
                 return Response({"success": False, "message": "Video id is required"}, status=status.HTTP_400_BAD_REQUEST)
-            ok = remove_parent_saved_video(request.user, video_id=video_id_int)
+            ok = remove_parent_saved_video(request.user, video_id=video_id_int, student_id=student_id)
             msg = "Video removed" if ok else "Video not found"
         else:
             return Response({"success": False, "message": "Invalid kind"}, status=status.HTTP_400_BAD_REQUEST)
@@ -1902,6 +2112,8 @@ def get_dashboard_url_for_user(request, user, *, apply_mobile_gate=True):
                 return reverse("counselor:CounselorDashboardView", args=[coun.id])
         elif ut == choices.UserType.PARENT:
             return reverse("parents_dashboard")
+        elif ut in choices.UserType.LOAN_DESK_TYPES:
+            return reverse("loan_desk:dashboard")
         elif ut == choices.UserType.STUDENT:
             dest = _compute_student_destination(user)
             if apply_mobile_gate and request is not None:
@@ -1956,15 +2168,6 @@ def _apply_institute_student_mobile_gate(request, user, desired_redirect):
     return desired_redirect
 
 
-def _set_registration_welcome_popup(request, user):
-    """Show gamification welcome popup on the student's first dashboard visit after signup."""
-    try:
-        if user and getattr(user, 'user_type', None) == choices.UserType.STUDENT:
-            request.session['show_registration_welcome_popup'] = True
-    except Exception:
-        pass
-
-
 def _normalize_mobile_digits(value: str) -> str:
     return re.sub(r"\D+", "", str(value or "")).strip()
 
@@ -2017,6 +2220,79 @@ def _parent_mobile_exists(mobile: str, exclude_user_id: int | None = None) -> bo
     if exclude_user_id:
         qs = qs.exclude(id=exclude_user_id)
     return qs.filter(Q(mobile=digits) | Q(mobile=f"+91{digits}") | Q(mobile=f"91{digits}")).exists()
+
+
+def _login_mode_from_request(request) -> str:
+    """Client login page mode: parent | student | smart | default."""
+    raw = (
+        request.POST.get("login_mode")
+        or request.GET.get("login_mode")
+        or ""
+    )
+    mode = str(raw).strip().lower()
+    if mode in ("parent", "student", "smart", "default"):
+        return mode
+    return "default"
+
+
+def _login_only_from_request(request) -> bool:
+    """True when the client wants Sign In only (no auto student signup)."""
+    raw = (request.POST.get("login_only") or request.GET.get("login_only") or "").strip().lower()
+    if raw in ("1", "true", "yes"):
+        return True
+    return _login_mode_from_request(request) == "smart"
+
+
+def _force_https_absolute_url(request, url: str) -> str:
+    """If the site is HTTPS (proxy/ngrok/USE_HTTPS), never return http:// redirects."""
+    url = (url or "").strip()
+    if not url:
+        return url
+    forwarded = (request.META.get("HTTP_X_FORWARDED_PROTO") or "").split(",")[0].strip().lower()
+    use_https = bool(getattr(settings, "USE_HTTPS", False))
+    if forwarded == "https" or request.is_secure() or use_https:
+        if url.startswith("http://"):
+            return "https://" + url[len("http://"):]
+    return url
+
+
+def _absolute_post_login_url(request, user) -> str:
+    """Prefer safe ?next=, else role dashboard. Always absolute."""
+    from django.utils.http import url_has_allowed_host_and_scheme
+
+    next_path = (request.POST.get("next") or request.GET.get("next") or "").strip()
+    if not next_path:
+        next_path = request.session.pop("login_next_url", "") or ""
+    if next_path and is_safe_post_login_redirect_path(next_path):
+        full_url = request.build_absolute_uri(next_path)
+        if url_has_allowed_host_and_scheme(full_url, request.get_host()):
+            if "/psychometrictest/" in full_url:
+                full_url = full_url + ("&" if "?" in full_url else "?") + "auto_buy=1"
+            return _force_https_absolute_url(request, full_url)
+    redirect_url = get_dashboard_url_for_user(request, user)
+    if not str(redirect_url).startswith("http"):
+        redirect_url = request.build_absolute_uri(redirect_url)
+    return _force_https_absolute_url(request, redirect_url)
+
+
+def _find_parent_user_by_mobile(mobile) -> User | None:
+    """Existing parent account only — no signup on the parent login page."""
+    digits = _normalize_mobile_digits(str(mobile) if mobile is not None else "")
+    if not digits:
+        return None
+    return (
+        User.objects.filter(user_type=choices.UserType.PARENT)
+        .filter(Q(mobile=digits) | Q(mobile=f"+91{digits}") | Q(mobile=f"91{digits}"))
+        .order_by("-id")
+        .first()
+    )
+
+
+_PARENT_LOGIN_NO_ACCOUNT_MSG = (
+    "No parent account found for this mobile number. "
+    "Ask your child to link you from their TopTeen profile. "
+    "Parents cannot sign up directly."
+)
 
 
 def _mobile_conflicts_student_parent(mobile: str, current_user: User | None = None, intended_user_type: int | None = None) -> bool:
@@ -2151,7 +2427,23 @@ class LoginSignUp(APIView):
                     print(traceback.format_exc())
                     data['message'] = f"An error occurred while processing your request. Please try again."
                     return Response(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            else:   
+            else:
+                # Smart / login-only Sign In: do not start student signup OTP for unknown users.
+                if _login_only_from_request(request):
+                    data["account_not_found"] = True
+                    data["show_otp"] = False
+                    data["show_password"] = False
+                    data["success"] = False
+                    data["message"] = (
+                        "No account found for this email or mobile. "
+                        "Create a student account, or use Partner login if you are a school, counselor, or marketer."
+                    )
+                    try:
+                        data["student_signup_url"] = request.build_absolute_uri(reverse("student_signup"))
+                    except Exception:
+                        data["student_signup_url"] = "/student/signup/"
+                    return Response(data, status=status.HTTP_200_OK)
+
                 otp_type=choices.CommunicationTypeChooices.SMS if isinstance(username, int) else choices.CommunicationTypeChooices.EMAIL
                 print()
                 print(f"From Views",">"*30,username)
@@ -2159,13 +2451,12 @@ class LoginSignUp(APIView):
                 # Create OTP and send immediately (same as Resend OTP) so SMS/email is received
                 # without depending on Celery worker; .delay() was causing first OTP to never send
                 cs = ComService()
+                send_otp_mail(username, otp_type)
                 otp = cs.get_otp(username, otp_type)
-                # Print OTP to terminal for debugging
                 if otp_type == choices.CommunicationTypeChooices.EMAIL:
                     logger.debug("Email OTP for %s: %s", username, otp)
                 else:
                     logger.debug("SMS OTP for %s: %s", username, otp)
-                send_otp_mail(username, otp_type)
                 
                 data['user_name']=username
                 data["show_otp"]=True
@@ -2212,37 +2503,28 @@ class SignUpVerifyOTP(APIView):
                     return Response(data, status=status.HTTP_200_OK)
                 if user:
                     # User exists and is active - log them in directly
-                    from django.contrib.auth import login
-                    from django.utils.http import url_has_allowed_host_and_scheme
-                    # Use CustomUserBackend for login
                     login_user_with_session(request, user)
                     _link_current_analytics_session(request, user)
                     data["otp_verify"]=True
                     data["user_exists"]=True
                     data["success"]=True
-                    # If ?next= was provided (e.g. from Proceed to Buy), redirect there
-                    next_path = (request.POST.get('next') or request.GET.get('next') or '').strip()
-                    if not next_path:
-                        next_path = request.session.pop('login_next_url', '')
-                    if next_path and is_safe_post_login_redirect_path(next_path):
-                        full_url = request.build_absolute_uri(next_path)
-                        if url_has_allowed_host_and_scheme(full_url, request.get_host()):
-                            if '/psychometrictest/' in full_url:
-                                full_url = full_url + ('&' if '?' in full_url else '?') + 'auto_buy=1'
-                            data['redirect_url'] = full_url
-                            return Response(data, status=status.HTTP_200_OK)
-                    if user.is_staff or user.is_superuser:
-                        redirect_url = reverse('user_analytics:business_dashboard')
-                    elif user.user_type == choices.UserType.PARENT:
-                        redirect_url = reverse('parents_dashboard')
-                    elif user.user_type == choices.UserType.STUDENT:
-                        redirect_url = _compute_student_destination(user)
-                    else:
-                        redirect_url = reverse('users:userdashboard')
-                    redirect_url = _apply_institute_student_mobile_gate(request, user, redirect_url)
-                    data['redirect_url'] = request.build_absolute_uri(redirect_url)
+                    data["redirect_url"] = _absolute_post_login_url(request, user)
                     return Response(data, status=status.HTTP_200_OK)
                 else:
+                    if _login_only_from_request(request):
+                        data["account_not_found"] = True
+                        data["otp_verify"] = False
+                        data["user_exists"] = False
+                        data["success"] = False
+                        data["message"] = (
+                            "No account found for this email or mobile. "
+                            "Create a student account to get started."
+                        )
+                        try:
+                            data["student_signup_url"] = request.build_absolute_uri(reverse("student_signup"))
+                        except Exception:
+                            data["student_signup_url"] = "/student/signup/"
+                        return Response(data, status=status.HTTP_200_OK)
                     # New user - proceed to password form
                     sign = Signer()
                     enc_user_name=sign.sign_object(({"enc_user_name":username}))
@@ -2278,9 +2560,12 @@ class SignUpPassword(APIView):
             data['message'] = "Passwords do not match. Please make sure both passwords are the same."
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
         
-        # Validate grade for direct signups (allow classes 6 through 12)
+        # Require class/grade for direct student signups (classes 6–12)
         allowed = [str(v) for v in range(6, 13)]
-        if grade and grade not in allowed:
+        if not grade:
+            data['message'] = "Please select your class"
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
+        if str(grade) not in allowed:
             data['message'] = "Please select a valid class (6 to 12)"
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
         
@@ -2363,11 +2648,7 @@ class SignUpPassword(APIView):
                     try:
                         # Create or update UserProfile with grade
                         user_profile, created = UserProfile.objects.get_or_create(user=user)
-                        # Set default to "10" if not provided
-                        if grade:
-                            user_profile.grade = grade
-                        else:
-                            user_profile.grade = "10"  # Default to class 10
+                        user_profile.grade = str(grade)
                         user_profile.save()
                     except Exception as profile_error:
                         # Log but don't fail - user is already created
@@ -2375,7 +2656,7 @@ class SignUpPassword(APIView):
                         print(f"Warning: Error updating user profile: {str(profile_error)}")
                         print(traceback.format_exc())
 
-                    _set_registration_welcome_popup(request, user)
+                    set_registration_welcome_popup(request, user)
                     
                     try:
                         # Auto-login the user
@@ -2391,49 +2672,7 @@ class SignUpPassword(APIView):
                     # User is created successfully, so return success even if profile/login had minor issues
                     data['success'] = True
                     data['message'] = "Account created successfully"
-
-                    # If ?next= was provided (e.g. from Proceed to Buy), redirect there after signup
-                    from django.utils.http import url_has_allowed_host_and_scheme
-                    next_path = (request.POST.get('next') or request.GET.get('next') or '').strip()
-                    if not next_path:
-                        next_path = request.session.pop('login_next_url', '')
-                    if next_path and is_safe_post_login_redirect_path(next_path):
-                        full_url = request.build_absolute_uri(next_path)
-                        if url_has_allowed_host_and_scheme(full_url, request.get_host()):
-                            if '/psychometrictest/' in full_url:
-                                full_url = full_url + ('&' if '?' in full_url else '?') + 'auto_buy=1'
-                            data['redirect_url'] = full_url
-                            return Response(data, status=status.HTTP_200_OK)
-                    
-                    # Redirect based on user type
-                    if user.user_type == choices.UserType.COUNSELOR:
-                        coun = primary_counselor_for_user(user)
-                        if coun:
-                            data['redirect_url'] = request.build_absolute_uri(reverse('counselor:CounselorDashboardView', args=[coun.id]))
-                        else:
-                            data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
-                    elif user.user_type == choices.UserType.INSTITUTE:
-                        from institute.models import Institute
-                        institute = Institute.objects.filter(created_by=user).last()
-                        if institute and institute.institute_status == choices.InstituteStatus.APPROVED:
-                            data['redirect_url'] = request.build_absolute_uri(reverse('institute:institute_masterdashboard', args=[institute.slug]))
-                        else:
-                            data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
-                    elif user.user_type == choices.UserType.INSTITUTEGROUPADMIN:
-                        from institute.models import InstituteGroup
-                        if InstituteGroup.objects.filter(institute_group_admin=user).exists():
-                            data['redirect_url'] = request.build_absolute_uri(reverse('institute:institutegroupdashboard'))
-                        else:
-                            data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
-                    elif user.user_type == choices.UserType.MARKETINGGROUPADMIN:
-                        from institute.models import Institute
-                        if Institute.objects.filter(marketing_group__marketing_group_admin=user).exists():
-                            data['redirect_url'] = request.build_absolute_uri(reverse('institute:marketinggroupdashboard'))
-                        else:
-                            data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
-                    else:
-                        data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
-                    
+                    data['redirect_url'] = _absolute_post_login_url(request, user)
                     return Response(data, status=status.HTTP_200_OK)
                 else:
                     data['success'] = False
@@ -2457,6 +2696,7 @@ class LoginOTP(APIView):
         cs=ComService()
         otp = request.POST.getlist('otp',[]) 
         username=request.POST.get("user_name")
+        login_mode = _login_mode_from_request(request)
         if username and len(otp)==6:
             ok, err = _validate_login_mobile_max_digits(username, 10)
             if not ok:
@@ -2470,45 +2710,31 @@ class LoginOTP(APIView):
                 mobile=0
                 email=str(username)
                 username=email
+            if login_mode == "parent" and not isinstance(username, int):
+                data["message"] = "Please enter a valid 10-digit mobile number"
+                data["otp_verify"] = False
+                data["success"] = False
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
             otp_type=choices.CommunicationTypeChooices.SMS if isinstance(username, int) else choices.CommunicationTypeChooices.EMAIL
             is_otp_verified=otp and cs.verify_otp(username,''.join(otp),otp_type,delete=False)
             if is_otp_verified:
-                # Find user by email or mobile
-                user = User.objects.filter(Q(mobile=mobile) | Q(email=email)).last()
+                # Find user by email or mobile (parent mode: existing PARENT only)
+                if login_mode == "parent":
+                    user = _find_parent_user_by_mobile(mobile)
+                    if not user or not user.get_user_status():
+                        data["message"] = _PARENT_LOGIN_NO_ACCOUNT_MSG
+                        data["otp_verify"] = False
+                        data["success"] = False
+                        return Response(data, status=status.HTTP_200_OK)
+                else:
+                    user = User.objects.filter(Q(mobile=mobile) | Q(email=email)).last()
                 if user and user.get_user_status():
                     # User exists and is active - log them in
-                    from django.contrib.auth import login
-                    from django.utils.http import url_has_allowed_host_and_scheme
-                    # Use CustomUserBackend for login
                     login_user_with_session(request, user)
                     _link_current_analytics_session(request, user)
                     data["otp_verify"]=True
                     data["success"]=True
-
-                    # If ?next= was provided (e.g. from Proceed to Buy), redirect there after login
-                    next_path = (request.POST.get('next') or request.GET.get('next') or '').strip()
-                    if not next_path:
-                        next_path = request.session.pop('login_next_url', '')
-                    if next_path and is_safe_post_login_redirect_path(next_path):
-                        full_url = request.build_absolute_uri(next_path)
-                        if url_has_allowed_host_and_scheme(full_url, request.get_host()):
-                            if '/psychometrictest/' in full_url:
-                                full_url = full_url + ('&' if '?' in full_url else '?') + 'auto_buy=1'
-                            data['redirect_url'] = full_url
-                            return Response(data, status=status.HTTP_200_OK)
-
-                    # Check if user is staff or superuser - redirect to business analytics
-                    if user.is_staff or user.is_superuser:
-                        redirect_url = reverse('user_analytics:business_dashboard')
-                    elif user.user_type == choices.UserType.PARENT:
-                        redirect_url = reverse('parents_dashboard')
-                    elif user.user_type == choices.UserType.STUDENT:
-                        redirect_url = _compute_student_destination(user)
-                    else:
-                        redirect_url = reverse('users:userdashboard')
-
-                    redirect_url = _apply_institute_student_mobile_gate(request, user, redirect_url)
-                    data['redirect_url'] = request.build_absolute_uri(redirect_url)
+                    data["redirect_url"] = _absolute_post_login_url(request, user)
                     return Response(data, status=status.HTTP_200_OK)
                 else:
                     data["message"]="User not found or inactive"
@@ -2576,7 +2802,9 @@ class LoginPassword(APIView):
                         data['need_set_password'] = True
                         data['message'] = "Please set your password"
                         # Set redirect URL but user needs to set password first
-                        data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
+                        data['redirect_url'] = _force_https_absolute_url(
+                            request, request.build_absolute_uri(reverse('users:userdashboard'))
+                        )
                         return Response(data, status=status.HTTP_200_OK)
                     # Continue with redirect logic below for master password login
                 else:
@@ -2598,77 +2826,7 @@ class LoginPassword(APIView):
                     data['success'] = True
                 # If master password was used, data['success'] is already set above
 
-                # If ?next= was provided (e.g. from Proceed to Buy), redirect there after login
-                from django.utils.http import url_has_allowed_host_and_scheme
-                next_path = (request.POST.get('next') or request.GET.get('next') or '').strip()
-                if not next_path:
-                    next_path = request.session.pop('login_next_url', '')
-                if next_path and is_safe_post_login_redirect_path(next_path):
-                    full_url = request.build_absolute_uri(next_path)
-                    if url_has_allowed_host_and_scheme(full_url, request.get_host()):
-                        if '/psychometrictest/' in full_url:
-                            full_url = full_url + ('&' if '?' in full_url else '?') + 'auto_buy=1'
-                        data['redirect_url'] = full_url
-                        return Response(data, status=status.HTTP_200_OK)
-
-                # Check if user is staff or superuser - redirect to business analytics first
-                if user.is_staff or user.is_superuser:
-                    data['redirect_url'] = request.build_absolute_uri(reverse('user_analytics:business_dashboard'))
-                    return Response(data, status=status.HTTP_200_OK)
-                
-                # Redirect based on user type
-                # Check for counselor first
-                if user.user_type == choices.UserType.COUNSELOR:
-                    coun = primary_counselor_for_user(user)
-                    if coun:
-                        data['redirect_url'] = reverse('counselor:CounselorDashboardView', args=[coun.id])
-                    else:
-                        data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
-                # Check for institute users
-                elif user.user_type == choices.UserType.INSTITUTE:
-                    from institute.models import Institute
-                    institute = Institute.objects.filter(created_by=user).last()
-                    if institute and institute.institute_status == choices.InstituteStatus.APPROVED:
-                        data['redirect_url'] = reverse('institute:institute_masterdashboard', args=[institute.slug])
-                    else:
-                        data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
-                # Check for parent users - redirect to parents dashboard
-                elif user.user_type == choices.UserType.PARENT:
-                    data['redirect_url'] = request.build_absolute_uri(reverse('parents_dashboard'))
-                # Check for institute group admin
-                elif user.user_type == choices.UserType.INSTITUTEGROUPADMIN:
-                    from institute.models import InstituteGroup
-                    if InstituteGroup.objects.filter(institute_group_admin=user).exists():
-                        data['redirect_url'] = reverse('institute:institutegroupdashboard')
-                    else:
-                        data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
-                # Check for marketing group admin
-                elif user.user_type == choices.UserType.MARKETINGGROUPADMIN:
-                    from institute.models import Institute
-                    if Institute.objects.filter(marketing_group__marketing_group_admin=user).exists():
-                        data['redirect_url'] = reverse('institute:marketinggroupdashboard')
-                    else:
-                        data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
-                else:
-                    # For students, use _compute_student_destination to determine correct dashboard
-                    # This will redirect 11th/12th grade students to post_matric:tests (student dashboard)
-                    # and others to users:userdashboard
-                    if user.user_type == choices.UserType.STUDENT:
-                        redirect_url = _compute_student_destination(user)
-                        data['redirect_url'] = request.build_absolute_uri(redirect_url)
-                    else:
-                        # Default redirect to user dashboard for other user types
-                        data['redirect_url'] = request.build_absolute_uri(reverse('users:userdashboard'))
-                
-                # Apply institute student mobile gate if needed
-                if user.user_type == choices.UserType.STUDENT:
-                    redirect_url = data.get('redirect_url', reverse('users:userdashboard'))
-                    if isinstance(redirect_url, str) and not redirect_url.startswith('http'):
-                        redirect_url = reverse('users:userdashboard') if redirect_url == reverse('users:userdashboard') else redirect_url
-                    data['redirect_url'] = _apply_institute_student_mobile_gate(request, user, redirect_url)
-                    if not str(data['redirect_url']).startswith('http'):
-                        data['redirect_url'] = request.build_absolute_uri(data['redirect_url'])
-                
+                data['redirect_url'] = _absolute_post_login_url(request, user)
                 return Response(data, status=status.HTTP_200_OK)
                 
             # Password authentication failed - for students, offer OTP as fallback
@@ -2753,9 +2911,9 @@ class SendMobileOtp(APIView):
 
         cs = ComService()
         otp_type = choices.CommunicationTypeChooices.SMS
+        send_otp_mail(int(mobile), otp_type)
         otp = cs.get_otp(int(mobile), otp_type)
         logger.debug("Mobile Update - SMS OTP for %s: %s", mobile, otp)
-        send_otp_mail(int(mobile), otp_type)
         response_data = {'success': True, 'message': 'OTP sent successfully'}
         # Include OTP in response for browser console debugging (only in DEBUG mode)
         if settings.DEBUG:
@@ -2849,6 +3007,13 @@ class LinkParentMobile(APIView):
 
         ParentStudentLink.objects.get_or_create(parent=parent_user, student=request.user)
 
+        try:
+            from users.parent_dashboard_cache import invalidate_parent_dashboard_cache
+
+            invalidate_parent_dashboard_cache(parent_user.id)
+        except Exception:
+            pass
+
         return Response({'success': True, 'message': 'Parent linked successfully'}, status=status.HTTP_200_OK)
 
 
@@ -2870,9 +3035,9 @@ class SendParentOtp(APIView):
 
         cs = ComService()
         otp_type = choices.CommunicationTypeChooices.SMS
+        send_otp_mail(int(mobile), otp_type)
         otp = cs.get_otp(int(mobile), otp_type)
         logger.debug("Parent Link - SMS OTP for %s: %s", mobile, otp)
-        send_otp_mail(int(mobile), otp_type)
         response_data = {'success': True, 'message': 'OTP sent successfully'}
         # Include OTP in response for browser console debugging (only in DEBUG mode)
         if settings.DEBUG:
@@ -2923,6 +3088,12 @@ class VerifyParentOtp(APIView):
             parent_user.save()
 
         ParentStudentLink.objects.get_or_create(parent=parent_user, student=request.user)
+        try:
+            from users.parent_dashboard_cache import invalidate_parent_dashboard_cache
+
+            invalidate_parent_dashboard_cache(parent_user.id)
+        except Exception:
+            pass
         return Response({'success': True, 'message': 'Parent linked successfully'}, status=status.HTTP_200_OK)
 
 
@@ -3094,15 +3265,13 @@ class ForgotPassword(APIView):
 
             if user:
                 otp_type=choices.CommunicationTypeChooices.SMS if isinstance(username, int) else choices.CommunicationTypeChooices.EMAIL
-                # Get OTP and print it before sending
                 cs = ComService()
+                send_otp_mail(username,otp_type)
                 otp = cs.get_otp(username, otp_type)
-                # Print OTP to terminal for debugging
                 if otp_type == choices.CommunicationTypeChooices.EMAIL:
                     logger.debug("Forgot Password - Email OTP for %s: %s", username, otp)
                 else:
                     logger.debug("Forgot Password - SMS OTP for %s: %s", username, otp)
-                send_otp_mail(username,otp_type)
                 sign = Signer()
                 enc_user_name=sign.sign_object(({"enc_user_name":username}))
                 data['enc_user_name']=enc_user_name  
@@ -3177,10 +3346,12 @@ class ResendOtp(APIView):
         data['message']="All fields required"
         cs=ComService()
         username=request.POST.get('user_name')
+        login_mode = _login_mode_from_request(request)
         if username:
             ok, err = _validate_login_mobile_max_digits(username, 10)
             if not ok:
                 data["message"] = err or data["message"]
+                data["success"] = False
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
             try:
                 mobile = int(username)
@@ -3189,18 +3360,30 @@ class ResendOtp(APIView):
             except:
                 mobile=0
                 email=str(username)
-                username=email    
+                username=email
+            # Parent login: never create accounts; only send OTP if parent exists.
+            if login_mode == "parent":
+                if not isinstance(username, int):
+                    data["message"] = "Please enter a valid 10-digit mobile number"
+                    data["success"] = False
+                    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                parent_user = _find_parent_user_by_mobile(mobile)
+                if not parent_user or not parent_user.get_user_status():
+                    data["message"] = _PARENT_LOGIN_NO_ACCOUNT_MSG
+                    data["success"] = False
+                    data["show_otp"] = False
+                    return Response(data, status=status.HTTP_200_OK)
             otp_type=choices.CommunicationTypeChooices.SMS if isinstance(username, int) else choices.CommunicationTypeChooices.EMAIL
-            # Get OTP and print it before sending
+            send_otp_mail(username,otp_type)
             otp = cs.get_otp(username, otp_type)
-            # Print OTP to terminal for debugging
             if otp_type == choices.CommunicationTypeChooices.EMAIL:
                 logger.debug("Resend - Email OTP for %s: %s", username, otp)
             else:
                 logger.debug("Resend - SMS OTP for %s: %s", username, otp)
-            send_otp_mail(username,otp_type)
             data['message']="OTP sent successfully"
             data['success']=True
+            data['show_otp']=True
+            data['user_name']=username
             # Include OTP in response for browser console debugging (only in DEBUG mode)
             if settings.DEBUG:
                 data['debug_otp'] = otp
@@ -3557,21 +3740,12 @@ class UserDashboard(TemplateView):
     def get_context(self,request, profile_user=None, is_parent_view: bool = False, *args,**kwargs):
         from psychometric_tests.models import PsychometricTestPayment
         profile_user = profile_user or request.user
-        
-        tags=CareerTags.objects.all().order_by('priority')[:5]
-        country=Country.objects.all().order_by('priority')
+
+        # Catalog dumps (blogs/colleges/careers/videos/courses/tags/countries/exams)
+        # stay on feeds/list pages (UserFeeds, college/career/blog lists) — unused here.
         ctx={}
         ctx['profile_user'] = profile_user
         ctx['is_parent_view'] = is_parent_view
-        ctx['blogs'] = Blog.get_published_objects().all()
-        ctx['colleges'] = College.get_all_colleges()
-        ctx['careers'] = Career.get_all_careers()
-        ctx['careers_video']=Career.objects.filter(publish_status=choices.PublishStatus.PUBLISHED).exclude(Q(video_url=""))
-        ctx['videos'] = Videos.objects.all()
-        ctx['courses'] = Course.get_all_courses()
-        ctx['tags']=tags
-        ctx['countries']=country
-        ctx['exams']=EntranceTestPrepExam.objects.filter(object_status=choices.ObjectStatus.ACTIVE).order_by('?')[:3]
         
         # Determine user's class (10 or 12)
         from institute.models import get_cached_student_management
@@ -3615,25 +3789,36 @@ class UserDashboard(TemplateView):
             user_grade = "10"
         
         ctx['user_grade'] = user_grade
-        
-        # Check for successful psychometric test payments
-        successful_test_payment = PsychometricTestPayment.objects.filter(
-            user=profile_user,
-            is_success=choices.YesNoChoices.YES
-        ).order_by('-created').first()
-        
-        ctx['psychometric_test_payment'] = successful_test_payment
+
         ctx['test_dashboard_url'] = None
         ctx['test_name'] = None
         ctx['has_test_payment'] = False
         ctx['combined_report_url'] = None
 
-        # Institute students are exempt from payment: allow access to test dashboard even if
-        # no payment record exists yet. (Class 10 -> app:test_buttons, Class 12 -> post_matric:tests)
+        # One StudentManagement lookup (memoized on user) for institute + grade fallback.
         try:
-            is_institute_student = get_cached_student_management(profile_user) is not None
+            student_management = get_cached_student_management(profile_user)
+            is_institute_student = student_management is not None
         except Exception:
             is_institute_student = False
+
+        # Single payment fetch covers class-specific + legacy fallback (was 2–3 queries).
+        successful_payments = list(
+            PsychometricTestPayment.objects.filter(
+                user=profile_user,
+                is_success=choices.YesNoChoices.YES,
+            ).order_by('-created')[:8]
+        )
+        successful_test_payment = successful_payments[0] if successful_payments else None
+        basic_paid = any(
+            p.test_type == choices.PsychometricTestType.BASIC for p in successful_payments
+        )
+        advanced_paid = any(
+            p.test_type == choices.PsychometricTestType.ADVANCED for p in successful_payments
+        )
+
+        # Institute students are exempt from payment: allow access to test dashboard even if
+        # no payment record exists yet. (Class 10 -> app:test_buttons, Class 12 -> post_matric:tests)
         if is_institute_student:
             ctx['has_test_payment'] = True
             if user_grade == "12":
@@ -3642,39 +3827,26 @@ class UserDashboard(TemplateView):
             else:
                 ctx['test_dashboard_url'] = reverse('app:test_buttons')
                 ctx['test_name'] = 'Stream Sorter'
-        
-        # Check if user has purchased test for their class
-        if user_grade == "10":
-            # Class 10 should have BASIC test (Stream Sorter)
-            class_test_payment = PsychometricTestPayment.objects.filter(
-                user=profile_user,
-                test_type=choices.PsychometricTestType.BASIC,
-                is_success=choices.YesNoChoices.YES
-            ).first()
-            if class_test_payment:
-                ctx['has_test_payment'] = True
-                ctx['test_dashboard_url'] = reverse('app:test_buttons')
-                ctx['test_name'] = 'Stream Sorter'
-        elif user_grade == "12":
-            # Class 12 should have ADVANCED test (Career Direction)
-            class_test_payment = PsychometricTestPayment.objects.filter(
-                user=profile_user,
-                test_type=choices.PsychometricTestType.ADVANCED,
-                is_success=choices.YesNoChoices.YES
-            ).first()
-            if class_test_payment:
-                ctx['has_test_payment'] = True
-                ctx['test_dashboard_url'] = reverse('post_matric:tests')
-                ctx['test_name'] = 'Career Direction'
-        
-        # Also check for any successful payment (for backward compatibility)
+
+        if user_grade == "10" and basic_paid:
+            ctx['has_test_payment'] = True
+            ctx['test_dashboard_url'] = reverse('app:test_buttons')
+            ctx['test_name'] = 'Stream Sorter'
+        elif user_grade == "12" and advanced_paid:
+            ctx['has_test_payment'] = True
+            ctx['test_dashboard_url'] = reverse('post_matric:tests')
+            ctx['test_name'] = 'Career Direction'
+
+        # Legacy: any successful payment if class-specific row missing
         if successful_test_payment and not ctx['has_test_payment']:
             if successful_test_payment.test_type == choices.PsychometricTestType.BASIC:
                 ctx['test_dashboard_url'] = reverse('app:test_buttons')
                 ctx['test_name'] = 'Stream Sorter'
+                ctx['has_test_payment'] = True
             elif successful_test_payment.test_type == choices.PsychometricTestType.ADVANCED:
                 ctx['test_dashboard_url'] = reverse('post_matric:tests')
                 ctx['test_name'] = 'Career Direction'
+                ctx['has_test_payment'] = True
         ctx['test_buy_url_class10'] = reverse('psychometrictests:psychometrictest')
         # Class 12 students should redirect to post_matric tests dashboard
         ctx['test_buy_url_class12'] = reverse('post_matric:tests')
@@ -3699,44 +3871,46 @@ class UserDashboard(TemplateView):
         if ctx.get('test_name') == 'Career Direction' and ctx.get('test_dashboard_url'):
             try:
                 from app_post_matric.models import TestSession
-                test1_completed = TestSession.objects.filter(user=profile_user, test__id=1, is_completed=True).exists()
-                test2_completed = TestSession.objects.filter(user=profile_user, test__id=2, is_completed=True).exists()
-                test3_completed = TestSession.objects.filter(user=profile_user, test__id=3, is_completed=True).exists()
-                test4_completed = TestSession.objects.filter(user=profile_user, test__id=4, is_completed=True).exists()
-                if test1_completed and test2_completed and test3_completed and test4_completed:
+                done_ids = set(
+                    TestSession.objects.filter(
+                        user=profile_user,
+                        is_completed=True,
+                        test_id__in=[1, 2, 3, 4],
+                    ).values_list('test_id', flat=True).distinct()
+                )
+                if {1, 2, 3, 4}.issubset(done_ids):
                     combined_report_url = reverse('post_matric:combined_report', kwargs={'user_id': profile_user.id})
                     ctx['combined_report_url'] = combined_report_url
                     ctx['test_dashboard_url'] = combined_report_url
             except Exception:
                 pass
 
+        # Report URLs only (has_* flags unused on template; resolve_* checks presence).
         from users.parent_student_insights import (
             resolve_career_direction_report_url,
             resolve_stream_sorter_report_url,
-            student_has_class10_assessment,
-            student_has_class12_assessment,
         )
-        ctx['has_stream_sorter_reports'] = student_has_class10_assessment(profile_user)
-        ctx['has_career_direction_reports'] = student_has_class12_assessment(profile_user)
         ctx['stream_sorter_report_url'] = resolve_stream_sorter_report_url(profile_user, for_self=True)
         ctx['career_direction_report_url'] = resolve_career_direction_report_url(profile_user, for_self=True)
 
-        # User's invoices (for dashboard download)
-        try:
-            from invoices.models import Invoice
-            ctx['user_invoices'] = Invoice.objects.filter(payment__user=profile_user).order_by('-created')[:15]
-        except Exception:
-            ctx['user_invoices'] = []
-        
-        # ctc=CentralTestCandidate.objects.filter(user=request.user).last()
-        ctc=CentralTestCandidate.objects.filter(user=profile_user).last()
-        try:
-            ctc.last_test_is_success()
-            ctx['central_test_candidate']=ctc
-        except:
-            ctx['central_test_candidate']=False
+        # Invoices: Payment History view, not dashboard.
+
+        ctc = CentralTestCandidate.objects.filter(user=profile_user).last()
+        ctx['central_test_candidate'] = False
+        ctx['central_test_is_success'] = False
+        ctx['central_test_link'] = '#'
+        if ctc:
+            try:
+                # Evaluate once — template used to call last_test_is_success() repeatedly
+                # (and that method can write/update on miss).
+                ctx['central_test_is_success'] = bool(ctc.last_test_is_success())
+                ctx['central_test_link'] = ctc.get_test_report_or_test_link() or '#'
+                ctx['central_test_candidate'] = ctc
+            except Exception:
+                ctx['central_test_candidate'] = False
         ctx["html_head"] = self.html_head()
-        ctx["notes"] = _meaningful_user_notes_qs(profile_user)[:3]
+        notes_list = _meaningful_user_notes_qs(profile_user)
+        ctx["notes"] = notes_list[:3]
 
         # Dashboard statistics (trophies, points, streak, level) - for student dashboard
         try:
@@ -3764,24 +3938,8 @@ class UserDashboard(TemplateView):
             ctx['streak_details'] = {}
             ctx['level_details'] = {}
 
-        # Parent suggestions (show parent bookmarks/shortlists as suggestions to STUDENTS)
-        ctx["show_parent_suggestions"] = False
-        ctx["suggested_by_parents"] = []
-        ctx["parent_suggested_careers"] = []
-        ctx["parent_suggested_videos"] = []
-        ctx["parent_suggested_colleges"] = []
-        ctx["parent_suggested_blogs"] = []
-        try:
-            if (
-                request.user.is_authenticated
-                and request.user.user_type == choices.UserType.STUDENT
-                and not is_parent_view
-                and profile_user.id == request.user.id
-            ):
-                from users.parent_suggestions import load_all_parent_suggestions_for_student
-                ctx.update(load_all_parent_suggestions_for_student(request.user))
-        except Exception:
-            pass
+        # Parent suggestions: college/career/blog/video lists via
+        # apply_student_parent_suggestions_context (dashboard include is commented out).
 
         # Dashboard: College & Career Readiness (Skill Lab) + psychometric + MI/EQ
         ctx["dashboard_enrolled_items"] = []
@@ -3829,12 +3987,17 @@ class UserDashboard(TemplateView):
 
             mi_latest = MIAssessmentResult.objects.filter(user=profile_user).order_by("-updated_at").first()
             mi_done = mi_latest is not None
+            mi_url = reverse("core:multiple_intelligences_assessment")
+            # Parent viewing a linked student: open the same interactive report UI
+            # with that student's saved results (not the parent's empty test).
+            if is_parent_view and mi_done:
+                mi_url = f"{mi_url}?student_id={int(profile_user.id)}"
             ctx["dashboard_enrolled_items"].append(
                 {
                     "kind": "psychometric",
                     "title": "Multiple Intelligence",
                     "subtitle": "Know your learning style" if mi_done else "Assessment",
-                    "start_url": reverse("core:multiple_intelligences_assessment"),
+                    "start_url": mi_url,
                     "action_label": "View report" if mi_done else "Start test",
                     "action_variant": "report" if mi_done else "start",
                     "kind_badge": "FREE",
@@ -3852,12 +4015,15 @@ class UserDashboard(TemplateView):
 
             eq_latest = EQAssessmentResult.objects.filter(user=profile_user).order_by("-updated_at").first()
             eq_done = eq_latest is not None
+            eq_url = reverse("core:emotional_intelligences_assessment")
+            if is_parent_view and eq_done:
+                eq_url = f"{eq_url}?student_id={int(profile_user.id)}"
             ctx["dashboard_enrolled_items"].append(
                 {
                     "kind": "psychometric",
                     "title": "Emotional Intelligence",
                     "subtitle": "Know your EQ" if eq_done else "Assessment",
-                    "start_url": reverse("core:emotional_intelligences_assessment"),
+                    "start_url": eq_url,
                     "action_label": "View report" if eq_done else "Start test",
                     "action_variant": "report" if eq_done else "start",
                     "kind_badge": "FREE",
@@ -3870,7 +4036,7 @@ class UserDashboard(TemplateView):
             pass
 
         # Applications & resume hub (AdmitCV-inspired KPIs + planner widgets)
-        ctx.update(_hub_nav_counts(profile_user))
+        ctx.update(_hub_nav_counts(profile_user, notes_list=notes_list))
         try:
             hub_pc = int(profile_user.get_profile_completion_percentage() or 0)
         except Exception:
@@ -3912,7 +4078,39 @@ class UserDashboard(TemplateView):
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
 
     def get(self, request, *args, **kwargs):
-        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+        # Short per-user HTML cache: dashboard is read-heavy (~232KB Jinja).
+        # Skip when querystring present or registration welcome popup is pending.
+        cache_key = None
+        try:
+            from django.core.cache import cache
+
+            uid = int(getattr(request.user, "id", 0) or 0)
+            if (
+                uid
+                and not request.GET
+                and not request.session.get("show_registration_welcome_popup")
+            ):
+                cache_key = f"dash:html:v1:{uid}"
+                cached = cache.get(cache_key)
+                if cached:
+                    return HttpResponse(cached, content_type="text/html; charset=utf-8")
+        except Exception:
+            cache_key = None
+
+        ctx = self.get_context(request, *args, **kwargs)
+        response = render(request, self.template_name, ctx)
+        if (
+            cache_key
+            and response.status_code == 200
+            and not ctx.get("show_registration_welcome_popup")
+        ):
+            try:
+                from django.core.cache import cache
+
+                cache.set(cache_key, response.content, 45)
+            except Exception:
+                pass
+        return response
         
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
@@ -3961,21 +4159,6 @@ class UserFeeds(TemplateView):
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
 
-class Welcomepage(TemplateView):
-    template_name="template20/user/welcome.html"
-
-    def html_head(self):
-        name='Welcome'
-        return build_html_head(title=name, description=name)
-
-    def get_context(self,request,*args,**kwargs):
-        ctx={}
-        ctx["html_head"] = self.html_head()
-        return ctx
-
-    def get(self, request, *args, **kwargs):
-        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
-
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 class Scrapbook(TemplateView):
     template_name="template20/user/scrapbook.html"
@@ -4016,13 +4199,97 @@ class MyNotePad(TemplateView):
     def get_context(self,request,*args,**kwargs):
         ctx={}
         ctx["html_head"] = self.html_head()
-        ctx['breadcrumb']=self.__breadcrumb()
+        is_parent = getattr(request.user, "user_type", None) == choices.UserType.PARENT
+        ctx["is_parent_shell"] = is_parent
+        if is_parent:
+            ctx["breadcrumb"] = get_breadcrumb([
+                {"title": "Parent Dashboard", "text": "Parent Dashboard", "url": reverse_lazy("parents_dashboard")},
+                {"title": "My Notebook", "text": "My Notebook", "url": ""},
+            ])
+            ctx["notepad_back_url"] = reverse_lazy("parents_dashboard")
+        else:
+            ctx["breadcrumb"] = self.__breadcrumb()
+            ctx["notepad_back_url"] = reverse_lazy("users:scrapbook")
         ctx['notes'] = _meaningful_user_notes_qs(request.user)
         return ctx
 
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, self.get_context(request, *args, **kwargs))
 
+
+class QuickNoteAPIView(APIView):
+    """JSON list / create / update / delete for the in-page notebook drawer."""
+
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [
+        authentication.SessionAuthentication,
+        authentication.TokenAuthentication,
+    ]
+
+    def _serialize(self, note):
+        from django.utils.html import strip_tags
+        from django.utils.formats import date_format as dj_date_format
+
+        body = strip_tags(note.content or "").replace("\xa0", " ").strip()
+        title = (note.title or "").strip()
+        modified = ""
+        try:
+            modified = dj_date_format(note.modified, "M j, Y, g:i a")
+        except Exception:
+            modified = str(getattr(note, "modified", "") or "")
+        return {
+            "id": note.id,
+            "title": title,
+            "content": body,
+            "preview": (body[:160] + "…") if len(body) > 160 else body,
+            "modified": modified,
+        }
+
+    def get(self, request, *args, **kwargs):
+        notes = [self._serialize(n) for n in _meaningful_user_notes_qs(request.user)]
+        return Response({"success": True, "notes": notes}, status=status.HTTP_200_OK)
+
+    def post(self, request, *args, **kwargs):
+        from django.utils.html import strip_tags
+
+        data = request.data if hasattr(request, "data") else request.POST
+        raw_id = data.get("id") if data.get("id") not in (None, "") else data.get("obj_id")
+        try:
+            obj_id = int(raw_id) if raw_id not in (None, "") else None
+        except (TypeError, ValueError):
+            obj_id = None
+        title = (data.get("title") or "").strip()
+        content = strip_tags(str(data.get("content") or "")).replace("\xa0", " ").strip()
+        action = (data.get("action") or "save").strip().lower()
+
+        if action == "delete":
+            if not obj_id:
+                return Response(
+                    {"success": False, "message": "Note id required."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            note = get_object_or_404(UserNote, id=obj_id, user=request.user)
+            note.delete()
+            return Response({"success": True, "message": "Note deleted."}, status=status.HTTP_200_OK)
+
+        if not title and not content:
+            return Response(
+                {"success": False, "message": "Type a note before saving."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if obj_id:
+            note = get_object_or_404(UserNote, id=obj_id, user=request.user)
+        else:
+            note = UserNote(user=request.user)
+
+        note.title = title or None
+        note.content = content
+        note.save()
+        return Response(
+            {"success": True, "message": "Note saved.", "note": self._serialize(note)},
+            status=status.HTTP_200_OK,
+        )
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
 class CreateNote(TemplateView):
     template_name="template20/user/create_note.html"
@@ -4034,6 +4301,8 @@ class CreateNote(TemplateView):
     def get_context(self,request,id,*args,**kwargs):
         ctx={}
         ctx["html_head"] = self.html_head()
+        is_parent = getattr(request.user, "user_type", None) == choices.UserType.PARENT
+        ctx["is_parent_shell"] = is_parent
         if id:
             note=get_object_or_404(UserNote,id=id,user=request.user)
         else:
@@ -4118,7 +4387,7 @@ class UserColleges(TemplateView):
         return build_html_head(title=name, description=name)
 
     def get_context(self,request,*args,**kwargs):
-        from colleges.models import CollegeShortlist
+        from colleges.models import CollegeShortlist, IndianCollegeShortlist
         ctx={}
         ctx["html_head"] = self.html_head()
         user_ids = _bookmark_owner_user_ids(request.user)
@@ -4131,6 +4400,28 @@ class UserColleges(TemplateView):
                 colleges.append(cs.college)
                 seen.add(cs.college_id)
         ctx["colleges"] = colleges
+        indian_shortlists = list(
+            IndianCollegeShortlist.objects.filter(user_id__in=user_ids)
+            .only(
+                "id",
+                "external_college_id",
+                "name",
+                "city_name",
+                "state_name",
+                "college_type",
+                "avg_fees",
+            )
+            .order_by("-id")
+        )
+        # Dedupe by external id across linked accounts
+        seen_indian = set()
+        indian_colleges = []
+        for item in indian_shortlists:
+            if item.external_college_id in seen_indian:
+                continue
+            seen_indian.add(item.external_college_id)
+            indian_colleges.append(item)
+        ctx["indian_colleges"] = indian_colleges
         ctx['breadcrumb']=self.__breadcrumb()
         from users.parent_suggestions import (
             apply_scrapbook_parent_updates_context,
@@ -4259,7 +4550,7 @@ def _meaningful_user_notes_qs(user):
     return [note for note in candidates if _note_has_meaningful_content(note.title, note.content)]
 
 
-def _hub_nav_counts(user):
+def _hub_nav_counts(user, notes_list=None):
     """Sidebar badge counts (mirrors UserDashboard resume/shortlist/notes slice)."""
     ctx = {
         "hub_shortlist_count": 0,
@@ -4282,17 +4573,30 @@ def _hub_nav_counts(user):
     except Exception:
         pass
     try:
-        ctx["hub_notes_count"] = len(_meaningful_user_notes_qs(user))
+        if notes_list is not None:
+            ctx["hub_notes_count"] = len(notes_list)
+        else:
+            ctx["hub_notes_count"] = len(_meaningful_user_notes_qs(user))
     except Exception:
         pass
     try:
+        from django.core.cache import cache
+
         from users.parent_suggestions import (
             ensure_parent_suggestion_notifications,
             get_scrapbook_unread_total,
         )
 
+        # Notification backfill is write-heavy; do it at most once per few minutes.
         if getattr(user, "user_type", None) == choices.UserType.STUDENT:
-            ensure_parent_suggestion_notifications(user)
+            uid = int(getattr(user, "id", 0) or 0)
+            gate_key = f"hub:parent_sugg_ensured:v1:{uid}" if uid else None
+            if gate_key and not cache.get(gate_key):
+                ensure_parent_suggestion_notifications(user)
+                try:
+                    cache.set(gate_key, 1, 300)
+                except Exception:
+                    pass
         ctx["hub_scrapbook_unread_count"] = get_scrapbook_unread_total(user)
     except Exception:
         pass
@@ -4350,8 +4654,25 @@ class ResumeHubCreateView(View):
             from urllib.parse import urlencode
 
             return redirect(f"{reverse('users:resumebuilder_classic')}?{urlencode({'draft_title': title})}")
+        from core.ai_feature_quota import (
+            FEATURE_RESUME_CREATE,
+            AIFeatureQuotaExceeded,
+            consume_feature,
+            ensure_can_use_feature,
+            shop_url,
+        )
+
+        try:
+            ensure_can_use_feature(request.user, FEATURE_RESUME_CREATE, request=request)
+        except AIFeatureQuotaExceeded:
+            messages.error(request, "AI tokens need to recharge — Buy now.")
+            return redirect(shop_url())
         nxt = (request.POST.get("next") or "studio").strip().lower()
         resume = UserResume.objects.create(user=request.user, title=title)
+        try:
+            consume_feature(request.user, FEATURE_RESUME_CREATE, request=request)
+        except Exception:
+            pass
         from .resume_profile_store import bootstrap_user_resume_from_profile
 
         bootstrap_user_resume_from_profile(request.user, resume)
@@ -4423,6 +4744,19 @@ class ResumeHubDuplicateView(View):
         if not src:
             messages.error(request, "Resume not found.")
             return redirect("users:resume_v2_dashboard")
+        from core.ai_feature_quota import (
+            FEATURE_RESUME_CREATE,
+            AIFeatureQuotaExceeded,
+            consume_feature,
+            ensure_can_use_feature,
+            shop_url,
+        )
+
+        try:
+            ensure_can_use_feature(request.user, FEATURE_RESUME_CREATE, request=request)
+        except AIFeatureQuotaExceeded:
+            messages.error(request, "AI tokens need to recharge — Buy now.")
+            return redirect(shop_url())
         title = (request.POST.get("title") or "").strip()[:120]
         raw_snap = (request.POST.get("studio_snapshot_json") or "").strip()
         if raw_snap:
@@ -4455,6 +4789,10 @@ class ResumeHubDuplicateView(View):
                         wizard_draft_json=wiz_out,
                     )
                     apply_studio_resume_to_userresume_children(nr, rd)
+                try:
+                    consume_feature(request.user, FEATURE_RESUME_CREATE, request=request)
+                except Exception:
+                    pass
                 messages.success(
                     request,
                     "Saved a new copy with your studio layout and content.",
@@ -4474,6 +4812,10 @@ class ResumeHubDuplicateView(View):
                 wizard_draft_json=src.wizard_draft_json,
             )
             _duplicate_user_resume_children(src, nr)
+        try:
+            consume_feature(request.user, FEATURE_RESUME_CREATE, request=request)
+        except Exception:
+            pass
         messages.success(request, "Saved a fresh copy of your resume. You can edit it below.")
         return redirect("users:resume_v2_studio", resume_id=nr.pk)
 
@@ -4700,8 +5042,24 @@ class ResumeGuidedGenerateView(View):
         if studio_tid and studio_tid not in ALLOWED_STUDIO_HTML_TEMPLATE_KEYS:
             studio_tid = ""
 
-        raw, err = generate_resume_raw(draft, studio_template_id=studio_tid or None)
+        raw, err = generate_resume_raw(
+            draft,
+            studio_template_id=studio_tid or None,
+            user=request.user,
+            request=request,
+        )
         if err:
+            if str(err).startswith("QUOTA:"):
+                from core.ai_feature_quota import (
+                    FEATURE_RESUME_AI,
+                    AIFeatureQuotaExceeded,
+                    build_locked_payload,
+                    feature_quota_error_response,
+                )
+
+                return feature_quota_error_response(
+                    AIFeatureQuotaExceeded(build_locked_payload(FEATURE_RESUME_AI))
+                )
             logger.warning("resume_guided_generate failed: %s", err[:500])
             return JsonResponse({"error": err}, status=503)
 

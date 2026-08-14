@@ -1,13 +1,29 @@
 {% extends 'template20/user/student_base.html' %}
 
-{% block title_content %}Resume Builder | Top Teen{% endblock %}
+{% block title_content %}Resume Builder | TopTeen{% endblock %}
 {% block description_content %}Build ATS-friendly resumes with AI assistance.{% endblock %}
 {% block student_bodyclass %}user-dashboard user-dashboard-fullscreen{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
-<link rel="stylesheet" href="{{ static('resume-builder-v2/styles.css') }}?v=11">
+<link rel="stylesheet" href="{{ static('resume-builder-v2/styles.css') }}?v=12">
 <link rel="stylesheet" href="{{ static('resume-builder-v2/messages.css') }}?v=3">
+<link
+  rel="preload"
+  as="image"
+  type="image/webp"
+  href="{{ static('images_new/general/resume-hero-sm.webp') }}?v=opt1"
+  media="(max-width: 768px)"
+  fetchpriority="high"
+>
+<link
+  rel="preload"
+  as="image"
+  type="image/webp"
+  href="{{ static('images_new/general/resume-hero-md.webp') }}?v=opt1"
+  media="(min-width: 769px)"
+  fetchpriority="high"
+>
 {% endblock %}
 
 {% block student_shell_vars %}
@@ -46,14 +62,28 @@
         </div>
       </div>
       <div class="rb2-hero__media" aria-hidden="true">
-        <img
-          class="rb2-hero__img"
-          src="{{ static('images_new/general/resume-hero.png') }}"
-          alt=""
-          width="320"
-          height="320"
-          loading="eager"
-        >
+        <picture>
+          <source
+            type="image/webp"
+            media="(max-width: 768px)"
+            srcset="{{ static('images_new/general/resume-hero-sm.webp') }}?v=opt1"
+          >
+          <source
+            type="image/webp"
+            media="(min-width: 769px)"
+            srcset="{{ static('images_new/general/resume-hero-md.webp') }}?v=opt1 1x, {{ static('images_new/general/resume-hero.webp') }}?v=opt1 2x"
+          >
+          <img
+            class="rb2-hero__img"
+            src="{{ static('images_new/general/resume-hero.png') }}?v=opt1"
+            alt=""
+            width="320"
+            height="320"
+            loading="eager"
+            decoding="async"
+            fetchpriority="high"
+          >
+        </picture>
       </div>
     </div>
   </section>
@@ -214,14 +244,11 @@
         <span class="rb2-resume-card__meta-name" title="{{ card.resume.title|default('Untitled resume') }}">{{ card.resume.title|default('Untitled resume') }}</span>
       </div>
       <div class="rb2-resume-card__preview">
-        <iframe
-          class="rb2-resume-card__iframe"
-          title="Preview of {{ card.resume.title|default('resume') }}"
-          src="{{ card.preview_url }}"
-          loading="lazy"
-          tabindex="-1"
-        ></iframe>
-        <a href="{{ card.preview_url }}" target="_blank" class="rb2-resume-card__preview-link" title="Open full preview">
+        {# Cached CSS silhouette — avoids loading a full preview iframe per card (mobile + desktop). #}
+        <div class="rb2-resume-card__thumb" aria-hidden="true">
+          <span class="{{ card.thumb_class }} rb2-resume-card__thumb-mock"></span>
+        </div>
+        <a href="{{ card.preview_url }}" target="_blank" rel="noopener" class="rb2-resume-card__preview-link" title="Open full preview">
           <i class='bx bx-expand-alt'></i>
         </a>
       </div>
@@ -265,10 +292,18 @@
     </div>
     {% endfor %}
 
+    {% if resume_create_locked %}
+    <a href="{{ ai_quota_shop_url|default('/ai-tokens/') }}" class="rb2-new-card rb2-new-card--locked" aria-label="Recharge to create a new resume">
+      <i class='bx bx-info-circle' style="font-size:2rem;margin-bottom:8px"></i>
+      <span>New Resume</span>
+      <small class="d-block mt-2 px-2" style="font-size:12px;line-height:1.35;opacity:.9">{{ ai_quota_recharge_message|default('AI tokens need to recharge — Buy now.') }}</small>
+    </a>
+    {% else %}
     <button type="button" class="rb2-new-card" data-bs-toggle="modal" data-bs-target="#rb2CreateModal" aria-label="Create new resume">
       <i class='bx bx-plus-circle' style="font-size:2rem;margin-bottom:8px"></i>
       <span>New Resume</span>
     </button>
+    {% endif %}
   </div>
 
   {% if not resume_cards %}

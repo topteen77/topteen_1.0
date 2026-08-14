@@ -338,6 +338,64 @@ python manage.py collectstatic --noinput
 # Worker tuning: GUNICORN_WORKERS, GUNICORN_THREADS, CELERY_CONCURRENCY, DB_CONN_MAX_AGE in .env (see docker/.env.example).
 
 
+===================================================
+--- Docker vs installed (production check) ---
+# Full doc: docker-vs-installed.md (project root).
+# Goal: tell whether www.topteen.in is served by Docker (Option A) or legacy systemd/gunicorn.
+# Run on the production host from project root (e.g. ~/git-project/topteen_1.0).
+
+---------- QUICK COMPARISON ----------
+# Docker:  sites-enabled has topteens-docker; proxy_pass → 127.0.0.1:8090; port 8090 up; containers Up; systemd unit inactive
+# Installed: sites-enabled has topteens (not .off); proxy_pass → unix gunicorn sock; topteen-in-prod-website active
+
+---------- 1. WHICH NGINX SITE ----------
+ls -l /etc/nginx/sites-enabled/ | grep -E 'topteen|topteens'
+grep -E 'proxy_pass|server_name' /etc/nginx/sites-enabled/topteens-docker 2>/dev/null
+grep -E 'proxy_pass|server_name' /etc/nginx/sites-enabled/topteens 2>/dev/null
+# topteens-docker + proxy_pass http://127.0.0.1:8090  → Docker
+# topteens + unix socket proxy                         → installed
+# Repo template: docker_files/nginx/production.conf → /etc/nginx/sites-available/topteens-docker
+
+---------- 2. DOCKER UP ON 8090? ----------
+./docker_files/deploy.sh status
+# or: docker compose -f docker_files/docker-compose.yml --env-file docker_files/.env ps
+ss -ltnp | grep -E ':8090|:8000'
+curl -sI http://127.0.0.1:8090/ | head -5
+# Containers Up + :8090 listening + curl headers → Docker serving
+# Nothing on 8090 → nginx may point at Docker but stack is down (./docker_files/deploy.sh up)
+# Option A: APP_PORT=8090, SSL_MODE=off (host nginx TLS). Do not use 8080 on this host.
+
+---------- 3. OLD SYSTEMD SERVICE ----------
+systemctl is-active topteen-in-prod-website.service topteen-in-prod-website.socket
+systemctl is-enabled topteen-in-prod-website.service topteen-in-prod-website.socket
+# inactive/disabled → installed stack off; active → still running
+# Stop when fully on Docker:
+#   sudo systemctl stop topteen-in-prod-website.socket topteen-in-prod-website.service
+#   sudo systemctl disable topteen-in-prod-website.socket topteen-in-prod-website.service
+
+---------- 4. ONE-LINER VERDICT ----------
+echo "=== nginx site ==="; ls /etc/nginx/sites-enabled/ | grep -E 'topteen'
+echo "=== proxy ==="; grep -h proxy_pass /etc/nginx/sites-enabled/topteens* 2>/dev/null | head -5
+echo "=== port 8090 ==="; ss -ltn | grep 8090 || echo "8090 not listening"
+echo "=== systemd ==="; systemctl is-active topteen-in-prod-website.service 2>/dev/null
+echo "=== docker ==="; docker ps --format '{{.Names}} {{.Status}}' | grep -i topteen || echo "no topteen containers"
+
+---------- SWITCH / ROLLBACK (SUMMARY) ----------
+# Point traffic at Docker (stack already up on 8090):
+#   sudo cp docker_files/nginx/production.conf /etc/nginx/sites-available/topteens-docker
+#   sudo ln -sf /etc/nginx/sites-available/topteens-docker /etc/nginx/sites-enabled/topteens-docker
+#   sudo mv /etc/nginx/sites-enabled/topteens /etc/nginx/sites-enabled/topteens.off
+#   sudo nginx -t && sudo systemctl reload nginx
+#   then stop/disable topteen-in-prod-website.socket + .service
+# Rollback to installed:
+#   sudo mv /etc/nginx/sites-enabled/topteens.off /etc/nginx/sites-enabled/topteens
+#   sudo rm -f /etc/nginx/sites-enabled/topteens-docker
+#   sudo nginx -t && sudo systemctl reload nginx
+#   sudo systemctl enable --now topteen-in-prod-website.socket topteen-in-prod-website.service
+# Conflicting server_name warnings for other canamacademy sites are unrelated if nginx -t succeeds.
+===================================================
+
+
 --- Entrance Exam (Test Prep) commands ---
 # Data lives under core: EntranceTestPrepCategory (levels: After 10 / After 12 / After Graduation), EntranceTestPrepExam, EntranceTestPrepExamSection.
 # Workflow: (1) Convert .docx → HTML .txt, (2) Import .txt into DB, (3) Optionally upload category images.
@@ -924,3 +982,227 @@ npm run electron:build   # sync + desktop installer
 # [ ] Apple Developer account + provisioning profiles
 
 ---------- END WHITE-LABEL HYBRID APP ----------
+
+===================================================
+--- Git Version Release (v1.0) ---
+# How to create, tag, verify, and ship a versioned release from master.
+# Run all commands from the project root (git repo root).
+# Reference build notes: BUILD_NOTES_v1.0.txt , BUILD_NOTES_v1.1.txt
+===================================================
+
+---------- OVERVIEW ----------
+# IMPORTANT: A git TAG is not the same as a GitHub RELEASE.
+#   - git tag / git push origin v1.0  -> appears under repo "Tags"
+#   - gh release create v1.0 ...      -> appears under repo "Releases"
+#   The Releases page stays empty until you run `gh release create` (or use
+#   the green "Create a new release" button on GitHub).
+#
+# Release model used for TopTeen 1.0:
+#   1. Stabilize code on master
+#   2. Add / update BUILD_NOTES_vX.Y.txt
+#   3. Commit release notes on master
+#   4. Create an annotated git tag (vX.Y)
+#   5. Push master + tags to origin
+#   6. Create the GitHub Release from that tag (required for /releases page)
+#   7. Deploy from the tag (or from master at that commit)
+
+---------- COMPLETE COMMANDS STEP BY STEP (v1.0) ----------
+
+Step 1. Switch to master and sync with remote:
+   git checkout master
+   git pull origin master
+   git status
+
+Step 2. Confirm the commit you want to release (optional):
+   git log -1 --oneline
+   git rev-parse HEAD
+
+Step 3. Add / update build notes (already done for v1.0):
+   # File: BUILD_NOTES_v1.0.txt
+   # Edit features, known issues, and deploy notes as needed.
+
+Step 4. Stage and commit release notes (if not already committed):
+   git add BUILD_NOTES_v1.0.txt readme.txt
+   git commit -m "$(cat <<'EOM'
+Release v1.0: add build notes and git version release docs.
+
+EOM
+)"
+
+Step 5. Create an annotated tag on the current master commit:
+   git tag -a v1.0 -m "$(cat <<'EOM'
+TopTeen v1.0 release
+
+Stable master cut with student/institute/counselor/parent flows,
+psychometric reports, Skill Lab, resume builder, PWA, performance
+optimizations, admin service monitor, and Docker deploy stack.
+
+See BUILD_NOTES_v1.0.txt for full feature list.
+EOM
+)"
+
+Step 6. Verify the tag:
+   git tag -l 'v1.0*'
+   git show v1.0 --no-patch
+   git describe --tags --abbrev=0
+
+Step 7. Push master and the tag to origin:
+   git push origin master
+   git push origin v1.0
+   # Or push all tags:
+   # git push origin --tags
+
+Step 8. Create the GitHub Release (this is what fills the Releases page):
+   gh release create v1.0 \
+     --repo topteen77/topteen_1.0 \
+     --title "TopTeen v1.0" \
+     --notes-file BUILD_NOTES_v1.0.txt \
+     --target master
+   # Verify:
+   gh release view v1.0 --repo topteen77/topteen_1.0
+   # Browser: https://github.com/topteen77/topteen_1.0/releases/tag/v1.0
+
+Step 9. Checkout / deploy from the release tag:
+   git fetch --tags
+   git checkout v1.0
+   # Deploy using your usual path, e.g.:
+   # ./deploy/deploy.sh production status
+   # ./deploy/deploy.sh production deploy
+
+Step 10. Return to development branch when done:
+   git checkout master
+   # or: git checkout institutedashboard
+
+---------- END STEP BY STEP (v1.0) ----------
+
+---------- CREATE A LATER RELEASE (v1.1, v2.0, ...) ----------
+# Repeat the same pattern with a new version number:
+
+git checkout master
+git pull origin master
+
+# 1) Write notes
+#    cp BUILD_NOTES_v1.0.txt BUILD_NOTES_v1.1.txt
+#    # edit BUILD_NOTES_v1.1.txt
+
+# 2) Commit
+git add BUILD_NOTES_v1.1.txt
+git commit -m "Release v1.1: add build notes."
+
+# 3) Annotated tag
+git tag -a v1.1 -m "TopTeen v1.1 release — see BUILD_NOTES_v1.1.txt"
+
+# 4) Push
+git push origin master
+git push origin v1.1
+
+# 5) GitHub Release (required for Releases tab)
+gh release create v1.1 \
+  --repo topteen77/topteen_1.0 \
+  --title "TopTeen v1.1" \
+  --notes-file BUILD_NOTES_v1.1.txt \
+  --target master
+
+---------- USEFUL RELEASE COMMANDS (REFERENCE) ----------
+# List GitHub releases
+gh release list --repo topteen77/topteen_1.0
+
+# View / edit a release
+gh release view v1.0 --repo topteen77/topteen_1.0
+# gh release edit v1.0 --notes-file BUILD_NOTES_v1.0.txt
+
+# List all version tags
+git tag -l 'v*'
+
+# Show which commit a tag points to
+git rev-list -n 1 v1.0
+git log -1 --oneline v1.0
+
+# Diff between two releases
+git log --oneline v1.0..v1.1
+git diff v1.0..v1.1 --stat
+
+# Checkout code at a release (detached HEAD — fine for deploy/build)
+git checkout v1.0
+
+# Create a release branch from a tag (optional hotfix base)
+git checkout -b release/v1.0 v1.0
+
+# Delete a local tag (only if created by mistake; do NOT delete published tags casually)
+git tag -d v1.0
+
+# Delete a remote tag (dangerous — coordinate with team first)
+# git push origin --delete v1.0
+
+# Move a tag to a new commit (avoid on shared releases; prefer v1.0.1)
+# git tag -d v1.0
+# git tag -a v1.0 -m "TopTeen v1.0 release (retagged)"
+# git push origin v1.0 --force
+
+---------- RELEASE CHECKLIST ----------
+# [ ] All intended features merged into master
+# [ ] Working tree clean (or only intentional release-note changes)
+# [ ] BUILD_NOTES_vX.Y.txt updated
+# [ ] Annotated tag created (git tag -a ...)
+# [ ] Tag and master pushed to origin
+# [ ] GitHub Release created (gh release create ...) — Releases page is not empty
+# [ ] Deploy / smoke-test from the tag
+# [ ] Announce release + point to BUILD_NOTES_vX.Y.txt
+
+---------- END GIT VERSION RELEASE ----------
+
+===================================================
+--- Git Production Release (production-1.0) ---
+# Separate from product tags v1.0 / v1.1.
+# Production cut for live topteen.in — tag production-X.Y + GitHub Release.
+# Notes file: BUILD_NOTES_PRODUCTION_1.0.txt
+===================================================
+
+---------- OVERVIEW ----------
+# Product tags (v1.0, v1.1)     = version history on master
+# Production tags (production-1.0) = approved LIVE deploy baseline
+# Always:
+#   1) commit BUILD_NOTES_PRODUCTION_X.Y.txt
+#   2) annotated tag production-X.Y
+#   3) fast-forward branch "production" to that commit
+#   4) push branch + tag
+#   5) gh release create (Releases page)
+
+---------- COMPLETE COMMANDS (production-1.0) ----------
+
+Step 1. On master, add production notes and commit:
+   git checkout master
+   git pull origin master
+   git add BUILD_NOTES_PRODUCTION_1.0.txt readme.txt
+   git commit -m "Release production-1.0: production cut notes and checklist."
+
+Step 2. Annotated production tag:
+   git tag -a production-1.0 -m "TopTeen Production 1.0 — see BUILD_NOTES_PRODUCTION_1.0.txt"
+
+Step 3. Align production branch (fast-forward only):
+   git checkout production
+   git merge --ff-only master
+   git push origin master
+   git push origin production
+   git push origin production-1.0
+
+Step 4. GitHub Release (shows under Releases):
+   gh release create production-1.0 \
+     --repo topteen77/topteen_1.0 \
+     --title "TopTeen Production 1.0" \
+     --notes-file BUILD_NOTES_PRODUCTION_1.0.txt \
+     --target production
+
+Step 5. Deploy from the production tag:
+   git fetch --tags
+   git checkout production-1.0
+   ./deploy/deploy.sh production status
+   ./deploy/deploy.sh production app deploy
+   # or full: ./deploy/deploy.sh production up
+
+---------- VERIFY ----------
+gh release view production-1.0 --repo topteen77/topteen_1.0
+git show production-1.0 --no-patch
+# Browser: https://github.com/topteen77/topteen_1.0/releases/tag/production-1.0
+
+---------- END PRODUCTION RELEASE ----------

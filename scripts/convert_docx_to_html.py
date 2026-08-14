@@ -16,7 +16,7 @@ import html
 import base64
 import string
 from pathlib import Path
-from typing import List, Tuple, Optional
+from typing import BinaryIO, List, Optional, Tuple, Union
 
 from docx import Document
 from docx.shared import Pt
@@ -624,13 +624,38 @@ def image_to_data_uri(part, rel) -> str:
 # ----------------------------------------------------------------------
 # Main conversion
 # ----------------------------------------------------------------------
-def convert_docx_to_html(docx_path: Path) -> Optional[str]:
+def convert_docx_to_html(
+    docx_source: Union[Path, str, BinaryIO],
+    *,
+    filename: Optional[str] = None,
+) -> Optional[str]:
+    """
+    Convert a .docx to HTML.
+
+    docx_source may be:
+    - Path / str: path on disk (CLI / batch use)
+    - BinaryIO / file-like: in-memory stream (admin upload — no disk write)
+    """
+    label = filename or "document"
     try:
-        if DEBUG_HEADINGS:
-            print(f"\n--- DEBUG_HEADINGS: {docx_path.name} ---")
-        doc = Document(str(docx_path))
-        filename = docx_path.stem
-        builder = HTMLBuilder(filename)
+        if hasattr(docx_source, "read"):
+            stream = docx_source
+            if hasattr(stream, "seek"):
+                try:
+                    stream.seek(0)
+                except Exception:
+                    pass
+            doc = Document(stream)
+            if not filename and getattr(stream, "name", None):
+                label = Path(str(stream.name)).stem or label
+        else:
+            path = Path(docx_source)
+            if DEBUG_HEADINGS:
+                print(f"\n--- DEBUG_HEADINGS: {path.name} ---")
+            doc = Document(str(path))
+            label = path.stem
+
+        builder = HTMLBuilder(label)
 
         for block in doc.element.body:
             if block.tag.endswith("p"):
@@ -655,7 +680,7 @@ def convert_docx_to_html(docx_path: Path) -> Optional[str]:
         return html_out
 
     except Exception as e:
-        print(f"Error processing {docx_path}: {e}")
+        print(f"Error processing {label}: {e}")
         return None
 
 

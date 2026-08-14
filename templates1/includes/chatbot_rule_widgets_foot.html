@@ -38,11 +38,22 @@
   } catch (e) {}
 })();
 </script>
+<script>
+  window.AIFeatureQuotaConfig = {
+    statusUrl: "{% url 'core:ai_feature_quota_status' %}",
+    consumeUrl: "{% url 'core:ai_feature_quota_consume' %}",
+    shopUrl: "{% url 'core:llm_token_packages' %}",
+    csrfToken: "{{ csrf_token }}",
+    message: "AI tokens need to recharge — Buy now.",
+    ctaLabel: "Buy now"
+  };
+</script>
+<script src="{% static 'js_new/ai-feature-quota.js' %}?v=2"></script>
 {% if show_page_chat_widget and show_ai_counsellor_bot %}
-<script src="{% static 'js_new/page-chat-widget.js' %}?v=20260326"></script>
-<script src="{% static 'js_new/chatbot-widget.js' %}?v=20260326"></script>
+<script src="{% static 'js_new/page-chat-widget.js' %}?v=20260728-kb2"></script>
+<script src="{% static 'js_new/chatbot-widget.js' %}?v=20260728-kb2"></script>
 {% else %}
-{% if show_ai_counsellor_bot %}<script src="{% static 'js_new/chatbot-widget.js' %}?v=20260326"></script>{% endif %}
-{% if show_page_chat_widget %}<script src="{% static 'js_new/page-chat-widget.js' %}?v=20260326"></script>{% endif %}
+{% if show_ai_counsellor_bot %}<script src="{% static 'js_new/chatbot-widget.js' %}?v=20260728-kb2"></script>{% endif %}
+{% if show_page_chat_widget %}<script src="{% static 'js_new/page-chat-widget.js' %}?v=20260728-kb2"></script>{% endif %}
 {% endif %}
 {% endif %}

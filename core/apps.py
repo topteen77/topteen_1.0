@@ -10,6 +10,16 @@ class CoreConfig(AppConfig):
 
     def ready(self):
         import logging
+        import os
+
+        # Force headless matplotlib before any pyplot use (PDF/graph generation).
+        os.environ.setdefault("MPLBACKEND", "Agg")
+        try:
+            import matplotlib
+
+            matplotlib.use("Agg", force=True)
+        except Exception:
+            logger.exception("Failed to set matplotlib Agg backend")
 
         for noisy_logger in ('matplotlib', 'PIL', 'urllib3', 'botocore', 'boto3'):
             logging.getLogger(noisy_logger).setLevel(logging.WARNING)

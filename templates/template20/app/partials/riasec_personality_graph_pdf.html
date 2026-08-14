@@ -1,5 +1,5 @@
 {% if user_name and user_ID %}
 <div class="report-graph-block">
-  <img  style="width:550px;" src="{{ graph_image_media_url(user_name, user_ID, 'personality') }}" alt="Personality assessment graph" />
+  <img style="width:100%; max-width:480px;" src="{{ graph_image_media_url(user_name, user_ID, 'personality') }}" alt="Personality assessment graph" />
 </div>
 {% endif %}

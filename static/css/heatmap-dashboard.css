@@ -284,6 +284,21 @@
     overflow-x: auto;
 }
 
+/* Overlay only while heatmap AJAX is pending — does not block the fetch. */
+#heatmap-grid-container .ttv2-heatmap-ajax-loader {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.72);
+    pointer-events: none;
+}
+html[data-ttv2-theme="dark"] #heatmap-grid-container .ttv2-heatmap-ajax-loader {
+    background: rgba(15, 23, 42, 0.55);
+}
+
 .heatmap-table {
     width: 100%;
     border-collapse: collapse;

@@ -10,6 +10,10 @@
   pointer-events: none;
 }
 
+.rb2-modal__foot button {
+  font-family: "Space Grotesk", serif !important;
+}
+
 .rb2-toast {
   display: flex;
   align-items: flex-start;

@@ -1,6 +1,6 @@
 {% extends "template20/user/student_base.html" %}
 
-{% block title_content %}Education Loan Calculator | Top Teen{% endblock %}
+{% block title_content %}Education Loan Calculator | TopTeen{% endblock %}
 {% block description_content %}Estimate education loan EMI with moratorium interest loading.{% endblock %}
 {% block student_bodyclass %}user-dashboard user-dashboard-fullscreen{% endblock %}
 
@@ -308,6 +308,45 @@
     display: block;
   }
 
+  .loan-callback-picker {
+    position: relative;
+  }
+
+  .loan-callback-picker-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    text-align: left;
+    background: #fff;
+    color: #1f2937;
+  }
+
+  .loan-callback-picker-toggle.is-placeholder {
+    color: #6b7280;
+  }
+
+  .loan-callback-picker-panel {
+    margin-top: 8px;
+    padding: 12px;
+    border: 1px solid #d6ddf6;
+    border-radius: 12px;
+    background: #f8faff;
+  }
+
+  .loan-callback-picker-panel .loan-callback-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .loan-callback-picker-panel .loan-callback-actions .loan-btn {
+    min-height: 36px;
+    padding: 7px 14px;
+    flex: 1;
+  }
+
   .loan-suggest-wrap {
     position: relative;
   }
@@ -450,7 +489,7 @@
           </div>
           <div class="col-12 col-md-3">
             <label class="form-label fs-12 text-muted" for="interestRate">Interest Rate % (Annual)</label>
-            <input type="number" class="form-control" id="interestRate" placeholder="10.5" min="0.1" max="30" step="0.01" required>
+            <input type="number" class="form-control" id="interestRate" placeholder="6.75" min="0.1" max="30" step="0.1" value="6.75" required>
             <div class="invalid-feedback" id="interestRateError">Enter an annual interest rate between 0.1% and 30%.</div>
           </div>
           <div class="col-12 col-md-3">
@@ -537,7 +576,8 @@
             </div>
             <div class="col-12 col-md-6">
               <label class="form-label" for="loanMobile">Mobile Number</label>
-              <input type="tel" class="form-control" id="loanMobile" placeholder="10 digit mobile number" value="{{ request.user.mobile|default('') }}" inputmode="numeric" aria-describedby="loanMobileError">
+              {% set parent_mobile_digits = (request.user.mobile|default('')|string)|replace('None','')|replace('none','') %}
+              <input type="tel" class="form-control" id="loanMobile" placeholder="10 digit mobile number" value="{{ parent_mobile_digits }}" inputmode="numeric" maxlength="10" required aria-describedby="loanMobileError">
               <div class="invalid-feedback" id="loanMobileError">Enter a valid 10-digit mobile number.</div>
             </div>
             <div class="col-12 col-md-6">
@@ -583,6 +623,45 @@
               <label class="form-label">Additional Details</label>
               <textarea class="form-control" id="loanAdditionalDetails" rows="3" placeholder="Share any relevant details (scholarship, co-applicant, collateral, etc.)"></textarea>
             </div>
+            <div class="col-12">
+              <h6 class="fw-700 mb-1">Prefer a callback time?</h6>
+              <p class="fs-13 text-muted mb-2">Our team will call within 2 days. Optionally pick a preferred slot.</p>
+              <div class="row g-2">
+                <div class="col-12 col-md-6">
+                  <label class="form-label fs-13" for="loanCallbackPickerToggle">Preferred date &amp; time</label>
+                  <div class="loan-callback-picker">
+                    <input type="hidden" id="loanCallbackAt" value="">
+                    <button type="button" class="form-control loan-callback-picker-toggle is-placeholder" id="loanCallbackPickerToggle" aria-expanded="false" aria-controls="loanCallbackPickerPanel">
+                      <span id="loanCallbackPickerLabel">Select date &amp; time</span>
+                      <i class='bx bx-calendar'></i>
+                    </button>
+                    <div class="loan-callback-picker-panel d-none" id="loanCallbackPickerPanel">
+                      <div class="row g-2">
+                        <div class="col-12 col-sm-6">
+                          <label class="form-label fs-12 text-muted" for="loanCallbackDate">Date</label>
+                          <input type="date" class="form-control" id="loanCallbackDate">
+                        </div>
+                        <div class="col-12 col-sm-6">
+                          <label class="form-label fs-12 text-muted" for="loanCallbackTime">Time</label>
+                          <input type="time" class="form-control" id="loanCallbackTime">
+                        </div>
+                      </div>
+                      <div class="loan-callback-actions">
+                        <button type="button" class="loan-btn loan-btn-outline" id="loanCallbackClearBtn">Clear</button>
+                        <button type="button" class="loan-btn loan-btn-primary" id="loanCallbackSetBtn">
+                          <i class='bx bx-check'></i> Set
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="invalid-feedback" id="loanCallbackAtError">Choose a date and time from now onwards.</div>
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label fs-13" for="loanCallbackNote">Note (optional)</label>
+                  <input type="text" class="form-control" id="loanCallbackNote" maxlength="500" placeholder="Best time to reach you">
+                </div>
+              </div>
+            </div>
           </div>
         </form>
         <div class="alert alert-success mt-3 mb-0 d-none" id="loanApplySuccessMsg"></div>
@@ -590,10 +669,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="loan-btn loan-btn-outline" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="loan-btn loan-btn-outline" id="loanModalDraftBtn">
-          <i class='bx bx-save'></i>Save Draft
-        </button>
-        <button type="button" class="loan-btn loan-btn-primary" id="loanSubmitBtn">
+        <button type="button" class="loan-btn loan-btn-primary" id="loanSubmitBtn" disabled>
           <i class='bx bx-paper-plane'></i>Send Application Enquiry
         </button>
       </div>
@@ -660,9 +736,13 @@
         return;
       }
 
-      if (loanLatestEnquiry && loanLatestEnquiry.status === 1) {
+      if (loanLatestEnquiry && loanLatestEnquiry.status !== 0) {
         banner.className = 'loan-status-banner is-enquiry mt-3';
-        banner.textContent = 'Application enquiry sent' + (loanLatestEnquiry.submitted_at ? (' on ' + formatLoanDate(loanLatestEnquiry.submitted_at)) : '') + '. Our team will contact you soon.';
+        var msg = 'Application enquiry sent' + (loanLatestEnquiry.submitted_at ? (' on ' + formatLoanDate(loanLatestEnquiry.submitted_at)) : '') + '. Our team will call you within 2 days.';
+        if (loanLatestEnquiry.callback_preferred_at) {
+          msg = 'Application enquiry sent' + (loanLatestEnquiry.submitted_at ? (' on ' + formatLoanDate(loanLatestEnquiry.submitted_at)) : '') + '. Callback scheduled for ' + formatLoanDate(loanLatestEnquiry.callback_preferred_at) + '.';
+        }
+        banner.textContent = msg;
         banner.classList.remove('d-none');
         return;
       }
@@ -743,12 +823,14 @@
         payload.application = {
           student_name: (byId('loanStudentName') && byId('loanStudentName').value) || '',
           parent_name: (byId('loanParentName') && byId('loanParentName').value) || '',
-          mobile: (byId('loanMobile') && byId('loanMobile').value) || '',
+          mobile: ((byId('loanMobile') && byId('loanMobile').value) || '').replace(/\D/g, '').slice(0, 10),
           email: (byId('loanEmail') && byId('loanEmail').value) || '',
           institute_name: (byId('loanInstitute') && byId('loanInstitute').value) || '',
           course_name: (byId('loanCourse') && byId('loanCourse').value) || '',
           additional_details: (byId('loanAdditionalDetails') && byId('loanAdditionalDetails').value) || ''
         };
+        payload.callback_preferred_at = (byId('loanCallbackAt') && byId('loanCallbackAt').value) || '';
+        payload.callback_note = (byId('loanCallbackNote') && byId('loanCallbackNote').value) || '';
       } else if (loanApplicationRecord && loanApplicationRecord.application) {
         payload.application = Object.assign({}, loanApplicationRecord.application);
       }
@@ -769,7 +851,11 @@
       if (!application) return;
       if (byId('loanStudentName')) byId('loanStudentName').value = application.student_name || '';
       if (byId('loanParentName') && application.parent_name) byId('loanParentName').value = application.parent_name;
-      if (byId('loanMobile') && application.mobile) byId('loanMobile').value = application.mobile;
+      if (byId('loanMobile')) {
+        var mobileValue = String(application.mobile || '').trim();
+        if (!mobileValue || mobileValue.toLowerCase() === 'none') mobileValue = '';
+        byId('loanMobile').value = mobileValue;
+      }
       if (byId('loanEmail') && application.email) byId('loanEmail').value = application.email;
       if (byId('loanInstitute')) byId('loanInstitute').value = application.institute_name || '';
       if (byId('loanCourse')) byId('loanCourse').value = application.course_name || '';
@@ -824,18 +910,140 @@
       }
     }
 
+    function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+    function toLocalInputValue(d) {
+      return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate())
+        + 'T' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+    }
+    function toDateInputValue(d) {
+      return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+    }
+    function toTimeInputValue(d) {
+      return pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+    }
+    function formatCallbackDisplay(raw) {
+      if (!raw) return 'Select date & time';
+      var parsed = new Date(raw);
+      if (isNaN(parsed.getTime())) return raw;
+      return parsed.toLocaleString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+    function applyCallbackMinNow() {
+      var dateInput = byId('loanCallbackDate');
+      var timeInput = byId('loanCallbackTime');
+      var now = new Date();
+      if (dateInput) dateInput.min = toDateInputValue(now);
+      if (timeInput && dateInput && dateInput.value === toDateInputValue(now)) {
+        timeInput.min = toTimeInputValue(now);
+      } else if (timeInput) {
+        timeInput.removeAttribute('min');
+      }
+    }
+    function setCallbackPickerOpen(open) {
+      var panel = byId('loanCallbackPickerPanel');
+      var toggle = byId('loanCallbackPickerToggle');
+      if (!panel || !toggle) return;
+      panel.classList.toggle('d-none', !open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    function syncCallbackPickerDisplay() {
+      var hidden = byId('loanCallbackAt');
+      var label = byId('loanCallbackPickerLabel');
+      var toggle = byId('loanCallbackPickerToggle');
+      var raw = (hidden && hidden.value) || '';
+      if (label) label.textContent = formatCallbackDisplay(raw);
+      if (toggle) toggle.classList.toggle('is-placeholder', !raw);
+      if (raw) {
+        var parsed = new Date(raw);
+        if (!isNaN(parsed.getTime())) {
+          if (byId('loanCallbackDate')) byId('loanCallbackDate').value = toDateInputValue(parsed);
+          if (byId('loanCallbackTime')) byId('loanCallbackTime').value = toTimeInputValue(parsed);
+        }
+      }
+    }
+    function clearCallbackPickerValue() {
+      if (byId('loanCallbackAt')) byId('loanCallbackAt').value = '';
+      if (byId('loanCallbackDate')) byId('loanCallbackDate').value = '';
+      if (byId('loanCallbackTime')) byId('loanCallbackTime').value = '';
+      setCallbackAtError('');
+      syncCallbackPickerDisplay();
+      syncLoanSubmitButtonLabel();
+    }
+    function setCallbackPickerValueFromInputs() {
+      applyCallbackMinNow();
+      var dateVal = (byId('loanCallbackDate') && byId('loanCallbackDate').value) || '';
+      var timeVal = (byId('loanCallbackTime') && byId('loanCallbackTime').value) || '';
+      if (!dateVal || !timeVal) {
+        setCallbackAtError('Choose both a date and a time, then press Set.');
+        return false;
+      }
+      var combined = dateVal + 'T' + timeVal;
+      var parsed = new Date(combined);
+      if (isNaN(parsed.getTime())) {
+        setCallbackAtError('Enter a valid date and time.');
+        return false;
+      }
+      if (parsed.getTime() < Date.now() - 60000) {
+        setCallbackAtError('Preferred callback must be from now onwards.');
+        return false;
+      }
+      if (byId('loanCallbackAt')) byId('loanCallbackAt').value = combined;
+      setCallbackAtError('');
+      syncCallbackPickerDisplay();
+      setCallbackPickerOpen(false);
+      syncLoanSubmitButtonLabel();
+      return true;
+    }
+    function setCallbackAtError(msg) {
+      var toggle = byId('loanCallbackPickerToggle');
+      var err = byId('loanCallbackAtError');
+      if (toggle) toggle.classList.toggle('is-invalid', !!msg);
+      if (err) {
+        err.textContent = msg || 'Choose a date and time from now onwards.';
+        err.classList.toggle('is-visible', !!msg);
+      }
+    }
+    function validateOptionalCallbackAt() {
+      applyCallbackMinNow();
+      var input = byId('loanCallbackAt');
+      var raw = (input && input.value) || '';
+      if (!raw.trim()) {
+        setCallbackAtError('');
+        return true;
+      }
+      var parsed = new Date(raw);
+      if (isNaN(parsed.getTime())) {
+        setCallbackAtError('Enter a valid date and time.');
+        return false;
+      }
+      if (parsed.getTime() < Date.now() - 60000) {
+        setCallbackAtError('Preferred callback must be from now onwards.');
+        return false;
+      }
+      setCallbackAtError('');
+      return true;
+    }
+
     function saveLoanApplication(action, includeApplicationFields, triggerBtn) {
       if (action === 'submit') {
         if (!validateLoanInputs()) return Promise.resolve(false);
         if (includeApplicationFields && !validateLoanApplyForm()) return Promise.resolve(false);
+        if (includeApplicationFields && !validateOptionalCallbackAt()) {
+          setLoanActionMessage('error', 'Preferred callback must be from now onwards.');
+          return Promise.resolve(false);
+        }
       }
 
       var payload = collectLoanPayload(includeApplicationFields);
-      var buttons = [byId('loanCalcDraftBtn'), byId('loanModalDraftBtn'), byId('loanSubmitBtn')];
+      var buttons = [byId('loanCalcDraftBtn'), byId('loanSubmitBtn')];
       buttons.forEach(function (btn) {
         if (btn) btn.disabled = true;
       });
-      if (triggerBtn) triggerBtn.dataset.originalText = triggerBtn.textContent;
 
       return fetch(loanSaveUrl, {
         method: 'POST',
@@ -863,11 +1071,22 @@
             loanLatestEnquiry = saved;
             loanApplicationRecord = null;
             if (byId('loanApplicationId')) byId('loanApplicationId').value = '';
-            setLoanActionMessage('success', result.data.message || 'Application enquiry sent successfully.');
+            setLoanActionMessage('success', result.data.message || 'Application enquiry sent successfully. Our team will call you within 2 days.');
             if (byId('loanSubmitBtn')) {
               byId('loanSubmitBtn').disabled = true;
-              byId('loanSubmitBtn').textContent = 'Enquiry Sent';
+              byId('loanSubmitBtn').innerHTML = saved && saved.callback_preferred_at
+                ? "<i class='bx bx-check'></i> Enquiry & Callback Sent"
+                : "<i class='bx bx-check'></i> Enquiry Sent";
+              // Keep disabled only for this successful submit; reopening modal re-evaluates mobile.
+              byId('loanSubmitBtn').dataset.justSubmitted = '1';
             }
+            // Close apply modal shortly after success so the page banner remains visible
+            window.setTimeout(function () {
+              var modalEl = byId('educationLoanApplyModal');
+              if (!modalEl || !window.bootstrap || !bootstrap.Modal) return;
+              var inst = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
+              if (inst) inst.hide();
+            }, 900);
           } else {
             loanApplicationRecord = saved;
             if (saved && byId('loanApplicationId')) byId('loanApplicationId').value = saved.id || '';
@@ -883,12 +1102,15 @@
         .finally(function () {
           buttons.forEach(function (btn) {
             if (!btn) return;
-            if (btn === byId('loanSubmitBtn') && loanLatestEnquiry && loanLatestEnquiry.status === 1) {
-              btn.disabled = true;
+            if (btn === byId('loanSubmitBtn')) {
+              if (btn.dataset.justSubmitted === '1') {
+                btn.disabled = true;
+                return;
+              }
+              syncLoanSubmitEnabled();
               return;
             }
             btn.disabled = false;
-            if (btn.dataset.originalText) btn.textContent = btn.dataset.originalText;
           });
         });
     }
@@ -1104,14 +1326,42 @@
 
     function isValidMobile(value) {
       var digits = (value || '').replace(/\D/g, '');
-      return !digits || digits.length === 10;
+      return digits.length === 10;
+    }
+
+    function normalizeLoanMobileInput() {
+      var field = byId('loanMobile');
+      if (!field) return '';
+      var digits = String(field.value || '').replace(/\D/g, '').slice(0, 10);
+      if (String(field.value || '').toLowerCase() === 'none') digits = '';
+      field.value = digits;
+      return digits;
+    }
+
+    function syncLoanSubmitEnabled() {
+      if (!loanSubmitBtn) return;
+      var mobileOk = isValidMobile((byId('loanMobile') && byId('loanMobile').value) || '');
+      loanSubmitBtn.disabled = !mobileOk;
+      syncLoanSubmitButtonLabel();
+      return mobileOk;
+    }
+
+    function showMobileValidationState() {
+      var mobile = normalizeLoanMobileInput();
+      if (isValidMobile(mobile)) {
+        setLoanFieldState('loanMobile', true);
+        if (byId('loanApplyErrorMsg')) byId('loanApplyErrorMsg').classList.add('d-none');
+      } else {
+        setLoanFieldState('loanMobile', false, 'Enter a valid 10-digit mobile number.');
+      }
+      syncLoanSubmitEnabled();
     }
 
     function validateLoanApplyForm() {
       var isValid = true;
       var studentName = (byId('loanStudentName') && byId('loanStudentName').value) || '';
       var email = (byId('loanEmail') && byId('loanEmail').value) || '';
-      var mobile = (byId('loanMobile') && byId('loanMobile').value) || '';
+      var mobile = normalizeLoanMobileInput();
       var institute = (byId('loanInstitute') && byId('loanInstitute').value) || '';
       var course = (byId('loanCourse') && byId('loanCourse').value) || '';
 
@@ -1134,7 +1384,7 @@
       if (!isValidMobile(mobile)) {
         setLoanFieldState('loanMobile', false, 'Enter a valid 10-digit mobile number.');
         isValid = false;
-      } else if (mobile.trim()) {
+      } else {
         setLoanFieldState('loanMobile', true);
       }
 
@@ -1151,6 +1401,8 @@
       } else {
         setLoanFieldState('loanCourse', true);
       }
+
+      syncLoanSubmitEnabled();
 
       if (!isValid) {
         var firstInvalid = document.querySelector('#educationLoanApplyForm .is-invalid');
@@ -1325,10 +1577,13 @@
       clearLoanApplyValidation();
       if (byId('loanApplySuccessMsg')) byId('loanApplySuccessMsg').classList.add('d-none');
       if (byId('loanApplyErrorMsg')) byId('loanApplyErrorMsg').classList.add('d-none');
-      if (loanSubmitBtn) {
-        loanSubmitBtn.disabled = false;
-        loanSubmitBtn.textContent = 'Send Application Enquiry';
-      }
+      setCallbackAtError('');
+      applyCallbackMinNow();
+      clearCallbackPickerValue();
+      setCallbackPickerOpen(false);
+      if (byId('loanCallbackNote')) byId('loanCallbackNote').value = '';
+      if (loanSubmitBtn) delete loanSubmitBtn.dataset.justSubmitted;
+      showMobileValidationState();
     }
 
     loanStudentsPayload = loadLoanStudentsPayload();
@@ -1390,34 +1645,88 @@
       }
     });
 
-    ['loanEmail', 'loanMobile'].forEach(function (fieldId) {
-      var field = byId(fieldId);
-      if (!field) return;
-      field.addEventListener('input', function () {
-        if ((field.value || '').trim()) setLoanFieldState(fieldId, true);
+    var loanEmailField = byId('loanEmail');
+    if (loanEmailField) {
+      loanEmailField.addEventListener('input', function () {
+        if (isValidEmail(loanEmailField.value)) setLoanFieldState('loanEmail', true);
       });
-    });
+    }
+
+    var loanMobileField = byId('loanMobile');
+    if (loanMobileField) {
+      loanMobileField.addEventListener('input', function () {
+        showMobileValidationState();
+      });
+      loanMobileField.addEventListener('blur', function () {
+        showMobileValidationState();
+      });
+    }
 
     var loanApplyModal = byId('educationLoanApplyModal');
     if (loanApplyModal) {
       loanApplyModal.addEventListener('show.bs.modal', function () {
         resetLoanApplyFormFields();
         populateLoanApplyModalFields();
-      });
-    }
-
-    var loanModalDraftBtn = byId('loanModalDraftBtn');
-    if (loanModalDraftBtn) {
-      loanModalDraftBtn.addEventListener('click', function () {
-        saveLoanApplication('draft', true, loanModalDraftBtn);
+        showMobileValidationState();
       });
     }
 
     if (loanSubmitBtn) {
       loanSubmitBtn.addEventListener('click', function () {
+        if (!isValidMobile(normalizeLoanMobileInput())) {
+          showMobileValidationState();
+          setLoanActionMessage('error', 'Enter a valid 10-digit mobile number.');
+          return;
+        }
         saveLoanApplication('submit', true, loanSubmitBtn);
       });
     }
+
+    function syncLoanSubmitButtonLabel() {
+      if (!loanSubmitBtn || loanSubmitBtn.dataset.justSubmitted === '1') return;
+      var hasCallback = !!(byId('loanCallbackAt') && byId('loanCallbackAt').value);
+      loanSubmitBtn.innerHTML = hasCallback
+        ? "<i class='bx bx-phone-call'></i> Send Enquiry & Schedule Callback"
+        : "<i class='bx bx-paper-plane'></i> Send Application Enquiry";
+    }
+
+    applyCallbackMinNow();
+    syncCallbackPickerDisplay();
+
+    var loanCallbackPickerToggle = byId('loanCallbackPickerToggle');
+    if (loanCallbackPickerToggle) {
+      loanCallbackPickerToggle.addEventListener('click', function () {
+        var panel = byId('loanCallbackPickerPanel');
+        var willOpen = !!(panel && panel.classList.contains('d-none'));
+        applyCallbackMinNow();
+        if (willOpen && !(byId('loanCallbackDate') && byId('loanCallbackDate').value)) {
+          var now = new Date();
+          now.setMinutes(now.getMinutes() + 30);
+          if (byId('loanCallbackDate')) byId('loanCallbackDate').value = toDateInputValue(now);
+          if (byId('loanCallbackTime')) byId('loanCallbackTime').value = toTimeInputValue(now);
+        }
+        setCallbackPickerOpen(willOpen);
+      });
+    }
+    if (byId('loanCallbackSetBtn')) {
+      byId('loanCallbackSetBtn').addEventListener('click', function () {
+        setCallbackPickerValueFromInputs();
+      });
+    }
+    if (byId('loanCallbackClearBtn')) {
+      byId('loanCallbackClearBtn').addEventListener('click', function () {
+        clearCallbackPickerValue();
+        setCallbackPickerOpen(false);
+      });
+    }
+    ['loanCallbackDate', 'loanCallbackTime'].forEach(function (fieldId) {
+      var field = byId(fieldId);
+      if (!field) return;
+      field.addEventListener('change', applyCallbackMinNow);
+    });
+
+    normalizeLoanMobileInput();
+    syncLoanSubmitEnabled();
   })();
 </script>
 {% endblock %}

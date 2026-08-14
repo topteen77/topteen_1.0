@@ -27,45 +27,24 @@ from .docx_utils import convert_docx_to_html, extract_career_data_from_html
 # Register your models here.
 
 class MindmapValidationFilter(SimpleListFilter):
-    """Custom filter for mindmap validation status"""
+    """Filter by cached mindmap_validation_status (not live XMind checks)."""
     title = 'Mindmap Validation'
     parameter_name = 'mindmap_validation'
     
     def lookups(self, request, model_admin):
-        """
-        Returns a list of tuples. The first element in each
-        tuple is the coded value for the option that will
-        appear in the URL query. The second element is the
-        human-readable name for the option that will appear
-        in the right sidebar.
-        """
         return (
             ('valid', 'Valid'),
             ('errors', 'Has Errors'),
+            ('not_checked', 'Not checked'),
         )
     
     def queryset(self, request, queryset):
-        """
-        Returns the filtered queryset based on the value
-        provided in the query string and retrievable via
-        `self.value()`.
-        """
         if self.value() == 'valid':
-            # Filter careers with valid mindmaps
-            valid_ids = []
-            for career in queryset:
-                is_valid, _ = career.validate_mindmap()
-                if is_valid:
-                    valid_ids.append(career.id)
-            return queryset.filter(id__in=valid_ids)
-        elif self.value() == 'errors':
-            # Filter careers with mindmap errors
-            error_ids = []
-            for career in queryset:
-                is_valid, _ = career.validate_mindmap()
-                if not is_valid:
-                    error_ids.append(career.id)
-            return queryset.filter(id__in=error_ids)
+            return queryset.filter(mindmap_validation_status='valid')
+        if self.value() == 'errors':
+            return queryset.filter(mindmap_validation_status='error')
+        if self.value() == 'not_checked':
+            return queryset.filter(mindmap_validation_status='not_checked')
         return queryset
 
 
@@ -181,41 +160,48 @@ class CareerClusterSelectWidget(forms.SelectMultiple):
 class CareerAdminForm(forms.ModelForm):
     """Custom form for Career admin with automatic DOCX processing"""
     
-    # Custom field for DOCX upload (not stored in database)
+    # Temporary DOCX upload (not stored); converted via scripts/convert_docx_to_html
     docx_file = forms.FileField(
         required=False,
-        help_text='''
-        <div id="docx-processing-status" style="display: none; margin: 10px 0; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px;">
-            <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                <div id="processing-spinner" style="width: 20px; height: 20px; border: 2px solid #f3f3f3; border-top: 2px solid #007cba; border-radius: 50%; animation: spin 1s linear infinite; margin-right: 10px;"></div>
-                <span id="processing-text" style="font-weight: bold; color: #007cba;">Processing DOCX file...</span>
-            </div>
-            <div id="processing-progress" style="width: 100%; background-color: #e9ecef; border-radius: 10px; overflow: hidden;">
-                <div id="progress-bar" style="height: 6px; background-color: #007cba; width: 0%; transition: width 0.3s ease;"></div>
-            </div>
-            <div id="processing-message" style="margin-top: 10px; font-size: 14px; color: #6c757d;"></div>
-        </div>
-        
-        <style>
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        </style>
-        
-        Upload a DOCX file to automatically populate career name and description fields. This will overwrite existing content.
-        ''',
+        label='Import Word (.docx) → HTML',
+        help_text=(
+            'Upload a .docx temporarily. It is converted with full formatting '
+            '(headings, lists, tables, paragraphs) and shown in a popup so you can copy the HTML. '
+            'The file is not saved.'
+            '<div id="docx-processing-status" style="display: none; margin: 10px 0; padding: 15px; '
+            'background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px;">'
+            '<div style="display: flex; align-items: center; margin-bottom: 10px;">'
+            '<div id="processing-spinner" style="width: 20px; height: 20px; border: 2px solid #f3f3f3; '
+            'border-top: 2px solid #007cba; border-radius: 50%; animation: spin 1s linear infinite; '
+            'margin-right: 10px;"></div>'
+            '<span id="processing-text" style="font-weight: bold; color: #007cba;">Converting Word document...</span>'
+            '</div>'
+            '<div id="processing-progress" style="width: 100%; background-color: #e9ecef; '
+            'border-radius: 10px; overflow: hidden;">'
+            '<div id="progress-bar" style="height: 6px; background-color: #007cba; width: 0%; '
+            'transition: width 0.3s ease;"></div>'
+            '</div>'
+            '<div id="processing-message" style="margin-top: 10px; font-size: 14px; color: #6c757d;"></div>'
+            '</div>'
+            '<style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>'
+        ),
         widget=forms.FileInput(attrs={
-            'accept': '.docx',
+            'accept': '.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             'id': 'docx_file_input',
-            'onchange': 'processDocxFile(this)'
-        })
+            'onchange': 'processDocxFile(this)',
+        }),
     )
     
     class Meta:
         model = Career
         fields = '__all__'
-        exclude = ['description_json', 'summary']
+        exclude = [
+            'description_json',
+            'summary',
+            'mindmap_validation_status',
+            'mindmap_validated_at',
+            'mindmap_validation_errors',
+        ]
         widgets = {
             'career_cluster': CareerClusterSelectWidget(),
         }
@@ -234,6 +220,38 @@ class CareerAdminForm(forms.ModelForm):
             # Require that an actual file is present
             if not image or not getattr(image, 'name', None):
                 self.add_error('image', 'Image is required to publish a career.')
+
+        # Catch duplicate careers before submit (avoids MySQL IntegrityError 500 on slug)
+        name = (cleaned.get('name') or '').strip()
+        if name:
+            active = Career.objects.filter(name__iexact=name)
+            if self.instance and self.instance.pk:
+                active = active.exclude(pk=self.instance.pk)
+            if active.exists():
+                other = active.first()
+                self.add_error(
+                    'name',
+                    (
+                        f'A career named "{other.name}" already exists (ID {other.id}). '
+                        'Open that career to edit it instead of creating a duplicate.'
+                    ),
+                )
+            else:
+                deleted = Career.objects.complete().filter(
+                    name__iexact=name,
+                    object_status=choices.ObjectStatus.DELETED,
+                )
+                if self.instance and self.instance.pk:
+                    deleted = deleted.exclude(pk=self.instance.pk)
+                if deleted.exists():
+                    other = deleted.first()
+                    self.add_error(
+                        'name',
+                        (
+                            f'A deleted career named "{other.name}" already exists (ID {other.id}). '
+                            'Restore that career or choose a different name.'
+                        ),
+                    )
         return cleaned
     def clean_docx_file(self):
         """Validate uploaded DOCX file"""
@@ -273,6 +291,9 @@ class CareerAdmin(admin.ModelAdmin):
     # Using custom AJAX dropdown instead of inline edit
     # list_editable = ['publish_status']
     actions = ['make_published', 'make_draft', 'assign_to_cluster']
+    # Soft-delete BaseModel.delete() hides rows but leaves them in DB; admin delete is permanent.
+    delete_confirmation_template = 'admin/careers/career/delete_confirmation.html'
+    delete_selected_confirmation_template = 'admin/careers/career/delete_selected_confirmation.html'
     
     inlines = [VocationalCareerReasoningMappingInline, CareerMediaInline]
     readonly_fields = ['created', 'modified', 'preview_url', 'validation_errors']
@@ -285,10 +306,13 @@ class CareerAdmin(admin.ModelAdmin):
             'fields': ('career_cluster',),
             'description': 'Select one or more career clusters to categorize this career. This helps organize careers in the career library.',
         }),
-        ('DOCX Upload', {
+        ('DOCX → HTML Import', {
             'fields': ('docx_file',),
-            'description': 'Upload a DOCX file to automatically populate career name and description fields. This will overwrite existing content.',
-            'classes': ('collapse',),
+            'description': (
+                'Add only — use “Import HTML from Word” next to JSON Preview. '
+                'Upload is temporary (memory only); preview, copy, or add to description.'
+            ),
+            'classes': ('collapse', 'docx-import-fieldset'),
         }),
         ('Preview & Validation', {
             'fields': ('preview_url', 'validation_errors'),
@@ -465,30 +489,43 @@ class CareerAdmin(admin.ModelAdmin):
     image_url_display.short_description = 'Image URL'
     
     def mindmap_validation(self, obj):
-        """Display mindmap validation status with error icon and hover tooltip"""
-        is_valid, errors = obj.validate_mindmap()
-        
-        if is_valid:
-            # Show nothing if validated
-            return format_html('')
-        else:
-            # Show error icon with hover tooltip
-            error_text = '; '.join(errors) if errors else 'Mindmap validation failed'
-            # Escape HTML in error text for title attribute
-            from django.utils.html import escape
-            escaped_error = escape(error_text)
+        """Show cached mindmap status — do not live-validate (new careers stay not_checked until post-insert check)."""
+        import json
+        from django.utils.html import escape
+
+        status = getattr(obj, 'mindmap_validation_status', None) or 'not_checked'
+        if status == 'not_checked':
             return format_html(
-                '<span class="mindmap-validation-error" style="color: #dc3545; cursor: help; display: inline-block;" '
-                'title="{}" data-bs-toggle="tooltip" data-bs-placement="top">'
-                '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: middle;">'
-                '<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>'
-                '<path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>'
-                '</svg>'
-                '</span>',
-                escaped_error
+                '<span style="color:#6c757d;" title="Mindmap not checked yet">—</span>'
             )
+        if status == 'valid':
+            return format_html('')
+
+        errors = []
+        raw = getattr(obj, 'mindmap_validation_errors', None) or ''
+        if raw:
+            try:
+                parsed = json.loads(raw)
+                if isinstance(parsed, list):
+                    errors = [str(x) for x in parsed]
+                else:
+                    errors = [str(parsed)]
+            except Exception:
+                errors = [str(raw)]
+        error_text = '; '.join(errors) if errors else 'Mindmap validation failed'
+        escaped_error = escape(error_text)
+        return format_html(
+            '<span class="mindmap-validation-error" style="color: #dc3545; cursor: help; display: inline-block;" '
+            'title="{}" data-bs-toggle="tooltip" data-bs-placement="top">'
+            '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: middle;">'
+            '<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>'
+            '<path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>'
+            '</svg>'
+            '</span>',
+            escaped_error
+        )
     mindmap_validation.short_description = 'Mindmap'
-    mindmap_validation.admin_order_field = 'name'
+    mindmap_validation.admin_order_field = 'mindmap_validation_status'
     
     def make_published(self, request, queryset):
         updated = queryset.update(publish_status=1)
@@ -524,7 +561,20 @@ class CareerAdmin(admin.ModelAdmin):
         form = super().get_form(request, obj, **kwargs)
         if 'career_paths' in form.base_fields:
             form.base_fields['career_paths'].required = False
+        # DOCX import is add-only
+        if obj is not None and 'docx_file' in form.base_fields:
+            del form.base_fields['docx_file']
         return form
+
+    def get_fieldsets(self, request, obj=None):
+        """DOCX → HTML import is available on Add only."""
+        fieldsets = list(super().get_fieldsets(request, obj))
+        if obj is not None:
+            fieldsets = [
+                fs for fs in fieldsets
+                if fs[0] != 'DOCX → HTML Import'
+            ]
+        return fieldsets
     
     def update_career_cluster_ajax(self, request):
         """Handle AJAX request to update career cluster"""
@@ -566,6 +616,70 @@ class CareerAdmin(admin.ModelAdmin):
             path('<path:object_id>/json-preview/', self.admin_site.admin_view(self.json_preview), name='careers_career_json_preview'),
         ]
         return custom_urls + urls
+
+    def has_delete_permission(self, request, obj=None):
+        """Hard delete is admin-only (staff with delete permission)."""
+        return request.user.is_staff and super().has_delete_permission(request, obj)
+
+    def delete_model(self, request, obj):
+        """Permanently remove the career row (hard delete)."""
+        name = obj.name or f'#{obj.pk}'
+        obj.delete(hard_delete=True)
+        self.message_user(
+            request,
+            f'Career "{name}" was permanently deleted.',
+            messages.SUCCESS,
+        )
+
+    def delete_queryset(self, request, queryset):
+        """Permanently remove selected careers (hard delete)."""
+        count = 0
+        for obj in queryset:
+            obj.delete(hard_delete=True)
+            count += 1
+        self.message_user(
+            request,
+            f'{count} career(s) permanently deleted.',
+            messages.SUCCESS,
+        )
+
+    def save_model(self, request, obj, form, change):
+        """
+        On insert: do not run mindmap validation during save (status stays not_checked).
+        After insert: check mindmap and show a generation alert if missing.
+        On edit: refresh cached mindmap status quietly.
+        """
+        is_add = not change
+        if is_add:
+            obj.mindmap_validation_status = 'not_checked'
+            obj.mindmap_validated_at = None
+            obj.mindmap_validation_errors = None
+
+        super().save_model(request, obj, form, change)
+
+        if is_add:
+            is_valid, errors = obj.refresh_mindmap_validation(save=True)
+            if is_valid:
+                self.message_user(
+                    request,
+                    'Career saved. Mindmap is available from the career description.',
+                    messages.SUCCESS,
+                )
+            else:
+                detail = '; '.join(errors) if errors else 'Mindmap not available'
+                self.message_user(
+                    request,
+                    (
+                        f'Career saved. Mindmap needs attention: {detail}. '
+                        'Add clear h2/h3 section headings in the description so the mindmap can be built.'
+                    ),
+                    messages.WARNING,
+                )
+        else:
+            try:
+                obj.refresh_mindmap_validation(save=True)
+            except Exception:
+                pass
 
     def update_publish_status_ajax(self, request):
         """Handle AJAX request to update publish status"""
@@ -657,7 +771,11 @@ class CareerAdmin(admin.ModelAdmin):
     
     class Media:
         css = {
-            'all': ('admin/css/docx_processing.css', 'admin/css/mindmap_validation.css',)
+            'all': (
+                'admin/css/docx_processing.css',
+                'admin/css/career_description_admin.css',
+                'admin/css/mindmap_validation.css',
+            )
         }
         js = ('admin/js/docx_processing.js', 'admin/js/career_cluster_dropdown.js',)
     

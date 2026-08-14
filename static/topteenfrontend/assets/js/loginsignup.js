@@ -13,6 +13,12 @@ function loginsingup() {
   }
   var formData = new FormData();
   formData.append("user_name", phoneEmail);
+  if (window.LOGIN_MODE) {
+    formData.append("login_mode", window.LOGIN_MODE);
+  }
+  if (window.LOGIN_ONLY || window.LOGIN_MODE === "smart") {
+    formData.append("login_only", "1");
+  }
   console.log("formData",formData)
   
   $.ajax({
@@ -21,6 +27,20 @@ function loginsingup() {
     data: formData,
     
     success: function (data) {
+      if (data.account_not_found) {
+        var msg =
+          data.message ||
+          "No account found for this email or mobile.";
+        var errEl = document.getElementById("errorMsgSinguplogin");
+        if (errEl) {
+          errEl.innerHTML = msg;
+          errEl.style.display = "block";
+        }
+        if (typeof fireAlert === "function") {
+          fireAlert(msg, "error");
+        }
+        return;
+      }
       if (data.show_otp) {
         loginsingupremoveunusetag();
         var x = document.createElement("input");
@@ -43,19 +63,7 @@ function loginsingup() {
       if (data.show_password) {
         // If show_password is true, user has set a password - always show password modal
         // Don't use OTP-first flow for users who have passwords set
-        loginremoveunusetag();
-        var xPwd = document.createElement("input");
-        xPwd.setAttribute("type", "hidden");
-        xPwd.setAttribute("value", data.enc_user_name);
-        xPwd.setAttribute("id", "encloginusername");
-        xPwd.setAttribute("name", "enc_user_name");
-        document.getElementById("loginpwd").appendChild(xPwd);
-        document.getElementById("loginpwdname").textContent = data.user_name;
-        document.getElementById("loginpwdDiv").classList.remove("hideModal");
-        setTimeout(function() {
-          const passwordInput = document.querySelector('#loginpwd input[name="password"]');
-          if (passwordInput) passwordInput.focus();
-        }, 100);
+        openLoginPasswordModal(data.enc_user_name, data.user_name);
         return;
       }
     },
@@ -112,10 +120,82 @@ function loginsingup() {
 }
 
 function loginremoveunusetag() {
-  if ($("#encloginusername").length) {
-    $("#encloginusername").remove();
+  var enc = document.getElementById("encloginusername");
+  if (enc) {
+    enc.value = "";
   }
-  document.getElementById("errorMsgloginpwd").innerHTML = "";
+  var err = document.getElementById("errorMsgloginpwd");
+  if (err) {
+    err.innerHTML = "";
+    err.style.display = "none";
+  }
+  var pwd = document.getElementById("loginpwdPassword") || document.querySelector("#loginpwd input[name='password']");
+  if (pwd) pwd.value = "";
+}
+
+/**
+ * Open password step with username+password in one form so browsers can autofill / save.
+ * @param {string} encUserName signed enc_user_name token for API
+ * @param {string} displayUserName plain email/mobile shown to user + autocomplete
+ */
+function openLoginPasswordModal(encUserName, displayUserName) {
+  try {
+    if (typeof loginremoveunusetag === "function") loginremoveunusetag();
+  } catch (e) {}
+
+  var form = document.getElementById("loginpwd");
+  if (!form) return false;
+
+  var enc = document.getElementById("encloginusername");
+  if (!enc) {
+    enc = document.createElement("input");
+    enc.type = "hidden";
+    enc.id = "encloginusername";
+    enc.name = "enc_user_name";
+    enc.setAttribute("autocomplete", "off");
+    form.appendChild(enc);
+  }
+  enc.value = encUserName || "";
+
+  var userField = document.getElementById("loginpwdUsername");
+  if (userField) {
+    userField.value = displayUserName || "";
+    userField.readOnly = true;
+  }
+
+  var nameSpan = document.getElementById("loginpwdname");
+  if (nameSpan) nameSpan.textContent = displayUserName || "";
+
+  // Keep first-step field in sync for autofill heuristics
+  var mobileEmail = document.getElementById("mobileEmail");
+  if (mobileEmail && displayUserName) mobileEmail.value = displayUserName;
+
+  var modal = document.getElementById("loginpwdDiv");
+  if (modal) modal.classList.remove("hideModal");
+
+  var pwd = document.getElementById("loginpwdPassword") || form.querySelector("input[name='password']");
+  if (pwd) {
+    pwd.value = "";
+    setTimeout(function () {
+      try { pwd.focus({ preventScroll: false }); } catch (e2) { try { pwd.focus(); } catch (e3) {} }
+    }, 120);
+  }
+  return false;
+}
+
+/** Ask Chromium/Safari to store password after AJAX login (multi-step forms). */
+function storeLoginCredentialsIfPossible(username, password) {
+  try {
+    if (!username || !password) return;
+    if (window.PasswordCredential && navigator.credentials && navigator.credentials.store) {
+      var cred = new PasswordCredential({
+        id: String(username),
+        name: String(username),
+        password: String(password)
+      });
+      navigator.credentials.store(cred).catch(function () {});
+    }
+  } catch (e) {}
 }
 
 function loginsingupremoveunusetag() {
@@ -736,6 +816,17 @@ function loginpwd() {
         console.log('OTP:', data.debug_otp);
       }
       if (data.success) {
+        try {
+          var _uname =
+            (document.getElementById("loginpwdUsername") || {}).value ||
+            (document.getElementById("loginpwdname") || {}).textContent ||
+            data.user_name ||
+            "";
+          var _pwd = (document.getElementById("loginpwdPassword") ||
+            document.querySelector("#loginpwd input[name='password']") ||
+            {}).value || "";
+          storeLoginCredentialsIfPossible(_uname, _pwd);
+        } catch (eCred) {}
         // Check if user needs to set password (master password login)
         if (data.need_set_password) {
           // Show set password modal
@@ -904,8 +995,10 @@ function loginwithotpshow() {
   document.getElementById("loginpwdDiv").classList.add("hideModal");
   
   // Get the username from login password modal
+  var loginPwdUser = document.getElementById("loginpwdUsername");
   var loginPwdName = document.getElementById("loginpwdname");
-  var username = loginPwdName ? loginPwdName.textContent.trim() : "";
+  var username = (loginPwdUser && loginPwdUser.value.trim()) ||
+    (loginPwdName ? loginPwdName.textContent.trim() : "");
   
   if (!username) {
     fireAlert("Unable to retrieve user information. Please close and reopen the login window", "error");
@@ -1069,8 +1162,10 @@ function loginwithotp() {
 
 function forgotpasswordshow() {
   // Get the email from login password modal
+  var loginPwdUser = document.getElementById("loginpwdUsername");
   var loginPwdName = document.getElementById("loginpwdname");
-  var email = loginPwdName ? loginPwdName.textContent.trim() : "";
+  var email = (loginPwdUser && loginPwdUser.value.trim()) ||
+    (loginPwdName ? loginPwdName.textContent.trim() : "");
   
   if (!email) {
     fireAlert("Unable to retrieve email. Please close and reopen the login window", "error");

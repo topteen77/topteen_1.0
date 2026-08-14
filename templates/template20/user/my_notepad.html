@@ -1,12 +1,15 @@
 {% extends 'template20/user/student_base.html' %}
 
-{% block title_content %}My Notepad | Top Teen{% endblock %}
+{% block title_content %}My Notepad | TopTeen{% endblock %}
 {% block description_content %}View and manage your notes, reminders, and post-its.{% endblock %}
 
 {% block student_bodyclass %}notepad-page{% endblock %}
 
 {% block additionalhead %}
 {{ super() }}
+{% if is_parent_shell|default(false) %}
+<link rel="stylesheet" href="{{ static('css/parent-sidebar.css') }}">
+{% endif %}
 <style>
   .notepad-page-shell {
     background: #ffffff;
@@ -157,6 +160,30 @@
 {% set student_shell_subtitle = 'My notepad' %}
 {% endblock %}
 
+{% block student_shell_topbar %}
+{% if is_parent_shell|default(false) %}
+{% include "template20/parents/includes/parent_shell_topbar.html" %}
+{% else %}
+{{ super() }}
+{% endif %}
+{% endblock %}
+
+{% block student_sidebar %}
+{% if is_parent_shell|default(false) %}
+{% include "template20/parents/includes/parent_sidebar.html" %}
+{% else %}
+{{ super() }}
+{% endif %}
+{% endblock %}
+
+{% block student_shell_offcanvas %}
+{% if is_parent_shell|default(false) %}
+{% include "template20/parents/includes/parent_offcanvas.html" %}
+{% else %}
+{{ super() }}
+{% endif %}
+{% endblock %}
+
 {% block student_section_class %}notepad-page std-shell-main{% endblock %}
 {% block student_container_class %}container-fluid user-dashboard-container{% endblock %}
 {% block student_row_class %}row g-4  student-dash-shell{% endblock %}
@@ -173,25 +200,34 @@
     <!-- Notepad Heading -->
     <div class="d-md-flex d-none justify-content-between align-items-center mb-4 border-bottom pb-3">
       <h1 class="fs-24 fw-semibold mb-0 d-flex align-items-center">
-        <i class='bx bx-note text-purple me-2 fs-26'></i> My Notepad
+        <i class='bx bx-note text-purple me-2 fs-26'></i> My Notebook
       </h1>
-      <!-- <div class="d-none d-lg-block">
-        <a href="{{ url('users:createnote') }}" class="btn custom-button purple-button d-flex align-items-center gap-2">
-          <i class='bx bx-message-alt-add fs-21 me-1'></i>Add New Note
+      <div class="d-flex align-items-center gap-2">
+        {% if enable_voice_to_text|default(true) %}
+        <button type="button" class="btn custom-button purple-button d-flex align-items-center gap-2" data-parent-notebook-open>
+          <i class='bx bx-microphone fs-18'></i> Voice note
+        </button>
+        {% else %}
+        <button type="button" class="btn custom-button purple-button d-flex align-items-center gap-2" data-parent-notebook-open>
+          <i class='bx bx-note fs-18'></i> Quick note
+        </button>
+        {% endif %}
+        <a href="{{ url('users:createnote') }}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+          <i class='bx bx-plus fs-18'></i> New note
         </a>
-      </div> -->
+      </div>
     </div>
 
     <!-- Mobile Header -->
     <div class="d-lg-none d-flex align-items-center justify-content-between border-bottom pb-3 mb-4 position-relative mt-2">
 
       <button type="button" class="btn btn-outline-secondary d-flex align-items-center"
-        data-scrapbook-url="{{ url('users:scrapbook') }}">
+        data-scrapbook-url="{{ notepad_back_url|default(url('users:scrapbook')) }}">
         <i class='bx bx-arrow-back fs-20 me-1'></i> Back
       </button>
 
 
-      <h2 class="fs-20 fw-normal text-center mb-0 fw-bold">My Notepad</h2>
+      <h2 class="fs-20 fw-normal text-center mb-0 fw-bold">My Notebook</h2>
 
     </div>
 
@@ -217,7 +253,7 @@
           <a href="{{ url('users:updatenote', args=[note.id]) }}" class="note-card-link">
             <img src="{{ static('topteenfrontend/assets/images/pin.svg') }}" class="note-pin" alt="Pin" />
             <h3 class="fs-16 fw-semibold text-dark mb-2">
-              {{ note.title|default('Untitled Note') }}
+              {% if note.title %}{{ note.title }}{% else %}{{ note.content|striptags|truncate(60) }}{% endif %}
             </h3>
             <p class="text-gray fs-12 mb-3">{{ date_format(note.modified) }}</p>
             <div class="note-content">

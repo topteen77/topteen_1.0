@@ -258,6 +258,12 @@
                   <i class="bx bx-phone" aria-hidden="true"></i>
                   <span>{{ _student.mobile if (_student and _student.mobile) else '-' }}</span>
                 </div>
+                {% if _student and _student.is_demo_account and ts and ts.institute %}
+                <div class="ttv2-table-student-contact text-warning-emphasis" title="Demo student login password">
+                  <i class="bx bx-key" aria-hidden="true"></i>
+                  <span><strong>Password:</strong> {{ ts.institute.get_demo_student_password() }}</span>
+                </div>
+                {% endif %}
               </div>
             </td>
             <td>{% if _class_section and _class_section.class_and_section %}{{ _class_section.class_and_section }}{% else %}-{% endif %}</td>

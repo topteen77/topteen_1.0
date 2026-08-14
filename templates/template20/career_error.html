@@ -1,0 +1,100 @@
+{% extends 'template20/base.html' %}
+
+{% block title_content %}{{ page_label }} — Error | TopTeen{% endblock %}
+{% block description_content %}We could not load this career page. Error details are shown below when available.{% endblock %}
+
+{% block bodyclass %}error-page{% endblock %}
+
+{% block additionalcss %}
+<link rel="stylesheet" href="{{ static('css_new/error-page.css') }}" type="text/css" media="all" />
+<style>
+  .tt-error-page__details {
+    margin-top: 1.5rem;
+    text-align: left;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 1rem 1.15rem;
+  }
+  .tt-error-page__details h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1rem;
+    color: #3f37c9;
+  }
+  .tt-error-page__details dl {
+    margin: 0;
+    display: grid;
+    grid-template-columns: 7.5rem 1fr;
+    gap: 0.35rem 0.75rem;
+    font-size: 0.9rem;
+  }
+  .tt-error-page__details dt { color: #6b7280; font-weight: 600; }
+  .tt-error-page__details dd { margin: 0; word-break: break-word; color: #111827; }
+  .tt-error-page__traceback {
+    margin: 1rem 0 0;
+    max-height: 280px;
+    overflow: auto;
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+  }
+  .tt-error-page__id {
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+    color: #6b7280;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="tt-error-page" aria-labelledby="error-page-title">
+  <div class="container">
+    <div class="tt-error-page__inner" style="max-width: 640px;">
+      <p class="tt-error-page__code" aria-hidden="true" style="font-size: clamp(2.5rem, 8vw, 3.5rem);">Oops</p>
+      <h1 id="error-page-title" class="tt-error-page__title">We couldn’t load this page</h1>
+      <p class="tt-error-page__desc">
+        Something went wrong while loading {{ page_label|lower }}. You can go back to careers or try again.
+      </p>
+      <p class="tt-error-page__id">Error ID: <code>{{ error_id }}</code></p>
+
+      <div class="tt-error-page__details" role="region" aria-label="Error details">
+        <h2>Error details</h2>
+        <dl>
+          <dt>Type</dt>
+          <dd>{{ error_type }}</dd>
+          <dt>Message</dt>
+          <dd>{{ error_message }}</dd>
+          {% if career_id %}
+          <dt>Career ID</dt>
+          <dd>{{ career_id }}</dd>
+          {% endif %}
+          {% if career_slug %}
+          <dt>Slug</dt>
+          <dd>{{ career_slug }}</dd>
+          {% endif %}
+          {% if request_path %}
+          <dt>Path</dt>
+          <dd>{{ request_path }}</dd>
+          {% endif %}
+        </dl>
+        {% if show_error_details and error_traceback %}
+        <pre class="tt-error-page__traceback">{{ error_traceback }}</pre>
+        {% elif not show_error_details %}
+        <p style="margin: 0.85rem 0 0; font-size: 0.85rem; color: #6b7280;">
+          Full technical details are available to staff accounts. Share the Error ID with support if this keeps happening.
+        </p>
+        {% endif %}
+      </div>
+
+      <div class="tt-error-page__actions" style="margin-top: 1.5rem;">
+        <a href="{{ url('careers:career') }}" class="btn custom-button purple-button">Career library</a>
+        <a href="{{ url('core:home') }}" class="btn custom-button btn-outline">Home</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

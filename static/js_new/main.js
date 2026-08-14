@@ -371,38 +371,7 @@ if (header) {
 
 
 
-// Toggle to show and hide navbar menu - Cross-browser compatible
-document.addEventListener('DOMContentLoaded', function() {
-  const navbarMenu = document.getElementById("menu");
-  const burgerMenu = document.getElementById("burger");
-  
-  // Check if elements exist before adding event listeners
-  if (burgerMenu && navbarMenu) {
-    // Use both click and touchstart for better mobile support
-    burgerMenu.addEventListener("click", function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      navbarMenu.classList.toggle("is-active");
-      burgerMenu.classList.toggle("is-active");
-    });
-    
-    // Touch support for mobile devices
-    burgerMenu.addEventListener("touchstart", function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      navbarMenu.classList.toggle("is-active");
-      burgerMenu.classList.toggle("is-active");
-    });
-    
-    // Close menu when clicking outside
-    document.addEventListener("click", function(e) {
-      if (!burgerMenu.contains(e.target) && !navbarMenu.contains(e.target)) {
-        navbarMenu.classList.remove("is-active");
-        burgerMenu.classList.remove("is-active");
-      }
-    });
-  }
-});
+// Mobile nav toggle is handled in template20/includes/header.html (avoid duplicate handlers).
 
 // Toggle to show and hide dropdown menu
 const dropdown = document.querySelectorAll(".dropdown");
@@ -447,10 +416,10 @@ const toggleDropdownItem = (item) => {
   }
 };
 
-// v2 dashboard topbar: delay-hide avatar dropdown on hover-out
-// (Institute/marketing/group dashboards use this shared script; counselor has its own.)
+// v2 dashboard topbar + marketing header account popup:
+// auto-close after idle, and close when clicking outside.
 (function () {
-  var CLOSE_DELAY_MS = 6000;
+  var CLOSE_DELAY_MS = 5000;
   var timer = null;
 
   function clearT() {
@@ -458,6 +427,10 @@ const toggleDropdownItem = (item) => {
       clearTimeout(timer);
       timer = null;
     }
+  }
+
+  function isAccountDropdown(wrap) {
+    return !!(wrap && wrap.querySelector && wrap.querySelector(".dropdown-content.login-content"));
   }
 
   function closeNow(wrap) {
@@ -470,46 +443,112 @@ const toggleDropdownItem = (item) => {
   }
 
   function scheduleClose(wrap) {
+    if (!isAccountDropdown(wrap)) return;
     clearT();
     timer = setTimeout(function () {
       closeNow(wrap);
     }, CLOSE_DELAY_MS);
   }
 
-  function bindOnce() {
-    var wrap = document.querySelector(".ttv2-topbar-avatar-dropdown.dropdown");
-    if (!wrap || wrap.getAttribute("data-ttv2-hoverbound") === "1") return;
-    wrap.setAttribute("data-ttv2-hoverbound", "1");
+  function openAccountDropdowns() {
+    return Array.prototype.filter.call(
+      document.querySelectorAll(".dropdown.dropdown-show"),
+      isAccountDropdown
+    );
+  }
 
-    var menu = wrap.querySelector(".dropdown-content");
+  function bindAccountHover(wrap) {
+    if (!wrap || wrap.getAttribute("data-tt-account-hoverbound") === "1") return;
+    wrap.setAttribute("data-tt-account-hoverbound", "1");
+
+    var menu = wrap.querySelector(".dropdown-content.login-content");
     wrap.addEventListener("mouseenter", function () {
       clearT();
     });
     wrap.addEventListener("mouseleave", function () {
-      scheduleClose(wrap);
+      if (wrap.classList.contains("dropdown-show")) scheduleClose(wrap);
     });
     if (menu) {
       menu.addEventListener("mouseenter", function () {
         clearT();
       });
       menu.addEventListener("mouseleave", function () {
-        scheduleClose(wrap);
+        if (wrap.classList.contains("dropdown-show")) scheduleClose(wrap);
       });
     }
-
-    // If opened and user scrolls away, still close quickly.
-    window.addEventListener(
-      "scroll",
-      function () {
-        // keep the delay behavior; don't instant-close on minor scroll
-        if (wrap.classList.contains("dropdown-show")) scheduleClose(wrap);
-      },
-      { passive: true }
-    );
   }
 
+  function bindOnce() {
+    document
+      .querySelectorAll(
+        ".ttv2-topbar-avatar-dropdown.dropdown, .tt-header-mobile-account.dropdown, .menu-item.dropdown"
+      )
+      .forEach(function (wrap) {
+        if (isAccountDropdown(wrap)) bindAccountHover(wrap);
+      });
+  }
+
+  // Click outside → close; click inside open popup → refresh auto-close timer
+  document.addEventListener(
+    "click",
+    function (e) {
+      var opens = openAccountDropdowns();
+      if (!opens.length) {
+        // Toggle may open this tick — schedule after legacy toggle handler
+        var toggle = e.target && e.target.closest
+          ? e.target.closest(".tt-header-account-toggle, .dropdown-toggle.menu-link")
+          : null;
+        if (toggle) {
+          var wrap = toggle.closest(".dropdown");
+          if (isAccountDropdown(wrap)) {
+            setTimeout(function () {
+              if (wrap.classList.contains("dropdown-show")) scheduleClose(wrap);
+            }, 0);
+          }
+        }
+        return;
+      }
+
+      opens.forEach(function (wrap) {
+        if (wrap.contains(e.target)) {
+          scheduleClose(wrap);
+          return;
+        }
+        closeNow(wrap);
+      });
+
+      var toggleOpen = e.target && e.target.closest
+        ? e.target.closest(".tt-header-account-toggle, .dropdown-toggle.menu-link")
+        : null;
+      if (toggleOpen) {
+        var w = toggleOpen.closest(".dropdown");
+        if (isAccountDropdown(w)) {
+          setTimeout(function () {
+            if (w.classList.contains("dropdown-show")) scheduleClose(w);
+          }, 0);
+        }
+      }
+    },
+    false
+  );
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    openAccountDropdowns().forEach(closeNow);
+    clearT();
+  });
+
+  window.addEventListener(
+    "scroll",
+    function () {
+      openAccountDropdowns().forEach(function (wrap) {
+        scheduleClose(wrap);
+      });
+    },
+    { passive: true }
+  );
+
   document.addEventListener("DOMContentLoaded", bindOnce);
-  // In case scripts run after DOMContentLoaded in some shells
   try {
     bindOnce();
   } catch (e) {}
@@ -524,19 +563,6 @@ window.addEventListener("resize", () => {
     dropdown.forEach((item) => {
       item.classList.remove("dropdown-show");
     });
-  }
-});
-
-// Fixed navbar menu on window resizing
-window.addEventListener("resize", () => {
-  const navbarMenu = document.getElementById("menu");
-  const burgerMenu = document.getElementById("burger");
-  
-  if (window.innerWidth > 992) {
-    if (navbarMenu && burgerMenu && navbarMenu.classList.contains("is-active")) {
-      navbarMenu.classList.remove("is-active");
-      burgerMenu.classList.remove("is-active");
-    }
   }
 });
 
@@ -1029,9 +1055,23 @@ var TT_COMPLEXITY_HINTS = {
   medium: 'Medium keeps a balanced, clear tone.',
   hard: 'Hard uses formal, academic language.'
 };
+var TT_LANG_WIDGET_COPY = {
+  title: 'Choose language',
+  searchPlaceholder: 'Search',
+  searchAria: 'Search language',
+  resetTitle: 'Reset to English',
+  resetAria: 'Reset to English',
+  closeAria: 'Close language menu',
+  complexityLabel: 'Reading level',
+  easy: 'Easy',
+  medium: 'Medium',
+  hard: 'Hard',
+  loaderTitle: 'Switching language',
+  loaderSub: 'Updating page content…'
+};
 var TT_CONTENT_ROOT_SELECTORS = ['main', '[role="main"]', '#content', '.main-content'];
 var TT_CONTENT_TEXT_SELECTORS = 'p, h1, h2, h3, h4, h5, h6, li, td, th, dt, dd, label, figcaption, blockquote, .card-text, .report-text';
-var TT_SKIP_ANCESTOR_SELECTORS = '#tt-language-widget, header, footer, nav, script, style, noscript, .goog-te-banner-frame, .skiptranslate, .tt-lang-widget, .modal';
+var TT_SKIP_ANCESTOR_SELECTORS = '#tt-language-widget, #tt-lang-switch-loader, header, footer, nav, script, style, noscript, .goog-te-banner-frame, .skiptranslate, .tt-lang-widget, .modal, [data-tt-lang-trigger]';
 
 function getTranslateComplexity() {
   try {
@@ -1050,6 +1090,13 @@ function setTranslateComplexity(level) {
 }
 
 function getCsrfToken() {
+  var input = document.querySelector('input[name="csrfmiddlewaretoken"]');
+  if (input && input.value) return input.value;
+  var meta = document.querySelector('meta[name="csrf-token"]');
+  if (meta && meta.getAttribute('content')) return meta.getAttribute('content');
+  if (window.AIFeatureQuotaConfig && window.AIFeatureQuotaConfig.csrfToken) {
+    return window.AIFeatureQuotaConfig.csrfToken;
+  }
   var match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
   return match ? decodeURIComponent(match[1]) : '';
 }
@@ -1117,6 +1164,32 @@ function showTranslateComplexityStatus(message, isError) {
 
 var ttComplexityRequestToken = 0;
 
+function parseTranslateComplexityResponse(response) {
+  return response.text().then(function (raw) {
+    var text = (raw || '').trim();
+    if (!text) {
+      return { ok: false, error: 'Empty response from reading-level service' };
+    }
+    // HTML login/error pages start with "<" — never pass them to JSON.parse.
+    if (text.charAt(0) === '<') {
+      return {
+        ok: false,
+        error: response.status === 401 || response.status === 403
+          ? 'Session expired — refresh and try again'
+          : 'Reading-level service returned an HTML error page'
+      };
+    }
+    try {
+      return JSON.parse(text);
+    } catch (err) {
+      return {
+        ok: false,
+        error: 'Reading-level service returned invalid JSON'
+      };
+    }
+  });
+}
+
 function applyTranslateComplexity(langCode, level) {
   if (!window.TT_TRANSLATE_COMPLEXITY_ENABLED || !langCode || langCode === 'en') {
     return Promise.resolve();
@@ -1136,6 +1209,12 @@ function applyTranslateComplexity(langCode, level) {
 
   var batches = chunkArray(items, 20);
   var chain = Promise.resolve();
+  var appliedAny = false;
+  var softFail = false;
+  var cacheHitsTotal = 0;
+  var cacheMissesTotal = 0;
+  var llmCallsTotal = 0;
+  var storedTotal = 0;
 
   batches.forEach(function (batch) {
     chain = chain.then(function () {
@@ -1147,6 +1226,8 @@ function applyTranslateComplexity(langCode, level) {
         credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
           'X-CSRFToken': getCsrfToken()
         },
         body: JSON.stringify({
@@ -1155,19 +1236,59 @@ function applyTranslateComplexity(langCode, level) {
           level: level
         })
       }).then(function (response) {
-        return response.json().then(function (payload) {
+        return parseTranslateComplexityResponse(response).then(function (payload) {
           if (requestToken !== ttComplexityRequestToken) {
             return;
           }
-          if (!response.ok || !payload.ok) {
-            throw new Error((payload && payload.error) || 'Adjustment failed');
+          if (!response.ok || !payload || !payload.ok || !Array.isArray(payload.texts)) {
+            // Keep Google Translate text; do not surface raw JSON.parse errors.
+            softFail = true;
+            return;
           }
+          var cacheInfo = payload.cache || {};
+          cacheHitsTotal += Number(cacheInfo.cache_hits || 0);
+          cacheMissesTotal += Number(cacheInfo.cache_misses || 0);
+          llmCallsTotal += Number(cacheInfo.llm_calls || 0);
+          storedTotal += Number(cacheInfo.stored || 0);
+
+          if (cacheInfo.from_cache || (cacheInfo.cache_hits > 0 && !cacheInfo.cache_misses)) {
+            console.log(
+              '[TopTeen translate] read from cache — hits:',
+              cacheInfo.cache_hits,
+              'lang:',
+              langCode,
+              'level:',
+              level
+            );
+          } else if (cacheInfo.cache_hits > 0) {
+            console.log(
+              '[TopTeen translate] partial cache — hits:',
+              cacheInfo.cache_hits,
+              'misses:',
+              cacheInfo.cache_misses,
+              'llm_calls:',
+              cacheInfo.llm_calls,
+              'stored:',
+              cacheInfo.stored
+            );
+          } else if (cacheInfo.llm_calls > 0) {
+            console.log(
+              '[TopTeen translate] LLM call — misses:',
+              cacheInfo.cache_misses,
+              'stored to Redis:',
+              cacheInfo.stored
+            );
+          }
+
           payload.texts.forEach(function (value, index) {
             if (value && batch[index] && batch[index].el) {
               batch[index].el.textContent = value;
+              appliedAny = true;
             }
           });
         });
+      }).catch(function () {
+        softFail = true;
       });
     });
   });
@@ -1176,13 +1297,29 @@ function applyTranslateComplexity(langCode, level) {
     if (requestToken !== ttComplexityRequestToken) {
       return;
     }
-    var label = level.charAt(0).toUpperCase() + level.slice(1);
-    showTranslateComplexityStatus(label + ' reading level applied', false);
-  }).catch(function (error) {
-    if (requestToken !== ttComplexityRequestToken) {
-      return;
+    if (cacheHitsTotal || cacheMissesTotal || llmCallsTotal) {
+      console.log(
+        '[TopTeen translate] summary — from cache:',
+        cacheHitsTotal,
+        '| LLM misses:',
+        cacheMissesTotal,
+        '| llm_calls:',
+        llmCallsTotal,
+        '| stored:',
+        storedTotal
+      );
     }
-    showTranslateComplexityStatus(error.message || 'Could not adjust reading level', true);
+    if (appliedAny) {
+      var label = level.charAt(0).toUpperCase() + level.slice(1);
+      var statusMsg = label + ' reading level applied';
+      if (cacheHitsTotal > 0 && cacheMissesTotal === 0) {
+        statusMsg += ' (from cache)';
+      }
+      showTranslateComplexityStatus(statusMsg, false);
+    } else if (softFail) {
+      // Silent: language translation still works via Google Translate.
+      showTranslateComplexityStatus('Using standard translation', false);
+    }
   });
 }
 
@@ -1213,6 +1350,10 @@ function initCustomLanguageSelector() {
     return;
   }
 
+  // Escape popup + triggers from Google Translate so names stay English.
+  widget.classList.add('notranslate', 'skiptranslate');
+  widget.setAttribute('translate', 'no');
+
   var grid = document.getElementById('tt-lang-grid');
   var searchInput = document.getElementById('tt-lang-search');
   var resetBtn = widget.querySelector('[data-tt-lang-reset]');
@@ -1221,9 +1362,12 @@ function initCustomLanguageSelector() {
   var complexityButtons = complexityWrap
     ? complexityWrap.querySelectorAll('[data-complexity]')
     : [];
+  var langLoader = document.getElementById('tt-lang-switch-loader');
   var currentLanguage = 'en';
   var currentComplexity = getTranslateComplexity();
   var isOpen = false;
+  var langSwitchToken = 0;
+  var langSwitchObserver = null;
 
   function getTranslateCombo() {
     var container = document.getElementById('google_translate_element');
@@ -1237,6 +1381,165 @@ function initCustomLanguageSelector() {
     return document.querySelectorAll('[data-tt-lang-trigger]');
   }
 
+  function protectTriggersFromTranslate() {
+    getTriggers().forEach(function (trigger) {
+      trigger.classList.add('notranslate', 'skiptranslate');
+      trigger.setAttribute('translate', 'no');
+    });
+  }
+
+  function restoreWidgetEnglishCopy() {
+    var title = document.getElementById('tt-lang-widget-title');
+    if (title) {
+      title.textContent = TT_LANG_WIDGET_COPY.title;
+    }
+    if (searchInput) {
+      searchInput.placeholder = TT_LANG_WIDGET_COPY.searchPlaceholder;
+      searchInput.setAttribute('aria-label', TT_LANG_WIDGET_COPY.searchAria);
+    }
+    if (resetBtn) {
+      resetBtn.setAttribute('aria-label', TT_LANG_WIDGET_COPY.resetAria);
+      resetBtn.setAttribute('title', TT_LANG_WIDGET_COPY.resetTitle);
+    }
+    var closeBtn = widget.querySelector('.tt-lang-close');
+    if (closeBtn) {
+      closeBtn.setAttribute('aria-label', TT_LANG_WIDGET_COPY.closeAria);
+    }
+    var complexityLabel = document.getElementById('tt-lang-complexity-label');
+    if (complexityLabel) {
+      complexityLabel.textContent = TT_LANG_WIDGET_COPY.complexityLabel;
+    }
+    complexityButtons.forEach(function (btn) {
+      var level = btn.getAttribute('data-complexity');
+      if (level && TT_LANG_WIDGET_COPY[level]) {
+        btn.textContent = TT_LANG_WIDGET_COPY[level];
+      }
+    });
+    if (complexityHint) {
+      complexityHint.textContent = TT_COMPLEXITY_HINTS[currentComplexity] || '';
+    }
+    if (grid) {
+      grid.querySelectorAll('.tt-lang-option[data-lang-name]').forEach(function (btn) {
+        btn.textContent = btn.getAttribute('data-lang-name') || btn.textContent;
+      });
+    }
+  }
+
+  function showLanguageSwitchLoader(langName) {
+    if (!langLoader) {
+      return;
+    }
+    var titleEl = document.getElementById('tt-lang-switch-loader-title');
+    var subEl = document.getElementById('tt-lang-switch-loader-sub');
+    if (titleEl) {
+      titleEl.textContent = langName && langName !== 'English'
+        ? ('Switching to ' + langName)
+        : TT_LANG_WIDGET_COPY.loaderTitle;
+    }
+    if (subEl) {
+      subEl.textContent = TT_LANG_WIDGET_COPY.loaderSub;
+    }
+    langLoader.hidden = false;
+    langLoader.setAttribute('aria-hidden', 'false');
+    requestAnimationFrame(function () {
+      langLoader.classList.add('is-visible');
+    });
+    document.body.classList.add('tt-lang-switching');
+  }
+
+  function hideLanguageSwitchLoader() {
+    if (!langLoader) {
+      return;
+    }
+    langLoader.classList.remove('is-visible');
+    langLoader.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('tt-lang-switching');
+    window.setTimeout(function () {
+      if (!langLoader.classList.contains('is-visible')) {
+        langLoader.hidden = true;
+      }
+    }, 220);
+  }
+
+  function waitForLanguageSwitchSettle(token, done) {
+    if (langSwitchObserver) {
+      langSwitchObserver.disconnect();
+      langSwitchObserver = null;
+    }
+    var finished = false;
+    var quietTimer = null;
+    var startedAt = Date.now();
+    var minMs = 900;
+    var maxMs = 3800;
+
+    function finish() {
+      if (finished || token !== langSwitchToken) {
+        return;
+      }
+      finished = true;
+      if (quietTimer) {
+        window.clearTimeout(quietTimer);
+      }
+      if (langSwitchObserver) {
+        langSwitchObserver.disconnect();
+        langSwitchObserver = null;
+      }
+      restoreWidgetEnglishCopy();
+      if (typeof done === 'function') {
+        done();
+      }
+    }
+
+    function tryFinish() {
+      if (finished || token !== langSwitchToken) {
+        return;
+      }
+      var elapsed = Date.now() - startedAt;
+      if (elapsed < minMs) {
+        window.setTimeout(tryFinish, minMs - elapsed);
+        return;
+      }
+      finish();
+    }
+
+    try {
+      langSwitchObserver = new MutationObserver(function (mutations) {
+        if (token !== langSwitchToken) {
+          return;
+        }
+        // Ignore mutations inside the loader / language widget itself.
+        var relevant = mutations.some(function (mutation) {
+          var target = mutation.target;
+          if (!target) {
+            return false;
+          }
+          var el = target.nodeType === 1 ? target : target.parentElement;
+          if (el && el.closest && el.closest('#tt-lang-switch-loader, #tt-language-widget')) {
+            return false;
+          }
+          return true;
+        });
+        if (!relevant) {
+          return;
+        }
+        window.clearTimeout(quietTimer);
+        quietTimer = window.setTimeout(tryFinish, 500);
+      });
+      langSwitchObserver.observe(document.body, {
+        childList: true,
+        subtree: true,
+        characterData: true
+      });
+    } catch (e) {
+      window.setTimeout(finish, 1400);
+      return;
+    }
+
+    // Cached translations may not mutate much — still show loader briefly.
+    window.setTimeout(tryFinish, minMs + 250);
+    window.setTimeout(finish, maxMs);
+  }
+
   function setWidgetOpen(open) {
     var nextOpen = !!open;
     if (nextOpen === isOpen) {
@@ -1245,6 +1548,7 @@ function initCustomLanguageSelector() {
     isOpen = nextOpen;
 
     if (isOpen) {
+      restoreWidgetEnglishCopy();
       widget.hidden = false;
       widget.setAttribute('aria-hidden', 'false');
       requestAnimationFrame(function () {
@@ -1274,6 +1578,7 @@ function initCustomLanguageSelector() {
   }
 
   function updateTriggerLabels(langCode, langName) {
+    protectTriggersFromTranslate();
     document.querySelectorAll('[data-tt-lang-trigger] .tt-lang-toggle-label').forEach(function (labelEl) {
       if (langCode === 'en') {
         labelEl.textContent = 'Language';
@@ -1301,6 +1606,21 @@ function initCustomLanguageSelector() {
     }
   }
 
+  function resolveLanguageName(langCode) {
+    if (!langCode || langCode === 'en') {
+      return 'English';
+    }
+    var resolved = langCode;
+    getEnabledLanguageEntries().some(function (entry) {
+      if (entry.code === langCode) {
+        resolved = entry.name || langCode;
+        return true;
+      }
+      return false;
+    });
+    return resolved;
+  }
+
   function setComplexity(level, rerun) {
     if (level !== 'easy' && level !== 'medium' && level !== 'hard') {
       return;
@@ -1308,28 +1628,46 @@ function initCustomLanguageSelector() {
     currentComplexity = level;
     setTranslateComplexity(level);
     updateComplexityUi();
-    var activeBtn = grid && grid.querySelector('.tt-lang-option.is-active');
-    var langName = activeBtn ? activeBtn.textContent.trim() : 'English';
-    updateTriggerLabels(currentLanguage, langName);
+    updateTriggerLabels(currentLanguage, resolveLanguageName(currentLanguage));
     if (rerun && currentLanguage !== 'en') {
       scheduleTranslateComplexity(currentLanguage, currentComplexity, 300);
     }
   }
 
   function selectLanguage(langCode, langName) {
-    var combo = getTranslateCombo();
-    if (!combo || !grid) {
+    if (!grid) {
       return;
     }
+    var safeName = langName || resolveLanguageName(langCode);
+    var combo = getTranslateCombo();
+    var token = ++langSwitchToken;
     currentLanguage = langCode;
-    combo.value = langCode;
-    combo.dispatchEvent(new Event('change'));
-    updateTriggerLabels(langCode, langName);
+    showLanguageSwitchLoader(safeName);
+
+    if (combo) {
+      // Prefer Google combo when the language is supported there.
+      var hasOption = Array.from(combo.options).some(function (option) {
+        return option.value === langCode;
+      });
+      if (hasOption) {
+        combo.value = langCode;
+        combo.dispatchEvent(new Event('change'));
+      } else {
+        // Fallback for catalog languages Google omits from the combo.
+        var hostname = window.location.hostname;
+        document.cookie = 'googtrans=/en/' + langCode + '; path=/';
+        document.cookie = 'googtrans=/en/' + langCode + '; path=/; domain=.' + hostname;
+        window.location.reload();
+        return;
+      }
+    }
+    updateTriggerLabels(langCode, safeName);
     updateComplexityUi();
-    grid.querySelectorAll('.tt-lang-option').forEach(function (btn) {
-      btn.classList.toggle('is-active', btn.getAttribute('data-lang') === langCode);
-    });
+    // Rebuild so the newly selected language is hidden and the previous one reappears.
+    buildLanguageOptions(combo);
+    restoreWidgetEnglishCopy();
     setWidgetOpen(false);
+    waitForLanguageSwitchSettle(token, hideLanguageSwitchLoader);
     if (langCode !== 'en') {
       scheduleTranslateComplexity(langCode, currentComplexity, 1800);
     } else {
@@ -1343,7 +1681,11 @@ function initCustomLanguageSelector() {
     }
     var normalized = query.trim().toLowerCase();
     grid.querySelectorAll('.tt-lang-option').forEach(function (btn) {
-      var label = (btn.textContent || '').toLowerCase();
+      var label = (
+        (btn.getAttribute('data-lang-name') || '') + ' ' +
+        (btn.getAttribute('data-lang') || '') + ' ' +
+        (btn.textContent || '')
+      ).toLowerCase();
       btn.hidden = normalized && label.indexOf(normalized) === -1;
     });
   }
@@ -1355,16 +1697,46 @@ function initCustomLanguageSelector() {
     selectLanguage('en', 'English');
   }
 
-  function sortLanguageOptions(options) {
-    return options.slice().sort(function (a, b) {
-      if (a.value === 'en') {
+  function sortLanguageEntries(entries) {
+    return entries.slice().sort(function (a, b) {
+      if (a.code === 'en') {
         return -1;
       }
-      if (b.value === 'en') {
+      if (b.code === 'en') {
         return 1;
       }
-      return a.textContent.trim().localeCompare(b.textContent.trim());
+      return String(a.name || '').localeCompare(String(b.name || ''));
     });
+  }
+
+  function getEnabledLanguageEntries() {
+    if (Array.isArray(window.TT_ENABLED_LANGUAGES) && window.TT_ENABLED_LANGUAGES.length) {
+      return window.TT_ENABLED_LANGUAGES.map(function (entry) {
+        return {
+          code: entry.code,
+          name: entry.name || entry.code
+        };
+      }).filter(function (entry) {
+        return !!entry.code;
+      });
+    }
+    // Fallback: codes from CSV + labels from Google combo when available.
+    var combo = getTranslateCombo();
+    var nameByCode = {};
+    if (combo) {
+      Array.from(combo.options).forEach(function (option) {
+        if (option.value) {
+          nameByCode[option.value] = option.value === 'en' ? 'English' : option.textContent.trim();
+        }
+      });
+    }
+    return String(getIncludedLanguages())
+      .split(',')
+      .map(function (code) { return code.trim(); })
+      .filter(Boolean)
+      .map(function (code) {
+        return { code: code, name: nameByCode[code] || code };
+      });
   }
 
   function buildLanguageOptions(combo) {
@@ -1372,28 +1744,39 @@ function initCustomLanguageSelector() {
       return;
     }
     grid.innerHTML = '';
-    var options = sortLanguageOptions(
-      Array.from(combo.options).filter(function (option) {
-        return option.value;
+    var selected = currentLanguage || 'en';
+    var entries = sortLanguageEntries(
+      getEnabledLanguageEntries().filter(function (entry) {
+        // Show every enabled language except the currently selected one.
+        return entry.code !== selected;
       })
     );
-    options.forEach(function (option) {
-      var langName = option.value === 'en' ? 'English' : option.textContent.trim();
+    entries.forEach(function (entry) {
+      var langName = entry.code === 'en' ? 'English' : entry.name;
       var btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'tt-lang-option';
-      btn.setAttribute('data-lang', option.value);
+      btn.className = 'tt-lang-option notranslate';
+      btn.setAttribute('translate', 'no');
+      btn.setAttribute('data-lang', entry.code);
+      btn.setAttribute('data-lang-name', langName);
       btn.setAttribute('role', 'option');
       btn.textContent = langName;
-      if (option.value === currentLanguage) {
-        btn.classList.add('is-active');
-      }
       btn.addEventListener('click', function () {
-        selectLanguage(option.value, langName);
+        selectLanguage(entry.code, langName);
       });
       grid.appendChild(btn);
     });
-    updateTriggerLabels(currentLanguage, 'English');
+    var selectedName = resolveLanguageName(selected);
+    updateTriggerLabels(selected, selectedName);
+    restoreWidgetEnglishCopy();
+    // Keep Google combo in sync when present (used to apply translation).
+    if (combo && selected) {
+      try {
+        combo.value = selected;
+      } catch (e) {
+        /* ignore */
+      }
+    }
   }
 
   function bindWidgetShell() {
@@ -1497,20 +1880,43 @@ function initCustomLanguageSelector() {
       return;
     }
     var combo = getTranslateCombo();
-    if (combo && combo.options.length > 1) {
+    var hasEnabledList = Array.isArray(window.TT_ENABLED_LANGUAGES) && window.TT_ENABLED_LANGUAGES.length > 0;
+    var comboReady = combo && combo.options.length > 1;
+    // Build from our enabled catalog as soon as possible; don't wait only on Google's combo
+    // (Google often omits several enabled codes, which previously showed ~42 instead of 48).
+    if (hasEnabledList || comboReady) {
+      var cookieLang = readCookieLanguage();
+      if (cookieLang) {
+        currentLanguage = cookieLang;
+      }
       buildLanguageOptions(combo);
       bindControls();
+      protectTriggersFromTranslate();
+      restoreWidgetEnglishCopy();
       if (window.ttLanguageSelector && window.ttLanguageSelector.refreshTriggers) {
         window.ttLanguageSelector.refreshTriggers();
       }
-      var cookieLang = readCookieLanguage();
       if (cookieLang && cookieLang !== 'en') {
-        currentLanguage = cookieLang;
-        var activeBtn = grid.querySelector('[data-lang="' + cookieLang + '"]');
-        var langName = activeBtn ? activeBtn.textContent.trim() : cookieLang;
-        updateTriggerLabels(cookieLang, langName);
         updateComplexityUi();
         scheduleTranslateComplexity(cookieLang, currentComplexity, 2200);
+      } else {
+        updateComplexityUi();
+      }
+      // If Google combo is still loading, keep polling so translation apply works later.
+      if (!comboReady) {
+        (function pollCombo(tryCount) {
+          if (tryCount >= 100) {
+            return;
+          }
+          window.setTimeout(function () {
+            var later = getTranslateCombo();
+            if (later && later.options.length > 1) {
+              buildLanguageOptions(later);
+              return;
+            }
+            pollCombo(tryCount + 1);
+          }, 100);
+        })(attempts || 0);
       }
       return;
     }
@@ -1555,10 +1961,53 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // nav search
 
+/**
+ * Shared full-screen smart loader (same look as language switch).
+ * Usage: TTSmartLoader.show('Saving profile', 'Please wait…'); TTSmartLoader.hide();
+ */
+(function (global) {
+  'use strict';
+  var hideTimer = null;
 
+  function getEl() {
+    return document.getElementById('tt-smart-loader');
+  }
 
+  function show(title, sub) {
+    var el = getEl();
+    if (!el) return;
+    if (hideTimer) {
+      clearTimeout(hideTimer);
+      hideTimer = null;
+    }
+    var titleEl = document.getElementById('tt-smart-loader-title');
+    var subEl = document.getElementById('tt-smart-loader-sub');
+    if (titleEl) titleEl.textContent = title || 'Saving';
+    if (subEl) subEl.textContent = sub || 'Please wait…';
+    el.hidden = false;
+    el.setAttribute('aria-hidden', 'false');
+    requestAnimationFrame(function () {
+      el.classList.add('is-visible');
+    });
+    document.body.classList.add('tt-smart-loading');
+  }
 
+  function hide() {
+    var el = getEl();
+    if (!el) return;
+    el.classList.remove('is-visible');
+    el.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('tt-smart-loading');
+    hideTimer = window.setTimeout(function () {
+      if (!el.classList.contains('is-visible')) {
+        el.hidden = true;
+      }
+      hideTimer = null;
+    }, 220);
+  }
 
+  global.TTSmartLoader = { show: show, hide: hide };
+})(window);
 
 
 

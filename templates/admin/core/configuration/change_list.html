@@ -12,6 +12,9 @@
   <a href="{% url 'admin:core_configuration_website_settings' %}" class="historylink">Core website settings</a>
 </li>
 <li>
+  <a href="{% url 'admin:core_configuration_voice_to_text_settings' %}" class="historylink">Voice to text settings</a>
+</li>
+<li>
   <a href="{% url 'admin:core_configuration_student_id_settings' %}" class="historylink">Student ID Settings</a>
 </li>
 <li>
@@ -25,6 +28,24 @@
 </li>
 <li>
   <a href="{% url 'admin:core_configuration_dashboard_statistics' %}" class="historylink">Dashboard Statistics</a>
+</li>
+<li>
+  <a href="{% url 'admin:hub_configuration' %}#ai-tokens-freemium" class="historylink">AI tokens &amp; freemium</a>
+</li>
+<li>
+  <a href="{% url 'admin:core_configuration_llm_shop_display' %}" class="historylink">Shop display (rate &amp; notes)</a>
+</li>
+<li>
+  <a href="{% url 'admin:core_configuration_llm_billing' %}" class="historylink">AI Cost / LLM Billing</a>
+</li>
+<li>
+  <a href="{% url 'admin:core_llmtokenpackage_changelist' %}" class="historylink">LLM token packages</a>
+</li>
+<li>
+  <a href="{% url 'admin:core_llmpricingsettings_changelist' %}" class="historylink">LLM pricing (USD-INR)</a>
+</li>
+<li>
+  <a href="{% url 'admin:core_llmrolequotadefault_changelist' %}" class="historylink">LLM role quotas</a>
 </li>
 {{ block.super }}
 {% endblock %}

@@ -25,7 +25,7 @@ def _extract_grade_number(student) -> Optional[int]:
 
     if not grade_raw:
         try:
-            sm = student.student_management.last()
+            sm = _latest_student_management(student)
             if sm and getattr(sm, "class_and_section", None):
                 cs = sm.class_and_section
                 class_name = getattr(cs, "class_and_section", None) or str(cs)
@@ -42,6 +42,45 @@ def _extract_grade_number(student) -> Optional[int]:
     if lowered.startswith("10"):
         return 10
     return None
+
+
+def _latest_student_management(student):
+    """Prefer prefetched student_management (ordered newest-first) to avoid N+1."""
+    cache = getattr(student, "_prefetched_objects_cache", None)
+    if cache is not None and "student_management" in cache:
+        sms = cache["student_management"]
+        return sms[0] if sms else None
+    try:
+        return (
+            student.student_management.select_related("class_and_section")
+            .order_by("-id")
+            .first()
+        )
+    except Exception:
+        return None
+
+
+def linked_students_for_parent(parent):
+    """Linked students with profile + latest institute class prefetched."""
+    from django.db.models import Prefetch
+
+    from institute.models import StudentManagement
+    from users.models import ParentStudentLink
+
+    return [
+        link.student
+        for link in ParentStudentLink.objects.filter(parent=parent)
+        .select_related("student", "student__user_profile")
+        .prefetch_related(
+            Prefetch(
+                "student__student_management",
+                queryset=StudentManagement.objects.select_related(
+                    "class_and_section"
+                ).order_by("-id"),
+            )
+        )
+        if link.student
+    ]
 
 
 def resolve_assessment_track(student) -> str:
@@ -548,11 +587,17 @@ def build_student_test_reports(student) -> Dict[str, Any]:
 
         if MIAssessmentResult.objects.filter(user=student).exists():
             other_reports.append(
-                _item("Multiple Intelligence", f"{reverse('core:mi_report_pdf_user', args=[sid])}?inline=1")
+                _item(
+                    "Multiple Intelligence",
+                    f"{reverse('core:multiple_intelligences_assessment')}?student_id={sid}",
+                )
             )
         if EQAssessmentResult.objects.filter(user=student).exists():
             other_reports.append(
-                _item("Emotional Intelligence", f"{reverse('core:eq_report_pdf_user', args=[sid])}?inline=1")
+                _item(
+                    "Emotional Intelligence",
+                    f"{reverse('core:emotional_intelligences_assessment')}?student_id={sid}",
+                )
             )
     except Exception:
         pass
