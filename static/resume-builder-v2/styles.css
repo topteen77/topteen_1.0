@@ -25,6 +25,11 @@ body.rb2-studio-page .std-shell-main {
   background: #eef1f8;
 }
 
+
+.student-dash-sidebar-col.d-none.d-lg-block.px-0 {
+	margin-top: 0 !important;
+}
+
 body.rb2-studio-page #studentDashboardShell.student-dash-shell {
   align-items: stretch;
   min-height: calc(100dvh - 52px);
@@ -179,8 +184,9 @@ body.rb2-studio-page .student-dash-sidebar-col .profile-sidebar .fs-18 {
   font-size: 18px !important;
 }
 
-/* Studio sidebar — restore profile card button (prototype .btn overrides purple-button) */
-body.rb2-studio-page .profile-sidebar .profile-complete-card .btn.custom-button.purple-button {
+/* Sidebar profile card — restore purple button (prototype .btn overrides purple-button on rb2-page) */
+body.rb2-studio-page .profile-sidebar .profile-complete-card .btn.custom-button.purple-button,
+body.rb2-page .profile-sidebar .profile-complete-card .btn.custom-button.purple-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -202,7 +208,10 @@ body.rb2-studio-page .profile-sidebar .profile-complete-card .btn.custom-button.
 
 body.rb2-studio-page .profile-sidebar .profile-complete-card .btn.custom-button.purple-button:hover,
 body.rb2-studio-page .profile-sidebar .profile-complete-card .btn.custom-button.purple-button:focus,
-body.rb2-studio-page .profile-sidebar .profile-complete-card .btn.custom-button.purple-button:visited {
+body.rb2-studio-page .profile-sidebar .profile-complete-card .btn.custom-button.purple-button:visited,
+body.rb2-page .profile-sidebar .profile-complete-card .btn.custom-button.purple-button:hover,
+body.rb2-page .profile-sidebar .profile-complete-card .btn.custom-button.purple-button:focus,
+body.rb2-page .profile-sidebar .profile-complete-card .btn.custom-button.purple-button:visited {
   background: #5249df !important;
   color: #fff !important;
   box-shadow: 0 6px 16px rgba(82, 73, 223, 0.35);
@@ -210,24 +219,28 @@ body.rb2-studio-page .profile-sidebar .profile-complete-card .btn.custom-button.
   text-decoration: none;
 }
 
-body.rb2-studio-page .profile-sidebar .profile-complete-card .btn.custom-button.purple-button i {
+body.rb2-studio-page .profile-sidebar .profile-complete-card .btn.custom-button.purple-button i,
+body.rb2-page .profile-sidebar .profile-complete-card .btn.custom-button.purple-button i {
   color: #fff !important;
   font-size: 16px;
 }
 
-body.rb2-studio-page .profile-sidebar .profile-complete-card {
+body.rb2-studio-page .profile-sidebar .profile-complete-card,
+body.rb2-page .profile-sidebar .profile-complete-card {
   background: #fff2d9;
   border-radius: 10px;
 }
 
-body.rb2-studio-page .profile-sidebar .progress-bar-custom {
+body.rb2-studio-page .profile-sidebar .progress-bar-custom,
+body.rb2-page .profile-sidebar .progress-bar-custom {
   height: 7px;
   background: rgba(76, 201, 240, 0.15);
   border-radius: 999px;
   overflow: hidden;
 }
 
-body.rb2-studio-page .profile-sidebar .progress-bar-custom .progress-fill {
+body.rb2-studio-page .profile-sidebar .progress-bar-custom .progress-fill,
+body.rb2-page .profile-sidebar .progress-bar-custom .progress-fill {
   height: 100%;
   background: #4cc9f0;
   border-radius: 999px;
@@ -2338,26 +2351,27 @@ body:not(.rb2-studio-page) .rb2-page {
 
 .rb2-tips-card {
   margin-top: auto;
-  padding: 16px;
+  padding: 12px;
   background: linear-gradient(145deg, #f8f7ff 0%, #ede9fe 52%, #faf5ff 100%);
-  border-radius: 16px;
-  border: 1px solid rgba(124, 58, 237, 0.16);
-  box-shadow: 0 6px 18px rgba(91, 91, 247, 0.08);
+  border-radius: 12px;
+  border: 1px solid rgba(124, 58, 237, 0.14);
+  box-shadow: 0 4px 12px rgba(91, 91, 247, 0.06);
 }
 
 .rb2-tips-card__title {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
-  margin: 0 0 12px;
+  margin: 0 0 8px;
   color: var(--rb2-secondary);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  letter-spacing: 0.01em;
 }
 
 .rb2-tips-lamp {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
   color: var(--rb2-secondary);
   animation: rb2TipsLampBlink 1.4s ease-in-out infinite;
@@ -2399,46 +2413,59 @@ body:not(.rb2-studio-page) .rb2-page {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .rb2-tip-row {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 8px 10px;
-  font-size: 13px;
-  line-height: 1.45;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 8px;
+  font-size: 11px;
+  line-height: 1.35;
   color: var(--rb2-heading);
-  background: rgba(255, 255, 255, 0.72);
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(124, 58, 237, 0.08);
+  border-radius: 8px;
   cursor: pointer;
   outline: none;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.rb2-tip-row:hover,
+.rb2-tip-row:focus-visible {
+  background: #fff;
+  border-color: rgba(124, 58, 237, 0.2);
+  box-shadow: 0 2px 6px rgba(91, 91, 247, 0.08);
 }
 
 .rb2-tip-row:focus-visible {
-  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.25);
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.22);
 }
 
 .rb2-tip-check {
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  margin-top: 1px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: rgba(124, 58, 237, 0.1);
   color: var(--rb2-secondary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 11px;
   line-height: 1;
+}
+
+.rb2-tip-check i {
+  font-size: 11px;
 }
 
 .rb2-tip-text {
   flex: 1;
   min-width: 0;
   font-weight: 500;
+  line-height: 1.35;
 }
 
 .rb2-tip-row:hover .rb2-tip-text,
