@@ -40,6 +40,8 @@ body.ttv2-shell{
 
 body.ttv2-shell a{ color: inherit; }
 
+
+
 /* Week dropdown pill (matches reference screenshot) */
 body.ttv2-shell .ttv2-week-pill{
   display: inline-flex;
@@ -6449,150 +6451,546 @@ html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-dashboard-toast--kira{
     }
 }
 /* Institute first-login welcome / setup wizard */
-body.ttv2-shell .ttv2-welcome-setup-card{
-  padding: 22px 24px 20px;
-  border: 1px solid color-mix(in srgb, var(--c-border, var(--ttv2-border)) 85%, transparent);
+body.ttv2-shell .ttv2-welcome-setup-wrap{
+  display: grid;
+  gap: 16px;
+}
+body.ttv2-shell .ttv2-welcome-setup{
+  display: grid;
+  gap: 16px;
+  animation: ttv2WelcomeIn 0.45s ease both;
+}
+@keyframes ttv2WelcomeIn{
+  from{ opacity: 0; transform: translateY(10px); }
+  to{ opacity: 1; transform: none; }
+}
+@keyframes ttv2WelcomeFloat{
+  0%, 100%{ transform: translateY(0); }
+  50%{ transform: translateY(-6px); }
+}
+
+/* Hero banner */
+body.ttv2-shell .ttv2-welcome-setup__banner{
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(180px, 0.8fr);
+  align-items: center;
+  gap: 20px;
+  padding: 28px 32px;
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--c-border, var(--ttv2-border)) 75%, transparent);
   box-shadow: var(--ttv2-shadow-sm);
   background:
-    radial-gradient(120% 90% at 0% 0%, rgba(82, 73, 223, 0.08), transparent 55%),
-    radial-gradient(90% 70% at 100% 0%, rgba(56, 189, 248, 0.07), transparent 50%),
-    var(--c-bg2, var(--ttv2-surface));
+    radial-gradient(90% 120% at 100% 0%, rgba(99, 102, 241, 0.12), transparent 55%),
+    radial-gradient(70% 90% at 0% 100%, rgba(56, 189, 248, 0.08), transparent 50%),
+    linear-gradient(135deg, #f8f7ff 0%, #ffffff 45%, #eef6ff 100%);
 }
-body.ttv2-shell .ttv2-welcome-setup__hero{
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 20px;
+body.ttv2-shell .ttv2-welcome-setup__banner-copy{
+  position: relative;
+  z-index: 1;
+  min-width: 0;
 }
-body.ttv2-shell .ttv2-welcome-setup__badge{
-  flex: 0 0 auto;
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  color: #fff;
-  background: linear-gradient(135deg, #5249DF, #38bdf8);
-  box-shadow: 0 10px 22px rgba(82, 73, 223, 0.28);
-}
-body.ttv2-shell .ttv2-welcome-setup__eyebrow{
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--c-accent, var(--ttv2-accent));
+body.ttv2-shell .ttv2-welcome-setup__welcome-line{
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--c-text, var(--ttv2-fg));
 }
 body.ttv2-shell .ttv2-welcome-setup__title{
-  margin: 0 0 8px;
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 1.25;
+  margin: 0 0 14px;
+  font-size: clamp(24px, 2.4vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
   color: var(--c-text, var(--ttv2-fg));
+}
+body.ttv2-shell .ttv2-welcome-setup__brand{
+  color: #5249DF;
+  background: linear-gradient(135deg, #5249DF, #7c6cff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+body.ttv2-shell .ttv2-welcome-setup__title-sep{
+  margin-right: 0.18em;
+}
+body.ttv2-shell .ttv2-welcome-setup__ready{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 550;
+  color: var(--c-text2, var(--ttv2-muted));
+}
+body.ttv2-shell .ttv2-welcome-setup__credit-pill{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px 5px 10px;
+  border-radius: 999px;
+  color: #3730a3;
+  background: color-mix(in srgb, #5249DF 12%, #fff);
+  border: 1px solid color-mix(in srgb, #5249DF 24%, transparent);
+  box-shadow: 0 4px 12px rgba(82, 73, 223, 0.10);
+  white-space: nowrap;
+}
+body.ttv2-shell .ttv2-welcome-setup__credit-pill i{
+  font-size: 15px;
+  color: #5249DF;
+}
+body.ttv2-shell .ttv2-welcome-setup__credit-pill strong{
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+}
+body.ttv2-shell .ttv2-welcome-setup__credit-meta{
+  color: #64748b;
+  font-weight: 500;
 }
 body.ttv2-shell .ttv2-welcome-setup__lede{
   margin: 0;
-  font-size: 14px;
+  max-width: 48ch;
+  font-size: 14.5px;
   line-height: 1.55;
   color: var(--c-text2, var(--ttv2-muted));
-  max-width: 62ch;
 }
-body.ttv2-shell .ttv2-welcome-setup__lede strong{
+body.ttv2-shell .ttv2-welcome-setup__banner-art{
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 170px;
+  pointer-events: none;
+}
+body.ttv2-shell .ttv2-welcome-setup__hero-img{
+  display: block;
+  width: min(340px, 100%);
+  height: auto;
+  max-height: 210px;
+  object-fit: contain;
+  animation: ttv2WelcomeFloat 4.5s ease-in-out infinite;
+  filter: drop-shadow(0 16px 24px rgba(82, 73, 223, 0.18));
+  user-select: none;
+}
+
+/* Steps panel */
+body.ttv2-shell .ttv2-welcome-setup__panel{
+  padding: 22px 24px 18px;
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--c-border, var(--ttv2-border)) 80%, transparent);
+  background:
+    radial-gradient(120% 80% at 100% 0%, rgba(99, 102, 241, 0.06), transparent 55%),
+    var(--c-bg2, var(--ttv2-surface));
+  box-shadow: var(--ttv2-shadow-sm);
+}
+body.ttv2-shell .ttv2-welcome-setup__panel-head{
+  margin-bottom: 16px;
+}
+body.ttv2-shell .ttv2-welcome-setup__panel-title{
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   color: var(--c-text, var(--ttv2-fg));
-  font-weight: 700;
+}
+body.ttv2-shell .ttv2-welcome-setup__panel-sub{
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--c-text2, var(--ttv2-muted));
 }
 body.ttv2-shell .ttv2-welcome-setup__steps{
   list-style: none;
-  margin: 0 0 16px;
+  margin: 0 0 14px;
   padding: 0;
   display: grid;
-  gap: 12px;
+  gap: 0;
 }
 body.ttv2-shell .ttv2-welcome-setup__step{
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-  padding: 16px 16px 14px;
-  border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--c-border, var(--ttv2-border)) 88%, transparent);
-  background: color-mix(in srgb, var(--c-bg2, var(--ttv2-surface)) 92%, transparent);
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 12px;
+  padding: 0 0 14px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
-body.ttv2-shell .ttv2-welcome-setup__step--primary{
-  border-color: color-mix(in srgb, var(--c-accent, var(--ttv2-accent)) 35%, transparent);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--c-accent, var(--ttv2-accent)) 6%, transparent), transparent 70%),
-    color-mix(in srgb, var(--c-bg2, var(--ttv2-surface)) 96%, transparent);
+body.ttv2-shell .ttv2-welcome-setup__step:last-child{
+  padding-bottom: 0;
+}
+body.ttv2-shell .ttv2-welcome-setup__step-rail{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 18px;
 }
 body.ttv2-shell .ttv2-welcome-setup__step-num{
-  flex: 0 0 auto;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 800;
   color: #fff;
-  background: var(--c-accent, var(--ttv2-accent));
+  background: linear-gradient(145deg, #5249DF, #6c7dff);
+  box-shadow: 0 8px 16px rgba(82, 73, 223, 0.28);
 }
 body.ttv2-shell .ttv2-welcome-setup__step:not(.ttv2-welcome-setup__step--primary) .ttv2-welcome-setup__step-num{
-  background: #94a3b8;
+  background: linear-gradient(145deg, #64748b, #94a3b8);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(100, 116, 139, 0.2);
 }
-body.ttv2-shell .ttv2-welcome-setup__step-body{
+body.ttv2-shell .ttv2-welcome-setup__step-line{
   flex: 1 1 auto;
+  width: 2px;
+  margin-top: 8px;
+  min-height: 24px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #c7d2fe, #e2e8f0);
+}
+body.ttv2-shell .ttv2-welcome-setup__step-card{
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(200px, 240px);
+  gap: 14px 16px;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid #e8eaf5;
+  background: linear-gradient(180deg, #ffffff, #fbfbfe);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+body.ttv2-shell .ttv2-welcome-setup__step-card:hover{
+  border-color: color-mix(in srgb, #5249DF 28%, #e8eaf5);
+  box-shadow: 0 12px 28px rgba(82, 73, 223, 0.10);
+}
+body.ttv2-shell .ttv2-welcome-setup__step--primary .ttv2-welcome-setup__step-card{
+  border-color: color-mix(in srgb, #5249DF 26%, transparent);
+  background:
+    linear-gradient(135deg, rgba(82, 73, 223, 0.07), rgba(56, 189, 248, 0.04) 48%, #fff 78%);
+}
+body.ttv2-shell .ttv2-welcome-setup__step:not(.ttv2-welcome-setup__step--primary) .ttv2-welcome-setup__step-card{
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 220px);
+}
+body.ttv2-shell .ttv2-welcome-setup__step-top{
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
   min-width: 0;
 }
-body.ttv2-shell .ttv2-welcome-setup__step-title{
-  margin: 0 0 4px;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--c-text, var(--ttv2-fg));
-}
-body.ttv2-shell .ttv2-welcome-setup__step-text{
-  margin: 0 0 12px;
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--c-text2, var(--ttv2-muted));
-}
-body.ttv2-shell .ttv2-welcome-setup__optional{
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #64748b;
-  background: rgba(148, 163, 184, 0.16);
-  border-radius: 999px;
-  padding: 3px 8px;
-}
-body.ttv2-shell .ttv2-welcome-setup__actions{
+body.ttv2-shell .ttv2-welcome-setup__step-icon{
+  flex: 0 0 auto;
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
   display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid #e8eaf5;
+  box-shadow: 0 6px 14px rgba(82, 73, 223, 0.08);
+}
+body.ttv2-shell .ttv2-welcome-setup__step-icon svg{
+  width: 46px;
+  height: 46px;
+}
+body.ttv2-shell .ttv2-welcome-setup__step-icon--people svg{
+  width: 52px;
+  height: 46px;
+}
+body.ttv2-shell .ttv2-welcome-setup__step-copy{
+  min-width: 0;
+  flex: 1 1 auto;
+}
+body.ttv2-shell .ttv2-welcome-setup__step-head{
+  display: flex;
+  align-items: center;
   flex-wrap: wrap;
   gap: 8px;
+  margin-bottom: 6px;
+}
+body.ttv2-shell .ttv2-welcome-setup__step-title{
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  color: var(--c-text, var(--ttv2-fg));
+}
+body.ttv2-shell .ttv2-welcome-setup__step-tag,
+body.ttv2-shell .ttv2-welcome-setup__optional{
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1;
+  border-radius: 999px;
+  padding: 5px 9px;
+}
+body.ttv2-shell .ttv2-welcome-setup__step-tag{
+  color: #fff;
+  background: linear-gradient(135deg, #5249DF, #6c7dff);
+  border: 0;
+  box-shadow: 0 4px 10px rgba(82, 73, 223, 0.25);
+}
+body.ttv2-shell .ttv2-welcome-setup__optional{
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+}
+body.ttv2-shell .ttv2-welcome-setup__step-text{
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--c-text2, var(--ttv2-muted));
+  max-width: 48ch;
+}
+body.ttv2-shell .ttv2-welcome-setup__actions{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  min-width: 0;
+  align-self: center;
+}
+body.ttv2-shell .ttv2-welcome-setup__actions--single{
+  grid-template-columns: 1fr;
 }
 body.ttv2-shell .ttv2-welcome-setup__btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 12.5px;
+  font-weight: 650;
+  text-align: left;
+  line-height: 1.15;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+body.ttv2-shell .ttv2-welcome-setup__btn-ico{
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.18);
+  flex: 0 0 auto;
+}
+body.ttv2-shell .ttv2-welcome-setup__btn-ico--ghost{
+  background: color-mix(in srgb, #5249DF 12%, #fff);
+  color: #5249DF;
+}
+body.ttv2-shell .ttv2-welcome-setup__btn-ico i,
+body.ttv2-shell .ttv2-welcome-setup__btn > i{
+  font-size: 15px;
+  flex: 0 0 auto;
+}
+body.ttv2-shell .ttv2-welcome-setup__btn-label{
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+body.ttv2-shell .ttv2-welcome-setup__btn-kicker{
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  opacity: 0.88;
+}
+body.ttv2-shell .ttv2-welcome-setup__btn-main{
   font-size: 13px;
-  font-weight: 600;
-  border-radius: 10px;
-  padding: 8px 14px;
+  font-weight: 750;
+}
+body.ttv2-shell .ttv2-welcome-setup__btn-arrow{
+  margin-left: auto;
+  font-size: 16px;
+  opacity: 0.85;
+}
+body.ttv2-shell .ttv2-welcome-setup__btn--primary{
+  color: #fff !important;
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, #5249DF 0%, #6366f1 55%, #38bdf8 140%);
+  box-shadow: 0 6px 14px rgba(82, 73, 223, 0.20);
+}
+body.ttv2-shell .ttv2-welcome-setup__btn--primary:hover{
+  color: #fff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(82, 73, 223, 0.28);
+  background: linear-gradient(135deg, #4338ca 0%, #6366f1 60%, #0ea5e9 140%);
+}
+body.ttv2-shell .ttv2-welcome-setup__btn--primary:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(82, 73, 223, 0.22), 0 6px 14px rgba(82, 73, 223, 0.20);
+}
+body.ttv2-shell .ttv2-welcome-setup__btn--ghost{
+  color: var(--c-text, var(--ttv2-fg)) !important;
+  border: 1px solid #dde3f0;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+body.ttv2-shell .ttv2-welcome-setup__btn--ghost .ttv2-welcome-setup__btn-kicker{
+  color: #64748b;
+  opacity: 1;
+}
+body.ttv2-shell .ttv2-welcome-setup__btn--ghost .ttv2-welcome-setup__btn-arrow{
+  color: #5249DF;
+}
+body.ttv2-shell .ttv2-welcome-setup__btn--ghost:hover{
+  color: var(--c-accent, #5249DF) !important;
+  border-color: color-mix(in srgb, var(--c-accent, #5249DF) 40%, transparent);
+  background: color-mix(in srgb, var(--c-accent, #5249DF) 6%, #fff);
+  transform: translateY(-1px);
 }
 body.ttv2-shell .ttv2-welcome-setup__hint{
-  font-size: 12px;
-  line-height: 1.45;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 12.5px;
+  line-height: 1.5;
   color: var(--c-text3, var(--ttv2-muted));
+  background: linear-gradient(90deg, #f5f7ff, #f8fafc);
+  border: 1px solid #e4e9f5;
+}
+body.ttv2-shell .ttv2-welcome-setup__hint i{
+  margin-top: 1px;
+  font-size: 15px;
+  color: var(--c-accent, #5249DF);
+  flex: 0 0 auto;
+}
+body.ttv2-shell .ttv2-welcome-setup__hint strong{
+  color: var(--c-text, var(--ttv2-fg));
+  font-weight: 700;
+}
+
+@media (max-width: 991.98px){
+  body.ttv2-shell .ttv2-welcome-setup__step-card,
+  body.ttv2-shell .ttv2-welcome-setup__step:not(.ttv2-welcome-setup__step--primary) .ttv2-welcome-setup__step-card{
+    grid-template-columns: 1fr;
+  }
+  body.ttv2-shell .ttv2-welcome-setup__step--primary .ttv2-welcome-setup__actions{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 767.98px){
+  body.ttv2-shell .ttv2-welcome-setup__banner{
+    grid-template-columns: 1fr;
+    padding: 22px 20px;
+  }
+  body.ttv2-shell .ttv2-welcome-setup__banner-art{
+    order: -1;
+    min-height: 140px;
+  }
+  body.ttv2-shell .ttv2-welcome-setup__hero-img{
+    width: min(260px, 72%);
+    max-height: 160px;
+  }
+  body.ttv2-shell .ttv2-welcome-setup__step--primary .ttv2-welcome-setup__actions,
+  body.ttv2-shell .ttv2-welcome-setup__actions--single{
+    grid-template-columns: 1fr;
+  }
+  body.ttv2-shell .ttv2-welcome-setup__step-icon{
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+  }
+  body.ttv2-shell .ttv2-welcome-setup__step-icon svg{
+    width: 38px;
+    height: 38px;
+  }
 }
 @media (max-width: 575.98px){
-  body.ttv2-shell .ttv2-welcome-setup-card{
-    padding: 16px;
+  body.ttv2-shell .ttv2-welcome-setup__panel{
+    padding: 16px 14px 14px;
   }
   body.ttv2-shell .ttv2-welcome-setup__title{
-    font-size: 18px;
+    font-size: 22px;
   }
-  body.ttv2-shell .ttv2-welcome-setup__hero{
-    gap: 12px;
+  body.ttv2-shell .ttv2-welcome-setup__credit-pill{
+    white-space: normal;
   }
-  body.ttv2-shell .ttv2-welcome-setup__actions .btn{
-    width: 100%;
+  body.ttv2-shell .ttv2-welcome-setup__step-card{
+    padding: 14px;
   }
+  body.ttv2-shell .ttv2-welcome-setup__step-top{
+    gap: 10px;
+  }
+}
+
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-welcome-setup__banner{
+  background:
+    radial-gradient(90% 120% at 100% 0%, rgba(139, 124, 255, 0.18), transparent 55%),
+    radial-gradient(70% 90% at 0% 100%, rgba(56, 189, 248, 0.10), transparent 50%),
+    linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-welcome-setup__panel{
+  background:
+    radial-gradient(120% 80% at 100% 0%, rgba(139, 124, 255, 0.10), transparent 55%),
+    var(--c-bg2, var(--ttv2-surface));
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-welcome-setup__step-card{
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(240, 242, 255, 0.12);
+  box-shadow: none;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-welcome-setup__step--primary .ttv2-welcome-setup__step-card{
+  background: linear-gradient(135deg, rgba(139, 124, 255, 0.14), rgba(255,255,255,0.03));
+  border-color: rgba(139, 124, 255, 0.28);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-welcome-setup__step-icon{
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(240, 242, 255, 0.12);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-welcome-setup__brand{
+  -webkit-text-fill-color: transparent;
+  background: linear-gradient(135deg, #a78bfa, #8B7CFF);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-welcome-setup__credit-pill{
+  color: #e0e7ff;
+  background: rgba(139, 124, 255, 0.18);
+  border-color: rgba(139, 124, 255, 0.35);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-welcome-setup__credit-meta{
+  color: rgba(240, 242, 255, 0.65);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-welcome-setup__optional{
+  color: rgba(240, 242, 255, 0.75);
+  background: rgba(148, 163, 184, 0.18);
+  border-color: rgba(148, 163, 184, 0.28);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-welcome-setup__btn--ghost{
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(240, 242, 255, 0.16);
+  color: var(--c-text, var(--ttv2-fg)) !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-welcome-setup__btn--ghost:hover{
+  background: rgba(139, 124, 255, 0.14);
+  border-color: rgba(139, 124, 255, 0.4);
+  color: #c4b5fd !important;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-welcome-setup__btn-ico--ghost{
+  background: rgba(139, 124, 255, 0.18);
+  color: #c4b5fd;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-welcome-setup__hint{
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(240, 242, 255, 0.12);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-welcome-setup__step:not(.ttv2-welcome-setup__step--primary) .ttv2-welcome-setup__step-num{
+  color: #fff;
 }

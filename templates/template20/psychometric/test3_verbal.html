@@ -59,6 +59,58 @@
 	border-radius: 10px;
 	padding: 30px;
 }
+  .test-view-page .profile-avatar {
+    width: 104px;
+    height: 104px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: #f0efff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .test-view-page .profile-avatar .bx-user {
+    font-size: 48px;
+    line-height: 1;
+    color: #3f37c9;
+  }
+  .test-view-page .profile-avatar--sm {
+    width: 50px;
+    height: 50px;
+    margin: 0 12px 0 0;
+    flex-shrink: 0;
+  }
+  .test-view-page .profile-avatar--sm .bx-user {
+    font-size: 24px;
+  }
+  .test-view-page .profile-name {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.35;
+    margin-bottom: 4px;
+    color: #1a1a1a;
+    word-break: break-word;
+  }
+  .test-view-page .profile-email {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: #1a1a1a;
+    word-break: break-word;
+    margin-bottom: 0;
+  }
+  .test-view-page .profile-meta p {
+    margin-bottom: 4px;
+  }
+  @media (min-width: 992px) {
+    .test-view-page .user-profile-card {
+      position: sticky;
+      top: 24px;
+      z-index: 5;
+      align-self: flex-start;
+    }
+  }
 
   .custom-radio:hover {
     border-color: #3f37c9;
@@ -375,26 +427,40 @@
     <div class="row">
       <!-- Left Sidebar (Desktop) -->
       <div class="col-lg-4 d-none d-lg-block">
-        <div class="user-profile-card mb-4 sticky-top" style="top: 100px;">
+        <div class="user-profile-card mb-4">
           <div class="profile-header text-center">
             {% if request.user.image %}
-            <img src="{{ request.user.image.url }}" alt="User Profile" class="profile-img rounded-circle mb-3" style="width: 104px; height: 104px; object-fit: cover;">
+            <div class="profile-avatar">
+              <img src="{{ request.user.image.url }}" alt="User Profile" class="profile-img" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
             {% else %}
-            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-3 mx-auto" style="width: 104px; height: 104px;">
-              <i class='bx bx-user fs-48 text-gray'></i>
+            <div class="profile-avatar">
+              <i class='bx bx-user'></i>
             </div>
             {% endif %}
-            <h5 class="profile-name">{{ request.user.name|default(request.user.username) }}</h5>
-            <div class="profile-meta text-gray fs-14">
+            {% set _profile_name = request.user.name|default('') %}
+            {% set _profile_email = request.user.email|default(request.user.username) %}
+            {% if _profile_name and _profile_name != _profile_email %}
+            <h5 class="profile-name">{{ _profile_name }}</h5>
+            <p class="profile-email text-gray">{{ _profile_email }}</p>
+            {% else %}
+            <p class="profile-email">{{ _profile_email }}</p>
+            {% endif %}
+            <div class="profile-meta text-gray fs-14 mt-2">
               <p class="mb-1">
                 <i class='bx bx-calendar me-1'></i>
                 Joined {{ date_format(request.user.created) }}
               </p>
               {% if request.user.user_profile %}
+                {% set _class_section = request.user.student_management.last().class_and_section if request.user.student_management.last() else '' %}
+                {% if _class_section or request.user.user_profile.schoolname %}
               <p class="mb-0">
                 <i class='bx bx-book me-1'></i>
+                {% if _class_section %}{{ _class_section }}{% endif %}
+                {% if _class_section and request.user.user_profile.schoolname %} • {% endif %}
                 {% if request.user.user_profile.schoolname %}{{ request.user.user_profile.schoolname }}{% endif %}
               </p>
+                {% endif %}
               {% endif %}
             </div>
           </div>
@@ -443,17 +509,26 @@
       <!-- Main Content Area -->
       <div class="col-lg-8">
         <!-- Mobile Header -->
-        <div class="d-lg-none d-flex justify-content-between align-items-center mb-4 bg-light border rounded-3 py-3">
-          <div class="d-flex align-items-center">
+        <div class="d-lg-none d-flex justify-content-between align-items-center mb-4 bg-light border rounded-3 py-3 px-3">
+          <div class="d-flex align-items-center min-w-0">
             {% if request.user.image %}
-            <img src="{{ request.user.image.url }}" alt="User Profile" class="rounded-circle me-2" style="width: 50px; height: 50px; object-fit: cover;">
+            <div class="profile-avatar profile-avatar--sm">
+              <img src="{{ request.user.image.url }}" alt="User Profile" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+            </div>
             {% else %}
-            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" style="width: 50px; height: 50px;">
-              <i class='bx bx-user fs-24 text-gray'></i>
+            <div class="profile-avatar profile-avatar--sm">
+              <i class='bx bx-user'></i>
             </div>
             {% endif %}
-            <div>
-              <h5 class="mb-0">{{ request.user.name|default(request.user.username) }}</h5>
+            <div class="min-w-0">
+              {% set _profile_name = request.user.name|default('') %}
+              {% set _profile_email = request.user.email|default(request.user.username) %}
+              {% if _profile_name and _profile_name != _profile_email %}
+              <h5 class="profile-name mb-0">{{ _profile_name }}</h5>
+              <p class="profile-email text-gray fs-12 mb-0">{{ _profile_email }}</p>
+              {% else %}
+              <p class="profile-email mb-0 fs-14">{{ _profile_email }}</p>
+              {% endif %}
               <p class="text-gray fs-12 mb-0">Joined {{ date_format(request.user.created) }}</p>
             </div>
           </div>

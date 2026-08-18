@@ -9,103 +9,119 @@
 
 {% block additionalhead %}
 <style>
-  .marketing-login-page {
-    padding-top: 80px;
+  .marketing-login-page.login-home {
+    min-height: calc(100vh - 72px);
+    padding-top: 40px;
     padding-bottom: 50px;
-    min-height: 100vh;
-    background: #f7f7fa;
   }
-  
-  .auth-container {
+
+  .marketing-login-page .auth-container {
     max-width: 500px;
     margin: 0 auto;
   }
-  
-  .auth-wrapper {
+
+  .marketing-login-page .auth-wrapper {
     background: #ffffff;
-    border-radius: 15px;
+    border-radius: 16px;
     padding: 40px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.8);
   }
-  
-  .form-header {
+
+  .marketing-login-page .form-header {
     text-align: center;
     margin-bottom: 30px;
   }
-  
-  .form-header h2 {
+
+  .marketing-login-page .logo-header img {
+    height: 48px;
+    width: auto;
+  }
+
+  .marketing-login-page .form-header h2 {
     font-size: 28px;
     font-weight: 700;
     color: #3f37c9;
     margin-bottom: 10px;
   }
-  
-  .form-header p {
+
+  .marketing-login-page .form-header p {
     color: #666;
     font-size: 16px;
+    margin-bottom: 0;
   }
-  
-  .form-group {
+
+  .marketing-login-page .form-group {
     margin-bottom: 20px;
   }
-  
-  .form-group label {
+
+  .marketing-login-page .form-group label {
     display: block;
     margin-bottom: 8px;
     font-weight: 600;
     color: #333;
     font-size: 14px;
   }
-  
-  .input-wrapper {
+
+  .marketing-login-page .input-wrapper {
     position: relative;
   }
-  
-  .input-wrapper i {
+
+  .marketing-login-page .input-wrapper .input-icon {
     position: absolute;
-    left: 15px;
+    left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    color: #999;
+    color: #828282;
+    font-size: 18px;
+    line-height: 1;
+    pointer-events: none;
+    z-index: 2;
   }
-  
-  .input-wrapper input {
+
+  .marketing-login-page .input-wrapper input {
     width: 100%;
-    padding: 12px 15px 12px 45px;
-    border: 2px solid #DCDCDC;
+    padding: 12px 44px 12px 44px;
+    border: 2px solid #dcdcdc;
     border-radius: 10px;
     font-size: 14px;
-    transition: border-color 0.3s;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    background: #fff;
   }
-  
-  .input-wrapper input:focus {
+
+  .marketing-login-page .input-wrapper input:focus {
     outline: none;
     border-color: #3f37c9;
+    box-shadow: 0 0 0 3px rgba(63, 55, 201, 0.12);
   }
-  
-  .password-toggle {
+
+  .marketing-login-page .password-toggle {
     position: absolute;
-    right: 15px;
+    right: 12px;
     top: 50%;
     transform: translateY(-50%);
     background: none;
     border: none;
     cursor: pointer;
-    color: #999;
+    color: #828282;
+    font-size: 18px;
+    line-height: 1;
+    padding: 4px;
+    z-index: 2;
   }
-  
-  .password-toggle:hover {
+
+  .marketing-login-page .password-toggle:hover {
     color: #3f37c9;
   }
-  
-  .error-message {
+
+  .marketing-login-page .error-message {
     color: #dc3545;
     font-size: 12px;
     margin-top: 5px;
     display: none;
   }
-  
-  .btn-primary {
+
+  .marketing-login-page .btn-primary {
     width: 100%;
     padding: 14px;
     background-color: #3f37c9;
@@ -118,68 +134,70 @@
     transition: background-color 0.3s;
     margin-top: 10px;
   }
-  
-  .btn-primary:hover {
+
+  .marketing-login-page .btn-primary:hover {
     background-color: #2e289d;
   }
-  
-  .btn-primary:disabled {
+
+  .marketing-login-page .btn-primary:disabled {
     background-color: #ccc;
     cursor: not-allowed;
   }
-  
-  .form-footer {
+
+  .marketing-login-page .form-footer {
     text-align: center;
     margin-top: 20px;
   }
-  
-  .form-footer a {
-    color: #3f37c9;
-    text-decoration: none;
-    font-weight: 600;
+
+  .marketing-login-page .form-footer p {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 0;
   }
-  
-  .form-footer a:hover {
-    text-decoration: underline;
-  }
-  
-  .form-options {
+
+  .marketing-login-page .form-options {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    gap: 12px;
+    flex-wrap: wrap;
   }
-  
-  .checkbox-label {
+
+  .marketing-login-page .checkbox-label {
     display: flex;
     align-items: center;
     font-size: 14px;
     color: #666;
+    margin-bottom: 0;
   }
-  
-  .checkbox-label input {
+
+  .marketing-login-page .checkbox-label input {
     margin-right: 8px;
   }
-  
-  .forgot-password {
+
+  .marketing-login-page .forgot-password {
     font-size: 14px;
     color: #3f37c9;
     text-decoration: none;
   }
-  
-  .forgot-password:hover {
+
+  .marketing-login-page .forgot-password:hover {
     text-decoration: underline;
   }
 </style>
 {% endblock %}
 
 {% block content %}
-<section class="marketing-login-page">
+<section class="marketing-login-page login-home d-flex align-items-center py-14">
   <div class="container">
     <div class="auth-container">
       <div class="auth-wrapper">
         <div class="form-container">
           <div class="form-header">
+            <div class="logo-header text-center mb-2">
+              <img src="{{ static('images_new/logos/topteen-haticon.svg') }}" alt="TopTeen" />
+            </div>
             <h2>Marketing Login</h2>
             <p>Access your marketing dashboard</p>
           </div>
@@ -193,7 +211,7 @@
             <div class="form-group">
               <label for="email">Email Address <span style="color: red;">*</span></label>
               <div class="input-wrapper">
-                <i class="fas fa-envelope"></i>
+                <i class="bx bx-envelope input-icon" aria-hidden="true"></i>
                 <input type="email" id="email" name="email" placeholder="Enter your email address" required autocomplete="email">
               </div>
               <div class="error-message" id="email_error"></div>
@@ -202,10 +220,10 @@
             <div class="form-group">
               <label for="password">Password <span style="color: red;">*</span></label>
               <div class="input-wrapper">
-                <i class="fas fa-lock"></i>
+                <i class="bx bx-lock-alt input-icon" aria-hidden="true"></i>
                 <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
-                <button type="button" class="password-toggle" id="togglePassword">
-                  <i class="fas fa-eye"></i>
+                <button type="button" class="password-toggle" id="togglePassword" aria-label="Show password">
+                  <i class="bx bx-show"></i>
                 </button>
               </div>
               <div class="error-message" id="password_error"></div>
@@ -253,8 +271,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
       passwordInput.setAttribute('type', type);
       const icon = togglePassword.querySelector('i');
-      icon.classList.toggle('fa-eye');
-      icon.classList.toggle('fa-eye-slash');
+      icon.classList.toggle('bx-show');
+      icon.classList.toggle('bx-hide');
     });
   }
 

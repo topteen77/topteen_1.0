@@ -1,5 +1,87 @@
 {% extends 'topteenfrontend/user/user_base.html' %}
+
+{% block additionalheader %}
+<style>
+  body.test2-app-page footer.lg\:hidden {
+    display: none !important;
+  }
+
+  body.test2-app-page > div.hidden.lg\:flex {
+    background: #fff;
+    border-bottom: 1px solid #ebebee !important;
+    box-shadow: 0 2px 12px rgba(63, 55, 201, 0.06);
+    position: sticky;
+    top: 0;
+    z-index: 200;
+  }
+
+  body.test2-app-page > div.hidden.lg\:flex > div {
+    width: 100%;
+    max-width: 1280px;
+    align-items: center;
+  }
+
+  body.test2-app-page .popTrigr {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    min-height: 42px;
+    border-radius: 50%;
+    overflow: hidden;
+    padding: 0;
+    border: 2px solid #f0efff;
+    box-shadow: 0 2px 10px rgba(63, 55, 201, 0.18);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0 !important;
+  }
+
+  body.test2-app-page .popTrigr img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  body.test2-app-page .popTrigr span {
+    width: 100%;
+    height: 100%;
+    background: #3f37c9 !important;
+    color: #fff !important;
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  body.test2-app-page > div.hidden.lg\:flex a li.flex img {
+    width: 20px;
+    height: 20px;
+    margin-top: 0;
+  }
+
+  body.test2-app-page > div.hidden.lg\:flex a li.flex {
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: background 0.2s ease;
+  }
+
+  body.test2-app-page > div.hidden.lg\:flex a li.flex:hover {
+    background: #f7f7fa;
+  }
+
+  body.test2-app-page > div.hidden.lg\:flex a li.flex p {
+    margin-top: 0 !important;
+    color: #4f4f4f !important;
+  }
+</style>
+{% endblock %}
+
 {% block main %}
+<script>document.body.classList.add('test2-app-page');</script>
 <style>
   /*** Interest Inventory ***/
 
@@ -277,6 +359,561 @@ ol, ul {
     transition: opacity 0.5s ease-in-out;
     /* Smooth transition for fade in/out */
   }
+
+  /* ---- Test2 UI refresh ---- */
+  .test2-view-page {
+    --test2-purple: #3f37c9;
+    --test2-purple-light: #f0efff;
+    --test2-border: #e8e8ef;
+    --test2-muted: #828282;
+  }
+
+  .test2-view-page .lg\:flex {
+    align-items: flex-start;
+  }
+
+  .test2-view-page .test2-sidebar-wrap {
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 338px;
+  }
+
+  .test2-view-page .col-lg-8 {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .test2-view-page #error-message {
+    border-radius: 10px;
+    border: 1px solid #f5c2c7;
+    background: #fff5f5;
+    color: #842029;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+  }
+
+  .test2-view-page .test2-profile-card {
+    width: 100%;
+    max-width: 338px;
+    border: 1px solid #dedede;
+    border-radius: 14px;
+    padding: 28px 24px 20px;
+    background: #fff;
+    box-shadow: 0 4px 20px rgba(63, 55, 201, 0.06);
+    align-self: flex-start;
+  }
+
+  @media (min-width: 1024px) {
+    .test2-view-page .test2-profile-card {
+      position: sticky;
+      top: 96px;
+      z-index: 5;
+    }
+  }
+
+  .test2-view-page .test2-profile-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: var(--test2-purple);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 600;
+    margin: 0 auto 14px;
+    overflow: hidden;
+    box-shadow: 0 6px 18px rgba(63, 55, 201, 0.25);
+  }
+
+  .test2-view-page .test2-profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .test2-view-page .test2-profile-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a;
+    text-align: center;
+    margin-bottom: 4px;
+    word-break: break-word;
+    line-height: 1.35;
+  }
+
+  .test2-view-page .test2-profile-email {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--test2-muted);
+    text-align: center;
+    margin-bottom: 14px;
+    word-break: break-word;
+    line-height: 1.4;
+  }
+
+  .test2-view-page .test2-profile-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .test2-view-page .test2-profile-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--test2-muted);
+    margin: 0;
+  }
+
+  .test2-view-page .test2-profile-meta-item img {
+    width: 16px;
+    height: 16px;
+    opacity: 0.7;
+  }
+
+  .test2-view-page .test2-stats-box {
+    background: #f7f7fa;
+    border-radius: 12px;
+    padding: 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .test2-view-page .test2-stat-item {
+    text-align: center;
+    padding: 8px 4px;
+  }
+
+  .test2-view-page .test2-stat-item img {
+    width: 22px;
+    height: 22px;
+    margin-bottom: 6px;
+  }
+
+  .test2-view-page .test2-stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--test2-purple);
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .test2-view-page .test2-stat-label {
+    font-size: 11px;
+    color: var(--test2-muted);
+    margin: 4px 0 0;
+  }
+
+  .test2-view-page .test2-assessment-header {
+    margin-bottom: 20px;
+  }
+
+  .test2-view-page .title-test-info {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+
+  .test2-view-page .test2-assessment-subtitle {
+    font-size: 14px;
+    color: var(--test2-muted);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .test2-view-page .test2-assessment-tip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 8px 14px;
+    background: var(--test2-purple-light);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--test2-purple);
+    font-weight: 500;
+  }
+
+  .test2-view-page .tab-new-question {
+    background: #fafafa;
+    border: 1px solid var(--test2-border);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 16px rgba(63, 55, 201, 0.05);
+  }
+
+  .test2-view-page .grid-box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: stretch;
+    margin-top: 15px;
+  }
+
+  /* Flatten paired wrappers so each career is one flex item */
+  .test2-view-page .grid-box .check-box.question-box {
+    display: contents;
+  }
+
+  .test2-view-page .grid-box .form-group {
+    margin: 0;
+    min-width: 0;
+    flex: 0 0 calc((100% - 42px) / 4);
+    box-sizing: border-box;
+  }
+
+  .test2-view-page .check-box.question-box {
+    border: none;
+    padding: 0;
+    margin: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .test2-view-page .tab-new-question .control {
+    margin-bottom: 0;
+  }
+
+  .test2-view-page .check-box.question-box .custom-radio {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .test2-view-page .check-box.question-box .custom-radio input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .test2-view-page .check-box.question-box .control__indicator {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    border: 2px solid #c8c8d4;
+    background: #fff;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    z-index: 1;
+  }
+
+  .test2-view-page .check-box.question-box .control input:checked ~ .control__indicator {
+    background: var(--test2-purple);
+    border-color: var(--test2-purple);
+  }
+
+  .test2-view-page .check-box.question-box .control__indicator::after {
+    left: 5px;
+    top: 1px;
+    width: 5px;
+    height: 9px;
+  }
+
+  .test2-view-page .grid-box .question-box .radio-btn {
+    width: 100%;
+    min-height: 54px;
+    height: auto;
+    padding: 14px 14px 14px 46px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    border: 1.5px solid var(--test2-border);
+    border-radius: 10px;
+    background: #fff;
+    color: #333;
+    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .test2-view-page .check-box.question-box .custom-radio:hover .radio-btn {
+    border-color: #b8b4f0;
+    box-shadow: 0 3px 10px rgba(63, 55, 201, 0.1);
+  }
+
+  .test2-view-page .check-box.question-box .custom-radio input:checked + .radio-btn {
+    border-color: var(--test2-purple);
+    background: var(--test2-purple-light);
+    color: var(--test2-purple);
+    font-weight: 600;
+    box-shadow: 0 2px 10px rgba(63, 55, 201, 0.14), inset 0 0 0 1px rgba(63, 55, 201, 0.08);
+  }
+
+  .test2-view-page .assestment-button {
+    position: sticky;
+    bottom: 12px;
+    z-index: 10;
+    margin-top: 24px !important;
+    margin-bottom: 16px !important;
+    padding: 16px 0 8px;
+    background: linear-gradient(to top, #fafafa 70%, rgba(250, 250, 250, 0));
+  }
+
+  .test2-view-page .assestment-button .purple-button {
+    min-width: 180px;
+    padding: 12px 36px !important;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    box-shadow: 0 4px 14px rgba(63, 55, 201, 0.3);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .test2-view-page .assestment-button .purple-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(63, 55, 201, 0.35);
+  }
+
+  .test2-view-page .test2-stat-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--test2-purple-light);
+    color: var(--test2-purple);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+    font-size: 16px;
+  }
+
+  .test2-view-page .test2-profile-meta-item i {
+    width: 16px;
+    text-align: center;
+    color: var(--test2-purple);
+    font-size: 13px;
+  }
+
+  /* Mobile top bar */
+  .test2-mobile-shell {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 120;
+    background: #fff;
+    box-shadow: 0 2px 12px rgba(63, 55, 201, 0.08);
+  }
+
+  .test2-mobile-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid #ebebee;
+  }
+
+  .test2-mobile-topbar__logo img {
+    height: 28px;
+    width: auto;
+    display: block;
+  }
+
+  .test2-mobile-topbar__actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .test2-mobile-topbar__dash {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: #f7f7fa;
+    color: #828282;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    text-decoration: none;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .test2-mobile-topbar__dash:hover {
+    background: var(--test2-purple-light);
+    color: var(--test2-purple);
+  }
+
+  .test2-mobile-topbar__menu {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    padding: 0;
+    border: 2px solid #f0efff;
+    background: #3f37c9;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(63, 55, 201, 0.22);
+    cursor: pointer;
+  }
+
+  .test2-mobile-topbar__menu img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .test2-mobile-stats-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 10px 16px 12px;
+    background: #fafafa;
+  }
+
+  .test2-mobile-stats-bar .test2-stat-item {
+    background: #fff;
+    border: 1px solid var(--test2-border);
+    border-radius: 10px;
+    padding: 10px 8px;
+  }
+
+  @media (min-width: 1024px) {
+    .test2-view-page.test2-has-mobile-bar {
+      padding-top: 0;
+    }
+  }
+
+  /* Profile drawer sheet */
+  .test2-drawer-sheet {
+    padding: 24px 24px 32px;
+  }
+
+  .test2-drawer-profile {
+    text-align: center;
+    padding-bottom: 20px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #ebebee;
+  }
+
+  .test2-drawer-profile .test2-profile-avatar {
+    width: 72px;
+    height: 72px;
+    font-size: 26px;
+    margin-bottom: 12px;
+  }
+
+  .test2-drawer-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .test2-drawer-actions a,
+  .test2-drawer-actions button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid #ebebee;
+    background: #fff;
+    color: #333;
+    font-size: 15px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .test2-drawer-actions a:hover {
+    background: #f7f7fa;
+  }
+
+  .test2-drawer-actions .test2-drawer-logout {
+    color: #f20a18;
+    border-color: #fde2e2;
+    background: #fff5f5;
+  }
+
+  .test2-drawer-handle {
+    width: 40px;
+    height: 4px;
+    background: #dedede;
+    border-radius: 4px;
+    margin: 0 auto 16px;
+  }
+
+  .test2-drawer-profile .test2-profile-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  @media (max-width: 1280px) {
+    .test2-view-page .grid-box .form-group {
+      flex: 0 0 calc((100% - 28px) / 3);
+    }
+  }
+
+  @media (max-width: 992px) {
+    .test2-view-page .grid-box .form-group {
+      flex: 0 0 calc((100% - 14px) / 2);
+    }
+  }
+
+  .test2-view-page .test2-main-content {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+  }
+
+  @media (max-width: 1023px) {
+    .test2-view-page.test2-has-mobile-bar {
+      padding-top: 124px;
+      padding-bottom: 24px;
+    }
+
+    .test2-view-page .test2-assessment-header {
+      margin-bottom: 16px;
+    }
+
+    .test2-view-page .test2-assessment-tip {
+      display: flex;
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .test2-view-page .grid-box .form-group {
+      flex: 0 0 100%;
+    }
+
+    .test2-view-page .tab-new-question {
+      padding: 16px;
+    }
+
+    .test2-view-page .title-test-info {
+      font-size: 20px;
+    }
+  }
+  /* ---- End Test2 UI refresh ---- */
 </style>
 
 
@@ -427,25 +1064,55 @@ ol, ul {
 
 
 <div data-direction="translate-y-full"
-  class=" h-full w-full drawerModal z-50 fixed top-0 inset-x-0 bg-black bg-opacity-50 overflow-y-auto translate-y-full transition-all duration-500">
+  class="h-full w-full drawerModal z-50 fixed top-0 inset-x-0 bg-black bg-opacity-50 overflow-y-auto translate-y-full transition-all duration-500">
 
-  <div class="inline-block bg-[#ffffff] w-full rounded-t-[10px] absolute bottom-0 drawerContent">
-
-    <div class="pl-[24px] pr-[30px] w-full py-[32px] flex flex-col gap-[20px]">
-
-      <a href="{{url('users:logout')}}" class="inline-block w-full">
-        <div class="flex justify-between w-full">
-          <div>
-            <p class="text-[16px] leading-[21.6px] semibold text-[#f20a18]">Sign Out</p>
-            <p class="text-[12px] leading-[16px] regularFont text-opacity-60 text-[#f20a18]">You
-              answered - Indoors</p>
-          </div>
-          <i class="fa-solid fa-angle-right text-[10px] text-[#bdbdbd] my-auto"></i>
-        </div>
-      </a>
-
+  <div class="inline-block bg-[#ffffff] w-full rounded-t-[16px] absolute bottom-0 drawerContent test2-drawer-sheet">
+    <div class="test2-drawer-handle"></div>
+    {% set _drawer_name = request.user.name|default('') %}
+    {% set _drawer_email = request.user.email|default(request.user.username) %}
+    <div class="test2-drawer-profile">
+      <div class="test2-profile-avatar mx-auto">
+        {% if request.user.image %}
+        <img src="{{ request.user.image.url }}" alt="User" />
+        {% else %}
+        {{ (_drawer_name or _drawer_email or '?')[0]|upper }}
+        {% endif %}
+      </div>
+      {% if _drawer_name and _drawer_name != _drawer_email %}
+      <p class="test2-profile-name">{{ _drawer_name }}</p>
+      <p class="test2-profile-email">{{ _drawer_email }}</p>
+      {% else %}
+      <p class="test2-profile-name">{{ _drawer_email }}</p>
+      {% endif %}
+      <p class="test2-profile-meta-item justify-content-center mt-2">
+        <i class="fa-regular fa-calendar"></i>
+        Joined {{ request.user.created.strftime("%B, %Y") }}
+      </p>
     </div>
-
+    <div class="test2-stats-box mb-3">
+      <div class="test2-stat-item">
+        <div class="test2-stat-icon"><i class="fa-regular fa-clock"></i></div>
+        <p class="test2-stat-value" id="totalTimeDrawer">00:00</p>
+        <p class="test2-stat-label">Total Time</p>
+      </div>
+      <div class="test2-stat-item">
+        <div class="test2-stat-icon"><i class="fa-solid fa-list-check"></i></div>
+        <p class="test2-stat-value" id="questionProgressDrawer">1/4</p>
+        <p class="test2-stat-label">Question Displayed</p>
+      </div>
+    </div>
+    <div class="test2-drawer-actions">
+      {% if request.user.user_type == 1 %}
+      <a href="{{ url('app:dashboard') }}">
+        <span><i class="fa fa-users-rectangle me-2"></i> My Dashboard</span>
+        <i class="fa fa-angle-right text-muted"></i>
+      </a>
+      {% endif %}
+      <a href="{{ url('users:logout') }}" class="test2-drawer-logout">
+        <span><i class="fa fa-right-from-bracket me-2"></i> Sign Out</span>
+        <i class="fa fa-angle-right"></i>
+      </a>
+    </div>
   </div>
 
 </div>
@@ -482,208 +1149,110 @@ ol, ul {
 <!-- End of Refer Friends Popup -->
 
 <!-- Main Content -->
-<main class="container">
+<main class="container test2-view-page test2-has-mobile-bar">
 
-  <div class="lg:flex lg:gap-[30px] pt-[32px] w-full">
-    <!-- Left Part Mobile -->
-    <div class="max-w-[640px] inline-block w-full relative lg:hidden mx-auto ">
-      <!-- User -->
-      <div class="flex justify-between inline-block fixed w-full top-0 pt-[32px] pr-[30px] z-40 bg-[#ffffff] pb-3">
-        <div class="flex gap-[17px]">
-          <div>
-            {% if request.user.image %}
-            <img src="{{ request.user.image.url }}" class="w-[71px] h-[71px] rounded-full object-cover" alt="User" />
-            {% else %}
-            <div class="w-[71px] h-[71px] rounded-full bg-[#3f37c9] text-white flex items-center justify-center text-[24px] font-semibold">
-              {{ (request.user.name or request.user.email or "?")[0]|upper }}
-            </div>
-            {% endif %}
-          </div>
-          <div class="flex flex-col gap-y-[5px]">
-            <div class="pt-[12px]">
-              <p class="text-[15px] leading-[20.25px] font-semibold">
-                {{request.user.name}}
-              </p>
-            </div>
-            <div class="flex flex-col gap-y-[3px]">
-              <div class="flex gap-[4px]">
-                <img src="{{static('topteenfrontend/assets/images/clock.fill.png')}}"
-                  class="w-[12.83px] h-[12.83px] my-auto object-cover rounded-full" alt="" />
-                <p class="text-[10px] leading-[13.5px] text-[#828282]">
-                  Joined {{request.user.created.strftime("%B, %Y")}}
-                </p>
-              </div>
-              <div class="flex gap-[4px]">
-                <img src="{{static('topteenfrontend/assets/images/userGrade.png')}}"
-                  class="w-[10.83px] h-[8.67px] my-auto object-cover" alt="" />
-                <p class="text-[10px] leading-[13.5px] text-[#828282]">
-                  {% if request.user.user_profile %}
-                  {% if request.user.student_management.last().class_and_section %}
-                  {{request.user.student_management.last().class_and_section}}
-                  {% endif %} • {% if request.user.user_profile.schoolname %}
-                  {{request.user.user_profile.schoolname}}{% endif %}
-                  {% else %} - • - {% endif %}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <button type="button" data-direction="translate-y-full"
-          class="drawerTrigger bg-[#3f37c9] w-[25px] h-[25px] rounded-full flex justify-center items-center text-center my-auto lg:hidden">
-          <i class="fa fa-gear text-white text-[12.5px]"></i>
+  <!-- Mobile top bar + stats -->
+  <div class="test2-mobile-shell lg:hidden">
+    <header class="test2-mobile-topbar">
+      <a href="{{ url('core:home') }}" class="test2-mobile-topbar__logo">
+        <img src="{{ static('images_new/logos/logo.svg') }}" alt="TopTeen" />
+      </a>
+      <div class="test2-mobile-topbar__actions">
+        {% if request.user.user_type == 1 %}
+        <a href="{{ url('app:dashboard') }}" class="test2-mobile-topbar__dash" aria-label="My Dashboard">
+          <i class="fa fa-users-rectangle"></i>
+        </a>
+        {% endif %}
+        <button type="button" data-direction="translate-y-full" class="test2-mobile-topbar__menu drawerTrigger" aria-label="Open profile menu">
+          {% if request.user.image %}
+          <img src="{{ request.user.image.url }}" alt="Profile" />
+          {% else %}
+          {{ (request.user.name|default('') or request.user.email|default('?'))[0]|upper }}
+          {% endif %}
         </button>
       </div>
-      <!-- End of User -->
-
-      <!-- Complete Profile -->
-      <div id="comppro"
-        class="flex z-20 w-full h-[124px] rounded-[10px] bg-[#f7f7fa] overflow-hidden mt-20 pt-[18px] relative hidden">
-        <div class="absolute top-[8px] right-[20px]" onclick="myfunc()">
-          <i class="fa fa-xmark text-[#4f4f4f] text-[10.92px]"></i>
-        </div>
-        <div>
-          <div class="flex relative">
-            <div class="absolute -left-[24px]">
-              <img src="{{static ('topteenfrontend/assets/images/verified-account-2.png')}}" class="w-[81px] h-[81px]"
-                alt="" />
-            </div>
-            <div class="text-left max-w-[217.5px] ml-[74px]">
-              <div>
-                <p class="text-[15px] leading-[20.25px] font-semibold text-[#333333]">
-                  Complete your profile
-                </p>
-                <p class="text-[13px] mt-[7px] leading-[18.85px] font-normal text-[#828282]">
-                  Help us personalize your experience all dashboard
-                </p>
-              </div>
-              <!-- Progress Bar -->
-              <div class="w-[262px] h-[10px] rounded-[100px] bg-[#4cc9f0] mt-[12px] bg-opacity-[0.15]">
-                <div class="w-[60%] h-full rounded-[100px] bg-[#4cc9f0]"></div>
-              </div>
-              <!-- End of Progress Bar -->
-            </div>
-
-
-          </div>
-        </div>
+    </header>
+    <div class="test2-mobile-stats-bar">
+      <div class="test2-stat-item">
+        <div class="test2-stat-icon"><i class="fa-regular fa-clock"></i></div>
+        <p class="test2-stat-value" id="totalTime">00:00</p>
+        <p class="test2-stat-label">Total Time</p>
       </div>
-      <!-- End of Complete Profile -->
+      <div class="test2-stat-item">
+        <div class="test2-stat-icon"><i class="fa-solid fa-list-check"></i></div>
+        <p class="test2-stat-value" id="questionProgress">1/4</p>
+        <p class="test2-stat-label">Question Displayed</p>
+      </div>
     </div>
+  </div>
 
-    <!-- End of left Part Mobile -->
-
-	  	  <div class="relative">
+  <div class="lg:flex lg:gap-[30px] pt-[16px] lg:pt-[32px] w-full">
+    <div class="relative test2-sidebar-wrap">
     <!-- Left part Desktop -->
-    <div class=" hidden lg:block w-[338px] h-[450px] border-[1px] border-solid border-[#dedede] rounded-[10px] mx-auto">
-      <!-- User -->
-      <div class="flex justify-center border-b-[1px] border-solid border-[#dedede]">
-        <div class="flex flex-col gap-y-[18px] pt-[24px] pb-[18px]">
-
-          <div class=" flex flex-col justify-center items-center">
-
-            <div class="flex justify-center items-center w-full">
-              <div class="flex gap-[8px]">
-                <div class="relative">
-                  {% if request.user.image %}
-                  <img src="{{ request.user.image.url }}" class="w-[104px] h-[104px] rounded-full object-cover" alt="User" />
-                  {% else %}
-                  <div class="w-[104px] h-[104px] rounded-full bg-[#3f37c9] text-white flex items-center justify-center text-[32px] font-semibold">
-                    {{ (request.user.name or request.user.email or "?")[0]|upper }}
-                  </div>
-                  {% endif %}
-                  <!-- <img src="{{static('topteenfrontend/assets/images/test_Img.png')}}"
-                    class="w-[104px] h-[104px] rounded-full object-cover" alt="no image Uploaded" /> -->
-
-                  <!-- XP  -->
-                  <!-- <div
-                          class="w-[89px] h-[43px] bg-[#40b2d6] rounded-[119.44px] absolute bottom-1 left-20"
-                        >
-                          <div
-                            class="flex h-[40px] w-[89px] rounded-[120px] bg-[#4cc9f0] pt-[9px] pl-[8px]"
-                          >
-                            <img
-                              src="{{ static('topteenfrontend/assets/images/xp.svg') }}"
-                              class="w-[20px] h-[20px]"
-                              alt=""
-                            />
-                            <p
-                              class="text-[12px] leading-[16px] mt-[2px] ml-[4px] text-[#ffffff]"
-                            >
-                              1280 XP
-                            </p>
-                          </div>
-                        </div> -->
-                  <!-- End of XP -->
-                </div>
-              </div>
-            </div>
-
-            <p class="text-[16px] leading-[21.6px] mt-[12px] semibold">{{request.user.name}}</p>
-
+    <div class="hidden lg:block">
+      <div class="test2-profile-card">
+        {% set _profile_name = request.user.name|default('') %}
+        {% set _profile_email = request.user.email|default(request.user.username) %}
+        <div class="test2-profile-avatar">
+          {% if request.user.image %}
+          <img src="{{ request.user.image.url }}" alt="User" />
+          {% else %}
+          {{ (_profile_name or _profile_email or '?')[0]|upper }}
+          {% endif %}
+        </div>
+        {% if _profile_name and _profile_name != _profile_email %}
+        <p class="test2-profile-name">{{ _profile_name }}</p>
+        <p class="test2-profile-email">{{ _profile_email }}</p>
+        {% else %}
+        <p class="test2-profile-name">{{ _profile_email }}</p>
+        {% endif %}
+        <div class="test2-profile-meta">
+          <p class="test2-profile-meta-item">
+            <i class="fa-regular fa-calendar"></i>
+            Joined {{ request.user.created.strftime("%B, %Y") }}
+          </p>
+          {% if request.user.user_profile %}
+            {% set _class_section = request.user.student_management.last().class_and_section if request.user.student_management.last() else '' %}
+            {% if _class_section or request.user.user_profile.schoolname %}
+          <p class="test2-profile-meta-item">
+            <i class="fa-solid fa-graduation-cap"></i>
+            {% if _class_section %}{{ _class_section }}{% endif %}
+            {% if _class_section and request.user.user_profile.schoolname %} • {% endif %}
+            {% if request.user.user_profile.schoolname %}{{ request.user.user_profile.schoolname }}{% endif %}
+          </p>
+            {% endif %}
+          {% endif %}
+        </div>
+        <div class="test2-stats-box">
+          <div class="test2-stat-item">
+            <div class="test2-stat-icon"><i class="fa-regular fa-clock"></i></div>
+            <p class="test2-stat-value" id="totalTimeDesktop">00:00</p>
+            <p class="test2-stat-label">Total Time</p>
           </div>
-
-
-          <div class="flex flex-col gap-y-[8px]">
-
-            <div class="flex gap-[14px] align-items-center">
-              <img src="{{static('topteenfrontend/assets/images/clock.fill.png')}}" class="w-[18px] h-[18px]" alt="" />
-              <p class="text-[16px] leading-[21.6px] text-[#828282]">
-                Joined {{request.user.created.strftime("%B, %Y")}}
-              </p>
-            </div>
-            <div class="flex gap-[14px] align-items-center">
-              <img src="{{static('topteenfrontend/assets/images/userGrade.png')}}" class="w-[18px] h-[14px]" alt="" />
-              <p class="text-[16px] leading-[21.6px] text-[#828282]">
-                {% if request.user.user_profile %} {% if request.user.student_management.last().class_and_section
-                %}{{request.user.student_management.last().class_and_section}}{% endif %} • {% if
-                request.user.user_profile.schoolname %}{{request.user.user_profile.schoolname}}{% endif %}{% else %} - •
-                - {% endif %}
-              </p>
-            </div>
+          <div class="test2-stat-item">
+            <div class="test2-stat-icon"><i class="fa-solid fa-list-check"></i></div>
+            <p class="test2-stat-value" id="questionProgressDesktop">1/4</p>
+            <p class="test2-stat-label">Question Displayed</p>
           </div>
         </div>
       </div>
-
-      <!-- End of User -->
-
-
     </div>
     <!-- End of Left part Desktop -->
-	  
-	  
-	  	  <div class="timer-text mb-md-0 mb-5">
-	        <!-- Complete Profile -->
-      <div class="flex justify-md-center pt-[18px] px-3  mt-md-0 mt-10">
-        <div class="test-item-info">
-          <div class="item-st-box">
-            <div class="st-m-icon"> <img src="{{ static ('images/blue-clock.png')}}" alt="Clock" /> </div>
-            <div class="ttex-bkue">
-              <p class="bt-l-title" id="totalTime">00:00</p><br>
-              <p class="bt-smp-t">Total Time</p>
-            </div>
-          </div>
-          <div class="item-st-box">
-            <div class="st-m-icon"> <img src="{{ static ('images/blue-eye.png')}}" alt="Clock" /> </div>
-            <div class="ttex-bkue">
-              <p class="bt-l-title" id="questionProgress">1/4</p><br>
-              <p class="bt-smp-t">Question Displayed</p>
-            </div>
-          </div>
-        </div>
-        
-      </div>
-      <!-- End of Complete Profile -->
-	  </div>
-	  
 	  </div>
 
     <!-- Right Part -->
     <!-- <div class="mx-auto lg:w-[712px] lg:pt-[8px] z-20"> -->
       <!-- Statistics -->
       
-        <div class="col-lg-8 col-md-12 mt-md-0 mt-5 order-md-2 order-1">
-          <h2 class="title-test-info mb-3"> Career Interest Assessment </h2>
+        <div class="col-lg-8 col-md-12 mt-0 lg:mt-0 order-md-2 order-1 test2-main-content">
+          <div class="test2-assessment-header">
+            <h2 class="title-test-info">Career Interest Assessment</h2>
+            <p class="test2-assessment-subtitle">Select all careers that genuinely interest you. There are no right or wrong answers — choose what feels most appealing to you.</p>
+            <div class="test2-assessment-tip">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M8 7v4M8 5.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              Tap a career card to select or deselect it
+            </div>
+          </div>
           <form id="multiStepForm" class="md-t-q">
             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
             <div class="tsp-title w-100 error-message" id="error-message" style="display: none;">
@@ -2651,7 +3220,7 @@ ol, ul {
           const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
 
           const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-          $('#totalTime').text(timeString);
+          $('#totalTime, #totalTimeDesktop, #totalTimeDrawer').text(timeString);
         }
       }
       // lets end the timer 
@@ -2659,7 +3228,7 @@ ol, ul {
       function showQuestion(number) {
         $('.question').removeClass('active');
         $('#question' + number).addClass('active');
-        $('#questionProgress').text(' ' + number + ' / ' + totalQuestions);
+        $('#questionProgress, #questionProgressDesktop, #questionProgressDrawer').text(number + ' / ' + totalQuestions);
         $('.next-button').toggle(number < totalQuestions);
         $('.prev-button').toggle(number > 1);
         $('.submit-button').toggle(number === totalQuestions);

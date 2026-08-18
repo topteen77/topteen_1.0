@@ -121,7 +121,7 @@
     and (ttv2_analytics.kpi.total_students|default(0)|int == 0)
   ) %}
   {% if _show_institute_welcome %}
-  <div class="ttv2-card ttv2-welcome-setup-card mb-0">
+  <div class="ttv2-welcome-setup-wrap mb-0">
     {% include "template_v2/includes/ttv2_institute_welcome_setup.html" %}
   </div>
   {% else %}
