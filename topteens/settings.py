@@ -523,7 +523,7 @@ COMMON_BASE_PATH = config('COMMON_BASE_PATH', default=str(BASE_DIR))
 if not os.path.isabs(COMMON_BASE_PATH):
     COMMON_BASE_PATH = os.path.normpath(os.path.join(BASE_DIR, COMMON_BASE_PATH))
 
-STATIC_URL = '/static/'
+#STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
@@ -707,7 +707,7 @@ if _USE_S3:
         "bucket_name": AWS_STORAGE_BUCKET_NAME,
         "region_name": AWS_REGION,
         "location": S3_MEDIA_LOCATION,
-        "default_acl": "public-read",
+        "default_acl": None,
         "querystring_auth": _querystring_auth,
         "querystring_expire": 3600,
     }
@@ -720,7 +720,14 @@ if _USE_S3:
             "OPTIONS": _storage_options,
         },
         "staticfiles": {
-            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+            "BACKEND": "storages.backends.s3.S3Storage",
+            "OPTIONS": {
+                "bucket_name": AWS_STORAGE_BUCKET_NAME,
+                "region_name": AWS_REGION,
+                "location": "static",
+                "default_acl": None,
+                "querystring_auth": False,
+            },
         },
     }
     if _use_proxy:
@@ -731,7 +738,8 @@ if _USE_S3:
         MEDIA_URL = f"{_S3_DIRECT_BASE_URL}{S3_MEDIA_LOCATION}/"
     AWS_S3_REGION_NAME = AWS_REGION
     AWS_LOCATION = S3_MEDIA_LOCATION
-    AWS_DEFAULT_ACL = "public-read"
+    AWS_DEFAULT_ACL = None
+    STATIC_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/static/"
     AWS_QUERYSTRING_AUTH = _querystring_auth
     AWS_S3_QUERYSTRING_EXPIRE = 3600
 else:
