@@ -55,37 +55,47 @@
     position: relative;
   }
   
-  .input-wrapper i {
+  .input-wrapper .input-icon {
     position: absolute;
-    left: 15px;
+    left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    color: #999;
+    color: #828282;
+    font-size: 18px;
+    line-height: 1;
+    pointer-events: none;
+    z-index: 2;
   }
   
   .input-wrapper input {
     width: 100%;
-    padding: 12px 15px 12px 45px;
+    padding: 12px 44px 12px 44px;
     border: 2px solid #DCDCDC;
     border-radius: 10px;
     font-size: 14px;
-    transition: border-color 0.3s;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    background: #fff;
   }
   
   .input-wrapper input:focus {
     outline: none;
     border-color: #3f37c9;
+    box-shadow: 0 0 0 3px rgba(63, 55, 201, 0.12);
   }
   
   .password-toggle {
     position: absolute;
-    right: 15px;
+    right: 12px;
     top: 50%;
     transform: translateY(-50%);
     background: none;
     border: none;
     cursor: pointer;
-    color: #999;
+    color: #828282;
+    font-size: 18px;
+    line-height: 1;
+    padding: 4px;
+    z-index: 2;
   }
   
   .password-toggle:hover {
@@ -192,7 +202,7 @@
             <div class="form-group">
               <label for="email">Email Address <span style="color: red;">*</span></label>
               <div class="input-wrapper">
-                <i class="fas fa-envelope"></i>
+                <i class="bx bx-envelope input-icon" aria-hidden="true"></i>
                 <input type="email" id="email" name="email" placeholder="Enter your email address" required autocomplete="email">
               </div>
               <div class="error-message" id="email_error"></div>
@@ -201,10 +211,10 @@
             <div class="form-group">
               <label for="password">Password <span style="color: red;">*</span></label>
               <div class="input-wrapper">
-                <i class="fas fa-lock"></i>
+                <i class="bx bx-lock-alt input-icon" aria-hidden="true"></i>
                 <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
-                <button type="button" class="password-toggle" id="togglePassword">
-                  <i class="fas fa-eye"></i>
+                <button type="button" class="password-toggle" id="togglePassword" aria-label="Show password">
+                  <i class="bx bx-show"></i>
                 </button>
               </div>
               <div class="error-message" id="password_error"></div>
@@ -263,8 +273,9 @@ document.addEventListener('DOMContentLoaded', function() {
       const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
       passwordInput.setAttribute('type', type);
       const icon = togglePassword.querySelector('i');
-      icon.classList.toggle('fa-eye');
-      icon.classList.toggle('fa-eye-slash');
+      icon.classList.toggle('bx-show');
+      icon.classList.toggle('bx-hide');
+      togglePassword.setAttribute('aria-label', type === 'text' ? 'Hide password' : 'Show password');
     });
   }
 

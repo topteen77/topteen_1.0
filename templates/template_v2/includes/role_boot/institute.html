@@ -51,6 +51,9 @@
           .then(function (data) {
             if (data && data.ok) {
               tr.remove();
+              if (typeof window.ttv2RefreshUnassignedStudentsPager === 'function') {
+                window.ttv2RefreshUnassignedStudentsPager();
+              }
             } else {
               btn.disabled = false;
               btn.textContent = prev || 'Assign';
@@ -66,6 +69,131 @@
             try { alert('Assign failed'); } catch (e) {}
           });
       });
+    };
+
+    window.ttv2InitUnassignedStudentsPager = function () {
+      var root = document.getElementById('ttv2UnassignedStudents');
+      if (!root) return;
+
+      var tbody = root.querySelector('tbody');
+      var search = root.querySelector('[data-ttv2-unassigned-search]');
+      var pager = root.querySelector('[data-ttv2-unassigned-pager]');
+      var meta = root.querySelector('[data-ttv2-unassigned-meta]');
+      var emptySearch = root.querySelector('[data-ttv2-unassigned-empty-search]');
+      if (!tbody) return;
+
+      var PER_PAGE = 10;
+      var page = 1;
+
+      function studentRows() {
+        return Array.prototype.slice.call(tbody.querySelectorAll('tr[data-sm-id]'));
+      }
+
+      function filteredRows() {
+        var q = ((search && search.value) || '').trim().toLowerCase();
+        return studentRows().filter(function (tr) {
+          if (!q) return true;
+          return ((tr.getAttribute('data-name') || '')).toLowerCase().indexOf(q) !== -1;
+        });
+      }
+
+      function pageButtons(pages) {
+        var buttons = [];
+        if (pages <= 7) {
+          for (var i = 1; i <= pages; i++) buttons.push(i);
+          return buttons;
+        }
+        buttons.push(1);
+        var start = Math.max(2, page - 1);
+        var end = Math.min(pages - 1, page + 1);
+        if (start > 2) buttons.push('…');
+        for (var n = start; n <= end; n++) buttons.push(n);
+        if (end < pages - 1) buttons.push('…');
+        buttons.push(pages);
+        return buttons;
+      }
+
+      function makeBtn(label, targetPage, opts) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'ttv2-unassigned-page-btn';
+        btn.textContent = label;
+        if (opts && opts.active) btn.classList.add('is-active');
+        if (opts && opts.disabled) btn.disabled = true;
+        if (opts && opts.ellipsis) {
+          btn.disabled = true;
+          btn.setAttribute('aria-hidden', 'true');
+        } else if (!(opts && opts.disabled)) {
+          btn.addEventListener('click', function () {
+            page = targetPage;
+            render();
+          });
+        }
+        return btn;
+      }
+
+      function render() {
+        var all = studentRows();
+        var vis = filteredRows();
+        var total = vis.length;
+        var pages = Math.max(1, Math.ceil(total / PER_PAGE) || 1);
+        if (page > pages) page = pages;
+        if (page < 1) page = 1;
+        var start = (page - 1) * PER_PAGE;
+        var end = start + PER_PAGE;
+
+        all.forEach(function (tr) {
+          tr.style.display = 'none';
+        });
+        vis.forEach(function (tr, i) {
+          tr.style.display = (i >= start && i < end) ? '' : 'none';
+        });
+
+        if (emptySearch) {
+          emptySearch.style.display = (all.length && total === 0) ? '' : 'none';
+        }
+
+        if (meta) {
+          if (!all.length) {
+            meta.textContent = '';
+          } else if (!total) {
+            meta.textContent = 'No matching students';
+          } else {
+            meta.textContent = 'Showing ' + (start + 1) + '–' + Math.min(end, total) + ' of ' + total;
+          }
+        }
+
+        if (!pager) return;
+        pager.innerHTML = '';
+        if (!all.length || pages <= 1) {
+          pager.hidden = true;
+          return;
+        }
+        pager.hidden = false;
+        pager.appendChild(makeBtn('Previous', page - 1, { disabled: page <= 1 }));
+        pageButtons(pages).forEach(function (item) {
+          if (item === '…') {
+            pager.appendChild(makeBtn('…', 0, { ellipsis: true }));
+          } else {
+            pager.appendChild(makeBtn(String(item), item, { active: item === page }));
+          }
+        });
+        pager.appendChild(makeBtn('Next', page + 1, { disabled: page >= pages }));
+      }
+
+      window.ttv2RefreshUnassignedStudentsPager = function () {
+        render();
+      };
+
+      if (search && !search.__ttv2Bound) {
+        search.__ttv2Bound = true;
+        search.addEventListener('input', function () {
+          page = 1;
+          render();
+        });
+      }
+
+      render();
     };
 
     /* Advisor list/table controls: student_table_ajax.js → window.ttv2InitAdvisorChangeControls */
@@ -122,6 +250,9 @@
       try {
         if (typeof window.ttv2InitUnassignedStudentsAssign === 'function') {
           window.ttv2InitUnassignedStudentsAssign();
+        }
+        if (typeof window.ttv2InitUnassignedStudentsPager === 'function') {
+          window.ttv2InitUnassignedStudentsPager();
         }
       } catch (e3) {}
 

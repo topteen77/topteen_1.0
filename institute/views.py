@@ -4805,7 +4805,7 @@ class InstituteDashboardView(TemplateView):
                     .order_by("-created")
                 )
                 unassigned_rows = []
-                for sm in list(unassigned_qs[:25]):
+                for sm in unassigned_qs:
                     u = getattr(sm, "student", None)
                     cas = getattr(sm, "class_and_section", None)
                     unassigned_rows.append(

@@ -85,6 +85,87 @@
     border-color: rgba(108,125,255,.55);
     box-shadow: 0 0 0 3px rgba(108,125,255,.16);
   }
+  #ttv2UnassignedStudents .ttv2-unassigned-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  #ttv2UnassignedStudents .ttv2-unassigned-search {
+    position: relative;
+    flex: 1 1 240px;
+    max-width: 360px;
+  }
+  #ttv2UnassignedStudents .ttv2-unassigned-search i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--c-text3);
+    font-size: 16px;
+    pointer-events: none;
+  }
+  #ttv2UnassignedStudents .ttv2-unassigned-search input {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid color-mix(in srgb, var(--c-border2, #cbd5e1) 92%, transparent);
+    background: var(--c-bg2, #fff);
+    color: var(--c-text);
+    font-size: 13px;
+    min-height: 38px;
+    padding: 8px 12px 8px 36px;
+  }
+  #ttv2UnassignedStudents .ttv2-unassigned-search input:focus {
+    outline: none;
+    border-color: rgba(108,125,255,.55);
+    box-shadow: 0 0 0 3px rgba(108,125,255,.16);
+  }
+  #ttv2UnassignedStudents .ttv2-unassigned-meta {
+    font-size: 12px;
+    color: var(--c-text3);
+    white-space: nowrap;
+  }
+  #ttv2UnassignedStudents .ttv2-unassigned-pager {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 12px 14px;
+    border-top: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 85%, transparent);
+    background: color-mix(in srgb, var(--c-bg3, #f8fafc) 70%, transparent);
+  }
+  #ttv2UnassignedStudents .ttv2-unassigned-pager[hidden] {
+    display: none;
+  }
+  #ttv2UnassignedStudents .ttv2-unassigned-page-btn {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: 8px;
+    border: 1px solid color-mix(in srgb, var(--c-border, #e2e8f0) 90%, transparent);
+    background: var(--c-bg2, #fff);
+    color: var(--c-text);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 32px;
+    cursor: pointer;
+  }
+  #ttv2UnassignedStudents .ttv2-unassigned-page-btn:hover:not(:disabled):not(.is-active) {
+    border-color: rgba(108,125,255,.45);
+    color: #4338ca;
+  }
+  #ttv2UnassignedStudents .ttv2-unassigned-page-btn.is-active {
+    background: #4f46e5;
+    border-color: #4f46e5;
+    color: #fff;
+  }
+  #ttv2UnassignedStudents .ttv2-unassigned-page-btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
   #ttv2UnassignedStudents .ttv2-unassigned-action {
     border-radius: 10px;
     font-weight: 600;
@@ -138,6 +219,20 @@
     color: var(--c-text);
     border-color: var(--c-border2);
   }
+  html[data-ttv2-theme="dark"] body.ttv2-shell #ttv2UnassignedStudents .ttv2-unassigned-search input {
+    background: var(--c-bg3, #1e2030);
+    color: var(--c-text);
+    border-color: var(--c-border2);
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell #ttv2UnassignedStudents .ttv2-unassigned-pager {
+    background: rgba(255,255,255,.03);
+    border-top-color: var(--c-border);
+  }
+  html[data-ttv2-theme="dark"] body.ttv2-shell #ttv2UnassignedStudents .ttv2-unassigned-page-btn {
+    background: var(--c-bg3, #1e2030);
+    color: var(--c-text);
+    border-color: var(--c-border2);
+  }
 </style>
 
 <div class="ttv2-card mt-3" id="ttv2UnassignedStudents" data-assign-url="{{ _assign_url }}">
@@ -150,6 +245,16 @@
     <div class="ttv2-unassigned-note mt-3">
       No counselors found. Create a counselor to assign students.
     </div>
+  {% endif %}
+
+  {% if rows %}
+  <div class="ttv2-unassigned-toolbar">
+    <div class="ttv2-unassigned-search">
+      <i class="bx bx-search" aria-hidden="true"></i>
+      <input type="search" data-ttv2-unassigned-search placeholder="Search student name" aria-label="Search student name" autocomplete="off">
+    </div>
+    <div class="ttv2-unassigned-meta" data-ttv2-unassigned-meta></div>
+  </div>
   {% endif %}
 
   <div class="table-responsive ttv2-unassigned-table-wrap">
@@ -166,7 +271,7 @@
       <tbody>
         {% if rows %}
           {% for r in rows %}
-            <tr data-sm-id="{{ r.sm_id }}">
+            <tr data-sm-id="{{ r.sm_id }}" data-name="{{ r.name|e }}">
               <td class="min-w-0">
                 <div class="ttv2-unassigned-name">{{ r.name }}</div>
                 <div class="ttv2-unassigned-email" style="margin-top:2px;">{{ r.email }}</div>
@@ -199,7 +304,15 @@
             </td>
           </tr>
         {% endif %}
+          <tr data-ttv2-unassigned-empty-search style="display:none;">
+            <td colspan="5" class="text-center py-4 ttv2-unassigned-empty">
+              No students match that name.
+            </td>
+          </tr>
       </tbody>
     </table>
+    {% if rows %}
+    <div class="ttv2-unassigned-pager" data-ttv2-unassigned-pager hidden></div>
+    {% endif %}
   </div>
 </div>
