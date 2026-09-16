@@ -523,6 +523,28 @@
   margin-bottom: 8px;
 }
 
+.cb-welcome-wave {
+  display: inline-block;
+  margin-left: 2px;
+  transform-origin: 70% 80%;
+  animation: cb-wave-hand 1.5s ease-in-out infinite;
+}
+
+@keyframes cb-wave-hand {
+  0%, 60%, 100% { transform: rotate(0deg); }
+  10% { transform: rotate(18deg); }
+  20% { transform: rotate(-8deg); }
+  30% { transform: rotate(18deg); }
+  40% { transform: rotate(-4deg); }
+  50% { transform: rotate(12deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cb-welcome-wave {
+    animation: none;
+  }
+}
+
 .cb-welcome p {
   font-size: 13.5px;
   color: var(--cb-text-subtle);

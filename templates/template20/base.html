@@ -250,14 +250,14 @@
   {# When both widgets load, page-chat must mount first so cb-root is later in DOM (same z-index stacking). #}
   {% if show_page_chat_widget and show_ai_counsellor_bot %}
   <script src="{{ static('js_new/page-chat-widget.js') }}?v=20260728-kb2" defer></script>
-  <script src="{{ static('js_new/chatbot-widget.js') }}?v=20260728-kb2" defer></script>
+  <script src="{{ static('js_new/chatbot-widget.js') }}?v=20260911-wave" defer></script>
   {% else %}
-  {% if show_ai_counsellor_bot %}<script src="{{ static('js_new/chatbot-widget.js') }}?v=20260728-kb2" defer></script>{% endif %}
+  {% if show_ai_counsellor_bot %}<script src="{{ static('js_new/chatbot-widget.js') }}?v=20260911-wave" defer></script>{% endif %}
   {% if show_page_chat_widget %}<script src="{{ static('js_new/page-chat-widget.js') }}?v=20260728-kb2" defer></script>{% endif %}
   {% endif %}
 
   {% block chatbot_js %}
-  {% if show_chatbot %}<script src="{{ static('js_new/chatbot-widget.js') }}?v=20260728-kb2" defer></script>{% endif %}
+  {% if show_chatbot %}<script src="{{ static('js_new/chatbot-widget.js') }}?v=20260911-wave" defer></script>{% endif %}
   {% endblock %}
   <script>
     window.TT_INCLUDED_LANGUAGES = {{ translate_enabled_languages_csv | tojson }};

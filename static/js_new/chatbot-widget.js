@@ -755,7 +755,7 @@
       const w = el('div', { className: 'cb-welcome' });
       w.innerHTML = `
         <div class="cb-welcome-icon"><img src="${getWelcomeIconSrc()}" alt="" width="60" height="60" decoding="async" /></div>
-        <h3>Hello! I'm ${CFG.botName}</h3>
+        <h3>Hello! I'm your ${CFG.botName} <span class="cb-welcome-wave" aria-hidden="true">👋</span></h3>
         <p>Ask me anything — I'll help with accurate, up‑to‑date answers.</p>
         ${CFG.devMode
           ? '<span class="cb-welcome-dev-note">⚙ Dev Mode — create or connect a session above</span>'
