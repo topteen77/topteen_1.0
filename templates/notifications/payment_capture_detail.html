@@ -1,0 +1,269 @@
+{% extends 'template_v2/dashboard_shell.html' %}
+
+{% block title_content %}{{ card.display_name or 'Payment' }} | TopTeen{% endblock %}
+{% block description_content %}Payment notification details.{% endblock %}
+
+{% block bodyclass %}{{ super() }} ttv2-shell ttv2-notifications-page{% endblock %}
+
+{% block dashboard_title %}Payment{% endblock %}
+{% block dashboard_subtitle %}Payer and payment details{% endblock %}
+
+{% block dashboard_home_url %}
+  {% if ttv2_role_ctx is defined and ttv2_role_ctx.role == 'marketing_group' %}
+    {{ url('institute:marketinggroupdashboard') }}
+  {% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'institute_group' %}
+    {{ url('institute:institutegroupdashboard') }}
+  {% else %}
+    {{ url('notifications:page') }}
+  {% endif %}
+{% endblock %}
+
+{% block dashboard_sidebar %}
+  {% include "template_v2/includes/sidebar_router.html" %}
+{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .ttv2-lead-wrap { max-width: 560px; }
+  .ttv2-lead-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    margin-bottom: 14px;
+  }
+  .ttv2-lead-back:hover { color: #4f46e5; }
+  .ttv2-lead-card {
+    background: #fff;
+    border: 1px solid #e8edf8;
+    border-radius: 22px;
+    box-shadow: 0 18px 40px rgba(79, 70, 229, 0.08);
+    overflow: hidden;
+  }
+  .ttv2-lead-hero {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    padding: 22px 22px 18px;
+    background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 58%, #fff 100%);
+  }
+  .ttv2-lead-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: .02em;
+    color: #fff;
+    background: linear-gradient(145deg, #0f766e 0%, #0d9488 100%);
+    box-shadow: 0 8px 18px rgba(13, 148, 136, 0.28);
+    flex-shrink: 0;
+  }
+  .ttv2-lead-name {
+    margin: 0 0 4px;
+    font-size: 1.35rem;
+    font-weight: 780;
+    letter-spacing: -0.03em;
+    color: #0f172a;
+    line-height: 1.2;
+    word-break: break-word;
+  }
+  .ttv2-lead-meta { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ttv2-lead-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    background: #eef2ff;
+    color: #4338ca;
+  }
+  .ttv2-lead-chip.is-muted { background: #f1f5f9; color: #64748b; }
+  .ttv2-lead-chip.is-ok { background: #ecfdf5; color: #047857; }
+  .ttv2-lead-chip.is-fail { background: #fef2f2; color: #b91c1c; }
+  .ttv2-lead-body { padding: 6px 22px 22px; }
+  .ttv2-lead-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-top: 1px solid #f1f5f9;
+  }
+  .ttv2-lead-ico {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    color: #0f766e;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .ttv2-lead-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: #94a3b8;
+  }
+  .ttv2-lead-value {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    text-decoration: none;
+  }
+  a.ttv2-lead-value:hover { color: #4f46e5; }
+  .ttv2-lead-actions { margin-left: auto; display: flex; gap: 8px; flex-shrink: 0; }
+  .ttv2-lead-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    border: 0;
+  }
+  .ttv2-lead-btn--call { background: #4f46e5; color: #fff; }
+  .ttv2-lead-btn--call:hover { color: #fff; background: #4338ca; }
+  .ttv2-lead-btn--mail { background: #eef2ff; color: #4338ca; }
+  .ttv2-lead-foot { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+</style>
+{% endblock %}
+
+{% block dashboard_body %}
+<div class="ttv2-lead-wrap">
+  <a class="ttv2-lead-back" href="{{ url('notifications:page') }}">← Back to notifications</a>
+  <div class="ttv2-lead-card">
+    <div class="ttv2-lead-hero">
+      <div class="ttv2-lead-avatar">{{ card.initials }}</div>
+      <div>
+        <h1 class="ttv2-lead-name">{{ card.display_name }}</h1>
+        <div class="ttv2-lead-meta">
+          {% if card.status_label and 'Fail' in card.status_label %}
+            <span class="ttv2-lead-chip is-fail">{{ card.status_label }}</span>
+          {% elif card.status_label == 'Successful' %}
+            <span class="ttv2-lead-chip is-ok">{{ card.status_label }}</span>
+          {% elif card.status_label %}
+            <span class="ttv2-lead-chip">{{ card.status_label }}</span>
+          {% endif %}
+          {% if card.institute_name %}<span class="ttv2-lead-chip">{{ card.institute_name }}</span>{% endif %}
+          {% if card.source_label %}<span class="ttv2-lead-chip is-muted">{{ card.source_label }}</span>{% endif %}
+          {% if card.captured_at %}<span class="ttv2-lead-chip is-muted">{{ card.captured_at }}</span>{% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="ttv2-lead-body">
+      {% if card.amount_display %}
+      <div class="ttv2-lead-row">
+        <span class="ttv2-lead-ico"><i class="bx bx-rupee"></i></span>
+        <div>
+          <span class="ttv2-lead-label">Amount</span>
+          <span class="ttv2-lead-value">{{ card.amount_display }}</span>
+        </div>
+      </div>
+      {% endif %}
+      {% if card.item %}
+      <div class="ttv2-lead-row">
+        <span class="ttv2-lead-ico"><i class="bx bx-purchase-tag"></i></span>
+        <div>
+          <span class="ttv2-lead-label">Item</span>
+          <span class="ttv2-lead-value">{{ card.item }}</span>
+        </div>
+      </div>
+      {% endif %}
+      {% if card.institute_name %}
+      <div class="ttv2-lead-row">
+        <span class="ttv2-lead-ico"><i class="bx bx-buildings"></i></span>
+        <div>
+          <span class="ttv2-lead-label">Institute</span>
+          <span class="ttv2-lead-value">{{ card.institute_name }}</span>
+          {% if card.institute_slug %}
+          <span class="ttv2-lead-label" style="text-transform:none;letter-spacing:0;margin-top:2px;">{{ card.institute_slug }}</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+      {% if card.email %}
+      <div class="ttv2-lead-row">
+        <span class="ttv2-lead-ico"><i class="bx bx-envelope"></i></span>
+        <div>
+          <span class="ttv2-lead-label">Payer email</span>
+          <a class="ttv2-lead-value" href="mailto:{{ card.email }}">{{ card.email }}</a>
+        </div>
+        <div class="ttv2-lead-actions">
+          <a class="ttv2-lead-btn ttv2-lead-btn--mail" href="mailto:{{ card.email }}">Email</a>
+        </div>
+      </div>
+      {% endif %}
+      {% if card.phone %}
+      <div class="ttv2-lead-row">
+        <span class="ttv2-lead-ico"><i class="bx bx-phone"></i></span>
+        <div>
+          <span class="ttv2-lead-label">Phone</span>
+          <a class="ttv2-lead-value" href="tel:{{ card.phone_tel or card.phone }}">{{ card.phone }}</a>
+        </div>
+      </div>
+      {% endif %}
+      {% if card.payment_id %}
+      <div class="ttv2-lead-row">
+        <span class="ttv2-lead-ico"><i class="bx bx-hash"></i></span>
+        <div>
+          <span class="ttv2-lead-label">Payment ID</span>
+          <span class="ttv2-lead-value">{{ card.payment_id }}</span>
+        </div>
+      </div>
+      {% endif %}
+      {% if card.gateway_order_id %}
+      <div class="ttv2-lead-row">
+        <span class="ttv2-lead-ico"><i class="bx bx-receipt"></i></span>
+        <div>
+          <span class="ttv2-lead-label">Gateway order</span>
+          <span class="ttv2-lead-value">{{ card.gateway_order_id }}</span>
+        </div>
+      </div>
+      {% endif %}
+      {% if show_retry or show_cancel %}
+      <div class="ttv2-lead-foot">
+        {% if show_retry and retry_url %}
+          <a class="ttv2-lead-btn ttv2-lead-btn--call" href="{{ retry_url }}">Retry payment</a>
+        {% endif %}
+        {% if show_cancel and cancel_url %}
+          <a class="ttv2-lead-btn ttv2-lead-btn--mail" href="{{ cancel_url }}">Cancel</a>
+        {% endif %}
+      </div>
+      {% elif account_url or analytics_url %}
+      <div class="ttv2-lead-foot">
+        {% if account_url %}
+          <a class="ttv2-lead-btn ttv2-lead-btn--call" href="{{ account_url }}">Open account</a>
+        {% endif %}
+        {% if analytics_url %}
+          <a class="ttv2-lead-btn ttv2-lead-btn--mail" href="{{ analytics_url }}">Payments report</a>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+{% endblock %}
+
+{% block chatbot_css %}{% endblock %}
+{% block chatbot %}{% endblock %}
+{% block chatbot_js %}{% endblock %}

@@ -1,0 +1,62 @@
+{% extends 'template_v2/dashboard_shell.html' %}
+
+{% block title_content %}Tie-up billing{% if institute is defined and institute %} · {{ institute.name }}{% endif %} | TopTeen{% endblock %}
+{% block description_content %}Review pending packages and complete institute tie-up payment.{% endblock %}
+
+{% block bodyclass %}{{ super() }} ttv2-shell{% endblock %}
+
+{% block dashboard_title %}Payments{% endblock %}
+{% block dashboard_subtitle %}Tie-up billing{% endblock %}
+
+{% block dashboard_home_url %}
+  {% if ttv2_role_ctx is defined and ttv2_role_ctx.role == 'marketing_group' %}
+    {{ url('institute:marketinggroupdashboard') }}
+  {% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'institute_group' %}
+    {{ url('institute:institutegroupdashboard') }}
+  {% elif institute is defined and institute %}
+    {{ url('institute:institutedashboard_page', args=[institute.slug, 'dashboard']) }}
+  {% else %}
+    {{ url('notifications:page') }}
+  {% endif %}
+{% endblock %}
+
+{% block dashboard_sidebar %}
+  {% include "template_v2/includes/sidebar_router.html" %}
+{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<link rel="stylesheet" href="{{ static('css_new/ttv2_group_payments_page.css') }}">
+<style>
+  .ttv2-paypage-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 14px;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 650;
+    text-decoration: none;
+  }
+  .ttv2-paypage-back:hover { color: #4f46e5; }
+  .ttv2-paypage-back i { font-size: 1.05rem; }
+</style>
+{% endblock %}
+
+{% block dashboard_body %}
+  {% if billing_back_url is defined and billing_back_url %}
+  <a class="ttv2-paypage-back" href="{{ billing_back_url }}">
+    <i class="bx bx-arrow-back" aria-hidden="true"></i>
+    Back to payments
+  </a>
+  {% endif %}
+  {% include "template_v2/institute/pages/institute_single_payments_page.html" %}
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+{% endblock %}
+
+{% block chatbot_css %}{% endblock %}
+{% block chatbot %}{% endblock %}
+{% block chatbot_js %}{% endblock %}

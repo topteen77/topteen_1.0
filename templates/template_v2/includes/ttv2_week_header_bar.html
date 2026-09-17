@@ -1,17 +1,29 @@
 {# Week header bar: render OUTSIDE AJAX host so dropdown is always clickable.
-   Should appear ONLY on dashboard pages. #}
-{% if ttv2_analytics is defined and ttv2_analytics and (ttv2_page|default('dashboard')) == 'dashboard' %}
+   Institute / counselor dashboards only — marketing and institute-group list
+   pages already have their own title, so this second "Dashboard" card is removed. #}
+{% set _ttv2_week_path = (request.path if request is defined else '') %}
+{% set _ttv2_week_group_home = (
+  '/marketing_group_dashboard' in _ttv2_week_path
+  or '/institute_group_dashboard' in _ttv2_week_path
+) %}
+{% if ttv2_analytics is defined and ttv2_analytics and (ttv2_page|default('dashboard')) == 'dashboard' and not _ttv2_week_group_home %}
 {# Extra guard: if page context is missing/mis-set, avoid showing on non-dashboard routes. #}
 {% if request is not defined or not request.path or (('/students/' not in request.path) and ('/counselors/' not in request.path) and ('/sessions/' not in request.path)) %}
 <div class="ttv2-week-header mb-3" data-ttv2-week-header>
   <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-    <div>
+    <div class="min-w-0">
       <div class="card-title mb-0 fw-bold">Dashboard</div>
       <div class="text-muted ttv2-week-subtitle">
         {{ ttv2_analytics.banners.week_summary|default('Key metrics for your scope') }}
       </div>
     </div>
     <div class="d-flex align-items-center gap-2">
+      {% if can_edit_seat_capacity|default(false) and institute is defined and institute %}
+        {% with seat_capacity_btn_class='ttv2-week-back ttv2-week-seats', seat_capacity_btn_label='Edit seats' %}
+          {% include "template_v2/institute/includes/seat_capacity_edit_button.html" %}
+        {% endwith %}
+      {% endif %}
+      {% include "template_v2/includes/ttv2_back_to_institutes.html" %}
       <div class="dropdown">
         <button type="button"
                 class="ttv2-date-range-icon-btn"

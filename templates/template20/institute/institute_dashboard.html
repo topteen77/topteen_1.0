@@ -16,7 +16,10 @@
 {% include 'template20/institute/institute_dashboard_body.html' %}
 {% endblock %}
 
-{# Disable chatbot for institute dashboard #}
+{% block additionaljs %}
+{{ super() }}
+<script src="{{ staticv('js_new/ttv2_seat_capacity_edit.js') }}"></script>
+{% endblock %}
 {% block chatbot_css %}{% endblock %}
 {% block chatbot %}{% endblock %}
 {% block chatbot_js %}{% endblock %}

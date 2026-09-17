@@ -82,15 +82,20 @@
                       <input type="text"
                              name="location"
                              id="location_filter"
-                             list="location_suggestions"
                              class="form-control custom-input pe-4"
                              autocomplete="off"
+                             spellcheck="false"
+                             role="combobox"
+                             aria-autocomplete="list"
+                             aria-expanded="false"
+                             aria-controls="location_filter_menu"
                              placeholder="Type or select location"
                              value="{% if search_params is defined %}{{ search_params.location|default('') }}{% endif %}">
                       <button type="button" class="ttv2-suggest-clear" id="location_filter_clear" aria-label="Clear location">&times;</button>
                       <div class="ttv2-suggest-menu" id="location_filter_menu" role="listbox" aria-label="Location suggestions"></div>
                     </div>
-                    <datalist id="location_suggestions">
+                    {# Data source only — do not attach via list= or Chromium shows a native black datalist on click. #}
+                    <datalist id="location_suggestions" hidden>
                       {% for location in (locations|default([])) %}
                         <option value="{{ location }}"></option>
                       {% endfor %}
@@ -146,22 +151,3 @@
             <div id="institutes-table-wrapper" style="display: none;"></div>
           </div>
         </div>
-        <style>
-          .ttv2-suggest-wrap { position: relative; }
-          .ttv2-suggest-clear {
-            position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-            border: 0; background: transparent; color: #94a3b8; font-size: 16px; line-height: 1;
-            display: none; cursor: pointer; padding: 0;
-          }
-          .ttv2-suggest-menu {
-            position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 30;
-            max-height: 240px; overflow: auto; background: #fff; border: 1px solid #dbe4f0;
-            border-radius: 10px; box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08); display: none;
-          }
-          .ttv2-suggest-item {
-            display: block; width: 100%; text-align: left; border: 0; background: #fff;
-            padding: 8px 10px; font-size: 13px; color: #0f172a; cursor: pointer;
-          }
-          .ttv2-suggest-item:hover, .ttv2-suggest-item.is-active { background: #eef2ff; }
-          .ttv2-suggest-empty { padding: 8px 10px; font-size: 12px; color: #64748b; }
-        </style>

@@ -1,5 +1,5 @@
 {# Shared Career Education Analytics heatmap UI (no sidebar). Optional: heatmap_institute_slug for API scope. #}
-<div class="heatmap-dashboard-container{% if heatmap_container_class %} {{ heatmap_container_class }}{% endif %}">
+<div class="heatmap-dashboard-container is-locked{% if heatmap_container_class %} {{ heatmap_container_class }}{% endif %}" data-heatmap-enabled="false">
   <div class="heatmap-header-card">
     <div class="heatmap-header-title">
       <div class="heatmap-header-title-icon">
@@ -14,7 +14,7 @@
       <button type="button" id="heatmap-refresh-btn" class="heatmap-btn refresh">
         <i class="bx bx-refresh"></i> Refresh
       </button>
-      <button type="button" id="heatmap-export-btn" class="heatmap-btn export">
+      <button type="button" id="heatmap-export-btn" class="heatmap-btn export" disabled aria-disabled="true">
         <i class="bx bx-download"></i> Export
       </button>
     </div>
@@ -40,9 +40,9 @@
   <div class="heatmap-controls-card">
     <div class="heatmap-controls">
       <i class="bx bx-filter-alt"></i>
-      <button type="button" class="heatmap-view-btn active" data-view="grade">By Grade</button>
-      <button type="button" class="heatmap-view-btn" data-view="section">By Section</button>
-      <button type="button" class="heatmap-view-btn" data-view="stream">By Stream</button>
+      <button type="button" class="heatmap-view-btn active" data-view="grade" disabled aria-disabled="true">By Grade</button>
+      <button type="button" class="heatmap-view-btn" data-view="section" disabled aria-disabled="true">By Section</button>
+      <button type="button" class="heatmap-view-btn" data-view="stream" disabled aria-disabled="true">By Stream</button>
     </div>
   </div>
 

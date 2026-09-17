@@ -1,0 +1,255 @@
+{% extends 'template_v2/dashboard_shell.html' %}
+
+{% block title_content %}{{ card.display_name or 'Lead' }} | TopTeen{% endblock %}
+{% block description_content %}Lead contact details.{% endblock %}
+
+{% block bodyclass %}{{ super() }} ttv2-shell ttv2-notifications-page{% endblock %}
+
+{% block dashboard_title %}Lead capture{% endblock %}
+{% block dashboard_subtitle %}Name and phone for follow-up{% endblock %}
+
+{% block dashboard_home_url %}
+  {% if ttv2_role_ctx is defined and ttv2_role_ctx.role == 'marketing_group' %}
+    {{ url('institute:marketinggroupdashboard') }}
+  {% elif ttv2_role_ctx is defined and ttv2_role_ctx.role == 'institute_group' %}
+    {{ url('institute:institutegroupdashboard') }}
+  {% else %}
+    {{ url('notifications:page') }}
+  {% endif %}
+{% endblock %}
+
+{% block dashboard_sidebar %}
+  {% include "template_v2/includes/sidebar_router.html" %}
+{% endblock %}
+
+{% block additionalhead %}
+{{ super() }}
+<style>
+  .ttv2-lead-wrap { max-width: 640px; }
+  .ttv2-lead-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    margin-bottom: 16px;
+  }
+  .ttv2-lead-back:hover { color: #4f46e5; }
+  .ttv2-lead-card {
+    background: #fff;
+    border: 1px solid #e8edf8;
+    border-radius: 24px;
+    box-shadow: 0 18px 40px rgba(79, 70, 229, 0.08);
+    overflow: hidden;
+  }
+  .ttv2-lead-hero {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    padding: 24px 24px 18px;
+    background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 58%, #fff 100%);
+  }
+  .ttv2-lead-avatar {
+    width: 68px;
+    height: 68px;
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 22px;
+    color: #fff;
+    background: linear-gradient(145deg, #4f46e5 0%, #6366f1 100%);
+    box-shadow: 0 8px 18px rgba(79, 70, 229, 0.28);
+    flex-shrink: 0;
+  }
+  .ttv2-lead-kicker {
+    margin: 0 0 4px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #6366f1;
+  }
+  .ttv2-lead-name {
+    margin: 0 0 8px;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: #0f172a;
+    line-height: 1.2;
+    word-break: break-word;
+  }
+  .ttv2-lead-meta { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ttv2-lead-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    background: #eef2ff;
+    color: #4338ca;
+  }
+  .ttv2-lead-chip.is-muted { background: #f1f5f9; color: #64748b; }
+  .ttv2-lead-chip.is-ok { background: #ecfdf5; color: #047857; }
+  .ttv2-lead-follow {
+    margin: 0 24px 8px;
+    padding: 16px;
+    border-radius: 18px;
+    background: #f8fafc;
+    border: 1px solid #eef2ff;
+  }
+  .ttv2-lead-phone {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0f172a;
+    text-decoration: none;
+    letter-spacing: .01em;
+  }
+  .ttv2-lead-phone:hover { color: #4f46e5; }
+  .ttv2-lead-follow-label {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin-bottom: 4px;
+  }
+  .ttv2-lead-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .ttv2-lead-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 999px;
+    padding: 12px 18px;
+    font-size: 14px;
+    font-weight: 800;
+    text-decoration: none;
+    border: 0;
+    min-width: 132px;
+  }
+  .ttv2-lead-btn--call { background: #4f46e5; color: #fff !important; }
+  .ttv2-lead-btn--call:hover { color: #fff !important; background: #4338ca; }
+  .ttv2-lead-btn--wa { background: #25d366; color: #fff !important; }
+  .ttv2-lead-btn--wa:hover { background: #1ebe57; color: #fff !important; }
+  .ttv2-lead-btn--mail { background: #eef2ff; color: #4338ca !important; }
+  .ttv2-lead-body { padding: 4px 24px 22px; }
+  .ttv2-lead-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-top: 1px solid #f1f5f9;
+  }
+  .ttv2-lead-ico {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    color: #4f46e5;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .ttv2-lead-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: #94a3b8;
+  }
+  .ttv2-lead-value {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+    text-decoration: none;
+  }
+  a.ttv2-lead-value:hover { color: #4f46e5; }
+  .ttv2-lead-empty { padding: 20px 24px 24px; color: #64748b; font-size: 14px; line-height: 1.5; }
+  @media (max-width: 575.98px) {
+    .ttv2-lead-btn { flex: 1 1 calc(50% - 10px); min-width: 0; }
+  }
+</style>
+{% endblock %}
+
+{% block dashboard_body %}
+<div class="ttv2-lead-wrap">
+  <a class="ttv2-lead-back" href="{{ url('notifications:page') }}?bucket=lead">← Back to notifications</a>
+  <div class="ttv2-lead-card">
+    <div class="ttv2-lead-hero">
+      <div class="ttv2-lead-avatar">{{ card.initials }}</div>
+      <div>
+        <p class="ttv2-lead-kicker">Follow-up contact</p>
+        <h1 class="ttv2-lead-name">{{ card.display_name }}</h1>
+        <div class="ttv2-lead-meta">
+          {% if card.status_label == 'Converted' %}
+            <span class="ttv2-lead-chip is-ok">{{ card.status_label }}</span>
+          {% elif card.status_label %}
+            <span class="ttv2-lead-chip">{{ card.status_label }}</span>
+          {% endif %}
+          {% if card.source_label %}<span class="ttv2-lead-chip is-muted">{{ card.source_label }}</span>{% endif %}
+          {% if card.captured_at %}<span class="ttv2-lead-chip is-muted">{{ card.captured_at }}</span>{% endif %}
+        </div>
+      </div>
+    </div>
+    {% if card.has_contact %}
+    <div class="ttv2-lead-follow">
+      <div class="ttv2-lead-follow-label">Phone</div>
+      <a class="ttv2-lead-phone" href="tel:{{ card.phone_tel or card.phone }}">{{ card.phone }}</a>
+      <div class="ttv2-lead-cta">
+        <a class="ttv2-lead-btn ttv2-lead-btn--call" href="tel:{{ card.phone_tel or card.phone }}"><i class="bx bx-phone"></i> Call now</a>
+        {% if card.phone_whatsapp %}
+        <a class="ttv2-lead-btn ttv2-lead-btn--wa" href="https://wa.me/{{ card.phone_whatsapp }}" target="_blank" rel="noopener"><i class="bx bxl-whatsapp"></i> WhatsApp</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="ttv2-lead-body">
+      {% if card.name %}
+      <div class="ttv2-lead-row">
+        <span class="ttv2-lead-ico"><i class="bx bx-user"></i></span>
+        <div>
+          <span class="ttv2-lead-label">Name</span>
+          <span class="ttv2-lead-value">{{ card.name }}</span>
+        </div>
+      </div>
+      {% endif %}
+      {% if card.email %}
+      <div class="ttv2-lead-row">
+        <span class="ttv2-lead-ico"><i class="bx bx-envelope"></i></span>
+        <div>
+          <span class="ttv2-lead-label">Email</span>
+          <a class="ttv2-lead-value" href="mailto:{{ card.email }}">{{ card.email }}</a>
+        </div>
+        <div class="ms-auto">
+          <a class="ttv2-lead-btn ttv2-lead-btn--mail" href="mailto:{{ card.email }}">Email</a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% else %}
+    <p class="ttv2-lead-empty">{{ card.waiting_message }}</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block additionaljs %}
+{{ super() }}
+{% endblock %}
+
+{% block chatbot_css %}{% endblock %}
+{% block chatbot %}{% endblock %}
+{% block chatbot_js %}{% endblock %}

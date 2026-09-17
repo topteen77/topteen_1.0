@@ -1250,6 +1250,12 @@ def class10_combined_report(request, user_id=None):
             except Exception:
                 cached_html = None
             if cached_html:
+                try:
+                    from institute.demo_institute_notifications import notify_demo_institute_report_viewed
+
+                    notify_demo_institute_report_viewed(target_user)
+                except Exception:
+                    pass
                 resp = HttpResponse(cached_html, content_type='text/html; charset=utf-8')
                 return _add_no_cache_headers(resp)
 
@@ -1274,6 +1280,12 @@ def class10_combined_report(request, user_id=None):
             and not context.get('no_results')
             and not context.get('error')
         ):
+            try:
+                from institute.demo_institute_notifications import notify_demo_institute_report_viewed
+
+                notify_demo_institute_report_viewed(target_user)
+            except Exception:
+                pass
             try:
                 cache.set(html_key, resp.content, CLASS10_HTML_CACHE_TTL)
             except Exception:

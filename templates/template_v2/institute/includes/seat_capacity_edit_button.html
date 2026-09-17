@@ -1,0 +1,30 @@
+{# Requires: institute object, seat_capacity_institute, or explicit id/name. #}
+{% set _sc_inst = (
+  seat_capacity_institute
+  if (seat_capacity_institute is defined and seat_capacity_institute)
+  else (institute if (institute is defined and institute) else none)
+) %}
+{% set _sc_id = (seat_capacity_institute_id if seat_capacity_institute_id is defined else (_sc_inst.id if _sc_inst else '')) %}
+{% set _sc_name = (seat_capacity_institute_name if seat_capacity_institute_name is defined else (_sc_inst.name if _sc_inst else '')) %}
+{% set _btn_class = (seat_capacity_btn_class if seat_capacity_btn_class is defined else 'btn btn-sm btn-primary') %}
+{% set _btn_label = (seat_capacity_btn_label if seat_capacity_btn_label is defined else 'Edit seat capacity') %}
+{% set _btn_icon = (seat_capacity_btn_icon if seat_capacity_btn_icon is defined else 'bx bx-edit') %}
+{% set _btn_title = (seat_capacity_btn_title if seat_capacity_btn_title is defined else 'Edit class 11 and 12 seat capacity') %}
+<button type="button"
+        class="{{ _btn_class }}"
+        data-seat-capacity-edit
+        data-institute-id="{{ _sc_id }}"
+        data-institute-name="{{ _sc_name }}"
+        title="{{ _btn_title }}"
+        data-pcm-11="{{ _sc_inst.pcm if _sc_inst and _sc_inst.pcm else 100 }}"
+        data-cbm-11="{{ _sc_inst.cbm if _sc_inst and _sc_inst.cbm else 100 }}"
+        data-comm-11="{{ _sc_inst.comm if _sc_inst and _sc_inst.comm else 100 }}"
+        data-hme-11="{{ _sc_inst.hme if _sc_inst and _sc_inst.hme else 100 }}"
+        data-hmb-11="{{ _sc_inst.hmb if _sc_inst and _sc_inst.hmb else 100 }}"
+        data-pcm-12="{{ _sc_inst.pcm_12 if _sc_inst and _sc_inst.pcm_12 else 100 }}"
+        data-cbm-12="{{ _sc_inst.cbm_12 if _sc_inst and _sc_inst.cbm_12 else 100 }}"
+        data-comm-12="{{ _sc_inst.comm_12 if _sc_inst and _sc_inst.comm_12 else 100 }}"
+        data-hme-12="{{ _sc_inst.hme_12 if _sc_inst and _sc_inst.hme_12 else 100 }}"
+        data-hmb-12="{{ _sc_inst.hmb_12 if _sc_inst and _sc_inst.hmb_12 else 100 }}">
+  <i class="{{ _btn_icon }}"></i>{% if _btn_label %} {{ _btn_label }}{% endif %}
+</button>

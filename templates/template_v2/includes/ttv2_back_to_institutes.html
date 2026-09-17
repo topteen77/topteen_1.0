@@ -1,0 +1,19 @@
+{# Back to the institutes listing for marketing / group admins viewing a school. #}
+{% set _role = (ttv2_role_ctx.role if ttv2_role_ctx is defined else '') %}
+{% set _ut = (request.user.user_type if (request is defined and request.user and request.user.is_authenticated) else 0) %}
+{% set _path = (request.path if request is defined else '') %}
+{% set _is_list_viewer = _role in ['marketing_group', 'institute_group'] or _ut in [3, 5] %}
+{% set _is_institute_url = (
+  '/institute/' in _path
+  and '/marketing_group_dashboard' not in _path
+  and '/institute_group_dashboard' not in _path
+) %}
+{% if _is_list_viewer and (_is_institute_url or (institute is defined and institute)) %}
+  <a class="ttv2-week-back"
+     href="{% if _role == 'institute_group' or _ut == 3 %}{{ url('institute:institutegroupdashboard_page', args=['institutes']) }}{% else %}{{ url('institute:marketinggroupdashboard_page', args=['institutes']) }}{% endif %}"
+     title="Back to institutes"
+     aria-label="Back to institutes">
+    <i class="bx bx-arrow-back" aria-hidden="true"></i>
+    Back
+  </a>
+{% endif %}

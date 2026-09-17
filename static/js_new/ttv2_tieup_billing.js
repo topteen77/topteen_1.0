@@ -339,6 +339,20 @@
     if (root) initTtv2TieupBilling(root);
   }
 
+  if (!global.__ttv2RetryPayBound) {
+    global.__ttv2RetryPayBound = true;
+    document.addEventListener('click', function (e) {
+      var btn = e.target && e.target.closest ? e.target.closest('[data-ttv2-retry-pay]') : null;
+      if (!btn) return;
+      e.preventDefault();
+      var payBtn = document.getElementById('tieupPayNow');
+      if (payBtn) {
+        if (payBtn.scrollIntoView) payBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        payBtn.click();
+      }
+    });
+  }
+
   global.ttv2InitTieupBilling = bootTtv2TieupBilling;
 
   document.addEventListener('DOMContentLoaded', bootTtv2TieupBilling);

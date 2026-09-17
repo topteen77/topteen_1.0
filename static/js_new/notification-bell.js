@@ -141,8 +141,14 @@
     });
   }
 
+  function emptyBellHtml() {
+    return '<div class="tt-notification-empty">No new notification</div>';
+  }
+
   function renderSummaryBuckets(buckets, listEl) {
-    var rows = (buckets || []).map(function (b) {
+    var rows = (buckets || []).filter(function (b) {
+      return (parseInt(b.count, 10) || 0) > 0;
+    }).map(function (b) {
       var count = parseInt(b.count, 10) || 0;
       var zeroClass = count > 0 ? '' : ' tt-notification-summary-count--zero';
       var url = b.url || '#';
@@ -155,7 +161,7 @@
       );
     }).join('');
     if (!rows) {
-      listEl.innerHTML = '<div class="tt-notification-empty"><i class="bx bx-bell-off"></i> No notifications yet.</div>';
+      listEl.innerHTML = emptyBellHtml();
       return;
     }
     listEl.innerHTML = rows;
@@ -179,7 +185,7 @@
 
   function render(items, listEl) {
     if (!items.length) {
-      listEl.innerHTML = '<div class="tt-notification-empty">No notifications yet.</div>';
+      listEl.innerHTML = emptyBellHtml();
       return;
     }
     listEl.innerHTML = items.map(function (n) {
@@ -207,16 +213,22 @@
           return;
         }
         e.preventDefault();
-        var nid = el.getAttribute('data-id');
         var dest = (el.getAttribute('data-url') || '').trim();
-        markRead(nid).then(function () {
-          return loadLatest(true);
-        }).then(function (data) {
-          if (data && data.success) setBadgeCount(data.unread_count || 0);
-          window.location.href = dest || notificationsPageUrl;
-        }).catch(function () {
-          window.location.href = dest || notificationsPageUrl;
-        });
+        var go = dest || notificationsPageUrl;
+        var nid = el.getAttribute('data-id');
+        function navigate() { window.location.href = go; }
+        if (!nid || !dest) {
+          navigate();
+          return;
+        }
+        var fd = new FormData();
+        fd.append('id', nid);
+        fd.append('opened', '1');
+        fetch(markReadUrl, {
+          method: 'POST',
+          headers: {'X-CSRFToken': csrfToken(), 'X-Requested-With': 'XMLHttpRequest'},
+          body: fd
+        }).catch(function () {}).finally(navigate);
       });
     });
     listEl.querySelectorAll('a.tt-notification-retry').forEach(function (a) {
@@ -237,11 +249,19 @@
     var lists = listElements();
     if (!lists.length) return;
     lists.forEach(function (listEl) {
-      if (data.summary_mode && data.buckets) {
-        renderSummaryBuckets(data.buckets, listEl);
-      } else {
-        render(data.notifications || [], listEl);
+      var items = data.notifications || [];
+      if (items.length) {
+        render(items, listEl);
+        return;
       }
+      var buckets = (data.buckets || []).filter(function (b) {
+        return (parseInt(b.count, 10) || 0) > 0;
+      });
+      if (data.summary_mode && buckets.length) {
+        renderSummaryBuckets(buckets, listEl);
+        return;
+      }
+      listEl.innerHTML = emptyBellHtml();
     });
   }
 
@@ -290,6 +310,14 @@
       wrap.setAttribute('data-tt-bell-bound', '1');
       var btn = wrap.querySelector('.tt-notification-bell');
       if (!btn) return;
+      btn.addEventListener('click', function (e) {
+        var inPublicHeader = !!(wrap.closest('.tt-header') || wrap.closest('header.header'));
+        if (inPublicHeader && notificationsPageUrl) {
+          e.preventDefault();
+          e.stopPropagation();
+          window.location.href = notificationsPageUrl;
+        }
+      }, true);
       btn.addEventListener('shown.bs.dropdown', function () {
         loadLatest(isLeader());
       });

@@ -265,6 +265,16 @@ body.ttv2-shell .ttv2-institute-payments-page .ttv2-card.ttv2-gpay-section .card
   margin-top: 0.05rem;
   color: var(--gpay-amber-2);
 }
+.ttv2-group-payments-page .ttv2-gpay-alert--info,
+.ttv2-institute-payments-page .ttv2-gpay-alert--info{
+  border-color: rgba(79, 70, 229, 0.22);
+  background: linear-gradient(90deg, rgba(79, 70, 229, 0.10), rgba(79, 70, 229, 0.03));
+  color: #3730a3;
+}
+.ttv2-group-payments-page .ttv2-gpay-alert--info i,
+.ttv2-institute-payments-page .ttv2-gpay-alert--info i{
+  color: #4f46e5;
+}
 
 /* --- Pay panel --- */
 .ttv2-group-payments-page .ttv2-gpay-pay-panel,
@@ -532,6 +542,12 @@ body.ttv2-shell .ttv2-institute-payments-page .ttv2-card.ttv2-gpay-section .card
 .ttv2-institute-payments-page .ttv2-gpay-filters .btn-danger{
   background: var(--gpay-red-1);
   border-color: var(--gpay-red-1);
+}
+.ttv2-group-payments-page .ttv2-gpay-filters .btn:hover,
+.ttv2-group-payments-page .ttv2-gpay-filters .btn:focus,
+.ttv2-institute-payments-page .ttv2-gpay-filters .btn:hover,
+.ttv2-institute-payments-page .ttv2-gpay-filters .btn:focus{
+  color: #fff !important;
 }
 
 /* Payment history — hide low-value columns on medium screens */

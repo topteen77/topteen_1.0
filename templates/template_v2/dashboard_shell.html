@@ -9,7 +9,7 @@
 {% block additionalhead %}
 {{ super() }}
 <link rel="stylesheet" href="{{ static('css_new/std-shell-sidebar-toggle.css') }}?v=1">
-<link rel="stylesheet" href="{{ static('css_new/template_v2_dashboard.css') }}?v=8">
+<link rel="stylesheet" href="{{ static('css_new/template_v2_dashboard.css') }}?v=20260916n">
 <link rel="stylesheet" href="{{ static('css_new/ttv2_csv_upload_components.css') }}">
 
 <style>
@@ -20,7 +20,8 @@
 
 .tt-notification-bell-wrap {
   position: relative;
-  width: 36px;
+  width: 40px;
+  overflow: visible;
 }
 
 body.ttv2-shell .ttv2-topbar-pay-now {
@@ -188,6 +189,7 @@ body.ttv2-shell .ttv2-topbar-pay-now {
 {% if ttv2_role_ctx is defined and ttv2_role_ctx.role in ('marketing_group', 'institute_group', 'institute') %}
 {% include "template_v2/includes/ttv2_change_own_password_modal.html" %}
 {% endif %}
+{% include "template_v2/institute/includes/seat_capacity_edit_modal.html" %}
 
 {# Student report popup (reuses existing report pages inside an iframe) #}
 <div class="modal fade" id="ttv2StudentReportModal" tabindex="-1" aria-hidden="true">
@@ -224,6 +226,7 @@ body.ttv2-shell .ttv2-topbar-pay-now {
 <script src="{{ staticv('js_new/ttv2_students_insights.js') }}"></script>
 <script src="{{ staticv('js_new/ttv2_week_dropdown.js') }}"></script>
 <script src="{{ staticv('js_new/ttv2_streams_capacity.js') }}"></script>
+<script src="{{ staticv('js_new/ttv2_seat_capacity_edit.js') }}"></script>
 <script src="{{ staticv('js_new/ttv2_tieup_billing.js') }}"></script>
 <script src="{{ staticv('js_new/ttv2_tieup_payment_history.js') }}"></script>
 <script>
@@ -271,7 +274,7 @@ body.ttv2-shell .ttv2-topbar-pay-now {
 })();
 </script>
 <link rel="stylesheet" href="{{ static('css_new/ttv2_accounts_page.css') }}">
-<script src="{{ static('js/heatmap-dashboard.js') }}"></script>
+<script src="{{ static('js/heatmap-dashboard.js') }}?v=20260916b"></script>
 {# Theme toggle + Bootstrap scripts: template_v2/base_logged_in.html → logged_in_footer_scripts.html #}
 <script>
   // Shared: responsive sidebar behavior (desktop pinned + mobile drawer)
@@ -724,6 +727,11 @@ body.ttv2-shell .ttv2-topbar-pay-now {
         if (host) {
           var marker = host.querySelector('[data-ttv2-page]');
           var page = marker ? (marker.getAttribute('data-ttv2-page') || '').trim().toLowerCase() : '';
+          try {
+            document.querySelectorAll('[data-ttv2-week-header]').forEach(function (el) {
+              el.style.display = (!page || page === 'dashboard') ? '' : 'none';
+            });
+          } catch (eHdr) {}
           if (page && page !== 'dashboard') {
             // Hide other legacy sections; do NOT scroll (separate page UX)
             var all = host.querySelectorAll('[id^="sec-"]');
@@ -756,9 +764,9 @@ body.ttv2-shell .ttv2-topbar-pay-now {
                   var p = keep.parentNode;
                   Array.prototype.slice.call(p.children || []).forEach(function(ch){
                     if (ch === keep) return;
-                    // Don't hide scripts or style tags (rare in body partials, but safe)
                     var tag = (ch.tagName || '').toLowerCase();
                     if (tag === 'script' || tag === 'style') return;
+                    if (ch.classList && ch.classList.contains('ttv2-institute-context')) return;
                     try { ch.style.display = 'none'; } catch(e) {}
                   });
                 }

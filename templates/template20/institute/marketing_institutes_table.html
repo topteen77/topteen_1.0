@@ -58,6 +58,9 @@
             <a href="{{ url('institute:institute_masterdashboard', args=[ins.slug]) }}">
               {{ ins.name }}
             </a>
+            {% if ins.institute_status == 3 %}
+              <span class="badge rounded-pill text-bg-warning ms-1">Pending</span>
+            {% endif %}
           </td>
           <td class="ttv2-mktg-cell-login-email">
             {% include "template_v2/institute/includes/mktg_institute_login_email_cell.html" %}
@@ -117,6 +120,9 @@
                       title="Update">
                 <i class='bx bx-edit text-primary'></i>
               </button>
+              {% with seat_capacity_institute=ins, seat_capacity_btn_class='btn btn-sm btn-link p-0', seat_capacity_btn_label='', seat_capacity_btn_icon='bx bx-grid-alt text-primary', seat_capacity_btn_title='Edit class 11 and 12 seat capacity' %}
+                {% include "template_v2/institute/includes/seat_capacity_edit_button.html" %}
+              {% endwith %}
               {% if ins.created_by %}
               <button type="button" 
                       class="btn btn-sm btn-link p-0" 
@@ -141,16 +147,7 @@
           </td>
           <td>
             {% if ins.institute_status == 3 %}
-            <div class="ttv2-mktg-row-pending d-flex flex-wrap gap-1 align-items-center">
-              <a href="{{ url('institute:instituteapprove', args=[ins.id]) }}" 
-                 class="btn btn-sm btn-success text-white">
-                <i class='bx bx-check-circle me-1'></i>Approve
-              </a>
-              <a href="{{ url('institute:institutereject', args=[ins.id]) }}" 
-                 class="btn btn-sm btn-danger text-white">
-                <i class='bx bx-x-circle me-1'></i>Reject
-              </a>
-            </div>
+            {% include "template_v2/institute/includes/mktg_pending_approval_actions.html" %}
             {% elif ins.institute_status == 2 %}
             <span class="ttv2-mktg-status-pill ttv2-mktg-status-pill--bad">
               <i class='bx bx-x-circle'></i> Rejected
@@ -184,6 +181,9 @@
             <a href="{{ url('institute:institute_masterdashboard', args=[ins.slug]) }}">
               {{ ins.name }}
             </a>
+            {% if ins.institute_status == 3 %}
+              <span class="badge rounded-pill text-bg-warning ms-1">Pending</span>
+            {% endif %}
           </td>
           <td class="ttv2-mktg-cell-login-email">
             {% include "template_v2/institute/includes/mktg_institute_login_email_cell.html" %}
@@ -238,6 +238,9 @@
                       title="Update">
                 <i class='bx bx-edit text-primary'></i>
               </button>
+              {% with seat_capacity_institute=ins, seat_capacity_btn_class='btn btn-sm btn-link p-0', seat_capacity_btn_label='', seat_capacity_btn_icon='bx bx-grid-alt text-primary', seat_capacity_btn_title='Edit class 11 and 12 seat capacity' %}
+                {% include "template_v2/institute/includes/seat_capacity_edit_button.html" %}
+              {% endwith %}
               {% if ins.created_by %}
               <button type="button" 
                       class="btn btn-sm btn-link p-0" 
@@ -262,16 +265,7 @@
           </td>
           <td>
             {% if ins.institute_status == 3 %}
-            <div class="ttv2-mktg-row-pending d-flex flex-wrap gap-1 align-items-center">
-              <a href="{{ url('institute:instituteapprove', args=[ins.id]) }}" 
-                 class="btn btn-sm btn-success text-white">
-                <i class='bx bx-check-circle me-1'></i>Approve
-              </a>
-              <a href="{{ url('institute:institutereject', args=[ins.id]) }}" 
-                 class="btn btn-sm btn-danger text-white">
-                <i class='bx bx-x-circle me-1'></i>Reject
-              </a>
-            </div>
+            {% include "template_v2/institute/includes/mktg_pending_approval_actions.html" %}
             {% elif ins.institute_status == 2 %}
             <span class="ttv2-mktg-status-pill ttv2-mktg-status-pill--bad">
               <i class='bx bx-x-circle'></i> Rejected

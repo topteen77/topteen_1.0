@@ -62,9 +62,11 @@
             <button type="button" class="id-nav-item" data-bs-toggle="modal" data-bs-target="#addPostMatricCsvModal">
               <i class='bx bx-upload'></i> Post-Matric-CSV Upload
             </button>
+            {% if institute.institute_log.exists() %}
             <a href="{{ url('institute:institutehistorylog', args=[institute.slug]) }}" class="id-nav-item">
               <i class='bx bx-history'></i> Uploaded History Log
             </a>
+            {% endif %}
             {% if request.user.user_type == 5 %}
             <a href="{{ url('institute:marketinggroupdashboard') }}" class="id-nav-item"><i class='bx bx-grid-alt'></i>
               My Dashboard</a>
@@ -364,44 +366,25 @@
                 <tr>
                   <td>1.</td>
                   <td>11th Class</td>
-                  <td>{{ institute.pcm if institute.pcm else 100 }}</td>
-                  <td>{{ institute.cbm if institute.cbm else 100 }}</td>
-                  <td>{{ institute.comm if institute.comm else 100 }}</td>
-                  <td>{{ institute.hum if institute.hum else 100 }}</td>
-                  <td>{{ institute.hm if institute.hm else 100 }}</td>
-                  <td>
-                    <div class="d-flex flex-wrap gap-1">
-                      <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                        data-bs-target="#editSeatCapacityModal">
-                        <i class='bx bx-edit me-1'></i> Edit
-                      </button>
-                      <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
-                        data-bs-target="#editSeatCapacityModal">
-                        Save
-                      </button>
-                    </div>
+                  <td data-seat-capacity-value data-class="11" data-stream="pcm">{{ institute.pcm if institute.pcm else 100 }}</td>
+                  <td data-seat-capacity-value data-class="11" data-stream="cbm">{{ institute.cbm if institute.cbm else 100 }}</td>
+                  <td data-seat-capacity-value data-class="11" data-stream="comm">{{ institute.comm if institute.comm else 100 }}</td>
+                  <td data-seat-capacity-value data-class="11" data-stream="hme">{{ institute.hme if institute.hme else 100 }}</td>
+                  <td data-seat-capacity-value data-class="11" data-stream="hmb">{{ institute.hmb if institute.hmb else 100 }}</td>
+                  <td rowspan="2">
+                    {% if can_edit_seat_capacity|default(true) %}
+                      {% include "template_v2/institute/includes/seat_capacity_edit_button.html" %}
+                    {% endif %}
                   </td>
                 </tr>
                 <tr>
                   <td>2.</td>
                   <td>12th Class</td>
-                  <td>{{ institute.pcm if institute.pcm else 100 }}</td>
-                  <td>{{ institute.cbm if institute.cbm else 100 }}</td>
-                  <td>{{ institute.comm if institute.comm else 100 }}</td>
-                  <td>{{ institute.hum if institute.hum else 100 }}</td>
-                  <td>{{ institute.hm if institute.hm else 100 }}</td>
-                  <td>
-                    <div class="d-flex flex-wrap gap-1">
-                      <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                        data-bs-target="#editSeatCapacityModal">
-                        <i class='bx bx-edit me-1'></i> Edit
-                      </button>
-                      <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
-                        data-bs-target="#editSeatCapacityModal">
-                        Save
-                      </button>
-                    </div>
-                  </td>
+                  <td data-seat-capacity-value data-class="12" data-stream="pcm">{{ institute.pcm_12 if institute.pcm_12 else 100 }}</td>
+                  <td data-seat-capacity-value data-class="12" data-stream="cbm">{{ institute.cbm_12 if institute.cbm_12 else 100 }}</td>
+                  <td data-seat-capacity-value data-class="12" data-stream="comm">{{ institute.comm_12 if institute.comm_12 else 100 }}</td>
+                  <td data-seat-capacity-value data-class="12" data-stream="hme">{{ institute.hme_12 if institute.hme_12 else 100 }}</td>
+                  <td data-seat-capacity-value data-class="12" data-stream="hmb">{{ institute.hmb_12 if institute.hmb_12 else 100 }}</td>
                 </tr>
               </tbody>
             </table>
@@ -702,48 +685,7 @@
   </div>
 </div>
 
-<!-- Edit Seat Capacity Modal -->
-<div class="modal fade" id="editSeatCapacityModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Edit Seat Capacity</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <form method="POST" action="{{ url('institute:updateseatcapacity') }}">
-        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-        <input type="hidden" name="institute_id" value="{{ institute.id }}">
-        <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label">PCM</label>
-            <input type="number" name="pcm" class="form-control" value="{{ institute.pcm if institute.pcm else 100 }}">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">CBM</label>
-            <input type="number" name="cbm" class="form-control" value="{{ institute.cbm if institute.cbm else 100 }}">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">COMM</label>
-            <input type="number" name="comm" class="form-control"
-              value="{{ institute.comm if institute.comm else 100 }}">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">HUM</label>
-            <input type="number" name="hum" class="form-control" value="{{ institute.hum if institute.hum else 100 }}">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">HM</label>
-            <input type="number" name="hm" class="form-control" value="{{ institute.hm if institute.hm else 100 }}">
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn custom-button purple-button">Save Changes</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
+{% include "template_v2/institute/includes/seat_capacity_edit_modal.html" %}
 
 <!-- Update Student Modals (one for each student) -->
 {% if total_students %}

@@ -470,6 +470,7 @@ html[data-ttv2-theme="dark"] body.ttv2-shell #mktg-registration-insights .ttv2-m
 /* --- Filter section + drawer wrapper --- */
 .ttv2-mktg-filters-section{
   position: relative;
+  z-index: 8;
 }
 
 /* Mobile-only "Filters & search" toggle bar */
@@ -648,6 +649,7 @@ html[data-ttv2-theme="dark"] body.ttv2-shell #mktg-registration-insights .ttv2-m
   align-items: end;
 }
 .ttv2-mktg-filter-field{
+  overflow: visible;
   min-width: 0;
 }
 .ttv2-mktg-filter-field .form-label{
@@ -1174,17 +1176,157 @@ html[data-ttv2-theme="dark"] body.ttv2-shell #institutes-pagination .ttv2-mktg-p
   background: rgba(20, 22, 34, 0.85);
   border-top-color: rgba(240, 242, 255, 0.08);
 }
+/* Location suggest (custom combobox — native datalist is not attached) */
+.ttv2-mktg-filters-card .ttv2-suggest-wrap{
+  position: relative;
+  overflow: visible;
+}
+.ttv2-mktg-filters-card .ttv2-suggest-wrap #location_filter::-webkit-calendar-picker-indicator{
+  display: none !important;
+  opacity: 0;
+  pointer-events: none;
+}
+.ttv2-suggest-clear{
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 16px;
+  line-height: 1;
+  display: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 2;
+}
+.ttv2-suggest-menu{
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 40;
+  min-width: 280px;
+  max-height: 280px;
+  overflow: auto;
+  padding: 6px;
+  background: #ffffff;
+  border: 1px solid rgba(82, 73, 223, 0.16);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.14);
+  display: none;
+}
+.ttv2-suggest-head{
+  padding: 6px 10px 8px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+.ttv2-suggest-item{
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 0.8125rem;
+  color: #475569;
+  cursor: pointer;
+}
+.ttv2-suggest-pin{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  border-radius: 999px;
+  background: rgba(82, 73, 223, 0.1);
+  color: #5249df;
+  font-size: 0.9rem;
+}
+.ttv2-suggest-text{
+  min-width: 0;
+  display: block;
+}
+.ttv2-suggest-title{
+  display: block;
+  font-weight: 650;
+  color: #334155;
+  line-height: 1.3;
+}
+.ttv2-suggest-meta{
+  display: block;
+  margin-top: 1px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #64748b;
+  line-height: 1.3;
+}
+.ttv2-suggest-mark{
+  background: #ede9fe;
+  color: #5b21b6;
+  font-weight: 700;
+  padding: 0 1px;
+  border-radius: 3px;
+}
+.ttv2-suggest-item:hover,
+.ttv2-suggest-item.is-active{
+  background: #eef2ff;
+}
+.ttv2-suggest-item:hover .ttv2-suggest-title,
+.ttv2-suggest-item.is-active .ttv2-suggest-title{
+  color: #4338ca;
+}
+.ttv2-suggest-empty{
+  padding: 10px 12px;
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
 html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-suggest-menu{
   background: var(--c-bg3, #1e2030);
   border-color: rgba(240, 242, 255, 0.12);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-suggest-head{
+  color: rgba(240, 242, 255, 0.5);
 }
 html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-suggest-item{
-  background: var(--c-bg3, #1e2030);
-  color: rgba(240, 242, 255, 0.9);
+  background: transparent;
+  color: rgba(240, 242, 255, 0.72);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-suggest-title{
+  color: rgba(240, 242, 255, 0.92);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-suggest-meta{
+  color: rgba(240, 242, 255, 0.5);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-suggest-pin{
+  background: rgba(139, 124, 255, 0.18);
+  color: #c4b5fd;
 }
 html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-suggest-item:hover,
 html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-suggest-item.is-active{
   background: rgba(139, 124, 255, 0.14);
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-suggest-item:hover .ttv2-suggest-title,
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-suggest-item.is-active .ttv2-suggest-title{
+  color: #e4e0ff;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-suggest-mark{
+  background: rgba(139, 124, 255, 0.28);
+  color: #e4e0ff;
+}
+html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-suggest-empty{
+  color: rgba(240, 242, 255, 0.55);
 }
 
 /* Dark-mode chevron color for filter <select> inputs */
@@ -2225,3 +2367,30 @@ html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-ig-student-link{
   border-color: rgba(139, 124, 255, 0.28);
   color: rgba(204, 196, 255, 0.95) !important;
 }
+
+/* Pending approval cards: keep View + contact visible (do not clip to one line). */
+#mktg-registration-insights .ttv2-mktg-insight-card{
+  overflow: visible;
+}
+#mktg-registration-insights .ttv2-mktg-insight-card ul li.ttv2-mktg-pending-item{
+  align-items: flex-start;
+  flex-wrap: wrap;
+  row-gap: 0.45rem;
+}
+#mktg-registration-insights .ttv2-mktg-pending-wait,
+#mktg-registration-insights .ttv2-mktg-pending-contact{
+  display: block;
+  white-space: normal;
+}
+#mktg-registration-insights .ttv2-mktg-pill-view{
+  font-size: 0.6875rem;
+  font-weight: 650;
+  padding: 0.35rem 0.75rem;
+  line-height: 1.25;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+#mktg-registration-insights .ttv2-mktg-insight-card.ttv2-mktg-insight--pending .card-body{
+  overflow: visible;
+}
+

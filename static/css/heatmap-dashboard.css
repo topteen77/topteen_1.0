@@ -1,5 +1,28 @@
 /* Heatmap Dashboard Styles */
 
+.heatmap-dashboard-container.is-locked .heatmap-stats-grid,
+.heatmap-dashboard-container.is-locked .heatmap-controls-card,
+.heatmap-dashboard-container.is-locked .heatmap-legend-card {
+    opacity: 0.52;
+}
+
+.heatmap-dashboard-container.is-locked .heatmap-view-btn,
+.heatmap-dashboard-container.is-locked #heatmap-export-btn {
+    cursor: not-allowed;
+    filter: grayscale(0.65);
+}
+
+.heatmap-dashboard-container.is-locked .heatmap-grid-card {
+    border: 1px dashed #cbd5e1;
+    background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+}
+
+.heatmap-dashboard-container.is-locked #heatmap-grid-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 
 
 .heatmap-header-card {

@@ -126,32 +126,69 @@ def track_user_registration(sender, instance, created, **kwargs):
                     )
                 try:
                     from notifications.models import NotificationCategory
-                    from notifications.services import emit_notification
-
-                    recipients = list(
-                        User.objects.filter(
-                            user_type=choices.UserType.MARKETINGGROUPADMIN,
-                            is_active=True,
-                        )
+                    from notifications.services import (
+                        emit_notification,
+                        get_platform_admin_notification_recipients,
                     )
-                    if recipients:
-                        emit_notification(
-                            event_type='accounts.new_registration',
-                            title='New registration',
-                            body='User {0} ({1}) registered from {2}.'.format(
-                                instance.name or '-',
-                                instance.email,
-                                source_name,
-                            ),
-                            recipients=recipients,
-                            category=NotificationCategory.MARKETING,
-                            source_obj=instance,
-                            payload={
-                                'user_id': instance.id,
-                                'email': instance.email,
-                            },
-                            dedupe_key='accounts_registration_{}'.format(instance.id),
+                    from institute.models import StudentManagement
+
+                    ut = getattr(instance, 'user_type', None)
+                    payload = {
+                        'user_id': instance.id,
+                        'email': instance.email,
+                        'name': instance.name or '',
+                        'user_type': ut,
+                        'source': source_name,
+                    }
+                    if ut in (
+                        choices.UserType.INSTITUTE,
+                        choices.UserType.INSTITUTEGROUPADMIN,
+                        choices.UserType.COUNSELOR,
+                    ):
+                        recipients = list(
+                            User.objects.filter(
+                                user_type=choices.UserType.MARKETINGGROUPADMIN,
+                                is_active=True,
+                            )
                         )
+                        if recipients:
+                            role_label = (
+                                instance.get_user_type_display()
+                                if hasattr(instance, 'get_user_type_display')
+                                else 'account'
+                            )
+                            emit_notification(
+                                event_type='accounts.new_registration',
+                                title='New {0} registration'.format(str(role_label).lower()),
+                                body='User {0} ({1}) registered from {2}.'.format(
+                                    instance.name or '-',
+                                    instance.email,
+                                    source_name,
+                                ),
+                                recipients=recipients,
+                                category=NotificationCategory.MARKETING,
+                                source_obj=instance,
+                                payload={**payload, 'registration_kind': 'partner'},
+                                dedupe_key='accounts_registration_{}'.format(instance.id),
+                            )
+                    elif ut == choices.UserType.STUDENT:
+                        if not StudentManagement.objects.filter(student_id=instance.id).exists():
+                            recipients = get_platform_admin_notification_recipients()
+                            if recipients:
+                                emit_notification(
+                                    event_type='accounts.new_registration',
+                                    title='Direct student registration',
+                                    body='{0} ({1}) registered directly from {2}.'.format(
+                                        instance.name or '-',
+                                        instance.email,
+                                        source_name,
+                                    ),
+                                    recipients=recipients,
+                                    category=NotificationCategory.MARKETING,
+                                    source_obj=instance,
+                                    payload={**payload, 'registration_kind': 'direct'},
+                                    dedupe_key='accounts_registration_{}'.format(instance.id),
+                                )
                 except Exception as notify_exc:
                     logger.warning(
                         'Could not emit registration notification for user %s: %s',

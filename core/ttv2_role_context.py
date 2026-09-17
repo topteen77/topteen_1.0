@@ -186,17 +186,23 @@ def _institute_nav_gates(institute: Optional[Institute]) -> Dict[str, bool]:
     Lightweight existence flags for progressive institute sidebar unlock.
     Uses short-circuiting .exists() queries only (no full counts / chart payloads).
     """
-    empty = {"has_students": False, "has_counselors": False, "has_sessions": False}
+    empty = {
+        "has_students": False,
+        "has_counselors": False,
+        "has_sessions": False,
+        "has_upload_history": False,
+    }
     if not institute or not getattr(institute, "pk", None):
         return empty
     try:
         from django.db.models import Q
 
         from counselor.models import Counselor, FollowUpStatus
-        from institute.models import StudentManagement
+        from institute.models import InstituteLog, StudentManagement
 
         inst_id = int(institute.pk)
         has_students = StudentManagement.objects.filter(institute_id=inst_id).exists()
+        has_upload_history = InstituteLog.objects.filter(institute_id=inst_id).exists()
         has_counselors = Counselor.objects.filter(
             Q(counselor_admin_id=inst_id) | Q(institute_placements__id=inst_id)
         ).exists()
@@ -211,6 +217,7 @@ def _institute_nav_gates(institute: Optional[Institute]) -> Dict[str, bool]:
             "has_students": bool(has_students),
             "has_counselors": bool(has_counselors),
             "has_sessions": bool(has_sessions),
+            "has_upload_history": bool(has_upload_history),
         }
     except Exception:
         return empty
@@ -353,10 +360,6 @@ def _nav_for_role(
                 ],
             },
             {
-                "title": "Analytics",
-                "items": [{"label": "Career heatmap", "dot": "#34d399", "href": _safe_reverse("institute:institutegroupheatmap")}],
-            },
-            {
                 "title": "Quick actions",
                 "items": [
                     {
@@ -432,7 +435,6 @@ def _nav_for_role(
             {
                 "title": "Analytics",
                 "items": [
-                    {"label": "Career heatmap", "dot": "#34d399", "href": _safe_reverse("institute:marketinggroupheatmap")},
                     {
                         "label": "Institute credits",
                         "dot": "#22c55e",
@@ -491,6 +493,7 @@ def _nav_for_role(
     has_students = gates["has_students"]
     has_counselors = gates["has_counselors"]
     has_sessions = gates["has_sessions"]
+    has_upload_history = gates["has_upload_history"]
     lock_students = "Enroll students (Class 10 / Class 12 CSV) to unlock this section."
     lock_counselors = "Add a counselor to unlock this section."
     lock_sessions = "Session reports unlock after counseling follow-ups are logged."
@@ -568,16 +571,6 @@ def _nav_for_role(
             "title": "Analytics",
             "items": [
                 _nav_item(
-                    label="Career heatmap",
-                    href=_safe_reverse("institute:institutedashboard_page", args=[inst_slug, "heatmap"])
-                    if inst_slug
-                    else "#",
-                    unlocked=has_students,
-                    lock_reason=lock_analytics,
-                    key="heatmap",
-                    dot="#34d399",
-                ),
-                _nav_item(
                     label="Streams & capacity",
                     href=_safe_reverse(
                         "institute:institutedashboard_page", args=[inst_slug, "streams_capacity"]
@@ -621,15 +614,16 @@ def _nav_for_role(
                     "disabled": not inst_slug,
                     "title": "" if inst_slug else "Institute not ready",
                 },
+            ] + ([
                 _nav_item(
                     label="Uploaded History Log",
                     href=history_url,
-                    unlocked=bool(inst_slug and has_students),
+                    unlocked=bool(inst_slug),
                     lock_reason=lock_history,
                     icon="bx bx-history",
                     quicklink=True,
                 ),
-            ],
+            ] if has_upload_history else []),
         },
         {
             "title": "Billing",

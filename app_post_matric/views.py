@@ -2725,6 +2725,13 @@ def CombinedReport(request, user_id=None):
         )
         # Overlay already sets embed_mode / viewing flags; keep embed from query explicit
         context['embed_mode'] = embed_mode
+        try:
+            if not context.get('no_results') and not context.get('error'):
+                from institute.demo_institute_notifications import notify_demo_institute_report_viewed
+
+                notify_demo_institute_report_viewed(target_user)
+        except Exception:
+            pass
         return render(request, "template20/app_post_matric/combined_report.html", context)
 
     except Exception as e:
