@@ -459,6 +459,16 @@ def _exclude_placeholder_lead_notifications(qs):
 _BELL_RESTORE_CACHE_KEY = 'notif_restore_unopened_v1:{0}'
 
 
+def _materialized_notification_ids(qs):
+    """
+    Evaluate notification IDs before a write.
+
+    Role-scoped querysets can contain a subquery against Notification. MySQL
+    rejects UPDATE/DELETE statements that read from the same target table.
+    """
+    return list(qs.order_by().values_list('id', flat=True))
+
+
 def _skip_unopened_bell_restore(user):
     if not user or not getattr(user, 'id', None):
         return
@@ -482,7 +492,12 @@ def _restore_unopened_bell_notifications(user):
         qs = qs.exclude(payload__opened=True)
     except Exception:
         pass
-    qs.update(is_read=False, read_at=None)
+    ids = _materialized_notification_ids(qs)
+    if ids:
+        Notification.objects.filter(id__in=ids, recipient=user).update(
+            is_read=False,
+            read_at=None,
+        )
     cache.set(key, 1, 60 * 60 * 24 * 45)
 
 
@@ -1909,7 +1924,13 @@ def notification_mark_bucket_read_api(request):
     if profile == 'ops':
         if bucket_key not in OPS_NOTIFICATION_BUCKET_KEYS:
             return JsonResponse({'success': False, 'error': 'invalid_bucket'}, status=400)
-        deleted, _ = _notification_bucket_queryset(request.user, bucket_key).delete()
+        ids = _materialized_notification_ids(
+            _notification_bucket_queryset(request.user, bucket_key)
+        )
+        deleted, _ = Notification.objects.filter(
+            id__in=ids,
+            recipient=request.user,
+        ).delete()
     elif profile == 'family_student':
         if bucket_key not in FAMILY_STUDENT_BUCKET_KEYS:
             return JsonResponse({'success': False, 'error': 'invalid_bucket'}, status=400)
@@ -1937,9 +1958,14 @@ def notification_mark_bucket_read_api(request):
 @require_POST
 def notification_mark_all_read_api(request):
     _skip_unopened_bell_restore(request.user)
-    _scoped_notifications_qs(request.user).filter(is_read=False).update(
-        is_read=True, read_at=timezone.now()
+    ids = _materialized_notification_ids(
+        _scoped_notifications_qs(request.user).filter(is_read=False)
     )
+    if ids:
+        Notification.objects.filter(id__in=ids, recipient=request.user).update(
+            is_read=True,
+            read_at=timezone.now(),
+        )
     _invalidate_user_notification_cache(request.user)
     unread_count = _unread_count_for_user(request.user)
     return JsonResponse(
