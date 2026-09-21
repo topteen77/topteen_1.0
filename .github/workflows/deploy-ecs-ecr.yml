@@ -7,6 +7,11 @@
 # Django env/secrets stay in the existing ECS task definitions (not git).
 # This workflow does not commit or copy .env / settings files.
 #
+# GitHub only lists workflow_dispatch workflows that exist on the default
+# branch (master). `gh workflow run deploy-ecs-ecr.yml` 404s until this file
+# is also on master. A push to elb-branch still runs it from THIS file.
+# Push never sets apply_to_ecs, so live ECS is not updated.
+#
 # Required GitHub repository variables:
 #   AWS_REGION, ECR_REPOSITORY, ECS_CLUSTER, ECS_SERVICES,
 #   ECS_LAUNCH_TYPE, ECS_MIGRATE_SERVICE
@@ -15,6 +20,9 @@
 name: Deploy ECS (ECR)
 
 on:
+  push:
+    branches:
+      - elb-branch
   workflow_dispatch:
     inputs:
       apply_to_ecs:
