@@ -4,6 +4,9 @@
 # Set apply_to_ecs=true on workflow_dispatch only when you intend to roll
 # topteen-web / celery / beat. nginx is never updated (different image).
 #
+# Same git SHA is not rebuilt (ECR tag reused). apply_to_ecs on a digest the
+# cluster already runs skips register/update/wait.
+#
 # Shared production DB: STEP 6 migrate is skipped by default (skip_migrate=true).
 # Re-enable later: Run workflow → uncheck "Skip migrate" after the ECS roll is proven.
 #
@@ -172,24 +175,7 @@ jobs:
           echo "registry: ${{ steps.ecr.outputs.registry }}"
           echo "[OK] STEP 3 — logged in to ECR"
 
-      - name: STEP 4 — Build image
-        env:
-          REGISTRY: ${{ steps.ecr.outputs.registry }}
-        run: |
-          set -euo pipefail
-          TAG="sha-${GITHUB_SHA:0:12}"
-          IMAGE="${REGISTRY}/${ECR_REPOSITORY}:${TAG}"
-          echo "[STEP 4] docker build -f ${DOCKERFILE} -t ${IMAGE}"
-          if ! docker build -f "${DOCKERFILE}" -t "${IMAGE}" .; then
-            echo "[FAIL] STEP 4 — docker build failed"
-            echo "What failed : ${DOCKERFILE}"
-            echo "Hint        : see log above (requirements.txt / COPY). Image was not pushed. ECS unchanged."
-            echo "Traffic     : previous ECS image still serving"
-            exit 1
-          fi
-          echo "[OK] STEP 4 — built ${IMAGE}"
-
-      - name: STEP 5 — Push SHA tag (not :production)
+      - name: STEP 4-5 — Reuse SHA tag or build and push
         id: push
         env:
           REGISTRY: ${{ steps.ecr.outputs.registry }}
@@ -197,37 +183,62 @@ jobs:
           set -euo pipefail
           TAG="sha-${GITHUB_SHA:0:12}"
           IMAGE="${REGISTRY}/${ECR_REPOSITORY}:${TAG}"
-          echo "[STEP 5] docker push ${IMAGE}"
-          echo "Will NOT move :production. Running ECS tasks still use their current digest."
-          if ! docker push "${IMAGE}"; then
-            echo "[FAIL] STEP 5 — ECR push failed"
-            echo "What failed : ${IMAGE}"
-            echo "Hint        : IAM needs ecr:PutImage and layer upload on ${ECR_REPOSITORY}"
-            echo "Traffic     : previous ECS image still serving"
-            exit 1
-          fi
-          DIGEST="$(docker image inspect --format='{{index .RepoDigests 0}}' "${IMAGE}" | awk -F@ '{print $2}')"
-          [ -n "${DIGEST}" ] || {
-            echo "[FAIL] STEP 5 — could not read image digest"
-            echo "What failed : docker image inspect ${IMAGE}"
-            echo "Hint        : push succeeded but digest missing; re-run the workflow"
-            echo "Traffic     : previous ECS image still serving"
-            exit 1
+          echo "Will NOT move :production."
+
+          reuse_digest() {
+            DIGEST_URI="${REGISTRY}/${ECR_REPOSITORY}@${DIGEST}"
+            echo "image_uri=${DIGEST_URI}" >> "${GITHUB_OUTPUT}"
+            echo "image_digest=${DIGEST}" >> "${GITHUB_OUTPUT}"
+            echo "image_tag=${TAG}" >> "${GITHUB_OUTPUT}"
+            echo "digest : ${DIGEST_URI}"
           }
-          DIGEST_URI="${REGISTRY}/${ECR_REPOSITORY}@${DIGEST}"
-          echo "image_uri=${DIGEST_URI}" >> "${GITHUB_OUTPUT}"
-          echo "image_digest=${DIGEST}" >> "${GITHUB_OUTPUT}"
-          echo "image_tag=${TAG}" >> "${GITHUB_OUTPUT}"
-          echo "[OK] STEP 5 — pushed ${IMAGE}"
-          echo "digest : ${DIGEST_URI}"
-          echo
+
+          if DESC="$(aws ecr describe-images --repository-name "${ECR_REPOSITORY}" --image-ids "imageTag=${TAG}" 2>/dev/null)"; then
+            DIGEST="$(echo "${DESC}" | jq -r '.imageDetails[0].imageDigest')"
+            [ -n "${DIGEST}" ] && [ "${DIGEST}" != "null" ] || {
+              echo "[FAIL] STEP 4-5 — ECR tag exists but digest missing"
+              echo "What failed : ${IMAGE}"
+              echo "Hint        : delete the bad tag or re-run after a new commit"
+              echo "Traffic     : previous ECS image still serving"
+              exit 1
+            }
+            echo "[OK] STEP 4-5 — reused existing ${IMAGE} (docker build skipped)"
+            reuse_digest
+          else
+            echo "[STEP 4] docker build -f ${DOCKERFILE} -t ${IMAGE}"
+            if ! docker build -f "${DOCKERFILE}" -t "${IMAGE}" .; then
+              echo "[FAIL] STEP 4 — docker build failed"
+              echo "What failed : ${DOCKERFILE}"
+              echo "Hint        : see log above (requirements.txt / COPY). Image was not pushed. ECS unchanged."
+              echo "Traffic     : previous ECS image still serving"
+              exit 1
+            fi
+            echo "[OK] STEP 4 — built ${IMAGE}"
+            echo "[STEP 5] docker push ${IMAGE}"
+            if ! docker push "${IMAGE}"; then
+              echo "[FAIL] STEP 5 — ECR push failed"
+              echo "What failed : ${IMAGE}"
+              echo "Hint        : IAM needs ecr:PutImage and layer upload on ${ECR_REPOSITORY}"
+              echo "Traffic     : previous ECS image still serving"
+              exit 1
+            fi
+            DIGEST="$(docker image inspect --format='{{index .RepoDigests 0}}' "${IMAGE}" | awk -F@ '{print $2}')"
+            [ -n "${DIGEST}" ] || {
+              echo "[FAIL] STEP 5 — could not read image digest"
+              echo "What failed : docker image inspect ${IMAGE}"
+              echo "Hint        : push succeeded but digest missing; re-run the workflow"
+              echo "Traffic     : previous ECS image still serving"
+              exit 1
+            }
+            echo "[OK] STEP 5 — pushed ${IMAGE}"
+            reuse_digest
+          fi
+
           if [ "${{ github.event.inputs.apply_to_ecs }}" != "true" ]; then
             echo "============================================================"
             echo "ECS NOT UPDATED (apply_to_ecs=false)"
-            echo "ECR has a new unused tag. Cluster still on current task defs:"
-            echo "  topteen-web / topteen-celery-worker / topteen-celery-beat"
-            echo "Re-run this workflow on elb-branch with apply_to_ecs=true"
-            echo "only when you want to roll those three services."
+            echo "Cluster still on current task defs. Re-run with apply_to_ecs=true"
+            echo "to roll topteen-web / celery / beat (nginx unchanged)."
             echo "============================================================"
           fi
 
@@ -375,6 +386,8 @@ jobs:
           echo "[STEP 7] Clone live task defs; set image to ${IMAGE_URI}"
           mkdir -p /tmp/ecs-deploy
           : > /tmp/ecs-deploy/map.txt
+          : > /tmp/ecs-deploy/unchanged.txt
+          DIGEST="${IMAGE_URI##*@}"
           IFS=',' read -ra SERVICES <<< "${ECS_SERVICES}"
           for RAW in "${SERVICES[@]}"; do
             SVC="$(echo "${RAW}" | xargs)"
@@ -390,6 +403,16 @@ jobs:
             [ "${MATCHES}" != "0" ] || fail_step "no container image contains ${ECR_REPOSITORY}" \
               "${SVC} current image(s): $(echo "${TD_JSON}" | jq -r '.containerDefinitions[].image')" \
               "This service is not the app image (nginx uses topteen-nginx). Remove it from ECS_SERVICES."
+            ALREADY="$(echo "${TD_JSON}" | jq -r --arg digest "${DIGEST}" --arg uri "${IMAGE_URI}" --arg tag "${IMAGE_TAG}" --arg repo "${ECR_REPOSITORY}" '
+              [.containerDefinitions[] | select(.image | contains($repo)) | .image]
+              | map(select(. == $uri or (contains($digest) and ($digest != "")) or endswith(":" + $tag)))
+              | length
+            ')"
+            if [ "${ALREADY}" != "0" ]; then
+              echo "${SVC} already on ${IMAGE_TAG} / digest — skip register"
+              echo "${SVC}" >> /tmp/ecs-deploy/unchanged.txt
+              continue
+            fi
             NEW_JSON="$(echo "${TD_JSON}" | jq --arg IMAGE "${IMAGE_URI}" --arg repo "${ECR_REPOSITORY}" '
               del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities,
                   .registeredAt, .registeredBy, .deregisteredAt)
@@ -403,7 +426,11 @@ jobs:
             echo "old: ${OLD_TD}"
             echo "new: ${NEW_TD}"
           done
-          echo "[OK] STEP 7 — new revisions registered; services still on old revisions"
+          if [ ! -s /tmp/ecs-deploy/map.txt ]; then
+            echo "[OK] STEP 7 — all listed services already on this digest; no new revisions"
+          else
+            echo "[OK] STEP 7 — new revisions registered; services still on old revisions"
+          fi
 
       - name: STEP 8 — Update services (rolling, previous tasks stay until healthy)
         run: |
@@ -416,6 +443,10 @@ jobs:
             exit 1
           }
           echo "[STEP 8] UpdateService + circuit breaker rollback"
+          if [ ! -s /tmp/ecs-deploy/map.txt ]; then
+            echo "[OK] STEP 8 — skipped (no services to update)"
+            exit 0
+          fi
           UPDATED=""
           while read -r SVC OLD_TD NEW_TD; do
             [ -n "${SVC}" ] || continue
@@ -445,6 +476,19 @@ jobs:
             exit 1
           }
           echo "[STEP 9] Wait for services-stable on ${ECS_CLUSTER}"
+          if [ ! -s /tmp/ecs-deploy/map.txt ]; then
+            echo "[OK] STEP 9 — skipped wait (cluster already on ${IMAGE_TAG})"
+            echo
+            echo "============================================================"
+            echo "[OK] Deploy finished (no ECS change)"
+            echo "  git     : ${GITHUB_SHA}"
+            echo "  image   : ${IMAGE_URI}"
+            echo "  tag     : ${IMAGE_TAG}  ( :production was NOT moved )"
+            echo "  cluster : ${ECS_CLUSTER}"
+            echo "  nginx   : topteen-nginx-service left unchanged"
+            echo "============================================================"
+            exit 0
+          fi
           IFS=',' read -ra SERVICES <<< "${ECS_SERVICES}"
           SVC_ARGS=()
           for RAW in "${SERVICES[@]}"; do

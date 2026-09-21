@@ -17,27 +17,12 @@ if [ "${RUN_COLLECTSTATIC:-0}" = "1" ]; then
 fi
 
 # Celery/beat pass their own command. Web ECS tasks still pass /start.sh
-# from the old image; if that file is missing, fall through to gunicorn.
+# from the old image; if that file is missing, fall through to /start.sh.
 if [ "$#" -gt 0 ]; then
   if [ -x "$1" ] || command -v "$1" >/dev/null 2>&1; then
     exec "$@"
   fi
-  echo "[entrypoint] '$1' not found; starting gunicorn instead"
+  echo "[entrypoint] '$1' not found; starting /start.sh instead"
 fi
 
-echo "[entrypoint] Starting gunicorn (workers=${GUNICORN_WORKERS:-3} threads=${GUNICORN_THREADS:-4})..."
-exec gunicorn topteens.wsgi:application \
-  --bind 0.0.0.0:8000 \
-  --workers "${GUNICORN_WORKERS:-3}" \
-  --worker-class gthread \
-  --threads "${GUNICORN_THREADS:-4}" \
-  --max-requests 2000 \
-  --max-requests-jitter 100 \
-  --timeout 60 \
-  --graceful-timeout 30 \
-  --keep-alive 5 \
-  --limit-request-line 65535 \
-  --access-logfile "$LOG_DIR/gunicorn_access.log" \
-  --error-logfile "$LOG_DIR/gunicorn_error.log" \
-  --capture-output \
-  --enable-stdio-inheritance
+exec /start.sh
