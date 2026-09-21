@@ -49,15 +49,7 @@
     <!-- FOR ADDITIONAL HEADER-->
     {%block additionalheader%} {%endblock%}
 
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-SLK3YZB0SG"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-SLK3YZB0SG');
-</script>
+    {% include 'includes/google_analytics.html' %}
 
   </head>
 
