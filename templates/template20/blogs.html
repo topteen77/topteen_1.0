@@ -324,25 +324,19 @@
             <h4 class="sidebar-title mb-3">Latest Blogs</h4>
             <div class="latest-blogs-list">
               {% for blog in latest_blogs %}
-              <div class="latest-blog-item mb-3 border-bottom">
-                <div class="row g-2">
-                  <div class="col-4">
-                    <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}">
-                      {% if blog.image %}
-                      <img src="{{ blog.image.url }}" alt="{{ blog.title }}" class="img-fluid w-100" style="height: 80px; object-fit: cover;" loading="lazy" decoding="async">
-                      {% else %}
-                      <img src="{{ static('images_new/blogs/main-blog.png') }}" alt="{{ blog.title }}" class="img-fluid w-100" style="height: 80px; object-fit: cover;">
-                      {% endif %}
-                    </a>
-                  </div>
-                  <div class="col-8">
-                    <h5 class="latest-blog-title fs-14">
-                      <a href="{{ url('blog:blogdetail', args=[blog.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}">{{ blog.title|truncate(60) }}</a>
-                    </h5>
-                    <span class="text-gray fs-12 d-none">{{ date_format(blog.created) }}</span>
-                  </div>
+              <a class="latest-blog-item popular-post" href="{{ url('blog:blogdetail', args=[blog.slug]) }}{% if is_parent_student_context and parent_student_id %}?student_id={{ parent_student_id }}{% endif %}" title="{{ blog.title }}">
+                <div class="popular-post-image">
+                  {% if blog.image %}
+                  <img src="{{ blog.image.url }}" alt="{{ blog.title }}" loading="lazy" decoding="async">
+                  {% else %}
+                  <img src="{{ static('images_new/blogs/main-blog.png') }}" alt="{{ blog.title }}" loading="lazy" decoding="async">
+                  {% endif %}
                 </div>
-              </div>
+                <div class="popular-post-content">
+                  <h5 class="popular-post-title">{{ blog.title }}</h5>
+                  <span class="popular-post-meta">{{ date_format(blog.created) }}</span>
+                </div>
+              </a>
               {% endfor %}
             </div>
           </div>
