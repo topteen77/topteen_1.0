@@ -21,8 +21,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt gunicorn
 
+# Context is filtered by .dockerignore (no react-game dump, html scrapes, zips, tests).
 COPY . .
-RUN find /app -name '*.pyc' -delete
+RUN find /app \( -name '*.pyc' -o -name '*.pyo' -o -name '*.zip' -o -name '*.tar' \
+      -o -name '*.tgz' -o -name '*.bak' -o -name '.DS_Store' \) -type f -delete \
+ && find /app \( -type d -name '__pycache__' -o -type d -name 'node_modules' \) \
+    | xargs -r rm -rf
 
 COPY deploy/images/app/entrypoint.sh /entrypoint.sh
 COPY deploy/images/app/start.sh /start.sh

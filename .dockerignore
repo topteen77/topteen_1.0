@@ -1,23 +1,89 @@
+# ECS app image context (deploy/images/app/Dockerfile COPY . .)
+# Keep Django apps, templates, static/ (including static/game), career_mindmap, deploy/.
+
+# VCS / CI / editor
+.git
+.gitignore
+.gitattributes
+.github
+.cursor
+.vscode
+.idea
+**/.DS_Store
+
+# Secrets (never bake into the image)
+.env
+.env.*
+*.pem
+*.key
+local_settings.py
+**/local_settings.py
+
+# Career Battle source — live SPA is static/game/ (keep that)
+react-game
+
+# Import dumps / design mockups / one-off scripts (not served by gunicorn)
+entrance_test_prep_html
+skilllabcourses_html
+skilllabcourses_html-old
+html_theme
+career_html_output
+scripts
+fastapi
+cypress
+doc-md
+docs
+college_data
+etherpad
+old-docker
+docker-setup
+docker
+docker_files
+
+# Compose/SSH trees are not the ECS runtime. Keep deploy/ (entrypoint + Dockerfile).
+
+# Runtime-generated / local data
 media
-# MySQL data directory - large, restricted permissions, not needed for build
-dbdata_topteens
+staticfiles
+uploads
+temp
+tmp
+logs
 data
-# Python
-__pycache__
-*.py[cod]
-*.pyo
-*.egg-info
-.eggs
+dbdata_topteens
+*.log
+*.sqlite3
+
+# Archives, backups, editor junk
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.bak
+*.tmp
+*.swp
+*.orig
+*.sql
+*.csv
+
+# Python / Node install trees
+**/__pycache__
+**/*.py[cod]
+**/*.egg-info
 .venv
 venv
 env
-envp*
-# Git
-.git
-.gitignore
-# Static/media collected at runtime
-staticfiles
-# Logs and local dev
-*.log
-*.sqlite3
-.env.local
+node_modules
+**/.pytest_cache
+htmlcov
+.coverage
+.mypy_cache
+
+# Tests (not imported by gunicorn/celery)
+**/tests
+**/tests.py
+
+# Scraped static dumps
+static/scrapped_data

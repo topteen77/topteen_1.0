@@ -391,6 +391,7 @@ entrance_test_prep_html/
 # Extra Docker trees — still used by SSH/compose deploys, so they stay tracked.
 # Ignore them in git: uncomment the two lines below, then
 # `git rm -r --cached docker_files docker` (files stay on disk).
+# They are already excluded from the ECS image via .dockerignore.
 # docker_files/
 # docker/
 
