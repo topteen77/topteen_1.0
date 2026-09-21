@@ -4,6 +4,9 @@
 # Set apply_to_ecs=true on workflow_dispatch only when you intend to roll
 # topteen-web / celery / beat. nginx is never updated (different image).
 #
+# Shared production DB: STEP 6 migrate is skipped by default (skip_migrate=true).
+# Re-enable later: Run workflow → uncheck "Skip migrate" after the ECS roll is proven.
+#
 # Django env/secrets stay in the existing ECS task definitions (not git).
 # This workflow does not commit or copy .env / settings files.
 #
@@ -36,9 +39,9 @@ on:
         default: false
         type: boolean
       skip_migrate:
-        description: "Skip migrate even when apply_to_ecs is on"
+        description: "Skip migrate even when apply_to_ecs is on (ON = do not touch shared production DB)"
         required: false
-        default: false
+        default: true
         type: boolean
 
 concurrency:
@@ -245,6 +248,8 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      # Shared production DB: skip_migrate defaults to true so this exits immediately.
+      # To run migrate later: workflow_dispatch with Skip migrate UNCHECKED (skip_migrate=false).
       - name: STEP 6 — Migrate only if required
         run: |
           set -euo pipefail
@@ -256,8 +261,10 @@ jobs:
             exit 1
           }
           echo "[STEP 6] One-off migrate using NEW image ${IMAGE_URI}"
-          if [ "${{ github.event.inputs.skip_migrate }}" = "true" ]; then
-            echo "[OK] STEP 6 — skipped (skip_migrate=true)"
+          # Default skip_migrate=true (shared prod DB). Set false only when you intend to migrate.
+          if [ "${{ github.event.inputs.skip_migrate || 'true' }}" != "false" ]; then
+            echo "[OK] STEP 6 — skipped (shared production DB; skip_migrate is on)"
+            echo "To migrate later: Run workflow → apply_to_ecs=true AND uncheck Skip migrate"
             exit 0
           fi
           [ -n "${IMAGE_URI}" ] || fail_step "missing image digest" "build job output empty" "Re-run from STEP 0"
