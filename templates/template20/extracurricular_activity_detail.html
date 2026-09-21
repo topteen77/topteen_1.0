@@ -137,56 +137,66 @@
               <a class="blog-box" href="{{ url('blog:blogdetail', args=[blog.slug]) }}" title="{{ blog.title }}">
                 <div class="blog-img-d">
                   {% if blog.image %}
-                  <img src="{{ blog.image.url }}" alt="{{ blog.title }}" />
+                  <img src="{{ blog.image.url }}" alt="{{ blog.title }}" loading="lazy" />
                   {% else %}
-                  <img src="{{ static('images_new/blogs/main-blog.png') }}" alt="{{ blog.title }}" />
+                  <img src="{{ static('images_new/blogs/main-blog.png') }}" alt="{{ blog.title }}" loading="lazy" />
+                  {% endif %}
+                  {% if blog.category %}
+                  <span class="home-blog-tag">{{ blog.category.name|blog_category_short }}</span>
+                  {% else %}
+                  <span class="home-blog-tag">Blog</span>
                   {% endif %}
                 </div>
                 <div class="blog-info">
-                  {% if blog.category %}
-                  <span class="blog-tags text-gray fw-400 fs-14 mb-3 d-none">{{ blog.category.name|blog_category_display }}</span>
-                  {% else %}
-                  <span class="blog-tags text-gray fw-400 fs-14 mb-3">Blog</span>
+                  <h4 class="blog-title">{{ blog.title }}</h4>
+                  {% if blog.summary %}
+                  <p class="blog-excerpt">{{ blog.summary }}</p>
                   {% endif %}
-                  <h4 class="blog-title text-white fs-20 fw-600">{{ blog.title }}</h4>
+                  <span class="blog-read">Read article <i class="bx bx-right-arrow-alt" aria-hidden="true"></i></span>
                 </div>
               </a>
               {% endfor %}
             {% else %}
               {# Fallback to static content if no blogs available #}
-              <a class="blog-box" href="{{ url('blog:blogs') }}" title="Blog Title">
+              <a class="blog-box" href="{{ url('blog:blogs') }}" title="Your Definitive Guide To Choosing The Perfect Stream In Class 11">
                 <div class="blog-img-d">
-                  <img src="{{ static('images_new/blogs/blog-image-1.svg') }}" alt="Blog Title" />
+                  <img src="{{ static('images_new/blogs/blog-image-1.svg') }}" alt="Stream selection guide" loading="lazy" />
+                  <span class="home-blog-tag">For Students</span>
                 </div>
                 <div class="blog-info">
-                  <span class="blog-tags text-gray fw-400 fs-14 mb-3">For Student</span>
-                  <h4 class="blog-title text-white fs-22 fw-600">Your Definitive Guide To Choosing The Perfect Stream In Class 11</h4>
+                  <h4 class="blog-title">Your Definitive Guide To Choosing The Perfect Stream In Class 11</h4>
+                  <p class="blog-excerpt">Practical tips to help students pick the right stream with clarity and confidence.</p>
+                  <span class="blog-read">Read article <i class="bx bx-right-arrow-alt" aria-hidden="true"></i></span>
                 </div>
               </a>
-              <a class="blog-box" href="{{ url('blog:blogs') }}" title="Blog Title">
+              <a class="blog-box" href="{{ url('blog:blogs') }}" title="Career in Machine learning">
                 <div class="blog-img-d">
-                  <img src="{{ static('images_new/blogs/blog-image-2.svg') }}" alt="Blog Title" />
+                  <img src="{{ static('images_new/blogs/blog-image-2.svg') }}" alt="Machine learning careers" loading="lazy" />
+                  <span class="home-blog-tag">For Parents</span>
                 </div>
                 <div class="blog-info">
-                  <span class="blog-tags text-gray fw-400 fs-14 mb-3">For Parents</span>
-                  <h4 class="blog-title text-white fs-22 fw-600">Career in Machine learning</h4>
+                  <h4 class="blog-title">Career in Machine learning</h4>
+                  <p class="blog-excerpt">Understand emerging ML paths and how students can prepare for them early.</p>
+                  <span class="blog-read">Read article <i class="bx bx-right-arrow-alt" aria-hidden="true"></i></span>
                 </div>
               </a>
-              <a class="blog-box" href="{{ url('blog:blogs') }}" title="Blog Title">
+              <a class="blog-box" href="{{ url('blog:blogs') }}" title="Career in Artificial Intelligence">
                 <div class="blog-img-d">
-                  <img src="{{ static('images_new/blogs/blog-image-3.svg') }}" alt="Blog Title" />
+                  <img src="{{ static('images_new/blogs/blog-image-3.svg') }}" alt="Artificial intelligence careers" loading="lazy" />
+                  <span class="home-blog-tag">For Students</span>
                 </div>
                 <div class="blog-info">
-                  <span class="blog-tags text-gray fw-400 fs-14 mb-3">For Student</span>
-                  <h4 class="blog-title text-white fs-22 fw-600">Career in Artificial Intelligence</h4>
+                  <h4 class="blog-title">Career in Artificial Intelligence</h4>
+                  <p class="blog-excerpt">Explore AI career options and the skills students need to get started.</p>
+                  <span class="blog-read">Read article <i class="bx bx-right-arrow-alt" aria-hidden="true"></i></span>
                 </div>
               </a>
             {% endif %}
           </div>
 
           <div class="text-center pt-5">
-            <a class="text-purple text-decoration-underline fs-17" href="{{ url('blog:blogs') }}">Explore More <i
-                class="bx bx-chevrons-right"></i></a>
+            <a class="btn custom-button purple-button home-blog-cta" href="{{ url('blog:blogs') }}">Explore More Blogs <i
+                class="bx bx-chevrons-right" aria-hidden="true"></i></a>
           </div>
 
         </div>

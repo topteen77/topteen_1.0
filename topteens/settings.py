@@ -135,6 +135,9 @@ SERVICE_MONITOR_CONTROL_USE_SUDO = config('SERVICE_MONITOR_CONTROL_USE_SUDO', de
 
 # User analytics: set False in .env to disable all tracking (debugging / manual data clean)
 ENABLE_USER_ANALYTICS_TRACKING = config('ENABLE_USER_ANALYTICS_TRACKING', default=True, cast=bool)
+# Google Analytics 4 browser tag (gtag.js). Injected site-wide from templates/includes/google_analytics.html.
+GA_MEASUREMENT_ID = config('GA_MEASUREMENT_ID', default='G-SX0WYWTMS5')
+ENABLE_GOOGLE_ANALYTICS = config('ENABLE_GOOGLE_ANALYTICS', default=True, cast=bool)
 # Optional comma-separated URL path prefixes to skip for page/journey tracking (middleware), e.g. "/internal/,/status/"
 USER_ANALYTICS_EXTRA_SKIP_PATH_PREFIXES = tuple(
     p.strip() for p in config('USER_ANALYTICS_EXTRA_SKIP_PATH_PREFIXES', default='').split(',') if p.strip()
@@ -222,6 +225,7 @@ MIDDLEWARE = [
     'topteens.custome_middleware.TopteenAdminRequireLoginCheck',
     'topteens.custome_middleware.TopteenAdminPermissionMiddleware',
     'user_analytics.middleware.AnalyticsMiddleware',
+    'user_analytics.gtag_middleware.GtagMiddleware',  # Inject GA4 gtag.js on all HTML pages
     'core.seo_middleware.PageSEOMiddleware',  # Merge PageSEO into html_head by request path (all pages)
 ]
 

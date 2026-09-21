@@ -58,17 +58,21 @@ body.ttv2-shell .ttv2-week-pill{
   box-shadow: var(--ttv2-shadow-sm);
   white-space: nowrap;
 }
+
 html[data-ttv2-theme="light"] body.ttv2-shell .ttv2-week-pill{
   background: rgba(17,24,39,0.02);
 }
+
 body.ttv2-shell .ttv2-week-pill:hover{
   border-color: var(--c-accent, var(--ttv2-accent));
   color: var(--c-text, var(--ttv2-fg));
 }
+
 body.ttv2-shell .ttv2-week-pill.dropdown-toggle::after{
   margin-left: 8px;
   opacity: 0.8;
 }
+
 body.ttv2-shell .ttv2-week-pill:focus{
   outline: none;
   box-shadow: 0 0 0 3px rgba(108,125,255,0.18);

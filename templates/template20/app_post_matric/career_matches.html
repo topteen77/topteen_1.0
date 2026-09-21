@@ -71,12 +71,41 @@
     opacity: 0.97;
   }
 
+  .matches-grid-wrap {
+    container-type: inline-size;
+    container-name: career-matches;
+  }
+
+  .career-matches-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+
+  @container career-matches (min-width: 540px) {
+    .career-matches-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @container career-matches (min-width: 820px) {
+    .career-matches-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @container career-matches (min-width: 1080px) {
+    .career-matches-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
   .match-card {
     position: relative;
     background: #ffffff;
     border-radius: 18px;
     padding: 16px 16px 14px;
-    margin-bottom: 24px;
+    margin-bottom: 0;
     box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
     border: 1px solid rgba(148, 163, 184, 0.35);
     overflow: hidden;
@@ -330,9 +359,9 @@
 
 <div class="container-fluid px-3 px-lg-4 py-4">
   {% if matches %}
-    <div class="row">
+    <div class="matches-grid-wrap">
+      <div class="career-matches-grid">
       {% for match in matches %}
-      <div class="col-sm-6 col-lg-3 col-xl-3 mb-4">
         <div class="match-card h-100">
           <div class="match-card-inner">
             <div class="match-card-image-wrapper">
@@ -383,8 +412,8 @@
             </div>
           </div>
         </div>
-      </div>
       {% endfor %}
+      </div>
     </div>
   {% else %}
     <div class="empty-state-card text-center">
