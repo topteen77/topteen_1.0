@@ -1,0 +1,473 @@
+# ECS + ECR deploy — elb-branch only.
+#
+# Default: build + push an immutable sha-* tag to ECR. Live ECS is NOT updated.
+# Set apply_to_ecs=true on workflow_dispatch only when you intend to roll
+# topteen-web / celery / beat. nginx is never updated (different image).
+#
+# Django env/secrets stay in the existing ECS task definitions (not git).
+# This workflow does not commit or copy .env / settings files.
+#
+# Required GitHub repository variables:
+#   AWS_REGION, ECR_REPOSITORY, ECS_CLUSTER, ECS_SERVICES,
+#   ECS_LAUNCH_TYPE, ECS_MIGRATE_SERVICE
+# Required GitHub repository secrets:
+#   AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+name: Deploy ECS (ECR)
+
+on:
+  workflow_dispatch:
+    inputs:
+      apply_to_ecs:
+        description: "Update live ECS services (OFF = ECR push only, cluster unchanged)"
+        required: false
+        default: false
+        type: boolean
+      force_migrate:
+        description: "Always run migrate (ignore migrate --check)"
+        required: false
+        default: false
+        type: boolean
+      skip_migrate:
+        description: "Skip migrate even when apply_to_ecs is on"
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: elb-ecs-ecr
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  ALLOWED_BRANCH: elb-branch
+  AWS_REGION: ${{ vars.AWS_REGION || 'ap-south-1' }}
+  ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY || 'topteen-app' }}
+  ECS_CLUSTER: ${{ vars.ECS_CLUSTER || 'prod-topteen-cluster' }}
+  ECS_SERVICES: ${{ vars.ECS_SERVICES || 'topteen-web-service,topteen-celery-service,topteen-beat-service' }}
+  ECS_LAUNCH_TYPE: ${{ vars.ECS_LAUNCH_TYPE || 'EC2' }}
+  ECS_MIGRATE_SERVICE: ${{ vars.ECS_MIGRATE_SERVICE || 'topteen-web-service' }}
+  DOCKERFILE: ${{ vars.DOCKERFILE || 'deploy/images/app/Dockerfile' }}
+
+jobs:
+  build:
+    name: STEPS 0-5 Build and push SHA tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    outputs:
+      image_uri: ${{ steps.push.outputs.image_uri }}
+      image_digest: ${{ steps.push.outputs.image_digest }}
+      image_tag: ${{ steps.push.outputs.image_tag }}
+    steps:
+      - name: STEP 0 — Preflight
+        env:
+          HAS_AWS_KEY: ${{ secrets.AWS_ACCESS_KEY_ID != '' }}
+          HAS_AWS_SECRET: ${{ secrets.AWS_SECRET_ACCESS_KEY != '' }}
+        run: |
+          set -euo pipefail
+          fail_step() {
+            echo "[FAIL] STEP 0 — $1"
+            echo "What failed : $2"
+            echo "Hint        : $3"
+            echo "Traffic     : previous ECS image still serving (nothing updated)"
+            exit 1
+          }
+          echo "[STEP 0] Validate branch + GitHub vars/secrets"
+          if [ "${{ github.ref_name }}" != "${ALLOWED_BRANCH}" ]; then
+            fail_step "workflow is locked to ${ALLOWED_BRANCH}" \
+              "ran from branch '${{ github.ref_name }}'" \
+              "Actions → this workflow → Run workflow → branch = ${ALLOWED_BRANCH}"
+          fi
+          [ -n "${AWS_REGION}" ] || fail_step "missing AWS_REGION" "vars.AWS_REGION empty" "Settings → Variables → AWS_REGION=ap-south-1"
+          [ -n "${ECR_REPOSITORY}" ] || fail_step "missing ECR_REPOSITORY" "vars.ECR_REPOSITORY empty" "Set ECR_REPOSITORY=topteen-app"
+          [ -n "${ECS_CLUSTER}" ] || fail_step "missing ECS_CLUSTER" "vars.ECS_CLUSTER empty" "Set ECS_CLUSTER=prod-topteen-cluster"
+          [ -n "${ECS_SERVICES}" ] || fail_step "missing ECS_SERVICES" "vars.ECS_SERVICES empty" "Set web,celery,beat service names (no nginx)"
+          if [ "${HAS_AWS_KEY}" != "true" ] || [ "${HAS_AWS_SECRET}" != "true" ]; then
+            fail_step "missing AWS keys" "AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY" "Settings → Secrets → add IAM keys (not SSH keys)"
+          fi
+          echo "branch          : ${{ github.ref_name }}"
+          echo "sha             : ${{ github.sha }}"
+          echo "region          : ${AWS_REGION}"
+          echo "ecr repo        : ${ECR_REPOSITORY}"
+          echo "cluster         : ${ECS_CLUSTER}"
+          echo "services        : ${ECS_SERVICES}"
+          echo "migrate service : ${ECS_MIGRATE_SERVICE}"
+          echo "dockerfile      : ${DOCKERFILE}"
+          echo "apply_to_ecs    : ${{ github.event.inputs.apply_to_ecs }}"
+          echo "[OK] STEP 0 — config looks valid (live ECS not touched yet)"
+
+      - name: STEP 1 — Checkout
+        uses: actions/checkout@v4
+
+      - name: STEP 1 — Confirm Dockerfile (no env/settings files)
+        run: |
+          set -euo pipefail
+          fail_step() {
+            echo "[FAIL] STEP 1 — $1"
+            echo "What failed : $2"
+            echo "Hint        : $3"
+            echo "Traffic     : previous ECS image still serving"
+            exit 1
+          }
+          echo "[STEP 1] Checkout ${{ github.sha }}"
+          [ -f "${DOCKERFILE}" ] || fail_step "Dockerfile not found on elb-branch" \
+            "${DOCKERFILE}" \
+            "elb-branch uses deploy/images/app/Dockerfile (there is no docker_files/ on this branch)"
+          if git ls-files --error-unmatch '.env' >/dev/null 2>&1 \
+             || git ls-files | grep -E '(^|/)\.env$|(^|/)local_settings\.py$' >/dev/null 2>&1; then
+            fail_step "tracked env/settings file found" \
+              "git would bake secrets into the image" \
+              "Do not commit .env or local_settings.py. ECS env stays on the task definition."
+          fi
+          echo "[OK] STEP 1 — code checked out; no tracked .env / local_settings.py"
+
+      - name: STEP 2 — AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: STEP 2 — Caller identity
+        run: |
+          set -euo pipefail
+          echo "[STEP 2] aws sts get-caller-identity"
+          if ! ID_JSON="$(aws sts get-caller-identity)"; then
+            echo "[FAIL] STEP 2 — AWS auth failed"
+            echo "What failed : sts get-caller-identity"
+            echo "Hint        : IAM user keys must be valid; AccessDenied means wrong keys or no IAM permission"
+            echo "Traffic     : previous ECS image still serving"
+            exit 1
+          fi
+          echo "${ID_JSON}"
+          echo "[OK] STEP 2 — authenticated"
+
+      - name: STEP 3 — ECR login
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: STEP 3 — Confirm ECR repository
+        run: |
+          set -euo pipefail
+          echo "[STEP 3] describe-repositories ${ECR_REPOSITORY}"
+          if ! aws ecr describe-repositories --repository-names "${ECR_REPOSITORY}" >/dev/null; then
+            echo "[FAIL] STEP 3 — ECR repository not found"
+            echo "What failed : ${ECR_REPOSITORY} in ${AWS_REGION}"
+            echo "Hint        : create it or fix vars.ECR_REPOSITORY (expected topteen-app). Do not use topteen-nginx for app code."
+            echo "Traffic     : previous ECS image still serving"
+            exit 1
+          fi
+          echo "registry: ${{ steps.ecr.outputs.registry }}"
+          echo "[OK] STEP 3 — logged in to ECR"
+
+      - name: STEP 4 — Build image
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+        run: |
+          set -euo pipefail
+          TAG="sha-${GITHUB_SHA:0:12}"
+          IMAGE="${REGISTRY}/${ECR_REPOSITORY}:${TAG}"
+          echo "[STEP 4] docker build -f ${DOCKERFILE} -t ${IMAGE}"
+          if ! docker build -f "${DOCKERFILE}" -t "${IMAGE}" .; then
+            echo "[FAIL] STEP 4 — docker build failed"
+            echo "What failed : ${DOCKERFILE}"
+            echo "Hint        : see log above (requirements.txt / COPY). Image was not pushed. ECS unchanged."
+            echo "Traffic     : previous ECS image still serving"
+            exit 1
+          fi
+          echo "[OK] STEP 4 — built ${IMAGE}"
+
+      - name: STEP 5 — Push SHA tag (not :production)
+        id: push
+        env:
+          REGISTRY: ${{ steps.ecr.outputs.registry }}
+        run: |
+          set -euo pipefail
+          TAG="sha-${GITHUB_SHA:0:12}"
+          IMAGE="${REGISTRY}/${ECR_REPOSITORY}:${TAG}"
+          echo "[STEP 5] docker push ${IMAGE}"
+          echo "Will NOT move :production. Running ECS tasks still use their current digest."
+          if ! docker push "${IMAGE}"; then
+            echo "[FAIL] STEP 5 — ECR push failed"
+            echo "What failed : ${IMAGE}"
+            echo "Hint        : IAM needs ecr:PutImage and layer upload on ${ECR_REPOSITORY}"
+            echo "Traffic     : previous ECS image still serving"
+            exit 1
+          fi
+          DIGEST="$(docker image inspect --format='{{index .RepoDigests 0}}' "${IMAGE}" | awk -F@ '{print $2}')"
+          [ -n "${DIGEST}" ] || {
+            echo "[FAIL] STEP 5 — could not read image digest"
+            echo "What failed : docker image inspect ${IMAGE}"
+            echo "Hint        : push succeeded but digest missing; re-run the workflow"
+            echo "Traffic     : previous ECS image still serving"
+            exit 1
+          }
+          DIGEST_URI="${REGISTRY}/${ECR_REPOSITORY}@${DIGEST}"
+          echo "image_uri=${DIGEST_URI}" >> "${GITHUB_OUTPUT}"
+          echo "image_digest=${DIGEST}" >> "${GITHUB_OUTPUT}"
+          echo "image_tag=${TAG}" >> "${GITHUB_OUTPUT}"
+          echo "[OK] STEP 5 — pushed ${IMAGE}"
+          echo "digest : ${DIGEST_URI}"
+          echo
+          if [ "${{ github.event.inputs.apply_to_ecs }}" != "true" ]; then
+            echo "============================================================"
+            echo "ECS NOT UPDATED (apply_to_ecs=false)"
+            echo "ECR has a new unused tag. Cluster still on current task defs:"
+            echo "  topteen-web / topteen-celery-worker / topteen-celery-beat"
+            echo "Re-run this workflow on elb-branch with apply_to_ecs=true"
+            echo "only when you want to roll those three services."
+            echo "============================================================"
+          fi
+
+  migrate-and-deploy:
+    name: STEPS 6-9 Migrate and roll ECS
+    needs: build
+    if: github.event.inputs.apply_to_ecs == 'true' && github.ref_name == 'elb-branch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      IMAGE_URI: ${{ needs.build.outputs.image_uri }}
+      IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
+    steps:
+      - name: AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: STEP 6 — Migrate only if required
+        run: |
+          set -euo pipefail
+          fail_step() {
+            echo "[FAIL] STEP 6 — $1"
+            echo "What failed : $2"
+            echo "Hint        : $3"
+            echo "Traffic     : previous ECS image still serving (services were NOT updated)"
+            exit 1
+          }
+          echo "[STEP 6] One-off migrate using NEW image ${IMAGE_URI}"
+          if [ "${{ github.event.inputs.skip_migrate }}" = "true" ]; then
+            echo "[OK] STEP 6 — skipped (skip_migrate=true)"
+            exit 0
+          fi
+          [ -n "${IMAGE_URI}" ] || fail_step "missing image digest" "build job output empty" "Re-run from STEP 0"
+
+          SVC_JSON="$(aws ecs describe-services --cluster "${ECS_CLUSTER}" --services "${ECS_MIGRATE_SERVICE}")"
+          echo "${SVC_JSON}" | jq -e '.services[0].status == "ACTIVE"' >/dev/null \
+            || fail_step "migrate source service missing" "${ECS_MIGRATE_SERVICE} on ${ECS_CLUSTER}" \
+              "Set vars.ECS_MIGRATE_SERVICE=topteen-web-service"
+
+          CURRENT_TD="$(echo "${SVC_JSON}" | jq -r '.services[0].taskDefinition')"
+          TD_JSON="$(aws ecs describe-task-definition --task-definition "${CURRENT_TD}" --query 'taskDefinition')"
+          CONTAINER_NAME="$(echo "${TD_JSON}" | jq -r '.containerDefinitions[0].name')"
+          FAMILY="$(echo "${TD_JSON}" | jq -r '.family')"
+          echo "source task def : ${CURRENT_TD}"
+          echo "container       : ${CONTAINER_NAME}"
+
+          if [ "${{ github.event.inputs.force_migrate }}" = "true" ]; then
+            MIGRATE_CMD='python manage.py migrate --noinput'
+          else
+            MIGRATE_CMD='python manage.py migrate --check && echo NO_PENDING || python manage.py migrate --noinput'
+          fi
+
+          MIGRATE_TD="$(echo "${TD_JSON}" | jq --arg IMAGE "${IMAGE_URI}" --arg FAMILY "${FAMILY}-migrate-ci" --arg migrate "${MIGRATE_CMD}" '
+            del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities,
+                .registeredAt, .registeredBy, .deregisteredAt)
+            | .family = $FAMILY
+            | .containerDefinitions[0].image = $IMAGE
+            | .containerDefinitions[0].command = ["/bin/sh","-c",$migrate]
+            | .containerDefinitions |= map(del(.healthCheck) | .essential = true)
+          ')"
+
+          echo "${MIGRATE_TD}" > /tmp/migrate-task-def.json
+          REGISTERED="$(aws ecs register-task-definition --cli-input-json file:///tmp/migrate-task-def.json)"
+          MIGRATE_TD_ARN="$(echo "${REGISTERED}" | jq -r '.taskDefinition.taskDefinitionArn')"
+          echo "registered migrate td: ${MIGRATE_TD_ARN}"
+
+          NETWORK_MODE="$(echo "${TD_JSON}" | jq -r '.networkMode // "bridge"')"
+          RUN_ARGS=( --cluster "${ECS_CLUSTER}" --task-definition "${MIGRATE_TD_ARN}" --count 1 )
+          CP="$(echo "${SVC_JSON}" | jq -c '.services[0].capacityProviderStrategy // []')"
+          LT="$(echo "${SVC_JSON}" | jq -r '.services[0].launchType // empty')"
+          if [ "${CP}" != "[]" ] && [ "${CP}" != "null" ]; then
+            while IFS= read -r item; do
+              RUN_ARGS+=( --capacity-provider-strategy "${item}" )
+            done < <(echo "${CP}" | jq -r '.[] | "capacityProvider=\(.capacityProvider),weight=\(.weight // 1),base=\(.base // 0)"')
+          elif [ -n "${LT}" ]; then
+            RUN_ARGS+=( --launch-type "${LT}" )
+          else
+            RUN_ARGS+=( --launch-type "${ECS_LAUNCH_TYPE}" )
+          fi
+          if [ "${NETWORK_MODE}" = "awsvpc" ]; then
+            NET="$(echo "${SVC_JSON}" | jq -c '.services[0].networkConfiguration.awsvpcConfiguration')"
+            [ "${NET}" != "null" ] || fail_step "awsvpc network missing on ${ECS_MIGRATE_SERVICE}" \
+              "networkConfiguration" "Set subnets/security groups on the web service, or add ECS_MIGRATE_SUBNETS vars"
+            SUBNETS="$(echo "${NET}" | jq -r '.subnets | join(",")')"
+            SGS="$(echo "${NET}" | jq -r '.securityGroups | join(",")')"
+            PUB="$(echo "${NET}" | jq -r '.assignPublicIp // "DISABLED"')"
+            RUN_ARGS+=( --network-configuration "awsvpcConfiguration={subnets=[${SUBNETS}],securityGroups=[${SGS}],assignPublicIp=${PUB}}" )
+          fi
+
+          echo "aws ecs run-task ..."
+          RUN_OUT="$(aws ecs run-task "${RUN_ARGS[@]}" --overrides "$(jq -nc --arg n "${CONTAINER_NAME}" \
+            '{containerOverrides:[{name:$n}]}')")" || fail_step "run-task API failed" "aws ecs run-task" \
+            "Check iam:PassRole, cluster capacity, and that EC2 instances are registered"
+          echo "${RUN_OUT}" | jq '.failures'
+          FAIL_COUNT="$(echo "${RUN_OUT}" | jq '.failures | length')"
+          [ "${FAIL_COUNT}" = "0" ] || fail_step "run-task reported failures" \
+            "$(echo "${RUN_OUT}" | jq -r '.failures')" \
+            "RESOURCE:* = no EC2 capacity; AGENT = ecs agent; USER = IAM PassRole"
+          TASK_ARN="$(echo "${RUN_OUT}" | jq -r '.tasks[0].taskArn')"
+          [ -n "${TASK_ARN}" ] && [ "${TASK_ARN}" != "null" ] || fail_step "no task ARN" "${RUN_OUT}" "See failures above"
+          echo "migrate task: ${TASK_ARN}"
+
+          echo "Waiting for migrate task to stop..."
+          aws ecs wait tasks-stopped --cluster "${ECS_CLUSTER}" --tasks "${TASK_ARN}" \
+            || fail_step "wait tasks-stopped timed out" "${TASK_ARN}" "Check ECS Tasks tab and CloudWatch logs"
+
+          DESC="$(aws ecs describe-tasks --cluster "${ECS_CLUSTER}" --tasks "${TASK_ARN}")"
+          echo "${DESC}" | jq '.tasks[0] | {lastStatus, stoppedReason, stopCode, containers}'
+          EXIT_CODE="$(echo "${DESC}" | jq -r '.tasks[0].containers[0].exitCode // 1')"
+          STOPPED_REASON="$(echo "${DESC}" | jq -r '.tasks[0].stoppedReason // ""')"
+          LOG_CFG="$(echo "${TD_JSON}" | jq -c '.containerDefinitions[0].logConfiguration // empty')"
+          if [ -n "${LOG_CFG}" ]; then
+            LOG_GROUP="$(echo "${LOG_CFG}" | jq -r '.options["awslogs-group"] // empty')"
+            LOG_PREFIX="$(echo "${LOG_CFG}" | jq -r '.options["awslogs-stream-prefix"] // empty')"
+            TASK_ID="${TASK_ARN##*/}"
+            STREAM="${LOG_PREFIX}/${CONTAINER_NAME}/${TASK_ID}"
+            echo "---- last migrate logs (${LOG_GROUP} ${STREAM}) ----"
+            aws logs get-log-events --log-group-name "${LOG_GROUP}" --log-stream-name "${STREAM}" \
+              --limit 80 --query 'events[].message' --output text 2>/dev/null || echo "(could not read logs)"
+            echo "---- end logs ----"
+          fi
+          [ "${EXIT_CODE}" = "0" ] || fail_step "migrate task exitCode=${EXIT_CODE}" \
+            "stoppedReason=${STOPPED_REASON}" \
+            "Fix Django/DB from the logs above. Services were not updated."
+          echo "[OK] STEP 6 — migrate succeeded or no pending migrations"
+
+      - name: STEP 7 — Register new task definitions (services still on old revision)
+        id: register
+        run: |
+          set -euo pipefail
+          fail_step() {
+            echo "[FAIL] STEP 7 — $1"
+            echo "What failed : $2"
+            echo "Hint        : $3"
+            echo "Traffic     : previous ECS image still serving (UpdateService not called)"
+            exit 1
+          }
+          echo "[STEP 7] Clone live task defs; set image to ${IMAGE_URI}"
+          mkdir -p /tmp/ecs-deploy
+          : > /tmp/ecs-deploy/map.txt
+          IFS=',' read -ra SERVICES <<< "${ECS_SERVICES}"
+          for RAW in "${SERVICES[@]}"; do
+            SVC="$(echo "${RAW}" | xargs)"
+            [ -n "${SVC}" ] || continue
+            echo "--- ${SVC} ---"
+            SVC_JSON="$(aws ecs describe-services --cluster "${ECS_CLUSTER}" --services "${SVC}")"
+            echo "${SVC_JSON}" | jq -e '.services[0].status == "ACTIVE"' >/dev/null \
+              || fail_step "service not found" "${SVC} on ${ECS_CLUSTER}" "Fix vars.ECS_SERVICES (do not include topteen-nginx-service)"
+            OLD_TD="$(echo "${SVC_JSON}" | jq -r '.services[0].taskDefinition')"
+            TD_JSON="$(aws ecs describe-task-definition --task-definition "${OLD_TD}" --query 'taskDefinition')"
+            MATCHES="$(echo "${TD_JSON}" | jq --arg repo "${ECR_REPOSITORY}" \
+              '[.containerDefinitions[].image | select(contains($repo))] | length')"
+            [ "${MATCHES}" != "0" ] || fail_step "no container image contains ${ECR_REPOSITORY}" \
+              "${SVC} current image(s): $(echo "${TD_JSON}" | jq -r '.containerDefinitions[].image')" \
+              "This service is not the app image (nginx uses topteen-nginx). Remove it from ECS_SERVICES."
+            NEW_JSON="$(echo "${TD_JSON}" | jq --arg IMAGE "${IMAGE_URI}" --arg repo "${ECR_REPOSITORY}" '
+              del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities,
+                  .registeredAt, .registeredBy, .deregisteredAt)
+              | .containerDefinitions |= map(if (.image | contains($repo)) then .image = $IMAGE else . end)
+            ')"
+            echo "${NEW_JSON}" > "/tmp/ecs-deploy/${SVC}.json"
+            REG="$(aws ecs register-task-definition --cli-input-json "file:///tmp/ecs-deploy/${SVC}.json")" \
+              || fail_step "RegisterTaskDefinition failed" "${SVC}" "Check ecs:RegisterTaskDefinition / task role IAM"
+            NEW_TD="$(echo "${REG}" | jq -r '.taskDefinition.taskDefinitionArn')"
+            echo "${SVC} ${OLD_TD} ${NEW_TD}" | tee -a /tmp/ecs-deploy/map.txt
+            echo "old: ${OLD_TD}"
+            echo "new: ${NEW_TD}"
+          done
+          echo "[OK] STEP 7 — new revisions registered; services still on old revisions"
+
+      - name: STEP 8 — Update services (rolling, previous tasks stay until healthy)
+        run: |
+          set -euo pipefail
+          fail_step() {
+            echo "[FAIL] STEP 8 — $1"
+            echo "What failed : $2"
+            echo "Hint        : $3"
+            echo "Traffic     : if some services already updated, see list above; others still on previous revision"
+            exit 1
+          }
+          echo "[STEP 8] UpdateService + circuit breaker rollback"
+          UPDATED=""
+          while read -r SVC OLD_TD NEW_TD; do
+            [ -n "${SVC}" ] || continue
+            echo "--- update ${SVC} -> ${NEW_TD} ---"
+            if ! aws ecs update-service \
+              --cluster "${ECS_CLUSTER}" \
+              --service "${SVC}" \
+              --task-definition "${NEW_TD}" \
+              --deployment-configuration "deploymentCircuitBreaker={enable=true,rollback=true},minimumHealthyPercent=100,maximumPercent=200" \
+              >/tmp/ecs-deploy/update-${SVC}.json; then
+              fail_step "UpdateService failed for ${SVC}" \
+                "already updated: ${UPDATED:-none}" \
+                "If 'deployment already in progress', wait and re-run. minimumHealthyPercent=100 keeps old tasks until new ones are healthy."
+            fi
+            UPDATED="${UPDATED} ${SVC}"
+          done < /tmp/ecs-deploy/map.txt
+          echo "[OK] STEP 8 — update requested for:${UPDATED}"
+
+      - name: STEP 9 — Wait until stable (or confirm rollback)
+        run: |
+          set -euo pipefail
+          fail_step() {
+            echo "[FAIL] STEP 9 — $1"
+            echo "What failed : $2"
+            echo "Hint        : $3"
+            echo "Traffic     : circuit breaker should restore the previous task definition; :production tag was not moved"
+            exit 1
+          }
+          echo "[STEP 9] Wait for services-stable on ${ECS_CLUSTER}"
+          IFS=',' read -ra SERVICES <<< "${ECS_SERVICES}"
+          SVC_ARGS=()
+          for RAW in "${SERVICES[@]}"; do
+            SVC="$(echo "${RAW}" | xargs)"
+            [ -n "${SVC}" ] && SVC_ARGS+=( "${SVC}" )
+          done
+          set +e
+          aws ecs wait services-stable --cluster "${ECS_CLUSTER}" --services "${SVC_ARGS[@]}"
+          WAIT_RC=$?
+          set -e
+          echo "---- describe-services ----"
+          DESC="$(aws ecs describe-services --cluster "${ECS_CLUSTER}" --services "${SVC_ARGS[@]}")"
+          echo "${DESC}" | jq '.services[] | {serviceName, desiredCount, runningCount, deployments, events: (.events[:8] | map(.message))}'
+          if [ "${WAIT_RC}" -ne 0 ]; then
+            fail_step "services did not become stable" \
+              "$(echo "${DESC}" | jq -r '.services[] | "\(.serviceName) running=\(.runningCount)/\(.desiredCount) deployments=\(.deployments|length)"')" \
+              "Open ECS → prod-topteen-cluster → Events and stopped tasks. Circuit breaker rolls back to the previous revision."
+          fi
+          while read -r SVC OLD_TD NEW_TD; do
+            [ -n "${SVC}" ] || continue
+            PRIMARY="$(echo "${DESC}" | jq -r --arg s "${SVC}" \
+              '.services[] | select(.serviceName==$s) | .deployments[] | select(.status=="PRIMARY") | .taskDefinition')"
+            RUNNING="$(echo "${DESC}" | jq -r --arg s "${SVC}" \
+              '.services[] | select(.serviceName==$s) | .runningCount')"
+            DESIRED="$(echo "${DESC}" | jq -r --arg s "${SVC}" \
+              '.services[] | select(.serviceName==$s) | .desiredCount')"
+            [ "${RUNNING}" = "${DESIRED}" ] || fail_step "${SVC} count mismatch" \
+              "running=${RUNNING} desired=${DESIRED}" "Wait longer or check task health"
+            [ "${PRIMARY}" = "${NEW_TD}" ] || fail_step "${SVC} PRIMARY is not the new revision" \
+              "PRIMARY=${PRIMARY} expected=${NEW_TD}" "ECS rolled back or another deploy raced this one"
+          done < /tmp/ecs-deploy/map.txt
+          echo "[OK] STEP 9 — all listed services stable on the new digest"
+          echo
+          echo "============================================================"
+          echo "[OK] Deploy finished"
+          echo "  git     : ${GITHUB_SHA}"
+          echo "  image   : ${IMAGE_URI}"
+          echo "  tag     : ${IMAGE_TAG}  ( :production was NOT moved )"
+          echo "  cluster : ${ECS_CLUSTER}"
+          echo "  nginx   : topteen-nginx-service left unchanged"
+          echo "============================================================"
