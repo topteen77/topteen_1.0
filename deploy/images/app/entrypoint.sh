@@ -16,9 +16,13 @@ if [ "${RUN_COLLECTSTATIC:-0}" = "1" ]; then
   python manage.py collectstatic --noinput --clear || echo "[entrypoint] collectstatic failed (continuing)"
 fi
 
-# If an explicit command was given (celery worker/beat), run it as-is.
+# Celery/beat pass their own command. Web ECS tasks still pass /start.sh
+# from the old image; if that file is missing, fall through to gunicorn.
 if [ "$#" -gt 0 ]; then
-  exec "$@"
+  if [ -x "$1" ] || command -v "$1" >/dev/null 2>&1; then
+    exec "$@"
+  fi
+  echo "[entrypoint] '$1' not found; starting gunicorn instead"
 fi
 
 echo "[entrypoint] Starting gunicorn (workers=${GUNICORN_WORKERS:-3} threads=${GUNICORN_THREADS:-4})..."

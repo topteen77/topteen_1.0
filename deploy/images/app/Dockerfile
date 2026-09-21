@@ -25,8 +25,11 @@ COPY . .
 RUN find /app -name '*.pyc' -delete
 
 COPY deploy/images/app/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+COPY deploy/images/app/start.sh /start.sh
+RUN chmod +x /entrypoint.sh /start.sh
 
 EXPOSE 8000
-# Default command = web (gunicorn). celery / celery_beat override `command` in app.yml.
+# Live ECS web tasks still set command ["/start.sh"] (old docker_files image).
+# Keep that file at /start.sh. celery / celery_beat override command.
 ENTRYPOINT ["/entrypoint.sh"]
+CMD ["/start.sh"]
