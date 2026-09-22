@@ -256,6 +256,21 @@ _extra_csrf = config('CSRF_TRUSTED_ORIGINS_EXTRA', default='', cast=str) or ''
 for _origin in [o.strip() for o in _extra_csrf.split(',') if o.strip()]:
     if _origin not in CSRF_TRUSTED_ORIGINS:
         CSRF_TRUSTED_ORIGINS.append(_origin)
+# Trust both schemes for every host we already serve.
+# Behind the ECS load balancer X-Forwarded-Proto does not always reach Django, so
+# request.is_secure() is False and Django compares the browser's
+# "Origin: https://<host>" against "http://<host>" and rejects the POST. Users see
+# "Your session has expired" on any form or AJAX submit. www/demo were listed
+# explicitly above and so kept working, which hid this on every other host.
+for _host in ALLOWED_HOSTS:
+    _host = (_host or '').strip()
+    if not _host or _host == '*':
+        continue
+    _host_pattern = f'*{_host}' if _host.startswith('.') else _host
+    for _scheme in ('https', 'http'):
+        _o = f'{_scheme}://{_host_pattern}'
+        if _o not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(_o)
 # In development, also trust http(s)://<ALLOWED_HOST> on common local ports (login from phones/LAN).
 if str(config('ENVIRONMENT', default='production')).lower() in ('development', 'staging', 'demo'):
     for _host in ALLOWED_HOSTS:
