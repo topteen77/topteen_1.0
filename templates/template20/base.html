@@ -247,20 +247,20 @@
       ctaLabel: "Buy now"
     };
   </script>
-  <script src="{{ static('js_new/ai-feature-quota.js') }}?v=3" defer></script>
+  <script src="{{ static('js_new/ai-feature-quota.js') }}?v=4" defer></script>
   {% endif %}
   {% include 'template20/includes/chatbot_widget_config.html' %}
   {# When both widgets load, page-chat must mount first so cb-root is later in DOM (same z-index stacking). #}
   {% if show_page_chat_widget and show_ai_counsellor_bot %}
-  <script src="{{ static('js_new/page-chat-widget.js') }}?v=20260922-guest" defer></script>
-  <script src="{{ static('js_new/chatbot-widget.js') }}?v=20260922-guest" defer></script>
+  <script src="{{ static('js_new/page-chat-widget.js') }}?v=20260922-guest2" defer></script>
+  <script src="{{ static('js_new/chatbot-widget.js') }}?v=20260922-guest2" defer></script>
   {% else %}
-  {% if show_ai_counsellor_bot %}<script src="{{ static('js_new/chatbot-widget.js') }}?v=20260922-guest" defer></script>{% endif %}
-  {% if show_page_chat_widget %}<script src="{{ static('js_new/page-chat-widget.js') }}?v=20260922-guest" defer></script>{% endif %}
+  {% if show_ai_counsellor_bot %}<script src="{{ static('js_new/chatbot-widget.js') }}?v=20260922-guest2" defer></script>{% endif %}
+  {% if show_page_chat_widget %}<script src="{{ static('js_new/page-chat-widget.js') }}?v=20260922-guest2" defer></script>{% endif %}
   {% endif %}
 
   {% block chatbot_js %}
-  {% if show_chatbot %}<script src="{{ static('js_new/chatbot-widget.js') }}?v=20260922-guest" defer></script>{% endif %}
+  {% if show_chatbot %}<script src="{{ static('js_new/chatbot-widget.js') }}?v=20260922-guest2" defer></script>{% endif %}
   {% endblock %}
   <script>
     window.TT_INCLUDED_LANGUAGES = {{ translate_enabled_languages_csv | tojson }};

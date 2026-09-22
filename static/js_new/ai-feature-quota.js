@@ -60,6 +60,16 @@
     return !!f.locked;
   }
 
+  function isGuestChatFeature(featureKey) {
+    return featureKey === "counsellor" || featureKey === "page_chat";
+  }
+
+  function requiresLogin(payload, featureKey) {
+    if (isGuestChatFeature(featureKey)) return false;
+    if (!payload) return false;
+    return !!(payload.session_expired || payload.require_login || payload.login_required);
+  }
+
   function mountInfo(container, opts) {
     opts = opts || {};
     if (!container) return null;
@@ -91,6 +101,8 @@
     fetchStatus: fetchStatus,
     consume: consume,
     featureLocked: featureLocked,
+    isGuestChatFeature: isGuestChatFeature,
+    requiresLogin: requiresLogin,
     mountInfo: mountInfo,
     RECHARGE_MESSAGE: CFG.message,
     CTA_LABEL: CFG.ctaLabel,

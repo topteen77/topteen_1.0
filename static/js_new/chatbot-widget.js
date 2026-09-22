@@ -653,13 +653,11 @@
 
     _applyQuotaLockUI(payload) {
       const locked = !!this._quotaLocked;
+      const apiGate = global.AIFeatureQuota;
       const requireLogin = !!(
-        this._loginRequired ||
-        (payload && (payload.require_login || payload.login_required || payload.session_expired)) ||
-        (payload && payload.features && payload.features.counsellor &&
-          (payload.features.counsellor.require_login || payload.features.counsellor.login_required))
+        apiGate && apiGate.requiresLogin && apiGate.requiresLogin(payload, 'counsellor')
       );
-      if (requireLogin) this._loginRequired = true;
+      this._loginRequired = requireLogin;
       const api = global.AIFeatureQuota;
       const defaultMsg = requireLogin
         ? "You've used your free chats. Sign in to continue."
@@ -1085,14 +1083,13 @@
       api.consume('counsellor').then((res) => {
         const data = (res && res.data) || {};
         if (!res.ok) {
-          if ((api.requiresLogin && api.requiresLogin(data, 'counsellor')) || (res && res.status === 401)) {
-            this._quotaLocked = true;
-            this._loginRequired = true;
-            this._applyQuotaLockUI(data);
-            if (typeof api.promptLogin === 'function') api.promptLogin(data);
+          // Guests are allowed to use Career Counsellor; a 401 quota gate must not block chat.
+          if (res.status === 401 || (api.requiresLogin && api.requiresLogin(data, 'counsellor'))) {
+            proceed();
             return;
           }
           this._quotaLocked = true;
+          this._loginRequired = false;
           this._applyQuotaLockUI(data);
           return;
         }
@@ -1100,11 +1097,12 @@
           this._quotaLocked = true;
           this._loginRequired = !!(api.requiresLogin && api.requiresLogin(data, 'counsellor'));
           this._applyQuotaLockUI(data);
+          if (this._loginRequired && typeof api.promptLogin === 'function') {
+            api.promptLogin(data);
+          }
+          return;
         }
         proceed();
-        if (this._loginRequired && typeof api.promptLogin === 'function') {
-          api.promptLogin(data);
-        }
       }).catch(() => proceed());
     }
 
