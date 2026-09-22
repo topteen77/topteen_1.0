@@ -23,7 +23,7 @@
           </div>
           <span class="badge rounded-pill">{{ _new_inst_total }}</span>
         </div>
-        <p class="text-muted small mb-2">Registered in the last {{ _days }} days (your marketing scope).</p>
+        <p class="text-muted small mb-2">New and recently updated institutes stay at the top. Last {{ _days }} days in your marketing scope.</p>
 
         <div class="ttv2-mktg-insight-stats mb-2">
           <div class="ttv2-mktg-insight-stat">
@@ -43,7 +43,13 @@
               <li>
                 <div class="min-w-0 flex-grow-1">
                   <a href="{{ url('institute:institute_masterdashboard', args=[row.slug]) }}">{{ row.name }}</a>
-                  <span class="text-muted d-block fs-12">{{ row.created.strftime('%d %b %Y') if row.created else '' }}</span>
+                  <span class="text-muted d-block fs-12">
+                    {% if row.modified and row.created and (row.modified - row.created).total_seconds() > 300 %}
+                      Updated {{ row.modified.strftime('%d %b %Y') }}
+                    {% else %}
+                      {{ row.created.strftime('%d %b %Y') if row.created else '' }}
+                    {% endif %}
+                  </span>
                 </div>
                 {% if row.via_group %}
                   <span class="badge">Group</span>
@@ -77,7 +83,7 @@
           </div>
           <span class="badge rounded-pill">{{ _pend_total }}</span>
         </div>
-        <p class="text-muted small mb-2">Institutes awaiting review in your scope.</p>
+        <p class="text-muted small mb-2">New registrations stay here until you approve or reject them. Newest and recently updated first.</p>
 
         <div class="ttv2-mktg-insight-stats mb-2">
           <div class="ttv2-mktg-insight-stat">
@@ -92,17 +98,51 @@
         </div>
 
         {% if _pend_prev|length > 0 %}
-          <ul class="list-unstyled small mb-3 flex-grow-1">
+          <ul class="list-unstyled small mb-3 flex-grow-1 ttv2-mktg-pending-list">
             {% for row in _pend_prev %}
-              <li class="flex-wrap">
+              <li class="ttv2-mktg-pending-item ttv2-mktg-pending-item--{{ row.urgency|default('new') }}">
                 <div class="min-w-0 flex-grow-1">
                   <a href="{{ url('institute:institute_masterdashboard', args=[row.slug]) }}">{{ row.name }}</a>
-                  {% if row.via_group and row.group_name %}
-                    <span class="text-muted d-block fs-12">{{ row.group_name }}</span>
+                  <span class="ttv2-mktg-pending-wait d-block">
+                    {% if row.days_pending == 0 %}Registered today
+                    {% elif row.days_pending == 1 %}Waiting 1 day
+                    {% else %}Waiting {{ row.days_pending }} days{% endif %}
+                    · {{ row.urgency_label|default('New registration') }}
+                  </span>
+                  {% if row.login_email or row.login_mobile or row.contact_info %}
+                    <span class="ttv2-mktg-pending-contact d-block">
+                      {% if row.login_email %}
+                        <a href="mailto:{{ row.login_email }}">{{ row.login_email }}</a>
+                      {% endif %}
+                      {% if row.login_mobile %}
+                        {% if row.login_email %} · {% endif %}
+                        <a href="tel:{{ row.login_mobile }}">{{ row.login_mobile }}</a>
+                      {% endif %}
+                      {% if row.contact_info and row.contact_info != row.login_mobile %}
+                        {% if row.login_email or row.login_mobile %} · {% endif %}
+                        <a href="tel:{{ row.contact_info }}">{{ row.contact_info }}</a>
+                      {% endif %}
+                    </span>
                   {% endif %}
                 </div>
                 {% if row.id %}
-                  <div class="d-inline-flex align-items-center gap-1 flex-shrink-0">
+                  <div class="d-inline-flex align-items-center gap-1 flex-shrink-0 flex-wrap justify-content-end">
+                    <button type="button"
+                            class="btn btn-sm btn-outline-primary ttv2-mktg-pill-view"
+                            data-ttv2-pending-view="1"
+                            data-institute-id="{{ row.id }}"
+                            data-institute-name="{{ row.name }}"
+                            data-institute-slug="{{ row.slug }}"
+                            data-institute-email="{{ row.login_email }}"
+                            data-institute-mobile="{{ row.login_mobile }}"
+                            data-institute-contact="{{ row.contact_info }}"
+                            data-institute-admin="{{ row.administrator_contact }}"
+                            data-institute-address="{{ row.address }}"
+                            data-institute-created="{{ row.created.strftime('%d %b %Y') if row.created else '' }}"
+                            data-institute-days="{{ row.days_pending }}"
+                            data-institute-urgency="{{ row.urgency_label }}">
+                      View
+                    </button>
                     <button type="button"
                             class="btn btn-sm ttv2-mktg-pill-approve"
                             data-ttv2-approve-billing="1"
@@ -183,3 +223,92 @@
     </div>
   </div>
 </div>
+
+<style>
+  .ttv2-mktg-pending-item { align-items: flex-start !important; gap: 8px; padding: 8px 0; border-bottom: 1px solid rgba(15,23,42,.06); flex-wrap: wrap; }
+  .ttv2-mktg-pending-item:last-child { border-bottom: 0; }
+  .ttv2-mktg-pending-wait { font-size: 11px; font-weight: 700; }
+  .ttv2-mktg-pending-item--new .ttv2-mktg-pending-wait { color: #047857; }
+  .ttv2-mktg-pending-item--medium .ttv2-mktg-pending-wait { color: #b45309; }
+  .ttv2-mktg-pending-item--high .ttv2-mktg-pending-wait { color: #b91c1c; }
+  .ttv2-mktg-pending-contact { font-size: 11px; }
+  .ttv2-mktg-pending-contact a { color: #2563eb; text-decoration: none; }
+  .ttv2-mktg-pill-view { font-size: 11px; padding: 2px 8px; }
+</style>
+
+<div class="modal fade" id="ttv2PendingInstituteViewModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Registration details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <h6 class="fw-semibold mb-1" id="ttv2PendingViewName">—</h6>
+        <p class="small text-muted mb-3" id="ttv2PendingViewWait"></p>
+        <dl class="row small mb-0">
+          <dt class="col-4">Registered</dt><dd class="col-8" id="ttv2PendingViewCreated">—</dd>
+          <dt class="col-4">Email</dt><dd class="col-8" id="ttv2PendingViewEmail">—</dd>
+          <dt class="col-4">Mobile</dt><dd class="col-8" id="ttv2PendingViewMobile">—</dd>
+          <dt class="col-4">Contact</dt><dd class="col-8" id="ttv2PendingViewContact">—</dd>
+          <dt class="col-4">Admin</dt><dd class="col-8" id="ttv2PendingViewAdmin">—</dd>
+          <dt class="col-4">Address</dt><dd class="col-8" id="ttv2PendingViewAddress">—</dd>
+        </dl>
+      </div>
+      <div class="modal-footer flex-wrap">
+        <a href="#" class="btn btn-outline-primary btn-sm" id="ttv2PendingViewOpen">Open dashboard</a>
+        <button type="button" class="btn btn-success btn-sm" id="ttv2PendingViewApprove">Approve</button>
+        <a href="#" class="btn btn-danger btn-sm" id="ttv2PendingViewReject">Reject</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  function val(el, name) { return (el && el.getAttribute(name)) || ''; }
+  function setText(id, text) {
+    var n = document.getElementById(id);
+    if (n) n.textContent = text || '—';
+  }
+  function setLink(id, href) {
+    var n = document.getElementById(id);
+    if (!n) return;
+    var v = (href || '').trim();
+    if (!v) { n.textContent = '—'; return; }
+    var scheme = v.indexOf('@') >= 0 ? 'mailto:' : 'tel:';
+    n.innerHTML = '<a href="' + scheme + encodeURIComponent(v) + '">' + v.replace(/[<>]/g, '') + '</a>';
+  }
+  document.addEventListener('click', function (e) {
+    var btn = e.target && e.target.closest ? e.target.closest('[data-ttv2-pending-view]') : null;
+    if (!btn) return;
+    e.preventDefault();
+    var name = val(btn, 'data-institute-name');
+    var slug = val(btn, 'data-institute-slug');
+    var id = val(btn, 'data-institute-id');
+    var days = val(btn, 'data-institute-days');
+    var urgency = val(btn, 'data-institute-urgency');
+    setText('ttv2PendingViewName', name);
+    setText('ttv2PendingViewWait', (days === '0' ? 'Registered today' : ('Waiting ' + days + ' day' + (days === '1' ? '' : 's'))) + (urgency ? ' · ' + urgency : ''));
+    setText('ttv2PendingViewCreated', val(btn, 'data-institute-created'));
+    setLink('ttv2PendingViewEmail', val(btn, 'data-institute-email'));
+    setLink('ttv2PendingViewMobile', val(btn, 'data-institute-mobile'));
+    setLink('ttv2PendingViewContact', val(btn, 'data-institute-contact'));
+    setText('ttv2PendingViewAdmin', val(btn, 'data-institute-admin'));
+    setText('ttv2PendingViewAddress', val(btn, 'data-institute-address'));
+    var open = document.getElementById('ttv2PendingViewOpen');
+    if (open) open.href = slug ? ('/institute/' + encodeURIComponent(slug) + '/dashboard/') : '#';
+    var approve = document.getElementById('ttv2PendingViewApprove');
+    if (approve) {
+      approve.setAttribute('data-ttv2-approve-billing', '1');
+      approve.setAttribute('data-institute-id', id);
+      approve.setAttribute('data-institute-name', name);
+    }
+    var reject = document.getElementById('ttv2PendingViewReject');
+    if (reject) reject.href = id ? ('/institute/institute_reject/' + id + '/') : '#';
+    var modalEl = document.getElementById('ttv2PendingInstituteViewModal');
+    if (modalEl && window.bootstrap && bootstrap.Modal) {
+      bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
+  });
+})();
+</script>

@@ -9,6 +9,7 @@ from django.views import View
 from core.ajax_auth import ajax_session_expired_response
 from core.ai_feature_quota import (
     ALL_FEATURES,
+    GUEST_ALLOWED_FEATURES,
     AIFeatureQuotaExceeded,
     consume_feature,
     feature_quota_error_response,
@@ -16,23 +17,23 @@ from core.ai_feature_quota import (
 )
 
 
-class _AIFeatureQuotaAPIMixin:
-    """JSON APIs must not use @login_required redirects (would set ?next= to this URL)."""
-
-    def dispatch(self, request, *args, **kwargs):
-        if not getattr(request.user, "is_authenticated", False):
-            return ajax_session_expired_response(request)
-        return super().dispatch(request, *args, **kwargs)
+def _quota_user(request):
+    user = getattr(request, "user", None)
+    if user is not None and getattr(user, "is_authenticated", False):
+        return user
+    return None
 
 
-class AIFeatureQuotaStatusAPI(_AIFeatureQuotaAPIMixin, View):
+class AIFeatureQuotaStatusAPI(View):
+    """Guests may poll status so Career Counsellor is not blocked by a 401."""
+
     http_method_names = ["get"]
 
     def get(self, request, *args, **kwargs):
-        return JsonResponse(status_for_user(request.user, request=request))
+        return JsonResponse(status_for_user(_quota_user(request), request=request))
 
 
-class AIFeatureQuotaConsumeAPI(_AIFeatureQuotaAPIMixin, View):
+class AIFeatureQuotaConsumeAPI(View):
     http_method_names = ["post"]
 
     def post(self, request, *args, **kwargs):
@@ -46,13 +47,16 @@ class AIFeatureQuotaConsumeAPI(_AIFeatureQuotaAPIMixin, View):
                 {"error": "Invalid feature", "features": list(ALL_FEATURES)},
                 status=400,
             )
+        user = _quota_user(request)
+        if user is None and feature not in GUEST_ALLOWED_FEATURES:
+            return ajax_session_expired_response(request)
         try:
             amount = int(body.get("amount") or 1)
         except (TypeError, ValueError):
             amount = 1
         try:
             status = consume_feature(
-                request.user,
+                user,
                 feature,
                 amount=amount,
                 request=request,

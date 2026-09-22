@@ -284,8 +284,14 @@
       </div>
 
       <div class="notifications-list-card">
-        <div id="nList" class="list-group list-group-flush"></div>
-        <div class="notifications-pager-wrap">
+        <div id="nList" class="list-group list-group-flush">
+          <div class="notification-empty">
+            <i class="bx bx-bell-off d-block mb-2"></i>
+            <p class="mb-1 fw-700">No new notification</p>
+            <p class="mb-0">When you receive updates, they will show here.</p>
+          </div>
+        </div>
+        <div class="notifications-pager-wrap" id="nPagerWrap" hidden>
           <ul class="pagination justify-content-center mb-0" id="nPager"></ul>
         </div>
       </div>
@@ -308,13 +314,17 @@
       'payment.success': 'Payment successful',
       'payment.resolved': 'Payment issue resolved',
       'payment.failed': 'Payment failed',
-      'payment.status_updated': 'Payment status updated'
+      'payment.status_updated': 'Payment status updated',
+      'marketing.demo_institute_students_added': 'Demo institute: students added',
+      'marketing.demo_institute_test_result': 'Demo institute: test result',
+      'marketing.demo_institute_all_demos_completed': 'Demo institute: all completed'
     };
     var bucketLabels = {
       'lead': 'New lead capture',
       'registration': 'New registration',
       'payment_done': 'New payment done',
       'payment_failed': 'Payment failed',
+      'demo_institute': 'Demo institute activity',
       'careers': 'Career suggestions',
       'blogs': 'Blog suggestions',
       'videos': 'Video suggestions',
@@ -363,27 +373,49 @@
       });
     }
     function esc(s) { return String(s || '').replace(/[&<>"]/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];}); }
+    function emptyHtml(title, body) {
+      return '<div class="notification-empty"><i class="bx bx-bell-off d-block mb-2"></i><p class="mb-1 fw-700">' +
+        esc(title) + '</p><p class="mb-0">' + esc(body) + '</p></div>';
+    }
+    function setEmpty(list, title, body) {
+      list.innerHTML = emptyHtml(title, body);
+      var wrap = document.getElementById('nPagerWrap');
+      if (wrap) wrap.hidden = true;
+    }
     function load() {
+      var list = document.getElementById('nList');
       var p = new URLSearchParams();
       p.set('page', page);
       if (filterBucket) p.set('bucket', filterBucket);
       else if (filterType) p.set('type', filterType);
-      if (document.getElementById('nQ').value.trim()) p.set('q', document.getElementById('nQ').value.trim());
-      fetch(listUrl + '?' + p.toString(), {headers:{'X-Requested-With':'XMLHttpRequest'}}).then(function(r){return r.json();}).then(function(data){
-        var list = document.getElementById('nList');
-        if (!data.notifications || !data.notifications.length) {
-          var emptyTitle = filterBucket && bucketLabels[filterBucket]
-            ? 'No unread ' + bucketLabels[filterBucket].toLowerCase()
-            : 'No notifications yet';
-          list.innerHTML = '<div class="notification-empty"><i class="bx bx-bell-off d-block mb-2"></i><p class="mb-1 fw-700">' + esc(emptyTitle) + '</p><p class="mb-0">You are all caught up for now.</p></div>';
-        } else {
-          list.innerHTML = data.notifications.map(function(n){
+      var qEl = document.getElementById('nQ');
+      if (qEl && qEl.value.trim()) p.set('q', qEl.value.trim());
+      fetch(listUrl + '?' + p.toString(), {headers:{'X-Requested-With':'XMLHttpRequest'}}).then(function(r){
+        if (!r.ok) throw new Error('list_failed');
+        return r.json();
+      }).then(function(data){
+        var rows = (data && data.notifications) || [];
+        if (!rows.length) {
+          var hasFilter = !!(filterBucket || filterType || (qEl && qEl.value.trim()));
+          setEmpty(
+            list,
+            hasFilter ? 'No matching notifications' : 'No new notification',
+            hasFilter ? 'Try a different search or filter.' : 'When you receive updates, they will show here.'
+          );
+          return;
+        }
+        list.innerHTML = rows.map(function(n){
             var pay = n.payload || {};
             var dest = (n.destination_url || pay.item_url || '').trim();
             var retry = '';
             if (pay.retry_payment_path && pay.show_retry_payment) {
               var rl = esc(pay.retry_payment_label || 'Retry payment');
-              retry = '<div class="mt-2"><a class="btn btn-sm custom-button purple-button" href="' + esc(pay.retry_payment_path) + '">' + rl + '</a></div>';
+              var cancel = pay.cancel_payment_path
+                ? ' <a class="btn btn-sm btn-outline-secondary" href="' + esc(pay.cancel_payment_path) + '">Cancel</a>'
+                : '';
+              retry = '<div class="mt-2"><a class="btn btn-sm custom-button purple-button" href="' + esc(pay.retry_payment_path) + '">' + rl + '</a>' + cancel + '</div>';
+            } else if (dest) {
+              retry = '<div class="mt-2"><span class="small fw-semibold text-primary">View details <i class="bx bx-right-arrow-alt"></i></span></div>';
             }
             var unreadClass = n.is_read ? '' : ' is-unread';
             var staticClass = dest ? '' : ' notification-item--static';
@@ -408,32 +440,31 @@
                 return;
               }
               var dest = (el.getAttribute('data-url') || '').trim();
+              var nid = el.getAttribute('data-id');
+              if (!dest) {
+                return;
+              }
               var fd = new FormData();
-              fd.append('id', el.getAttribute('data-id'));
+              fd.append('id', nid);
+              fd.append('opened', '1');
               fetch(markReadUrl, {method:'POST', headers:{'X-CSRFToken': csrfToken(), 'X-Requested-With':'XMLHttpRequest'}, body:fd})
-                .then(function(r){ return r.json(); })
-                .then(function(data){
-                  syncBellFromApi(data);
-                  if (dest) {
-                    window.location.href = dest;
-                    return;
-                  }
-                  load();
-                })
-                .catch(function(){
-                  if (dest) window.location.href = dest;
-                  else load();
-                });
+                .catch(function(){})
+                .finally(function(){ window.location.href = dest; });
             });
           });
-        }
         var pager = document.getElementById('nPager');
-        pager.innerHTML = '';
+        var pagerWrap = document.getElementById('nPagerWrap');
+        if (pager) pager.innerHTML = '';
         var pg = data.pagination || {};
+        var showPager = (pg.total_pages || 1) > 1;
+        if (pagerWrap) pagerWrap.hidden = !showPager;
+        if (!showPager || !pager) return;
         if (pg.has_previous) pager.innerHTML += '<li class="page-item"><a class="page-link" href="#" data-p="'+pg.previous_page+'">Previous</a></li>';
         pager.innerHTML += '<li class="page-item active"><span class="page-link">'+(pg.current_page || 1)+' / '+(pg.total_pages || 1)+'</span></li>';
         if (pg.has_next) pager.innerHTML += '<li class="page-item"><a class="page-link" href="#" data-p="'+pg.next_page+'">Next</a></li>';
         pager.querySelectorAll('a[data-p]').forEach(function(a){ a.addEventListener('click', function(e){ e.preventDefault(); page = parseInt(a.getAttribute('data-p')); load(); }); });
+      }).catch(function(){
+        setEmpty(list, 'Could not load notifications', 'Refresh the page and try again.');
       });
     }
     document.getElementById('nFilter').addEventListener('click', function(){ page = 1; load(); });

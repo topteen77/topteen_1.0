@@ -1,7 +1,8 @@
 {# Institute tie-up billing — B2B packages + Pay Now (institute & group share coupon UI) #}
 {% set _gpay_ui = is_group_view|default(false) or is_modern_payments|default(false) %}
+{% set _retry_order_id = pay_order_id %}
 <div id="ttv2TieupBillingRoot" class="ttv2-tieup-billing{% if _gpay_ui %} ttv2-tieup-billing--group{% endif %}"
-     data-order-id="{{ pay_order_id|default('') }}"
+     data-order-id="{{ _retry_order_id }}"
      data-create-order-url="{{ create_order_url|default('') }}"
      data-verify-url="{{ verify_url|default('') }}"
      data-coupon-preview-url="{{ coupon_preview_url|default('') }}"
@@ -101,20 +102,31 @@
         <div class="fw-bold fs-4" id="tieupFinalAmount">₹{{ pending_total|default(0) }}</div>
       </div>
       <div class="{% if tieup_hide_coupon_ui|default(false) %}col-md-4{% else %}col-lg-2 col-md-3{% endif %}">
-        <button type="button" class="btn btn-primary w-100" id="tieupPayNow" {% if not pay_order_id %}disabled{% endif %}>
-          <i class="bx bx-credit-card me-1"></i> Pay Now
+        <button type="button" class="btn btn-primary w-100" id="tieupPayNow">
+          <i class="bx bx-credit-card me-1"></i> {% if checkout_mode|default(false) %}Retry payment{% else %}Pay Now{% endif %}
         </button>
       </div>
     </div>
   </div>
   {% elif has_pending|default(false) and not pay_order_id %}
-    {% if _gpay_ui %}
-    <div class="ttv2-gpay-alert mb-0">
-      <i class="bx bx-error-circle"></i>
-      <span>Pending tie-up billing exists but no payable order was found. Refresh the page or contact support.</span>
-    </div>
+    {% if tieup_amount_payable|default(false) %}
+      {% if _gpay_ui %}
+      <div class="ttv2-gpay-alert mb-0">
+        <i class="bx bx-error-circle"></i>
+        <span>A payable order could not be prepared. Refresh the page or contact support.</span>
+      </div>
+      {% else %}
+      <div class="mt-3 alert alert-warning mb-0 small">A payable order could not be prepared. Refresh the page or contact support.</div>
+      {% endif %}
     {% else %}
-    <div class="mt-3 alert alert-warning mb-0 small">Pending tie-up billing exists but no payable order was found. Refresh the page or contact support.</div>
+      {% if _gpay_ui %}
+      <div class="ttv2-gpay-alert ttv2-gpay-alert--info mb-0">
+        <i class="bx bx-info-circle"></i>
+        <span>These packages have no amount due. Payment is not required right now.</span>
+      </div>
+      {% else %}
+      <div class="mt-3 alert alert-info mb-0 small">These packages have no amount due. Payment is not required right now.</div>
+      {% endif %}
     {% endif %}
   {% endif %}
 {% if is_group_view|default(false) or _gpay_ui %}

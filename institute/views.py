@@ -36,13 +36,21 @@ from django.http import HttpResponse
 from institute.filters import StudentFilter
 from institute.counselor_component_data import build_institute_group_counselor_ui_maps
 from django.db import transaction
-from django.db.models import Count, Exists, F, IntegerField, OuterRef, Q, Subquery, Sum, Value
+from django.db.models import Count, Exists, F, IntegerField, OuterRef, Q, Subquery, Sum, Value, Case, When
 from django.db.models.functions import Lower
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django.views.decorators.http import require_GET
 from app.models import Results, TestCompletion
 from institute.utils import get_heatmap_data_for_group, get_heatmap_data_for_institute, get_empty_heatmap_data
+from institute.seat_capacity import (
+    SEAT_CAPACITY_VALUE_FIELDS,
+    attach_streams_capacity_context,
+    apply_seat_capacity,
+    parse_capacity_post,
+    serialize_institute_capacity,
+    user_can_edit_institute_seat_capacity,
+)
 # Dashboard template switch (v1/v2)
 from core.models import Configuration
 from core.ttv2_partial_request import request_wants_ttv2_dashboard_body_partial
@@ -77,6 +85,44 @@ def _sm_primary_psychometric_tests_complete_exists():
             test3_complete=True,
         )
     )
+
+
+def _order_institutes_new_first(qs):
+    """Keep new registrations and recently updated institutes at the top of lists."""
+    recent_cutoff = timezone.now() - timedelta(days=14)
+    return qs.order_by(
+        Case(
+            When(institute_status=choices.InstituteStatus.PENDING, then=Value(0)),
+            When(modified__gte=recent_cutoff, then=Value(1)),
+            When(created__gte=recent_cutoff, then=Value(1)),
+            default=Value(2),
+            output_field=IntegerField(),
+        ),
+        "-modified",
+        "-created",
+        Lower("name"),
+    )
+
+
+def _registration_wait_meta(created_at):
+    """Days since registration plus urgency for marketing follow-up."""
+    if not created_at:
+        return {"days": 0, "urgency": "new", "urgency_label": "New"}
+    now = timezone.now()
+    try:
+        if timezone.is_naive(created_at):
+            created_at = timezone.make_aware(created_at, timezone.get_current_timezone())
+    except Exception:
+        pass
+    delta = now - created_at
+    days = max(0, int(delta.total_seconds() // 86400))
+    if days >= 7:
+        urgency, label = "high", "Urgent — please review"
+    elif days >= 3:
+        urgency, label = "medium", "Waiting — follow up"
+    else:
+        urgency, label = "new", "New registration"
+    return {"days": days, "urgency": urgency, "urgency_label": label}
 
 
 def _ttv2_week_start_from_request(request):
@@ -1766,7 +1812,9 @@ class AdminDashboardView(TemplateView):
         # else:
             # institutes=Institute.objects.all().order_by('-created')
         
-        institutes = Institute.objects.all().order_by('-created').annotate(student_count=Count('student_management'))
+        institutes = _order_institutes_new_first(
+            Institute.objects.all().annotate(student_count=Count("student_management"))
+        )
         counselors_linked_to_institute = Counselor.objects.filter(counselor_admin__isnull=False)
         independent_counselors = Counselor.objects.filter(counselor_admin__isnull=True)
 
@@ -2404,13 +2452,15 @@ class MarketingGroupDashboardView(TemplateView):
             .values("c")[:1]
         )
         # Annotate with student count + institute-group institute count.
-        institutes = institutes.annotate(
-            student_count=Count('student_management'),
-            group_institute_count=Coalesce(
-                Subquery(group_count_sq, output_field=IntegerField()),
-                Value(0),
-            ),
-        ).select_related("institute_group", "created_by")
+        institutes = _order_institutes_new_first(
+            institutes.annotate(
+                student_count=Count('student_management'),
+                group_institute_count=Coalesce(
+                    Subquery(group_count_sq, output_field=IntegerField()),
+                    Value(0),
+                ),
+            ).select_related("institute_group", "created_by")
+        )
 
         # Get unique locations for dropdown
         locations = institutes.values_list('address', flat=True).distinct()
@@ -2583,25 +2633,42 @@ class MarketingGroupDashboardView(TemplateView):
 
             def _mktg_institute_preview_rows(qs, limit):
                 rows = []
-                for o in qs.select_related('institute_group')[:limit]:
+                for o in qs.select_related('institute_group', 'created_by')[:limit]:
+                    wait = _registration_wait_meta(o.created)
+                    created_by = o.created_by
                     rows.append({
                         'id': o.id,
                         'name': o.name,
                         'slug': o.slug,
                         'created': o.created,
+                        'modified': o.modified,
                         'institute_status': o.institute_status,
                         'status_label': _status_labels.get(o.institute_status, ''),
                         'via_group': o.institute_group_id is not None,
                         'group_name': (
                             o.institute_group.group_name if o.institute_group_id else ''
                         ),
+                        'address': o.address or '',
+                        'contact_info': o.contact_info or '',
+                        'administrator_contact': o.administrator_contact or '',
+                        'login_email': getattr(created_by, 'email', '') or '',
+                        'login_mobile': getattr(created_by, 'mobile', '') or '',
+                        'days_pending': wait['days'],
+                        'urgency': wait['urgency'],
+                        'urgency_label': wait['urgency_label'],
                     })
                 return rows
 
-            _recent_inst = _scoped.filter(created__gte=_recent_cutoff).order_by('-created')
-            _pending_inst = _scoped.filter(
-                institute_status=choices.InstituteStatus.PENDING,
-            ).order_by('-created')
+            _recent_inst = _order_institutes_new_first(
+                _scoped.filter(
+                    Q(created__gte=_recent_cutoff)
+                    | Q(modified__gte=_recent_cutoff)
+                    | Q(institute_status=choices.InstituteStatus.PENDING)
+                )
+            )
+            _pending_inst = _order_institutes_new_first(
+                _scoped.filter(institute_status=choices.InstituteStatus.PENDING)
+            )
             _recent_counselors = (
                 Counselor.objects.filter(
                     counselor_admin__marketing_group__marketing_group_admin=group_admin,
@@ -2733,10 +2800,10 @@ class MarketingGroupDashboardView(TemplateView):
                 .annotate(student_count=Count('student_management'))
                 .order_by('-student_count')[:20]
             )
-            seat_capacity_institutes = list(
-                _mscope.values('id', 'slug', 'name', 'address', 'pcm', 'cbm', 'comm', 'hme', 'hmb')
-                .order_by('name')[:100]
-            )
+            seat_capacity_institutes = [
+                serialize_institute_capacity(row)
+                for row in _mscope.values(*SEAT_CAPACITY_VALUE_FIELDS).order_by('name')[:100]
+            ]
             total_students_count = StudentManagement.objects.filter(
                 institute__marketing_group__marketing_group_admin=group_admin
             ).count()
@@ -2866,6 +2933,7 @@ class MarketingGroupDashboardView(TemplateView):
             )
             ctx["ttv2_payments_status_filter"] = status_filter or ""
             ctx["ttv2_payments_institute_filter"] = institute_filter
+            ctx["ttv2_payments_highlight_id"] = (request.GET.get("payment_id") or "").strip()
             ctx["tieup_payment_institutes"] = list(
                 institutes_qs.values("id", "name", "slug")
             )
@@ -3418,7 +3486,11 @@ class InstituteGroupDashboardView(TemplateView):
                     address__icontains=search_params['location_search']
                 )
 
-        institutes = institutes.annotate(student_count=Count("student_management"))
+        institutes = _order_institutes_new_first(
+            institutes.annotate(student_count=Count("student_management")).select_related(
+                "institute_group", "created_by"
+            )
+        )
 
         # Get unique locations for dropdown
         locations = institutes.values_list('address', flat=True).distinct()
@@ -3522,11 +3594,10 @@ class InstituteGroupDashboardView(TemplateView):
                 )
 
                 # Get full institute list for seat capacity table
-                seat_capacity_institutes = list(
-                    ig_institutes_qs.values(
-                        'id', 'name', 'address', 'pcm', 'cbm', 'comm', 'hme', 'hmb'
-                    ).order_by('name')[:100]  # Limit to 100 institutes
-                )
+                seat_capacity_institutes = [
+                    serialize_institute_capacity(row)
+                    for row in ig_institutes_qs.values(*SEAT_CAPACITY_VALUE_FIELDS).order_by('name')[:100]
+                ]
 
                 # OPTIMIZED: Get total student count
                 total_students_count = student_management_for_institute_group_admin(
@@ -3723,6 +3794,7 @@ class InstituteGroupDashboardView(TemplateView):
             ctx["ttv2_tieup_payments"] = ctx.get("tieup_payment_rows") or ctx.get("rows", [])
             ctx["ttv2_payments_status_filter"] = status_filter or ""
             ctx["ttv2_payments_institute_filter"] = institute_filter
+            ctx["ttv2_payments_highlight_id"] = (request.GET.get("payment_id") or "").strip()
             ctx["tieup_payment_institutes"] = ctx.get("tieup_coupon_institutes") or []
             ctx["is_group_view"] = True
         if ctx["ttv2_page"] == "accounts":
@@ -4973,6 +5045,7 @@ class InstituteDashboardView(TemplateView):
             ctx["psychometric_test_result_count"]=ptr_count  # Just count
         ctx["central_test_candidate"]=CentralTestCandidate.objects.none()  # Don't load all
         ctx["institute"]=institute
+        ctx["can_edit_seat_capacity"] = user_can_edit_institute_seat_capacity(request.user, institute)
         ctx["class_and_sections"]=class_and_sections
         ctx["ttv2_dashboard_body_role"] = "institute"
         if institute:
@@ -5051,6 +5124,7 @@ class InstituteDashboardView(TemplateView):
             if ctx["ttv2_page"] in ("payments", "dashboard"):
                 ctx["ttv2_tieup_payments"] = ctx.get("tieup_payment_rows") or ctx.get("rows", [])
                 ctx["ttv2_payments_status_filter"] = status_filter or ""
+                ctx["ttv2_payments_highlight_id"] = (request.GET.get("payment_id") or "").strip()
 
         # Students page: Psychometric assessment PDF stats (MI/EI attempts in scope)
         # Block is currently unused in the students template — skip expensive scans there.
@@ -5084,168 +5158,8 @@ class InstituteDashboardView(TemplateView):
         if (ctx.get("ttv2_page") or "").strip().lower() == "streams_capacity":
             inst = ctx.get("institute")
             stu_qs = ctx.get("stu")
-            # Always build capacity rows; stream enrollment aggregation may fail in some deployments.
-            cap_map = {
-                "PCM": int(getattr(inst, "pcm", 0) or 0) if inst else 0,
-                "CBM": int(getattr(inst, "cbm", 0) or 0) if inst else 0,
-                "COMM": int(getattr(inst, "comm", 0) or 0) if inst else 0,
-                "HME": int(getattr(inst, "hme", 0) or 0) if inst else 0,
-                "HMB": int(getattr(inst, "hmb", 0) or 0) if inst else 0,
-            }
-
-            def _norm_stream_code(raw):
-                v = (raw or "").strip().upper()
-                if not v:
-                    return ""
-                # Backwards-compatible aliases used across templates/datasets
-                alias = {
-                    "CB": "CBM",
-                    "MCOM": "COMM",
-                    "HUM": "HME",
-                    "HM": "HMB",
-                }
-                return alias.get(v, v)
-
-            stream_counts = {}
-            if hasattr(stu_qs, "exclude"):
-                try:
-                    for row in (
-                        stu_qs.exclude(class_and_section__stream__isnull=True)
-                        .exclude(class_and_section__stream__exact="")
-                        .values("class_and_section__stream")
-                        .annotate(n=Count("id"))
-                    ):
-                        key = _norm_stream_code(row.get("class_and_section__stream"))
-                        if key:
-                            stream_counts[key] = int(row.get("n") or 0)
-                except Exception:
-                    stream_counts = {}
-
-            rows = []
-            seen = set()
-            for code, cap in cap_map.items():
-                enrolled = int(stream_counts.get(code, 0))
-                rows.append(
-                    {
-                        "code": code,
-                        "label": {"PCM": "PCM", "CBM": "CB", "COMM": "MCOM", "HME": "HUM", "HMB": "HM"}.get(code, code),
-                        "enrolled": enrolled,
-                        "capacity": int(cap),
-                        "remaining": max(0, int(cap) - enrolled) if cap else 0,
-                    }
-                )
-                seen.add(code)
-
-            # Include any other streams present in data (capacity unknown -> 0)
-            for code, enrolled in sorted(stream_counts.items(), key=lambda x: x[0]):
-                if code in seen:
-                    continue
-                rows.append(
-                    {
-                        "code": code,
-                        "label": code,
-                        "enrolled": int(enrolled),
-                        "capacity": 0,
-                        "remaining": 0,
-                    }
-                )
-
-            ctx["ttv2_streams_capacity_is_dummy"] = False
-            ctx["ttv2_streams_capacity"] = rows
-
-            # Rich UI payload (KPI cards, charts, full table) for Template v2.
-            # Capacity fields on Institute are treated as per-class capacity for 11th & 12th classes.
-            classes = ["11th class", "12th class"]
-            class_stream_counts = {}
-            if hasattr(stu_qs, "values") and hasattr(stu_qs, "exclude"):
-                try:
-                    for r in (
-                        stu_qs.exclude(class_and_section__stream__isnull=True)
-                        .exclude(class_and_section__stream__exact="")
-                        .exclude(class_and_section__class_and_section__isnull=True)
-                        .exclude(class_and_section__class_and_section__exact="")
-                        .values("class_and_section__class_and_section", "class_and_section__stream")
-                        .annotate(n=Count("id"))
-                    ):
-                        cls_raw = (r.get("class_and_section__class_and_section") or "").strip().lower()
-                        if "11" in cls_raw:
-                            cls_key = "11th class"
-                        elif "12" in cls_raw:
-                            cls_key = "12th class"
-                        else:
-                            continue
-                        sc = _norm_stream_code(r.get("class_and_section__stream"))
-                        if not sc:
-                            continue
-                        class_stream_counts[(cls_key, sc)] = int(r.get("n") or 0)
-                except Exception:
-                    class_stream_counts = {}
-
-            streams_meta = [
-                {"code": "PCM", "label": "PCM"},
-                {"code": "CBM", "label": "CB"},
-                {"code": "COMM", "label": "MCOM"},
-                {"code": "HME", "label": "HUM"},
-                {"code": "HMB", "label": "HM"},
-            ]
-
-            class_rows = []
-            total_filled = 0
-            cap_per_class = sum(int(v or 0) for v in cap_map.values())
-            for idx, cls in enumerate(classes, start=1):
-                filled = 0
-                per_stream = {}
-                for sm in streams_meta:
-                    code = sm["code"]
-                    n = int(class_stream_counts.get((cls, code), 0))
-                    per_stream[code] = {"cap": int(cap_map.get(code, 0) or 0), "filled": n}
-                    filled += n
-                total = int(cap_per_class)
-                available = max(0, total - filled)
-                pct = (float(filled) / float(total) * 100.0) if total else 0.0
-                total_filled += filled
-                class_rows.append(
-                    {
-                        "idx": idx,
-                        "class_label": cls,
-                        "streams": per_stream,
-                        "total": total,
-                        "filled": int(filled),
-                        "available": int(available),
-                        "fill_pct": round(pct, 1),
-                    }
-                )
-
-            total_capacity = int(cap_per_class) * len(classes)
-            open_seats = max(0, total_capacity - total_filled)
-            fill_rate = (float(total_filled) / float(total_capacity) * 100.0) if total_capacity else 0.0
-
-            occ_by_stream = []
-            for sm in streams_meta:
-                code = sm["code"]
-                cap_total = int(cap_map.get(code, 0) or 0) * len(classes)
-                filled_stream = sum(int(class_stream_counts.get((cls, code), 0)) for cls in classes)
-                occ_pct = (float(filled_stream) / float(cap_total) * 100.0) if cap_total else 0.0
-                occ_by_stream.append(
-                    {"code": code, "label": sm["label"], "filled": int(filled_stream), "capacity": int(cap_total), "pct": round(occ_pct, 2)}
-                )
-
-            ctx["ttv2_streams_capacity_payload"] = {
-                "kpis": {
-                    "total_capacity": total_capacity,
-                    "seats_filled": int(total_filled),
-                    "open_seats": int(open_seats),
-                    "fill_rate_pct": round(fill_rate, 2),
-                    "streams_count": len(streams_meta),
-                    "classes_count": len(classes),
-                    "capacity_per_stream_default": int(max(cap_map.values()) if cap_map else 0),
-                },
-                "streams_meta": streams_meta,
-                "classes": classes,
-                "cap_map": cap_map,
-                "class_rows": class_rows,
-                "occupancy_by_stream": occ_by_stream,
-            }
+            attach_streams_capacity_context(ctx, inst, stu_qs)
+            rows = ctx.get("ttv2_streams_capacity") or []
             _ttv2_dbg(
                 {
                     "hypothesisId": "H2",
@@ -6575,165 +6489,7 @@ class InstituteDashboardView(TemplateView):
 
         # v2 "Streams & capacity" page: counts per stream vs configured seat capacity on Institute.
         if (ctx.get("ttv2_page") or "").strip().lower() == "streams_capacity":
-            inst = ctx.get("institute")
-            stu_qs = ctx.get("stu")
-            cap_map = {
-                "PCM": int(getattr(inst, "pcm", 0) or 0) if inst else 0,
-                "CBM": int(getattr(inst, "cbm", 0) or 0) if inst else 0,
-                "COMM": int(getattr(inst, "comm", 0) or 0) if inst else 0,
-                "HME": int(getattr(inst, "hme", 0) or 0) if inst else 0,
-                "HMB": int(getattr(inst, "hmb", 0) or 0) if inst else 0,
-            }
-
-            def _norm_stream_code(raw):
-                v = (raw or "").strip().upper()
-                if not v:
-                    return ""
-                alias = {
-                    "CB": "CBM",
-                    "MCOM": "COMM",
-                    "HUM": "HME",
-                    "HM": "HMB",
-                }
-                return alias.get(v, v)
-
-            stream_counts = {}
-            if hasattr(stu_qs, "exclude"):
-                try:
-                    for row in (
-                        stu_qs.exclude(class_and_section__stream__isnull=True)
-                        .exclude(class_and_section__stream__exact="")
-                        .values("class_and_section__stream")
-                        .annotate(n=Count("id"))
-                    ):
-                        key = _norm_stream_code(row.get("class_and_section__stream"))
-                        if key:
-                            stream_counts[key] = int(row.get("n") or 0)
-                except Exception:
-                    stream_counts = {}
-
-            rows = []
-            seen = set()
-            for code, cap in cap_map.items():
-                enrolled = int(stream_counts.get(code, 0))
-                rows.append(
-                    {
-                        "code": code,
-                        "label": {"PCM": "PCM", "CBM": "CB", "COMM": "MCOM", "HME": "HUM", "HMB": "HM"}.get(code, code),
-                        "enrolled": enrolled,
-                        "capacity": int(cap),
-                        "remaining": max(0, int(cap) - enrolled) if cap else 0,
-                    }
-                )
-                seen.add(code)
-
-            for code, enrolled in sorted(stream_counts.items(), key=lambda x: x[0]):
-                if code in seen:
-                    continue
-                rows.append(
-                    {
-                        "code": code,
-                        "label": code,
-                        "enrolled": int(enrolled),
-                        "capacity": 0,
-                        "remaining": 0,
-                    }
-                )
-
-            ctx["ttv2_streams_capacity_is_dummy"] = False
-            ctx["ttv2_streams_capacity"] = rows
-
-            classes = ["11th class", "12th class"]
-            class_stream_counts = {}
-            if hasattr(stu_qs, "values") and hasattr(stu_qs, "exclude"):
-                try:
-                    for r in (
-                        stu_qs.exclude(class_and_section__stream__isnull=True)
-                        .exclude(class_and_section__stream__exact="")
-                        .exclude(class_and_section__class_and_section__isnull=True)
-                        .exclude(class_and_section__class_and_section__exact="")
-                        .values("class_and_section__class_and_section", "class_and_section__stream")
-                        .annotate(n=Count("id"))
-                    ):
-                        cls_raw = (r.get("class_and_section__class_and_section") or "").strip().lower()
-                        if "11" in cls_raw:
-                            cls_key = "11th class"
-                        elif "12" in cls_raw:
-                            cls_key = "12th class"
-                        else:
-                            continue
-                        sc = _norm_stream_code(r.get("class_and_section__stream"))
-                        if not sc:
-                            continue
-                        class_stream_counts[(cls_key, sc)] = int(r.get("n") or 0)
-                except Exception:
-                    class_stream_counts = {}
-
-            streams_meta = [
-                {"code": "PCM", "label": "PCM"},
-                {"code": "CBM", "label": "CB"},
-                {"code": "COMM", "label": "MCOM"},
-                {"code": "HME", "label": "HUM"},
-                {"code": "HMB", "label": "HM"},
-            ]
-
-            class_rows = []
-            total_filled = 0
-            cap_per_class = sum(int(v or 0) for v in cap_map.values())
-            for idx, cls in enumerate(classes, start=1):
-                filled = 0
-                per_stream = {}
-                for sm in streams_meta:
-                    code = sm["code"]
-                    n = int(class_stream_counts.get((cls, code), 0))
-                    per_stream[code] = {"cap": int(cap_map.get(code, 0) or 0), "filled": n}
-                    filled += n
-                total = int(cap_per_class)
-                available = max(0, total - filled)
-                pct = (float(filled) / float(total) * 100.0) if total else 0.0
-                total_filled += filled
-                class_rows.append(
-                    {
-                        "idx": idx,
-                        "class_label": cls,
-                        "streams": per_stream,
-                        "total": total,
-                        "filled": int(filled),
-                        "available": int(available),
-                        "fill_pct": round(pct, 1),
-                    }
-                )
-
-            total_capacity = int(cap_per_class) * len(classes)
-            open_seats = max(0, total_capacity - total_filled)
-            fill_rate = (float(total_filled) / float(total_capacity) * 100.0) if total_capacity else 0.0
-
-            occ_by_stream = []
-            for sm in streams_meta:
-                code = sm["code"]
-                cap_total = int(cap_map.get(code, 0) or 0) * len(classes)
-                filled_stream = sum(int(class_stream_counts.get((cls, code), 0)) for cls in classes)
-                occ_pct = (float(filled_stream) / float(cap_total) * 100.0) if cap_total else 0.0
-                occ_by_stream.append(
-                    {"code": code, "label": sm["label"], "filled": int(filled_stream), "capacity": int(cap_total), "pct": round(occ_pct, 2)}
-                )
-
-            ctx["ttv2_streams_capacity_payload"] = {
-                "kpis": {
-                    "total_capacity": total_capacity,
-                    "seats_filled": int(total_filled),
-                    "open_seats": int(open_seats),
-                    "fill_rate_pct": round(fill_rate, 2),
-                    "streams_count": len(streams_meta),
-                    "classes_count": len(classes),
-                    "capacity_per_stream_default": int(max(cap_map.values()) if cap_map else 0),
-                },
-                "streams_meta": streams_meta,
-                "classes": classes,
-                "cap_map": cap_map,
-                "class_rows": class_rows,
-                "occupancy_by_stream": occ_by_stream,
-            }
+            attach_streams_capacity_context(ctx, ctx.get("institute"), ctx.get("stu"))
 
         payments_partial = _render_ttv2_tieup_payments_partial(request, ctx)
         if payments_partial is not None:
@@ -7373,61 +7129,10 @@ class AssignStudentToCounselorView(View):
         except Exception:
             return JsonResponse({"ok": False, "error": "assign_failed"}, status=500)
 
-        # Notify counselor (in-app + email) about assignment.
         try:
-            counselor_user = getattr(counselor, "coun_user", None)
-            if counselor_user and getattr(counselor_user, "email", None):
-                from notifications.services import emit_notification
-                from notifications.models import NotificationCategory
-                from communication.com_service import ComService
+            from notifications.institute_notifications import notify_student_assigned
 
-                student_user = getattr(sm, "student", None)
-                student_name = getattr(student_user, "name", None) or getattr(student_user, "email", None) or "Student"
-                student_email = getattr(student_user, "email", None) or ""
-                inst_name = getattr(institute, "name", None) or "Institute"
-
-                emit_notification(
-                    event_type="institute.student_assigned",
-                    title="New student assigned",
-                    body=f"A new student {student_name} ({student_email}) was assigned to you by {inst_name}.",
-                    recipients=[counselor_user],
-                    category=NotificationCategory.INSTITUTE,
-                    payload={
-                        "student_management_id": sm.id,
-                        "student_id": getattr(sm, "student_id", None),
-                        "institute_id": institute.id,
-                        "counselor_id": counselor.id,
-                    },
-                    source_obj=sm,
-                    dedupe_key=f"institute.student_assigned:sm{sm.id}:u{counselor_user.id}",
-                )
-
-                # Email (best-effort)
-                try:
-                    cs = ComService()
-                    subject = cs.build_email_subject("New student assigned")
-                    html = (
-                        f"<p>Hello {getattr(counselor, 'counselor_name', '') or 'Counselor'},</p>"
-                        f"<p><strong>{student_name}</strong> ({student_email}) has been assigned to you by <strong>{inst_name}</strong>.</p>"
-                        f"<p>Please login to your counselor dashboard to view details.</p>"
-                    )
-                    to_list = []
-                    try:
-                        if counselor_user.email:
-                            to_list.append(str(counselor_user.email).strip())
-                    except Exception:
-                        pass
-                    try:
-                        if getattr(counselor, "counselor_email", None):
-                            to_list.append(str(getattr(counselor, "counselor_email")).strip())
-                    except Exception:
-                        pass
-                    # de-dupe
-                    to_list = [x for i, x in enumerate(to_list) if x and x not in to_list[:i]]
-                    if to_list:
-                        cs.send_mail(subject, to_list, html, html)
-                except Exception:
-                    pass
+            notify_student_assigned(sm, counselor, institute)
         except Exception:
             pass
 
@@ -7500,60 +7205,10 @@ class SetStudentCounselorView(View):
             except Exception:
                 pass
 
-            # Notify counselor about assignment (same as assign endpoint)
             try:
-                counselor_user = getattr(counselor, "coun_user", None)
-                if counselor_user and getattr(counselor_user, "email", None):
-                    from notifications.services import emit_notification
-                    from notifications.models import NotificationCategory
-                    from communication.com_service import ComService
+                from notifications.institute_notifications import notify_student_assigned
 
-                    student_user = getattr(sm, "student", None)
-                    student_name = getattr(student_user, "name", None) or getattr(student_user, "email", None) or "Student"
-                    student_email = getattr(student_user, "email", None) or ""
-                    inst_name = getattr(institute, "name", None) or "Institute"
-
-                    emit_notification(
-                        event_type="institute.student_assigned",
-                        title="New student assigned",
-                        body=f"A new student {student_name} ({student_email}) was assigned to you by {inst_name}.",
-                        recipients=[counselor_user],
-                        category=NotificationCategory.INSTITUTE,
-                        payload={
-                            "student_management_id": sm.id,
-                            "student_id": getattr(sm, "student_id", None),
-                            "institute_id": institute.id,
-                            "counselor_id": counselor.id,
-                        },
-                        source_obj=sm,
-                        dedupe_key=f"institute.student_assigned:sm{sm.id}:u{counselor_user.id}",
-                    )
-
-                    # Email (best-effort)
-                    try:
-                        cs = ComService()
-                        subject = cs.build_email_subject("New student assigned")
-                        html = (
-                            f"<p>Hello {getattr(counselor, 'counselor_name', '') or 'Counselor'},</p>"
-                            f"<p><strong>{student_name}</strong> ({student_email}) has been assigned to you by <strong>{inst_name}</strong>.</p>"
-                            f"<p>Please login to your counselor dashboard to view details.</p>"
-                        )
-                        to_list = []
-                        try:
-                            if counselor_user.email:
-                                to_list.append(str(counselor_user.email).strip())
-                        except Exception:
-                            pass
-                        try:
-                            if getattr(counselor, "counselor_email", None):
-                                to_list.append(str(getattr(counselor, "counselor_email")).strip())
-                        except Exception:
-                            pass
-                        to_list = [x for i, x in enumerate(to_list) if x and x not in to_list[:i]]
-                        if to_list:
-                            cs.send_mail(subject, to_list, html, html)
-                    except Exception:
-                        pass
+                notify_student_assigned(sm, counselor, institute)
             except Exception:
                 pass
 
@@ -8524,60 +8179,34 @@ class InstituteStudentBlockView(TemplateView):
 
 
 @method_decorator(login_required(login_url=reverse_lazy('users:login')),name='dispatch')
-@method_decorator(marketing_group_user_only,name='dispatch')
 class UpdateSeatCapacityView(View):
-    """View to update seat capacity for an institute via AJAX"""
-    
+    """Update class 11/12 seat capacity. Institute, marketing, group admin, or superuser."""
+
     def post(self, request, *args, **kwargs):
         try:
             institute_id = request.POST.get('institute_id')
-            pcm = request.POST.get('pcm')
-            cbm = request.POST.get('cbm')
-            comm = request.POST.get('comm')
-            hme = request.POST.get('hme')
-            hmb = request.POST.get('hmb')
-            
             if not institute_id:
                 return JsonResponse({'success': False, 'error': 'Institute ID is required'}, status=400)
-            
-            # Get the institute
-            institute = get_object_or_404(Institute, id=institute_id)
-            
-            # Verify the institute belongs to the user's marketing group
-            group_admin = request.user
-            marketing_group = InstituteMarketingGroup.objects.filter(
-                marketing_group_admin=group_admin
-            ).first()
-            
-            if not marketing_group or institute.marketing_group != marketing_group:
+
+            institute = get_object_or_404(
+                Institute.objects.select_related('marketing_group', 'institute_group'),
+                id=institute_id,
+            )
+            if not user_can_edit_institute_seat_capacity(request.user, institute):
                 return JsonResponse({'success': False, 'error': 'Unauthorized access'}, status=403)
-            
-            # Update seat capacity fields
-            if pcm is not None:
-                institute.pcm = int(pcm)
-            if cbm is not None:
-                institute.cbm = int(cbm)
-            if comm is not None:
-                institute.comm = int(comm)
-            if hme is not None:
-                institute.hme = int(hme)
-            if hmb is not None:
-                institute.hmb = int(hmb)
-            
+
+            parsed = parse_capacity_post(request.POST)
+            if not parsed.get('11') and not parsed.get('12'):
+                return JsonResponse({'success': False, 'error': 'No seat capacity values provided'}, status=400)
+
+            apply_seat_capacity(institute, parsed)
             institute.save()
-            
+            data = serialize_institute_capacity(institute)
             return JsonResponse({
                 'success': True,
                 'message': 'Seat capacity updated successfully',
-                'data': {
-                    'pcm': institute.pcm,
-                    'cbm': institute.cbm,
-                    'comm': institute.comm,
-                    'hme': institute.hme,
-                    'hmb': institute.hmb
-                }
+                'data': data,
             })
-            
         except ValueError as e:
             return JsonResponse({'success': False, 'error': f'Invalid value: {str(e)}'}, status=400)
         except Exception as e:
@@ -9045,7 +8674,7 @@ def get_heatmap_data_api(request):
                     return JsonResponse({'error': 'Unauthorized access to institute'}, status=403)
 
                 heatmap_data = _cached_payload(
-                    f"inst:heatmap:v1:{institute.pk}:{demographic_type}",
+                    f"inst:heatmap:v2:{institute.pk}:{demographic_type}",
                     lambda: get_heatmap_data_for_institute(institute, demographic_type),
                 )
                 return JsonResponse(heatmap_data, safe=False)
@@ -9067,7 +8696,7 @@ def get_heatmap_data_api(request):
                 institute = Institute.objects.filter(created_by=user).first()
                 if institute:
                     heatmap_data = _cached_payload(
-                        f"inst:heatmap:v1:{institute.pk}:{demographic_type}",
+                        f"inst:heatmap:v2:{institute.pk}:{demographic_type}",
                         lambda: get_heatmap_data_for_institute(institute, demographic_type),
                     )
                     return JsonResponse(heatmap_data, safe=False)
@@ -9079,7 +8708,7 @@ def get_heatmap_data_api(request):
         
         # Get heatmap data for group
         heatmap_data = _cached_payload(
-            f"inst:heatmap:group:v1:{user.pk}:{group_type}:{demographic_type}",
+            f"inst:heatmap:group:v2:{user.pk}:{group_type}:{demographic_type}",
             lambda: get_heatmap_data_for_group(user, group_type, demographic_type),
         )
         

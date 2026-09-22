@@ -2004,12 +2004,7 @@ class="mx-auto relative z-10 lg:px-[0px] px-[17px] py-[17px] lg:py-0 overflow-hi
 //const API_URL = `https://43.204.127.118:8001/`;
 // const API_URL = `http://demo.topteen.in/bot/`;
 
-let API_URL;
-if (window.location.hostname === "demo.topteen.in") {
-    API_URL = "https://careerbot.canamacademy.com/api/";
-} else {
-    API_URL = "https://careerbot.canamacademy.com/api/";
-}
+let API_URL = "{{ (topteenbot_url or 'https://careerbot.canamacademy.com')|trim('/') }}/api/";
 // const API_URL = `http://127.0.0.1:8000/history-test/`;
 
 const chatBody = document.querySelector(".chat-body");

@@ -118,3 +118,47 @@ class AIFeatureQuotaTests(TestCase):
         st = feature_status(self.student, FEATURE_RESUME_AI)
         self.assertFalse(st["locked"])
         self.assertEqual(st["remaining"], 10)
+
+    def test_guest_quota_does_not_apply(self):
+        self.assertFalse(quota_applies(None))
+        st = feature_status(None, FEATURE_COUNSELLOR)
+        self.assertFalse(st["locked"])
+        self.assertTrue(st["unlimited"])
+        consume_feature(None, FEATURE_COUNSELLOR)
+
+    def test_guest_can_status_and_consume_counsellor(self):
+        import json
+
+        status = self.client.get("/ai-feature-quota/status/")
+        self.assertEqual(status.status_code, 200)
+        payload = status.json()
+        self.assertFalse(payload.get("applies"))
+        self.assertFalse(payload["features"][FEATURE_COUNSELLOR]["locked"])
+
+        consume = self.client.post(
+            "/ai-feature-quota/consume/",
+            data=json.dumps({"feature": FEATURE_COUNSELLOR}),
+            content_type="application/json",
+        )
+        self.assertEqual(consume.status_code, 200)
+        body = consume.json()
+        self.assertTrue(body.get("success"))
+        self.assertFalse(body.get("locked"))
+
+        page_chat = self.client.post(
+            "/ai-feature-quota/consume/",
+            data=json.dumps({"feature": FEATURE_PAGE_CHAT}),
+            content_type="application/json",
+        )
+        self.assertEqual(page_chat.status_code, 200)
+
+    def test_guest_cannot_consume_resume(self):
+        import json
+
+        consume = self.client.post(
+            "/ai-feature-quota/consume/",
+            data=json.dumps({"feature": FEATURE_RESUME_AI}),
+            content_type="application/json",
+        )
+        self.assertEqual(consume.status_code, 401)
+        self.assertTrue(consume.json().get("session_expired"))

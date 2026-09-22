@@ -190,6 +190,45 @@ class InstituteAdmin(admin.ModelAdmin):
         "marketing_group__marketing_group_admin__name",
     ]
     list_select_related = ("created_by", "marketing_group", "marketing_group__marketing_group_admin")
+    ordering = ["-modified", "-created"]
+    fieldsets = (
+        (None, {
+            "fields": (
+                "name",
+                "created_by",
+                "logo",
+                "logo_preview",
+                "address",
+                "contact_info",
+                "administrator_contact",
+            )
+        }),
+        ("Groups & status", {
+            "fields": (
+                "institute_group",
+                "marketing_group",
+                "institute_type",
+                "institute_status",
+                "psychometric_access_mode",
+                "credit_counts",
+                "assignment_credits",
+            )
+        }),
+        ("Seat capacity — Class 11", {
+            "fields": ("pcm", "cbm", "comm", "hme", "hmb"),
+            "description": "Seats per stream for class 11.",
+        }),
+        ("Seat capacity — Class 12", {
+            "fields": ("pcm_12", "cbm_12", "comm_12", "hme_12", "hmb_12"),
+            "description": "Seats per stream for class 12.",
+        }),
+        ("Demo", {
+            "fields": ("is_demo_institute", "is_system_demo", "demo_seed_count"),
+        }),
+        ("Meta", {
+            "fields": ("object_status", "slug", "created", "modified"),
+        }),
+    )
 
     @admin.display(description="Marketing group", ordering="marketing_group__m_group_name")
     def marketing_group_column(self, obj):

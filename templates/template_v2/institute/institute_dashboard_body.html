@@ -1,6 +1,19 @@
 {# v2 institute body partial (loaded via AJAX into the v2 frame) #}
 <div class="ttv2-institute-embed">
   <div data-ttv2-page="{{ ttv2_page|default('dashboard') }}"></div>
+  <div class="ttv2-institute-back-row">
+    {% if (ttv2_page|default('dashboard')) == 'dashboard' and can_edit_seat_capacity|default(false) and institute is defined and institute %}
+      <span class="ttv2-institute-seats-slot">
+        {% with seat_capacity_btn_class='ttv2-week-back ttv2-week-seats', seat_capacity_btn_label='Edit seats' %}
+          {% include "template_v2/institute/includes/seat_capacity_edit_button.html" %}
+        {% endwith %}
+      </span>
+    {% endif %}
+    {% include "template_v2/includes/ttv2_back_to_institutes.html" %}
+  </div>
+  {% if (ttv2_page|default('dashboard')) != 'dashboard' %}
+    {% include "template_v2/includes/ttv2_viewing_institute_bar.html" %}
+  {% endif %}
   {% if (ttv2_page|default('dashboard')) == 'dashboard' %}
     {% if ttv2_tieup_pending_banner is defined and ttv2_tieup_pending_banner %}
     <div class="alert alert-warning d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">

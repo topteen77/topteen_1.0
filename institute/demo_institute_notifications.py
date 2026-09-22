@@ -135,7 +135,11 @@ def notify_demo_institute_students_added(
         dedupe = f"demo_inst_student_added_{institute.id}_{getattr(student, 'id', '')}"
         payload = {
             "institute_id": institute.id,
+            "institute_slug": getattr(institute, "slug", None) or "",
+            "institute_name": inst_name,
             "student_id": getattr(student, "id", None),
+            "student_name": getattr(student, "name", None) or "",
+            "student_email": getattr(student, "email", None) or "",
             "source": source,
         }
         source_obj = student
@@ -145,7 +149,13 @@ def notify_demo_institute_students_added(
         body = f"{inst_name} added {n} student{'s' if n != 1 else ''} ({source})."
         wa = f"TopTeen: Demo institute {inst_name} added {n} student(s)."
         dedupe = f"demo_inst_students_added_{institute.id}_{source}_{n}_{institute.demo_seed_count or 0}"
-        payload = {"institute_id": institute.id, "count": n, "source": source}
+        payload = {
+            "institute_id": institute.id,
+            "institute_slug": getattr(institute, "slug", None) or "",
+            "institute_name": inst_name,
+            "count": n,
+            "source": source,
+        }
         source_obj = institute
 
     _emit_marketing(
@@ -205,7 +215,11 @@ def notify_demo_institute_test_result(user, *, result_kind: str = "test") -> Non
         source_obj=user,
         payload={
             "institute_id": institute.id,
+            "institute_slug": getattr(institute, "slug", None) or "",
+            "institute_name": (institute.name or "").strip(),
             "student_id": user.id,
+            "student_name": getattr(user, "name", None) or "",
+            "student_email": getattr(user, "email", None) or "",
             "result_kind": result_kind,
         },
         dedupe_key=f"demo_inst_test_result_{institute.id}_{user.id}",
@@ -276,8 +290,68 @@ def notify_demo_institute_all_demos_completed(institute_id: int) -> None:
         recipient=recipient,
         institute=institute,
         source_obj=institute,
-        payload={"institute_id": institute.id, "demo_student_count": n},
+        payload={
+            "institute_id": institute.id,
+            "institute_slug": getattr(institute, "slug", None) or "",
+            "institute_name": inst_name,
+            "demo_student_count": n,
+        },
         dedupe_key=f"demo_inst_all_complete_{institute.id}",
+        whatsapp_text=wa,
+        mg=mg,
+    )
+
+
+def notify_demo_institute_report_viewed(user) -> None:
+    """Notify marketing when a demo-institute student's combined report is viewed."""
+    if not user or not getattr(user, "id", None):
+        return
+    sm = (
+        StudentManagement.objects.select_related(
+            "institute",
+            "institute__marketing_group",
+            "institute__marketing_group__marketing_group_admin",
+            "student",
+        )
+        .filter(student_id=user.id)
+        .first()
+    )
+    if not sm:
+        return
+    institute = sm.institute
+    if not institute or not getattr(institute, "is_demo_institute", False):
+        return
+    if getattr(institute, "is_system_demo", False):
+        return
+
+    recipient, mg = marketing_recipient_for_institute(institute)
+    if not recipient:
+        return
+
+    inst_name = (institute.name or "Demo institute").strip()
+    student_label = (
+        getattr(user, "name", None) or getattr(user, "email", None) or f"student #{user.id}"
+    )
+    title = "Demo institute: report viewed"
+    body = f"{student_label} at {inst_name} viewed a combined report."
+    wa = f"TopTeen: {student_label} at demo institute {inst_name} viewed a report."
+
+    _emit_marketing(
+        event_type="marketing.demo_institute_report_viewed",
+        title=title,
+        body=body,
+        recipient=recipient,
+        institute=institute,
+        source_obj=user,
+        payload={
+            "institute_id": institute.id,
+            "institute_slug": getattr(institute, "slug", None) or "",
+            "institute_name": (institute.name or "").strip(),
+            "student_id": user.id,
+            "student_name": getattr(user, "name", None) or "",
+            "student_email": getattr(user, "email", None) or "",
+        },
+        dedupe_key=f"demo_inst_report_viewed_{institute.id}_{user.id}",
         whatsapp_text=wa,
         mg=mg,
     )

@@ -27,6 +27,25 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
+def phone_is_followable(phone):
+    digits = ''.join(ch for ch in (phone or '') if ch.isdigit())
+    return len(digits) >= 8
+
+
+def email_is_placeholder(email):
+    value = (email or '').strip().lower()
+    return (not value) or value.endswith('@temp.topteen.in') or value.startswith('session_')
+
+
+def lead_payload_is_followable(payload):
+    payload = payload or {}
+    if not isinstance(payload, dict):
+        return False
+    if email_is_placeholder(payload.get('email')) and not phone_is_followable(payload.get('phone')):
+        return False
+    return phone_is_followable(payload.get('phone') or payload.get('mobile'))
+
+
 def detect_notification_environment(host=''):
     h = (host or '').lower().strip()
     if h:
@@ -66,6 +85,12 @@ DEFAULT_TYPE_CONFIGS = {
     'marketing.demo_institute_all_demos_completed': dict(
         category=NotificationCategory.MARKETING,
         description='All demo students at a demo institute completed tests',
+        requires_celery=False,
+        requires_email=False,
+    ),
+    'marketing.demo_institute_report_viewed': dict(
+        category=NotificationCategory.MARKETING,
+        description='Demo institute student combined report viewed',
         requires_celery=False,
         requires_email=False,
     ),
@@ -1958,6 +1983,16 @@ def get_business_dashboard_notification_recipients():
     )
 
 
+def get_platform_admin_notification_recipients():
+    """Staff / superuser only (not marketing group admins)."""
+    return list(
+        User.objects.filter(is_active=True)
+        .filter(Q(is_superuser=True) | Q(is_staff=True))
+        .exclude(user_type=choices.UserType.MARKETINGGROUPADMIN)
+        .distinct()
+    )
+
+
 def get_parent_users_for_student(student_user_id):
     parent_ids = ParentStudentLink.objects.filter(student_id=student_user_id).values_list('parent_id', flat=True)
     return User.objects.filter(id__in=parent_ids, is_active=True)
@@ -2003,6 +2038,8 @@ def emit_notification(
             return []
 
     payload = payload or {}
+    if event_type == 'marketing.new_lead' and not lead_payload_is_followable(payload):
+        return []
     recipients = [u for u in recipients if getattr(u, 'id', None)]
     if not recipients:
         return []

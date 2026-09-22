@@ -32,3 +32,12 @@ class DemoInstituteNotificationHelpersTests(SimpleTestCase):
         kwargs = emit.call_args.kwargs
         self.assertEqual(kwargs["event_type"], "marketing.demo_institute_students_added")
         self.assertIn("2 student", kwargs["body"])
+
+    @patch("institute.demo_institute_notifications.StudentManagement.objects")
+    @patch("institute.demo_institute_notifications._emit_marketing")
+    def test_report_viewed_skips_when_student_not_on_demo(self, emit, sm_objects):
+        from institute.demo_institute_notifications import notify_demo_institute_report_viewed
+
+        sm_objects.select_related.return_value.filter.return_value.first.return_value = None
+        notify_demo_institute_report_viewed(MagicMock(id=7, name="Asha"))
+        emit.assert_not_called()

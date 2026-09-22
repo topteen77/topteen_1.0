@@ -30,16 +30,34 @@
       </p>
     </div>
 
-    <div class="ttv2-welcome-setup__banner-art" aria-hidden="true">
-      <img
-        class="ttv2-welcome-setup__hero-img"
-        src="{{ static('images_new/institute/welcome-grad-cap.png') }}"
-        alt=""
-        width="754"
-        height="306"
-        loading="lazy"
-        decoding="async"
-      >
+    {% set _logo_url = (institute.logo.url if (institute is defined and institute and institute.logo) else '') %}
+    <div class="ttv2-welcome-setup__banner-art{% if not _logo_url %} ttv2-welcome-setup__banner-art--fallback{% endif %}" data-ttv2-welcome-art aria-hidden="true">
+      {% if _logo_url %}
+        <img
+          class="ttv2-welcome-setup__hero-img ttv2-welcome-setup__hero-img--logo"
+          src="{{ _logo_url }}"
+          alt=""
+          width="112"
+          height="112"
+          loading="lazy"
+          decoding="async"
+          onerror="var art=this.closest('[data-ttv2-welcome-art]'); this.remove(); if(art){ var fb=art.querySelector('[data-ttv2-welcome-fallback]'); if(fb){fb.hidden=false; art.classList.add('ttv2-welcome-setup__banner-art--fallback');} else {art.hidden=true;} }">
+      {% endif %}
+      <div class="ttv2-welcome-setup__hero-fallback" data-ttv2-welcome-fallback{% if _logo_url %} hidden{% endif %}>
+        {% raw %}
+        <svg viewBox="0 0 160 120" width="140" height="105" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <ellipse cx="80" cy="108" rx="42" ry="8" fill="#E0E7FF"/>
+          <rect x="38" y="72" width="84" height="16" rx="5" fill="#F472B6"/>
+          <rect x="44" y="58" width="72" height="14" rx="5" fill="#FBBF24"/>
+          <rect x="50" y="44" width="60" height="14" rx="5" fill="#60A5FA"/>
+          <path d="M52 36 L80 18 L108 36 L80 44 Z" fill="#6366F1"/>
+          <rect x="76" y="36" width="6" height="22" rx="2" fill="#4338CA"/>
+          <circle cx="109" cy="48" r="5" fill="#A78BFA"/>
+          <circle cx="46" cy="30" r="4" fill="#38BDF8"/>
+          <circle cx="118" cy="28" r="3.5" fill="#F59E0B"/>
+        </svg>
+        {% endraw %}
+      </div>
     </div>
   </section>
 
@@ -60,7 +78,7 @@
           <div class="ttv2-welcome-setup__step-top">
             <div class="ttv2-welcome-setup__step-icon" aria-hidden="true">
               {% raw %}
-              <svg viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg viewBox="0 0 96 96" width="40" height="40" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="22" y="14" width="52" height="68" rx="8" fill="#EEF2FF" stroke="#C7D2FE" stroke-width="2"/>
                 <rect x="34" y="8" width="28" height="12" rx="4" fill="#6366F1"/>
                 <circle cx="38" cy="40" r="7" fill="#A5B4FC"/>
@@ -115,7 +133,7 @@
           <div class="ttv2-welcome-setup__step-top">
             <div class="ttv2-welcome-setup__step-icon ttv2-welcome-setup__step-icon--people" aria-hidden="true">
               {% raw %}
-              <svg viewBox="0 0 110 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg viewBox="0 0 110 96" width="40" height="36" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="55" cy="48" r="40" fill="#EEF2FF"/>
                 <circle cx="38" cy="42" r="12" fill="#60A5FA"/>
                 <path d="M18 72 C18 58 28 52 38 52 C48 52 58 58 58 72 Z" fill="#3B82F6"/>

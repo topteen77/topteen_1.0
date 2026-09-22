@@ -28,7 +28,7 @@
   }
 
   .flipbook-wrapper {
-    max-width: 1200px;
+    max-width: 1280px;
     margin: 0 auto;
     background: #fff;
     border-radius: 20px;
@@ -42,7 +42,7 @@
     align-items: center;
     justify-content: center;
     gap: 1rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1.25rem;
     padding: 1rem;
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     border-radius: 12px;
@@ -89,9 +89,106 @@
     text-align: center;
   }
 
+  /* Main reader layout: left thumbs + right page */
+  .flipbook-layout {
+    display: flex;
+    align-items: stretch;
+    gap: 1rem;
+    min-height: 0;
+  }
+
+  .flipbook-thumbnails {
+    flex: 0 0 132px;
+    width: 132px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.65rem;
+    margin-top: 0;
+    padding: 0.75rem 0.5rem;
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: 80vh;
+    background: linear-gradient(180deg, #f8f9fb 0%, #eef1f6 100%);
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    scrollbar-width: thin;
+    scrollbar-color: #c4b5fd transparent;
+    -webkit-overflow-scrolling: touch;
+    position: sticky;
+    top: 88px;
+    align-self: flex-start;
+  }
+
+  .flipbook-thumbnails::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .flipbook-thumbnails::-webkit-scrollbar-thumb {
+    background: #c4b5fd;
+    border-radius: 8px;
+  }
+
+  .flipbook-thumbnail {
+    position: relative;
+    width: 100px;
+    height: 140px;
+    max-width: none;
+    padding: 0;
+    margin: 0;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    flex: 0 0 auto;
+    appearance: none;
+    -webkit-appearance: none;
+    font: inherit;
+    color: inherit;
+  }
+
+  .flipbook-thumbnail:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  }
+
+  .flipbook-thumbnail.active {
+    border-color: #6b3df0;
+    box-shadow: 0 4px 16px rgba(107, 61, 240, 0.35);
+  }
+
+  .flipbook-thumbnail-label {
+    position: absolute;
+    left: 4px;
+    bottom: 4px;
+    z-index: 1;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    background: rgba(36, 30, 85, 0.75);
+    padding: 3px 5px;
+    border-radius: 4px;
+    pointer-events: none;
+  }
+
+  .flipbook-thumbnail img,
+  .flipbook-thumbnail canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+    display: block;
+  }
+
   .flipbook-container {
     position: relative;
-    width: 100%;
+    flex: 1;
+    min-width: 0;
+    width: auto;
     height: 80vh;
     max-height: 900px;
     overflow-y: auto;
@@ -146,10 +243,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-  }
-
-  /* Ensure zoomed content scrolls smoothly on mobile */
-  .flipbook-page-content-wrapper {
     transform-origin: top center;
   }
 
@@ -204,46 +297,20 @@
     }
   }
 
-  .flipbook-thumbnails {
-    display: flex;
-    gap: 0.5rem;
-    justify-content: start;
-    margin-top: 2rem;
-    padding: 1rem;
-    overflow-x: auto;
-    scrollbar-width: thin;
-  }
+  @media (max-width: 991px) {
+    .flipbook-thumbnails {
+      flex: 0 0 112px;
+      width: 112px;
+      padding: 0.55rem 0.35rem;
+      gap: 0.5rem;
+      max-height: 70vh;
+      top: 76px;
+    }
 
-  .flipbook-thumbnail {
-    width: 80px;
-    height: 112px;
-    max-width: 18vw;
-    border: 3px solid transparent;
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background: #fff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    flex: 0 0 auto;
-  }
-
-  .flipbook-thumbnail:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  }
-
-  .flipbook-thumbnail.active {
-    border-color: #6b3df0;
-    box-shadow: 0 4px 16px rgba(107, 61, 240, 0.4);
-  }
-
-  .flipbook-thumbnail img,
-  .flipbook-thumbnail canvas {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 6px;
+    .flipbook-thumbnail {
+      width: 84px;
+      height: 118px;
+    }
   }
 
   @media (max-width: 768px) {
@@ -262,20 +329,51 @@
       font-size: 1.5rem;
     }
 
-
     .flipbook-wrapper {
-      padding: 0.25rem;
+      padding: 0.5rem;
+      border-radius: 14px;
+    }
+
+    .flipbook-layout {
+      flex-direction: row;
+      gap: 0.5rem;
+    }
+
+    .flipbook-thumbnails {
+      flex: 0 0 86px;
+      width: 86px;
+      max-height: 62vh;
+      padding: 0.4rem 0.25rem;
+      gap: 0.4rem;
+      border-radius: 10px;
+      position: sticky;
+      top: 72px;
+    }
+
+    .flipbook-thumbnail {
+      width: 68px;
+      height: 95px;
+      border-width: 2px;
+    }
+
+    .flipbook-thumbnail-label {
+      font-size: 9px;
+      padding: 2px 4px;
     }
 
     .flipbook-container {
       padding: 0.5rem;
+      height: 62vh;
+      max-height: none;
     }
 
     .flipbook-controls {
       gap: 0.5rem;
       position: sticky;
-    top: 69px;
-    z-index: 88;
+      top: 69px;
+      z-index: 88;
+      margin-bottom: 0.75rem;
+      padding: 0.65rem;
     }
 
     .flipbook-btn {
@@ -283,14 +381,27 @@
       height: 36px;
       font-size: 16px;
     }
+  }
+
+  @media (max-width: 480px) {
+    .flipbook-layout {
+      gap: 0.35rem;
+    }
 
     .flipbook-thumbnails {
-      gap: 0.25rem;
+      flex: 0 0 70px;
+      width: 70px;
+      max-height: 55vh;
     }
 
     .flipbook-thumbnail {
-      width: 60px;
-      height: 84px;
+      width: 56px;
+      height: 78px;
+    }
+
+    .flipbook-container {
+      height: 55vh;
+      padding: 0.35rem;
     }
   }
 </style>
@@ -341,15 +452,17 @@
               </button>
             </div>
 
-            <div class="flipbook-container" id="flipbookContainer">
-              <div class="flipbook" id="flipbook">
-                <!-- Pages will be dynamically generated -->
-              </div>
-            </div>
+            <div class="flipbook-layout">
+              <!-- Page Thumbnails (left sidebar) -->
+              <aside class="flipbook-thumbnails" id="thumbnails" aria-label="Page previews">
+                <!-- Thumbnails will be dynamically generated -->
+              </aside>
 
-            <!-- Page Thumbnails -->
-            <div class="flipbook-thumbnails" id="thumbnails">
-              <!-- Thumbnails will be dynamically generated -->
+              <div class="flipbook-container" id="flipbookContainer">
+                <div class="flipbook" id="flipbook">
+                  <!-- Pages will be dynamically generated -->
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -548,15 +661,18 @@
       thumbnails.innerHTML = '';
 
       for (let i = 0; i < this.totalPages; i++) {
-        const thumbnail = document.createElement('div');
+        const thumbnail = document.createElement('button');
+        thumbnail.type = 'button';
         thumbnail.className = 'flipbook-thumbnail';
         thumbnail.dataset.pageIndex = i;
+        thumbnail.setAttribute('aria-label', 'Go to page ' + (i + 1));
+        thumbnail.title = 'Page ' + (i + 1);
 
         if (i === this.currentPage) {
           thumbnail.classList.add('active');
         }
 
-        thumbnail.innerHTML = `<span>Page ${i + 1}</span>`;
+        thumbnail.innerHTML = '<span class="flipbook-thumbnail-label">' + (i + 1) + '</span>';
         thumbnail.addEventListener('click', () => {
           this.goToPage(i);
         });
@@ -564,6 +680,8 @@
         thumbnails.appendChild(thumbnail);
         this.renderPDFThumbnail(i, thumbnail);
       }
+
+      this.updateThumbnails();
     }
 
     async renderPDFThumbnail(pageIndex, thumbnailElement) {
@@ -581,8 +699,13 @@
           viewport: viewport
         }).promise;
 
+        const label = document.createElement('span');
+        label.className = 'flipbook-thumbnail-label';
+        label.textContent = String(pageIndex + 1);
+
         thumbnailElement.innerHTML = '';
         thumbnailElement.appendChild(canvas);
+        thumbnailElement.appendChild(label);
       } catch (error) {
         console.error(`Error rendering thumbnail ${pageIndex + 1}:`, error);
       }
@@ -719,13 +842,19 @@
 
     updateThumbnails() {
       const thumbnails = document.querySelectorAll('.flipbook-thumbnail');
+      let activeThumb = null;
       thumbnails.forEach((thumb, index) => {
         if (index === this.currentPage) {
           thumb.classList.add('active');
+          activeThumb = thumb;
         } else {
           thumb.classList.remove('active');
         }
       });
+
+      if (activeThumb) {
+        activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+      }
     }
 
     initSwipeHandlers() {

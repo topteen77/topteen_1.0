@@ -68,7 +68,13 @@
           return r.text();
         })
         .then(function (html) {
-          root.outerHTML = html;
+          var next = html;
+          try {
+            var doc = new DOMParser().parseFromString(html, 'text/html');
+            var frag = doc.getElementById('ttv2TieupPaymentsRoot');
+            if (frag) next = frag.outerHTML;
+          } catch (err) {}
+          root.outerHTML = next;
           url.searchParams.delete('ttv2_payments_partial');
           window.history.replaceState({}, '', url.toString());
         })

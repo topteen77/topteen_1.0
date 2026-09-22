@@ -16,6 +16,7 @@
     const HeatmapDashboard = {
         state: {
             view: 'grade', // 'grade', 'section', or 'stream'
+            enabled: false,
             heatmapData: [],
             colorPalette: null,
             demographics: {
@@ -198,6 +199,11 @@
                     stream: (data.demographics && data.demographics.stream) || []
                 };
                 self.state.stats = data.stats || { highRisk: 0, aligned: 0, avgClarityGap: 0 };
+                self.state.enabled = data.enabled !== false && self.state.heatmapData.length > 0;
+                self.setAvailability(
+                    self.state.enabled,
+                    data.disabledMessage || 'Career heatmap unlocks after a student completes the psychometric assessment.'
+                );
                 self.render();
                 self.state.loading = false;
                 self.updateLoadingState(false);
@@ -224,6 +230,9 @@
 
         // Switch view (grade/section/stream)
         switchView: function(view) {
+            if (!this.state.enabled) {
+                return;
+            }
             this.state.view = view;
             
             // Update button states
@@ -237,6 +246,24 @@
 
             // Reload data with new view
             this.loadData();
+        },
+
+        setAvailability: function(enabled, message) {
+            const dashboard = document.querySelector('.heatmap-dashboard-container');
+            if (dashboard) {
+                dashboard.classList.toggle('is-locked', !enabled);
+                dashboard.dataset.heatmapEnabled = enabled ? 'true' : 'false';
+            }
+            document.querySelectorAll('.heatmap-view-btn').forEach(function(btn) {
+                btn.disabled = !enabled;
+                btn.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+            });
+            const exportBtn = document.getElementById('heatmap-export-btn');
+            if (exportBtn) {
+                exportBtn.disabled = !enabled;
+                exportBtn.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+                exportBtn.title = enabled ? 'Export heatmap data' : message;
+            }
         },
 
         _clearHeatmapLoaderTimer: function() {
@@ -343,10 +370,13 @@
             const heatmapData = this.state.heatmapData;
 
             if (demoCats.length === 0 || heatmapData.length === 0) {
-                const message = demoCats.length === 0 
-                    ? `No demographics found for ${this.state.view} view.` 
-                    : 'No heatmap data available.';
-                container.innerHTML = '<div class="text-center p-5 text-muted">' + message + '</div>';
+                const message = 'No completed psychometric test results available yet.';
+                container.innerHTML =
+                    '<div class="text-center p-5 text-muted">' +
+                    '<i class="bx bx-brain d-block mb-2" style="font-size:2rem"></i>' +
+                    '<strong>' + message + '</strong>' +
+                    '<div class="small mt-1">Career clusters appear after students complete their psychometric assessment.</div>' +
+                    '</div>';
                 console.warn('Cannot render heatmap:', message);
                 return;
             }
@@ -582,8 +612,8 @@
         exportData: function() {
             const heatmapData = this.state.heatmapData;
             
-            if (heatmapData.length === 0) {
-                alert('No data to export');
+            if (!this.state.enabled || heatmapData.length === 0) {
+                alert('Career heatmap unlocks after a student completes the psychometric assessment.');
                 return;
             }
 
