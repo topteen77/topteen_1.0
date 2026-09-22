@@ -159,7 +159,7 @@ elif getattr(settings, 'S3_MEDIA_ACCESS_MODE', None) != 'proxy':
 # Catch-all pattern for unmatched URLs - uses template20/404.html
 # Exclude all known URL prefixes to avoid intercepting valid routes
 urlpatterns += [
-    re_path(r'^(?!admin/|topteenadmin/|careers/|colleges/|testprep/|skilllabcourse/|psychometrictest/|payments/|blogs/|user/|student/|parents/|oauth/|api/|institute/|psychometric/|counselor/|analytics/|user-analytics/|forum/|marketing-auth/|api-auth/|static/|media/).*$', 
+    re_path(r'^(?!admin/|topteenadmin/|careers/|colleges/|testprep/|skilllabcourse/|psychometrictest/|payments/|blogs/|user/|student/|parents/|oauth/|api/|institute/|psychometric/|counselor/|analytics/|user-analytics/|forum/|marketing-auth/|api-auth/|static/|media/|career-battle/).*$', 
             TemplateView.as_view(template_name='template20/404.html'), name='404'),
 ]
 

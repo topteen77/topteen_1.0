@@ -54,6 +54,8 @@ urlpatterns = [
     path("lead-submit/",views.LeadData.as_view(),name="lead_submit"),
     # Career Battle: wrapper with site header/footer and shared session; game SPA at /career-battle/app/
     path("career-battle/", views.career_battle_wrapper, name="language_game"),
+    path("career-battle/files/<path:path>", views.serve_game_asset, name="language_game_files"),
+    path("static/game/<path:path>", views.serve_game_asset, name="language_game_static"),
     path("career-battle/app/", views.serve_game_spa, name="language_game_app"),
     path("career-battle/app/<path:path>/", views.serve_game_spa, name="language_game_app_path"),
     path("career-battle/api/clusters/", views.career_battle_clusters_api, name="career_battle_clusters_api"),

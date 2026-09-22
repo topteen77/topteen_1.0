@@ -1895,23 +1895,78 @@ def career_battle_wrapper(request):
     return render(request, 'template20/career_battle_wrapper.html', ctx)
 
 
-def serve_game_spa(request, path=None):
-    """
-    Serve the React game SPA (Career Battle) at /career-battle/app/ on our domain.
-    Assets are served by Django at /static/game/assets/... (from Vite build with base: '/static/game/').
-    Same-origin iframe ensures the game receives the same session cookie as the main site.
-    """
-    from django.http import Http404, HttpResponse
-    index_name = 'index.html'
-    # Prefer collectstatic output (production), else dev static dir
+_GAME_VITE_PREFIX = '/static/game/'
+_GAME_SERVE_PREFIX = '/career-battle/files/'
+_GAME_TEXT_EXTS = {'.js', '.mjs', '.css', '.html', '.svg', '.json', '.map'}
+_GAME_CONTENT_TYPES = {
+    '.js': 'application/javascript; charset=utf-8',
+    '.mjs': 'application/javascript; charset=utf-8',
+    '.css': 'text/css; charset=utf-8',
+    '.html': 'text/html; charset=utf-8',
+    '.svg': 'image/svg+xml',
+    '.json': 'application/json',
+    '.png': 'image/png',
+    '.webp': 'image/webp',
+    '.gif': 'image/gif',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.mp4': 'video/mp4',
+    '.webm': 'video/webm',
+    '.woff': 'font/woff',
+    '.woff2': 'font/woff2',
+}
+
+
+def _career_battle_file(rel_path):
+    rel_path = (rel_path or '').lstrip('/').replace('\\', '/')
+    if not rel_path or '..' in rel_path.split('/'):
+        return None
     for base in [settings.STATIC_ROOT, os.path.join(settings.BASE_DIR, 'static')]:
         if not base:
             continue
-        index_path = os.path.join(base, 'game', index_name)
+        game_root = os.path.normpath(os.path.join(base, 'game'))
+        full = os.path.normpath(os.path.join(game_root, rel_path))
+        if full.startswith(game_root + os.sep) and os.path.isfile(full):
+            return full
+    return None
+
+
+def serve_game_spa(request, path=None):
+    """
+    Serve the React game SPA (Career Battle) at /career-battle/app/.
+    Asset URLs are rewritten to /career-battle/files/ so nginx/S3 /static/ 404s
+    do not replace JS/CSS with HTML (MIME text/html).
+    """
+    from django.http import Http404
+    for base in [settings.STATIC_ROOT, os.path.join(settings.BASE_DIR, 'static')]:
+        if not base:
+            continue
+        index_path = os.path.join(base, 'game', 'index.html')
         if os.path.isfile(index_path):
             with open(index_path, 'r', encoding='utf-8') as f:
-                return HttpResponse(f.read(), content_type='text/html; charset=utf-8')
+                html = f.read().replace(_GAME_VITE_PREFIX, _GAME_SERVE_PREFIX)
+            return HttpResponse(html, content_type='text/html; charset=utf-8')
     raise Http404('Game not built. Run: cd react-game/react-game && npm run build')
+
+
+def serve_game_asset(request, path):
+    """Serve built Career Battle files from static/game/ with correct MIME types."""
+    import mimetypes
+    from django.http import Http404
+
+    full = _career_battle_file(path)
+    if not full:
+        raise Http404('Game asset not found')
+    ext = os.path.splitext(full)[1].lower()
+    content_type = _GAME_CONTENT_TYPES.get(ext) or mimetypes.guess_type(full)[0] or 'application/octet-stream'
+    if ext in _GAME_TEXT_EXTS:
+        with open(full, 'r', encoding='utf-8') as f:
+            body = f.read().replace(_GAME_VITE_PREFIX, _GAME_SERVE_PREFIX)
+        resp = HttpResponse(body, content_type=content_type)
+    else:
+        resp = FileResponse(open(full, 'rb'), content_type=content_type)
+    resp['Cache-Control'] = 'public, max-age=86400, immutable'
+    return resp
 
 
 def _career_battle_stream_counts(request):
