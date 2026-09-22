@@ -463,25 +463,56 @@
     if (loader) loader.style.display = "none";
     if (wrapper) wrapper.style.display = "block";
     tbody.innerHTML = "";
-    institutes.forEach(function (inst, index) {
-      const row = document.createElement("tr");
-      row.innerHTML =
-        "<td>" +
-        (index + 1) +
-        "</td><td>" +
-        (inst.name || "-") +
-        "</td><td>" +
-        (inst.pcm || 0) +
-        "</td><td>" +
-        (inst.cbm || 0) +
-        "</td><td>" +
-        (inst.comm || 0) +
-        "</td><td>" +
-        (inst.hme || 0) +
-        "</td><td>" +
-        (inst.hmb || 0) +
-        "</td>";
-      tbody.appendChild(row);
+    function capVal(inst, classKey, stream) {
+      var bag = inst && inst["class_" + classKey];
+      var raw = bag && bag[stream] != null ? bag[stream] : inst && inst[classKey === "12" ? stream + "_12" : stream];
+      var n = parseInt(raw, 10);
+      return isNaN(n) ? 100 : n;
+    }
+    function esc(s) {
+      return String(s || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    }
+    (institutes || []).forEach(function (inst, index) {
+      var name = inst.name || "-";
+      var instId = inst.id || index;
+      var v = {
+        pcm11: capVal(inst, "11", "pcm"),
+        cbm11: capVal(inst, "11", "cbm"),
+        comm11: capVal(inst, "11", "comm"),
+        hme11: capVal(inst, "11", "hme"),
+        hmb11: capVal(inst, "11", "hmb"),
+        pcm12: capVal(inst, "12", "pcm"),
+        cbm12: capVal(inst, "12", "cbm"),
+        comm12: capVal(inst, "12", "comm"),
+        hme12: capVal(inst, "12", "hme"),
+        hmb12: capVal(inst, "12", "hmb"),
+      };
+      var editBtn =
+        '<button type="button" class="btn btn-sm btn-primary" data-seat-capacity-edit' +
+        ' data-institute-id="' + instId + '"' +
+        ' data-institute-name="' + esc(name) + '"' +
+        ' data-pcm-11="' + v.pcm11 + '" data-cbm-11="' + v.cbm11 + '" data-comm-11="' + v.comm11 + '" data-hme-11="' + v.hme11 + '" data-hmb-11="' + v.hmb11 + '"' +
+        ' data-pcm-12="' + v.pcm12 + '" data-cbm-12="' + v.cbm12 + '" data-comm-12="' + v.comm12 + '" data-hme-12="' + v.hme12 + '" data-hmb-12="' + v.hmb12 + '">' +
+        '<i class="bx bx-edit"></i> Edit 11th &amp; 12th</button>';
+      var row1 = document.createElement("tr");
+      row1.innerHTML =
+        "<td rowspan='2'>" + (index + 1) + "</td><td rowspan='2'>" + esc(name) + "</td><td>11th</td>" +
+        '<td data-seat-capacity-value data-class="11" data-stream="pcm">' + v.pcm11 + "</td>" +
+        '<td data-seat-capacity-value data-class="11" data-stream="cbm">' + v.cbm11 + "</td>" +
+        '<td data-seat-capacity-value data-class="11" data-stream="comm">' + v.comm11 + "</td>" +
+        '<td data-seat-capacity-value data-class="11" data-stream="hme">' + v.hme11 + "</td>" +
+        '<td data-seat-capacity-value data-class="11" data-stream="hmb">' + v.hmb11 + "</td>" +
+        "<td rowspan='2'>" + editBtn + "</td>";
+      var row2 = document.createElement("tr");
+      row2.innerHTML =
+        "<td>12th</td>" +
+        '<td data-seat-capacity-value data-class="12" data-stream="pcm">' + v.pcm12 + "</td>" +
+        '<td data-seat-capacity-value data-class="12" data-stream="cbm">' + v.cbm12 + "</td>" +
+        '<td data-seat-capacity-value data-class="12" data-stream="comm">' + v.comm12 + "</td>" +
+        '<td data-seat-capacity-value data-class="12" data-stream="hme">' + v.hme12 + "</td>" +
+        '<td data-seat-capacity-value data-class="12" data-stream="hmb">' + v.hmb12 + "</td>";
+      tbody.appendChild(row1);
+      tbody.appendChild(row2);
     });
   }
 
@@ -1096,16 +1127,15 @@
   }
 
   window.ttv2BootInstituteGroupDashboard = function () {
-    if (window._ttv2InstituteGroupDashboardBooted) {
-      return;
+    if (!window._ttv2InstituteGroupDashboardBooted) {
+      window._ttv2InstituteGroupDashboardBooted = true;
+      revealIgChartShells();
+      loadStatistics();
+      loadInstitutesOnPageLoad();
+      loadCharts();
+      bindInstituteFilterFormOnce();
     }
-    window._ttv2InstituteGroupDashboardBooted = true;
-    revealIgChartShells();
-    loadStatistics();
-    loadInstitutesOnPageLoad();
-    loadCharts();
     ttv2LoadInstituteGroupSeatCapacityPage();
-    bindInstituteFilterFormOnce();
   };
 
   document.addEventListener("DOMContentLoaded", function () {

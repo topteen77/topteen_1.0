@@ -5,24 +5,32 @@ from core import choices
 from institute.models import StudentManagement
 from payments.models import Payment
 from user_analytics.models import UserEvent
-from user_analytics.models import Lead
+from user_analytics.models import Lead as AnalyticsLead
+from core.models import Lead as ContactLead
 
 from .models import NotificationCategory
 from .payment_notifications import (
     _dedupe_recipients_by_id,
+    cancel_payment_path_for_user,
     format_currency_amount,
+    marketing_tieup_payments_url,
     notify_payment_transition,
     payment_amount_display,
+    payment_amount_is_positive,
+    payment_capture_url,
     payment_currency_code,
+    payment_identity_payload,
     payment_order_amount_decimal,
     payment_purchase_label,
     retry_payment_path_for_payment,
+    split_ops_payment_recipients,
 )
 from .services import (
     emit_notification,
     format_notification_message,
     get_business_dashboard_notification_recipients,
     get_parent_users_for_student,
+    phone_is_followable,
 )
 
 
@@ -85,19 +93,23 @@ def payment_notification_state_cache(sender, instance, **kwargs):
 def institute_student_notifications(sender, instance, created, **kwargs):
     if not created or not instance.institute_id:
         return
-    institute_user = getattr(instance.institute, 'created_by', None)
-    recipients = [u for u in [institute_user] if getattr(u, 'id', None)]
-    if recipients:
-        emit_notification(
-            event_type='institute.student_registered',
-            title='New student registered',
-            body='A student was registered under your institute.',
-            recipients=recipients,
-            category=NotificationCategory.INSTITUTE,
-            source_obj=instance,
-            payload={'student_id': instance.student_id, 'institute_id': instance.institute_id},
-            dedupe_key='institute_student_registered_{}'.format(instance.id),
+    try:
+        from institute.models import Institute
+        from notifications.institute_notifications import notify_student_registered
+
+        institute = (
+            Institute.objects.select_related(
+                'created_by',
+                'institute_group',
+                'institute_group__institute_group_admin',
+            )
+            .filter(pk=instance.institute_id)
+            .first()
         )
+        if institute is not None:
+            notify_student_registered(instance, institute)
+    except Exception:
+        pass
 
     # Marketing alerts for demo institutes (website + optional WhatsApp).
     if getattr(instance, '_skip_demo_mktg_student_added_notify', False):
@@ -116,10 +128,47 @@ def institute_student_notifications(sender, instance, created, **kwargs):
         pass
 
 
-@receiver(post_save, sender=Lead)
+@receiver(post_save, sender=AnalyticsLead)
 def marketing_lead_notifications(sender, instance, created, **kwargs):
+    if not _analytics_lead_has_contact(instance):
+        return
+    _emit_marketing_new_lead(
+        lead_id=instance.id,
+        lead_kind='analytics',
+        source_obj=instance,
+        name=instance.name,
+        email=instance.email,
+        phone=instance.phone,
+        source=instance.source,
+    )
+
+
+@receiver(post_save, sender=ContactLead)
+def marketing_contact_lead_notifications(sender, instance, created, **kwargs):
     if not created:
         return
+    name = (instance.name or '').strip()
+    phone = (instance.mobile or '').strip()
+    if not phone_is_followable(phone):
+        return
+    _emit_marketing_new_lead(
+        lead_id=instance.id,
+        lead_kind='contact',
+        source_obj=instance,
+        name=name,
+        email='',
+        phone=phone,
+        source='enquiry form',
+    )
+
+
+def _analytics_lead_has_contact(instance):
+    """Only real follow-up leads: a callable phone. Session emails are tracking junk."""
+    return phone_is_followable(getattr(instance, 'phone', None))
+
+
+def _emit_marketing_new_lead(lead_id, lead_kind, source_obj, name, email, phone, source):
+    from django.urls import reverse
     from users.models import User
 
     recipients = list(
@@ -130,15 +179,35 @@ def marketing_lead_notifications(sender, instance, created, **kwargs):
     )
     if not recipients:
         return
+    item_url = ''
+    try:
+        if lead_kind == 'contact':
+            item_url = reverse('notifications:lead_capture_contact', args=[lead_id])
+        else:
+            item_url = reverse('notifications:lead_capture', args=[lead_id])
+    except Exception:
+        item_url = ''
+    display_name = (name or '').strip() or (phone or '').strip() or (email or '').strip() or 'New lead'
+    body_bits = [bit for bit in ((phone or '').strip(), (email or '').strip(), (source or '').strip()) if bit]
+    payload = {
+        'lead_id': lead_id,
+        'lead_kind': lead_kind,
+        'name': (name or '').strip(),
+        'email': (email or '').strip(),
+        'phone': (phone or '').strip(),
+        'source': (source or '').strip(),
+    }
+    if item_url:
+        payload['item_url'] = item_url
     emit_notification(
         event_type='marketing.new_lead',
-        title='New lead captured',
-        body='Lead {} ({}) captured from {}.'.format(instance.name or '-', instance.email, instance.source or 'unknown'),
+        title='New lead: {}'.format(display_name),
+        body=' · '.join(body_bits) if body_bits else 'A new lead shared contact details.',
         recipients=recipients,
         category=NotificationCategory.MARKETING,
-        source_obj=instance,
-        payload={'lead_id': instance.id, 'email': instance.email, 'source': instance.source},
-        dedupe_key='marketing_new_lead_{}'.format(instance.id),
+        source_obj=source_obj,
+        payload=payload,
+        dedupe_key='marketing_new_lead_{}_{}'.format(lead_kind, lead_id),
     )
 
 
@@ -195,11 +264,15 @@ def userevent_payment_failed_notifications(sender, instance, created, **kwargs):
     if not created or instance.event_type != 'payment_failed' or not instance.user_id:
         return
 
-    recipients = _dedupe_recipients_by_id(
-        [instance.user]
-        + list(get_parent_users_for_student(instance.user_id))
-        + get_business_dashboard_notification_recipients()
+    payer_recipients = _dedupe_recipients_by_id(
+        [instance.user] + list(get_parent_users_for_student(instance.user_id))
     )
+    payer_ids = {getattr(u, 'id', None) for u in payer_recipients}
+    ops_recipients = [
+        u
+        for u in get_business_dashboard_notification_recipients()
+        if getattr(u, 'id', None) not in payer_ids
+    ]
 
     metadata = instance.metadata or {}
     payment_id = metadata.get('payment_id') or instance.object_id
@@ -221,6 +294,14 @@ def userevent_payment_failed_notifications(sender, instance, created, **kwargs):
         p_obj = Payment.objects.filter(gateway_order_id=gateway_order_id).first()
     if p_obj is not None:
         retry_path = retry_payment_path_for_payment(p_obj)
+        if not payment_amount_is_positive(p_obj):
+            return
+    else:
+        amt_raw = metadata.get('order_amount_rupees')
+        if amt_raw is None:
+            amt_raw = getattr(instance, 'event_value', None)
+        if not payment_amount_is_positive(amount=amt_raw):
+            return
 
     retry_hint = (
         'You can use Retry payment below or open the checkout again from the product page.'
@@ -263,24 +344,83 @@ def userevent_payment_failed_notifications(sender, instance, created, **kwargs):
     elif gateway_order_id:
         dedupe_key = 'payment_failed_order_{}'.format(gateway_order_id)
 
-    emit_notification(
-        event_type='payment.failed',
-        title=title,
-        body=body,
-        recipients=recipients,
-        category=NotificationCategory.PAYMENT,
-        source_obj=instance if instance.object_id else None,
-        payload={
-            'payment_id': payment_id or '',
-            'gateway_order_id': gateway_order_id,
-            'event_id': instance.id,
-            'item': item,
-            'currency_code': currency_code or '',
-            'amount_display': amt,
-            'retry_payment_path': retry_path,
-            'retry_payment_label': ctx['retry_payment_label'],
-            'show_retry_payment': bool(retry_path),
-        },
-        dedupe_key=dedupe_key,
+    payer_user = instance.user
+    payer_email = (getattr(payer_user, 'email', None) or '').strip()
+    payer_name = (getattr(payer_user, 'name', None) or '').strip()
+    identity = payment_identity_payload(p_obj) if p_obj is not None else {
+        'payer_id': getattr(payer_user, 'id', None),
+        'payer_email': payer_email,
+        'payer_name': payer_name,
+        'obj_type': None,
+        'institute_id': None,
+        'institute_slug': '',
+        'institute_name': '',
+    }
+    capture_url = payment_capture_url(payment_id, instance.id)
+    payer_cancel = cancel_payment_path_for_user(payer_user, p_obj) if p_obj is not None else ''
+    marketing_ops, staff_ops = split_ops_payment_recipients(ops_recipients, p_obj)
+    marketing_item_url = marketing_tieup_payments_url(
+        identity.get('institute_slug') or '',
+        payment_id,
+        failed=True,
     )
+    shared_payload = {
+        'payment_id': payment_id or '',
+        'gateway_order_id': gateway_order_id,
+        'event_id': instance.id,
+        'item': item,
+        'currency_code': currency_code or '',
+        'amount_display': amt,
+        **identity,
+    }
+    if payer_recipients:
+        emit_notification(
+            event_type='payment.failed',
+            title=title,
+            body=body,
+            recipients=payer_recipients,
+            category=NotificationCategory.PAYMENT,
+            source_obj=instance if instance.object_id else None,
+            payload={
+                **shared_payload,
+                'retry_payment_path': retry_path,
+                'retry_payment_label': ctx['retry_payment_label'],
+                'show_retry_payment': bool(retry_path),
+                'item_url': capture_url,
+                'cancel_payment_path': payer_cancel,
+            },
+            dedupe_key=dedupe_key,
+        )
+    ops_bits = [
+        bit
+        for bit in (amt, item, identity.get('institute_name'), payer_email or payer_name)
+        if bit
+    ]
+    ops_body = ' · '.join(ops_bits) if ops_bits else 'A checkout could not be completed.'
+    failed_ops = {
+        **shared_payload,
+        'show_retry_payment': False,
+    }
+    if marketing_ops:
+        emit_notification(
+            event_type='payment.failed',
+            title='Payment failed',
+            body=ops_body,
+            recipients=marketing_ops,
+            category=NotificationCategory.PAYMENT,
+            source_obj=instance if instance.object_id else None,
+            payload={**failed_ops, 'item_url': marketing_item_url},
+            dedupe_key=dedupe_key,
+        )
+    if staff_ops:
+        emit_notification(
+            event_type='payment.failed',
+            title='Payment failed',
+            body=ops_body,
+            recipients=staff_ops,
+            category=NotificationCategory.PAYMENT,
+            source_obj=instance if instance.object_id else None,
+            payload={**failed_ops, 'item_url': capture_url},
+            dedupe_key=dedupe_key,
+        )
 

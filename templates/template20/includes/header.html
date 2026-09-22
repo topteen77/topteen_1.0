@@ -12,6 +12,15 @@
       display: flex;
       align-items: center;
       flex-shrink: 0;
+      overflow: visible;
+    }
+    .tt-header .menu-item.tt-header-notification {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-inline: 0.2rem;
+      cursor: default;
+      overflow: visible;
     }
     .tt-header .tt-notification-bell {
       background: transparent !important;
@@ -20,6 +29,7 @@
       width: 40px;
       height: 40px;
       padding: 0;
+      overflow: visible;
     }
     .tt-header .tt-notification-bell:hover,
     .tt-header .tt-notification-bell-wrap--empty .tt-notification-bell:hover {
@@ -30,13 +40,6 @@
       color: var(--color-black-500, #1e1e1e);
       width: 20px;
       height: 20px;
-    }
-    .tt-header .menu-item.tt-header-notification {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding-inline: 0.2rem;
-      cursor: default;
     }
     .tt-header .menu-item.tt-header-notification:hover {
       background: #efecff;
@@ -62,6 +65,7 @@
         display: flex;
         align-items: center;
         flex-shrink: 0;
+        overflow: visible;
       }
       .tt-header-mobile-account.dropdown:not(.dropdown-show) .dropdown-content.login-content {
         visibility: hidden !important;

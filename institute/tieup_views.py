@@ -23,6 +23,7 @@ from institute.decorators import (
 from institute.models import Institute, InstituteTieUpLineItem, InstituteTieUpOrder
 from institute.tieup_billing import (
     apply_coupon_to_pending_order,
+    attach_institute_tieup_payment_ctx,
     build_institute_billing_ctx,
     create_checkout_for_tieup_order,
     create_tieup_order,
@@ -124,27 +125,48 @@ class MarketingTieUpMarkReceivedView(View):
 class InstituteTieUpPayView(TemplateView):
     """Checkout page with coupon apply + Pay Now."""
 
-    template_name = "template_v2/institute/pages/institute_tieup_billing.html"
+    template_name = "template_v2/institute/pages/institute_tieup_pay.html"
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         slug = kwargs.get("slug")
         institute = get_object_or_404(Institute, slug=slug)
-        billing = build_institute_billing_ctx(institute, self.request.user)
-        ctx.update(billing)
+        status_filter = (self.request.GET.get("status") or "").strip().lower() or None
+        attach_institute_tieup_payment_ctx(
+            ctx, institute, self.request.user, status_filter=status_filter
+        )
         ctx["institute"] = institute
         ctx["checkout_mode"] = True
-        ctx["create_order_url"] = reverse(
-            "institute:institute_tieup_create_order", kwargs={"slug": slug}
-        )
-        ctx["verify_url"] = reverse("institute:institute_tieup_payment_verify")
-        ctx["coupon_preview_url"] = reverse(
-            "institute:institute_tieup_coupon_preview", kwargs={"slug": slug}
-        )
-        ctx["list_coupons_url"] = reverse(
-            "institute:institute_tieup_list_coupons", kwargs={"slug": slug}
-        )
+        ctx["ttv2_page"] = "payments"
+        ctx["is_modern_payments"] = True
+        ctx["ttv2_payments_status_filter"] = status_filter or ""
+        ctx["ttv2_payments_highlight_id"] = (self.request.GET.get("payment_id") or "").strip()
+        ut = getattr(self.request.user, "user_type", None)
+        ctx["is_marketing_view"] = ut == choices.UserType.MARKETINGGROUPADMIN
+        if ut == choices.UserType.MARKETINGGROUPADMIN:
+            ctx["billing_back_url"] = (
+                reverse("institute:marketinggroupdashboard_page", args=["payments"])
+                + "?institute=%s" % slug
+            )
+        elif ut == choices.UserType.INSTITUTEGROUPADMIN:
+            ctx["billing_back_url"] = reverse(
+                "institute:institutegroupdashboard_page", args=["payments"]
+            )
+        else:
+            ctx["billing_back_url"] = reverse(
+                "institute:institutedashboard_page", args=[slug, "payments"]
+            )
         return ctx
+
+    def get(self, request, *args, **kwargs):
+        ctx = self.get_context_data(**kwargs)
+        if (request.GET.get("ttv2_payments_partial") or "").strip() == "1":
+            return render(
+                request,
+                "template_v2/institute/pages/institute_tieup_payment_history.html",
+                ctx,
+            )
+        return self.render_to_response(ctx)
 
 
 @csrf_exempt

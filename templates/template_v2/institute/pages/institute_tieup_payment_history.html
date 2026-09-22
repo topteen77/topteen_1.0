@@ -1,7 +1,8 @@
 {# Tie-up payment history — AJAX-reloadable (institute, marketing, group) #}
 {% set _gpay_ui = is_group_view|default(false) or is_modern_payments|default(false) %}
 {% set show_inst_col = is_group_view|default(false) or is_marketing_view|default(false) %}
-{% set show_actions_col = is_group_view|default(false) or is_marketing_view|default(false) %}
+{% set show_payer_retry = (tieup_can_pay|default(false)) and not is_marketing_view|default(false) %}
+{% set show_actions_col = is_group_view|default(false) or is_marketing_view|default(false) or show_payer_retry %}
 {% set col_count = 11 + (1 if show_inst_col else 0) + (1 if show_actions_col else 0) %}
 <div id="ttv2TieupPaymentsRoot">
 {% set _coupon_institutes = tieup_coupon_institutes if tieup_coupon_institutes is defined else (mktg_coupon_institutes if mktg_coupon_institutes is defined else []) %}
@@ -209,7 +210,16 @@
   {% endif %}
   {% set _st = (ttv2_payments_status_filter|default(''))|lower %}
   {% set _inst_f = ttv2_payments_institute_filter|default('') %}
+  {% set _highlight = (ttv2_payments_highlight_id|default(''))|string %}
   {% set _institutes = tieup_payment_institutes if tieup_payment_institutes is defined else _coupon_institutes %}
+  {% if _inst_f %}
+  <div class="alert alert-info py-2 px-3 mt-3 mb-0" role="status">
+    Showing payments for
+    <strong>{% for ins in _institutes %}{% if ins.slug == _inst_f %}{{ ins.name }}{% endif %}{% endfor %}</strong>
+    {% if not _institutes %}this institute{% endif %}
+    {% if _highlight %} · payment #{{ _highlight }}{% endif %}
+  </div>
+  {% endif %}
   <div class="{% if _gpay_ui %}ttv2-gpay-toolbar{% else %}d-flex flex-wrap gap-2 align-items-center mt-3{% endif %}">
     {% if _institutes|length > 0 and (is_marketing_view|default(false) or is_group_view|default(false)) %}
     <div class="{% if _gpay_ui %}ttv2-gpay-toolbar-inst{% endif %}">
@@ -255,7 +265,8 @@
         {% set payment_rows = ttv2_tieup_payments if ttv2_tieup_payments is defined else (tieup_payment_rows if tieup_payment_rows is defined else []) %}
         {% if payment_rows %}
           {% for r in payment_rows %}
-            <tr>
+            {% set _row_pid = (r.payment_id|default(''))|string %}
+            <tr {% if _highlight and _row_pid == _highlight %}id="ttv2-pay-{{ _row_pid }}" class="table-warning"{% elif _row_pid %}id="ttv2-pay-{{ _row_pid }}"{% endif %}>
               {% if show_inst_col %}
                 <td><a href="{{ url('institute:institute_masterdashboard', args=[r.institute_slug]) }}">{{ r.institute_name }}</a></td>
               {% endif %}
@@ -311,6 +322,12 @@
                   </form>
                 {% elif is_group_view|default(false) and r.can_pay and r.institute_slug %}
                   <a href="{{ url('institute:institutedashboard_page', args=[r.institute_slug, 'payments']) }}" class="btn btn-sm btn-outline-primary">Pay</a>
+                {% elif show_payer_retry and r.can_pay %}
+                  {% if checkout_mode|default(false) %}
+                    <button type="button" class="btn btn-sm btn-primary" data-ttv2-retry-pay>Retry payment</button>
+                  {% elif r.institute_slug %}
+                    <a class="btn btn-sm btn-primary" href="{{ url('institute:institute_tieup_pay', kwargs={'slug': r.institute_slug}) }}?retry=1">Retry payment</a>
+                  {% else %}—{% endif %}
                 {% else %}—{% endif %}
               </td>
               {% endif %}
@@ -326,3 +343,13 @@
   </div>
 </div>
 </div>
+{% if _highlight %}
+<script>
+(function () {
+  var el = document.getElementById('ttv2-pay-{{ _highlight }}');
+  if (el && el.scrollIntoView) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+})();
+</script>
+{% endif %}

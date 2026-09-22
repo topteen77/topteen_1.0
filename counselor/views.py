@@ -674,9 +674,12 @@ def apply_student_filters(students_data, request, results_data=None):
             else:
                 queryset = queryset.filter(class_and_section__class_and_section=class_filter)
         
-        # Apply name filter
+        # Apply name filter (students page search covers name or email)
         if name_filter:
-            queryset = queryset.filter(student__name__icontains=name_filter)
+            queryset = queryset.filter(
+                Q(student__name__icontains=name_filter)
+                | Q(student__email__icontains=name_filter)
+            )
 
         if counselor_assigned in ("yes", "no"):
             _m2m_adv = Exists(
@@ -779,14 +782,27 @@ def apply_student_filters(students_data, request, results_data=None):
                 )
             ]
         
-        # Apply name filter
+        # Apply name filter (name or email)
         if name_filter:
-            filtered_data = [
-                s for s in filtered_data
-                if hasattr(s, 'get') and s.get('student') and
-                hasattr(s['student'], 'student') and
-                name_filter.lower() in s['student'].student.name.lower()
-            ]
+            nl = name_filter.lower()
+
+            def _name_ok(row):
+                student = None
+                if hasattr(row, 'get'):
+                    inner = row.get('student')
+                    if inner is not None and getattr(inner, 'student', None) is not None:
+                        student = inner.student
+                    elif inner is not None:
+                        student = inner
+                else:
+                    student = getattr(row, 'student', None)
+                hay = ' '.join([
+                    getattr(student, 'name', None) or '',
+                    getattr(student, 'email', None) or '',
+                ]).lower()
+                return nl in hay
+
+            filtered_data = [s for s in filtered_data if _name_ok(s)]
 
         if counselor_assigned in ("yes", "no"):
             def _list_row_adv_match(obj):

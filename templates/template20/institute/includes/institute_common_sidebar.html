@@ -59,11 +59,8 @@
       <a href="#im-screen-assessments" class="id-nav-item d-flex align-items-center justify-content-between gap-2"><span class="d-inline-flex align-items-center gap-2"><i class='bx bx-brain'></i> Assessments</span><span class="badge rounded-pill bg-light text-secondary border" style="font-size:0.65rem;">{{ n_assess }}</span></a>
       <a href="#im-screen-journey" class="id-nav-item"><i class='bx bx-trip'></i> Journey tracker</a>
       <a href="{{ v0_dash }}" class="id-nav-item"><i class='bx bx-layout'></i> v0 dashboard</a>
-      <a href="#career-education-heatmap" class="id-nav-item"><i class='bx bx-grid-alt'></i> Heatmap</a>
 
       <p class="id-nav-sec">Analytics</p>
-      <a href="#career-analytics-header" class="id-nav-item"><i class='bx bx-bar-chart-alt-2'></i> Career analytics</a>
-      <a href="#career-interest-matrix" class="id-nav-item"><i class='bx bx-grid'></i> Interest matrix</a>
       <a href="{{ v0_dash }}#institute-streams-capacity" class="id-nav-item"><i class='bx bx-layer'></i> Streams &amp; capacity</a>
       <a href="{{ v0_dash }}#institute-credits" class="id-nav-item"><i class='bx bx-credit-card'></i> Credits</a>
 
@@ -89,9 +86,11 @@
       <button type="button" class="id-nav-item" data-bs-toggle="modal" data-bs-target="#addPostMatricCsvModal">
         <i class='bx bx-upload'></i> Post-Matric-CSV Upload
       </button>
+      {% if institute.institute_log.exists() %}
       <a href="{{ url('institute:institutehistorylog', args=[institute.slug]) }}" class="id-nav-item">
         <i class='bx bx-history'></i> Uploaded History Log
       </a>
+      {% endif %}
       {% if request.user.user_type == 5 %}
       <a href="{{ url('institute:marketinggroupdashboard') }}" class="id-nav-item"><i class='bx bx-grid-alt'></i> My Dashboard</a>
       {% elif request.user.user_type == 3 %}

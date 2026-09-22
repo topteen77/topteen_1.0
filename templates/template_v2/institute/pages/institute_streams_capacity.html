@@ -6,6 +6,7 @@
 {% set occ_rows = (p.get('occupancy_by_stream', []) if p else []) %}
 {% set fill_pct = (k.get('fill_rate_pct', 0) or 0) %}
 {% set avail_pct = (100 - fill_pct) %}
+{% set has_occupancy_data = (k.get('seats_filled', 0) or 0) > 0 %}
 {% set top_stream = (occ_rows|max(attribute='pct') if occ_rows else None) %}
 {% set low_stream = (occ_rows|min(attribute='pct') if occ_rows else None) %}
 
@@ -92,6 +93,62 @@
     font-weight: 700;
     font-size: 14px;
     color: var(--c-text);
+  }
+  #sec-institute-streams-capacity .ttv2-occupancy-chart-shell{
+    position: relative;
+    height: 240px;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  #sec-institute-streams-capacity .ttv2-occupancy-chart-shell.is-disabled canvas{
+    filter: blur(3px) grayscale(.55);
+    opacity: .42;
+    pointer-events: none;
+    user-select: none;
+  }
+  #sec-institute-streams-capacity .ttv2-occupancy-empty{
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    text-align: center;
+    background: color-mix(in srgb, var(--c-bg2) 56%, transparent);
+    backdrop-filter: blur(1px);
+  }
+  #sec-institute-streams-capacity .ttv2-occupancy-empty__card{
+    max-width: 300px;
+    padding: 16px 18px;
+    border: 1px solid var(--c-border2);
+    border-radius: 14px;
+    color: var(--c-text2);
+    background: color-mix(in srgb, var(--c-bg2) 92%, transparent);
+    box-shadow: 0 12px 32px color-mix(in srgb, var(--c-text) 12%, transparent);
+  }
+  #sec-institute-streams-capacity .ttv2-occupancy-empty__icon{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    margin-bottom: 8px;
+    border-radius: 12px;
+    color: var(--c-accent);
+    background: color-mix(in srgb, var(--c-accent) 14%, var(--c-bg2));
+    font-size: 20px;
+  }
+  #sec-institute-streams-capacity .ttv2-occupancy-empty__title{
+    color: var(--c-text);
+    font-size: 13px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+  #sec-institute-streams-capacity .ttv2-occupancy-empty__text{
+    font-size: 11px;
+    line-height: 1.45;
+    margin: 0;
   }
   #sec-institute-streams-capacity .ttv2-insight-chip{
     border-radius: 999px;
@@ -254,6 +311,9 @@
       </div>
     </div>
     <div class="d-flex align-items-center gap-2">
+      {% if can_edit_seat_capacity|default(false) and institute is defined and institute %}
+        {% include "template_v2/institute/includes/seat_capacity_edit_button.html" %}
+      {% endif %}
       <button type="button"
               class="btn btn-sm btn-outline-secondary ttv2-streams-capacity__week-btn"
               id="ttv2WeekDropdownBtn"
@@ -320,14 +380,26 @@
     <div class="ttv2-chart-card">
       <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
         <div class="ttv2-chart-title">Occupancy rate by stream</div>
-        {% if top_stream %}
+        {% if has_occupancy_data and top_stream %}
           <div class="ttv2-insight-chip">Top: <strong>{{ top_stream.get('label', top_stream.get('code', '-')) }} {{ top_stream.get('pct', 0) }}%</strong></div>
         {% endif %}
       </div>
-      <div style="height:240px;">
+      <div class="ttv2-occupancy-chart-shell{% if not has_occupancy_data %} is-disabled{% endif %}"
+           {% if not has_occupancy_data %}aria-disabled="true"{% endif %}>
         <canvas id="ttv2StreamsOccupancyByStream"></canvas>
+        {% if not has_occupancy_data %}
+        <div class="ttv2-occupancy-empty" role="status">
+          <div class="ttv2-occupancy-empty__card">
+            <span class="ttv2-occupancy-empty__icon"><i class="bx bx-bar-chart-alt-2"></i></span>
+            <div class="ttv2-occupancy-empty__title">No occupancy data yet</div>
+            <p class="ttv2-occupancy-empty__text">
+              This chart will be enabled when students are assigned to a class and stream.
+            </p>
+          </div>
+        </div>
+        {% endif %}
       </div>
-      {% if low_stream %}
+      {% if has_occupancy_data and low_stream %}
         <div class="pt-2">
           <span class="ttv2-insight-chip">Lowest: <strong>{{ low_stream.get('label', low_stream.get('code', '-')) }} {{ low_stream.get('pct', 0) }}%</strong></span>
         </div>
@@ -372,7 +444,8 @@
             {% for sm in streams_meta %}
               {% set code = sm.get('code','') %}
               {% set cell = (r.get('streams', {}).get(code, {}) if r.get('streams') else {}) %}
-              <td class="text-end ttv2-num">{{ cell.get('cap', 0) }}</td>
+              {% set class_num = '12' if '12' in (r.get('class_label','')|string) else '11' %}
+              <td class="text-end ttv2-num" data-seat-capacity-value data-class="{{ class_num }}" data-stream="{{ code|lower }}">{{ cell.get('cap', 0) }}</td>
             {% endfor %}
             <td class="text-end ttv2-num">{{ r.get('total', 0) }}</td>
             <td class="text-end ttv2-num">{{ r.get('filled', 0) }}</td>

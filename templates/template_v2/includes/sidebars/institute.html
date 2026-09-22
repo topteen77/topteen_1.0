@@ -49,13 +49,6 @@
     </a>
 
     <div class="ttv2-counselor-nav-title">Analytics</div>
-    {% if _inst_slug %}
-    <a href="{{ url('institute:institutedashboard_page', args=[_inst_slug, 'heatmap']) }}"
-       data-ttv2-nav="heatmap"
-       class="{% if _page == 'heatmap' %}active{% endif %}">
-      <span class="ttv2-counselor-dot" style="background:#34d399"></span>Career heatmap
-    </a>
-    {% endif %}
     <a href="{{ url('institute:institutedashboard_page', args=[_inst_slug, 'streams_capacity']) }}"
        data-ttv2-nav="streams_capacity"
        class="{% if _page == 'streams_capacity' %}active{% endif %}">
@@ -100,9 +93,11 @@
       <a href="#ql-upload-postmatric" class="ttv2-counselor-quicklink">
         <i class='bx bx-upload'></i> Post-Matric-CSV Upload
       </a>
+      {% if ttv2_role_ctx.institute and ttv2_role_ctx.institute.institute_log.exists() %}
       <a href="{{ url('institute:institutehistorylog', args=[_inst_slug]) }}" class="ttv2-counselor-quicklink">
         <i class='bx bx-history'></i> Uploaded History Log
       </a>
+      {% endif %}
       <a href="{{ url('institute:institutedashboard', args=[_inst_slug]) }}" class="ttv2-counselor-quicklink">
         <i class='bx bx-grid-alt'></i> My Dashboard
       </a>

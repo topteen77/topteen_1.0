@@ -96,7 +96,7 @@ class NotificationMessageTemplate(models.Model):
 class Notification(models.Model):
     """
     In-app notification row. Deletion is always a hard delete (SQL ``DELETE``) — there is no
-    soft-delete or archive flag. Marking as read (``mark_read()``) removes the row from the database.
+    soft-delete or archive flag. Marking as read keeps the row and sets ``is_read``.
     """
 
     class Environment:
@@ -140,9 +140,22 @@ class Notification(models.Model):
             )
         ]
 
-    def mark_read(self):
-        """Dismiss this notification: hard-delete the row (no separate read/archive state)."""
-        self.delete()
+    def mark_read(self, opened=False):
+        """Mark as viewed. Keep the row so the list is only cleared after the user opens it."""
+        update_fields = []
+        if not self.is_read:
+            self.is_read = True
+            self.read_at = timezone.now()
+            update_fields.extend(['is_read', 'read_at'])
+        if opened:
+            payload = dict(self.payload or {}) if isinstance(self.payload, dict) else {}
+            if payload.get('opened') is not True:
+                payload['opened'] = True
+                self.payload = payload
+                update_fields.append('payload')
+        if update_fields:
+            update_fields.append('modified')
+            self.save(update_fields=update_fields)
 
     def delete(self, using=None, keep_parents=False):
         """Remove this row from the database (hard delete)."""

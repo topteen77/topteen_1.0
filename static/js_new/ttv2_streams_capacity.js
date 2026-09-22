@@ -56,17 +56,18 @@
       var labels = streamsMeta.map(function (s) {
         return s.label || s.code || "-";
       });
-      var capPerStream = streamsMeta.map(function (s) {
-        var code = s.code || "";
-        return Number(capMap[code] || 0);
-      });
+      var capByClass = payload.cap_map_by_class && typeof payload.cap_map_by_class === "object" ? payload.cap_map_by_class : {};
       var ds = classes.map(function (cls, idx) {
         var color = idx === 0
           ? gradientFill(capCanvas.getContext("2d"), "rgba(59,130,246,.95)", "rgba(125,211,252,.78)")
           : gradientFill(capCanvas.getContext("2d"), "rgba(139,92,246,.95)", "rgba(216,180,254,.78)");
+        var classCap = capByClass[cls] || capMap;
         return {
           label: cls,
-          data: capPerStream.slice(),
+          data: streamsMeta.map(function (s) {
+            var code = s.code || "";
+            return Number((classCap && classCap[code]) || capMap[code] || 0);
+          }),
           backgroundColor: color,
           borderColor: idx === 0 ? "rgba(59,130,246,.95)" : "rgba(139,92,246,.95)",
           borderWidth: 1,

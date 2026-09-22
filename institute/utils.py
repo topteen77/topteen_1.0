@@ -4,9 +4,42 @@ Utility functions for heatmap data aggregation and analytics
 from django.db.models import Count, Avg, Q
 from institute.models import Institute, StudentManagement, InstituteGroup
 from app.models import Results, TestCompletion
+from app.interest_report_utils import top_riasec_codes_from_scores
 from users.models import User
 import json
 import re
+
+RIASEC_CAREER_CLUSTERS = {
+    'R': ['Advanced Manufacturing', 'Robotics & Automation', 'Space & Aerospace', 'Renewable Energy'],
+    'I': ['Healthcare & Biotech', 'AI & Digital Tech', 'Cybersecurity'],
+    'A': ['Creative Arts', 'Media & Communications', 'Green Architecture'],
+    'S': ['Social Innovation', 'Edu-Tech & Training', 'Healthcare & Biotech'],
+    'E': ['Finance & Analytics', 'Legal & Governance', 'Media & Communications'],
+    'C': ['Finance & Analytics', 'Legal & Governance', 'Cybersecurity'],
+}
+
+
+def _has_meaningful_scores(scores):
+    """True when a result contains at least one positive numeric score."""
+    if not isinstance(scores, dict):
+        return False
+    for raw in scores.values():
+        if isinstance(raw, dict):
+            raw = raw.get('score', raw.get('total', raw.get('average', 0)))
+        try:
+            if float(raw) > 0:
+                return True
+        except (TypeError, ValueError):
+            continue
+    return False
+
+
+def _career_clusters_from_psychometric_scores(scores):
+    """Map the single dominant RIASEC result to career clusters."""
+    if not _has_meaningful_scores(scores):
+        return []
+    codes = top_riasec_codes_from_scores(scores, limit=1)
+    return list(RIASEC_CAREER_CLUSTERS.get(codes[0], ())) if codes else []
 
 
 def get_career_clusters():
@@ -99,11 +132,11 @@ def _infer_stream_from_institute(student_mgmt):
             return None
         candidates = []
         for code, field in [
-            ("PCM", "pcm_seat_capacity"),
-            ("CBM", "cbm_seat_capacity"),
-            ("COMM", "comm_seat_capacity"),
-            ("HME", "hme_seat_capacity"),
-            ("HMB", "hmb_seat_capacity"),
+            ("PCM", "pcm"),
+            ("CBM", "cbm"),
+            ("COMM", "comm"),
+            ("HME", "hme"),
+            ("HMB", "hmb"),
         ]:
             cap = getattr(inst, field, None)
             if isinstance(cap, int) and cap > 0:
@@ -217,7 +250,6 @@ def aggregate_student_career_data(students_queryset, demographic_type='grade'):
     Returns:
         Dictionary with aggregated data
     """
-    career_clusters = get_career_clusters()
     aggregated_data = {}
 
     # Materialize once with related rows already loaded by callers.
@@ -230,12 +262,21 @@ def aggregate_student_career_data(students_queryset, demographic_type='grade'):
 
     # Batch Results — avoid 3×N queries (was ~600 queries for ~200 students).
     results_by_user = {}
+    completed_user_ids = set()
     if user_ids:
         for row in Results.objects.filter(
             user_id__in=user_ids,
             test_paper__in=["test1", "test2", "test3"],
         ).only("id", "user_id", "test_paper", "scores", "results"):
             results_by_user.setdefault(int(row.user_id), {})[row.test_paper] = row
+        completed_user_ids = set(
+            TestCompletion.objects.filter(
+                user_id__in=user_ids,
+                test1_complete=True,
+                test2_complete=True,
+                test3_complete=True,
+            ).values_list("user_id", flat=True)
+        )
     
     for student_mgmt in students_list:
         student = student_mgmt.student
@@ -243,6 +284,20 @@ def aggregate_student_career_data(students_queryset, demographic_type='grade'):
             continue
         uid = int(getattr(student, "id", 0) or 0)
         by_paper = results_by_user.get(uid) or {}
+
+        # Career clusters must be supported by a completed psychometric battery.
+        # Enrolment, class stream, seat capacity, or a generated student id must
+        # never create a heatmap cluster.
+        if uid not in completed_user_ids:
+            continue
+        test1_result = by_paper.get('test1')
+        test2_result = by_paper.get('test2')
+        test3_result = by_paper.get('test3')
+        clusters = _career_clusters_from_psychometric_scores(
+            getattr(test2_result, 'scores', None)
+        )
+        if not test1_result or not test3_result or not clusters:
+            continue
         
         # Get demographic value
         class_section = student_mgmt.class_and_section
@@ -260,13 +315,7 @@ def aggregate_student_career_data(students_queryset, demographic_type='grade'):
         else:  # stream
             demo_raw = class_section.stream if class_section and class_section.stream else None
             norm = _normalize_stream(demo_raw)
-            if not norm:
-                norm = _infer_stream_from_institute(student_mgmt)
             demographic_key = norm if norm else 'Unknown'
-        
-        test1_result = by_paper.get('test1')
-        test2_result = by_paper.get('test2')
-        test3_result = by_paper.get('test3')
         
         # Calculate metrics
         interest = calculate_interest_level(student, test2_result)
@@ -274,18 +323,7 @@ def aggregate_student_career_data(students_queryset, demographic_type='grade'):
         alignment = calculate_alignment(student, test1_result, test2_result, test3_result)
         clarity_gap = abs(interest - knowledge)
         
-        # Get stream/cluster
-        if demographic_type == 'stream':
-            stream = _normalize_stream(demographic_key) or (demographic_key if demographic_key != "Unknown" else None)
-        else:
-            stream = _normalize_stream(class_section.stream if class_section and class_section.stream else None)
-        if not stream:
-            stream = _infer_stream_from_institute(student_mgmt)
-        stream = stream or "Unknown"
-        
-        # Map stream to career clusters
-        clusters = career_clusters.get(stream, [stream] if stream != 'Unknown' else ['Unknown'])
-        
+        # `clusters` comes only from the dominant RIASEC score above.
         for cluster in clusters:
             key = f"{cluster}_{demographic_key}"
             if key not in aggregated_data:
@@ -422,6 +460,8 @@ def _finalize_heatmap_payload(heatmap_data, demographic_type='grade'):
     }
 
     return {
+        'enabled': bool(heatmap_data),
+        'disabledMessage': '' if heatmap_data else 'Career heatmap unlocks after a student completes the psychometric assessment.',
         'heatmapData': heatmap_data,
         'stats': stats,
         'demographics': demographics,
@@ -432,6 +472,8 @@ def _finalize_heatmap_payload(heatmap_data, demographic_type='grade'):
 def get_empty_heatmap_data():
     """Return empty heatmap data structure"""
     return {
+        'enabled': False,
+        'disabledMessage': 'Career heatmap unlocks after a student completes the psychometric assessment.',
         'heatmapData': [],
         'stats': {
             'highRisk': 0,

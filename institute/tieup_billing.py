@@ -756,7 +756,9 @@ def _line_row(line_item, institute=None):
         "transaction_url": txn_url,
         "payment_id": pay.id if pay else None,
         "can_mark_received": line_item.payment_status == choices.TieUpPaymentStatus.PENDING,
-        "can_pay": line_item.payment_status == choices.TieUpPaymentStatus.PENDING,
+        "can_pay": line_item.payment_status
+        in (choices.TieUpPaymentStatus.PENDING, choices.TieUpPaymentStatus.FAILED)
+        and _is_payable_amount(line_item.total_amount),
     }
 
 
@@ -850,7 +852,7 @@ def build_institute_group_billing_ctx(
         "tieup_amount_payable": _is_payable_amount(pending_total),
         "is_group_view": True,
         "pending_pay_institutes": pending_pay_institutes,
-        "pay_order_id": first_pending["order_id"] if first_pending else None,
+        "pay_order_id": first_pending["order_id"] if first_pending and _is_payable_amount(pending_total) else None,
         "create_order_url": first_pending["create_order_url"] if first_pending else "",
         "coupon_preview_url": first_pending["coupon_preview_url"] if first_pending else "",
         "list_coupons_url": list_coupons_url,
@@ -939,6 +941,7 @@ def build_institute_billing_ctx(institute, user=None, status_filter=None):
         "tieup_amount_payable": _is_payable_amount(pending_total),
         "pay_order": pay_order,
         "pay_order_id": pay_order.id if pay_order and _is_payable_amount(pending_total) else None,
+        "retry_order_id": pay_order.id if pay_order and _is_payable_amount(pending_total) else None,
         "is_group_view": False,
         "institute_slug": institute.slug,
         "tieup_can_pay": user_can_access_tieup_institute(user, institute) if user else False,

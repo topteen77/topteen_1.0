@@ -157,7 +157,6 @@ def _nav_for_role(
                     },
                 ],
             },
-            {"title": "Analytics", "items": [{"label": "Career heatmap", "dot": "#34d399", "href": _safe_reverse("institute:institutegroupheatmap")}]},
         ]
 
     if role == "marketing_group":
@@ -195,7 +194,6 @@ def _nav_for_role(
             {
                 "title": "Analytics",
                 "items": [
-                    {"label": "Career heatmap", "dot": "#34d399", "href": _safe_reverse("institute:marketinggroupheatmap")},
                     {
                         "label": "Institute credits",
                         "dot": "#22c55e",
@@ -219,12 +217,6 @@ def _nav_for_role(
         {
             "title": "Analytics",
             "items": [
-                {
-                    "label": "Career heatmap",
-                    "dot": "#34d399",
-                    "href": _safe_reverse("institute:institutedashboard_page", args=[inst_slug, "heatmap"]) if inst_slug else "#",
-                    "key": "heatmap",
-                },
                 {"label": "Streams & capacity", "dot": "#a78bfa", "href": _safe_reverse("institute:institutedashboard_page", args=[inst_slug, "streams_capacity"]) if inst_slug else "#"},
             ],
         },

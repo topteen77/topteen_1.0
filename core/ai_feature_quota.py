@@ -27,6 +27,12 @@ ALL_FEATURES = (
     FEATURE_PAGE_CHAT,
 )
 
+# Homepage Career Counsellor / Chat-this-page may be used while logged out.
+GUEST_ALLOWED_FEATURES = (
+    FEATURE_COUNSELLOR,
+    FEATURE_PAGE_CHAT,
+)
+
 RECHARGE_MESSAGE = "AI tokens need to recharge — Buy now."
 CTA_LABEL = "Buy now"
 

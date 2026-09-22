@@ -1,0 +1,35 @@
+{# Shared pending approval actions for marketing institute table rows. #}
+<div class="ttv2-mktg-row-pending d-flex flex-column gap-1">
+  <span class="small fw-semibold {% if ins.registration_urgency() == 'high' %}text-danger{% elif ins.registration_urgency() == 'medium' %}text-warning{% else %}text-success{% endif %}">
+    {% if ins.days_since_registered() == 0 %}Registered today
+    {% elif ins.days_since_registered() == 1 %}Waiting 1 day
+    {% else %}Waiting {{ ins.days_since_registered() }} days{% endif %}
+    · {{ ins.registration_urgency_label() }}
+  </span>
+  <div class="d-flex flex-wrap gap-1 align-items-center">
+    <button type="button"
+            class="btn btn-sm btn-outline-primary"
+            data-ttv2-pending-view="1"
+            data-institute-id="{{ ins.id }}"
+            data-institute-name="{{ ins.name }}"
+            data-institute-slug="{{ ins.slug }}"
+            data-institute-email="{{ ins.created_by.email if ins.created_by else '' }}"
+            data-institute-mobile="{{ ins.created_by.mobile if ins.created_by else '' }}"
+            data-institute-contact="{{ ins.contact_info if ins.contact_info else '' }}"
+            data-institute-admin="{{ ins.administrator_contact if ins.administrator_contact else '' }}"
+            data-institute-address="{{ ins.address if ins.address else '' }}"
+            data-institute-created="{{ ins.created.strftime('%d %b %Y') if ins.created else '' }}"
+            data-institute-days="{{ ins.days_since_registered() }}"
+            data-institute-urgency="{{ ins.registration_urgency_label() }}">
+      View
+    </button>
+    <a href="{{ url('institute:instituteapprove', args=[ins.id]) }}"
+       class="btn btn-sm btn-success text-white">
+      <i class='bx bx-check-circle me-1'></i>Approve
+    </a>
+    <a href="{{ url('institute:institutereject', args=[ins.id]) }}"
+       class="btn btn-sm btn-danger text-white">
+      <i class='bx bx-x-circle me-1'></i>Reject
+    </a>
+  </div>
+</div>

@@ -850,7 +850,18 @@
       });
   }
 
-  // Load seat capacity table with inline edit functionality
+  function _seatCapVal(inst, classKey, stream) {
+    const bag = inst && inst['class_' + classKey];
+    const raw = (bag && bag[stream] != null) ? bag[stream] : inst && inst[classKey === '12' ? (stream + '_12') : stream];
+    const n = parseInt(raw, 10);
+    return isNaN(n) ? 100 : n;
+  }
+
+  function _seatCapAttr(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  }
+
+  // Load seat capacity table with class 11/12 edit via shared modal
   function loadSeatCapacityTable(institutes) {
     const section = document.getElementById('seat-capacity-section');
     const tbody = document.getElementById('seat-capacity-tbody');
@@ -866,35 +877,50 @@
     if (institutes && institutes.length > 0) {
       let html = '';
       institutes.forEach((inst, index) => {
-        // Default seat capacity values (100 per stream as per production)
-        const pcm = inst.pcm || 100;
-        const cbm = inst.cbm || 100;
-        const comm = inst.comm || 100;
-        const hme = inst.hme || 100;
-        const hmb = inst.hmb || 100;
         const name = inst.name || 'Unknown';
         const instId = inst.id || index;
         const slug = (inst.slug && String(inst.slug).trim()) ? String(inst.slug).trim() : '';
         const nameCell = slug
-          ? `<a class="text-decoration-none" href="/institute/${encodeURIComponent(slug)}/dashboard/">${name}</a>`
-          : name;
+          ? `<a class="text-decoration-none" href="/institute/${encodeURIComponent(slug)}/dashboard/">${_seatCapAttr(name)}</a>`
+          : _seatCapAttr(name);
+        const v = {
+          pcm11: _seatCapVal(inst, '11', 'pcm'),
+          cbm11: _seatCapVal(inst, '11', 'cbm'),
+          comm11: _seatCapVal(inst, '11', 'comm'),
+          hme11: _seatCapVal(inst, '11', 'hme'),
+          hmb11: _seatCapVal(inst, '11', 'hmb'),
+          pcm12: _seatCapVal(inst, '12', 'pcm'),
+          cbm12: _seatCapVal(inst, '12', 'cbm'),
+          comm12: _seatCapVal(inst, '12', 'comm'),
+          hme12: _seatCapVal(inst, '12', 'hme'),
+          hmb12: _seatCapVal(inst, '12', 'hmb'),
+        };
+        const editBtn = `<button type="button" class="btn btn-sm btn-primary" data-seat-capacity-edit
+              data-institute-id="${instId}"
+              data-institute-name="${_seatCapAttr(name)}"
+              data-pcm-11="${v.pcm11}" data-cbm-11="${v.cbm11}" data-comm-11="${v.comm11}" data-hme-11="${v.hme11}" data-hmb-11="${v.hmb11}"
+              data-pcm-12="${v.pcm12}" data-cbm-12="${v.cbm12}" data-comm-12="${v.comm12}" data-hme-12="${v.hme12}" data-hmb-12="${v.hmb12}">
+              <i class='bx bx-edit'></i> Edit 11th &amp; 12th
+            </button>`;
         html += `
-          <tr data-institute-id="${instId}" data-edit-mode="false">
-            <td>${index + 1}</td>
-            <td class="institute-name">${nameCell}</td>
-            <td class="pcm-value">${pcm}</td>
-            <td class="cbm-value">${cbm}</td>
-            <td class="comm-value">${comm}</td>
-            <td class="hme-value">${hme}</td>
-            <td class="hmb-value">${hmb}</td>
-            <td>
-              <button class="btn btn-sm btn-primary edit-seat-capacity-btn" onclick="toggleEditSeatCapacity(${instId})">
-                <i class='bx bx-edit'></i> Edit
-              </button>
-              <button class="btn btn-sm btn-success save-seat-capacity-btn" onclick="saveSeatCapacity(${instId})" style="display: none;">
-                <i class='bx bx-save'></i> Save
-              </button>
-            </td>
+          <tr data-institute-id="${instId}">
+            <td rowspan="2">${index + 1}</td>
+            <td rowspan="2" class="institute-name">${nameCell}</td>
+            <td>11th</td>
+            <td data-seat-capacity-value data-class="11" data-stream="pcm">${v.pcm11}</td>
+            <td data-seat-capacity-value data-class="11" data-stream="cbm">${v.cbm11}</td>
+            <td data-seat-capacity-value data-class="11" data-stream="comm">${v.comm11}</td>
+            <td data-seat-capacity-value data-class="11" data-stream="hme">${v.hme11}</td>
+            <td data-seat-capacity-value data-class="11" data-stream="hmb">${v.hmb11}</td>
+            <td rowspan="2">${editBtn}</td>
+          </tr>
+          <tr data-institute-id="${instId}">
+            <td>12th</td>
+            <td data-seat-capacity-value data-class="12" data-stream="pcm">${v.pcm12}</td>
+            <td data-seat-capacity-value data-class="12" data-stream="cbm">${v.cbm12}</td>
+            <td data-seat-capacity-value data-class="12" data-stream="comm">${v.comm12}</td>
+            <td data-seat-capacity-value data-class="12" data-stream="hme">${v.hme12}</td>
+            <td data-seat-capacity-value data-class="12" data-stream="hmb">${v.hmb12}</td>
           </tr>
         `;
       });
@@ -1064,19 +1090,43 @@
     } catch (e) {}
   }
 
-  // Location suggest dropdown (custom menu over native datalist for better UX).
+  // Location suggest dropdown (custom menu; native datalist is disabled so Chrome
+  // does not paint its unstyled black suggestions on click).
   function ttv2InitLocationSuggestDropdown() {
     const input = document.getElementById('location_filter');
     const datalist = document.getElementById('location_suggestions');
     const menu = document.getElementById('location_filter_menu');
     const clearBtn = document.getElementById('location_filter_clear');
     if (!input || !datalist || !menu || !clearBtn) return;
+    input.removeAttribute('list');
     if (input.dataset.ttv2SuggestBound === '1') return;
     input.dataset.ttv2SuggestBound = '1';
 
     const options = Array.from(datalist.querySelectorAll('option'))
       .map(o => (o.value || '').trim())
       .filter(Boolean);
+    let activeIndex = -1;
+
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function highlight(text, q) {
+      const safe = escapeHtml(text);
+      if (!q) return safe;
+      const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return safe.replace(new RegExp('(' + escaped + ')', 'ig'), '<mark class="ttv2-suggest-mark">$1</mark>');
+    }
+
+    function splitLoc(v) {
+      const idx = v.indexOf(',');
+      if (idx === -1) return { title: v, meta: '' };
+      return { title: v.slice(0, idx).trim(), meta: v.slice(idx + 1).trim() };
+    }
 
     function setClearVisible() {
       clearBtn.style.display = (input.value || '').trim() ? 'block' : 'none';
@@ -1085,31 +1135,89 @@
     function hideMenu() {
       menu.style.display = 'none';
       menu.innerHTML = '';
+      activeIndex = -1;
+      input.setAttribute('aria-expanded', 'false');
+    }
+
+    function items() {
+      return Array.from(menu.querySelectorAll('.ttv2-suggest-item'));
+    }
+
+    function setActive(i) {
+      const btns = items();
+      if (!btns.length) return;
+      activeIndex = ((i % btns.length) + btns.length) % btns.length;
+      btns.forEach(function (btn, idx) {
+        btn.classList.toggle('is-active', idx === activeIndex);
+      });
+      btns[activeIndex].scrollIntoView({ block: 'nearest' });
+    }
+
+    function choose(btn) {
+      if (!btn) return;
+      input.value = btn.getAttribute('data-val') || '';
+      setClearVisible();
+      hideMenu();
+      input.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
     function renderMenu(raw) {
-      const q = (raw || '').trim().toLowerCase();
+      const qRaw = (raw || '').trim();
+      const q = qRaw.toLowerCase();
       const filtered = options.filter(v => !q || v.toLowerCase().includes(q)).slice(0, 30);
+      activeIndex = -1;
       if (!filtered.length) {
         menu.innerHTML = '<div class="ttv2-suggest-empty">No matching locations</div>';
       } else {
-        menu.innerHTML = filtered
-          .map(v => `<button type="button" class="ttv2-suggest-item" data-val="${String(v).replace(/"/g, '&quot;')}">${v}</button>`)
-          .join('');
+        const head = q
+          ? '<div class="ttv2-suggest-head">' + filtered.length + ' matching location' + (filtered.length === 1 ? '' : 's') + '</div>'
+          : '<div class="ttv2-suggest-head">Suggested locations</div>';
+        menu.innerHTML = head + filtered.map(function (v) {
+          const parts = splitLoc(v);
+          const meta = parts.meta
+            ? '<span class="ttv2-suggest-meta">' + highlight(parts.meta, qRaw) + '</span>'
+            : '';
+          return '<button type="button" class="ttv2-suggest-item" role="option" data-val="' + escapeHtml(v) + '">' +
+            '<span class="ttv2-suggest-pin" aria-hidden="true"><i class="bx bx-map"></i></span>' +
+            '<span class="ttv2-suggest-text">' +
+              '<span class="ttv2-suggest-title">' + highlight(parts.title, qRaw) + '</span>' +
+              meta +
+            '</span></button>';
+        }).join('');
       }
       menu.style.display = 'block';
+      input.setAttribute('aria-expanded', 'true');
     }
 
     input.addEventListener('focus', function () {
       renderMenu(input.value);
       setClearVisible();
     });
+    input.addEventListener('mousedown', function () {
+      if (menu.style.display !== 'block') renderMenu(input.value);
+    });
     input.addEventListener('input', function () {
       renderMenu(input.value);
       setClearVisible();
     });
     input.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') hideMenu();
+      if (e.key === 'Escape') {
+        hideMenu();
+        return;
+      }
+      const btns = items();
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (menu.style.display !== 'block') renderMenu(input.value);
+        setActive(activeIndex + 1);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (menu.style.display !== 'block') renderMenu(input.value);
+        setActive(activeIndex - 1);
+      } else if (e.key === 'Enter' && menu.style.display === 'block' && activeIndex >= 0 && btns[activeIndex]) {
+        e.preventDefault();
+        choose(btns[activeIndex]);
+      }
     });
 
     clearBtn.addEventListener('click', function () {
@@ -1120,17 +1228,12 @@
     });
 
     menu.addEventListener('click', function (e) {
-      const btn = e.target.closest('.ttv2-suggest-item');
-      if (!btn) return;
-      input.value = btn.getAttribute('data-val') || '';
-      setClearVisible();
-      hideMenu();
-      input.dispatchEvent(new Event('change', { bubbles: true }));
+      choose(e.target.closest('.ttv2-suggest-item'));
     });
 
-    document.addEventListener('click', function (e) {
-      if (!input.closest('.ttv2-suggest-wrap')) return;
-      if (input.closest('.ttv2-suggest-wrap').contains(e.target)) return;
+    document.addEventListener('mousedown', function (e) {
+      const wrap = input.closest('.ttv2-suggest-wrap');
+      if (!wrap || wrap.contains(e.target)) return;
       hideMenu();
     });
 
@@ -1452,6 +1555,7 @@
     initTooltips();
   }
 
+  window.ttv2LoadSeatCapacityPage = ttv2LoadSeatCapacityPage;
   window.ttv2BootMarketingGroupDashboard = ttv2BootMarketingGroupDashboard;
   document.addEventListener('DOMContentLoaded', function() {
     if (!document.getElementById('ttv2AjaxContent')) {

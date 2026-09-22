@@ -12,6 +12,7 @@ from django.db.models import Sum
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 # Create your models here.
 
 def get_global_remain_credits():
@@ -234,31 +235,56 @@ class Institute(BaseModel, SlugModel):
         ),
     )
 
-    # Seat Capacity fields for streams
+    # Seat capacity by stream — class 11 (legacy field names kept for compatibility)
     pcm = models.PositiveIntegerField(
         default=100,
-        verbose_name="PCM Seat Capacity",
-        help_text="Seat capacity for PCM stream"
+        verbose_name="Class 11 PCM Seat Capacity",
+        help_text="Seat capacity for PCM stream in class 11",
     )
     cbm = models.PositiveIntegerField(
         default=100,
-        verbose_name="CBM Seat Capacity",
-        help_text="Seat capacity for CBM stream"
+        verbose_name="Class 11 CBM Seat Capacity",
+        help_text="Seat capacity for CBM stream in class 11",
     )
     comm = models.PositiveIntegerField(
         default=100,
-        verbose_name="COMM Seat Capacity",
-        help_text="Seat capacity for COMM stream"
+        verbose_name="Class 11 COMM Seat Capacity",
+        help_text="Seat capacity for COMM stream in class 11",
     )
     hme = models.PositiveIntegerField(
         default=100,
-        verbose_name="HME Seat Capacity",
-        help_text="Seat capacity for HME stream"
+        verbose_name="Class 11 HME Seat Capacity",
+        help_text="Seat capacity for HME stream in class 11",
     )
     hmb = models.PositiveIntegerField(
         default=100,
-        verbose_name="HMB Seat Capacity",
-        help_text="Seat capacity for HMB stream"
+        verbose_name="Class 11 HMB Seat Capacity",
+        help_text="Seat capacity for HMB stream in class 11",
+    )
+    pcm_12 = models.PositiveIntegerField(
+        default=100,
+        verbose_name="Class 12 PCM Seat Capacity",
+        help_text="Seat capacity for PCM stream in class 12",
+    )
+    cbm_12 = models.PositiveIntegerField(
+        default=100,
+        verbose_name="Class 12 CBM Seat Capacity",
+        help_text="Seat capacity for CBM stream in class 12",
+    )
+    comm_12 = models.PositiveIntegerField(
+        default=100,
+        verbose_name="Class 12 COMM Seat Capacity",
+        help_text="Seat capacity for COMM stream in class 12",
+    )
+    hme_12 = models.PositiveIntegerField(
+        default=100,
+        verbose_name="Class 12 HME Seat Capacity",
+        help_text="Seat capacity for HME stream in class 12",
+    )
+    hmb_12 = models.PositiveIntegerField(
+        default=100,
+        verbose_name="Class 12 HMB Seat Capacity",
+        help_text="Seat capacity for HMB stream in class 12",
     )
 
     class Meta:
@@ -272,6 +298,37 @@ class Institute(BaseModel, SlugModel):
     def __str__(self):
         """String representation of the Institute."""
         return self.name
+
+    def days_since_registered(self):
+        created = getattr(self, "created", None)
+        if not created:
+            return 0
+        now = timezone.now()
+        try:
+            if timezone.is_naive(created):
+                created = timezone.make_aware(created, timezone.get_current_timezone())
+        except Exception:
+            pass
+        try:
+            return max(0, int((now - created).total_seconds() // 86400))
+        except Exception:
+            return 0
+
+    def registration_urgency(self):
+        days = self.days_since_registered()
+        if days >= 7:
+            return "high"
+        if days >= 3:
+            return "medium"
+        return "new"
+
+    def registration_urgency_label(self):
+        days = self.days_since_registered()
+        if days >= 7:
+            return "Urgent — please review"
+        if days >= 3:
+            return "Waiting — follow up"
+        return "New registration"
 
     def get_demo_student_password(self) -> str:
         """

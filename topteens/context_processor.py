@@ -679,6 +679,8 @@ def globals(request):
         "show_chatbot": show_chatbot,
         "show_ai_counsellor_bot": show_ai_counsellor_bot,
         "show_page_chat_widget": show_page_chat_widget,
+        "topteenbot_url": getattr(settings, 'TOPTEENBOT_URL', 'https://careerbot.canamacademy.com').rstrip('/'),
+        "topteenbot_ws_url": getattr(settings, 'TOPTEENBOT_WS_URL', 'wss://careerbot.canamacademy.com').rstrip('/'),
         "legacy_chatbot_enabled": legacy_chatbot_enabled,
         "page_chat_position": page_chat_position,
         "ai_counsellor_position": ai_counsellor_position,

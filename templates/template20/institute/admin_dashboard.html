@@ -207,14 +207,17 @@
               <p class="text-muted small mb-2">
                 <i class='bx bx-calendar me-1'></i> {{ institute.created.strftime('%b %d, %Y') if institute.created else '' }}
               </p>
-              <div class="d-flex gap-2 mt-3">
+              <div class="d-flex gap-2 mt-3 flex-wrap">
                 <a href="{{ url('institute:institute_masterdashboard', args=[institute.slug]) }}" class="btn btn-sm btn-outline-primary flex-fill">
                   <i class='bx bx-show me-1'></i> View
                 </a>
+                {% set seat_capacity_btn_class = 'btn btn-sm btn-outline-secondary flex-fill' %}
+                {% set seat_capacity_btn_label = 'Seats' %}
+                {% include "template_v2/institute/includes/seat_capacity_edit_button.html" %}
                 {% if institute.is_approved %}
-                <span class="badge bg-success">Approved</span>
+                <span class="badge bg-success align-self-center">Approved</span>
                 {% else %}
-                <span class="badge bg-warning">Pending</span>
+                <span class="badge bg-warning align-self-center">Pending</span>
                 {% endif %}
               </div>
             </div>
@@ -397,6 +400,7 @@
     </div>
   </div>
 </div>
+{% include "template_v2/institute/includes/seat_capacity_edit_modal.html" %}
 
 <!-- Create Institute Group Modal -->
 <div class="modal fade" id="createInstituteGroupModal" tabindex="-1" aria-labelledby="createInstituteGroupModalLabel" aria-hidden="true">
@@ -498,6 +502,7 @@
   });
 </script>
 {% endif %}
+<script src="{{ staticv('js_new/ttv2_seat_capacity_edit.js') }}"></script>
 {% endblock %}
 
 {# Disable chatbot for admin dashboard #}

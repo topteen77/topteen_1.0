@@ -6,6 +6,9 @@ app_name = 'notifications'
 
 urlpatterns = [
     path('', views.notifications_page, name='page'),
+    path('leads/contact/<int:lead_id>/', views.lead_capture_contact_detail, name='lead_capture_contact'),
+    path('leads/<int:lead_id>/', views.lead_capture_detail, name='lead_capture'),
+    path('payments/detail/', views.payment_capture_detail, name='payment_capture'),
     path('admin/settings/', views.notification_admin_settings, name='admin_settings'),
     path('api/latest/', views.notifications_latest_api, name='latest_api'),
     path('api/mark-bucket-read/', views.notification_mark_bucket_read_api, name='mark_bucket_read_api'),
