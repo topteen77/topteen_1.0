@@ -46,6 +46,11 @@ on:
         required: false
         default: true
         type: boolean
+      skip_collectstatic:
+        description: "Skip collectstatic (ON = S3 keeps the OLD css/js, so template changes will not show)"
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: elb-ecs-ecr
@@ -252,6 +257,9 @@ jobs:
       IMAGE_URI: ${{ needs.build.outputs.image_uri }}
       IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
     steps:
+      - name: Checkout (for .github/scripts helpers)
+        uses: actions/checkout@v4
+
       - name: AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -371,6 +379,23 @@ jobs:
             "stoppedReason=${STOPPED_REASON}" \
             "Fix Django/DB from the logs above. Services were not updated."
           echo "[OK] STEP 6 — migrate succeeded or no pending migrations"
+
+      # STATIC_URL is S3, so the browser loads css/js from the bucket and NOT from
+      # the container. Without this step the new image serves new HTML that still
+      # points at stale S3 objects (a ?v= bump does not change an S3 object), so
+      # template/JS fixes silently do not reach users.
+      # No --clear: the bucket is shared with production media/static.
+      - name: STEP 6b — Sync static to S3 (collectstatic)
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event.inputs.skip_collectstatic || 'false' }}" = "true" ]; then
+            echo "[OK] STEP 6b — skipped (skip_collectstatic is on; S3 keeps the old css/js)"
+            exit 0
+          fi
+          chmod +x .github/scripts/ecs_oneoff_task.sh
+          .github/scripts/ecs_oneoff_task.sh collectstatic-ci \
+            'python manage.py collectstatic --noinput' \
+            'STEP 6b — collectstatic'
 
       - name: STEP 7 — Register new task definitions (services still on old revision)
         id: register
