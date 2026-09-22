@@ -376,27 +376,21 @@
             <h3 class="sidebar-title mb-3">Latest Posts</h3>
             <div class="popular-posts">
               {% for latest_blog in latest_blogs[:5] %}
-              <div class="popular-post mb-3">
-                <div class="row g-2">
-                  <div class="col-4">
-                    <a href="{{ url('blog:blogdetail', args=[latest_blog.slug]) }}">
-                      {% if latest_blog.image %}
-                      <img src="{{ latest_blog.image.url }}" alt="{{ latest_blog.title }}" class="img-fluid w-100" style="height: 80px; object-fit: cover;" loading="lazy" decoding="async">
-                      {% else %}
-                      <img src="{{ static('images_new/blogs/main-blog.png') }}" alt="{{ latest_blog.title }}" class="img-fluid w-100" style="height: 80px; object-fit: cover;">
-                      {% endif %}
-                    </a>
-                  </div>
-                  <div class="col-8">
-                    <h4 class="popular-post-title fs-16">
-                      <a href="{{ url('blog:blogdetail', args=[latest_blog.slug]) }}">{{ latest_blog.title|truncate(60) }}</a>
-                    </h4>
-                    {% if latest_blog.author %}
-                    <span class="text-gray fs-12">By: {{ latest_blog.author.name if latest_blog.author.name else latest_blog.author.username }}</span>
-                    {% endif %}
-                  </div>
+              <a class="popular-post" href="{{ url('blog:blogdetail', args=[latest_blog.slug]) }}" title="{{ latest_blog.title }}">
+                <div class="popular-post-image">
+                  {% if latest_blog.image %}
+                  <img src="{{ latest_blog.image.url }}" alt="{{ latest_blog.title }}" loading="lazy" decoding="async">
+                  {% else %}
+                  <img src="{{ static('images_new/blogs/main-blog.png') }}" alt="{{ latest_blog.title }}" loading="lazy" decoding="async">
+                  {% endif %}
                 </div>
-              </div>
+                <div class="popular-post-content">
+                  <h4 class="popular-post-title">{{ latest_blog.title }}</h4>
+                  {% if latest_blog.author %}
+                  <span class="popular-post-meta">By {{ latest_blog.author.name if latest_blog.author.name else latest_blog.author.username }}</span>
+                  {% endif %}
+                </div>
+              </a>
               {% endfor %}
             </div>
           </div>
