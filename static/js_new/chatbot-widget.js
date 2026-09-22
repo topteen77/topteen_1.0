@@ -25,8 +25,6 @@
   const CFG = Object.assign({
     baseUrl : 'https://careerbot.canamacademy.com',
     wsBase  : 'wss://careerbot.canamacademy.com',
-    // baseUrl : 'http://127.0.0.1:8000',
-    // wsBase  : 'ws://127.0.0.1:8000',
     botName : 'Career Counsellor',
     devMode : false,  // Production mode - auto-creates sessions
   }, global.ChatbotConfig || {});
@@ -648,25 +646,45 @@
       if (!api || typeof api.fetchStatus !== 'function') return;
       api.fetchStatus().then((payload) => {
         this._quotaLocked = api.featureLocked(payload, 'counsellor');
+        this._loginRequired = !!(api.requiresLogin && api.requiresLogin(payload, 'counsellor'));
         this._applyQuotaLockUI(payload);
       }).catch(() => {});
     }
 
     _applyQuotaLockUI(payload) {
       const locked = !!this._quotaLocked;
-      const msg =
-        (payload && payload.message) ||
-        (global.AIFeatureQuota && global.AIFeatureQuota.RECHARGE_MESSAGE) ||
-        'AI tokens need to recharge — Buy now.';
+      const requireLogin = !!(
+        this._loginRequired ||
+        (payload && (payload.require_login || payload.login_required || payload.session_expired)) ||
+        (payload && payload.features && payload.features.counsellor &&
+          (payload.features.counsellor.require_login || payload.features.counsellor.login_required))
+      );
+      if (requireLogin) this._loginRequired = true;
+      const api = global.AIFeatureQuota;
+      const defaultMsg = requireLogin
+        ? "You've used your free chats. Sign in to continue."
+        : ((api && api.RECHARGE_MESSAGE) || 'AI tokens need to recharge — Buy now.');
+      const msg = (payload && payload.message) || defaultMsg;
       const shop =
-        (payload && payload.shop_url) ||
-        (global.AIFeatureQuota && global.AIFeatureQuota.config && global.AIFeatureQuota.config.shopUrl) ||
-        '/ai-tokens/';
+        (payload && (requireLogin ? payload.cta_url : payload.shop_url)) ||
+        (api && api.config && (requireLogin ? '/user/login/' : api.config.shopUrl)) ||
+        (requireLogin ? '/user/login/' : '/ai-tokens/');
       if (this._quotaInfo) {
         this._quotaInfo.hidden = !locked;
         const link = this._quotaInfo.querySelector('.ai-quota-info__link');
         const text = this._quotaInfo.querySelector('.ai-quota-info__text');
-        if (link) link.href = shop;
+        if (link) {
+          if (requireLogin) {
+            link.href = '#';
+            link.onclick = (e) => {
+              e.preventDefault();
+              if (api && typeof api.promptLogin === 'function') api.promptLogin(payload || {});
+            };
+          } else {
+            link.href = shop;
+            link.onclick = null;
+          }
+        }
         if (text) text.textContent = msg;
       }
       if (locked) {
@@ -773,8 +791,9 @@
       };
       this._statusDot.className   = state === 'connected' ? '' : state === 'connecting' ? 'connecting' : 'offline';
       this._statusTxt.textContent = labels[state] || state;
-      this._sendBtn.disabled      = state !== 'connected';
-      this._input.disabled        = state !== 'connected';
+      this._sendBtn.disabled      = state !== 'connected' || !!this._quotaLocked;
+      this._input.disabled        = state !== 'connected' || !!this._quotaLocked;
+      if (this._quotaLocked) this._applyQuotaLockUI();
     }
 
     _setSessionTitle(title) {
@@ -1021,6 +1040,10 @@
       if (!text || !this._ws || this._ws.readyState !== WebSocket.OPEN || this._isStreaming) return;
       if (this._quotaLocked) {
         this._applyQuotaLockUI();
+        const apiLocked = global.AIFeatureQuota;
+        if (this._loginRequired && apiLocked && typeof apiLocked.promptLogin === 'function') {
+          apiLocked.promptLogin({});
+        }
         return;
       }
 
@@ -1060,16 +1083,28 @@
         return;
       }
       api.consume('counsellor').then((res) => {
-        if (!res.ok || (res.data && res.data.quota_exceeded)) {
+        const data = (res && res.data) || {};
+        if (!res.ok) {
+          if ((api.requiresLogin && api.requiresLogin(data, 'counsellor')) || (res && res.status === 401)) {
+            this._quotaLocked = true;
+            this._loginRequired = true;
+            this._applyQuotaLockUI(data);
+            if (typeof api.promptLogin === 'function') api.promptLogin(data);
+            return;
+          }
           this._quotaLocked = true;
-          this._applyQuotaLockUI(res.data || {});
+          this._applyQuotaLockUI(data);
           return;
         }
-        if (res.data && res.data.locked) {
+        if (data.locked) {
           this._quotaLocked = true;
-          this._applyQuotaLockUI(res.data);
+          this._loginRequired = !!(api.requiresLogin && api.requiresLogin(data, 'counsellor'));
+          this._applyQuotaLockUI(data);
         }
         proceed();
+        if (this._loginRequired && typeof api.promptLogin === 'function') {
+          api.promptLogin(data);
+        }
       }).catch(() => proceed());
     }
 

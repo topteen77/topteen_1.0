@@ -1,0 +1,12 @@
+{# Inject TopTeenBot REST/WS URLs from TOPTEENBOT_URL (.env). Works in Jinja2 and Django templates. #}
+{% if show_ai_counsellor_bot or show_page_chat_widget or show_chatbot %}
+<script>
+  window.ChatbotConfig = Object.assign({}, window.ChatbotConfig || {}, {
+    baseUrl: "{{ topteenbot_url }}",
+    wsBase: "{{ topteenbot_ws_url }}"
+  });
+  window.PageChatConfig = Object.assign({}, window.PageChatConfig || {}, {
+    wsBase: "{{ topteenbot_ws_url }}"
+  });
+</script>
+{% endif %}

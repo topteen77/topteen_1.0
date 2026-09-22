@@ -7,7 +7,7 @@
  *  USAGE:
  *    <script>
  *      window.PageChatConfig = {
- *        wsBase  : 'wss://yourserver.com',   // WebSocket base URL
+ *        wsBase  : 'ws://localhost:8000',   // WebSocket base URL (from TOPTEENBOT_URL)
  *        botName : 'Page Assistant',          // Display name (optional)
  *      };
  *    </script>
@@ -396,25 +396,45 @@
       if (!api || typeof api.fetchStatus !== 'function') return;
       api.fetchStatus().then((payload) => {
         this._quotaLocked = api.featureLocked(payload, 'page_chat');
+        this._loginRequired = !!(api.requiresLogin && api.requiresLogin(payload, 'page_chat'));
         this._applyQuotaLockUI(payload);
       }).catch(() => {});
     }
 
     _applyQuotaLockUI(payload) {
       const locked = !!this._quotaLocked;
-      const msg =
-        (payload && payload.message) ||
-        (global.AIFeatureQuota && global.AIFeatureQuota.RECHARGE_MESSAGE) ||
-        'AI tokens need to recharge — Buy now.';
+      const requireLogin = !!(
+        this._loginRequired ||
+        (payload && (payload.require_login || payload.login_required || payload.session_expired)) ||
+        (payload && payload.features && payload.features.page_chat &&
+          (payload.features.page_chat.require_login || payload.features.page_chat.login_required))
+      );
+      if (requireLogin) this._loginRequired = true;
+      const api = global.AIFeatureQuota;
+      const defaultMsg = requireLogin
+        ? "You've used your free chats. Sign in to continue."
+        : ((api && api.RECHARGE_MESSAGE) || 'AI tokens need to recharge — Buy now.');
+      const msg = (payload && payload.message) || defaultMsg;
       const shop =
-        (payload && payload.shop_url) ||
-        (global.AIFeatureQuota && global.AIFeatureQuota.config && global.AIFeatureQuota.config.shopUrl) ||
-        '/ai-tokens/';
+        (payload && (requireLogin ? payload.cta_url : payload.shop_url)) ||
+        (api && api.config && (requireLogin ? '/user/login/' : api.config.shopUrl)) ||
+        (requireLogin ? '/user/login/' : '/ai-tokens/');
       if (this._quotaInfo) {
         this._quotaInfo.hidden = !locked;
         const link = this._quotaInfo.querySelector('.ai-quota-info__link');
         const text = this._quotaInfo.querySelector('.ai-quota-info__text');
-        if (link) link.href = shop;
+        if (link) {
+          if (requireLogin) {
+            link.href = '#';
+            link.onclick = (e) => {
+              e.preventDefault();
+              if (api && typeof api.promptLogin === 'function') api.promptLogin(payload || {});
+            };
+          } else {
+            link.href = shop;
+            link.onclick = null;
+          }
+        }
         if (text) text.textContent = msg;
       }
       if (locked) {
@@ -625,6 +645,10 @@
       if (!text || !this._ws || this._ws.readyState !== WebSocket.OPEN || this._isStreaming) return;
       if (this._quotaLocked) {
         this._applyQuotaLockUI();
+        const apiLocked = global.AIFeatureQuota;
+        if (this._loginRequired && apiLocked && typeof apiLocked.promptLogin === 'function') {
+          apiLocked.promptLogin({});
+        }
         return;
       }
 
@@ -649,16 +673,28 @@
         return;
       }
       api.consume('page_chat').then((res) => {
-        if (!res.ok || (res.data && res.data.quota_exceeded)) {
+        const data = (res && res.data) || {};
+        if (!res.ok) {
+          if ((api.requiresLogin && api.requiresLogin(data, 'page_chat')) || (res && res.status === 401)) {
+            this._quotaLocked = true;
+            this._loginRequired = true;
+            this._applyQuotaLockUI(data);
+            if (typeof api.promptLogin === 'function') api.promptLogin(data);
+            return;
+          }
           this._quotaLocked = true;
-          this._applyQuotaLockUI(res.data || {});
+          this._applyQuotaLockUI(data);
           return;
         }
-        if (res.data && res.data.locked) {
+        if (data.locked) {
           this._quotaLocked = true;
-          this._applyQuotaLockUI(res.data);
+          this._loginRequired = !!(api.requiresLogin && api.requiresLogin(data, 'page_chat'));
+          this._applyQuotaLockUI(data);
         }
         proceed();
+        if (this._loginRequired && typeof api.promptLogin === 'function') {
+          api.promptLogin(data);
+        }
       }).catch(() => proceed());
     }
 
@@ -757,6 +793,10 @@
     }
 
     _enableInput() {
+      if (this._quotaLocked) {
+        this._applyQuotaLockUI();
+        return;
+      }
       this._input.disabled   = false;
       this._sendBtn.disabled = false;
     }

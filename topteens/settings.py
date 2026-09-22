@@ -1230,6 +1230,27 @@ ENQUIRY_SOURCE_BASE_URL = config('ENQUIRY_SOURCE_BASE_URL', default='https://www
 # Chatbot visibility: home-only | students-parents | institutes | counselors
 CHATBOT_VISIBILITY = config('CHATBOT_VISIBILITY', default='home-only')
 
+# TopTeenBot backend (Career Counsellor + page-chat widgets).
+# Local testing: TOPTEENBOT_URL=http://localhost:8000
+# Production:    TOPTEENBOT_URL=https://careerbot.canamacademy.com
+def _http_to_ws_url(url):
+    url = (url or '').rstrip('/')
+    if url.startswith('https://'):
+        return 'wss://' + url[len('https://'):]
+    if url.startswith('http://'):
+        return 'ws://' + url[len('http://'):]
+    return url
+
+
+TOPTEENBOT_URL = config(
+    'TOPTEENBOT_URL',
+    default='https://careerbot.canamacademy.com',
+).rstrip('/')
+TOPTEENBOT_WS_URL = config(
+    'TOPTEENBOT_WS_URL',
+    default=_http_to_ws_url(TOPTEENBOT_URL),
+).rstrip('/')
+
 # @manish
 # Master password settings
 MASTER_PASSWORD = config('MASTER_PASSWORD', default='')
