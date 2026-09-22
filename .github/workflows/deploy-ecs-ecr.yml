@@ -1,11 +1,13 @@
 # ECS + ECR deploy — elb-branch only.
 #
-# Default: build + push an immutable sha-* tag to ECR. Live ECS is NOT updated.
-# Set apply_to_ecs=true on workflow_dispatch only when you intend to roll
-# topteen-web / celery / beat. nginx is never updated (different image).
+# A push to elb-branch is a full deploy: STEPS 0-5 build and push an immutable
+# sha-* tag to ECR, then STEPS 6-9 continue in the SAME run to sync static to
+# S3 and roll topteen-web / celery / beat. nginx is never updated (different
+# image). To build without touching the cluster, use workflow_dispatch with
+# apply_to_ecs unchecked.
 #
-# Same git SHA is not rebuilt (ECR tag reused). apply_to_ecs on a digest the
-# cluster already runs skips register/update/wait.
+# Same git SHA is not rebuilt (ECR tag reused). Rolling a digest the cluster
+# already runs skips register/update/wait.
 #
 # Shared production DB: STEP 6 migrate is skipped by default (skip_migrate=true).
 # Re-enable later: Run workflow → uncheck "Skip migrate" after the ECS roll is proven.
@@ -16,7 +18,6 @@
 # GitHub only lists workflow_dispatch workflows that exist on the default
 # branch (master). `gh workflow run deploy-ecs-ecr.yml` 404s until this file
 # is also on master. A push to elb-branch still runs it from THIS file.
-# Push never sets apply_to_ecs, so live ECS is not updated.
 #
 # Required GitHub repository variables:
 #   AWS_REGION, ECR_REPOSITORY, ECS_CLUSTER, ECS_SERVICES,
@@ -34,7 +35,7 @@ on:
       apply_to_ecs:
         description: "Update live ECS services (OFF = ECR push only, cluster unchanged)"
         required: false
-        default: false
+        default: true
         type: boolean
       force_migrate:
         description: "Always run migrate (ignore migrate --check)"
@@ -113,7 +114,13 @@ jobs:
           echo "services        : ${ECS_SERVICES}"
           echo "migrate service : ${ECS_MIGRATE_SERVICE}"
           echo "dockerfile      : ${DOCKERFILE}"
-          echo "apply_to_ecs    : ${{ github.event.inputs.apply_to_ecs }}"
+          if [ "${{ github.event_name }}" = "push" ] || [ "${{ github.event.inputs.apply_to_ecs }}" = "true" ]; then
+            echo "roll ECS        : yes (STEPS 6-9 run in this same workflow run)"
+          else
+            echo "roll ECS        : no (apply_to_ecs unchecked; ECR push only)"
+          fi
+          echo "collectstatic   : ${{ github.event.inputs.skip_collectstatic == 'true' && 'skipped' || 'yes (STEP 6b)' }}"
+          echo "migrate         : ${{ github.event.inputs.skip_migrate == 'false' && 'yes' || 'skipped (shared production DB)' }}"
           echo "[OK] STEP 0 — config looks valid (live ECS not touched yet)"
 
       - name: STEP 1 — Checkout
@@ -239,18 +246,25 @@ jobs:
             reuse_digest
           fi
 
-          if [ "${{ github.event.inputs.apply_to_ecs }}" != "true" ]; then
+          if [ "${{ github.event_name }}" != "push" ] && [ "${{ github.event.inputs.apply_to_ecs }}" != "true" ]; then
             echo "============================================================"
             echo "ECS NOT UPDATED (apply_to_ecs=false)"
             echo "Cluster still on current task defs. Re-run with apply_to_ecs=true"
             echo "to roll topteen-web / celery / beat (nginx unchanged)."
             echo "============================================================"
+          else
+            echo "STEPS 6-9 continue in this run: collectstatic, then roll ECS."
           fi
 
   migrate-and-deploy:
     name: STEPS 6-9 Migrate and roll ECS
     needs: build
-    if: github.event.inputs.apply_to_ecs == 'true' && github.ref_name == 'elb-branch'
+    # Continues automatically in the same run once STEPS 0-5 pass.
+    # A push always rolls; workflow_dispatch can opt out with apply_to_ecs=false
+    # to get an ECR-only build.
+    if: >-
+      github.ref_name == 'elb-branch' &&
+      (github.event_name == 'push' || github.event.inputs.apply_to_ecs == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 50
     env:
