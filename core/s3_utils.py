@@ -617,6 +617,41 @@ def rewrite_s3_url_to_cdn(url):
     return urlunparse(('https', cf_domain, new_path, '', '', ''))
 
 
+def s3_key_from_public_url(url):
+    """Return the object key from an S3 or CloudFront URL, or '' if unknown."""
+    if not url or not isinstance(url, str):
+        return ''
+    from urllib.parse import unquote, urlparse
+
+    raw = url.strip()
+    if not raw:
+        return ''
+    parsed = urlparse(raw)
+    if parsed.scheme not in ('http', 'https'):
+        return ''
+
+    host = (parsed.netloc or '').lower()
+    path = unquote(parsed.path or '').lstrip('/')
+    if not path:
+        return ''
+
+    bucket = (getattr(settings, 'AWS_STORAGE_BUCKET_NAME', 'topteenc') or 'topteenc').lower()
+    cf_domain = (getattr(settings, 'CLOUDFRONT_DOMAIN', '') or '').strip().lower()
+
+    if host.startswith(f'{bucket}.s3') and host.endswith('.amazonaws.com'):
+        return path
+    if host.endswith('.amazonaws.com') and host.startswith('s3'):
+        parts = path.split('/', 1)
+        if len(parts) == 2 and parts[0].lower() == bucket:
+            return parts[1]
+        return path
+    if cf_domain and host == cf_domain:
+        return path
+    if host.endswith('.cloudfront.net'):
+        return path
+    return ''
+
+
 def get_s3_upload_service():
     """Get an instance of S3UploadService"""
     return S3UploadService()

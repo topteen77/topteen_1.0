@@ -28,7 +28,7 @@ from django.conf import settings
 from django.core.cache import cache
 from .forms import ImageUploadModelForm
 from django.core.paginator import Paginator
-from django.http import HttpResponse,JsonResponse
+from django.http import FileResponse, HttpResponse, JsonResponse
 from django.template.loader import render_to_string
 from careers.document_filters import CareerDocumentFilter
 from colleges.document_filters import CollegeDocumentFilter
@@ -1755,7 +1755,8 @@ class EbookDetailView(FreetrailContentMixin, TemplateView):
         # Get ebook by slug
         try:
             ebook = Ebook.objects.get(slug=slug, publish_status=choices.PublishStatus.PUBLISHED)
-            ctx["pdf_path"] = ebook.get_pdf_url()
+            # Same-origin URL so pdf.js is not blocked by missing S3 CORS headers.
+            ctx["pdf_path"] = reverse('core:ebook_pdf', kwargs={'slug': ebook.slug})
             ctx["ebook_title"] = ebook.title
             ctx["breadcrumb"] = get_breadcrumb([{"text": "E-Books", "url": reverse("core:ebook_list")}, {"text": ebook.title, "url": ""}])
         except Ebook.DoesNotExist:
@@ -2319,6 +2320,79 @@ def career_battle_eligibility_profile_api(request):
             return JsonResponse({'ok': False, 'error': str(e)}, status=400)
 
     return JsonResponse({'profile': out})
+
+
+def ebook_pdf_proxy(request, slug):
+    """Stream a published ebook PDF same-origin so pdf.js is not blocked by S3 CORS."""
+    from django.http import Http404, HttpResponseNotFound
+    from urllib.parse import urlparse
+    from urllib.request import Request, urlopen
+    from botocore.exceptions import ClientError
+    import boto3
+    from core.s3_utils import s3_key_from_public_url
+
+    ebook = get_object_or_404(Ebook, slug=slug, publish_status=choices.PublishStatus.PUBLISHED)
+    pdf_url = ebook.get_pdf_url()
+    s3_key = s3_key_from_public_url(pdf_url) if pdf_url else ''
+
+    def _pdf_response(data, content_type='application/pdf', content_length=None):
+        out = HttpResponse(data, content_type=content_type or 'application/pdf')
+        if content_length is not None:
+            out['Content-Length'] = content_length
+        out['Cache-Control'] = 'public, max-age=3600'
+        out['X-Content-Type-Options'] = 'nosniff'
+        return out
+
+    def _fetch_public_url():
+        req = Request(pdf_url, headers={'User-Agent': 'TopTeenEbook/1.0'})
+        with urlopen(req, timeout=45) as resp:
+            data = resp.read()
+            ct = resp.headers.get('Content-Type') or 'application/pdf'
+            return _pdf_response(data, ct, len(data))
+
+    if s3_key and pdf_url:
+        bucket_name = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', '') or 'topteenc'
+        region = getattr(settings, 'AWS_REGION', 'ap-northeast-1') or 'ap-northeast-1'
+        host = (urlparse(pdf_url).netloc or '').lower()
+        # Bucket lives in ap-northeast-1; ECS env may be ap-south-1.
+        m = re.search(r'\.s3[.-]([a-z0-9-]+)\.amazonaws\.com', host)
+        if m:
+            region = m.group(1)
+        try:
+            s3_client = boto3.client(
+                's3',
+                aws_access_key_id=getattr(settings, 'AWS_ACCESS_KEY_ID', '') or None,
+                aws_secret_access_key=getattr(settings, 'AWS_SECRET_ACCESS_KEY', '') or None,
+                region_name=region,
+            )
+            obj = s3_client.get_object(Bucket=bucket_name, Key=s3_key)
+            return _pdf_response(
+                obj['Body'].read(),
+                obj.get('ContentType') or 'application/pdf',
+                obj.get('ContentLength'),
+            )
+        except Exception:
+            try:
+                return _fetch_public_url()
+            except Exception:
+                if settings.DEBUG:
+                    raise
+                raise Http404('Ebook PDF not found')
+
+    if pdf_url and pdf_url.startswith('http'):
+        try:
+            return _fetch_public_url()
+        except Exception:
+            if settings.DEBUG:
+                raise
+            raise Http404('Ebook PDF not found')
+
+    if ebook.pdf_file:
+        try:
+            return FileResponse(ebook.pdf_file.open('rb'), content_type='application/pdf')
+        except Exception:
+            raise Http404('Ebook PDF not found')
+    raise Http404('Ebook PDF not found')
 
 
 def s3_media_proxy(request, path):

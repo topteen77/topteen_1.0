@@ -428,8 +428,15 @@
         const loadingDiv = document.getElementById('flipbook');
         loadingDiv.innerHTML = '<div class="pdf-loading"><div class="spinner"></div><p>Loading PDF...</p></div>';
 
+        // Fetch on the main thread (same-origin proxy). Avoids S3 CORS and
+        // pdf.js worker-on-CDN failing to read a cross-origin PDF URL.
+        const pdfResponse = await fetch(this.config.pdfPath, { credentials: 'same-origin' });
+        if (!pdfResponse.ok) {
+          throw new Error('HTTP ' + pdfResponse.status);
+        }
+        const pdfData = await pdfResponse.arrayBuffer();
         const loadingTask = pdfjsLib.getDocument({
-          url: this.config.pdfPath,
+          data: pdfData,
           verbosity: 0
         });
 

@@ -48,6 +48,7 @@ urlpatterns = [
     path("four-pillars-of-learning/assessment/<slug:pillar_slug>/", views.FourPillarsAssessmentView.as_view(), name="four_pillars_assessment"),
     path("four-pillars-of-learning/assessment/<slug:pillar_slug>/submit/", views.four_pillars_assessment_submit, name="four_pillars_assessment_submit"),
     path("ebooks/", views.EbookListView.as_view(), name="ebook_list"),
+    path("ebooks/flip-book/<slug:slug>/pdf/", views.ebook_pdf_proxy, name="ebook_pdf"),
     path("ebooks/flip-book/<slug:slug>/", views.EbookDetailView.as_view(), name="ebook_detail"),
     path("delete-history/",views.deletehistory,name="deletehistory"), 
     path("lead-submit/",views.LeadData.as_view(),name="lead_submit"),
