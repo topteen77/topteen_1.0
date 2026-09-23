@@ -52,9 +52,9 @@
 {% include 'template20/includes/chatbot_widget_config.html' %}
 {% if show_page_chat_widget and show_ai_counsellor_bot %}
 <script src="{% static 'js_new/page-chat-widget.js' %}?v=20260922-guest2"></script>
-<script src="{% static 'js_new/chatbot-widget.js' %}?v=20260923-guest"></script>
+<script src="{% static 'js_new/chatbot-widget.js' %}?v=20260923-json"></script>
 {% else %}
-{% if show_ai_counsellor_bot %}<script src="{% static 'js_new/chatbot-widget.js' %}?v=20260923-guest"></script>{% endif %}
+{% if show_ai_counsellor_bot %}<script src="{% static 'js_new/chatbot-widget.js' %}?v=20260923-json"></script>{% endif %}
 {% if show_page_chat_widget %}<script src="{% static 'js_new/page-chat-widget.js' %}?v=20260922-guest2"></script>{% endif %}
 {% endif %}
 {% endif %}

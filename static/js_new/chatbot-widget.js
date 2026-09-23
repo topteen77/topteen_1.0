@@ -35,6 +35,21 @@
   const SESSION_UUID_RE    = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   const TRANSCRIPT_LIMIT   = 80;
 
+  function unwrapBotPayload(raw) {
+    const text = String(raw == null ? '' : raw).trim();
+    if (!text || text.charAt(0) !== '{') return { content: raw || '', questions: [] };
+    try {
+      const parsed = JSON.parse(text);
+      if (parsed && typeof parsed === 'object' && typeof parsed.content === 'string') {
+        const questions = Array.isArray(parsed.suggested_questions)
+          ? parsed.suggested_questions.filter((q) => typeof q === 'string' && q.trim())
+          : [];
+        return { content: parsed.content, questions };
+      }
+    } catch (e) {}
+    return { content: raw || '', questions: [] };
+  }
+
   function newGuestSessionId() {
     if (global.crypto && typeof global.crypto.randomUUID === 'function') {
       return global.crypto.randomUUID();
@@ -1155,6 +1170,7 @@
           }
         });
 
+        let lastQuestions = [];
         merged.forEach(m => {
           if (m.isTool) {
             // History: developers see the stored tool dump; students do not.
@@ -1166,10 +1182,16 @@
               debug: m.content,
               is_debug: true
             });
+          } else if (m.role === 'human') {
+            lastQuestions = [];
+            this._appendMessage('user', m.content, new Date(m.created_at));
           } else {
-            this._appendMessage(m.role === 'human' ? 'user' : 'bot', m.content, new Date(m.created_at));
+            const payload = unwrapBotPayload(m.content);
+            lastQuestions = payload.questions;
+            this._appendMessage('bot', payload.content, new Date(m.created_at));
           }
         });
+        if (lastQuestions.length) this._renderSuggestedQuestions(lastQuestions);
         this._scrollToBottom();
       } catch (e) {
         console.warn('[ChatbotWidget] History load failed:', e);
@@ -1254,10 +1276,13 @@
           this._aiBuffer        = '';
           this._streamingBubble = null;
           this._isStreaming     = true;
+          this._hideToolStatus();
+          this._hideSearchIndicator();
           this._showTypingIndicator();
           break;
 
         case 'tool':
+          this._hideTypingIndicator();
           this._showSearchIndicator();
           break;
 
@@ -1268,6 +1293,8 @@
 
         case 'tool_output':
           this._hideRetryIndicator();
+          this._hideTypingIndicator();
+          this._hideSearchIndicator();
           if (CFG.devMode) {
             this._appendToolCard(data);
           } else {
@@ -1281,12 +1308,12 @@
           this._hideRetryIndicator();
           this._hideToolStatus();
           this._hideSearchIndicator();
-          const content = data.content || '';
+          const payload = unwrapBotPayload(data.content || '');
+          const content = payload.content;
           this._appendMessage('bot', content);
           // Render suggested follow-up questions if provided
-          const questions = Array.isArray(data.suggested_questions)
-            ? data.suggested_questions.filter(q => typeof q === 'string' && q.trim())
-            : [];
+          const incoming = Array.isArray(data.suggested_questions) ? data.suggested_questions : payload.questions;
+          const questions = incoming.filter(q => typeof q === 'string' && q.trim());
           if (questions.length > 0) this._renderSuggestedQuestions(questions);
           this._scrollToBottom();
           if (!this._isOpen) this._addUnread();
@@ -1449,6 +1476,8 @@
       if (isUser) {
         bubble.textContent = content;
       } else {
+        const payload = unwrapBotPayload(content);
+        content = payload.content;
         bubble.innerHTML = renderMarkdown(content);
         decorateBotLinks(bubble);
       }
@@ -1594,6 +1623,8 @@
 
     /* End-user status only — no search snippets or SQL dumps. */
     _showToolStatus(data) {
+      this._hideTypingIndicator();
+      this._hideSearchIndicator();
       const toolName = data.tool_name || '';
       const isWeb = toolName === 'google_search' || toolName === 'duckduckgo_results_json';
       const status = data.message || (isWeb ? 'Searching the web…' : 'Looking up TopTeen resources…');
