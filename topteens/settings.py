@@ -271,6 +271,18 @@ for _host in ALLOWED_HOSTS:
         _o = f'{_scheme}://{_host_pattern}'
         if _o not in CSRF_TRUSTED_ORIGINS:
             CSRF_TRUSTED_ORIGINS.append(_o)
+# The loop above is driven by ALLOWED_HOSTS, which the ECS task definition sets to
+# '*' — so it contributes nothing there and only the hosts hardcoded above stay
+# trusted. Trust our own domain by wildcard instead, so any current or future host
+# (test/demo/www/…) survives the scheme mismatch described above.
+for _o in (
+    'https://*.topteen.in',
+    'http://*.topteen.in',
+    'https://topteen.in',
+    'http://topteen.in',
+):
+    if _o not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(_o)
 # In development, also trust http(s)://<ALLOWED_HOST> on common local ports (login from phones/LAN).
 if str(config('ENVIRONMENT', default='production')).lower() in ('development', 'staging', 'demo'):
     for _host in ALLOWED_HOSTS:

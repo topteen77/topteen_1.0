@@ -642,7 +642,19 @@ class LoginView(TemplateView):
 def csrf_failure(request, reason=""):
     """
     Never show Django's 403 CSRF page to users — send them back to login with a friendly message.
+
+    The friendly wording hides why CSRF actually rejected the POST, so log the real
+    reason: an origin/proxy misconfiguration looks identical to a genuine timeout.
     """
+    logger.warning(
+        "CSRF failure on %s: %s (origin=%r referer=%r secure=%s cookie=%s)",
+        request.path,
+        reason,
+        request.headers.get("Origin"),
+        request.headers.get("Referer"),
+        request.is_secure(),
+        "csrftoken" in request.COOKIES,
+    )
     path = (request.path or "").lower()
     if path.startswith("/student/"):
         login_path = reverse("student_login")
