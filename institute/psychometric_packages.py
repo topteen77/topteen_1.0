@@ -328,6 +328,10 @@ def build_student_roster_assessment_display(
 
 def build_roster_assessment_map(page_list, results_data) -> Dict[int, dict]:
     """Keyed by student user id for roster card/table templates."""
+    from django.urls import reverse
+
+    from psychometric_tests.package_assignment import student_has_started_psychometric
+
     out: Dict[int, dict] = {}
     page_student_ids = [
         int(sm.student_id)
@@ -336,21 +340,61 @@ def build_roster_assessment_map(page_list, results_data) -> Dict[int, dict]:
     ]
     labels_by_uid = get_student_package_labels_for_user_ids(page_student_ids)
 
-    # Resolve institute package mode once (avoid N× StudentManagement / entitlement queries).
-    institute = None
-    for sm in page_list or []:
-        institute = getattr(sm, 'institute', None)
-        if institute:
-            break
-    package_mode = bool(
-        packages_enabled()
-        and institute
-        and getattr(institute, 'uses_package_psychometric_mode', lambda: False)()
-    )
-    legacy_default = not package_mode
+    started_ids: Set[int] = set()
+    if page_student_ids:
+        try:
+            from app_post_matric.models import TestSession
+
+            started_ids.update(
+                int(uid)
+                for uid in TestSession.objects.filter(user_id__in=page_student_ids)
+                .values_list('user_id', flat=True)
+                .distinct()
+            )
+        except Exception:
+            pass
+        try:
+            from app.models import Results, TestCompletion
+
+            started_ids.update(
+                int(uid)
+                for uid in Results.objects.filter(user_id__in=page_student_ids)
+                .values_list('user_id', flat=True)
+                .distinct()
+            )
+            for tc in TestCompletion.objects.filter(user_id__in=page_student_ids).only(
+                'user_id',
+                'test1_complete',
+                'test2_complete',
+                'test3_complete',
+                'numerical_complete',
+                'verbal_complete',
+                'logical_complete',
+                'emotional_complete',
+                'machanical_complete',
+                'language_complete',
+                'spatial_complete',
+            ):
+                if any(
+                    [
+                        tc.test1_complete,
+                        tc.test2_complete,
+                        tc.test3_complete,
+                        tc.numerical_complete,
+                        tc.verbal_complete,
+                        tc.logical_complete,
+                        tc.emotional_complete,
+                        tc.machanical_complete,
+                        tc.language_complete,
+                        tc.spatial_complete,
+                    ]
+                ):
+                    started_ids.add(int(tc.user_id))
+        except Exception:
+            pass
 
     entitled_by_uid: Dict[int, Set[str]] = {}
-    if package_mode and page_student_ids:
+    if packages_enabled() and page_student_ids:
         from psychometric_tests.models import StudentAssessmentEntitlement
 
         for row in (
@@ -375,17 +419,38 @@ def build_roster_assessment_map(page_list, results_data) -> Dict[int, dict]:
         is_senior = ('11' in class_label) or ('12' in class_label)
         result = results_data.get(uid) if isinstance(results_data, dict) else None
         assignment_labels = labels_by_uid.get(int(uid)) or []
+        student_institute = getattr(sm, 'institute', None)
+        package_mode = institute_package_mode_active(student_institute)
+        legacy_full = not package_mode
         display = build_student_roster_assessment_display(
             student,
             result,
             is_senior=is_senior,
-            legacy_full=legacy_default,
+            legacy_full=legacy_full,
             entitled_codes=entitled_by_uid.get(int(uid), set()),
             package_labels=assignment_labels,
         )
         if assignment_labels:
             display['package_labels'] = assignment_labels
             display['is_custom_package'] = True
+        tests_started = int(uid) in started_ids
+        # Fallback single-student check if batch missed (should be rare).
+        if not tests_started and package_mode:
+            try:
+                tests_started = student_has_started_psychometric(student)
+            except Exception:
+                tests_started = False
+        display['tests_started'] = bool(tests_started)
+        display['can_assign_or_change_package'] = bool(package_mode and not tests_started)
+        display['assign_package_url'] = ''
+        if display['can_assign_or_change_package'] and student_institute and getattr(student_institute, 'slug', None):
+            try:
+                display['assign_package_url'] = reverse(
+                    'institute:assign_student_package',
+                    args=[student_institute.slug],
+                )
+            except Exception:
+                display['assign_package_url'] = ''
         out[int(uid)] = display
     return out
 
@@ -405,6 +470,7 @@ def try_assign_package_on_enroll(request, institute, student, package_code):
             package_code,
             institute,
             assigned_by=getattr(request, 'user', None),
+            allow_replace=True,
         )
         return True, ''
     except PackageAssignmentError as exc:
@@ -413,12 +479,22 @@ def try_assign_package_on_enroll(request, institute, student, package_code):
 
 
 def try_assign_package_code(institute, student, package_code, assigned_by=None):
+    """
+    Assign or replace package for an existing student (not started only).
+    Wrong / missing package can be fixed until the student starts a test.
+    """
     if not packages_enabled() or not institute.uses_package_psychometric_mode():
         return True, ''
     if not package_code:
         return False, 'Select a psychometric package for this student.'
     try:
-        assign_package_by_code(student, package_code, institute, assigned_by=assigned_by)
+        assign_package_by_code(
+            student,
+            package_code,
+            institute,
+            assigned_by=assigned_by,
+            allow_replace=True,
+        )
         return True, ''
     except PackageAssignmentError as exc:
         logger.warning('Package assignment failed: %s', exc)

@@ -62,15 +62,13 @@ def has_legacy_full_bundle_access(user) -> bool:
     if institute and not institute.uses_package_psychometric_mode():
         return True
 
-    track = get_student_psychometric_track(user)
-    if has_successful_bundle_payment(user, track):
-        return True
-
+    # Package-mode institutes use entitlements only — never full-bundle via payment.
     if packages_enabled() and institute and institute.uses_package_psychometric_mode():
         return False
 
-    if not packages_enabled():
-        return has_successful_bundle_payment(user, track)
+    track = get_student_psychometric_track(user)
+    if has_successful_bundle_payment(user, track):
+        return True
 
     return False
 
@@ -135,18 +133,24 @@ def can_view_combined_report(user) -> bool:
     return required and required.issubset(entitled)
 
 
-def institute_student_exempt_from_payment(user) -> bool:
-    """Replacement for blanket is_institute_student payment bypass."""
+def is_institute_enrolled_student(user) -> bool:
+    """True when the user is enrolled under an institute (StudentManagement)."""
     if not user or not getattr(user, 'is_authenticated', False):
         return False
-    if not packages_enabled():
-        try:
-            from institute.models import StudentManagement
+    try:
+        from institute.models import StudentManagement
 
-            return StudentManagement.objects.filter(student=user).exists()
-        except Exception:
-            return False
-    return has_legacy_full_bundle_access(user)
+        return StudentManagement.objects.filter(student=user).exists()
+    except Exception:
+        return False
+
+
+def institute_student_exempt_from_payment(user) -> bool:
+    """
+    Institute-enrolled students never use the retail psychometric payment page.
+    Access is granted via full-bundle institute seats or assigned packages.
+    """
+    return is_institute_enrolled_student(user)
 
 
 def can_access_psychometric_dashboard(user) -> bool:
@@ -156,6 +160,10 @@ def can_access_psychometric_dashboard(user) -> bool:
     if has_legacy_full_bundle_access(user):
         return True
     if packages_enabled() and get_student_entitled_assessment_codes(user):
+        return True
+    # Package-mode institute students may open the dashboard even before a
+    # package is assigned; individual tests stay locked until entitlement.
+    if packages_enabled() and is_institute_enrolled_student(user):
         return True
     track = get_student_psychometric_track(user)
     return has_successful_bundle_payment(user, track)
@@ -428,7 +436,7 @@ def get_student_psychometric_dashboard_cta(user) -> dict:
     from django.core.cache import cache
 
     uid = int(getattr(user, "id", 0) or 0)
-    cache_key = f"psych:dash_cta:v1:{uid}" if uid else None
+    cache_key = f"psych:dash_cta:v2:{uid}" if uid else None
     if cache_key:
         try:
             cached = cache.get(cache_key)
@@ -451,15 +459,17 @@ def _compute_student_psychometric_dashboard_cta(user) -> dict:
     track = get_student_psychometric_track(user)
     custom_packages = get_student_custom_package_names(user)
     if custom_packages:
-        subtitle = ', '.join(custom_packages)
+        package_label = ', '.join(custom_packages)
+        subtitle = package_label
     else:
+        package_label = ''
         subtitle = 'Assessment'
     if track == POST_MATRIC_TRACK:
         default_url = reverse('post_matric:tests')
-        test_name = 'Career Direction'
+        test_name = package_label or 'Career Direction'
     else:
         default_url = reverse('app:test_buttons')
-        test_name = 'Stream Sorter'
+        test_name = package_label or 'Stream Sorter'
 
     if has_legacy_full_bundle_access(user):
         if track == POST_MATRIC_TRACK:
@@ -641,6 +651,13 @@ def get_student_custom_package_names(user) -> list:
 
 def build_class10_psychometric_page_context(user) -> dict:
     """Shared template context for Class 10 psychometric home / submit pages."""
+    custom_names = get_student_custom_package_names(user)
+    if custom_names:
+        dashboard_title = ', '.join(custom_names)
+    elif has_legacy_full_bundle_access(user):
+        dashboard_title = 'Stream Sorter'
+    else:
+        dashboard_title = 'Psychometric Assessment'
     return {
         'test_access': {
             'test1': has_class10_test_access(user, 'test1'),
@@ -650,7 +667,8 @@ def build_class10_psychometric_page_context(user) -> dict:
         'entitled_assessments': sorted(get_student_entitled_assessment_codes(user)),
         'packages_enabled': packages_enabled(),
         'show_all_psychometric_tests': has_legacy_full_bundle_access(user),
-        'psychometric_custom_package_names': get_student_custom_package_names(user),
+        'psychometric_custom_package_names': custom_names,
+        'psychometric_dashboard_title': dashboard_title,
     }
 
 

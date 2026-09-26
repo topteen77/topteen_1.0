@@ -7082,6 +7082,11 @@ class AssignStudentPackageView(View):
 
         from institute.psychometric_packages import try_assign_package_code
 
+        had_package = bool(
+            student.package_assignments.filter(
+                institute=institute, package__is_legacy_bundle=False
+            ).exists()
+        )
         ok, message = try_assign_package_code(
             institute,
             student,
@@ -7089,7 +7094,13 @@ class AssignStudentPackageView(View):
             assigned_by=request.user,
         )
         if ok:
-            messages.success(request, f"Package assigned to {student.email}.")
+            if had_package:
+                messages.success(
+                    request,
+                    f"Package updated for {student.email}. Previous package was replaced (tests had not started).",
+                )
+            else:
+                messages.success(request, f"Package assigned to {student.email}.")
         else:
             messages.error(request, message or "Could not assign package.")
         return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/"))

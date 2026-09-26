@@ -1,6 +1,6 @@
 {% extends 'template20/logged-in-base.html' %}
 
-{% block title_content %}Available Tests - Assessment Dashboard | TopTeen{% endblock %}
+{% block title_content %}{{ psychometric_dashboard_title|default('Available Tests') }} - Assessment Dashboard | TopTeen{% endblock %}
 {% block description_content %}Browse our collection of assessments and find the ones that interest you.{% endblock %}
 
 {% block chatbot %}{% endblock %}
@@ -591,8 +591,12 @@
     <div class="container mx-auto">
       <div class="row">
         <div class="col-md-12 text-center text-white heading">
-          <h2 class="fw-bold">Career Direction Test </h2>
+          <h2 class="fw-bold">{{ psychometric_dashboard_title|default('Career Direction Test') }}</h2>
+          {% if psychometric_custom_package_names %}
+          <p class="text-white">Your assigned package assessment{% if psychometric_custom_package_names|length > 1 %}s{% endif %}.</p>
+          {% else %}
           <p class="text-white">Our comprehensive psychometric assessment helps you identify your strengths, interests, and abilities to find the career that's right for you. </p>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -920,6 +924,20 @@
                 'aptitude': false
             };
         }
+
+        try {
+            const testAccessStr = {{ test_access|default('{}')|tojson }};
+            if (typeof testAccessStr === 'string') {
+                window.testAccess = JSON.parse(testAccessStr);
+            } else {
+                window.testAccess = testAccessStr || {};
+            }
+        } catch(e) {
+            console.error('Error parsing test_access:', e);
+            window.testAccess = {};
+        }
+        window.packagesEnabled = {{ packages_enabled|default(false)|tojson }};
+        window.showAllPsychometricTests = {{ show_all_psychometric_tests|default(true)|tojson }};
     })();
 </script>
 
@@ -1026,6 +1044,17 @@
         startButton.textContent = 'Start Test';
     }
 
+    const accessKey = String(test.id);
+    const hasPackageAccess = !window.packagesEnabled
+      || window.showAllPsychometricTests
+      || window.testAccess[accessKey] === true
+      || window.testAccess[test.id] === true;
+    // Package students: hide tests that are not in their assigned package
+    // (completed entitled tests still show via hasPackageAccess/isCompleted).
+    if (!isCompleted && window.packagesEnabled && !window.showAllPsychometricTests && !hasPackageAccess) {
+        return null;
+    }
+
     if (test.id === 4) {  // For Aptitude Test with Sections
         const questionsCount = card.querySelector('.questions-count');
         
@@ -1082,10 +1111,18 @@
     }
     // Get test status from the context
     const testStatus = window.testStatus || {}; // This should be populated from Django context
+    let visibleCount = 0;
     tests.forEach(test => {
       test.category_name = categoryMap[test.category] || 'Uncategorized';
-      testsContainer.appendChild(createTestCard(test, testStatus));
+      const card = createTestCard(test, testStatus);
+      if (card) {
+        testsContainer.appendChild(card);
+        visibleCount += 1;
+      }
     });
+    if (!visibleCount) {
+      testsContainer.innerHTML = '<div class="no-tests">No tests available in your assigned package. Please contact your institute.</div>';
+    }
   }
 
   // Render categories in filter

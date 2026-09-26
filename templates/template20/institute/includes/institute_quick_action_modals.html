@@ -84,7 +84,7 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title"><i class='bx bx-package me-2'></i> Assign psychometric package</h5>
+        <h5 class="modal-title"><i class='bx bx-package me-2'></i> <span id="assignPkgModalTitle">Assign psychometric package</span></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form id="assignPsychometricPackageForm" method="post" action="#">
@@ -92,11 +92,24 @@
         <input type="hidden" name="student_management_id" id="assignPkgSmId" value="">
         <div class="modal-body">
           <p class="mb-2 text-muted small">Student: <strong id="assignPkgStudentLabel">—</strong></p>
+          <p class="mb-3 small text-muted">Only allowed if the student has <strong>not started</strong> any psychometric test. Changing a package refunds the previous credits and charges the new package.</p>
           {% include "template_v2/institute/includes/psychometric_package_fields.html" %}
+          {% if not (institute_package_mode is defined and institute_package_mode and psychometric_package_choices) %}
+          <div class="mb-0" data-assign-pkg-catalog-fallback>
+            <label class="form-label">Psychometric package <span class="text-danger">*</span></label>
+            <select name="psychometric_package" class="form-select" id="assignPkgSelectFallback" required>
+              <option value="">Select package…</option>
+              {% set _catalog = psychometric_catalog_packages if psychometric_catalog_packages is defined else [] %}
+              {% for pkg in _catalog %}
+              <option value="{{ pkg.code }}">{{ pkg.name }} ({{ pkg.credit_cost }} credit{% if pkg.credit_cost != 1 %}s{% endif %})</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endif %}
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn custom-button purple-button">Assign package</button>
+          <button type="submit" class="btn custom-button purple-button" id="assignPkgSubmitBtn">Assign package</button>
         </div>
       </form>
     </div>
@@ -255,20 +268,56 @@
 {% if institute is defined and institute.slug and institute_package_mode is defined and institute_package_mode %}
 <script>
 (function () {
-  var assignUrl = "{{ url('institute:assign_student_package', args=[institute.slug]) }}";
+  var defaultAssignUrl = "{{ url('institute:assign_student_package', args=[institute.slug]) }}";
   var modalEl = document.getElementById('assignPsychometricPackageModal');
   var formEl = document.getElementById('assignPsychometricPackageForm');
   if (!modalEl || !formEl) return;
-  formEl.setAttribute('action', assignUrl);
+  formEl.setAttribute('action', defaultAssignUrl);
   document.addEventListener('click', function (e) {
     var btn = e.target && e.target.closest ? e.target.closest('[data-ttv2-assign-package-open]') : null;
     if (!btn) return;
     var smId = btn.getAttribute('data-sm-id') || '';
     var label = btn.getAttribute('data-student-label') || '—';
+    var assignUrl = btn.getAttribute('data-assign-url') || defaultAssignUrl;
+    var hasPackage = btn.getAttribute('data-has-package') === '1';
     var smInput = document.getElementById('assignPkgSmId');
     var labelEl = document.getElementById('assignPkgStudentLabel');
+    var titleEl = document.getElementById('assignPkgModalTitle');
+    var submitBtn = document.getElementById('assignPkgSubmitBtn');
     if (smInput) smInput.value = smId;
     if (labelEl) labelEl.textContent = label;
+    if (titleEl) titleEl.textContent = hasPackage ? 'Change psychometric package' : 'Assign psychometric package';
+    if (submitBtn) submitBtn.textContent = hasPackage ? 'Update package' : 'Assign package';
+    formEl.setAttribute('action', assignUrl);
+    if (window.bootstrap && bootstrap.Modal) {
+      bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
+  });
+})();
+</script>
+{% else %}
+<script>
+(function () {
+  var modalEl = document.getElementById('assignPsychometricPackageModal');
+  var formEl = document.getElementById('assignPsychometricPackageForm');
+  if (!modalEl || !formEl) return;
+  document.addEventListener('click', function (e) {
+    var btn = e.target && e.target.closest ? e.target.closest('[data-ttv2-assign-package-open]') : null;
+    if (!btn) return;
+    var smId = btn.getAttribute('data-sm-id') || '';
+    var label = btn.getAttribute('data-student-label') || '—';
+    var assignUrl = btn.getAttribute('data-assign-url') || '';
+    var hasPackage = btn.getAttribute('data-has-package') === '1';
+    if (!assignUrl) return;
+    var smInput = document.getElementById('assignPkgSmId');
+    var labelEl = document.getElementById('assignPkgStudentLabel');
+    var titleEl = document.getElementById('assignPkgModalTitle');
+    var submitBtn = document.getElementById('assignPkgSubmitBtn');
+    if (smInput) smInput.value = smId;
+    if (labelEl) labelEl.textContent = label;
+    if (titleEl) titleEl.textContent = hasPackage ? 'Change psychometric package' : 'Assign psychometric package';
+    if (submitBtn) submitBtn.textContent = hasPackage ? 'Update package' : 'Assign package';
+    formEl.setAttribute('action', assignUrl);
     if (window.bootstrap && bootstrap.Modal) {
       bootstrap.Modal.getOrCreateInstance(modalEl).show();
     }

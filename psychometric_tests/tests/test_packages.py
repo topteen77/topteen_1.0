@@ -134,8 +134,14 @@ class PsychometricPackageTests(TestCase):
         )
         self.assertTrue(can_access_psychometric_dashboard(self.student))
 
-    def test_package_student_without_assignment_cannot_access_dashboard(self):
-        self.assertFalse(can_access_psychometric_dashboard(self.student))
+    def test_package_student_without_assignment_can_open_dashboard_but_not_tests(self):
+        # Institute students must never be pushed to retail payment; the
+        # dashboard opens, while individual tests stay locked until assigned.
+        from core.assessment_access import has_class10_test_access, institute_student_exempt_from_payment
+
+        self.assertTrue(institute_student_exempt_from_payment(self.student))
+        self.assertTrue(can_access_psychometric_dashboard(self.student))
+        self.assertFalse(has_class10_test_access(self.student, 'test1'))
 
     def test_package_student_login_redirects_to_psychometric_home(self):
         from users.views import _compute_student_destination
@@ -180,6 +186,7 @@ class PsychometricPackageTests(TestCase):
         self.assertEqual(cta['action_variant'], 'report')
         self.assertEqual(cta['url'], reverse('app:test1_report_html'))
         self.assertEqual(cta['subtitle'], 'Class 10 Personality')
+        self.assertEqual(cta['test_name'], 'Class 10 Personality')
 
     def test_custom_package_name_visible_for_single_test_assignment(self):
         assign_package_by_code(
@@ -268,10 +275,55 @@ class PsychometricPackageTests(TestCase):
         self.assertEqual(cta['action_variant'], 'start')
         self.assertEqual(cta['url'], reverse('app:test_buttons'))
 
-    def test_add_assignment_credits_from_tieup(self):
-        add_assignment_credits(self.institute, 25)
+    def test_cannot_reassign_after_test_started(self):
+        from app.models import Results
+        from psychometric_tests.package_assignment import (
+            PackageAssignmentError,
+            assign_package_by_code,
+            student_has_started_psychometric,
+        )
+
+        assign_package_by_code(
+            self.student,
+            'pkg_c10_personality',
+            self.institute,
+        )
+        Results.objects.create(user=self.student, test_paper='test1')
+        self.assertTrue(student_has_started_psychometric(self.student))
+        with self.assertRaises(PackageAssignmentError):
+            assign_package_by_code(
+                self.student,
+                'pkg_c10_interest',
+                self.institute,
+                allow_replace=True,
+            )
+
+    def test_can_replace_wrong_package_before_start(self):
+        from psychometric_tests.package_assignment import assign_package_by_code
+        from psychometric_tests.models import StudentAssessmentEntitlement
+
+        assign_package_by_code(
+            self.student,
+            'pkg_c10_interest',
+            self.institute,
+        )
         self.institute.refresh_from_db()
-        self.assertEqual(self.institute.assignment_credits, 35)
+        credits_after_first = self.institute.assignment_credits
+        assign_package_by_code(
+            self.student,
+            'pkg_c10_personality',
+            self.institute,
+            allow_replace=True,
+        )
+        self.institute.refresh_from_db()
+        # Refunded interest (1) then charged personality (1) → same pool as after first
+        self.assertEqual(self.institute.assignment_credits, credits_after_first)
+        entitled = set(
+            StudentAssessmentEntitlement.objects.filter(
+                user=self.student, is_active=True
+            ).values_list('assessment__code', flat=True)
+        )
+        self.assertEqual(entitled, {'class10_personality'})
 
 
 @override_settings(ENABLE_PSYCHOMETRIC_PACKAGES=False)

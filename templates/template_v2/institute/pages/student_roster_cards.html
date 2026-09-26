@@ -253,6 +253,10 @@
           <div class="ttv2-student-package-banner">
             <span class="ttv2-student-package-badge">Package: {{ _pkg_labels|join(', ') }}</span>
           </div>
+          {% elif _roster is not none and _roster.can_assign_or_change_package %}
+          <div class="ttv2-student-package-banner">
+            <span class="ttv2-student-package-badge ttv2-student-package-badge--missing">No package assigned</span>
+          </div>
           {% endif %}
 
           <div class="ttv2-student-bars ttv2-student-assessment-list">
@@ -319,6 +323,21 @@
               </button>
               {% else %}
               <span class="ttv2-student-report-unavailable" title="Report available after assigned assessments are completed">No report yet</span>
+              {% endif %}
+              {% if _roster is not none and _roster.can_assign_or_change_package and _roster.assign_package_url %}
+              <button type="button"
+                      class="btn btn-sm {% if _pkg_labels %}btn-outline-warning{% else %}btn-outline-primary{% endif %}"
+                      data-ttv2-assign-package-open
+                      data-sm-id="{{ sm.id }}"
+                      data-assign-url="{{ _roster.assign_package_url }}"
+                      data-student-label="{{ (u.name ~ ' — ' ~ u.email) if (u and u.name and u.email) else (u.email if u else '-') }}"
+                      data-has-package="{% if _pkg_labels %}1{% else %}0{% endif %}"
+                      title="{% if _pkg_labels %}Change package (allowed only before tests are started){% else %}Assign package{% endif %}">
+                <i class="bx bx-package" aria-hidden="true"></i>
+                <span>{% if _pkg_labels %}Change package{% else %}Assign package{% endif %}</span>
+              </button>
+              {% elif _roster is not none and _roster.tests_started and not _roster.show_all_tests %}
+              <span class="ttv2-student-report-unavailable" title="Package cannot be changed after the student starts a test">Package locked</span>
               {% endif %}
             </div>
             {% if (_is_counselor_roster and _has_followup_modal) or (not _is_counselor_roster) or ((_has_followup_modal and _fu and _fu.show_followup_btn and not _is_counselor_roster) or (_adv and _set_counselor_url != '#')) %}

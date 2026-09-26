@@ -529,15 +529,23 @@
             {% endif %}
             <td>
               <div class="ttv2-table-action-stack">
-                {% if institute_package_mode is defined and institute_package_mode and institute is defined and institute.slug %}
+                {% if institute_package_mode is defined and institute_package_mode %}
+                  {% set _row_can = (_roster and _roster.can_assign_or_change_package and _roster.assign_package_url) %}
+                  {% set _has_pkg = (_roster and _roster.package_labels) %}
+                  {% if _row_can %}
                   <button type="button"
                           class="btn btn-sm btn-outline-primary ttv2-table-inline-btn"
                           data-ttv2-assign-package-open
                           data-sm-id="{{ _sm_id }}"
-                          data-student-label="{{ _student.email if _student else '-' }}">
+                          data-assign-url="{{ _roster.assign_package_url }}"
+                          data-student-label="{{ _student.email if _student else '-' }}"
+                          data-has-package="{% if _has_pkg %}1{% else %}0{% endif %}">
                     <i class="bx bx-package" aria-hidden="true"></i>
-                    <span>Assign package</span>
+                    <span>{% if _has_pkg %}Change package{% else %}Assign package{% endif %}</span>
                   </button>
+                  {% elif _roster and _roster.tests_started %}
+                  <span class="text-muted small" title="Package cannot be changed after the student starts a test">Package locked</span>
+                  {% endif %}
                 {% endif %}
                 {% if not table_config or table_config.role != 'counselor' %}
                   <button type="button"
