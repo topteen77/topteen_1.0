@@ -30,6 +30,36 @@
   }, global.ChatbotConfig || {});
 
   const FAB_TOOLTIP_LS_KEY = 'topteen_cb_fab_tooltip_dismissed';
+  const SESSION_STORE_KEY  = 'topteen_cb_session';
+  const UI_STORE_KEY       = 'topteen_cb_ui';
+  const SESSION_UUID_RE    = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const TRANSCRIPT_LIMIT   = 80;
+
+  function unwrapBotPayload(raw) {
+    const text = String(raw == null ? '' : raw).trim();
+    if (!text || text.charAt(0) !== '{') return { content: raw || '', questions: [] };
+    try {
+      const parsed = JSON.parse(text);
+      if (parsed && typeof parsed === 'object' && typeof parsed.content === 'string') {
+        const questions = Array.isArray(parsed.suggested_questions)
+          ? parsed.suggested_questions.filter((q) => typeof q === 'string' && q.trim())
+          : [];
+        return { content: parsed.content, questions };
+      }
+    } catch (e) {}
+    return { content: raw || '', questions: [] };
+  }
+
+  function newGuestSessionId() {
+    if (global.crypto && typeof global.crypto.randomUUID === 'function') {
+      return global.crypto.randomUUID();
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
 
   function isFabTooltipDismissed() {
     try {
@@ -42,6 +72,77 @@
   function persistFabTooltipDismissed() {
     try {
       localStorage.setItem(FAB_TOOLTIP_LS_KEY, '1');
+    } catch (e) {}
+  }
+
+  function sessionOwner() {
+    try {
+      return localStorage.getItem('student_id') || 'anon';
+    } catch (e) {
+      return 'anon';
+    }
+  }
+
+  function ownersCompatible(storedOwner, currentOwner) {
+    const stored = storedOwner || 'anon';
+    const current = currentOwner || 'anon';
+    if (stored === current) return true;
+    if (stored === 'anon' || current === 'anon') return true;
+    return false;
+  }
+
+  function readPersistedSessionRaw() {
+    try {
+      const raw = sessionStorage.getItem(SESSION_STORE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function readPersistedSession() {
+    const data = readPersistedSessionRaw();
+    if (!data || !SESSION_UUID_RE.test(data.id || '')) return null;
+    if (!ownersCompatible(data.owner, sessionOwner())) return null;
+    return data;
+  }
+
+  function persistSessionState(patch) {
+    try {
+      const prev = readPersistedSessionRaw() || {};
+      if (prev.id && !ownersCompatible(prev.owner, sessionOwner()) && !(patch && patch.id)) {
+        return;
+      }
+      const next = Object.assign({
+        owner: sessionOwner(),
+        firstMessageSent: false,
+        messages: [],
+      }, prev, patch, { owner: sessionOwner() });
+      if (!next.id || !SESSION_UUID_RE.test(next.id)) return;
+      if (Array.isArray(next.messages) && next.messages.length > TRANSCRIPT_LIMIT) {
+        next.messages = next.messages.slice(-TRANSCRIPT_LIMIT);
+      }
+      sessionStorage.setItem(SESSION_STORE_KEY, JSON.stringify(next));
+    } catch (e) {}
+  }
+
+  function clearPersistedSession() {
+    try { sessionStorage.removeItem(SESSION_STORE_KEY); } catch (e) {}
+  }
+
+  function readUiState() {
+    try {
+      const raw = sessionStorage.getItem(UI_STORE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function persistUiState(patch) {
+    try {
+      const next = Object.assign({ open: false, fullscreen: false }, readUiState(), patch);
+      sessionStorage.setItem(UI_STORE_KEY, JSON.stringify(next));
     } catch (e) {}
   }
 
@@ -330,6 +431,102 @@
     });
   }
 
+  const TOPTEEN_SITE = 'https://www.topteen.in';
+  const CLUSTER_SLUG_ALIASES = {
+    'science-technology-engineering-and-mathematics-stem': 'engineering technology',
+    'stem': 'engineering technology',
+    'arts-av-technology-and-communications': 'arts humanities education',
+    'education-and-training': 'education humanities training',
+    'information-technology': 'computer applications',
+    'law-and-public-safety': 'law public safety',
+    'hospitality-and-tourism': 'hopitality tourism',
+    'govt-and-administrative-services': 'govt administrative',
+  };
+  let CLUSTER_CATALOG = [];
+
+  function loadClusterCatalog() {
+    fetch(`${TOPTEEN_SITE}/careers/api/cluster-cards-search/`, { credentials: 'omit' })
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (!data || !data.html) return;
+        const re = /\/careers\/cluster\/([A-Za-z0-9_-]+)-(\d+)\//gi;
+        const seen = new Set();
+        const rows = [];
+        let match;
+        while ((match = re.exec(data.html))) {
+          if (seen.has(match[2])) continue;
+          seen.add(match[2]);
+          rows.push({
+            slug: match[1],
+            id: match[2],
+            name: match[1].replace(/-/g, ' '),
+          });
+        }
+        CLUSTER_CATALOG = rows;
+        const root = document.getElementById('cb-messages');
+        if (root) decorateBotLinks(root);
+      })
+      .catch(() => {});
+  }
+
+  function clusterTokens(slug) {
+    const slugL = String(slug || '').toLowerCase();
+    const alias = CLUSTER_SLUG_ALIASES[slugL] || '';
+    return `${slugL} ${alias}`.split(/[-_\s]+/).filter((t) => t.length > 2);
+  }
+
+  function clusterScore(row, tokens) {
+    const text = `${row.slug} ${row.name}`.toLowerCase();
+    return tokens.filter((t) => text.includes(t)).length;
+  }
+
+  function resolveLiveCluster(slug, id) {
+    if (!CLUSTER_CATALOG.length) return null;
+    const slugL = String(slug || '').toLowerCase();
+    const tokens = clusterTokens(slugL);
+    const byId = CLUSTER_CATALOG.find((c) => String(c.id) === String(id));
+    if (byId) {
+      if (byId.slug.toLowerCase() === slugL || clusterScore(byId, tokens) >= 2) return byId;
+    }
+    const bySlug = CLUSTER_CATALOG.find((c) => c.slug.toLowerCase() === slugL);
+    if (bySlug) return bySlug;
+    let best = null;
+    let bestScore = 0;
+    CLUSTER_CATALOG.forEach((c) => {
+      const score = clusterScore(c, tokens);
+      if (score > bestScore) {
+        bestScore = score;
+        best = c;
+      }
+    });
+    return bestScore >= 2 ? best : null;
+  }
+
+  function rewriteTopteenHref(href) {
+    if (!href) return href;
+    const trimmed = String(href).trim();
+    const path = trimmed.replace(/^https?:\/\/(?:www\.)?topteen\.in/i, '').split('?')[0].replace(/\/+$/, '') || '/';
+    if (path === '/psychometrictest') return `${TOPTEEN_SITE}/psychometrictest/stream-sorter/`;
+    if (path === '/careers/careerlibrary') return `${TOPTEEN_SITE}/careers/`;
+    const cluster = trimmed.match(/\/careers\/(?:careerlibrary|cluster)\/([A-Za-z0-9_-]+)-(\d+)\/?$/i);
+    if (cluster) {
+      const live = resolveLiveCluster(cluster[1], cluster[2]);
+      if (live) return `${TOPTEEN_SITE}/careers/cluster/${live.slug}-${live.id}/`;
+      return `${TOPTEEN_SITE}/careers/cluster/${cluster[1]}-${cluster[2]}/`;
+    }
+    return trimmed;
+  }
+
+  function decorateBotLinks(root) {
+    if (!root || !root.querySelectorAll) return;
+    root.querySelectorAll('a[href]').forEach((a) => {
+      const next = rewriteTopteenHref(a.getAttribute('href'));
+      if (next) a.setAttribute('href', next);
+      a.setAttribute('target', '_blank');
+      a.setAttribute('rel', 'noopener noreferrer');
+    });
+  }
+
   /* ============================================================
    * HELPERS
    * ============================================================ */
@@ -370,14 +567,20 @@
       this._typingMessageIndex = 0;
       this._typingInterval  = null;
       this._firstMessageSent = false;  // Track if first message has been sent
+      this._pendingSend = null;
       this._fabTooltipDismissed = isFabTooltipDismissed();
 
       injectStylesheet();
       loadMarked();         // async — loaded before first message in normal use
+      loadClusterCatalog();
       this._buildDOM();
       this._bindEvents();
+      this._restoreWindowUi();
 
-      if (!CFG.devMode) this._createSession();
+      if (!CFG.devMode) {
+        if (readPersistedSession()) this._restoreOrCreateSession();
+        else if (this._isOpen) this._ensureSession();
+      }
     }
 
     /* ── build DOM ──────────────────────────────────────────── */
@@ -708,21 +911,43 @@
       this._fabTip.classList.remove('cb-visible');
     }
 
-    /* ── open / close window ────────────────────────────────── */
-    _toggleWindow() {
-      this._isOpen = !this._isOpen;
+    /* ── restore open / fullscreen after refresh ────────────── */
+    _restoreWindowUi() {
+      const ui = readUiState();
+      if (ui.fullscreen) {
+        this._isFullscreen = true;
+        this._win.classList.add('cb-fullscreen');
+        this._fsBtn.innerHTML = IC.restore;
+        this._fsBtn.classList.add('cb-fs-active');
+        this._fsBtn.title = 'Restore window';
+      }
+      if (ui.open) this._setWindowOpen(true, { persist: false, focus: false, ensure: false });
+    }
+
+    _setWindowOpen(open, opts) {
+      const options = opts || {};
+      this._isOpen = !!open;
       this._win.classList.toggle('cb-hide', !this._isOpen);
       this._fab.innerHTML = this._isOpen ? IC.close : IC.chat;
       this._syncBackdrop();
       if (this._isOpen) {
         this._clearUnread();
-        setTimeout(() => {
-          if (this._input && !this._input.disabled) this._input.focus();
-        }, 350);
+        if (!CFG.devMode) this._ensureSession();
+        if (options.focus !== false) {
+          setTimeout(() => {
+            if (this._input && !this._input.disabled) this._input.focus();
+          }, 350);
+        }
       } else {
         this._inputFocused = false;
         this._clearKeyboardViewport();
       }
+      if (options.persist !== false) persistUiState({ open: this._isOpen });
+    }
+
+    /* ── open / close window ────────────────────────────────── */
+    _toggleWindow() {
+      this._setWindowOpen(!this._isOpen);
     }
 
     /* ── fullscreen toggle ──────────────────────────────────── */
@@ -733,6 +958,7 @@
       this._fsBtn.classList.toggle('cb-fs-active', this._isFullscreen);
       this._fsBtn.title = this._isFullscreen ? 'Restore window' : 'Expand / Fullscreen';
       this._syncBackdrop();
+      persistUiState({ fullscreen: this._isFullscreen });
     }
 
     _syncBackdrop() {
@@ -756,9 +982,11 @@
       this._streamingBubble = null;
       this._aiBuffer        = '';
       this._isStreaming     = false;
+      this._firstMessageSent = false;
       this._showWelcome();
       // Disconnect any existing WebSocket cleanly
       if (this._ws) { this._ws.onclose = null; this._ws.close(); this._ws = null; }
+      clearPersistedSession();
       // Clear dev-panel input if present
       if (this._sidInput)   this._sidInput.value = '';
       this._updateDevDisplay('Creating session…');
@@ -789,8 +1017,8 @@
       };
       this._statusDot.className   = state === 'connected' ? '' : state === 'connecting' ? 'connecting' : 'offline';
       this._statusTxt.textContent = labels[state] || state;
-      this._sendBtn.disabled      = state !== 'connected' || !!this._quotaLocked;
-      this._input.disabled        = state !== 'connected' || !!this._quotaLocked;
+      this._sendBtn.disabled      = !!this._quotaLocked;
+      this._input.disabled        = !!this._quotaLocked;
       if (this._quotaLocked) this._applyQuotaLockUI();
     }
 
@@ -811,24 +1039,80 @@
       this._badge.classList.remove('visible');
     }
 
-    /* ── REST: create session ───────────────────────────────── */
+    /* ── REST: create / restore session ─────────────────────── */
+    async _restoreOrCreateSession() {
+      const stored = readPersistedSession();
+      if (stored && stored.id) {
+        this._firstMessageSent = !!stored.firstMessageSent || !!(stored.messages && stored.messages.length);
+        this._renderTranscript(stored.messages || []);
+        await this._resumeSession(stored.id, stored.title);
+        return;
+      }
+      // Guests: wait until the chat is opened or a message is sent.
+    }
+
+    _ensureSession() {
+      if (this._ws && (this._ws.readyState === WebSocket.OPEN || this._ws.readyState === WebSocket.CONNECTING)) {
+        return;
+      }
+      if (this._sessionId) {
+        this._connectWebSocket(this._sessionId, this._sessionTitle || 'Chat');
+        return;
+      }
+      this._createSession();
+    }
+
+    _renderTranscript(messages) {
+      if (!Array.isArray(messages) || !messages.length) return;
+      this._msgArea.innerHTML = '';
+      messages.forEach((m) => {
+        if (!m || (m.role !== 'user' && m.role !== 'bot')) return;
+        this._appendMessage(m.role, m.content || '', m.ts ? new Date(m.ts) : null, { persist: false });
+      });
+      this._scrollToBottom();
+    }
+
+    async _resumeSession(id, title) {
+      this._resuming = true;
+      this._setStatus('connecting');
+      this._updateDevDisplay('Restoring session…');
+      try {
+        const res = await fetch(`${CFG.baseUrl}/chat-api/sessions/${id}/`);
+        if (res.ok) {
+          const session = await res.json();
+          title = session.title || title;
+          await this._loadHistory(id);
+        }
+      } catch (err) {
+        console.warn('[ChatbotWidget] Session lookup failed, reconnecting stored chat:', err);
+      }
+      this._connectWebSocket(id, title || 'Chat');
+      return true;
+    }
+
     async _createSession(title = 'New Chat') {
       this._setStatus('connecting');
       this._updateDevDisplay('Creating session…');
+      this._firstMessageSent = false;
       try {
         const res = await fetch(`${CFG.baseUrl}/chat-api/sessions/`, {
           method : 'POST',
+          mode   : 'cors',
+          credentials: 'omit',
           headers: { 'Content-Type': 'application/json' },
-          body   : JSON.stringify({ title }),
+          body   : JSON.stringify({ title, metadata: { source: 'guest' } }),
         });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const session = await res.json();
-        this._connectWebSocket(session.id, session.title);
+        if (res.ok) {
+          const session = await res.json();
+          if (session && SESSION_UUID_RE.test(session.id)) {
+            this._connectWebSocket(session.id, session.title || title);
+            return;
+          }
+        }
       } catch (err) {
-        this._setStatus('disconnected');
-        this._updateDevDisplay(`Error: ${err.message}`);
-        this._showErrorMessage(`Failed to create session: ${err.message}`);
+        console.warn('[ChatbotWidget] REST session create skipped, using guest session:', err);
       }
+      this._connectWebSocket(newGuestSessionId(), title);
     }
 
     /* ── Dev mode: connect by pasted UUID ───────────────────── */
@@ -861,6 +1145,10 @@
         // Include human, ai, and tool messages
         const relevant = messages.filter(m => m.role === 'human' || m.role === 'ai' || m.role === 'tool');
         if (!relevant.length) return;
+        if (relevant.some(m => m.role === 'human')) {
+          this._firstMessageSent = true;
+          persistSessionState({ firstMessageSent: true });
+        }
 
         this._msgArea.innerHTML = '';
 
@@ -882,20 +1170,28 @@
           }
         });
 
+        let lastQuestions = [];
         merged.forEach(m => {
           if (m.isTool) {
-            // Render tool message as a collapsed tool card
+            // History: developers see the stored tool dump; students do not.
+            if (!CFG.devMode) return;
             const toolName = m.metadata?.tool_name || 'unknown';
-            const isDebug = toolName.startsWith('sql_db_');
             this._appendToolCard({
               tool_name: toolName,
               message: m.content,
-              is_debug: isDebug
+              debug: m.content,
+              is_debug: true
             });
+          } else if (m.role === 'human') {
+            lastQuestions = [];
+            this._appendMessage('user', m.content, new Date(m.created_at));
           } else {
-            this._appendMessage(m.role === 'human' ? 'user' : 'bot', m.content, new Date(m.created_at));
+            const payload = unwrapBotPayload(m.content);
+            lastQuestions = payload.questions;
+            this._appendMessage('bot', payload.content, new Date(m.created_at));
           }
         });
+        if (lastQuestions.length) this._renderSuggestedQuestions(lastQuestions);
         this._scrollToBottom();
       } catch (e) {
         console.warn('[ChatbotWidget] History load failed:', e);
@@ -914,6 +1210,11 @@
       this._setSessionTitle(title);
       this._setStatus('connecting');
       this._updateDevDisplay(`Connecting… ID: ${sessionId}`);
+      persistSessionState({
+        id: sessionId,
+        title: title || 'Chat',
+        firstMessageSent: this._firstMessageSent,
+      });
 
       this._ws = new WebSocket(`${CFG.wsBase}/ws/chat/${sessionId}/`);
 
@@ -926,16 +1227,25 @@
         this._setStatus('disconnected');
         this._hideAllIndicators();
         if (evt.code === 4004) {
-          this._showErrorMessage('Invalid session ID. The session does not exist.');
-          this._updateDevDisplay('Error: Invalid session (4004)');
+          this._updateDevDisplay('Invalid session (4004) — starting guest session');
+          this._resuming = false;
+          this._sessionId = null;
+          if (this._guestRetrying) {
+            this._setStatus('disconnected');
+            return;
+          }
+          this._guestRetrying = true;
+          this._createSession();
+          return;
         } else if (evt.code !== 1000) {
           this._updateDevDisplay(`Disconnected (code ${evt.code})`);
         }
+        this._resuming = false;
       };
 
       this._ws.onerror = () => {
         this._setStatus('disconnected');
-        this._showErrorMessage('WebSocket connection failed. Check that the server is running.');
+        this._updateDevDisplay('WebSocket connection failed');
       };
     }
 
@@ -944,9 +1254,17 @@
       switch (data.type) {
 
         case 'connection_success':
+          this._resuming = false;
+          this._guestRetrying = false;
           this._setStatus('connected');
           this._setSessionTitle(data.session_title);
           this._updateDevDisplay(`Connected ✓  ID: ${this._sessionId}`);
+          if (this._pendingSend) {
+            const queued = this._pendingSend;
+            this._pendingSend = null;
+            this._input.value = queued;
+            this._send();
+          }
           break;
 
         case 'user_message_saved':
@@ -958,10 +1276,13 @@
           this._aiBuffer        = '';
           this._streamingBubble = null;
           this._isStreaming     = true;
+          this._hideToolStatus();
+          this._hideSearchIndicator();
           this._showTypingIndicator();
           break;
 
         case 'tool':
+          this._hideTypingIndicator();
           this._showSearchIndicator();
           break;
 
@@ -971,20 +1292,28 @@
           break;
 
         case 'tool_output':
-          this._hideRetryIndicator(); // Hide retry indicator on successful tool response
-          this._appendToolCard(data);
+          this._hideRetryIndicator();
+          this._hideTypingIndicator();
+          this._hideSearchIndicator();
+          if (CFG.devMode) {
+            this._appendToolCard(data);
+          } else {
+            this._showToolStatus(data);
+          }
           break;
 
         case 'ai_final_response': {
           // Complete response arrives at once (no streaming chunks)
           this._hideTypingIndicator();
           this._hideRetryIndicator();
-          const content = data.content || '';
+          this._hideToolStatus();
+          this._hideSearchIndicator();
+          const payload = unwrapBotPayload(data.content || '');
+          const content = payload.content;
           this._appendMessage('bot', content);
           // Render suggested follow-up questions if provided
-          const questions = Array.isArray(data.suggested_questions)
-            ? data.suggested_questions.filter(q => typeof q === 'string' && q.trim())
-            : [];
+          const incoming = Array.isArray(data.suggested_questions) ? data.suggested_questions : payload.questions;
+          const questions = incoming.filter(q => typeof q === 'string' && q.trim());
           if (questions.length > 0) this._renderSuggestedQuestions(questions);
           this._scrollToBottom();
           if (!this._isOpen) this._addUnread();
@@ -999,6 +1328,7 @@
             this._streamingBubble = this._appendStreamingBot();
           }
           this._streamingBubble.innerHTML = renderMarkdown(this._aiBuffer);
+          decorateBotLinks(this._streamingBubble);
           this._streamingBubble.classList.add('cb-streaming-cursor');
           this._scrollToBottom();
           break;
@@ -1011,6 +1341,7 @@
             // Finalise any streaming bubble (legacy 'ai' chunk flow)
             this._streamingBubble.classList.remove('cb-streaming-cursor');
             this._streamingBubble.innerHTML = renderMarkdown(this._aiBuffer);
+            decorateBotLinks(this._streamingBubble);
             this._streamingBubble = null;
           }
           this._aiBuffer = '';
@@ -1035,7 +1366,12 @@
     /* ── send message ───────────────────────────────────────── */
     _send() {
       const text = this._input.value.trim();
-      if (!text || !this._ws || this._ws.readyState !== WebSocket.OPEN || this._isStreaming) return;
+      if (!text || this._isStreaming) return;
+      if (!this._ws || this._ws.readyState !== WebSocket.OPEN) {
+        this._pendingSend = text;
+        this._ensureSession();
+        return;
+      }
       if (this._quotaLocked) {
         this._applyQuotaLockUI();
         const apiLocked = global.AIFeatureQuota;
@@ -1065,6 +1401,7 @@
           }
 
           this._firstMessageSent = true;
+          persistSessionState({ firstMessageSent: true });
         }
 
         this._appendMessage('user', text);
@@ -1114,6 +1451,8 @@
       this._isStreaming     = false;
       this._showWelcome();
 
+      this._firstMessageSent = false;
+      clearPersistedSession();
       if (CFG.devMode) {
         this._sidInput.value = '';
         this._updateDevDisplay('No session connected.');
@@ -1125,7 +1464,8 @@
     }
 
     /* ── DOM: append finished message (no avatar) ───────────── */
-    _appendMessage(role, content, date) {
+    _appendMessage(role, content, date, opts) {
+      const options = opts || {};
       const welcome = this._msgArea.querySelector('.cb-welcome');
       if (welcome) welcome.remove();
 
@@ -1136,13 +1476,29 @@
       if (isUser) {
         bubble.textContent = content;
       } else {
+        const payload = unwrapBotPayload(content);
+        content = payload.content;
         bubble.innerHTML = renderMarkdown(content);
+        decorateBotLinks(bubble);
       }
 
       const ts = el('div', { className: 'cb-ts', textContent: formatTime(date) });
       row.appendChild(bubble);
       row.appendChild(ts);
       this._msgArea.appendChild(row);
+      if (options.persist !== false && (role === 'user' || role === 'bot')) {
+        const stored = readPersistedSessionRaw() || {};
+        const messages = Array.isArray(stored.messages) ? stored.messages.slice() : [];
+        messages.push({
+          role,
+          content: content || '',
+          ts: (date || new Date()).toISOString(),
+        });
+        persistSessionState({
+          firstMessageSent: this._firstMessageSent || role === 'user',
+          messages,
+        });
+      }
       return bubble;
     }
 
@@ -1262,25 +1618,42 @@
       this._hideTypingIndicator();
       this._hideSearchIndicator();
       this._hideRetryIndicator();
+      this._hideToolStatus();
+    }
+
+    /* End-user status only — no search snippets or SQL dumps. */
+    _showToolStatus(data) {
+      this._hideTypingIndicator();
+      this._hideSearchIndicator();
+      const toolName = data.tool_name || '';
+      const isWeb = toolName === 'google_search' || toolName === 'duckduckgo_results_json';
+      const status = data.message || (isWeb ? 'Searching the web…' : 'Looking up TopTeen resources…');
+      if (this._toolStatus) {
+        const span = this._toolStatus.querySelector('span');
+        if (span) span.textContent = status;
+        return;
+      }
+      const ind = el('div', { className: 'cb-indicator cb-ind-search' });
+      ind.innerHTML = `${isWeb ? IC.search : IC.toolSql}<span>${status}</span><div class="cb-dot-row"><span></span><span></span><span></span></div>`;
+      this._toolStatus = ind;
+      this._indicatorArea.appendChild(ind);
+      this._scrollToBottom();
+    }
+    _hideToolStatus() {
+      if (this._toolStatus) { this._toolStatus.remove(); this._toolStatus = null; }
     }
 
     /* ── Tool output card ───────────────────────────────────── */
-    // Renders a collapsible card inline in the chat for each
-    // tool_output event. Web search results → source links;
-    // SQL/DB tools → loading message (production) or raw output (devMode).
+    // Developers only. Students see _showToolStatus instead.
     _appendToolCard(data) {
-      const { tool_name, message, is_debug } = data;
+      if (!CFG.devMode) return;
+
+      const { tool_name, message } = data;
+      const debugText = data.debug || message || '';
 
       // Identify tool types
       const isWeb   = tool_name === 'duckduckgo_results_json' || tool_name === 'google_search';
       const isSqlTool = tool_name && tool_name.startsWith('sql_db_');
-
-      // In production mode, SQL tools show a friendly loading message.
-      // In devMode, we show the raw output. Legacy is_debug flag is still respected.
-      const showSqlCard = isSqlTool && (!is_debug || CFG.devMode);
-
-      // Skip rendering if it's a debug-only tool and we're not in devMode
-      if (is_debug && !CFG.devMode && !isSqlTool) return;
 
       // Remove welcome screen if still showing
       const welcome = this._msgArea.querySelector('.cb-welcome');
@@ -1306,8 +1679,7 @@
       const body = el('div', { className: 'cb-tool-card-body' });
 
       if (isWeb) {
-        // Web Search: Parse and display results
-        const results = this._parseWebSearchResults(message || '');
+        const results = this._parseWebSearchResults(debugText);
         const n = results.length;
         metaEl.textContent = `${n} source${n !== 1 ? 's' : ''}`;
         if (n === 0) {
@@ -1326,23 +1698,9 @@
             body.appendChild(item);
           });
         }
-      } else if (isSqlTool) {
-        // SQL/Database tool output
-        if (CFG.devMode) {
-          // Dev mode: show raw SQL query and results
-          metaEl.textContent = 'debug';
-          body.appendChild(el('pre', { className: 'cb-tool-raw', textContent: message || '(empty)' }));
-        } else {
-          // Production mode: show user-friendly loading message
-          metaEl.textContent = 'working';
-          const loadingMsg = el('div', { className: 'cb-tool-loading' });
-          loadingMsg.innerHTML = `<span class="cb-tool-loading-icon">🔍</span><span>${message || 'Fetching information from database...'}</span>`;
-          body.appendChild(loadingMsg);
-        }
       } else {
-        // Other debug tools (fallback)
         metaEl.textContent = 'debug';
-        body.appendChild(el('pre', { className: 'cb-tool-raw', textContent: message || '(empty)' }));
+        body.appendChild(el('pre', { className: 'cb-tool-raw', textContent: debugText || '(empty)' }));
       }
 
       /* ── Toggle on header click ── */
