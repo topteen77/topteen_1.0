@@ -17,6 +17,36 @@
       });
     }
 
+    // Logout is a different person. Drop readable history. Park an encrypted
+    // user vault so that account can open it again after login; a guest cannot.
+    function sealForeignChat() {
+      if (typeof sessionStorage === 'undefined') return;
+      try {
+        var legacy = sessionStorage.getItem('topteen_cb_session');
+        if (legacy) {
+          var old = JSON.parse(legacy);
+          var oldOwner = (old && old.owner) || 'anon';
+          if (oldOwner !== 'anon') sessionStorage.removeItem('topteen_cb_session');
+        }
+      } catch (e) {
+        try { sessionStorage.removeItem('topteen_cb_session'); } catch (e2) {}
+      }
+      var raw = null;
+      try { raw = sessionStorage.getItem('topteen_cb_vault'); } catch (e) { return; }
+      if (!raw) return;
+      try {
+        var env = JSON.parse(raw);
+        if (env && env.owner === 'anon' && env.ct) return;
+        if (env && env.owner && env.owner !== 'anon' && env.ct) {
+          sessionStorage.setItem('topteen_cb_vault_user_' + env.owner, raw);
+          sessionStorage.removeItem('topteen_cb_vault');
+          sessionStorage.removeItem('topteen_cb_tabk');
+          return;
+        }
+      } catch (e) {}
+      try { sessionStorage.removeItem('topteen_cb_vault'); } catch (e2) {}
+    }
+
     {% if chatbot_student_localstorage %}
     var payload = {{ chatbot_student_localstorage | tojson }};
     if (payload && payload.student_id != null) {
@@ -39,6 +69,9 @@
     clearChatbotKeys();
     localStorage.removeItem('student_data');
     localStorage.removeItem('student_data_encrypted');
+    {% endif %}
+    {% if not chatbot_vault_owner %}
+    sealForeignChat();
     {% endif %}
   } catch (e) {}
 })();

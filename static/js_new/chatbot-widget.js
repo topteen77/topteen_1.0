@@ -75,33 +75,228 @@
     } catch (e) {}
   }
 
+  // Logged-in pages inject ownerId + storageKey. Copy them off the public
+  // config object so later scripts on this page do not keep the raw key around.
+  const USER_OWNER_ID = CFG.ownerId ? String(CFG.ownerId) : '';
+  const USER_VAULT_KEY = CFG.storageKey ? String(CFG.storageKey) : '';
+  try { delete CFG.storageKey; } catch (e) {}
+  try {
+    if (global.ChatbotConfig) delete global.ChatbotConfig.storageKey;
+  } catch (e) {}
+
+  const VAULT_STORE_KEY = 'topteen_cb_vault';
+  const LEGACY_STORE_KEY = SESSION_STORE_KEY;
+  const TAB_KEY_STORE = 'topteen_cb_tabk';
+
+  let _sessionMem = null;
+  let _writeChain = Promise.resolve();
+
   function sessionOwner() {
-    try {
-      return localStorage.getItem('student_id') || 'anon';
-    } catch (e) {
-      return 'anon';
-    }
+    return USER_OWNER_ID || 'anon';
   }
 
+  // Same person may continue. A guest chat may be adopted after login.
+  // Logout (a real user → anon) and a different account may not continue it.
   function ownersCompatible(storedOwner, currentOwner) {
     const stored = storedOwner || 'anon';
     const current = currentOwner || 'anon';
     if (stored === current) return true;
-    if (stored === 'anon' || current === 'anon') return true;
+    if (stored === 'anon' && current !== 'anon') return true;
     return false;
   }
 
-  function readPersistedSessionRaw() {
+  function parkKey(owner) {
+    return 'topteen_cb_vault_user_' + owner;
+  }
+
+  function bytesToB64(bytes) {
+    let bin = '';
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+    }
+    return btoa(bin);
+  }
+
+  function b64ToBytes(value) {
+    const bin = atob(value);
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+
+  function canSeal() {
+    return !!(global.crypto && global.crypto.subtle && global.crypto.getRandomValues);
+  }
+
+  function existingAnonTabKey() {
+    try { return sessionStorage.getItem(TAB_KEY_STORE) || null; } catch (e) { return null; }
+  }
+
+  async function keyMaterialFor(owner, createAnon) {
+    const who = owner || 'anon';
+    if (who === 'anon') {
+      const existing = existingAnonTabKey();
+      if (existing) return existing;
+      if (!createAnon || !canSeal()) return null;
+      const created = bytesToB64(global.crypto.getRandomValues(new Uint8Array(32)));
+      try { sessionStorage.setItem(TAB_KEY_STORE, created); } catch (e) {}
+      return created;
+    }
+    if (USER_OWNER_ID && who === USER_OWNER_ID && USER_VAULT_KEY) return USER_VAULT_KEY;
+    return null;
+  }
+
+  async function importAesKey(b64) {
+    return global.crypto.subtle.importKey(
+      'raw',
+      b64ToBytes(b64),
+      { name: 'AES-GCM' },
+      false,
+      ['encrypt', 'decrypt']
+    );
+  }
+
+  async function encryptFor(owner, data) {
+    const material = await keyMaterialFor(owner, true);
+    if (!material) throw new Error('no vault key');
+    const key = await importAesKey(material);
+    const iv = global.crypto.getRandomValues(new Uint8Array(12));
+    const encoded = new TextEncoder().encode(JSON.stringify(data));
+    const ct = await global.crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, encoded);
+    return {
+      v: 1,
+      owner: String(owner),
+      iv: bytesToB64(iv),
+      ct: bytesToB64(new Uint8Array(ct)),
+    };
+  }
+
+  async function decryptEnvelope(env) {
+    if (!env || env.v !== 1 || !env.iv || !env.ct || !canSeal()) return null;
+    const material = await keyMaterialFor(env.owner || 'anon', false);
+    if (!material) return null;
     try {
-      const raw = sessionStorage.getItem(SESSION_STORE_KEY);
+      const key = await importAesKey(material);
+      const plain = await global.crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv: b64ToBytes(env.iv) },
+        key,
+        b64ToBytes(env.ct)
+      );
+      const data = JSON.parse(new TextDecoder().decode(plain));
+      return data && typeof data === 'object' ? data : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function readJsonStore(key) {
+    try {
+      const raw = sessionStorage.getItem(key);
       return raw ? JSON.parse(raw) : null;
     } catch (e) {
       return null;
     }
   }
 
+  function hasTranscript(data) {
+    return !!(data && Array.isArray(data.messages) && data.messages.length);
+  }
+
+  async function writeVault(data) {
+    if (!data || !canSeal()) return;
+    const owner = data.owner || sessionOwner();
+    const env = await encryptFor(owner, data);
+    const raw = JSON.stringify(env);
+    sessionStorage.setItem(VAULT_STORE_KEY, raw);
+    if (owner !== 'anon') {
+      sessionStorage.setItem(parkKey(owner), raw);
+      sessionStorage.removeItem(TAB_KEY_STORE);
+    }
+    sessionStorage.removeItem(LEGACY_STORE_KEY);
+  }
+
+  function enqueueVaultWrite() {
+    const snapshot = _sessionMem;
+    if (!snapshot) return;
+    _writeChain = _writeChain.then(function () {
+      if (_sessionMem !== snapshot) return null;
+      return writeVault(snapshot);
+    }).catch(function () {});
+  }
+
+  async function openVault() {
+    const current = sessionOwner();
+    let legacy = readJsonStore(LEGACY_STORE_KEY);
+    if (legacy && !SESSION_UUID_RE.test(legacy.id || '')) legacy = null;
+
+      if (legacy) {
+      if (ownersCompatible(legacy.owner, current) && canSeal()) {
+        const adopted = Object.assign({}, legacy, { owner: current });
+        try {
+          _sessionMem = adopted;
+          await writeVault(adopted);
+          return _sessionMem;
+        } catch (e) {
+          _sessionMem = null;
+        }
+      } else {
+        // Plaintext from a logged-in chat must not stay readable after logout.
+        try { sessionStorage.removeItem(LEGACY_STORE_KEY); } catch (e) {}
+      }
+    }
+
+    let env = readJsonStore(VAULT_STORE_KEY);
+    if (env && env.owner && !ownersCompatible(env.owner, current)) {
+      if (env.owner !== 'anon' && env.ct) {
+        try { sessionStorage.setItem(parkKey(env.owner), JSON.stringify(env)); } catch (e) {}
+      }
+      try {
+        sessionStorage.removeItem(VAULT_STORE_KEY);
+        sessionStorage.removeItem(TAB_KEY_STORE);
+      } catch (e) {}
+      env = null;
+    }
+
+    if (env && env.ct) {
+      const data = await decryptEnvelope(env);
+      if (data && SESSION_UUID_RE.test(data.id || '') && ownersCompatible(env.owner, current)) {
+        if ((env.owner || 'anon') === 'anon' && current !== 'anon') {
+          if (hasTranscript(data)) {
+            const adopted = Object.assign({}, data, { owner: current });
+            _sessionMem = adopted;
+            try { await writeVault(adopted); } catch (e) {}
+            return _sessionMem;
+          }
+          try { sessionStorage.removeItem(VAULT_STORE_KEY); } catch (e) {}
+        } else {
+          _sessionMem = Object.assign({}, data, { owner: current });
+          return _sessionMem;
+        }
+      }
+    }
+
+    if (current !== 'anon') {
+      const parked = readJsonStore(parkKey(current));
+      const data = await decryptEnvelope(parked);
+      if (data && SESSION_UUID_RE.test(data.id || '')) {
+        const restored = Object.assign({}, data, { owner: current });
+        _sessionMem = restored;
+        try { await writeVault(restored); } catch (e) {}
+        return _sessionMem;
+      }
+    }
+
+    _sessionMem = null;
+    return null;
+  }
+
+  function readPersistedSessionRaw() {
+    return _sessionMem;
+  }
+
   function readPersistedSession() {
-    const data = readPersistedSessionRaw();
+    const data = _sessionMem;
     if (!data || !SESSION_UUID_RE.test(data.id || '')) return null;
     if (!ownersCompatible(data.owner, sessionOwner())) return null;
     return data;
@@ -109,7 +304,7 @@
 
   function persistSessionState(patch) {
     try {
-      const prev = readPersistedSessionRaw() || {};
+      const prev = _sessionMem || {};
       if (prev.id && !ownersCompatible(prev.owner, sessionOwner()) && !(patch && patch.id)) {
         return;
       }
@@ -122,12 +317,20 @@
       if (Array.isArray(next.messages) && next.messages.length > TRANSCRIPT_LIMIT) {
         next.messages = next.messages.slice(-TRANSCRIPT_LIMIT);
       }
-      sessionStorage.setItem(SESSION_STORE_KEY, JSON.stringify(next));
+      _sessionMem = next;
+      enqueueVaultWrite();
     } catch (e) {}
   }
 
   function clearPersistedSession() {
-    try { sessionStorage.removeItem(SESSION_STORE_KEY); } catch (e) {}
+    _sessionMem = null;
+    try {
+      sessionStorage.removeItem(VAULT_STORE_KEY);
+      sessionStorage.removeItem(LEGACY_STORE_KEY);
+      const owner = sessionOwner();
+      if (owner !== 'anon') sessionStorage.removeItem(parkKey(owner));
+      sessionStorage.removeItem(TAB_KEY_STORE);
+    } catch (e) {}
   }
 
   function readUiState() {
@@ -575,12 +778,27 @@
       loadClusterCatalog();
       this._buildDOM();
       this._bindEvents();
-      this._restoreWindowUi();
-
-      if (!CFG.devMode) {
-        if (readPersistedSession()) this._restoreOrCreateSession();
-        else if (this._isOpen) this._ensureSession();
-      }
+      this._vaultOpen = false;
+      this._vaultReady = openVault().catch(function () { return null; });
+      this._vaultReady.then((stored) => {
+        this._vaultOpen = true;
+        if (stored && stored.id) {
+          this._sessionId = stored.id;
+          this._sessionTitle = stored.title || 'Chat';
+          this._firstMessageSent = !!stored.firstMessageSent || !!(stored.messages && stored.messages.length);
+        }
+        this._restoreWindowUi();
+        if (!CFG.devMode) {
+          if (stored && stored.id) {
+            this._restorePending = true;
+            Promise.resolve(this._restoreOrCreateSession()).finally(() => {
+              this._restorePending = false;
+            });
+          } else if (this._isOpen) {
+            this._ensureSession();
+          }
+        }
+      });
     }
 
     /* ── build DOM ──────────────────────────────────────────── */
@@ -932,7 +1150,7 @@
       this._syncBackdrop();
       if (this._isOpen) {
         this._clearUnread();
-        if (!CFG.devMode) this._ensureSession();
+        if (!CFG.devMode && options.ensure !== false) this._ensureSession();
         if (options.focus !== false) {
           setTimeout(() => {
             if (this._input && !this._input.disabled) this._input.focus();
@@ -1052,6 +1270,12 @@
     }
 
     _ensureSession() {
+      if (!this._vaultOpen) {
+        const ready = this._vaultReady || Promise.resolve();
+        ready.then(() => this._ensureSession());
+        return;
+      }
+      if (this._restorePending || this._creatingSession) return;
       if (this._ws && (this._ws.readyState === WebSocket.OPEN || this._ws.readyState === WebSocket.CONNECTING)) {
         return;
       }
@@ -1059,6 +1283,7 @@
         this._connectWebSocket(this._sessionId, this._sessionTitle || 'Chat');
         return;
       }
+      this._creatingSession = true;
       this._createSession();
     }
 
@@ -1200,6 +1425,7 @@
 
     /* ── WebSocket: connect ─────────────────────────────────── */
     _connectWebSocket(sessionId, title) {
+      this._creatingSession = false;
       if (this._ws) {
         this._ws.onclose = null;
         this._ws.close();
@@ -1365,6 +1591,11 @@
 
     /* ── send message ───────────────────────────────────────── */
     _send() {
+      if (!this._vaultOpen) {
+        const ready = this._vaultReady || Promise.resolve();
+        ready.then(() => this._send());
+        return;
+      }
       const text = this._input.value.trim();
       if (!text || this._isStreaming) return;
       if (!this._ws || this._ws.readyState !== WebSocket.OPEN) {

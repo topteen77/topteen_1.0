@@ -3,7 +3,9 @@
 <script>
   window.ChatbotConfig = Object.assign({}, window.ChatbotConfig || {}, {
     baseUrl: "{{ topteenbot_url }}",
-    wsBase: "{{ topteenbot_ws_url }}"
+    wsBase: "{{ topteenbot_ws_url }}"{% if chatbot_vault_owner and chatbot_vault_key %},
+    ownerId: "{{ chatbot_vault_owner }}",
+    storageKey: "{{ chatbot_vault_key }}"{% endif %}
   });
   window.PageChatConfig = Object.assign({}, window.PageChatConfig || {}, {
     wsBase: "{{ topteenbot_ws_url }}"

@@ -398,11 +398,17 @@ def Tests(request):
         packages_enabled,
     )
     
-    # Check if user is an institute-registered student (exempt from payment check)
-    is_institute_student = StudentManagement.objects.filter(student=request.user).exists()
-    
-    # Only check payment for non-exempt students
-    if not institute_student_exempt_from_payment(request.user):
+    # Staff viewing a student's tests must keep ?user_id= so result links and Back stay on that student.
+    report_student_id = None
+    status_user = request.user
+    staff_student_id = _staff_report_student_id_from_request(request)
+    if staff_student_id and int(staff_student_id) != int(request.user.id):
+        if _staff_can_view_student_report(request, staff_student_id):
+            status_user = get_object_or_404(User, id=int(staff_student_id))
+            report_student_id = status_user.id
+
+    # Only check payment for the logged-in student. Staff viewing another student skip this.
+    if report_student_id is None and not institute_student_exempt_from_payment(request.user):
         if not can_access_psychometric_dashboard(request.user):
             return redirect(reverse('psychometrictests:PsychometricTest12'))
     
@@ -426,7 +432,7 @@ def Tests(request):
         # One ordered query; keep first (latest) session per test_id
         completed = (
             TestSession.objects.filter(
-                user=request.user,
+                user=status_user,
                 test_id__in=[1, 2, 3, 4],
                 is_completed=True,
             )
@@ -494,16 +500,18 @@ def Tests(request):
         'aptitude': False
     }
     
-    for test_id, status_info in test_status.items():
-        if status_info.get('completed', False):
-            test_type = test_type_map.get(test_id)
-            if test_type and test_type not in answered_popups:
-                popup_status[test_type] = True
+    if report_student_id is None:
+        for test_id, status_info in test_status.items():
+            if status_info.get('completed', False):
+                test_type = test_type_map.get(test_id)
+                if test_type and test_type not in answered_popups:
+                    popup_status[test_type] = True
     
     context = {
         'test_status': json.dumps(test_status),
         'popup_status': json.dumps(popup_status),
         'test_type_map': json.dumps(test_type_map),
+        'report_student_id': report_student_id or '',
         'breadcrumb': get_breadcrumb([{'text': 'Tests', 'url': ''}]),
     }
     
