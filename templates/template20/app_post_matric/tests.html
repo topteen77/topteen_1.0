@@ -886,6 +886,7 @@
 <script>
     // Set CSRF token for AJAX requests
     window.csrfToken = '{{ csrf_token }}';
+    window.reportStudentId = '{{ report_student_id|default("", true) }}';
     
     // Parse the JSON data from Django context
     // test_status is already a JSON string from Django, so parse it
@@ -927,6 +928,22 @@
   const testsContainer = document.getElementById('tests-container');
   const categoryFilter = document.getElementById('category-filter');
   const searchBox = document.getElementById('test-search');
+
+  function reportStudentId() {
+    if (window.reportStudentId) return String(window.reportStudentId);
+    try {
+      return new URLSearchParams(window.location.search).get('user_id') || '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function resultUrlForTest(testId) {
+    const studentId = reportStudentId();
+    let href = `/api/web/results/?test_id=${testId}`;
+    if (studentId) href += `&user_id=${encodeURIComponent(studentId)}`;
+    return href;
+  }
 
   function createTestCard(test, testStatus) {
     const template = document.getElementById('test-card-template');
@@ -1000,7 +1017,7 @@
         viewButton.style.backgroundColor = '#28a745';
         viewButton.style.borderColor = '#28a745';
         viewButton.style.color = 'white';
-        viewButton.href = `/api/web/results/?test_id=${test.id}`;
+        viewButton.href = resultUrlForTest(test.id);
         viewButton.setAttribute('target', '_blank');
         viewButton.setAttribute('rel', 'noreferrer');
     } else {
@@ -1032,7 +1049,8 @@
         }
 
         // Set href for sections page (always allow access to continue or start)
-        startButton.href = `/api/web/test/${test.id}/sections/`;
+        const studentId = reportStudentId();
+        startButton.href = `/api/web/test/${test.id}/sections/` + (studentId ? `?user_id=${encodeURIComponent(studentId)}` : '');
     } else {
         // For all other tests
         card.querySelector('.questions-count').textContent = `${test.questions_count} questions`;

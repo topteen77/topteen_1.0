@@ -33,6 +33,34 @@ from django.db.utils import OperationalError, ProgrammingError
 logger = logging.getLogger(__name__)
 
 
+def _chat_vault_material(request):
+    """
+    Per-user AES-256 key for the Career Counsellor transcript kept in this browser.
+
+    Sent only on a logged-in response, and never written to localStorage by the
+    widget. A logged-out page does not receive it, so a later guest cannot
+    decrypt the previous user's chat. Each account gets a different key.
+    """
+    user = getattr(request, 'user', None)
+    if not user or not user.is_authenticated:
+        return None, None
+    uid = getattr(user, 'id', None)
+    if not uid:
+        return None, None
+    import base64
+    import hashlib
+    import hmac
+    master = (getattr(settings, 'STUDENT_DATA_ENCRYPTION_KEY', None) or '').strip()
+    if not master:
+        master = settings.SECRET_KEY
+    digest = hmac.new(
+        master.encode('utf-8'),
+        ('topteen-cb-vault-v1:%s' % uid).encode('utf-8'),
+        hashlib.sha256,
+    ).digest()
+    return str(uid), base64.b64encode(digest).decode('ascii')
+
+
 def _encrypt_student_data(data_dict):
     """
     Encrypt student localStorage payload with Fernet (AES-128-CBC + HMAC).
@@ -673,8 +701,11 @@ def globals(request):
     except Exception:
         _voice_settings_url = "/api/voice/settings/"
 
+    chat_owner, chat_key = _chat_vault_material(request)
     kwargs = {
         "allow_search_engine_index": resolve_allow_search_engine_index(request),
+        "chatbot_vault_owner": chat_owner,
+        "chatbot_vault_key": chat_key,
         "freetrail_seconds": getattr(settings, 'FREETRAIL_TIME_SECONDS', 5),
         "show_chatbot": show_chatbot,
         "show_ai_counsellor_bot": show_ai_counsellor_bot,
