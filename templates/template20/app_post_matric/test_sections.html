@@ -612,7 +612,12 @@
                 }
 
                 // Redirect to tests page
-                window.location.href = "{{ url('post_matric:tests') }}";
+                var testsUrl = "{{ url('post_matric:tests') }}";
+                try {
+                    var sid = new URLSearchParams(window.location.search).get('user_id') || '';
+                    if (sid) testsUrl += (testsUrl.indexOf('?') === -1 ? '?' : '&') + 'user_id=' + encodeURIComponent(sid);
+                } catch (e) {}
+                window.location.href = testsUrl;
             });
         }
 
@@ -671,7 +676,9 @@
 
                 startButton.addEventListener('click', () => {
                     // Redirect to results or review page
-                    window.location.href = `/api/web/results/?test_id=${testId}`;
+                    var studentId = '';
+                    try { studentId = new URLSearchParams(window.location.search).get('user_id') || ''; } catch (e) {}
+                    window.location.href = `/api/web/results/?test_id=${testId}` + (studentId ? `&user_id=${encodeURIComponent(studentId)}` : '');
                 });
             } else {
                 // Section is not completed

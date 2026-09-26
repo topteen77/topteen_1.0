@@ -15,6 +15,33 @@
     function clearChatbotKeys() {
       CHATBOT_KEYS.forEach(function (key) { localStorage.removeItem(key); });
     }
+    function sealForeignChat() {
+      if (typeof sessionStorage === 'undefined') return;
+      try {
+        var legacy = sessionStorage.getItem('topteen_cb_session');
+        if (legacy) {
+          var old = JSON.parse(legacy);
+          var oldOwner = (old && old.owner) || 'anon';
+          if (oldOwner !== 'anon') sessionStorage.removeItem('topteen_cb_session');
+        }
+      } catch (e) {
+        try { sessionStorage.removeItem('topteen_cb_session'); } catch (e2) {}
+      }
+      var raw = null;
+      try { raw = sessionStorage.getItem('topteen_cb_vault'); } catch (e) { return; }
+      if (!raw) return;
+      try {
+        var env = JSON.parse(raw);
+        if (env && env.owner === 'anon' && env.ct) return;
+        if (env && env.owner && env.owner !== 'anon' && env.ct) {
+          sessionStorage.setItem('topteen_cb_vault_user_' + env.owner, raw);
+          sessionStorage.removeItem('topteen_cb_vault');
+          sessionStorage.removeItem('topteen_cb_tabk');
+          return;
+        }
+      } catch (e) {}
+      try { sessionStorage.removeItem('topteen_cb_vault'); } catch (e2) {}
+    }
     var payload = null;
     var payloadEl = document.getElementById('chatbot-student-localstorage');
     if (payloadEl) {
@@ -28,6 +55,9 @@
     } else {
       clearChatbotKeys();
     }
+    {% if not chatbot_vault_owner %}
+    sealForeignChat();
+    {% endif %}
     {% if student_localstorage_enc %}
     localStorage.setItem('student_data', "{{ student_localstorage_enc|escapejs }}");
     localStorage.setItem('student_data_encrypted', '1');
@@ -52,9 +82,9 @@
 {% include 'template20/includes/chatbot_widget_config.html' %}
 {% if show_page_chat_widget and show_ai_counsellor_bot %}
 <script src="{% static 'js_new/page-chat-widget.js' %}?v=20260922-guest2"></script>
-<script src="{% static 'js_new/chatbot-widget.js' %}?v=20260923-json"></script>
+<script src="{% static 'js_new/chatbot-widget.js' %}?v=20260926-vault"></script>
 {% else %}
-{% if show_ai_counsellor_bot %}<script src="{% static 'js_new/chatbot-widget.js' %}?v=20260923-json"></script>{% endif %}
+{% if show_ai_counsellor_bot %}<script src="{% static 'js_new/chatbot-widget.js' %}?v=20260926-vault"></script>{% endif %}
 {% if show_page_chat_widget %}<script src="{% static 'js_new/page-chat-widget.js' %}?v=20260922-guest2"></script>{% endif %}
 {% endif %}
 {% endif %}

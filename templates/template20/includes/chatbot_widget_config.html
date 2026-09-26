@@ -2,8 +2,10 @@
 {% if show_ai_counsellor_bot or show_page_chat_widget or show_chatbot %}
 <script>
   window.ChatbotConfig = Object.assign({}, window.ChatbotConfig || {}, {
-    baseUrl: "{{ (topteenbot_url or 'https://careerbot.canamacademy.com')|trim('/') }}",
-    wsBase: "{{ (topteenbot_ws_url or 'wss://careerbot.canamacademy.com')|trim('/') }}"
+    baseUrl: "{{ topteenbot_url }}",
+    wsBase: "{{ topteenbot_ws_url }}"{% if chatbot_vault_owner and chatbot_vault_key %},
+    ownerId: "{{ chatbot_vault_owner }}",
+    storageKey: "{{ chatbot_vault_key }}"{% endif %}
   });
   window.PageChatConfig = Object.assign({}, window.PageChatConfig || {}, {
     wsBase: "{{ (topteenbot_ws_url or 'wss://careerbot.canamacademy.com')|trim('/') }}"
