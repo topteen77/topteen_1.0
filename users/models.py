@@ -237,11 +237,7 @@ class User(BaseModel,AbstractBaseUser, PermissionsMixin):
         
     @classmethod
     def create_user(cls,**kwargs):
-        # password = kwargs.pop('password')
-        password = '12345'
-
-        # static password by manish"
-        
+        password = kwargs.pop('password', None) or '12345'
         user = User.objects.create(**kwargs)
         user.set_password(password)
         user.save()
