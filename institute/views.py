@@ -1998,7 +1998,7 @@ class InstituteCreateView(TemplateView):
                 )
 
             import random
-            password=''.join([str(random.randint(0,10)) for _ in range(6)])
+            password=''.join([str(random.randint(0, 9)) for _ in range(6)])
             user_dict={'email':ins_email,'password':password,'user_type':choices.UserType.INSTITUTE}
             ins_user=User.create_user(**user_dict)
             from institute.models import institute_status_for_creator
@@ -2267,7 +2267,7 @@ class CounselorCreateView(TemplateView):
                 return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
             
             import random
-            password=''.join([str(random.randint(0,10)) for _ in range(6)])
+            password=''.join([str(random.randint(0, 9)) for _ in range(6)])
             user_dict={'email':coun_email,'password':password,'user_type':choices.UserType.COUNSELOR}
             coun_user=User.create_user(**user_dict)
             coun=Counselor(counselor_name=name,coun_user = coun_user,counselor_email=coun_email,counselor_address=address,counselor_contact_info=contact,counselor_education=education,counselor_gender=gender,counselor_admin=current_institute)
@@ -2305,7 +2305,7 @@ class InstituteGroupCreateView(TemplateView):
         group_em=re.match(evalid,group_email)
         if group_em and name :
             import random
-            password=''.join([str(random.randint(0,10)) for _ in range(6)])
+            password=''.join([str(random.randint(0, 9)) for _ in range(6)])
             user_dict={'email':group_email,'password':password,'user_type':choices.UserType.INSTITUTEGROUPADMIN}
             group_user=User.create_user(**user_dict)
             ins_grp=InstituteGroup(group_name=name,institute_group_admin=group_user)
@@ -7027,7 +7027,7 @@ class InstituteDashboardView(TemplateView):
             if institute.is_valid_credit_count() and class_section and em and not user_exist:
                 cas=get_object_or_404(ClassAndSection,id=class_section)
                 import random
-                password=''.join([str(random.randint(0,10)) for _ in range(6)])
+                password=''.join([str(random.randint(0, 9)) for _ in range(6)])
                 student=User.objects.create_user(email=semail, password=password)
                 student.save()
                 stu_manage=StudentManagement(institute=institute,student=student,class_and_section=cas)
@@ -7440,7 +7440,7 @@ class InstituteStudentCreateView(TemplateView):
                     cas=get_object_or_404(ClassAndSection,id=class_section)               
 
                 import random
-                password=''.join([str(random.randint(0,10)) for _ in range(6)])                
+                password=''.join([str(random.randint(0, 9)) for _ in range(6)])                
                 user_dict={'name':stu_name,'mobile':stu_mobile,'image':stu_profile,'email':stu_email,'password':password}
                 student=User.create_user(**user_dict)
                 stu_manage=StudentManagement(institute=institute,student=student,class_and_section=cas)
@@ -7575,7 +7575,7 @@ class InstituteCsvStudentCreateView(TemplateView):
                 ):
                     cas, _cas = _resolve_class_and_section(class_section)
 
-                    password = "".join([str(random.randint(0, 10)) for _ in range(6)])
+                    password = "".join([str(random.randint(0, 9)) for _ in range(6)])
                     user_dict = {
                         "name": stu_name,
                         "mobile": stu_mobile_norm,
@@ -7787,7 +7787,7 @@ class InstitutePostMatricCsvStudentCreateView(TemplateView):
                 ):
                     cas, _cas = _resolve_class_and_section(class_section, class_section_stream)
 
-                    password = "".join([str(random.randint(0, 10)) for _ in range(6)])
+                    password = "".join([str(random.randint(0, 9)) for _ in range(6)])
                     user_dict = {
                         "name": stu_name,
                         "mobile": stu_mobile_norm,
