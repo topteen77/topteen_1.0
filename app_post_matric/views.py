@@ -37,6 +37,7 @@ from django.contrib.auth import authenticate, login as auth_login, logout, get_u
 from core.breadcrumbs import get_breadcrumb
 # from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.template.loader import get_template
 from django.conf import settings
 from django.utils.text import slugify
@@ -3132,6 +3133,7 @@ def CombinedReport(request, user_id=None):
 def Results_details(request):
     return render(request, "result-details.html")
 
+@ensure_csrf_cookie
 def Take_test(request, id):
     from core.assessment_access import redirect_if_no_post_matric_test_access
     from .models import Test, Question
@@ -3766,6 +3768,7 @@ def download_test_results_pdf(request, id):
         return HttpResponse(f'Error generating PDF: {str(e)}', status=500)
 
 
+@ensure_csrf_cookie
 def test_sections(request, test_id):
     from .models import Test, Sections, SectionSession
     from .serializers import TestSerializer, SectionsSerializer, SectionSessionSerializer
@@ -3804,6 +3807,7 @@ def test_sections(request, test_id):
     })
 
 @login_required
+@ensure_csrf_cookie
 def section_details(request,testId, section_id, session_id):
     from .models import Sections, TestSession, SectionSession, Question
     from .serializers import QuestionSerializer

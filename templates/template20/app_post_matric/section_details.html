@@ -559,21 +559,9 @@ $(document).ready(function() {
     set userAnswers(val) { userAnswers = val; }
   };
 
-  // Get CSRF token
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.startsWith(name + '=')) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
-    }
-    return cookieValue;
-  }
+  // Same secret Django will check. Do not read document.cookie: after the
+  // ELB cutover a host-only csrftoken and a .topteen.in csrftoken can both exist.
+  const csrfToken = "{{ csrf_token }}";
 
   // Timer functionality
   function startTimer(seconds) {
@@ -622,7 +610,7 @@ $(document).ready(function() {
       // Fallback: fetch once (answers already nested; no per-question calls)
       const headers = {
         'Content-Type': 'application/json',
-        'X-CSRFToken': getCookie('csrftoken'),
+        'X-CSRFToken': csrfToken,
         'Accept': 'application/json'
       };
 
@@ -920,7 +908,7 @@ $(document).ready(function() {
             method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
-              'X-CSRFToken': getCookie('csrftoken')
+              'X-CSRFToken': csrfToken
             },
             body: JSON.stringify({
               end_time: new Date().toISOString(),
@@ -943,7 +931,7 @@ $(document).ready(function() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': getCookie('csrftoken')
+          'X-CSRFToken': csrfToken
         },
         body: JSON.stringify({
           submitted_answers: userAnswers,
@@ -964,7 +952,7 @@ $(document).ready(function() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': getCookie('csrftoken')
+          'X-CSRFToken': csrfToken
         }
       });
 

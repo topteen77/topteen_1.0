@@ -801,6 +801,10 @@
 <script>
 $(document).ready(function() {
   const testId = {{ test_id }};
+  // Rendered from the csrftoken Django actually parsed. document.cookie can
+  // contain two csrftoken values after the ELB cutover (host-only plus
+  // .topteen.in); getCookie() returns the first, Django checks the last.
+  const csrfToken = "{{ csrf_token }}";
   const ENABLE_AUTO_FORWARD = {{ 'true' if enable_auto_forward else 'false' }};
   const SHOW_MISSING_ANSWERS_VALIDATION = {{ 'true' if show_missing_answers_validation else 'false' }};
   let currentSession = null;
@@ -957,7 +961,7 @@ $(document).ready(function() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': getCookie('csrftoken')
+          'X-CSRFToken': csrfToken
         },
         credentials: 'same-origin'
       });
@@ -1216,7 +1220,7 @@ $(document).ready(function() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': getCookie('csrftoken')
+          'X-CSRFToken': csrfToken
         },
         body: JSON.stringify({
           submitted_answers: submitted_answers,
@@ -1235,7 +1239,7 @@ $(document).ready(function() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': getCookie('csrftoken')
+          'X-CSRFToken': csrfToken
         },
         credentials: 'same-origin'
       });
@@ -1262,20 +1266,6 @@ $(document).ready(function() {
     }
   }
   
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
-    }
-    return cookieValue;
-  }
 });
 </script>
 {% endblock %}
