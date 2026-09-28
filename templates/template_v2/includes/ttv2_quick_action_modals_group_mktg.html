@@ -66,13 +66,23 @@
             </div>
             <div class="col-md-6">
               <label class="form-label">Institute Group</label>
+              {% set _groups = institute_groups if institute_groups is defined else [] %}
+              {% if _groups %}
               <select class="form-select" name="institute_group">
-                <option value="">Select Group</option>
-                {% set _groups = (institute_groups if institute_groups is defined else (institute_group if institute_group is defined else [])) %}
+                <option value="" selected>Select Group</option>
                 {% for g in _groups %}
-                  <option value="{{ g.id }}" {% if _groups|length == 1 %}selected{% endif %}>{{ g.group_name }}</option>
+                  <option value="{{ g.id }}">{{ g.group_name }}</option>
                 {% endfor %}
               </select>
+              {% else %}
+              <div class="border rounded-3 px-3 py-2 bg-light d-flex align-items-start gap-2">
+                <i class="bx bx-buildings text-muted fs-5" aria-hidden="true"></i>
+                <div>
+                  <div class="fw-semibold small mb-0">No institute group yet</div>
+                  <p class="text-muted small mb-0">You can create this institute without a group and attach one later.</p>
+                </div>
+              </div>
+              {% endif %}
             </div>
             <div class="col-12">
               <label class="form-label">Institute Logo <span class="text-danger">*</span></label>
@@ -131,7 +141,9 @@
             </div>
             <div class="col-12" data-ttv2-paid-only-section>
               <div class="row g-3">
+                {% with psych_form_key='create' %}
                 {% include "template_v2/institute/includes/psychometric_institute_settings.html" %}
+                {% endwith %}
                 <div class="col-12">
                   {% with tieup_exam_credits_required=true, tieup_hide_coupon=true %}
                   {% include "template_v2/institute/includes/tieup_billing_fields.html" %}

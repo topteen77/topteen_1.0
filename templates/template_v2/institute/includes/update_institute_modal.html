@@ -39,17 +39,31 @@
               <label class="form-label">Admin contact</label>
               <input type="tel" class="form-control ttv2-phone10" name="institute_admin" maxlength="10" value="{{ ins.administrator_contact|default('') }}">
             </div>
-            {% if institute_group is defined and institute_group %}
             <div class="col-md-6">
               <label class="form-label">Institute group</label>
+              {% set _groups = institute_groups if institute_groups is defined else (institute_group if institute_group is defined else []) %}
+              {% if _groups %}
               <select class="form-select" name="institute_group">
                 <option value="">— None —</option>
-                {% for g in institute_group %}
+                {% for g in _groups %}
                 <option value="{{ g.id }}" {% if ins.institute_group_id == g.id %}selected{% endif %}>{{ g.group_name }}</option>
                 {% endfor %}
               </select>
+              {% elif ins.institute_group %}
+              <div class="border rounded-3 px-3 py-2 bg-light">
+                <div class="fw-semibold small mb-0">{{ ins.institute_group.group_name }}</div>
+                <p class="text-muted small mb-0">This group is already assigned.</p>
+              </div>
+              {% else %}
+              <div class="border rounded-3 px-3 py-2 bg-light d-flex align-items-start gap-2">
+                <i class="bx bx-buildings text-muted fs-5" aria-hidden="true"></i>
+                <div>
+                  <div class="fw-semibold small mb-0">No institute group yet</div>
+                  <p class="text-muted small mb-0">Create a group first, then you can attach this institute to it.</p>
+                </div>
+              </div>
+              {% endif %}
             </div>
-            {% endif %}
             <div class="col-md-6">
               <label class="form-label">Institute logo</label>
               <input type="file" name="institute_logo" class="form-control" accept=".jpg,.png">

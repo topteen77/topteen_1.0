@@ -1,5 +1,6 @@
 {# Institute psychometric package settings (marketing create / edit) #}
 {% if psychometric_packages_enabled %}
+{% set _psych_key = psych_form_key if psych_form_key is defined and psych_form_key else (ins.id if ins is defined and ins else 'new') %}
 <div class="col-12 psychometric-institute-settings" data-psych-institute-settings>
   <div class="border rounded p-3 bg-light">
     <h6 class="fw-semibold mb-2">Psychometric packages</h6>
@@ -13,7 +14,7 @@
         <select name="psychometric_access_mode"
                 class="form-select"
                 data-psych-access-mode
-                aria-controls="psychPackageCatalog{{ ins.id if ins is defined and ins else 'new' }}">
+                aria-controls="psychPackageCatalog{{ _psych_key }}">
           {% set _mode = ins.psychometric_access_mode if ins is defined and ins else 'full_bundle' %}
           <option value="full_bundle" {% if _mode == 'full_bundle' %}selected{% endif %}>
             Full bundle (legacy)
@@ -34,7 +35,7 @@
         <small class="text-muted">Credits consumed when the institute assigns packages to students.</small>
       </div>
       <div class="col-12 {% if _mode != 'package' %}d-none{% endif %}"
-           id="psychPackageCatalog{{ ins.id if ins is defined and ins else 'new' }}"
+           id="psychPackageCatalog{{ _psych_key }}"
            data-psych-package-catalog>
         <label class="form-label mb-2">Enabled packages for this institute</label>
         {% set _catalog = psychometric_catalog_packages if psychometric_catalog_packages is defined else [] %}
@@ -48,10 +49,10 @@
                      type="checkbox"
                      name="institute_package_codes"
                      value="{{ pkg.code }}"
-                     id="pkg-{{ ins.id if ins is defined and ins else 'new' }}-{{ pkg.code }}"
+                     id="pkg-{{ _psych_key }}-{{ pkg.code }}"
                      {% if not _enabled or pkg.code in _enabled %}checked{% endif %}>
               <label class="form-check-label small"
-                     for="pkg-{{ ins.id if ins is defined and ins else 'new' }}-{{ pkg.code }}">
+                     for="pkg-{{ _psych_key }}-{{ pkg.code }}">
                 <span class="fw-semibold d-block">{{ pkg.name }}</span>
                 <span class="text-muted">{{ pkg.credit_cost }} credit{% if pkg.credit_cost != 1 %}s{% endif %} per student</span>
               </label>

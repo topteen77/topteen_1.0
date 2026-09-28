@@ -79,9 +79,12 @@ body.ttv2-shell .ttv2-topbar-pay-now {
   window.__psychInstituteSettingsBound = true;
   function syncPsychPackageCatalog(select) {
     if (!select) return;
-    var targetId = select.getAttribute('aria-controls');
-    if (!targetId) return;
-    var catalog = document.getElementById(targetId);
+    var root = select.closest('[data-psych-institute-settings]') || select.closest('form') || document;
+    var catalog = root.querySelector('[data-psych-package-catalog]');
+    if (!catalog) {
+      var targetId = select.getAttribute('aria-controls');
+      catalog = targetId ? document.getElementById(targetId) : null;
+    }
     if (!catalog) return;
     if (select.value === 'package') catalog.classList.remove('d-none');
     else catalog.classList.add('d-none');
