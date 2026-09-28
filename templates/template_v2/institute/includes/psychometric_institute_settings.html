@@ -26,13 +26,16 @@
       </div>
       <div class="col-md-6">
         <label class="form-label">Assignment credits (pool)</label>
+        {% set _ti_qty = tieup_initial.tieup_student_test_credits_qty if (tieup_initial is defined and tieup_initial and tieup_initial.tieup_student_test_credits_qty not in (none, '')) else none %}
+        {% set _exam_qty = _ti_qty if _ti_qty not in (none, '') else (ins.credit_counts if (ins is defined and ins and ins.credit_counts) else '') %}
         <input type="number"
                name="assignment_credits"
                class="form-control"
                min="0"
                step="1"
-               value="{{ ins.assignment_credits|default(0) if ins is defined and ins else 0 }}">
-        <small class="text-muted">Credits consumed when the institute assigns packages to students.</small>
+               readonly
+               value="{% if _exam_qty not in (none, '') %}{{ _exam_qty }}{% elif ins is defined and ins %}{{ ins.assignment_credits|default(0) }}{% endif %}">
+        <small class="text-muted">Same as exam credits. Used when the institute assigns packages to students.</small>
       </div>
       <div class="col-12 {% if _mode != 'package' %}d-none{% endif %}"
            id="psychPackageCatalog{{ _psych_key }}"

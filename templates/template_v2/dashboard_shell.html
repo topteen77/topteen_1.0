@@ -98,6 +98,40 @@ body.ttv2-shell .ttv2-topbar-pay-now {
     var modal = e && e.target;
     if (!modal || !modal.querySelectorAll) return;
     modal.querySelectorAll('[data-psych-access-mode]').forEach(syncPsychPackageCatalog);
+    modal.querySelectorAll('form').forEach(alignExamAndAssignmentCredits);
+  });
+
+  function creditFields(form) {
+    return [
+      form.querySelector('[name="tieup_student_test_credits_qty"]'),
+      form.querySelector('[name="assignment_credits"]')
+    ].filter(Boolean);
+  }
+
+  function alignExamAndAssignmentCredits(form) {
+    if (!form || !form.querySelector) return;
+    var fields = creditFields(form);
+    if (fields.length < 2) return;
+    var source = fields.find(function (el) { return (el.value || '').trim() !== ''; }) || fields[0];
+    var value = (source.value || '').trim();
+    fields.forEach(function (el) {
+      if ((el.value || '').trim() !== value) el.value = value;
+    });
+  }
+
+  document.addEventListener('input', function (e) {
+    var t = e && e.target;
+    if (!t || !t.name) return;
+    if (t.name !== 'assignment_credits' && t.name !== 'tieup_student_test_credits_qty') return;
+    var form = t.closest && t.closest('form');
+    if (!form) return;
+    creditFields(form).forEach(function (el) {
+      if (el === t || el.value === t.value) return;
+      el.value = t.value;
+      if (el.name === 'tieup_student_test_credits_qty') {
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
   });
 })();
 </script>

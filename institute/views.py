@@ -2017,6 +2017,7 @@ class InstituteCreateView(TemplateView):
                 contact_info=contact,
                 administrator_contact=admin_contact,
                 credit_counts=credit_counts,
+                assignment_credits=credit_counts,
                 institute_group=ins_group,
                 marketing_group=marketing_group,
                 institute_status=initial_status,
@@ -2171,21 +2172,12 @@ class InstituteConvertDemoToPaidView(View):
             messages.error(request, credits_err)
             return HttpResponseRedirect(referer)
 
-        assign_raw = (request.POST.get("tieup_assignment_credits_qty") or request.POST.get("assignment_credits") or "").strip()
-        assignment_credits = None
-        if assign_raw:
-            try:
-                assignment_credits = max(0, int(assign_raw))
-            except (TypeError, ValueError):
-                messages.error(request, "Enter a valid number for assignment credits.")
-                return HttpResponseRedirect(referer)
-
         try:
             result = convert_demo_institute_to_paid(
                 institute,
                 request.user,
                 credit_counts=credit_counts,
-                assignment_credits=assignment_credits,
+                assignment_credits=credit_counts,
             )
         except DemoStudentError as e:
             messages.error(request, str(e))
@@ -3334,23 +3326,12 @@ class InstituteMarketingProfileEditView(TemplateView):
                         credit_counts = max(0, int(tieup_qty_raw))
                     except (TypeError, ValueError):
                         credit_counts = None
-                assign_raw = (
-                    request.POST.get("assignment_credits")
-                    or request.POST.get("tieup_assignment_credits_qty")
-                    or ""
-                ).strip()
-                assignment_credits = None
-                if assign_raw:
-                    try:
-                        assignment_credits = max(0, int(assign_raw))
-                    except (TypeError, ValueError):
-                        assignment_credits = None
                 try:
                     conv = convert_demo_institute_to_paid(
                         ins,
                         request.user,
                         credit_counts=credit_counts if credit_counts is not None else ins.credit_counts,
-                        assignment_credits=assignment_credits,
+                        assignment_credits=credit_counts if credit_counts is not None else ins.credit_counts,
                     )
                     ins.refresh_from_db()
                     extra_messages.append(
@@ -8284,6 +8265,7 @@ class InstituteProfileEditView(TemplateView):
                 ins.administrator_contact=ins_admin
             if ins_credits and (0<=int(ins_credits)<=(ins.credit_counts+get_global_remain_credits())):
                 ins.credit_counts=ins_credits
+                ins.assignment_credits=ins_credits
             if ins_group:
                 institute_group=get_object_or_404(InstituteGroup,id=ins_group)
                 ins.institute_group=institute_group

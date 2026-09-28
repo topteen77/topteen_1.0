@@ -107,12 +107,19 @@ def apply_institute_psychometric_settings_from_post(institute, post, *, save=Tru
     ):
         institute.psychometric_access_mode = mode
 
-    raw_assign_credits = (post.get('assignment_credits') or '').strip()
-    if raw_assign_credits != '':
-        try:
-            institute.assignment_credits = max(0, int(raw_assign_credits))
-        except (TypeError, ValueError):
-            pass
+    # Assignment credit pool matches exam credits entered on the same form.
+    from institute.tieup_billing import parse_exam_credits_qty_from_post
+
+    exam_qty, _exam_err = parse_exam_credits_qty_from_post(post)
+    if exam_qty is not None:
+        institute.assignment_credits = exam_qty
+    else:
+        raw_assign_credits = (post.get('assignment_credits') or '').strip()
+        if raw_assign_credits != '':
+            try:
+                institute.assignment_credits = max(0, int(raw_assign_credits))
+            except (TypeError, ValueError):
+                pass
 
     if save:
         institute.save(update_fields=['psychometric_access_mode', 'assignment_credits', 'modified'])
