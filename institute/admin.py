@@ -4,7 +4,7 @@ import string
 from django import forms
 from django.contrib import admin, messages
 from django.contrib.admin import RelatedOnlyFieldListFilter
-from django.db.models import Count
+from django.db.models import Count, Q
 from institute.models import (
     Institute,
     StudentManagement,
@@ -90,7 +90,11 @@ class InstituteMarketingGroupAdmin(admin.ModelAdmin):
         qs = InstituteMarketingGroup.objects.complete()
         # Also ensure we get users from complete queryset (including soft-deleted)
         return qs.select_related("marketing_group_admin").annotate(
-            _institute_count=Count("institute")
+            _institute_count=Count(
+                "institute",
+                filter=Q(institute__object_status=choices.ObjectStatus.ACTIVE),
+                distinct=True,
+            )
         )
     
     def get_object_status(self, obj):
@@ -164,7 +168,9 @@ class InstituteAdmin(admin.ModelAdmin):
 
     list_display = [
         "name",
+        "institute_group_column",
         "marketing_group_column",
+        "student_count",
         "created_by_name",
         "created_by_email",
         "is_demo_institute",
@@ -179,6 +185,7 @@ class InstituteAdmin(admin.ModelAdmin):
         "is_system_demo",
         "institute_status",
         ("marketing_group", RelatedOnlyFieldListFilter),
+        ("institute_group", RelatedOnlyFieldListFilter),
     ]
     readonly_fields = ["created", "modified", "slug", "logo_preview", "is_system_demo", "demo_seed_count"]
     search_fields = [
@@ -189,8 +196,28 @@ class InstituteAdmin(admin.ModelAdmin):
         "marketing_group__marketing_group_admin__email",
         "marketing_group__marketing_group_admin__name",
     ]
-    list_select_related = ("created_by", "marketing_group", "marketing_group__marketing_group_admin")
+    list_select_related = (
+        "created_by",
+        "institute_group",
+        "institute_group__institute_group_admin",
+        "marketing_group",
+        "marketing_group__marketing_group_admin",
+    )
     ordering = ["-modified", "-created"]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.annotate(
+            _student_count=Count(
+                "student_management",
+                filter=Q(
+                    student_management__object_status=choices.ObjectStatus.ACTIVE,
+                    student_management__student__isnull=False,
+                ),
+                distinct=True,
+            )
+        )
+
     fieldsets = (
         (None, {
             "fields": (
@@ -230,30 +257,71 @@ class InstituteAdmin(admin.ModelAdmin):
         }),
     )
 
+    def _user_admin_link(self, user):
+        if not user:
+            return ""
+        label = user.email or user.name or f"User #{user.pk}"
+        try:
+            url = reverse("admin:users_user_change", args=[user.pk])
+            return format_html('<a href="{}">{}</a>', url, label)
+        except Exception:
+            return label
+
+    @admin.display(description="Institute group", ordering="institute_group__group_name")
+    def institute_group_column(self, obj):
+        ig = obj.institute_group
+        if not ig:
+            return "—"
+        label = ig.group_name or f"Group #{ig.pk}"
+        try:
+            url = reverse("admin:institute_institutegroup_change", args=[ig.pk])
+            return format_html('<a href="{}">{}</a>', url, label)
+        except Exception:
+            return label
+
+    @admin.display(description="Students", ordering="_student_count")
+    def student_count(self, obj):
+        n = getattr(obj, "_student_count", None)
+        if n is None:
+            n = obj.student_management.filter(student__isnull=False).count()
+        base = reverse("admin:institute_studentmanagement_changelist")
+        q = urlencode({"institute__id__exact": str(obj.pk)})
+        return format_html('<a href="{}?{}">{}</a>', base, q, n)
+
     @admin.display(description="Marketing group", ordering="marketing_group__m_group_name")
     def marketing_group_column(self, obj):
         mg = obj.marketing_group
         if not mg:
             return "—"
         label = mg.m_group_name or f"Group #{mg.pk}"
-        admin_user = mg.marketing_group_admin
-        if admin_user:
-            email = getattr(admin_user, "email", "") or ""
-            if email:
-                label = f"{label} ({email})"
         try:
-            url = reverse("admin:institute_institutemarketinggroup_change", args=[mg.pk])
+            group_url = reverse("admin:institute_institutemarketinggroup_change", args=[mg.pk])
+            group_link = format_html('<a href="{}">{}</a>', group_url, label)
+        except Exception:
+            group_link = label
+        admin_user = mg.marketing_group_admin
+        if admin_user and (admin_user.email or admin_user.name):
+            user_link = self._user_admin_link(admin_user)
+            return format_html("{} ({})", group_link, user_link)
+        return group_link
+
+    @admin.display(description="Institute User Name", ordering="created_by__name")
+    def created_by_name(self, obj):
+        user = obj.created_by
+        if not user:
+            return ""
+        label = user.name or ""
+        if not label:
+            return self._user_admin_link(user)
+        try:
+            url = reverse("admin:users_user_change", args=[user.pk])
             return format_html('<a href="{}">{}</a>', url, label)
         except Exception:
             return label
 
-    @admin.display(description="Institute User Name", ordering="created_by__name")
-    def created_by_name(self, obj):
-        return getattr(obj.created_by, "name", "") if obj.created_by else ""
-
     @admin.display(description="Institute User Email", ordering="created_by__email")
     def created_by_email(self, obj):
-        return getattr(obj.created_by, "email", "") if obj.created_by else ""
+        return self._user_admin_link(obj.created_by) if obj.created_by else ""
 
     @admin.display(description="Logo")
     def logo_preview(self, obj):
@@ -283,6 +351,7 @@ class StudentManagementAdmin(admin.ModelAdmin):
     list_display=["institute","student_email","student_mobile_masked","parent_mobiles_masked","class_and_section"]
     readonly_fields=["created","modified"]
     list_select_related = ("student", "institute", "class_and_section")
+    list_filter = [("institute", RelatedOnlyFieldListFilter)]
     search_fields = ["student__email", "student__mobile", "institute__name", "class_and_section__class_and_section"]
 
     def _mask_mobile(self, mobile):
@@ -354,8 +423,48 @@ class InstituteLogAdmin(admin.ModelAdmin):
 admin.site.register(InstituteLog,InstituteLogAdmin)
 
 class InstituteGroupAdmin(admin.ModelAdmin):
-    list_display=["id","group_name","institute_group_admin"]
-    readonly_fields=["created","modified"]
+    list_display = [
+        "id",
+        "group_name",
+        "institute_group_admin_link",
+        "institutes_count",
+        "created",
+        "modified",
+    ]
+    list_select_related = ("institute_group_admin",)
+    search_fields = ["group_name", "institute_group_admin__email", "institute_group_admin__name"]
+    readonly_fields = ["created", "modified"]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.annotate(
+            _institute_count=Count(
+                "institute",
+                filter=Q(institute__object_status=choices.ObjectStatus.ACTIVE),
+                distinct=True,
+            )
+        )
+
+    @admin.display(description="Group admin", ordering="institute_group_admin__email")
+    def institute_group_admin_link(self, obj):
+        user = obj.institute_group_admin
+        if not user:
+            return "—"
+        label = user.email or user.name or f"User #{user.pk}"
+        try:
+            url = reverse("admin:users_user_change", args=[user.pk])
+            return format_html('<a href="{}">{}</a>', url, label)
+        except Exception:
+            return label
+
+    @admin.display(description="Institutes", ordering="_institute_count")
+    def institutes_count(self, obj):
+        n = getattr(obj, "_institute_count", None)
+        if n is None:
+            n = obj.institute.filter(object_status=choices.ObjectStatus.ACTIVE).count()
+        base = reverse("admin:institute_institute_changelist")
+        q = urlencode({"institute_group__id__exact": str(obj.pk)})
+        return format_html('<a href="{}?{}">{}</a>', base, q, n)
 
 admin.site.register(InstituteGroup,InstituteGroupAdmin)
 
