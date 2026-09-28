@@ -3087,6 +3087,12 @@ body.ttv2-shell .ttv2-csv-upload-btn--postmatric{
   --ttv2-csv-shadow: rgba(14, 165, 233, 0.32);
   --ttv2-csv-shadow-strong: rgba(14, 165, 233, 0.45);
 }
+body.ttv2-shell .ttv2-csv-upload-btn--highered{
+  --ttv2-csv-grad-1: #0f766e;
+  --ttv2-csv-grad-2: #14b8a6;
+  --ttv2-csv-shadow: rgba(15, 118, 110, 0.32);
+  --ttv2-csv-shadow-strong: rgba(15, 118, 110, 0.45);
+}
 
 @media (max-width: 575.98px){
   body.ttv2-shell .ttv2-csv-upload-actions{

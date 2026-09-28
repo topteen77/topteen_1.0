@@ -1078,6 +1078,15 @@ a.ttv2-mktg-login-email:hover{
   background: rgba(139, 92, 246, 0.18);
   color: #5b21b6;
 }
+.ttv2-mktg-row-csv-btn--highered{
+  color: #0f766e;
+  background: rgba(20, 184, 166, 0.12);
+  border-color: rgba(15, 118, 110, 0.22);
+}
+.ttv2-mktg-row-csv-btn--highered:hover{
+  background: rgba(20, 184, 166, 0.2);
+  color: #115e59;
+}
 .ttv2-mktg-row-upload-disabled{
   display: inline-block;
   padding: 0.2rem 0.45rem;

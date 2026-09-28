@@ -443,13 +443,13 @@
             <div class="col-md-6">
               <div class="profile-field">
                 <div class="profile-label">School Name</div>
-                <div class="profile-value">{{ profile_user.user_profile.schoolname|default('Not set') }}</div>
+                <div class="profile-value">{{ profile_user.get_display_school_name() or 'Not set' }}</div>
               </div>
             </div>
             <div class="col-md-6">
               <div class="profile-field">
                 <div class="profile-label">Grade/Class</div>
-                <div class="profile-value">Class {{ profile_user.user_profile.grade|default('Not set') }}</div>
+                <div class="profile-value">{{ profile_user.get_display_class_label() or 'Not set' }}</div>
               </div>
             </div>
             {% endif %}

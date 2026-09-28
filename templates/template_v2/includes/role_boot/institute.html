@@ -280,7 +280,8 @@
       '#ql-add-single': 'addSingleStudentModal',
       '#ql-add-counselor': 'addCounselorModal',
       '#ql-upload-matric': 'addCsvStudentModal',
-      '#ql-upload-postmatric': 'addPostMatricCsvModal'
+      '#ql-upload-postmatric': 'addPostMatricCsvModal',
+      '#ql-upload-highered': 'addHigherEdCsvModal'
     };
 
     // Close every currently-open quick-action (or any) Bootstrap modal so we
@@ -364,6 +365,20 @@
           var hash = href.slice(hashIdx);
           var id = QL_INSTITUTE_MAP[hash];
           if (!id) return;
+          var modalEl = document.getElementById(id);
+          if (modalEl) {
+            ev.preventDefault();
+            window.__ttv2InstituteSuppressHashHandler = true;
+            try {
+              var here = window.location.pathname + window.location.search;
+              if ((window.location.hash || '') !== hash) {
+                history.replaceState(null, '', here + hash);
+              }
+            } catch (eH) {}
+            setTimeout(function(){ window.__ttv2InstituteSuppressHashHandler = false; }, 50);
+            showInstituteQuicklinkModal(id);
+            return;
+          }
           // Same-document hash navigation: handle ourselves so we can close
           // the previous modal first. The browser would otherwise just update
           // the hash (and only fire hashchange if it actually changed).

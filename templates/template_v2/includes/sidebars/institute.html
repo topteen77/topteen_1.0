@@ -93,6 +93,9 @@
       <a href="#ql-upload-postmatric" class="ttv2-counselor-quicklink">
         <i class='bx bx-upload'></i> Post-Matric-CSV Upload
       </a>
+      <a href="#ql-upload-highered" class="ttv2-counselor-quicklink">
+        <i class='bx bx-upload'></i> College/Professional CSV Upload
+      </a>
       {% if ttv2_role_ctx.institute and ttv2_role_ctx.institute.institute_log.exists() %}
       <a href="{{ url('institute:institutehistorylog', args=[_inst_slug]) }}" class="ttv2-counselor-quicklink">
         <i class='bx bx-history'></i> Uploaded History Log

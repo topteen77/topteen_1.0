@@ -3550,7 +3550,9 @@ class ProfileBasicDetails(TemplateView):
                 except (ValueError, TypeError):
                     pass
             user_profile.schoolname = school if school else user_profile.schoolname
-            user_profile.grade = grade if grade else user_profile.grade
+            from core.psychometric_grade import apply_profile_grade_choice
+            if grade:
+                apply_profile_grade_choice(user, user_profile, grade)
             user_profile.save()
             if figure_outs:
                 figure_outs_qs = UserFigureOut.objects.filter(id__in=figure_outs)
@@ -3674,7 +3676,8 @@ class UpdateProfileSectionView(APIView):
         if school:
             user_profile.schoolname = school
         if grade:
-            user_profile.grade = grade
+            from core.psychometric_grade import apply_profile_grade_choice
+            apply_profile_grade_choice(user, user_profile, grade)
         user_profile.save()
 
         return Response({'success': True, 'message': 'Personal information updated successfully.'})
@@ -3784,10 +3787,20 @@ class UserDashboard(TemplateView):
             except:
                 pass
         
+        # A parsed 10 or 12 is a real class. Anything else is not a class number.
+        class_number_known = user_grade in ("10", "12")
         # Default to class 10 if still not determined
         if not user_grade:
             user_grade = "10"
-        
+
+        from core.psychometric_grade import dashboard_grade_bucket
+
+        user_grade = dashboard_grade_bucket(
+            profile_user,
+            user_grade,
+            class_number_known=class_number_known,
+        )
+
         ctx['user_grade'] = user_grade
 
         ctx['test_dashboard_url'] = None
@@ -3868,7 +3881,16 @@ class UserDashboard(TemplateView):
                 pass
 
         # If Career Direction and all 4 tests are completed, link to combined report
-        if ctx.get('test_name') == 'Career Direction' and ctx.get('test_dashboard_url'):
+        from core.psychometric_grade import (
+            hides_undergraduate_college_tools,
+            is_higher_education_student,
+        )
+
+        if (
+            ctx.get('test_name') == 'Career Direction'
+            and ctx.get('test_dashboard_url')
+            and not is_higher_education_student(profile_user)
+        ):
             try:
                 from app_post_matric.models import TestSession
                 done_ids = set(
@@ -3892,6 +3914,10 @@ class UserDashboard(TemplateView):
         )
         ctx['stream_sorter_report_url'] = resolve_stream_sorter_report_url(profile_user, for_self=True)
         ctx['career_direction_report_url'] = resolve_career_direction_report_url(profile_user, for_self=True)
+
+        if is_higher_education_student(profile_user):
+            ctx['career_direction_report_url'] = ''
+        ctx['show_dashboard_college_tools'] = not hides_undergraduate_college_tools(profile_user)
 
         # Invoices: Payment History view, not dashboard.
 

@@ -245,6 +245,7 @@ def _nav_for_role(
     role: str,
     institute: Optional[Institute],
     counselor: Optional[Counselor],
+    user=None,
 ) -> List[Dict[str, Any]]:
     inst_slug = getattr(institute, "slug", None) if institute else None
     coun_id = getattr(counselor, "id", None) if counselor else None
@@ -317,12 +318,42 @@ def _nav_for_role(
             return "#"
         return f"{page_url}#{hash_key}"
 
+    def _csv_upload_links(students_url: str) -> List[Dict[str, Any]]:
+        try:
+            from institute.psychometric_packages import upload_kinds_for_managed_institutes
+
+            kinds = upload_kinds_for_managed_institutes(user)
+        except Exception:
+            kinds = {"matric": True, "postmatric": True, "higher_ed": False}
+        specs = (
+            ("matric", "Matric CSV Upload", "ql-upload-matric"),
+            ("postmatric", "Post-Matric CSV Upload", "ql-upload-postmatric"),
+            ("higher_ed", "College/Professional CSV Upload", "ql-upload-highered"),
+        )
+        links = []
+        for key, label, hash_key in specs:
+            if not kinds.get(key):
+                continue
+            links.append(
+                {
+                    "label": label,
+                    "icon": "bx bx-upload",
+                    "href": _group_ql_href(students_url, hash_key),
+                    "quicklink": True,
+                    "no_ajax": True,
+                }
+            )
+        return links
+
     if role == "institute_group":
         ig_institutes_url = _safe_reverse(
             "institute:institutegroupdashboard_page", args=["institutes"]
         )
         ig_counselors_url = _safe_reverse(
             "institute:institutegroupdashboard_page", args=["counselors"]
+        )
+        ig_students_url = _safe_reverse(
+            "institute:institutegroupdashboard_page", args=["students"]
         )
         return [
             {
@@ -376,7 +407,7 @@ def _nav_for_role(
                         "quicklink": True,
                         "no_ajax": True,
                     },
-                ],
+                ] + _csv_upload_links(ig_students_url),
             },
             {
                 "title": "Accounts",
@@ -396,6 +427,9 @@ def _nav_for_role(
         )
         mktg_counselors_url = _safe_reverse(
             "institute:marketinggroupdashboard_page", args=["counselors"]
+        )
+        mktg_students_url = _safe_reverse(
+            "institute:marketinggroupdashboard_page", args=["students"]
         )
         return [
             {
@@ -459,7 +493,7 @@ def _nav_for_role(
                         "quicklink": True,
                         "no_ajax": True,
                     },
-                ],
+                ] + _csv_upload_links(mktg_students_url),
             },
             {
                 "title": "Accounts",
@@ -499,6 +533,13 @@ def _nav_for_role(
     lock_sessions = "Session reports unlock after counseling follow-ups are logged."
     lock_analytics = "Available after students are enrolled."
     lock_history = "Available after your first student upload."
+
+    upload_kinds = {"matric": True, "postmatric": True, "higher_ed": False}
+    if institute is not None:
+        try:
+            upload_kinds = institute.student_csv_upload_kinds()
+        except Exception:
+            upload_kinds = {"matric": True, "postmatric": True, "higher_ed": False}
 
     def _ql_href(hash_key: str) -> str:
         # Quick-link hash anchors live on the master dashboard. If we're already on
@@ -596,6 +637,7 @@ def _nav_for_role(
                     "disabled": not inst_slug,
                     "title": "" if inst_slug else "Institute not ready",
                 },
+            ] + ([
                 {
                     "label": "Matric-CSV Upload",
                     "icon": "bx bx-upload",
@@ -605,6 +647,7 @@ def _nav_for_role(
                     "disabled": not inst_slug,
                     "title": "" if inst_slug else "Institute not ready",
                 },
+            ] if upload_kinds.get("matric") else []) + ([
                 {
                     "label": "Post-Matric-CSV Upload",
                     "icon": "bx bx-upload",
@@ -614,7 +657,17 @@ def _nav_for_role(
                     "disabled": not inst_slug,
                     "title": "" if inst_slug else "Institute not ready",
                 },
-            ] + ([
+            ] if upload_kinds.get("postmatric") else []) + ([
+                {
+                    "label": "College/Professional CSV Upload",
+                    "icon": "bx bx-upload",
+                    "href": _ql_href("ql-upload-highered"),
+                    "quicklink": True,
+                    "no_ajax": True,
+                    "disabled": not inst_slug,
+                    "title": "" if inst_slug else "Institute not ready",
+                },
+            ] if upload_kinds.get("higher_ed") else []) + ([
                 _nav_item(
                     label="Uploaded History Log",
                     href=history_url,
@@ -687,7 +740,7 @@ def ttv2_role_ctx(request) -> Dict[str, Any]:
         )
 
     display_name = _display_name_for_user(user)
-    sections = _nav_for_role(role=role, institute=institute, counselor=counselor)
+    sections = _nav_for_role(role=role, institute=institute, counselor=counselor, user=user)
     try:
         _annotate_nav_active(sections, getattr(request, "path", "") or "")
     except Exception:

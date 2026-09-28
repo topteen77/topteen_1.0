@@ -1,12 +1,22 @@
 {# One <option> for group/marketing institute dropdowns; expects inst with credits_remaining. #}
 {% set _rem = inst.credits_remaining|default(0) %}
-{% set _can_upload = (_rem > 0) and not (inst.is_system_demo|default(false)) %}
+{% set _kind = upload_kind|default('') %}
+{% set _perm = true %}
+{% if _kind == 'matric' %}
+  {% set _perm = inst.can_upload_matric|default(true) %}
+{% elif _kind == 'postmatric' %}
+  {% set _perm = inst.can_upload_postmatric|default(true) %}
+{% elif _kind == 'higher_ed' %}
+  {% set _perm = inst.can_upload_higher_ed|default(true) %}
+{% endif %}
+{% set _can_upload = _perm and (_rem > 0) and not (inst.is_system_demo|default(false)) %}
 <option value="{{ inst.id }}"
         data-slug="{{ inst.slug|default('') }}"
         data-credits-remaining="{{ _rem }}"
         data-credits-allocated="{{ inst.credits_allocated|default(inst.credit_counts|default(0)) }}"
         data-credits-used="{{ inst.credits_used|default(0) }}"
         data-can-upload="{{ '1' if _can_upload else '0' }}"
+        {% if _kind == 'higher_ed' %}data-higher-ed-packages='{{ inst.higher_ed_packages|default([])|tojson }}'{% endif %}
         {% if not _can_upload %}disabled{% endif %}>
   {{ inst.name }} — {{ _rem }} credits left{% if inst.is_system_demo|default(false) %} (demo){% elif _rem <= 0 %} (full){% endif %}
 </option>

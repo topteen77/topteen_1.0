@@ -963,6 +963,7 @@ body.ttv2-shell .ttv2-topbar-pay-now {
       '#ql-add-counselor': 'ttv2AddCounselorModal',
       '#ql-upload-matric': 'ttv2MatricCsvUploadModal',
       '#ql-upload-postmatric': 'ttv2PostMatricCsvUploadModal',
+      '#ql-upload-highered': 'ttv2HigherEdCsvUploadModal',
     };
 
     function openFromHash(){
@@ -987,6 +988,32 @@ body.ttv2-shell .ttv2-topbar-pay-now {
       var s = document.getElementById('ttv2PostMatricInstituteSelect');
       var h = document.getElementById('ttv2PostMatricInstituteId');
       if (s && h) h.value = (s.value || '').trim();
+    }
+    function syncHigherEdHidden(){
+      var s = document.getElementById('ttv2HigherEdInstituteSelect');
+      var h = document.getElementById('ttv2HigherEdInstituteId');
+      if (s && h) h.value = (s.value || '').trim();
+      var pkg = document.getElementById('ttv2HigherEdPackageSelect');
+      if (!s || !pkg) return;
+      var opt = s.options[s.selectedIndex];
+      var choices = [];
+      try {
+        choices = JSON.parse((opt && opt.getAttribute('data-higher-ed-packages')) || '[]');
+      } catch (ePkg) { choices = []; }
+      var prev = pkg.value || '';
+      pkg.innerHTML = '';
+      var blank = document.createElement('option');
+      blank.value = '';
+      blank.textContent = choices.length ? 'Select package' : 'Select an institute first';
+      pkg.appendChild(blank);
+      choices.forEach(function(row){
+        var item = document.createElement('option');
+        item.value = row.code || '';
+        var cost = row.credit_cost || 0;
+        item.textContent = (row.name || row.code || '') + ' (' + cost + ' credit' + (cost === 1 ? '' : 's') + ')';
+        pkg.appendChild(item);
+      });
+      if (prev) pkg.value = prev;
     }
 
     function preselectGroupCsvInstituteFromFilter(selectId, hiddenSyncFn){
@@ -1088,6 +1115,7 @@ body.ttv2-shell .ttv2-topbar-pay-now {
       if (!t || !t.id) return;
       if (t.id === 'ttv2MatricInstituteSelect') return syncMatricHidden();
       if (t.id === 'ttv2PostMatricInstituteSelect') return syncPostMatricHidden();
+      if (t.id === 'ttv2HigherEdInstituteSelect') return syncHigherEdHidden();
       if (t.id === 'ttv2CounselorInstituteSelect') return syncCounselorAction();
     }, true);
 
@@ -1102,11 +1130,19 @@ body.ttv2-shell .ttv2-topbar-pay-now {
           preselectGroupCsvInstituteFromFilter('ttv2PostMatricInstituteSelect', syncPostMatricHidden);
           ttv2RefreshGroupCsvUploadUi('ttv2PostMatricInstituteSelect', 'ttv2PostMatricCsvUploadHint', 'ttv2PostMatricCsvUploadSubmit', syncPostMatricHidden);
         }
-        if (id === 'ttv2MktgRowMatricCsvUploadModal' || id === 'ttv2MktgRowPostMatricCsvUploadModal') {
+        if (id === 'ttv2HigherEdCsvUploadModal') {
+          preselectGroupCsvInstituteFromFilter('ttv2HigherEdInstituteSelect', syncHigherEdHidden);
+          ttv2RefreshGroupCsvUploadUi('ttv2HigherEdInstituteSelect', 'ttv2HigherEdCsvUploadHint', 'ttv2HigherEdCsvUploadSubmit', syncHigherEdHidden);
+        }
+        if (id === 'ttv2MktgRowMatricCsvUploadModal' || id === 'ttv2MktgRowPostMatricCsvUploadModal' || id === 'ttv2MktgRowHigherEdCsvUploadModal') {
           var btn = ev.relatedTarget;
           var iid = btn ? (btn.getAttribute('data-institute-id') || '') : '';
           var rem = btn ? (btn.getAttribute('data-credits-remaining') || '0') : '0';
-          var subId = id === 'ttv2MktgRowMatricCsvUploadModal' ? 'ttv2MktgRowMatricCsvUploadSubmit' : 'ttv2MktgRowPostMatricCsvUploadSubmit';
+          var subId = id === 'ttv2MktgRowMatricCsvUploadModal'
+            ? 'ttv2MktgRowMatricCsvUploadSubmit'
+            : (id === 'ttv2MktgRowPostMatricCsvUploadModal'
+              ? 'ttv2MktgRowPostMatricCsvUploadSubmit'
+              : 'ttv2MktgRowHigherEdCsvUploadSubmit');
           ttv2RefreshRowCsvModal(id, subId, iid, rem);
         }
       } catch(e) {}
@@ -1134,7 +1170,16 @@ body.ttv2-shell .ttv2-topbar-pay-now {
             return;
           }
         }
-        if (form.id === 'ttv2MktgRowMatricCsvUploadForm' || form.id === 'ttv2MktgRowPostMatricCsvUploadForm') {
+        if (form.id === 'ttv2HigherEdCsvUploadForm') {
+          syncHigherEdHidden();
+          var hidH = document.getElementById('ttv2HigherEdInstituteId');
+          if (!hidH || !hidH.value) {
+            e.preventDefault();
+            alert('Please select an institute with available credits.');
+            return;
+          }
+        }
+        if (form.id === 'ttv2MktgRowMatricCsvUploadForm' || form.id === 'ttv2MktgRowPostMatricCsvUploadForm' || form.id === 'ttv2MktgRowHigherEdCsvUploadForm') {
           var hidR = form.querySelector('input[name="institute"]');
           if (!hidR || !hidR.value) {
             e.preventDefault();
@@ -1153,9 +1198,15 @@ body.ttv2-shell .ttv2-topbar-pay-now {
     }, true);
 
     document.addEventListener('DOMContentLoaded', function(){
+      try {
+        document.querySelectorAll('.ttv2-quick-modal').forEach(function(modal){
+          if (modal.parentNode !== document.body) document.body.appendChild(modal);
+        });
+      } catch (eMove) {}
       openFromHash();
       syncMatricHidden();
       syncPostMatricHidden();
+      syncHigherEdHidden();
       ttv2BindGroupCsvUploadForm({
         modalId: 'ttv2MatricCsvUploadModal',
         selectId: 'ttv2MatricInstituteSelect',
@@ -1169,6 +1220,13 @@ body.ttv2-shell .ttv2-topbar-pay-now {
         hintId: 'ttv2PostMatricCsvUploadHint',
         submitId: 'ttv2PostMatricCsvUploadSubmit',
         syncHidden: syncPostMatricHidden
+      });
+      ttv2BindGroupCsvUploadForm({
+        modalId: 'ttv2HigherEdCsvUploadModal',
+        selectId: 'ttv2HigherEdInstituteSelect',
+        hintId: 'ttv2HigherEdCsvUploadHint',
+        submitId: 'ttv2HigherEdCsvUploadSubmit',
+        syncHidden: syncHigherEdHidden
       });
     });
     window.addEventListener('hashchange', openFromHash);

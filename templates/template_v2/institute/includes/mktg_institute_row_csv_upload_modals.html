@@ -81,6 +81,79 @@
   </div>
 </div>
 
+<div class="modal fade ttv2-quick-modal" id="ttv2MktgRowHigherEdCsvUploadModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title mb-0"><i class='bx bx-upload me-2'></i> College/Professional CSV</h5>
+          <p class="text-muted small mb-0 mt-1" id="ttv2MktgRowHigherEdInstituteLabel">—</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="ttv2MktgRowHigherEdCsvUploadForm" method="POST" action="{{ url('institute:institutehigheredcsvstudentcreate') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="institute" id="ttv2MktgRowHigherEdInstituteId" value="">
+        <div class="modal-body">
+          <div class="ttv2-csv-format-hint">
+            <div class="ttv2-csv-format-hint-icon" aria-hidden="true"><i class="bx bx-spreadsheet"></i></div>
+            <div class="ttv2-csv-format-hint-body">
+              <div class="ttv2-csv-format-hint-label">File format</div>
+              <p class="ttv2-csv-format-hint-text mb-0">
+                Columns: name, mobile, email. Education level and package are chosen here and apply to every row.
+                <a href="{{ url('institute:higher_ed_student_sample_csv') }}" target="_blank" rel="noopener" download>Download sample CSV</a>
+              </p>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="mktgRowHigherEdLevel">Education level <span class="text-danger">*</span></label>
+            <select name="education_level" id="mktgRowHigherEdLevel" class="form-select" required>
+              <option value="">Select education level</option>
+              <option value="class12_passout">Class 12 passout</option>
+              <option value="graduate">Graduate</option>
+              <option value="postgraduate">Postgraduate</option>
+              <option value="professional">Professional</option>
+            </select>
+          </div>
+          <div class="mb-3 d-none" data-ttv2-csv-package-field data-package-required="1"></div>
+          <div class="mb-0">
+            <label class="form-label" for="mktgRowCsvHigherEd">CSV file <span class="text-danger">*</span></label>
+            {% with field_id='mktgRowCsvHigherEd' %}
+            {% include "template_v2/includes/ttv2_csv_upload_dropzone.html" %}
+            {% endwith %}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="ttv2MktgRowHigherEdCsvUploadSubmit"><i class='bx bx-upload me-1'></i> Upload CSV</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  var modalId = 'ttv2MktgRowHigherEdCsvUploadModal';
+  var modalEl = document.getElementById(modalId);
+  if (!modalEl || modalEl.getAttribute('data-ttv2-highered-bound') === '1') return;
+  modalEl.setAttribute('data-ttv2-highered-bound', '1');
+  modalEl.addEventListener('show.bs.modal', function (ev) {
+    var btn = ev.relatedTarget;
+    if (!btn) return;
+    var hiddenEl = document.getElementById('ttv2MktgRowHigherEdInstituteId');
+    var labelEl = document.getElementById('ttv2MktgRowHigherEdInstituteLabel');
+    if (hiddenEl) hiddenEl.value = (btn.getAttribute('data-institute-id') || '').trim();
+    if (labelEl) {
+      var name = (btn.getAttribute('data-institute-name') || '').trim();
+      var rem = (btn.getAttribute('data-credits-remaining') || '').trim();
+      var line = name ? ('Institute: ' + name) : '—';
+      if (rem) line += ' — ' + rem + ' credits left';
+      labelEl.textContent = line;
+    }
+  });
+})();
+</script>
+
 <script>
 (function () {
   if (window.__ttv2CsvPackageFieldBound) return;
@@ -93,17 +166,22 @@
       container.classList.add('d-none');
       return;
     }
+    var required = container.getAttribute('data-package-required') === '1';
     var html = '<div class="psychometric-package-field" data-psych-package-field>'
-      + '<label class="form-label">Psychometric package for this upload</label>'
-      + '<select name="psychometric_package" class="form-select">'
-      + '<option value="">Select default package (optional if CSV has package_code)…</option>';
+      + '<label class="form-label">Psychometric package' + (required ? ' <span class="text-danger">*</span>' : ' for this upload') + '</label>'
+      + '<select name="psychometric_package" class="form-select"' + (required ? ' required' : '') + '>'
+      + '<option value="">' + (required ? 'Select package' : 'Select default package (optional if CSV has package_code)…') + '</option>';
     choices.forEach(function (pkg) {
       var label = pkg.name + ' (' + pkg.credit_cost + ' credit' + (pkg.credit_cost === 1 ? '' : 's') + ')';
       html += '<option value="' + String(pkg.code).replace(/"/g, '&quot;') + '">' + label + '</option>';
     });
-    html += '</select><small class="text-muted d-block mt-1">'
-      + 'Applied to every imported student unless the CSV includes a <code>package_code</code> column. '
-      + 'Assignment credits available: <strong>' + (credits || 0) + '</strong></small></div>';
+    html += '</select>';
+    if (!required) {
+      html += '<small class="text-muted d-block mt-1">'
+        + 'Applied to every imported student unless the CSV includes a <code>package_code</code> column. '
+        + 'Assignment credits available: <strong>' + (credits || 0) + '</strong></small>';
+    }
+    html += '</div>';
     container.innerHTML = html;
     container.classList.remove('d-none');
   }

@@ -469,7 +469,9 @@
             <select class="form-select" id="ttv2MatricInstituteSelect" required>
               <option value="">Select institute</option>
               {% for inst in (ttv2_quicklink_institutes|default([])) %}
+                {% with upload_kind='matric' %}
                 {% include "template_v2/includes/ttv2_institute_select_option.html" %}
+                {% endwith %}
               {% endfor %}
             </select>
             <p class="form-text text-muted mb-0 mt-1" data-ttv2-csv-upload-hint id="ttv2MatricCsvUploadHint">
@@ -519,7 +521,9 @@
             <select class="form-select" id="ttv2PostMatricInstituteSelect" required>
               <option value="">Select institute</option>
               {% for inst in (ttv2_quicklink_institutes|default([])) %}
+                {% with upload_kind='postmatric' %}
                 {% include "template_v2/includes/ttv2_institute_select_option.html" %}
+                {% endwith %}
               {% endfor %}
             </select>
             <p class="form-text text-muted mb-0 mt-1" data-ttv2-csv-upload-hint id="ttv2PostMatricCsvUploadHint">
@@ -542,6 +546,73 @@
   </div>
 </div>
 
+{# Bulk student upload — Above Class 12 #}
+<div class="modal fade ttv2-quick-modal" id="ttv2HigherEdCsvUploadModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class='bx bx-upload me-2'></i> College/Professional CSV Upload</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="ttv2HigherEdCsvUploadForm" method="POST" action="{{ url('institute:institutehigheredcsvstudentcreate') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        <input type="hidden" name="institute" id="ttv2HigherEdInstituteId" value="">
+        <div class="modal-body">
+          <div class="ttv2-csv-format-hint">
+            <div class="ttv2-csv-format-hint-icon" aria-hidden="true"><i class="bx bx-spreadsheet"></i></div>
+            <div class="ttv2-csv-format-hint-body">
+              <div class="ttv2-csv-format-hint-label">File format</div>
+              <p class="ttv2-csv-format-hint-text mb-0">
+                Columns: name, mobile, email. Education level and package are chosen here and apply to every row.
+                <a href="{{ url('institute:higher_ed_student_sample_csv') }}" target="_blank" rel="noopener" download>Download sample CSV</a>
+              </p>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Institute <span class="text-danger">*</span></label>
+            <select class="form-select" id="ttv2HigherEdInstituteSelect" required>
+              <option value="">Select institute</option>
+              {% for inst in (ttv2_quicklink_institutes|default([])) %}
+                {% with upload_kind='higher_ed' %}
+                {% include "template_v2/includes/ttv2_institute_select_option.html" %}
+                {% endwith %}
+              {% endfor %}
+            </select>
+            <p class="form-text text-muted mb-0 mt-1" data-ttv2-csv-upload-hint id="ttv2HigherEdCsvUploadHint">
+              Only institutes allowed to assign a single test are listed.
+            </p>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="ttv2HigherEdLevel">Education level <span class="text-danger">*</span></label>
+            <select name="education_level" id="ttv2HigherEdLevel" class="form-select" required>
+              <option value="">Select education level</option>
+              <option value="class12_passout">Class 12 passout</option>
+              <option value="graduate">Graduate</option>
+              <option value="postgraduate">Postgraduate</option>
+              <option value="professional">Professional</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="ttv2HigherEdPackageSelect">Psychometric package <span class="text-danger">*</span></label>
+            <select name="psychometric_package" id="ttv2HigherEdPackageSelect" class="form-select" required>
+              <option value="">Select an institute first</option>
+            </select>
+          </div>
+          <div class="mb-0">
+            <label class="form-label" for="grpCsvHigherEd">CSV file <span class="text-danger">*</span></label>
+            {% with field_id='grpCsvHigherEd' %}
+            {% include "template_v2/includes/ttv2_csv_upload_dropzone.html" %}
+            {% endwith %}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="ttv2HigherEdCsvUploadSubmit" disabled><i class='bx bx-upload me-1'></i> Upload CSV</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 {# Seed demo students (marketing row action) #}
 <div class="modal fade ttv2-quick-modal" id="ttv2SeedDemoStudentsModal" tabindex="-1" aria-hidden="true">

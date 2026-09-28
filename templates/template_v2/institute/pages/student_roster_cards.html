@@ -134,7 +134,7 @@
                 <div class="min-w-0 flex-grow-1">
                   <div class="ttv2-student-name">{{ u.name if (u and u.name) else '-' }}</div>
                   <div class="ttv2-student-meta">
-                    {{ cas.class_and_section if (cas and cas.class_and_section) else '-' }}
+                    {{ sm.display_class_label() or '-' }}
                     {% if cas and cas.stream %} · {{ cas.stream }}{% endif %}
                     {% if _adv %} · Advisor: {{ _adv }}{% endif %}
                   </div>

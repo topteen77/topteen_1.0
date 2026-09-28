@@ -344,9 +344,10 @@
                 <div class="mb-3">
                   <strong>Name:</strong> {% if user.name %}{{ user.name }}{% else %}Not set{% endif %}
                 </div>
-                {% if user_profile.grade %}
+                {% set class_label = user.get_display_class_label() %}
+                {% if class_label %}
                 <div class="mb-3">
-                  <strong>Grade:</strong> Class {{ user_profile.grade }}
+                  <strong>Grade:</strong> {{ class_label }}
                 </div>
                 {% endif %}
                 {% if user_profile.schoolname %}
