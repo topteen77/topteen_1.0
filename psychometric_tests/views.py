@@ -203,9 +203,13 @@ class CreatePsychometricTestPayment(APIView):
             if not psychometric_test_type:
                 return Response({"error": "Test type is required"}, status=status.HTTP_400_BAD_REQUEST)
             
-            # Institute students are exempt from payment: allow direct access to test dashboard.
+            # Full-bundle institute seats get free access. Package-mode students
+            # use entitlements instead — do not mint a successful payment that
+            # would unlock the entire track.
             try:
-                if StudentManagement.objects.filter(student=user).exists():
+                from core.assessment_access import has_legacy_full_bundle_access
+
+                if has_legacy_full_bundle_access(user):
                     # Keep a payment record for audit/consistency, but mark as success (free access).
                     try:
                         ptype_int = int(psychometric_test_type)
@@ -236,11 +240,16 @@ class CreatePsychometricTestPayment(APIView):
                     test.is_success = choices.YesNoChoices.YES
                     test.save()
 
+                    redirect_name = (
+                        "app:test_buttons"
+                        if test_type == choices.PsychometricTestType.BASIC
+                        else "post_matric:tests"
+                    )
                     return Response(
                         {
                             "free_access": True,
                             "test_type": test.test_type,
-                            "redirect_url": request.build_absolute_uri(reverse("app:test_buttons")),
+                            "redirect_url": request.build_absolute_uri(reverse(redirect_name)),
                         },
                         status=status.HTTP_200_OK,
                     )

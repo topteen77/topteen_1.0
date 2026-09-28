@@ -38,18 +38,16 @@
       </div>
       {% if request.user.user_profile %}
       {% set last_student = request.user.student_management.last() %}
+      {% set _hide_class = hide_student_sidebar_class|default(false) %}
+      {% if not _hide_class %}
       {% if last_student and last_student.class_and_section %}
       <div class="profile-meta-row d-flex align-items-center justify-content-start gap-2">
         <i class='bx bx-book fs-18 text-purple profile-meta-icon'></i>
         <p class="profile-meta-text text-gray fs-14 mb-0 lh-sm">
           {{ last_student.class_and_section }}
-          {% if request.user.user_profile.grade %}
-          •  {{ request.user.user_profile.grade }}
-          {% endif %}
         </p>
       </div>
-      {% else %}
-      {% if request.user.user_profile.grade %}
+      {% elif request.user.user_profile.grade %}
       <div class="profile-meta-row d-flex align-items-center justify-content-start gap-2">
         <i class='bx bx-book fs-18 text-purple profile-meta-icon'></i>
         <p class="profile-meta-text text-gray fs-14 mb-0 lh-sm">Class {{ request.user.user_profile.grade }}</p>
@@ -66,6 +64,8 @@
 
       {% if request.user.user_profile.schoolname %}
       {# show school row above #}
+      {% elif _hide_class %}
+      {# custom package / 12th-pass students: class hidden on purpose #}
       {% elif request.user.user_profile.grade %}
       {# show class row above #}
       {% elif last_student and last_student.class_and_section %}

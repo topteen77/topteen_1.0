@@ -392,7 +392,9 @@ def Tests(request):
     from institute.models import StudentManagement
     from core.assessment_access import (
         can_access_psychometric_dashboard,
+        get_student_custom_package_names,
         get_student_entitled_assessment_codes,
+        has_legacy_full_bundle_access,
         has_post_matric_test_access,
         institute_student_exempt_from_payment,
         packages_enabled,
@@ -506,11 +508,32 @@ def Tests(request):
                 test_type = test_type_map.get(test_id)
                 if test_type and test_type not in answered_popups:
                     popup_status[test_type] = True
+
+    access_user = status_user
+    test_access = {
+        '1': has_post_matric_test_access(access_user, 1),
+        '2': has_post_matric_test_access(access_user, 2),
+        '3': has_post_matric_test_access(access_user, 3),
+        '4': has_post_matric_test_access(access_user, 4),
+    }
+    entitled_codes = sorted(get_student_entitled_assessment_codes(access_user))
+    show_all = has_legacy_full_bundle_access(access_user)
+    custom_names = get_student_custom_package_names(access_user)
+    if custom_names:
+        dashboard_title = ', '.join(custom_names)
+    else:
+        dashboard_title = 'Career Direction Test'
     
     context = {
         'test_status': json.dumps(test_status),
         'popup_status': json.dumps(popup_status),
         'test_type_map': json.dumps(test_type_map),
+        'test_access': json.dumps(test_access),
+        'packages_enabled': packages_enabled(),
+        'show_all_psychometric_tests': show_all,
+        'entitled_assessments': entitled_codes,
+        'psychometric_custom_package_names': custom_names,
+        'psychometric_dashboard_title': dashboard_title,
         'report_student_id': report_student_id or '',
         'breadcrumb': get_breadcrumb([{'text': 'Tests', 'url': ''}]),
     }
