@@ -19,6 +19,7 @@ from .models import (
     LoanInstantLoginToken,
 )
 from django.urls import reverse, path
+from django.utils.http import urlencode
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html_join
@@ -653,43 +654,64 @@ class UserAdmin(admin.ModelAdmin):
             filters.append(StudentClassFilter)
         return filters
 
+    def _listing_url(self, url_name, params):
+        return '%s?%s' % (reverse(url_name), urlencode(params))
+
     @admin.display(description='Linked')
     def linked_org(self, obj):
-        """Institute, institute group, or marketing group this email belongs to."""
+        """Open the filtered listing for each institute, group, or student link."""
         links = []
         for inst in obj.institute_created.all():
             links.append(self._linked_org_anchor(
-                'admin:institute_institute_change',
-                inst.pk,
+                self._listing_url('admin:institute_institute_changelist', {'id__exact': inst.pk}),
                 inst.name or ('Institute #%s' % inst.pk),
                 'Institute',
             ))
         for grp in obj.institute_group.all():
             links.append(self._linked_org_anchor(
-                'admin:institute_institutegroup_change',
-                grp.pk,
+                self._listing_url(
+                    'admin:institute_institute_changelist',
+                    {'institute_group__id__exact': grp.pk},
+                ),
                 grp.group_name or ('Group #%s' % grp.pk),
                 'Institute group',
             ))
         for mg in obj.marketing_group.all():
             links.append(self._linked_org_anchor(
-                'admin:institute_institutemarketinggroup_change',
-                mg.pk,
+                self._listing_url(
+                    'admin:institute_institute_changelist',
+                    {'marketing_group__id__exact': mg.pk},
+                ),
                 mg.m_group_name or ('Marketing #%s' % mg.pk),
                 'Marketing group',
             ))
+        seen_institutes = set()
+        for sm in obj.student_management.all():
+            inst = getattr(sm, 'institute', None)
+            inst_id = getattr(inst, 'pk', None)
+            if inst_id in seen_institutes:
+                continue
+            if inst_id:
+                seen_institutes.add(inst_id)
+            if inst_id:
+                params = {'institute__id__exact': inst_id}
+                label = inst.name or ('Institute #%s' % inst_id)
+            else:
+                params = {'student__id__exact': obj.pk}
+                label = 'Student record'
+            links.append(self._linked_org_anchor(
+                self._listing_url('admin:institute_studentmanagement_changelist', params),
+                label,
+                'Student',
+            ))
         if not links:
             return '—'
-        shown = links[:6]
-        if len(links) > 6:
-            shown.append(format_html('+{} more', len(links) - 6))
+        shown = links[:8]
+        if len(links) > 8:
+            shown.append(format_html('+{} more', len(links) - 8))
         return format_html_join(mark_safe('<br>'), '{}', ((item,) for item in shown))
 
-    def _linked_org_anchor(self, url_name, pk, label, kind):
-        try:
-            url = reverse(url_name, args=[pk])
-        except Exception:
-            return format_html('{}: {}', kind, label)
+    def _linked_org_anchor(self, url, label, kind):
         return format_html('<a href="{}" title="{}">{}: {}</a>', url, kind, kind, label)
 
     @admin.display(description='Class')
@@ -1009,7 +1031,7 @@ class UserAdmin(admin.ModelAdmin):
         from institute.models import Institute, InstituteGroup, InstituteMarketingGroup, StudentManagement
 
         qs = User.objects.complete()
-        prefetches = [
+        return qs.prefetch_related(
             Prefetch(
                 'institute_created',
                 queryset=Institute.objects.only('id', 'name', 'created_by_id'),
@@ -1024,15 +1046,11 @@ class UserAdmin(admin.ModelAdmin):
                     'id', 'm_group_name', 'marketing_group_admin_id'
                 ),
             ),
-        ]
-        if self._is_student_filter_active(request):
-            prefetches.append(
-                Prefetch(
-                    'student_management',
-                    queryset=StudentManagement.objects.select_related('class_and_section'),
-                )
-            )
-        return qs.prefetch_related(*prefetches)
+            Prefetch(
+                'student_management',
+                queryset=StudentManagement.objects.select_related('institute', 'class_and_section'),
+            ),
+        )
     
     
     def _reset_counselor_course_for_users(self, request, queryset, mode):

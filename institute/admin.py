@@ -25,6 +25,24 @@ import re
 from django.urls import reverse
 # Register your models here.
 
+def _filtered_changelist(url_name, params):
+    return "%s?%s" % (reverse(url_name), urlencode(params))
+
+
+def _user_listing_link(user, label=None):
+    """Link a user to the users changelist filtered to that user."""
+    if not user:
+        return ""
+    text = label or getattr(user, "email", "") or getattr(user, "name", "") or f"User #{user.pk}"
+    url = _filtered_changelist("admin:users_user_changelist", {"id__exact": user.pk})
+    return format_html('<a href="{}">{}</a>', url, text)
+
+
+def _institute_listing_link(label, **params):
+    """Open the institutes changelist filtered by the given lookups."""
+    url = _filtered_changelist("admin:institute_institute_changelist", params)
+    return format_html('<a href="{}">{}</a>', url, label)
+
 class UserStatusFilter(admin.SimpleListFilter):
     """Filter marketing groups by user status (active/inactive)"""
     title = 'user status'
@@ -46,8 +64,8 @@ class UserStatusFilter(admin.SimpleListFilter):
 class InstituteMarketingGroupAdmin(admin.ModelAdmin):
     list_display=[
         "id",
-        "m_group_name",
-        "marketing_group_admin",
+        "marketing_group_institutes_link",
+        "marketing_group_admin_link",
         "whatsapp_notifications_enabled",
         "email_notifications_enabled",
         "institutes_list_link",
@@ -134,27 +152,43 @@ class InstituteMarketingGroupAdmin(admin.ModelAdmin):
     
     
     def get_user_email(self, obj):
-        """Display the email of the marketing group admin user"""
+        """Email of the marketing group admin, linked to that user on the users list."""
         if obj.marketing_group_admin:
-            return obj.marketing_group_admin.email
+            return _user_listing_link(obj.marketing_group_admin)
         return "N/A"
     get_user_email.short_description = "User Email"
     get_user_email.admin_order_field = "marketing_group_admin__email"
 
-    @admin.display(description="Institutes")
+    @admin.display(description="Marketing group", ordering="m_group_name")
+    def marketing_group_institutes_link(self, obj):
+        label = obj.m_group_name or f"Group #{obj.pk}"
+        url = _filtered_changelist(
+            "admin:institute_institute_changelist",
+            {"marketing_group__id__exact": obj.pk},
+        )
+        return format_html('<a href="{}">{}</a>', url, label)
+
+    @admin.display(description="Marketing group admin", ordering="marketing_group_admin__email")
+    def marketing_group_admin_link(self, obj):
+        user = obj.marketing_group_admin
+        if not user:
+            return "—"
+        return _user_listing_link(user, user.email or user.name or f"User #{user.pk}")
+
+    @admin.display(description="Institutes", ordering="_institute_count")
     def institutes_list_link(self, obj):
         """Link to institute changelist filtered to this marketing group (related_name=institute)."""
         n = getattr(obj, "_institute_count", None)
         if n is None:
             try:
-                n = obj.institute.count()
+                n = obj.institute.filter(object_status=choices.ObjectStatus.ACTIVE).count()
             except Exception:
                 n = 0
-        if n == 0:
-            return "0"
-        base = reverse("admin:institute_institute_changelist")
-        q = urlencode({"marketing_group__id__exact": str(obj.pk)})
-        return format_html('<a href="{}?{}">{}</a>', base, q, n)
+        url = _filtered_changelist(
+            "admin:institute_institute_changelist",
+            {"marketing_group__id__exact": obj.pk},
+        )
+        return format_html('<a href="{}">{}</a>', url, n)
 
 admin.site.register(InstituteMarketingGroup,InstituteMarketingGroupAdmin)
 
@@ -257,15 +291,8 @@ class InstituteAdmin(admin.ModelAdmin):
         }),
     )
 
-    def _user_admin_link(self, user):
-        if not user:
-            return ""
-        label = user.email or user.name or f"User #{user.pk}"
-        try:
-            url = reverse("admin:users_user_change", args=[user.pk])
-            return format_html('<a href="{}">{}</a>', url, label)
-        except Exception:
-            return label
+    def _user_admin_link(self, user, label=None):
+        return _user_listing_link(user, label)
 
     @admin.display(description="Institute group", ordering="institute_group__group_name")
     def institute_group_column(self, obj):
@@ -273,11 +300,7 @@ class InstituteAdmin(admin.ModelAdmin):
         if not ig:
             return "—"
         label = ig.group_name or f"Group #{ig.pk}"
-        try:
-            url = reverse("admin:institute_institutegroup_change", args=[ig.pk])
-            return format_html('<a href="{}">{}</a>', url, label)
-        except Exception:
-            return label
+        return _institute_listing_link(label, institute_group__id__exact=ig.pk)
 
     @admin.display(description="Students", ordering="_student_count")
     def student_count(self, obj):
@@ -294,11 +317,7 @@ class InstituteAdmin(admin.ModelAdmin):
         if not mg:
             return "—"
         label = mg.m_group_name or f"Group #{mg.pk}"
-        try:
-            group_url = reverse("admin:institute_institutemarketinggroup_change", args=[mg.pk])
-            group_link = format_html('<a href="{}">{}</a>', group_url, label)
-        except Exception:
-            group_link = label
+        group_link = _institute_listing_link(label, marketing_group__id__exact=mg.pk)
         admin_user = mg.marketing_group_admin
         if admin_user and (admin_user.email or admin_user.name):
             user_link = self._user_admin_link(admin_user)
@@ -310,14 +329,7 @@ class InstituteAdmin(admin.ModelAdmin):
         user = obj.created_by
         if not user:
             return ""
-        label = user.name or ""
-        if not label:
-            return self._user_admin_link(user)
-        try:
-            url = reverse("admin:users_user_change", args=[user.pk])
-            return format_html('<a href="{}">{}</a>', url, label)
-        except Exception:
-            return label
+        return self._user_admin_link(user, user.name or user.email or f"User #{user.pk}")
 
     @admin.display(description="Institute User Email", ordering="created_by__email")
     def created_by_email(self, obj):
@@ -348,11 +360,41 @@ class ClassAndSectionAdmin(admin.ModelAdmin):
 admin.site.register(ClassAndSection,ClassAndSectionAdmin)
 
 class StudentManagementAdmin(admin.ModelAdmin):
-    list_display=["institute","student_email","student_mobile_masked","parent_mobiles_masked","class_and_section"]
-    readonly_fields=["created","modified"]
+    list_display = [
+        "student_name",
+        "student_email",
+        "institute_students_link",
+        "student_mobile_masked",
+        "parent_mobiles_masked",
+        "class_and_section",
+    ]
+    list_display_links = ["student_name"]
+    readonly_fields = ["created", "modified"]
     list_select_related = ("student", "institute", "class_and_section")
     list_filter = [("institute", RelatedOnlyFieldListFilter)]
-    search_fields = ["student__email", "student__mobile", "institute__name", "class_and_section__class_and_section"]
+    search_fields = [
+        "student__name",
+        "student__email",
+        "student__mobile",
+        "institute__name",
+        "class_and_section__class_and_section",
+    ]
+
+    @admin.display(description="Institute", ordering="institute__name")
+    def institute_students_link(self, obj):
+        inst = obj.institute
+        if not inst:
+            return "—"
+        label = inst.name or f"Institute #{inst.pk}"
+        base = reverse("admin:institute_studentmanagement_changelist")
+        q = urlencode({"institute__id__exact": str(inst.pk)})
+        return format_html('<a href="{}?{}">{}</a>', base, q, label)
+
+    @admin.display(description="Student name", ordering="student__name")
+    def student_name(self, obj):
+        if not obj.student:
+            return "—"
+        return obj.student.name or f"User #{obj.student.pk}"
 
     def _mask_mobile(self, mobile):
         if not mobile:
@@ -371,12 +413,7 @@ class StudentManagementAdmin(admin.ModelAdmin):
     def student_email(self, obj):
         if not obj.student:
             return ""
-        email = getattr(obj.student, "email", "") or ""
-        try:
-            url = reverse("admin:users_user_change", args=[obj.student.id])
-            return format_html('<a href="{}">{}</a>', url, email or f"User #{obj.student.id}")
-        except Exception:
-            return email
+        return getattr(obj.student, "email", "") or ""
 
     @admin.display(description="Student Mobile", ordering="student__mobile")
     def student_mobile_masked(self, obj):
@@ -425,7 +462,7 @@ admin.site.register(InstituteLog,InstituteLogAdmin)
 class InstituteGroupAdmin(admin.ModelAdmin):
     list_display = [
         "id",
-        "group_name",
+        "group_institutes_link",
         "institute_group_admin_link",
         "institutes_count",
         "created",
@@ -445,26 +482,24 @@ class InstituteGroupAdmin(admin.ModelAdmin):
             )
         )
 
+    @admin.display(description="Group name", ordering="group_name")
+    def group_institutes_link(self, obj):
+        label = obj.group_name or f"Group #{obj.pk}"
+        return _institute_listing_link(label, institute_group__id__exact=obj.pk)
+
     @admin.display(description="Group admin", ordering="institute_group_admin__email")
     def institute_group_admin_link(self, obj):
         user = obj.institute_group_admin
         if not user:
             return "—"
-        label = user.email or user.name or f"User #{user.pk}"
-        try:
-            url = reverse("admin:users_user_change", args=[user.pk])
-            return format_html('<a href="{}">{}</a>', url, label)
-        except Exception:
-            return label
+        return _user_listing_link(user, user.email or user.name or f"User #{user.pk}")
 
     @admin.display(description="Institutes", ordering="_institute_count")
     def institutes_count(self, obj):
         n = getattr(obj, "_institute_count", None)
         if n is None:
             n = obj.institute.filter(object_status=choices.ObjectStatus.ACTIVE).count()
-        base = reverse("admin:institute_institute_changelist")
-        q = urlencode({"institute_group__id__exact": str(obj.pk)})
-        return format_html('<a href="{}?{}">{}</a>', base, q, n)
+        return _institute_listing_link(n, institute_group__id__exact=obj.pk)
 
 admin.site.register(InstituteGroup,InstituteGroupAdmin)
 
