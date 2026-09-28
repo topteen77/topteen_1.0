@@ -1083,6 +1083,29 @@ body.ttv2-shell .ttv2-topbar-pay-now {
         var hint = hintId ? document.getElementById(hintId) : null;
         var submit = submitId ? document.getElementById(submitId) : null;
         if (!sel) return;
+        if (!(sel.value || '').trim()) {
+          var slug = '';
+          try {
+            slug = (new URLSearchParams(window.location.search || '')).get('institute_slug') || '';
+          } catch (eSlug) {}
+          if (!slug) {
+            var match = (window.location.pathname || '').match(/^\/institute\/([^/]+)\//);
+            var reserved = {
+              marketing_group_dashboard: 1,
+              institute_group_dashboard: 1
+            };
+            if (match && !reserved[match[1]]) slug = match[1];
+          }
+          if (slug) {
+            for (var i = 0; i < sel.options.length; i++) {
+              var candidate = sel.options[i];
+              if ((candidate.getAttribute('data-slug') || '') !== slug) continue;
+              if (candidate.disabled || candidate.getAttribute('data-can-upload') !== '1') break;
+              sel.selectedIndex = i;
+              break;
+            }
+          }
+        }
         var opt = sel.options[sel.selectedIndex];
         var can = ttv2GroupCsvCanUploadOption(opt);
         if (typeof hiddenSyncFn === 'function') hiddenSyncFn();

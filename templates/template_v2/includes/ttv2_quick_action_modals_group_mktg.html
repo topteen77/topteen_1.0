@@ -168,19 +168,15 @@
     return !!(checked && checked.value === 'demo');
   }
 
-  function setSectionDisabled(section, disabled) {
+  function setSectionHidden(section, hidden) {
     if (!section) return;
-    section.classList.toggle('opacity-50', disabled);
-    section.classList.toggle('pe-none', disabled);
-    section.setAttribute('aria-disabled', disabled ? 'true' : 'false');
-    // Do NOT set input.disabled — disabled fields are omitted from POST and
-    // caused demo student counts to be dropped on create.
+    section.classList.toggle('d-none', hidden);
     section.querySelectorAll('input, select, textarea').forEach(function (el) {
-      if (el.name === 'institute_account_type') return;
-      if (disabled) {
-        el.setAttribute('tabindex', '-1');
-      } else {
-        el.removeAttribute('tabindex');
+      if (hidden) {
+        if (el.required) el.setAttribute('data-ttv2-was-required', '1');
+        el.removeAttribute('required');
+      } else if (el.getAttribute('data-ttv2-was-required') === '1') {
+        el.setAttribute('required', 'required');
       }
     });
   }
@@ -188,10 +184,8 @@
   function syncAccountTypeSections(root) {
     if (!root) return;
     var demoOn = isDemoAccountType(root);
-    var demoSec = root.querySelector('[data-ttv2-demo-only-section]');
-    var paidSec = root.querySelector('[data-ttv2-paid-only-section]');
-    setSectionDisabled(demoSec, !demoOn);
-    setSectionDisabled(paidSec, demoOn);
+    setSectionHidden(root.querySelector('[data-ttv2-demo-only-section]'), !demoOn);
+    setSectionHidden(root.querySelector('[data-ttv2-paid-only-section]'), demoOn);
 
     if (demoOn) {
       var n10El = root.querySelector('[name="demo_class10_count"]');

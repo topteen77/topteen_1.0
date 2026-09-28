@@ -33,9 +33,8 @@
                class="form-control"
                min="0"
                step="1"
-               readonly
                value="{% if _exam_qty not in (none, '') %}{{ _exam_qty }}{% elif ins is defined and ins %}{{ ins.assignment_credits|default(0) }}{% endif %}">
-        <small class="text-muted">Same as exam credits. Used when the institute assigns packages to students.</small>
+        <small class="text-muted">Same number as exam credits. The arrows update both.</small>
       </div>
       <div class="col-12 {% if _mode != 'package' %}d-none{% endif %}"
            id="psychPackageCatalog{{ _psych_key }}"

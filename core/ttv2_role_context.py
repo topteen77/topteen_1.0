@@ -88,6 +88,31 @@ def _resolve_counselor_for_user(user) -> Optional[Counselor]:
         return None
 
 
+def _focused_managed_institute(request, user, role: str) -> Optional[Institute]:
+    """Institute open in the current URL, when this marketing or group admin manages it."""
+    if role not in ("marketing_group", "institute_group"):
+        return None
+    institute = _resolve_institute_from_request(request)
+    if not institute:
+        return None
+    try:
+        if role == "marketing_group":
+            allowed = Institute.objects.filter(
+                pk=institute.pk,
+                marketing_group__marketing_group_admin=user,
+            )
+        else:
+            allowed = Institute.objects.filter(
+                pk=institute.pk,
+                institute_group__institute_group_admin=user,
+            )
+        if allowed.exists():
+            return institute
+    except Exception:
+        return None
+    return None
+
+
 def _resolve_marketing_group_for_user(user) -> Optional[InstituteMarketingGroup]:
     try:
         return InstituteMarketingGroup.objects.filter(marketing_group_admin=user).first()
@@ -246,6 +271,7 @@ def _nav_for_role(
     institute: Optional[Institute],
     counselor: Optional[Counselor],
     user=None,
+    focused_institute: Optional[Institute] = None,
 ) -> List[Dict[str, Any]]:
     inst_slug = getattr(institute, "slug", None) if institute else None
     coun_id = getattr(counselor, "id", None) if counselor else None
@@ -319,10 +345,14 @@ def _nav_for_role(
         return f"{page_url}#{hash_key}"
 
     def _csv_upload_links(students_url: str) -> List[Dict[str, Any]]:
+        kinds = {"matric": True, "postmatric": True, "higher_ed": False}
         try:
-            from institute.psychometric_packages import upload_kinds_for_managed_institutes
+            if focused_institute is not None:
+                kinds = focused_institute.student_csv_upload_kinds()
+            else:
+                from institute.psychometric_packages import upload_kinds_for_managed_institutes
 
-            kinds = upload_kinds_for_managed_institutes(user)
+                kinds = upload_kinds_for_managed_institutes(user)
         except Exception:
             kinds = {"matric": True, "postmatric": True, "higher_ed": False}
         specs = (
@@ -740,7 +770,14 @@ def ttv2_role_ctx(request) -> Dict[str, Any]:
         )
 
     display_name = _display_name_for_user(user)
-    sections = _nav_for_role(role=role, institute=institute, counselor=counselor, user=user)
+    focused_institute = _focused_managed_institute(request, user, role)
+    sections = _nav_for_role(
+        role=role,
+        institute=institute,
+        counselor=counselor,
+        user=user,
+        focused_institute=focused_institute,
+    )
     try:
         _annotate_nav_active(sections, getattr(request, "path", "") or "")
     except Exception:
@@ -856,5 +893,11 @@ def ttv2_role_ctx(request) -> Dict[str, Any]:
     }
     if tieup_pay_cta:
         out["ttv2_tieup_pay_cta"] = tieup_pay_cta
+    try:
+        from core.ttv2_institute_credits import build_ttv2_quicklink_institutes
+
+        out["ttv2_quicklink_institutes"] = build_ttv2_quicklink_institutes(user)
+    except Exception:
+        out["ttv2_quicklink_institutes"] = []
     return out
 
