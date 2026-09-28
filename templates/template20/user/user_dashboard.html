@@ -1547,6 +1547,7 @@
               {% endif %}
               <!-- End of Psychometric Test Reports -->
 
+              {% if show_school_career_links|default(true) %}
               <!-- Digital Scrapbook -->
               <div class="quick-link-card" onclick="window.location='{{ url('users:scrapbook') }}'">
                 <div class="d-flex align-items-center gap-3">
@@ -1563,6 +1564,7 @@
                 </div>
                 <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
               </div>
+              {% endif %}
               <!-- End of Digital Scrapbook -->
 
               <!-- Your Calendar -->
@@ -1602,6 +1604,7 @@
               </div>
               <!-- End of My Invoices -->
 
+              {% if show_school_career_links|default(true) %}
               <!-- Refer Friends -->
               <!-- Career Matcher Links -->
               <div class="quick-link-card" onclick="window.location='{{ url('post_matric:career_swipe') }}'">
@@ -1645,6 +1648,7 @@
                 </div>
                 <i class='bx bx-right-arrow-alt text-gray fs-20'></i>
               </div>
+              {% endif %}
 
               <div class="quick-link-card" onclick="window.location='{{ url('users:profiledetails') }}'">
                 <div class="d-flex align-items-center gap-3">

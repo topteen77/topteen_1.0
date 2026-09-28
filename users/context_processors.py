@@ -44,4 +44,10 @@ def student_scrapbook_hub(request):
     except Exception:
         ctx.setdefault("hide_student_sidebar_class", False)
         ctx.setdefault("psychometric_custom_package_names", [])
+    try:
+        from core.psychometric_grade import hides_undergraduate_college_tools
+
+        ctx["show_school_career_links"] = not hides_undergraduate_college_tools(request.user)
+    except Exception:
+        ctx["show_school_career_links"] = True
     return ctx

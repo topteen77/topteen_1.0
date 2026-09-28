@@ -3918,6 +3918,7 @@ class UserDashboard(TemplateView):
         if is_higher_education_student(profile_user):
             ctx['career_direction_report_url'] = ''
         ctx['show_dashboard_college_tools'] = not hides_undergraduate_college_tools(profile_user)
+        ctx['show_school_career_links'] = ctx['show_dashboard_college_tools']
 
         # Invoices: Payment History view, not dashboard.
 
@@ -4007,59 +4008,59 @@ class UserDashboard(TemplateView):
                 },
             )
 
-        # Multiple Intelligences (free assessment): My courses & tests — report vs take test
-        try:
-            from core.models import MIAssessmentResult
+        # Multiple Intelligence and Emotional Intelligence stay on school dashboards.
+        if ctx.get("show_school_career_links", True):
+            try:
+                from core.models import MIAssessmentResult
 
-            mi_latest = MIAssessmentResult.objects.filter(user=profile_user).order_by("-updated_at").first()
-            mi_done = mi_latest is not None
-            mi_url = reverse("core:multiple_intelligences_assessment")
-            # Parent viewing a linked student: open the same interactive report UI
-            # with that student's saved results (not the parent's empty test).
-            if is_parent_view and mi_done:
-                mi_url = f"{mi_url}?student_id={int(profile_user.id)}"
-            ctx["dashboard_enrolled_items"].append(
-                {
-                    "kind": "psychometric",
-                    "title": "Multiple Intelligence",
-                    "subtitle": "Know your learning style" if mi_done else "Assessment",
-                    "start_url": mi_url,
-                    "action_label": "View report" if mi_done else "Start test",
-                    "action_variant": "report" if mi_done else "start",
-                    "kind_badge": "FREE",
-                    "kind_badge_style": "free",
-                    "icon_src": "images_new/icons/multiple-intelligence.png",
-                    "icon_bg": "#fff4e6",
-                }
-            )
-        except Exception:
-            pass
+                mi_latest = MIAssessmentResult.objects.filter(user=profile_user).order_by("-updated_at").first()
+                mi_done = mi_latest is not None
+                mi_url = reverse("core:multiple_intelligences_assessment")
+                # Parent viewing a linked student: open the same interactive report UI
+                # with that student's saved results (not the parent's empty test).
+                if is_parent_view and mi_done:
+                    mi_url = f"{mi_url}?student_id={int(profile_user.id)}"
+                ctx["dashboard_enrolled_items"].append(
+                    {
+                        "kind": "psychometric",
+                        "title": "Multiple Intelligence",
+                        "subtitle": "Know your learning style" if mi_done else "Assessment",
+                        "start_url": mi_url,
+                        "action_label": "View report" if mi_done else "Start test",
+                        "action_variant": "report" if mi_done else "start",
+                        "kind_badge": "FREE",
+                        "kind_badge_style": "free",
+                        "icon_src": "images_new/icons/multiple-intelligence.png",
+                        "icon_bg": "#fff4e6",
+                    }
+                )
+            except Exception:
+                pass
 
-        # Emotional Intelligence (free assessment): My courses & tests — report vs take test
-        try:
-            from core.models import EQAssessmentResult
+            try:
+                from core.models import EQAssessmentResult
 
-            eq_latest = EQAssessmentResult.objects.filter(user=profile_user).order_by("-updated_at").first()
-            eq_done = eq_latest is not None
-            eq_url = reverse("core:emotional_intelligences_assessment")
-            if is_parent_view and eq_done:
-                eq_url = f"{eq_url}?student_id={int(profile_user.id)}"
-            ctx["dashboard_enrolled_items"].append(
-                {
-                    "kind": "psychometric",
-                    "title": "Emotional Intelligence",
-                    "subtitle": "Know your EQ" if eq_done else "Assessment",
-                    "start_url": eq_url,
-                    "action_label": "View report" if eq_done else "Start test",
-                    "action_variant": "report" if eq_done else "start",
-                    "kind_badge": "FREE",
-                    "kind_badge_style": "free",
-                    "icon_src": "images_new/icons/emotions.png",
-                    "icon_bg": "#fdf2f8",
-                }
-            )
-        except Exception:
-            pass
+                eq_latest = EQAssessmentResult.objects.filter(user=profile_user).order_by("-updated_at").first()
+                eq_done = eq_latest is not None
+                eq_url = reverse("core:emotional_intelligences_assessment")
+                if is_parent_view and eq_done:
+                    eq_url = f"{eq_url}?student_id={int(profile_user.id)}"
+                ctx["dashboard_enrolled_items"].append(
+                    {
+                        "kind": "psychometric",
+                        "title": "Emotional Intelligence",
+                        "subtitle": "Know your EQ" if eq_done else "Assessment",
+                        "start_url": eq_url,
+                        "action_label": "View report" if eq_done else "Start test",
+                        "action_variant": "report" if eq_done else "start",
+                        "kind_badge": "FREE",
+                        "kind_badge_style": "free",
+                        "icon_src": "images_new/icons/emotions.png",
+                        "icon_bg": "#fdf2f8",
+                    }
+                )
+            except Exception:
+                pass
 
         # Applications & resume hub (AdmitCV-inspired KPIs + planner widgets)
         ctx.update(_hub_nav_counts(profile_user, notes_list=notes_list))
