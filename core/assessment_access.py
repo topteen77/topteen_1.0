@@ -457,9 +457,9 @@ def _compute_student_psychometric_dashboard_cta(user) -> dict:
     from django.urls import reverse
 
     track = get_student_psychometric_track(user)
-    custom_packages = get_student_custom_package_names(user)
-    if custom_packages:
-        package_label = ', '.join(custom_packages)
+    product_labels = get_student_psychometric_product_labels(user)
+    if product_labels:
+        package_label = ', '.join(product_labels)
         subtitle = package_label
     else:
         package_label = ''
@@ -623,6 +623,31 @@ def _compute_student_psychometric_dashboard_cta(user) -> dict:
     }
 
 
+def _label_for_assessment_codes(codes) -> str:
+    """Join Assessment.name values from DB for the given codes."""
+    if not codes:
+        return ''
+    from psychometric_tests.models import Assessment
+
+    labels = []
+    seen = set()
+    for name in (
+        Assessment.objects.filter(code__in=list(codes), is_active=True)
+        .order_by('code')
+        .values_list('name', flat=True)
+    ):
+        label = (name or '').strip()
+        if not label or label in seen:
+            continue
+        seen.add(label)
+        labels.append(label)
+    if not labels:
+        return ''
+    if len(labels) == 1:
+        return labels[0]
+    return ' + '.join(labels)
+
+
 def get_student_custom_package_names(user) -> list:
     """Non-legacy package names assigned to the student (for verification UI)."""
     if not user or not getattr(user, 'is_authenticated', False):
@@ -649,10 +674,62 @@ def get_student_custom_package_names(user) -> list:
     return names
 
 
+def get_student_psychometric_product_labels(user) -> list:
+    """
+    Student-facing product titles for custom (non–full-bundle) packages.
+
+    Uses PsychometricPackage.name / Assessment.name from the DB (seeded catalog).
+    Falls back to limited entitlements when assignment rows are missing.
+    """
+    if not user or not getattr(user, 'is_authenticated', False):
+        return []
+    if not packages_enabled() or has_legacy_full_bundle_access(user):
+        return []
+
+    from psychometric_tests.models import StudentPackageAssignment
+
+    labels = []
+    seen = set()
+    for row in (
+        StudentPackageAssignment.objects.filter(student=user)
+        .select_related('package')
+        .order_by('-created')
+    ):
+        pkg = row.package
+        if not pkg or pkg.is_legacy_bundle:
+            continue
+        label = (pkg.name or '').strip()
+        if not label or label in seen:
+            continue
+        seen.add(label)
+        labels.append(label)
+    if labels:
+        return labels
+
+    entitled = get_student_entitled_assessment_codes(user)
+    if not entitled:
+        return []
+    track = get_student_psychometric_track(user)
+    if entitled >= get_track_assessment_codes(track):
+        return []
+    label = _label_for_assessment_codes(sorted(entitled))
+    return [label] if label else []
+
+
+def student_has_custom_psychometric_package(user) -> bool:
+    """True when the student should be treated as a custom-package (not full-bundle) user."""
+    if get_student_custom_package_names(user):
+        return True
+    return bool(get_student_psychometric_product_labels(user))
+
+
 def build_class10_psychometric_page_context(user) -> dict:
     """Shared template context for Class 10 psychometric home / submit pages."""
     custom_names = get_student_custom_package_names(user)
-    if custom_names:
+    product_labels = get_student_psychometric_product_labels(user)
+    if product_labels:
+        dashboard_title = ', '.join(product_labels)
+    elif custom_names:
         dashboard_title = ', '.join(custom_names)
     elif has_legacy_full_bundle_access(user):
         dashboard_title = 'Stream Sorter'

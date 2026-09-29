@@ -4,8 +4,10 @@
 {% set _row_rem = _row_alloc - _row_used %}
 {% if _row_rem < 0 %}{% set _row_rem = 0 %}{% endif %}
 {% set _can_upload = (_row_rem > 0) and not (ins.is_system_demo|default(false)) and (ins.institute_status is not defined or (ins.institute_status != 3 and ins.institute_status != 2)) %}
+{% set _upload_kinds = ins.student_csv_upload_kinds() if ins.student_csv_upload_kinds is defined else {'matric': true, 'postmatric': true, 'higher_ed': false} %}
 <div class="ttv2-mktg-row-upload-actions">
-  {% if _can_upload %}
+  {% if _can_upload and (_upload_kinds.matric or _upload_kinds.postmatric or _upload_kinds.higher_ed) %}
+  {% if _upload_kinds.matric %}
   <button type="button"
           class="btn btn-sm ttv2-mktg-row-csv-btn ttv2-mktg-row-csv-btn--matric"
           data-bs-toggle="modal"
@@ -21,6 +23,8 @@
     <i class="bx bx-cloud-upload" aria-hidden="true"></i>
     <span>Class 10</span>
   </button>
+  {% endif %}
+  {% if _upload_kinds.postmatric %}
   <button type="button"
           class="btn btn-sm ttv2-mktg-row-csv-btn ttv2-mktg-row-csv-btn--postmatric"
           data-bs-toggle="modal"
@@ -36,6 +40,24 @@
     <i class="bx bx-cloud-upload" aria-hidden="true"></i>
     <span>Class 12</span>
   </button>
+  {% endif %}
+  {% if _upload_kinds.higher_ed %}
+  <button type="button"
+          class="btn btn-sm ttv2-mktg-row-csv-btn ttv2-mktg-row-csv-btn--highered"
+          data-bs-toggle="modal"
+          data-bs-target="#ttv2MktgRowHigherEdCsvUploadModal"
+          data-institute-id="{{ ins.id }}"
+          data-institute-name="{{ ins.name }}"
+          data-credits-remaining="{{ _row_rem }}"
+          {% if psychometric_packages_enabled is defined and psychometric_packages_enabled %}
+          data-assignment-credits="{{ ins.assignment_credits|default(0) }}"
+          data-package-choices='{{ ins.get_higher_ed_csv_package_choices()|tojson }}'
+          {% endif %}
+          title="College/Professional CSV — Class 12 passout, graduate, postgraduate, professional ({{ _row_rem }} credits left)">
+    <i class="bx bx-cloud-upload" aria-hidden="true"></i>
+    <span>College/Professional</span>
+  </button>
+  {% endif %}
   {% else %}
   <span class="ttv2-mktg-row-upload-disabled small text-muted"
         title="{% if ins.is_system_demo|default(false) %}Demo institute — uploads disabled{% elif _row_rem <= 0 %}No credits left{% else %}Upload unavailable{% endif %}">

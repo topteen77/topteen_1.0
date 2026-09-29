@@ -37,38 +37,27 @@
         <p class="profile-meta-text text-gray fs-14 mb-0">Joined {{ date_format(request.user.created) }}</p>
       </div>
       {% if request.user.user_profile %}
-      {% set last_student = request.user.student_management.last() %}
-      {% set _hide_class = hide_student_sidebar_class|default(false) %}
-      {% if not _hide_class %}
-      {% if last_student and last_student.class_and_section %}
+      {% set class_label = request.user.get_display_class_label() %}
+      {% if class_label %}
       <div class="profile-meta-row d-flex align-items-center justify-content-start gap-2">
         <i class='bx bx-book fs-18 text-purple profile-meta-icon'></i>
         <p class="profile-meta-text text-gray fs-14 mb-0 lh-sm">
-          {{ last_student.class_and_section }}
+          {{ class_label }}
         </p>
       </div>
-      {% elif request.user.user_profile.grade %}
-      <div class="profile-meta-row d-flex align-items-center justify-content-start gap-2">
-        <i class='bx bx-book fs-18 text-purple profile-meta-icon'></i>
-        <p class="profile-meta-text text-gray fs-14 mb-0 lh-sm">Class {{ request.user.user_profile.grade }}</p>
-      </div>
-      {% endif %}
       {% endif %}
 
-      {% if request.user.user_profile.schoolname %}
+      {% set school_label = request.user.get_display_school_name() %}
+      {% if school_label %}
       <div class="profile-meta-row d-flex align-items-center justify-content-start gap-2">
         <i class='bx bx-buildings fs-18 text-purple profile-meta-icon'></i>
-        <p class="profile-meta-text text-gray fs-14 mb-0 lh-sm text-start">{{ request.user.user_profile.schoolname }}</p>
+        <p class="profile-meta-text text-gray fs-14 mb-0 lh-sm text-start">{{ school_label }}</p>
       </div>
       {% endif %}
 
-      {% if request.user.user_profile.schoolname %}
+      {% if school_label %}
       {# show school row above #}
-      {% elif _hide_class %}
-      {# custom package / 12th-pass students: class hidden on purpose #}
-      {% elif request.user.user_profile.grade %}
-      {# show class row above #}
-      {% elif last_student and last_student.class_and_section %}
+      {% elif class_label %}
       {# show class row above #}
       {% else %}
       <div class="profile-meta-row d-flex align-items-start justify-content-start gap-2">
@@ -289,7 +278,7 @@
       {% set quick_links.urls = quick_links.urls + [resumes_href] %}
       {% endif %}
       {% set tasks_href = url_('users:scrapbook') %}
-      {% if tasks_href not in quick_links.urls %}
+      {% if show_school_career_links|default(true) and tasks_href not in quick_links.urls %}
       <a href="{{ tasks_href }}" class="d-block text-decoration-none mb-2">
         <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
           <div>
@@ -318,6 +307,7 @@
         </div>
       </a>
 
+      {% if show_school_career_links|default(true) %}
       <a href="{{ url_('post_matric:career_swipe') }}" class="d-block text-decoration-none mb-2">
         <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded hover-bg-light">
           <div>
@@ -350,6 +340,7 @@
           <i class="bx bx-right-arrow-alt text-gray fs-18"></i>
         </div>
       </a>
+      {% endif %}
     </div>
     {% endif %}
     <a href="{{ url_('users:viewprofile') }}" class="d-block text-decoration-none mb-2">

@@ -21,15 +21,33 @@ def student_scrapbook_hub(request):
                 "scrapbook_has_parent_updates": False,
             }
         )
-    # Individual / custom package students (e.g. Class 12 Personality only) are often
+    # Individual / custom package students (e.g. Personality Assessment only) are often
     # 12th-pass and not current school students — hide class in the sidebar.
     try:
-        from core.assessment_access import get_student_custom_package_names, packages_enabled
+        from core.assessment_access import (
+            get_student_custom_package_names,
+            get_student_psychometric_product_labels,
+            packages_enabled,
+            student_has_custom_psychometric_package,
+        )
 
-        custom_names = get_student_custom_package_names(request.user) if packages_enabled() else []
-        ctx["psychometric_custom_package_names"] = custom_names
-        ctx["hide_student_sidebar_class"] = bool(custom_names)
+        if packages_enabled():
+            custom_names = get_student_custom_package_names(request.user)
+            product_labels = get_student_psychometric_product_labels(request.user)
+            ctx["psychometric_custom_package_names"] = product_labels or custom_names
+            ctx["hide_student_sidebar_class"] = student_has_custom_psychometric_package(
+                request.user
+            )
+        else:
+            ctx["psychometric_custom_package_names"] = []
+            ctx["hide_student_sidebar_class"] = False
     except Exception:
         ctx.setdefault("hide_student_sidebar_class", False)
         ctx.setdefault("psychometric_custom_package_names", [])
+    try:
+        from core.psychometric_grade import hides_undergraduate_college_tools
+
+        ctx["show_school_career_links"] = not hides_undergraduate_college_tools(request.user)
+    except Exception:
+        ctx["show_school_career_links"] = True
     return ctx

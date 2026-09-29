@@ -864,12 +864,14 @@
             </span>
             <span class="tt-hub-hero-btn-label">My resumes</span>
           </a>
+          {% if show_dashboard_college_tools|default(true) %}
           <a href="{{ url('users:mycolleges') }}" class="tt-hub-hero-btn tt-hub-hero-btn--ghost">
             <span class="tt-hub-hero-btn-icon" aria-hidden="true">
               <i class='bx bx-buildings'></i>
             </span>
             <span class="tt-hub-hero-btn-label">My colleges</span>
           </a>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -886,6 +888,7 @@
             <p class="fs-12 text-gray mb-0">Open <a class="tt-hub-link" href="{{ url('users:resumebuilder') }}">My resumes</a> to add resumes, use <strong>Resume studio</strong> (guided), then <strong>PDF download</strong> to export.</p>
           </div>
         </div>
+        {% if show_dashboard_college_tools|default(true) %}
         <div class="tt-hub-step">
           <span class="tt-hub-dot" style="background:#3cbae1;"></span>
           <div>
@@ -893,6 +896,8 @@
             <p class="fs-12 text-gray mb-0">Save schools from college pages — see them under <a class="tt-hub-link" href="{{ url('users:mycolleges') }}">My colleges</a>.</p>
           </div>
         </div>
+        {% endif %}
+        {% if show_school_career_links|default(true) %}
         <div class="tt-hub-step">
           <span class="tt-hub-dot" style="background:#4cc875;"></span>
           <div>
@@ -900,6 +905,7 @@
             <p class="fs-12 text-gray mb-0">Your all-in-one workspace to organize notes, resume, career interests, exams, colleges, videos, blogs, and hobbies.</p>
           </div>
         </div>
+        {% endif %}
       </div>
     </div>
     <div class="tt-hub-quad-cell">
@@ -923,6 +929,7 @@
             <div class="tt-hub-dimension-fill" style="width: {{ dim_resume }}%; background: linear-gradient(90deg, #0d9488, #2dd4bf);"></div>
           </div>
         </div>
+        {% if show_dashboard_college_tools|default(true) %}
         <div class="tt-hub-dimension">
           <div class="tt-hub-dimension-head">
             <span>College planning</span>
@@ -932,6 +939,7 @@
             <div class="tt-hub-dimension-fill" style="width: {{ dim_college }}%; background: linear-gradient(90deg, #16a34a, #4ade80);"></div>
           </div>
         </div>
+        {% endif %}
         <div class="tt-hub-dimension">
           <div class="tt-hub-dimension-head">
             <span>Notes consistency</span>

@@ -1,4 +1,5 @@
 from django.urls import path, include
+from . import higher_ed_csv
 from . import views
 from . import tieup_views
 from users.views import DemoLoginView
@@ -121,6 +122,7 @@ urlpatterns = [
     path("institute_student_create/",views.InstituteStudentCreateView.as_view(),name="institutestudentcreate"),
     path("institute_csv_student_create/",views.InstituteCsvStudentCreateView.as_view(),name="institutecsvstudentcreate"),
     path("institute_post_matric_csv_student_create/",views.InstitutePostMatricCsvStudentCreateView.as_view(),name="institutepostmatriccsvstudentcreate"),
+    path("institute_higher_ed_csv_student_create/", higher_ed_csv.InstituteHigherEdCsvStudentCreateView.as_view(), name="institutehigheredcsvstudentcreate"),
     path("institute_student_update/",views.InstituteStudentUpdateView.as_view(),name="institutestudentupdate"),
     path("institute_student_change_password/",views.InstituteStudentChangePasswordView.as_view(),name="institutestudentchangepassword"),
     path("institute_change_password/",views.InstituteChangePasswordView.as_view(),name="institutechangepassword"),
@@ -135,6 +137,7 @@ urlpatterns = [
     path("marketing_block/<int:id>/",views.MarketingBlockView.as_view(),name="marketingblock"),
     path("download_student_sample_csv/",views.students_csv_sample_file,name="download_student_sample_csv"),
     path("p0ost_matric_student_sample_data/",views.post_matric_student_sample_data,name="post_matric_student_sample_csv"),
+    path("higher_ed_student_sample_csv/", higher_ed_csv.HigherEdStudentSampleCsvView.as_view(), name="higher_ed_student_sample_csv"),
     # Must be before <slug:slug>/ so the API is never mistaken for an institute slug
     path("api/tieup-pay-status/", tieup_views.tieup_pay_status_api, name="tieup_pay_status_api"),
     path("api/heatmap-data/", views.get_heatmap_data_api, name="heatmap_data_api"),

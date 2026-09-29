@@ -107,12 +107,19 @@ def apply_institute_psychometric_settings_from_post(institute, post, *, save=Tru
     ):
         institute.psychometric_access_mode = mode
 
-    raw_assign_credits = (post.get('assignment_credits') or '').strip()
-    if raw_assign_credits != '':
-        try:
-            institute.assignment_credits = max(0, int(raw_assign_credits))
-        except (TypeError, ValueError):
-            pass
+    # Assignment credit pool matches exam credits entered on the same form.
+    from institute.tieup_billing import parse_exam_credits_qty_from_post
+
+    exam_qty, _exam_err = parse_exam_credits_qty_from_post(post)
+    if exam_qty is not None:
+        institute.assignment_credits = exam_qty
+    else:
+        raw_assign_credits = (post.get('assignment_credits') or '').strip()
+        if raw_assign_credits != '':
+            try:
+                institute.assignment_credits = max(0, int(raw_assign_credits))
+            except (TypeError, ValueError):
+                pass
 
     if save:
         institute.save(update_fields=['psychometric_access_mode', 'assignment_credits', 'modified'])
@@ -157,6 +164,180 @@ def sync_institute_packages_from_post(institute, post):
                 'object_status': choices.ObjectStatus.ACTIVE,
             },
         )
+
+
+def institute_csv_upload_kinds(institute) -> dict:
+    """Which bulk-upload buttons this institute may use.
+
+    Full-bundle schools keep Class 10 and Class 12 uploads.
+    Package mode shows a button only when the allowlist includes that track.
+    """
+    legacy = {'matric': True, 'postmatric': True, 'higher_ed': False}
+    if not institute or not institute_package_mode_active(institute):
+        return legacy
+    flags = upload_kind_flags_by_institute_ids([institute.id])
+    return flags.get(institute.id, legacy)
+
+
+def upload_kind_flags_by_institute_ids(institute_ids) -> dict:
+    """Batch version of institute_csv_upload_kinds. Empty package allowlist means every active package."""
+    from collections import defaultdict
+
+    from institute.higher_ed_csv import HIGHER_ED_PACKAGE_CODES
+    from institute.models import Institute
+    from psychometric_tests.models import InstitutePackagePrice, PsychometricPackage
+
+    legacy = {'matric': True, 'postmatric': True, 'higher_ed': False}
+    ids = []
+    for raw in institute_ids or []:
+        try:
+            iid = int(raw)
+        except (TypeError, ValueError):
+            continue
+        if iid not in ids:
+            ids.append(iid)
+    if not ids:
+        return {}
+    if not packages_enabled():
+        return {iid: dict(legacy) for iid in ids}
+
+    modes = dict(
+        Institute.objects.filter(id__in=ids).values_list('id', 'psychometric_access_mode')
+    )
+    codes = defaultdict(set)
+    tracks = defaultdict(set)
+    for row in (
+        InstitutePackagePrice.objects.filter(institute_id__in=ids)
+        .select_related('package')
+    ):
+        package = row.package
+        if not package or not package.is_active:
+            continue
+        codes[row.institute_id].add(package.code)
+        tracks[row.institute_id].add(package.track)
+
+    catalog_tracks = None
+    catalog_higher = False
+    out = {}
+    for iid in ids:
+        if modes.get(iid) != choices.PsychometricAccessMode.PACKAGE:
+            out[iid] = dict(legacy)
+            continue
+        if not codes.get(iid):
+            if catalog_tracks is None:
+                active = PsychometricPackage.objects.filter(is_active=True)
+                catalog_tracks = set(active.values_list('track', flat=True))
+                catalog_codes = set(active.values_list('code', flat=True))
+                catalog_higher = bool(catalog_codes & HIGHER_ED_PACKAGE_CODES)
+            out[iid] = {
+                'matric': choices.PsychometricTrack.CLASS10 in catalog_tracks,
+                'postmatric': choices.PsychometricTrack.POST_MATRIC in catalog_tracks,
+                'higher_ed': catalog_higher,
+            }
+            continue
+        out[iid] = {
+            'matric': choices.PsychometricTrack.CLASS10 in tracks[iid],
+            'postmatric': choices.PsychometricTrack.POST_MATRIC in tracks[iid],
+            'higher_ed': bool(codes[iid] & HIGHER_ED_PACKAGE_CODES),
+        }
+    return out
+
+
+def upload_kinds_for_managed_institutes(user) -> dict:
+    """Union of upload buttons across institutes this marketing or group admin manages."""
+    from institute.models import Institute
+
+    empty = {'matric': False, 'postmatric': False, 'higher_ed': False}
+    if not user or not getattr(user, 'is_authenticated', False):
+        return empty
+    try:
+        user_type = int(getattr(user, 'user_type', 0) or 0)
+    except (TypeError, ValueError):
+        return empty
+    if user_type == choices.UserType.MARKETINGGROUPADMIN:
+        ids = Institute.objects.filter(
+            marketing_group__marketing_group_admin=user
+        ).values_list('id', flat=True)
+    elif user_type == choices.UserType.INSTITUTEGROUPADMIN:
+        ids = Institute.objects.filter(
+            institute_group__institute_group_admin=user
+        ).values_list('id', flat=True)
+    else:
+        return empty
+    flags = upload_kind_flags_by_institute_ids(list(ids))
+    merged = dict(empty)
+    for kind in flags.values():
+        merged['matric'] = merged['matric'] or kind['matric']
+        merged['postmatric'] = merged['postmatric'] or kind['postmatric']
+        merged['higher_ed'] = merged['higher_ed'] or kind['higher_ed']
+    return merged
+
+
+def higher_ed_package_choices_by_institute_ids(institute_ids) -> dict:
+    """Single-test packages each institute may assign on the College/Professional upload."""
+    from collections import defaultdict
+
+    from institute.higher_ed_csv import HIGHER_ED_PACKAGE_CODES
+    from institute.models import Institute
+
+    ids = []
+    for raw in institute_ids or []:
+        try:
+            iid = int(raw)
+        except (TypeError, ValueError):
+            continue
+        if iid not in ids:
+            ids.append(iid)
+    if not ids:
+        return {}
+
+    catalog = [
+        {'code': pkg.code, 'name': pkg.name, 'credit_cost': pkg.credit_cost}
+        for pkg in PsychometricPackage.objects.filter(
+            is_active=True, code__in=HIGHER_ED_PACKAGE_CODES
+        ).order_by('name')
+    ]
+    modes = dict(
+        Institute.objects.filter(id__in=ids).values_list('id', 'psychometric_access_mode')
+    )
+    allowed = defaultdict(set)
+    has_allowlist = set()
+    for row in InstitutePackagePrice.objects.filter(institute_id__in=ids).select_related('package'):
+        package = row.package
+        if not package or not package.is_active:
+            continue
+        has_allowlist.add(row.institute_id)
+        if package.code in HIGHER_ED_PACKAGE_CODES:
+            allowed[row.institute_id].add(package.code)
+
+    out = {}
+    for iid in ids:
+        if modes.get(iid) != choices.PsychometricAccessMode.PACKAGE:
+            out[iid] = []
+            continue
+        if iid not in has_allowlist:
+            out[iid] = list(catalog)
+            continue
+        out[iid] = [row for row in catalog if row['code'] in allowed[iid]]
+    return out
+
+
+def annotate_quicklink_upload_flags(rows) -> None:
+    """Add can_upload_* keys used by marketing and institute-group upload buttons."""
+    if not rows:
+        return
+    row_ids = [row.get('id') for row in rows if isinstance(row, dict)]
+    flags = upload_kind_flags_by_institute_ids(row_ids)
+    packages = higher_ed_package_choices_by_institute_ids(row_ids)
+    legacy = {'matric': True, 'postmatric': True, 'higher_ed': False}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        kind = flags.get(row.get('id'), legacy)
+        row['can_upload_matric'] = kind['matric']
+        row['can_upload_postmatric'] = kind['postmatric']
+        row['can_upload_higher_ed'] = kind['higher_ed']
+        row['higher_ed_packages'] = packages.get(row.get('id'), [])
 
 
 def get_package_choices_for_institute(institute, track=None):

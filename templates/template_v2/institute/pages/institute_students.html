@@ -9,7 +9,25 @@
         </p>
       </div>
       {% if ttv2_students_role is defined and ttv2_students_role in ('marketing_group', 'institute_group') %}
+        {% set _upload_ns = namespace(matric=false, postmatric=false, higher_ed=false, seen=false) %}
+        {% set _filter_slug = request.GET.get('institute_slug', '') %}
+        {% for ii in (ttv2_quicklink_institutes|default([])) %}
+          {% if _filter_slug %}
+            {% if ii.slug == _filter_slug %}
+              {% set _upload_ns.seen = true %}
+              {% set _upload_ns.matric = ii.can_upload_matric|default(false) %}
+              {% set _upload_ns.postmatric = ii.can_upload_postmatric|default(false) %}
+              {% set _upload_ns.higher_ed = ii.can_upload_higher_ed|default(false) %}
+            {% endif %}
+          {% else %}
+            {% set _upload_ns.seen = true %}
+            {% if ii.can_upload_matric|default(false) %}{% set _upload_ns.matric = true %}{% endif %}
+            {% if ii.can_upload_postmatric|default(false) %}{% set _upload_ns.postmatric = true %}{% endif %}
+            {% if ii.can_upload_higher_ed|default(false) %}{% set _upload_ns.higher_ed = true %}{% endif %}
+          {% endif %}
+        {% endfor %}
         <div class="d-flex flex-wrap align-items-center gap-2 ttv2-csv-upload-actions">
+          {% if _upload_ns.matric %}
           <button type="button"
                   class="btn ttv2-csv-upload-btn ttv2-csv-upload-btn--matric"
                   data-bs-toggle="modal"
@@ -22,6 +40,8 @@
               <span class="ttv2-csv-upload-btn-sub">Bulk upload Class 9–10</span>
             </span>
           </button>
+          {% endif %}
+          {% if _upload_ns.postmatric %}
           <button type="button"
                   class="btn ttv2-csv-upload-btn ttv2-csv-upload-btn--postmatric"
                   data-bs-toggle="modal"
@@ -34,6 +54,52 @@
               <span class="ttv2-csv-upload-btn-sub">Bulk upload Class 11–12</span>
             </span>
           </button>
+          {% endif %}
+          {% if _upload_ns.higher_ed %}
+          <button type="button"
+                  class="btn ttv2-csv-upload-btn ttv2-csv-upload-btn--highered"
+                  data-bs-toggle="modal"
+                  data-bs-target="#ttv2HigherEdCsvUploadModal">
+            <span class="ttv2-csv-upload-btn-icon" aria-hidden="true">
+              <i class="bx bx-cloud-upload"></i>
+            </span>
+            <span class="ttv2-csv-upload-btn-text">
+              <span class="ttv2-csv-upload-btn-title">College/Professional CSV</span>
+              <span class="ttv2-csv-upload-btn-sub">Class 12 passout, graduate, professional</span>
+            </span>
+          </button>
+          {% endif %}
+        </div>
+      {% elif institute is defined and institute and (ttv2_students_role is not defined or ttv2_students_role == 'institute') %}
+        {% set _inst_uploads = institute.student_csv_upload_kinds() %}
+        <div class="d-flex flex-wrap align-items-center gap-2 ttv2-csv-upload-actions">
+          {% if _inst_uploads.matric %}
+          <button type="button" class="btn ttv2-csv-upload-btn ttv2-csv-upload-btn--matric" data-bs-toggle="modal" data-bs-target="#addCsvStudentModal">
+            <span class="ttv2-csv-upload-btn-icon" aria-hidden="true"><i class="bx bx-cloud-upload"></i></span>
+            <span class="ttv2-csv-upload-btn-text">
+              <span class="ttv2-csv-upload-btn-title">Matric CSV</span>
+              <span class="ttv2-csv-upload-btn-sub">Bulk upload Class 9–10</span>
+            </span>
+          </button>
+          {% endif %}
+          {% if _inst_uploads.postmatric %}
+          <button type="button" class="btn ttv2-csv-upload-btn ttv2-csv-upload-btn--postmatric" data-bs-toggle="modal" data-bs-target="#addPostMatricCsvModal">
+            <span class="ttv2-csv-upload-btn-icon" aria-hidden="true"><i class="bx bx-cloud-upload"></i></span>
+            <span class="ttv2-csv-upload-btn-text">
+              <span class="ttv2-csv-upload-btn-title">Post-Matric CSV</span>
+              <span class="ttv2-csv-upload-btn-sub">Bulk upload Class 11–12</span>
+            </span>
+          </button>
+          {% endif %}
+          {% if _inst_uploads.higher_ed %}
+          <button type="button" class="btn ttv2-csv-upload-btn ttv2-csv-upload-btn--highered" data-bs-toggle="modal" data-bs-target="#addHigherEdCsvModal">
+            <span class="ttv2-csv-upload-btn-icon" aria-hidden="true"><i class="bx bx-cloud-upload"></i></span>
+            <span class="ttv2-csv-upload-btn-text">
+              <span class="ttv2-csv-upload-btn-title">College/Professional CSV</span>
+              <span class="ttv2-csv-upload-btn-sub">Class 12 passout, graduate, professional</span>
+            </span>
+          </button>
+          {% endif %}
         </div>
       {% endif %}
     </div>

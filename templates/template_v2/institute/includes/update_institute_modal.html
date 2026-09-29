@@ -39,17 +39,31 @@
               <label class="form-label">Admin contact</label>
               <input type="tel" class="form-control ttv2-phone10" name="institute_admin" maxlength="10" value="{{ ins.administrator_contact|default('') }}">
             </div>
-            {% if institute_group is defined and institute_group %}
             <div class="col-md-6">
               <label class="form-label">Institute group</label>
+              {% set _groups = institute_groups if institute_groups is defined else (institute_group if institute_group is defined else []) %}
+              {% if _groups %}
               <select class="form-select" name="institute_group">
                 <option value="">— None —</option>
-                {% for g in institute_group %}
+                {% for g in _groups %}
                 <option value="{{ g.id }}" {% if ins.institute_group_id == g.id %}selected{% endif %}>{{ g.group_name }}</option>
                 {% endfor %}
               </select>
+              {% elif ins.institute_group %}
+              <div class="border rounded-3 px-3 py-2 bg-light">
+                <div class="fw-semibold small mb-0">{{ ins.institute_group.group_name }}</div>
+                <p class="text-muted small mb-0">This group is already assigned.</p>
+              </div>
+              {% else %}
+              <div class="border rounded-3 px-3 py-2 bg-light d-flex align-items-start gap-2">
+                <i class="bx bx-buildings text-muted fs-5" aria-hidden="true"></i>
+                <div>
+                  <div class="fw-semibold small mb-0">No institute group yet</div>
+                  <p class="text-muted small mb-0">Create a group first, then you can attach this institute to it.</p>
+                </div>
+              </div>
+              {% endif %}
             </div>
-            {% endif %}
             <div class="col-md-6">
               <label class="form-label">Institute logo</label>
               <input type="file" name="institute_logo" class="form-control" accept=".jpg,.png">
@@ -62,7 +76,7 @@
                   <div class="form-check">
                     <input class="form-check-input"
                            type="radio"
-                           name="institute_account_type"
+                           name="institute_account_type_ui_{{ ins.id }}"
                            id="ttv2EditAccountTypePaid{{ ins.id }}"
                            value="paid"
                            data-ttv2-account-type
@@ -72,7 +86,7 @@
                   <div class="form-check">
                     <input class="form-check-input"
                            type="radio"
-                           name="institute_account_type"
+                           name="institute_account_type_ui_{{ ins.id }}"
                            id="ttv2EditAccountTypeDemo{{ ins.id }}"
                            value="demo"
                            data-ttv2-account-type
@@ -80,6 +94,7 @@
                     <label class="form-check-label" for="ttv2EditAccountTypeDemo{{ ins.id }}">Demo institute</label>
                   </div>
                 </div>
+                <input type="hidden" name="institute_account_type" value="{% if ins.is_demo_institute %}demo{% else %}paid{% endif %}" data-ttv2-account-type-value>
                 <div class="border rounded-3 p-3 bg-light-subtle" data-ttv2-demo-only-section>
                   <p class="fw-semibold mb-1">Demo student seed</p>
                   <p class="small text-muted mb-2">
@@ -130,19 +145,17 @@
   if (!modal || modal.__ttv2EditAccountBound) return;
   modal.__ttv2EditAccountBound = true;
   function isDemo() {
-    var c = modal.querySelector('input[name="institute_account_type"]:checked');
+    var c = modal.querySelector('input[data-ttv2-account-type]:checked');
     return !!(c && c.value === 'demo');
   }
   function sync() {
     var demoOn = isDemo();
+    var hidden = modal.querySelector('[data-ttv2-account-type-value]');
+    if (hidden) hidden.value = demoOn ? 'demo' : 'paid';
     var demoSec = modal.querySelector('[data-ttv2-demo-only-section]');
     var paidSec = modal.querySelector('[data-ttv2-paid-only-section]');
-    [demoSec, paidSec].forEach(function (sec, idx) {
-      if (!sec) return;
-      var off = (idx === 0) ? !demoOn : demoOn;
-      sec.classList.toggle('opacity-50', off);
-      sec.classList.toggle('pe-none', off);
-    });
+    if (demoSec) demoSec.classList.toggle('d-none', !demoOn);
+    if (paidSec) paidSec.classList.toggle('d-none', demoOn);
     var examQty = modal.querySelector('input[name="tieup_student_test_credits_qty"]');
     if (examQty) {
       if (demoOn) examQty.removeAttribute('required');

@@ -8,7 +8,12 @@ from django.db import transaction
 from django.utils import timezone
 
 from core import choices
-from core.psychometric_grade import get_student_psychometric_track, CLASS10_TRACK, POST_MATRIC_TRACK
+from core.psychometric_grade import (
+    CLASS10_TRACK,
+    POST_MATRIC_TRACK,
+    get_student_psychometric_track,
+    is_higher_education_student,
+)
 from psychometric_tests.models import (
     PsychometricPackage,
     StudentAssessmentEntitlement,
@@ -72,6 +77,14 @@ def institute_can_assign_package(institute, package: PsychometricPackage, studen
             f'Insufficient assignment credits. Need {package.credit_cost}, '
             f'have {institute.assignment_credits}.'
         )
+    if is_higher_education_student(student):
+        if package.is_legacy_bundle:
+            return False, 'Full bundles are for school students. Choose one test.'
+        if package.track != choices.PsychometricTrack.POST_MATRIC:
+            return False, 'Package track does not match student grade track.'
+        if package.package_assessments.count() != 1:
+            return False, 'Above Class 12 students can be assigned one test at a time.'
+        return True, ''
     student_track = get_student_psychometric_track(student)
     package_track = _track_for_package(package)
     if student_track != package_track:

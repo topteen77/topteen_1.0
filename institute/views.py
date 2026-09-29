@@ -56,6 +56,29 @@ from core.models import Configuration
 from core.ttv2_partial_request import request_wants_ttv2_dashboard_body_partial
 # Create your views here.
 
+def institute_groups_for_actor(user):
+    """Institute groups this user may see or assign, by role.
+
+    Superusers see every group. An institute-group admin sees only groups they
+    administer. A marketing admin sees groups already used by institutes in
+    their marketing scope (plus any group they personally administer).
+    """
+    if not getattr(user, "is_authenticated", False):
+        return InstituteGroup.objects.none()
+    if getattr(user, "is_superuser", False):
+        qs = InstituteGroup.objects.all()
+    elif getattr(user, "user_type", None) == choices.UserType.INSTITUTEGROUPADMIN:
+        qs = InstituteGroup.objects.filter(institute_group_admin=user)
+    elif getattr(user, "user_type", None) == choices.UserType.MARKETINGGROUPADMIN:
+        qs = InstituteGroup.objects.filter(
+            Q(institute_group_admin=user)
+            | Q(institute__marketing_group__marketing_group_admin=user)
+        ).distinct()
+    else:
+        qs = InstituteGroup.objects.none()
+    return qs.order_by(Lower("group_name"), "id")
+
+
 def _ttv2_dbg(payload: dict):
     """DEBUG MODE: NDJSON log (session 80bb70). Avoid PII."""
     try:
@@ -1960,29 +1983,11 @@ class InstituteCreateView(TemplateView):
         if ins_em and name and address and contact and admin_contact and logo and 0 <= credit_counts <= max_credits:
             raw_ig = (institute_group_id or "").strip()
             ins_group = None
-            if request.user.user_type == choices.UserType.INSTITUTEGROUPADMIN:
-                owned_ig = InstituteGroup.objects.filter(
-                    institute_group_admin=request.user
-                ).order_by("id")
-                if raw_ig.isdigit():
-                    ins_group = get_object_or_404(InstituteGroup, id=int(raw_ig))
-                    if not owned_ig.filter(pk=ins_group.pk).exists():
-                        messages.error(request, "Invalid institute group selection.")
-                        return _err_redirect()
-                elif owned_ig.count() == 1:
-                    ins_group = owned_ig.first()
-                elif owned_ig.count() > 1:
-                    messages.error(request, "Please select an institute group.")
+            if raw_ig.isdigit():
+                ins_group = institute_groups_for_actor(request.user).filter(pk=int(raw_ig)).first()
+                if ins_group is None:
+                    messages.error(request, "Invalid institute group selection.")
                     return _err_redirect()
-                else:
-                    messages.error(
-                        request,
-                        "Your account has no institute group assigned. Contact support.",
-                    )
-                    return _err_redirect()
-            else:
-                if raw_ig.isdigit():
-                    ins_group = get_object_or_404(InstituteGroup, id=int(raw_ig))
 
             # Attach institute to this user's marketing group (create one if missing — common for new admins)
             marketing_group = InstituteMarketingGroup.objects.filter(
@@ -2012,6 +2017,7 @@ class InstituteCreateView(TemplateView):
                 contact_info=contact,
                 administrator_contact=admin_contact,
                 credit_counts=credit_counts,
+                assignment_credits=credit_counts,
                 institute_group=ins_group,
                 marketing_group=marketing_group,
                 institute_status=initial_status,
@@ -2166,21 +2172,12 @@ class InstituteConvertDemoToPaidView(View):
             messages.error(request, credits_err)
             return HttpResponseRedirect(referer)
 
-        assign_raw = (request.POST.get("tieup_assignment_credits_qty") or request.POST.get("assignment_credits") or "").strip()
-        assignment_credits = None
-        if assign_raw:
-            try:
-                assignment_credits = max(0, int(assign_raw))
-            except (TypeError, ValueError):
-                messages.error(request, "Enter a valid number for assignment credits.")
-                return HttpResponseRedirect(referer)
-
         try:
             result = convert_demo_institute_to_paid(
                 institute,
                 request.user,
                 credit_counts=credit_counts,
-                assignment_credits=assignment_credits,
+                assignment_credits=credit_counts,
             )
         except DemoStudentError as e:
             messages.error(request, str(e))
@@ -2717,7 +2714,8 @@ class MarketingGroupDashboardView(TemplateView):
                     _scoped.values_list('name', flat=True).distinct()[:200]
                 ),
                 'search_params': search_params,
-                "institute_group": InstituteGroup.objects.all(),
+                "institute_group": institute_groups_for_actor(group_admin),
+                "institute_groups": institute_groups_for_actor(group_admin),
                 "institute_types": choices.InstituteType.CHOICES,
                 'institutes_paginations': None,
             })
@@ -2753,6 +2751,8 @@ class MarketingGroupDashboardView(TemplateView):
                     ctx['institutes_paginations'] = pages.get_page(1)
             
             ctx['search_params'] = search_params
+            ctx['institute_group'] = institute_groups_for_actor(group_admin)
+            ctx['institute_groups'] = ctx['institute_group']
             ctx['institutes_is_group_mode'] = (list_mode == 'group')
             ctx['per_page'] = per_page
             from urllib.parse import urlencode
@@ -2865,6 +2865,8 @@ class MarketingGroupDashboardView(TemplateView):
             page_number = request.GET.get('page', 1)
             ctx['institutes_paginations'] = pages.get_page(page_number)
             ctx['search_params'] = search_params
+            ctx['institute_group'] = institute_groups_for_actor(group_admin)
+            ctx['institute_groups'] = ctx['institute_group']
             ctx['institutes_is_group_mode'] = (list_mode == 'group')
             ctx['per_page'] = '10'
             from urllib.parse import urlencode
@@ -3284,9 +3286,35 @@ class InstituteMarketingProfileEditView(TemplateView):
                 ins.contact_info = ins_contact
             if ins_admin:
                 ins.administrator_contact = ins_admin
-            if ins_group:
-                institute_group = get_object_or_404(InstituteGroup, id=ins_group)
-                ins.institute_group = institute_group
+            if "institute_group" in request.POST:
+                raw_ig = (ins_group or "").strip()
+                allowed_groups = institute_groups_for_actor(request.user)
+                if not raw_ig:
+                    # Clear only a group this user is allowed to change.
+                    if (
+                        not ins.institute_group_id
+                        or allowed_groups.filter(pk=ins.institute_group_id).exists()
+                    ):
+                        ins.institute_group = None
+                elif not raw_ig.isdigit():
+                    messages.error(request, "Invalid institute group selection.")
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse(
+                            {'success': False, 'error': 'Invalid institute group selection.'},
+                            status=400,
+                        )
+                    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+                else:
+                    institute_group = allowed_groups.filter(pk=int(raw_ig)).first()
+                    if institute_group is None:
+                        messages.error(request, "Invalid institute group selection.")
+                        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                            return JsonResponse(
+                                {'success': False, 'error': 'Invalid institute group selection.'},
+                                status=400,
+                            )
+                        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+                    ins.institute_group = institute_group
             if ins_logo:
                 ins.logo = ins_logo
 
@@ -3298,23 +3326,12 @@ class InstituteMarketingProfileEditView(TemplateView):
                         credit_counts = max(0, int(tieup_qty_raw))
                     except (TypeError, ValueError):
                         credit_counts = None
-                assign_raw = (
-                    request.POST.get("assignment_credits")
-                    or request.POST.get("tieup_assignment_credits_qty")
-                    or ""
-                ).strip()
-                assignment_credits = None
-                if assign_raw:
-                    try:
-                        assignment_credits = max(0, int(assign_raw))
-                    except (TypeError, ValueError):
-                        assignment_credits = None
                 try:
                     conv = convert_demo_institute_to_paid(
                         ins,
                         request.user,
                         credit_counts=credit_counts if credit_counts is not None else ins.credit_counts,
-                        assignment_credits=assignment_credits,
+                        assignment_credits=credit_counts if credit_counts is not None else ins.credit_counts,
                     )
                     ins.refresh_from_db()
                     extra_messages.append(
@@ -8248,6 +8265,7 @@ class InstituteProfileEditView(TemplateView):
                 ins.administrator_contact=ins_admin
             if ins_credits and (0<=int(ins_credits)<=(ins.credit_counts+get_global_remain_credits())):
                 ins.credit_counts=ins_credits
+                ins.assignment_credits=ins_credits
             if ins_group:
                 institute_group=get_object_or_404(InstituteGroup,id=ins_group)
                 ins.institute_group=institute_group
