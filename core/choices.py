@@ -343,6 +343,23 @@ class PsychometricTrack(object):
     )
 
 
+class EducationAudience(object):
+    """Who the student is. School keeps using class number. Above Class 12 does not."""
+    SCHOOL = 'school'
+    CLASS12_PASSOUT = 'class12_passout'
+    GRADUATE = 'graduate'
+    POSTGRADUATE = 'postgraduate'
+    PROFESSIONAL = 'professional'
+    CHOICES = (
+        (SCHOOL, 'School (up to Class 12)'),
+        (CLASS12_PASSOUT, 'Class 12 passout'),
+        (GRADUATE, 'Graduate'),
+        (POSTGRADUATE, 'Postgraduate'),
+        (PROFESSIONAL, 'Professional'),
+    )
+    HIGHER = (CLASS12_PASSOUT, GRADUATE, POSTGRADUATE, PROFESSIONAL)
+
+
 class EntitlementSource(object):
     LEGACY_BUNDLE = 'legacy_bundle'
     PACKAGE_ASSIGNMENT = 'package_assignment'

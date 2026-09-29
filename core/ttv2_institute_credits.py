@@ -103,4 +103,7 @@ def build_ttv2_quicklink_institutes(user) -> List[Dict[str, Any]]:
         row["credits_allocated"] = alloc
         row["credits_used"] = used
         row["credits_remaining"] = institute_credits_remaining(alloc, used)
+    from institute.psychometric_packages import annotate_quicklink_upload_flags
+
+    annotate_quicklink_upload_flags(rows)
     return rows

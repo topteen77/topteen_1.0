@@ -104,6 +104,8 @@
           </div>
 
           <div class="ttv2-welcome-setup__actions">
+            {% set _welcome_uploads = institute.student_csv_upload_kinds() if institute is defined and institute else {'matric': true, 'postmatric': true, 'higher_ed': false} %}
+            {% if _welcome_uploads.matric %}
             <a href="#ql-upload-matric" class="btn ttv2-welcome-setup__btn ttv2-welcome-setup__btn--primary">
               <span class="ttv2-welcome-setup__btn-ico" aria-hidden="true"><i class="bx bx-cloud-upload"></i></span>
               <span class="ttv2-welcome-setup__btn-label">
@@ -112,6 +114,8 @@
               </span>
               <i class="bx bx-right-arrow-alt ttv2-welcome-setup__btn-arrow" aria-hidden="true"></i>
             </a>
+            {% endif %}
+            {% if _welcome_uploads.postmatric %}
             <a href="#ql-upload-postmatric" class="btn ttv2-welcome-setup__btn ttv2-welcome-setup__btn--primary">
               <span class="ttv2-welcome-setup__btn-ico" aria-hidden="true"><i class="bx bx-cloud-upload"></i></span>
               <span class="ttv2-welcome-setup__btn-label">
@@ -120,6 +124,17 @@
               </span>
               <i class="bx bx-right-arrow-alt ttv2-welcome-setup__btn-arrow" aria-hidden="true"></i>
             </a>
+            {% endif %}
+            {% if _welcome_uploads.higher_ed %}
+            <a href="#ql-upload-highered" class="btn ttv2-welcome-setup__btn ttv2-welcome-setup__btn--primary">
+              <span class="ttv2-welcome-setup__btn-ico" aria-hidden="true"><i class="bx bx-cloud-upload"></i></span>
+              <span class="ttv2-welcome-setup__btn-label">
+                <span class="ttv2-welcome-setup__btn-kicker">College / professional</span>
+                <span class="ttv2-welcome-setup__btn-main">College/Professional CSV</span>
+              </span>
+              <i class="bx bx-right-arrow-alt ttv2-welcome-setup__btn-arrow" aria-hidden="true"></i>
+            </a>
+            {% endif %}
           </div>
         </div>
       </li>

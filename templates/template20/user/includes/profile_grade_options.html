@@ -1,0 +1,5 @@
+{% set grade_form = profile_user.get_grade_form() %}
+<option value="">{{ grade_form.placeholder }}</option>
+{% for opt in grade_form.options %}
+<option value="{{ opt.value }}" {% if opt.selected %}selected{% endif %}>{{ opt.label }}</option>
+{% endfor %}

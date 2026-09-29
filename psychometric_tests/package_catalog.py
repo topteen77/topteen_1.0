@@ -127,6 +127,14 @@ DEFAULT_PACKAGES = [
         'assessment_codes': ['class12_aptitude'],
     },
     {
+        'code': 'pkg_c12_motivation',
+        'name': 'Class 12 Motivation',
+        'track': choices.PsychometricTrack.POST_MATRIC,
+        'credit_cost': 1,
+        'list_price': '299.00',
+        'assessment_codes': ['class12_motivation'],
+    },
+    {
         'code': 'pkg_career_direction_full',
         'name': 'Career Direction Full Bundle',
         'track': choices.PsychometricTrack.POST_MATRIC,

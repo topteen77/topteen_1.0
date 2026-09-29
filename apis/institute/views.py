@@ -96,7 +96,7 @@ class InstituteRegisterAPI(APIView):
 
             # Generate random password (like existing form does)
             import random
-            password = ''.join([str(random.randint(0, 10)) for _ in range(6)])
+            password = ''.join([str(random.randint(0, 9)) for _ in range(6)])
 
             # Create user with principal's name
             user_dict = {

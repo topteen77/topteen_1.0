@@ -1600,14 +1600,20 @@
           </div>
           <div class="mb-3">
             <label for="institute_group" class="form-label">Institute Group</label>
+            {% set _groups = institute_groups if institute_groups is defined else (institute_group if institute_group is defined else []) %}
+            {% if _groups %}
             <select class="form-select" id="institute_group" name="institute_group">
-              <option value="">Select Group</option>
-              {% if institute_group %}
-                {% for group in institute_group %}
-                  <option value="{{ group.id }}">{{ group.group_name }}</option>
-                {% endfor %}
-              {% endif %}
+              <option value="" selected>Select Group</option>
+              {% for group in _groups %}
+                <option value="{{ group.id }}">{{ group.group_name }}</option>
+              {% endfor %}
             </select>
+            {% else %}
+            <div class="border rounded-3 px-3 py-2 bg-light">
+              <div class="fw-semibold small mb-0">No institute group yet</div>
+              <p class="text-muted small mb-0">You can create this institute without a group and attach one later.</p>
+            </div>
+            {% endif %}
           </div>
           <div class="mb-3">
             <label for="institute_logo" class="form-label">Institute Logo <span class="text-danger">*</span></label>
@@ -1617,7 +1623,9 @@
           {% with tieup_exam_credits_required=true, tieup_hide_coupon=true %}
           {% include "template_v2/institute/includes/tieup_billing_fields.html" %}
           {% endwith %}
+          {% with psych_form_key='legacy-create' %}
           {% include "template_v2/institute/includes/psychometric_institute_settings.html" %}
+          {% endwith %}
         </div>
         <div class="modal-footer flex-shrink-0 bg-white">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>

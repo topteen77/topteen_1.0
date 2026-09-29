@@ -400,6 +400,16 @@ class Institute(BaseModel, SlugModel):
             return []
         return get_package_choices_for_institute(self)
 
+    def get_higher_ed_csv_package_choices(self):
+        from institute.higher_ed_csv import higher_ed_package_choices
+
+        return higher_ed_package_choices(self)
+
+    def student_csv_upload_kinds(self):
+        from institute.psychometric_packages import institute_csv_upload_kinds
+
+        return institute_csv_upload_kinds(self)
+
     def clean(self):
         """
         Custom validation for the Institute model.
@@ -421,9 +431,21 @@ class StudentManagement(BaseModel):
     institute=models.ForeignKey(Institute,null=True,on_delete=models.SET_NULL,related_name="student_management")
     student=models.ForeignKey(User,null=True,on_delete=models.SET_NULL,related_name="student_management")
     class_and_section=models.ForeignKey(ClassAndSection,null=True,blank=True,on_delete=models.SET_NULL,related_name="student_management")
+    education_audience=models.CharField(
+        max_length=32,
+        choices=choices.EducationAudience.CHOICES,
+        default=choices.EducationAudience.SCHOOL,
+        db_index=True,
+        help_text="School students are routed by class. Above Class 12 uses this and may have no class.",
+    )
 
     # ForeignKey to Counselor Manish
     counselor = models.ForeignKey('counselor.Counselor', null=True, blank=True, on_delete=models.SET_NULL, related_name="student_management")
+
+    def display_class_label(self):
+        from core.psychometric_grade import student_class_display
+
+        return student_class_display(self.student, self)
 
     def get_psychometric_result(self):
         return PsychometricTestResult.objects.filter(assessment__central_test_candidate__user=self.student)

@@ -237,11 +237,7 @@ class User(BaseModel,AbstractBaseUser, PermissionsMixin):
         
     @classmethod
     def create_user(cls,**kwargs):
-        # password = kwargs.pop('password')
-        password = '12345'
-
-        # static password by manish"
-        
+        password = kwargs.pop('password', None) or '12345'
         user = User.objects.create(**kwargs)
         user.set_password(password)
         user.save()
@@ -317,6 +313,24 @@ class User(BaseModel,AbstractBaseUser, PermissionsMixin):
         from core.models import Configuration
         prefix = (Configuration.get('STUDENT_ID_PREFIX', 'STU', editable=True) or 'STU').strip() or 'STU'
         return "{}{}".format(prefix, str(self.id).zfill(6))
+
+    def get_display_class_label(self):
+        """Class name, or the above-Class-12 education level when there is no class."""
+        from core.psychometric_grade import student_class_display
+
+        return student_class_display(self)
+
+    def get_display_school_name(self):
+        """Profile school name, or the institute this student was uploaded to."""
+        from core.psychometric_grade import student_school_display
+
+        return student_school_display(self)
+
+    def get_grade_form(self):
+        """Grade/Class dropdown for profile add and edit, limited to this student's track."""
+        from core.psychometric_grade import student_grade_form
+
+        return student_grade_form(self)
 
     def get_display_student_id(self):
         """For school students: school ID (e.g. SCH/TT001919). Otherwise: direct student ID from get_student_display_id()."""

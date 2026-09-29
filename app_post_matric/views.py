@@ -392,7 +392,10 @@ def Tests(request):
     from institute.models import StudentManagement
     from core.assessment_access import (
         can_access_psychometric_dashboard,
+        get_student_custom_package_names,
         get_student_entitled_assessment_codes,
+        get_student_psychometric_product_labels,
+        has_legacy_full_bundle_access,
         has_post_matric_test_access,
         institute_student_exempt_from_payment,
         packages_enabled,
@@ -506,11 +509,35 @@ def Tests(request):
                 test_type = test_type_map.get(test_id)
                 if test_type and test_type not in answered_popups:
                     popup_status[test_type] = True
+
+    access_user = status_user
+    test_access = {
+        '1': has_post_matric_test_access(access_user, 1),
+        '2': has_post_matric_test_access(access_user, 2),
+        '3': has_post_matric_test_access(access_user, 3),
+        '4': has_post_matric_test_access(access_user, 4),
+    }
+    entitled_codes = sorted(get_student_entitled_assessment_codes(access_user))
+    show_all = has_legacy_full_bundle_access(access_user)
+    custom_names = get_student_custom_package_names(access_user)
+    product_labels = get_student_psychometric_product_labels(access_user)
+    if product_labels:
+        dashboard_title = ', '.join(product_labels)
+    elif custom_names:
+        dashboard_title = ', '.join(custom_names)
+    else:
+        dashboard_title = 'Career Direction Test'
     
     context = {
         'test_status': json.dumps(test_status),
         'popup_status': json.dumps(popup_status),
         'test_type_map': json.dumps(test_type_map),
+        'test_access': json.dumps(test_access),
+        'packages_enabled': packages_enabled(),
+        'show_all_psychometric_tests': show_all,
+        'entitled_assessments': entitled_codes,
+        'psychometric_custom_package_names': custom_names,
+        'psychometric_dashboard_title': dashboard_title,
         'report_student_id': report_student_id or '',
         'breadcrumb': get_breadcrumb([{'text': 'Tests', 'url': ''}]),
     }
@@ -1373,7 +1400,15 @@ def get_hexaco_career_recommendations(high_categories, low_category, latest_sess
 
     except Exception as e:
         print(f"Error in career recommendations: {str(e)}")
-    
+
+    session_user = getattr(latest_session, 'user', None)
+    if session_user is not None:
+        from core.psychometric_grade import hides_undergraduate_college_tools
+
+        if hides_undergraduate_college_tools(session_user):
+            result['aptitude_Recommended_College_Courses'] = []
+            result['aptitude_course_recommendation_cards'] = []
+
     return result
 
 
@@ -4973,6 +5008,10 @@ def get_career_recommendations_from_tests(user):
     Get career recommendations based on user's test results (RIASEC, Motivation, Aptitude)
     Returns a list of (Career, match_score) tuples sorted by score
     """
+    from core.psychometric_grade import hides_undergraduate_college_tools
+
+    if hides_undergraduate_college_tools(user):
+        return []
     from careers.models import Career
     from core import choices
     from django.conf import settings
@@ -5480,7 +5519,14 @@ def top_recommendations(request):
             scored_careers = []
     
     # If no test results, use profile-based matching (same logic as career_swipe)
-    if not scored_careers and user_profile_data and (has_hobbies or has_interests):
+    from core.psychometric_grade import hides_undergraduate_college_tools
+
+    if (
+        not scored_careers
+        and user_profile_data
+        and (has_hobbies or has_interests)
+        and not hides_undergraduate_college_tools(request.user)
+    ):
         debug_log("No test results - Using profile-based recommendations")
         all_careers = Career.objects.filter(
             publish_status=choices.PublishStatus.PUBLISHED
@@ -5510,7 +5556,7 @@ def top_recommendations(request):
             scored_careers.append((career, min(score, 100.0)))
         
         debug_log(f"Profile-based recommendations: {len(scored_careers)} careers")
-    elif not scored_careers:
+    elif not scored_careers and not hides_undergraduate_college_tools(request.user):
         # Fallback to all published careers if no test results and no profile data
         debug_log("No test results, no profile data - Using default published careers")
         careers_queryset = Career.objects.filter(

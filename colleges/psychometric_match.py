@@ -221,6 +221,11 @@ def _latest_riasec_scores(user) -> Optional[Dict[str, float]]:
     if not user or not getattr(user, "is_authenticated", False):
         return None
 
+    from core.psychometric_grade import hides_undergraduate_college_tools
+
+    if hides_undergraduate_college_tools(user):
+        return None
+
     try:
         scores = _scores_from_class12_career_interest(user)
         if scores:

@@ -161,6 +161,10 @@ def skilllab_course_eligible_for_student(user, course) -> bool:
 
 def skilllab_is_career_readiness_grade_student(user) -> bool:
     """Class 9–12 (or bucket 10/12 when grade not set) — target audience for this section."""
+    from core.psychometric_grade import hides_undergraduate_college_tools
+
+    if hides_undergraduate_college_tools(user):
+        return False
     grade_num = _extract_grade_number(user)
     if grade_num is not None:
         return grade_num in (9, 10, 11, 12)

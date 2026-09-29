@@ -303,6 +303,12 @@ def ttv2_role_ctx(request) -> Dict[str, Any]:
             )
     except Exception:
         ttv2_quicklink_institutes = []
+    try:
+        from institute.psychometric_packages import annotate_quicklink_upload_flags
+
+        annotate_quicklink_upload_flags(ttv2_quicklink_institutes)
+    except Exception:
+        pass
 
     return {
         "ttv2_role_ctx": {
