@@ -108,6 +108,73 @@
     margin-top: 5px;
     display: none;
   }
+
+  .form-alert {
+    display: none;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .form-alert.is-visible {
+    display: flex;
+  }
+
+  .form-alert--error {
+    background: linear-gradient(135deg, #fff5f5 0%, #fef2f2 100%);
+    border: 1px solid #fecaca;
+    color: #7f1d1d;
+    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.08);
+  }
+
+  .form-alert--success {
+    background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+    border: 1px solid #a7f3d0;
+    color: #065f46;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.08);
+  }
+
+  .form-alert__icon {
+    flex-shrink: 0;
+    font-size: 22px;
+    line-height: 1;
+    margin-top: 2px;
+  }
+
+  .form-alert--error .form-alert__icon {
+    color: #dc2626;
+  }
+
+  .form-alert--success .form-alert__icon {
+    color: #059669;
+  }
+
+  .form-alert__body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .form-alert__title {
+    margin: 0 0 4px;
+    font-size: 14px;
+    font-weight: 700;
+    color: inherit;
+  }
+
+  .form-alert__text {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: #991b1b;
+  }
+
+  .form-alert--success .form-alert__text {
+    color: #047857;
+  }
   
   .btn-primary {
     width: 100%;
@@ -193,8 +260,19 @@
             <p>Access your institute dashboard</p>
           </div>
 
-          <div id="errorMessage" class="error-message" style="display: none;"></div>
-          <div id="successMessage" style="display: none; color: #28a745; margin-bottom: 20px; padding: 10px; background: #d4edda; border-radius: 5px;"></div>
+          <div id="errorMessage" class="form-alert form-alert--error" role="alert" aria-live="polite">
+            <i class="bx bx-error-circle form-alert__icon" aria-hidden="true"></i>
+            <div class="form-alert__body">
+              <p class="form-alert__title" id="errorMessageTitle" hidden></p>
+              <p class="form-alert__text" id="errorMessageText"></p>
+            </div>
+          </div>
+          <div id="successMessage" class="form-alert form-alert--success" role="status" aria-live="polite">
+            <i class="bx bx-check-circle form-alert__icon" aria-hidden="true"></i>
+            <div class="form-alert__body">
+              <p class="form-alert__text" id="successMessageText"></p>
+            </div>
+          </div>
 
           <form id="instituteLoginForm">
             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
@@ -266,6 +344,43 @@ document.addEventListener('DOMContentLoaded', function() {
   const btnLoader = document.getElementById('btnLoader');
   const togglePassword = document.getElementById('togglePassword');
   const passwordInput = document.getElementById('password');
+  const errorBox = document.getElementById('errorMessage');
+  const errorTitle = document.getElementById('errorMessageTitle');
+  const errorText = document.getElementById('errorMessageText');
+  const successBox = document.getElementById('successMessage');
+  const successText = document.getElementById('successMessageText');
+
+  function hideFormAlerts() {
+    errorBox.classList.remove('is-visible');
+    successBox.classList.remove('is-visible');
+    errorTitle.hidden = true;
+    errorTitle.textContent = '';
+    errorText.textContent = '';
+    successText.textContent = '';
+  }
+
+  function showFormError(message) {
+    if (!message) return;
+    successBox.classList.remove('is-visible');
+    var isApproval = /approval to login/i.test(message);
+    if (isApproval) {
+      errorTitle.textContent = 'Account pending approval';
+      errorTitle.hidden = false;
+    } else {
+      errorTitle.hidden = true;
+      errorTitle.textContent = '';
+    }
+    errorText.textContent = message;
+    errorBox.classList.add('is-visible');
+    errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function showFormSuccess(message) {
+    if (!message) return;
+    errorBox.classList.remove('is-visible');
+    successText.textContent = message;
+    successBox.classList.add('is-visible');
+  }
 
   // Password toggle
   if (togglePassword) {
@@ -288,8 +403,7 @@ document.addEventListener('DOMContentLoaded', function() {
       el.style.display = 'none';
       el.textContent = '';
     });
-    document.getElementById('errorMessage').style.display = 'none';
-    document.getElementById('successMessage').style.display = 'none';
+    hideFormAlerts();
 
     // Disable submit button
     submitBtn.disabled = true;
@@ -311,8 +425,7 @@ document.addEventListener('DOMContentLoaded', function() {
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        document.getElementById('successMessage').textContent = data.message || 'Login successful! Redirecting...';
-        document.getElementById('successMessage').style.display = 'block';
+        showFormSuccess(data.message || 'Login successful! Redirecting...');
         setTimeout(function() {
           window.location.href = data.redirect_url || '{{ url("institute:institutedashboard", args=["default"]) }}';
         }, 1000);
@@ -328,8 +441,7 @@ document.addEventListener('DOMContentLoaded', function() {
           });
         }
         if (data.message || data.errMsg) {
-          document.getElementById('errorMessage').textContent = data.message || data.errMsg;
-          document.getElementById('errorMessage').style.display = 'block';
+          showFormError(data.message || data.errMsg);
         }
         submitBtn.disabled = false;
         btnText.style.display = 'inline';
@@ -338,8 +450,7 @@ document.addEventListener('DOMContentLoaded', function() {
     })
     .catch(error => {
       console.error('Error:', error);
-      document.getElementById('errorMessage').textContent = 'An error occurred. Please try again.';
-      document.getElementById('errorMessage').style.display = 'block';
+      showFormError('An error occurred. Please try again.');
       submitBtn.disabled = false;
       btnText.style.display = 'inline';
       btnLoader.style.display = 'none';
