@@ -9,7 +9,7 @@ from .models import OTP,CommunicationLog
 from django.core.mail import EmailMultiAlternatives
 from core import email_strings, sms_strings
 from communication.email_templates import render_transactional_email
-from communication.email_layout import ensure_email_html_wrapped
+from communication.email_layout import absolute_email_url, ensure_email_html_wrapped
 from communication.utils import referral_url_without_scheme
 # from edmissions.celery import app
 from django.utils.safestring import mark_safe
@@ -187,6 +187,7 @@ class ComService:
         candidate_test=test_payment.candidate_test.last()
         django_context = {"test_payment": test_payment, "candidate_test": candidate_test}
         test_link = getattr(candidate_test, 'test_link', '') if candidate_test else ''
+        test_link = absolute_email_url(test_link) if test_link else test_link
         format_context = {'test_link': test_link}
         subject, text_content, html_content = render_transactional_email(
             'psychometric_payment_success',
@@ -202,10 +203,11 @@ class ComService:
         course_name = getattr(course, 'name', '') if course else ''
         course_url = ''
         if course and getattr(course, 'slug', None):
-            course_url = "https://topteen.in{}".format(
+            course_url = absolute_email_url(
                 reverse('skilllabcourse:skilllabcoursedetail', args=[course.slug])
             )
         format_context = {'course_name': course_name, 'course_url': course_url}
+        django_context['course_url'] = course_url
         subject, text_content, html_content = render_transactional_email(
             'skilllab_payment_success',
             format_context=format_context,
@@ -511,9 +513,9 @@ class ComService:
     
     def send_student_create_mail(self,email,password,ins_name,image_url,test_link):
         to=email
-        ins_logo_url="{}{}".format("https://www.topteen.in",image_url)
-        url="{}{}".format("https://www.topteen.in",reverse("users:login"))
-        psychometric_test_url=test_link
+        ins_logo_url = absolute_email_url(image_url)
+        url = absolute_email_url(reverse("users:login"))
+        psychometric_test_url = absolute_email_url(test_link) if test_link else test_link
         django_context = {
             "url": url,
             "email": email,
@@ -535,7 +537,7 @@ class ComService:
     
     def send_institute_create_mail(self,email,password):
         to=email
-        url="{}{}".format("https://www.topteen.in",reverse("users:login"))
+        url = absolute_email_url(reverse("users:login"))
         django_context = {"url": url, "email": email, "password": password}
         format_context = {**django_context, 'url_no_scheme': referral_url_without_scheme(url)}
         subject, text_content, html_content = render_transactional_email(
@@ -548,7 +550,7 @@ class ComService:
     # Manish
     def send_institute_create_homepage_mail(self, email, password, Ins_name, principal_name, contact_number, Address, institute_type):
         to = email
-        url = "{}{}".format("https://demo.topteen.in", reverse("users:login"))
+        url = absolute_email_url(reverse("users:login"))
         django_context = {
             "url": url,
             "email": email,
@@ -579,7 +581,7 @@ class ComService:
         emails: list of email addresses
         """
         results = []
-        url = "{}{}".format("https://demo.topteen.in", reverse("users:login"))
+        url = absolute_email_url(reverse("users:login"))
         
         for email in emails:
             try:
@@ -634,7 +636,7 @@ class ComService:
     # Manish
     def send_counselor_create_mail(self,email,password):
         to=email
-        url="{}{}".format("https://www.topteen.in",reverse("users:login"))
+        url = absolute_email_url(reverse("users:login"))
         django_context = {"url": url, "email": email, "password": password}
         format_context = {**django_context, 'url_no_scheme': referral_url_without_scheme(url)}
         subject, text_content, html_content = render_transactional_email(
@@ -646,7 +648,7 @@ class ComService:
     
     def send_institute_group_create_mail(self,group_name,email,password):
         to=email
-        url="{}{}".format("https://www.topteen.in",reverse("users:login"))
+        url = absolute_email_url(reverse("users:login"))
         django_context = {"url": url, "email": email, "password": password, "group_name": group_name}
         format_context = {**django_context, 'url_no_scheme': referral_url_without_scheme(url)}
         subject, text_content, html_content = render_transactional_email(
@@ -658,7 +660,7 @@ class ComService:
     
     def send_student_change_password(self,email,password):
         to=email
-        url="{}{}".format("https://www.topteen.in",reverse("users:login"))
+        url = absolute_email_url(reverse("users:login"))
         django_context = {"url": url, "email": email, "password": password}
         format_context = {**django_context, 'url_no_scheme': referral_url_without_scheme(url)}
         subject, text_content, html_content = render_transactional_email(

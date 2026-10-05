@@ -149,9 +149,18 @@
             {% if ins.institute_status == 3 %}
             {% include "template_v2/institute/includes/mktg_pending_approval_actions.html" %}
             {% elif ins.institute_status == 2 %}
-            <span class="ttv2-mktg-status-pill ttv2-mktg-status-pill--bad">
-              <i class='bx bx-x-circle'></i> Rejected
-            </span>
+            <div class="ttv2-mktg-row-pending d-flex flex-wrap gap-1 align-items-center">
+              <span class="ttv2-mktg-status-pill ttv2-mktg-status-pill--bad">
+                <i class='bx bx-x-circle'></i> Rejected
+              </span>
+              <button type="button"
+                      class="btn btn-sm btn-success text-white"
+                      data-ttv2-approve-billing="1"
+                      data-institute-id="{{ ins.id }}"
+                      data-institute-name="{{ ins.name }}">
+                <i class='bx bx-check-circle me-1'></i>Approve
+              </button>
+            </div>
             {% else %}
             <span class="ttv2-mktg-status-pill ttv2-mktg-status-pill--ok">
               <i class='bx bx-check-circle'></i> Approved
@@ -267,9 +276,18 @@
             {% if ins.institute_status == 3 %}
             {% include "template_v2/institute/includes/mktg_pending_approval_actions.html" %}
             {% elif ins.institute_status == 2 %}
-            <span class="ttv2-mktg-status-pill ttv2-mktg-status-pill--bad">
-              <i class='bx bx-x-circle'></i> Rejected
-            </span>
+            <div class="ttv2-mktg-row-pending d-flex flex-wrap gap-1 align-items-center">
+              <span class="ttv2-mktg-status-pill ttv2-mktg-status-pill--bad">
+                <i class='bx bx-x-circle'></i> Rejected
+              </span>
+              <button type="button"
+                      class="btn btn-sm btn-success text-white"
+                      data-ttv2-approve-billing="1"
+                      data-institute-id="{{ ins.id }}"
+                      data-institute-name="{{ ins.name }}">
+                <i class='bx bx-check-circle me-1'></i>Approve
+              </button>
+            </div>
             {% else %}
             <span class="ttv2-mktg-status-pill ttv2-mktg-status-pill--ok">
               <i class='bx bx-check-circle'></i> Approved
