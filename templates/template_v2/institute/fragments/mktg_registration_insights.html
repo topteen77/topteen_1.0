@@ -151,7 +151,8 @@
                       Approve
                     </button>
                     <a href="{{ url('institute:institutereject', args=[row.id]) }}"
-                       class="btn btn-sm ttv2-mktg-pill-reject">
+                       class="btn btn-sm ttv2-mktg-pill-reject"
+                       data-no-ttv2-ajax="1">
                       Reject
                     </a>
                   </div>
@@ -265,6 +266,7 @@
 </div>
 <script>
 (function () {
+  if (window.__ttv2PendingApprovalBound) return;
   function val(el, name) { return (el && el.getAttribute(name)) || ''; }
   function setText(id, text) {
     var n = document.getElementById(id);

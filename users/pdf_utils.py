@@ -85,11 +85,23 @@ def html_to_pdf_bytes(
     return _weasyprint_pdf_bytes(html, base_url=base_url)
 
 
+def _pdf_base_url(base_url: str | None = None) -> str:
+    """Origin WeasyPrint uses to resolve relative assets when no request URL is passed."""
+    explicit = (base_url or "").strip()
+    if explicit:
+        return explicit
+    configured = str(getattr(settings, "SITE_BASE_URL", None) or "").strip().rstrip("/")
+    if configured:
+        return configured + "/"
+    from communication.email_layout import email_site_url
+
+    return email_site_url().rstrip("/") + "/"
+
+
 def _weasyprint_pdf_bytes(html: str, *, base_url: str | None = None) -> bytes:
     import weasyprint
 
-    url = base_url or getattr(settings, "SITE_BASE_URL", None) or "http://localhost/"
-    return weasyprint.HTML(string=html, base_url=url).write_pdf()
+    return weasyprint.HTML(string=html, base_url=_pdf_base_url(base_url)).write_pdf()
 
 
 def resume_html_to_pdf_bytes(
