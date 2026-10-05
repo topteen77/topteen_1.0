@@ -22,12 +22,16 @@ def is_email_layout_wrapped(html):
     return BASE_LAYOUT_MARKER in (html or '')
 
 
-def _email_logo_url():
-    return (
-        getattr(settings, 'TOPTEEN_EMAIL_LOGO_URL', None)
-        or getattr(settings, 'LOGO_URL', None)
-        or DEFAULT_LOGO_URL
-    )
+# Hosts that must follow the environment (demo, www, or apex), not a fixed deploy.
+_HARDCODED_SITE_HOST_RE = re.compile(
+    r'https?://(?:www\.|demo\.)?topteen\.in',
+    re.IGNORECASE,
+)
+
+
+def email_site_url():
+    """Public origin for links in transactional email (no trailing slash)."""
+    return _email_site_url()
 
 
 def _email_site_url():
@@ -36,6 +40,38 @@ def _email_site_url():
         or getattr(settings, 'SITE_URL', None)
         or DEFAULT_SITE_URL
     ).rstrip('/')
+
+
+def rewrite_hardcoded_email_hosts(value):
+    """Replace baked-in topteen.in hosts with the current site origin."""
+    if not value:
+        return value
+    return _HARDCODED_SITE_HOST_RE.sub(email_site_url(), value)
+
+
+def absolute_email_url(path=''):
+    """Build an absolute URL on the current email site origin."""
+    path = (path or '').strip()
+    if not path:
+        return email_site_url()
+    lower = path.lower()
+    if lower.startswith(('mailto:', 'tel:', '#')):
+        return path
+    if lower.startswith(('http://', 'https://')):
+        return rewrite_hardcoded_email_hosts(path)
+    if not path.startswith('/'):
+        path = '/' + path
+    return email_site_url() + path
+
+
+def _email_logo_url():
+    configured = (
+        getattr(settings, 'TOPTEEN_EMAIL_LOGO_URL', None)
+        or getattr(settings, 'LOGO_URL', None)
+    )
+    if configured:
+        return rewrite_hardcoded_email_hosts(configured)
+    return email_site_url() + '/static/images_new/logos/logo.svg'
 
 
 def normalize_email_inner_body(html):
@@ -114,10 +150,11 @@ def wrap_email_layout(email_body, preheader=''):
     if not inner:
         return inner
     if is_email_layout_wrapped(inner):
-        return inner
+        return rewrite_hardcoded_email_hosts(inner)
 
-    site_url = _email_site_url()
+    site_url = email_site_url()
     logo_url = _email_logo_url()
+    inner = rewrite_hardcoded_email_hosts(inner)
     support_email = getattr(settings, 'TOPTEEN_SUPPORT_EMAIL', DEFAULT_SUPPORT_EMAIL)
     preheader_text = strip_tags(preheader or '')[:140]
     context = {
@@ -136,7 +173,7 @@ def wrap_email_layout(email_body, preheader=''):
             else:
                 html = render_to_string(BASE_EMAIL_TEMPLATE, context)
             if html and is_email_layout_wrapped(html):
-                return html
+                return rewrite_hardcoded_email_hosts(html)
         except Exception as exc:
             logger.warning('Email base layout render failed (engine=%s): %s', engine, exc)
 
@@ -150,5 +187,5 @@ def ensure_email_html_wrapped(html_content, preheader=''):
     if not content:
         return content
     if is_email_layout_wrapped(content):
-        return content
+        return rewrite_hardcoded_email_hosts(content)
     return wrap_email_layout(content, preheader=preheader)
