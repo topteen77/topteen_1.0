@@ -110,6 +110,28 @@ EMAIL_TEMPLATE_REGISTRY = {
   {institute_type}  — Institute type label
 """,
     },
+    'institute_approved': {
+        'name': 'Institute registration approved',
+        'default_subject': 'Your institute {ins_name} is approved on TOPTEEN',
+        'template_path': 'mail/content/institute_approved.html',
+        'placeholder_help': """
+  {email}           — Principal login email
+  {url}             — Login page
+  {ins_name}        — Institute name
+  {principal_name}  — Principal name
+""",
+    },
+    'institute_rejected': {
+        'name': 'Institute registration rejected',
+        'default_subject': 'Update on your TOPTEEN institute registration',
+        'template_path': 'mail/content/institute_rejected.html',
+        'placeholder_help': """
+  {email}           — Principal login email
+  {ins_name}        — Institute name
+  {principal_name}  — Principal name
+  {support_email}   — Support address
+""",
+    },
     'institute_marketing_notify': {
         'name': 'New institute registration (marketing)',
         'default_subject': 'New Institute Registered on TOPTEEN – {institute_type}, {address}',

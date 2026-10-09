@@ -20,7 +20,7 @@ from psychometric_tests.models import PsychometricTestResult,CentralTestCandidat
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from core.utils import build_html_head, expand_eq_band_percentile
 from django.contrib import messages
-from .task import send_new_student_credential,institute_deletion_request,create_student_and_send_mail,send_institute_mail
+from .task import send_new_student_credential,institute_deletion_request,create_student_and_send_mail,send_institute_mail,notify_institute_registration_decision
 from django.urls import reverse_lazy
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -7327,7 +7327,10 @@ class InstituteApproveView(View):
                 return HttpResponseRedirect(referer)
         institute.institute_status = choices.InstituteStatus.APPROVED
         institute.save()
-        messages.success(request, f"Institute '{institute.name}' has been approved successfully.")
+        if notify_institute_registration_decision(institute, approved=True):
+            messages.success(request, f"Institute '{institute.name}' has been approved. An email was sent to the principal.")
+        else:
+            messages.warning(request, f"Institute '{institute.name}' has been approved, but the email to the principal was not sent.")
         return HttpResponseRedirect(referer)
 
 
@@ -7354,7 +7357,10 @@ class InstituteRejectView(View):
                 return HttpResponseRedirect(referer)
         institute.institute_status = choices.InstituteStatus.REJECTED
         institute.save()
-        messages.success(request, f"Institute '{institute.name}' has been rejected.")
+        if notify_institute_registration_decision(institute, approved=False):
+            messages.success(request, f"Institute '{institute.name}' has been rejected. An email was sent to the principal.")
+        else:
+            messages.warning(request, f"Institute '{institute.name}' has been rejected, but the email to the principal was not sent.")
         return HttpResponseRedirect(referer)
 
 

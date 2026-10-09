@@ -22,6 +22,12 @@ SLUG_PLACEHOLDER_ALIASES = {
         'Ins_name': 'ins_name',
         'Address': 'address',
     },
+    'institute_approved': {
+        'Ins_name': 'ins_name',
+    },
+    'institute_rejected': {
+        'Ins_name': 'ins_name',
+    },
     'institute_marketing_notify': {
         'Ins_name': 'ins_name',
         'Address': 'address',

@@ -51,6 +51,21 @@ PREVIEW_SAMPLE_CONTEXT = {
         'address': 'Delhi, India',
         'institute_type': 'Senior Secondary School',
     },
+    'institute_approved': {
+        'email': 'principal@example.com',
+        'url': 'https://www.topteen.in/user/login/',
+        'url_no_scheme': 'www.topteen.in/user/login/',
+        'Ins_name': 'Sample Public School',
+        'ins_name': 'Sample Public School',
+        'principal_name': 'Dr. Meera Shah',
+    },
+    'institute_rejected': {
+        'email': 'principal@example.com',
+        'Ins_name': 'Sample Public School',
+        'ins_name': 'Sample Public School',
+        'principal_name': 'Dr. Meera Shah',
+        'support_email': 'support@topteen.careers',
+    },
     'institute_marketing_notify': {
         'user_email': 'registrar@example.com',
         'email': 'marketing@topteen.in',

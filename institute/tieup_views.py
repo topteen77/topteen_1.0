@@ -21,6 +21,7 @@ from institute.decorators import (
     marketing_group_user_only,
 )
 from institute.models import Institute, InstituteTieUpLineItem, InstituteTieUpOrder
+from institute.task import notify_institute_registration_decision
 from institute.tieup_billing import (
     apply_coupon_to_pending_order,
     attach_institute_tieup_payment_ctx,
@@ -81,9 +82,16 @@ class InstituteApproveWithBillingView(View):
             return HttpResponseRedirect(referer)
         institute.institute_status = choices.InstituteStatus.APPROVED
         institute.save(update_fields=["institute_status", "modified"])
-        messages.success(
-            request, f"Institute '{institute.name}' approved with tie-up billing."
-        )
+        if notify_institute_registration_decision(institute, approved=True):
+            messages.success(
+                request,
+                f"Institute '{institute.name}' approved with tie-up billing. An email was sent to the principal.",
+            )
+        else:
+            messages.warning(
+                request,
+                f"Institute '{institute.name}' approved with tie-up billing, but the email to the principal was not sent.",
+            )
         return HttpResponseRedirect(referer)
 
 

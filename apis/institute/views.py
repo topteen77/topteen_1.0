@@ -2,6 +2,8 @@
 # This is a new isolated API module for institute authentication
 # old code not in use - end
 
+import logging
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions, status
@@ -19,6 +21,10 @@ from institute.models import (
     resolve_marketing_group_for_public_registration,
 )
 from core import choices
+
+logger = logging.getLogger(__name__)
+
+
 class InstituteRegisterAPI(APIView):
     """
     API endpoint for institute registration
@@ -132,7 +138,7 @@ class InstituteRegisterAPI(APIView):
                 institute_types = dict((num, name) for num, name in choices.InstituteType.CHOICES)
                 institute_type_name = institute_types.get(int(institute_type), "Unknown")
                 
-                cs.send_institute_create_homepage_mail(
+                mail_result = cs.send_institute_create_homepage_mail(
                     email=institute_email,
                     password=password,
                     Ins_name=institute_name,
@@ -141,12 +147,23 @@ class InstituteRegisterAPI(APIView):
                     Address=institute_address,
                     institute_type=institute_type_name
                 )
-            except Exception as e:
-                print(f"Error sending email: {str(e)}")
-                # Don't fail registration if email fails
+                mail_sent = isinstance(mail_result, str) and mail_result.startswith("Email sent")
+            except Exception:
+                logger.exception("Institute registration email failed for %s", institute_email)
+                mail_sent = False
 
             data['success'] = True
-            data['message'] = 'Thank you! Your request for claiming this college has been sent to the admin for approval. You will receive a mail with your login credentials after approval.'
+            if mail_sent:
+                data['message'] = (
+                    'Thank you! Your institute is pending approval. '
+                    'A welcome email with your login details was sent. '
+                    'You can sign in after approval. Approval and rejection also send an email.'
+                )
+            else:
+                data['message'] = (
+                    'Thank you! Your institute is pending approval, '
+                    'but the welcome email could not be sent. Check the email log on the server.'
+                )
             return Response(data, status=status.HTTP_201_CREATED)
 
         except Exception as e:
