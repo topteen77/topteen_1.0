@@ -802,7 +802,10 @@ def password_reset_request(request, *args, **kwargs):
                 'token': default_token_generator.make_token(user),
                 'protocol': 'http',
                 }
-                url=c['protocol']+"://"+c['domain']+"/topteenadmin/changepassword/"+c['uid']+"/"+c['token']
+                from communication.email_layout import absolute_email_url
+                url = absolute_email_url(
+                    "/topteenadmin/changepassword/{}/{}/".format(c['uid'], c['token'])
+                )
                 from communication.email_templates import render_transactional_email
                 subject, text_content, html_content = render_transactional_email(
                     'password_reset',

@@ -8,7 +8,9 @@ from django.conf import settings
 
 from .email_template_registry import EMAIL_TEMPLATE_REGISTRY, get_email_template_meta
 
-STATIC_BASE_URL = 'https://www.topteen.in/static/'
+def _static_base_url():
+    from communication.email_layout import email_site_url
+    return email_site_url() + '/static/'
 
 # Django/Jinja variable names in source files -> admin str.format placeholders.
 SLUG_PLACEHOLDER_ALIASES = {
@@ -81,12 +83,12 @@ def normalize_builtin_html_for_admin(html, slug):
     # Jinja static('path') and Django {% static 'path' %}
     content = re.sub(
         r"\{\{\s*static\s*\(\s*['\"]([^'\"]+)['\"]\s*\)\s*\}\}",
-        STATIC_BASE_URL + r'\1',
+        _static_base_url() + r'\1',
         content,
     )
     content = re.sub(
         r"\{%\s*static\s+['\"]([^'\"]+)['\"]\s*%\}",
-        STATIC_BASE_URL + r'\1',
+        _static_base_url() + r'\1',
         content,
     )
 

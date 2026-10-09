@@ -6,7 +6,7 @@
         <h5 class="modal-title"><i class="bx bx-check-circle me-2"></i> Approve institute</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <form method="POST" id="ttv2ApproveBillingForm" action="#">
+      <form method="POST" id="ttv2ApproveBillingForm" action="#" data-approve-url-template="{{ url('institute:instituteapprovebilling', args=[0]) }}">
         <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
         <div class="modal-body">
           <p class="text-muted small">Approve <strong id="ttv2ApproveInstName">—</strong> and capture tie-up billing (required).</p>
@@ -22,6 +22,7 @@
 </div>
 <script>
 (function(){
+  if (window.__ttv2PendingApprovalBound) return;
   document.addEventListener('click',function(e){
     var btn=e.target&&e.target.closest?e.target.closest('[data-ttv2-approve-billing]'):null;
     if(!btn) return;

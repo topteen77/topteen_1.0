@@ -212,6 +212,7 @@ html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-mktg-btn--ghost:hover{
   height: 4px;
   background: linear-gradient(90deg, var(--ttv2-insight-accent), var(--ttv2-insight-accent-2));
   z-index: 1;
+  pointer-events: none;
 }
 #mktg-registration-insights .ttv2-mktg-insight-card > *{
   position: relative;
@@ -2390,6 +2391,15 @@ html[data-ttv2-theme="dark"] body.ttv2-shell .ttv2-ig-student-link{
 #mktg-registration-insights .ttv2-mktg-pending-contact{
   display: block;
   white-space: normal;
+}
+#mktg-registration-insights .ttv2-mktg-pill-view,
+#mktg-registration-insights .ttv2-mktg-pending-item .btn,
+#mktg-registration-insights .ttv2-mktg-pending-item a.btn,
+.ttv2-mktg-row-pending .btn,
+.ttv2-mktg-row-pending a.btn{
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
 }
 #mktg-registration-insights .ttv2-mktg-pill-view{
   font-size: 0.6875rem;

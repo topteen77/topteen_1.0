@@ -23,12 +23,16 @@
             data-institute-urgency="{{ ins.registration_urgency_label() }}">
       View
     </button>
-    <a href="{{ url('institute:instituteapprove', args=[ins.id]) }}"
-       class="btn btn-sm btn-success text-white">
+    <button type="button"
+            class="btn btn-sm btn-success text-white"
+            data-ttv2-approve-billing="1"
+            data-institute-id="{{ ins.id }}"
+            data-institute-name="{{ ins.name }}">
       <i class='bx bx-check-circle me-1'></i>Approve
-    </a>
+    </button>
     <a href="{{ url('institute:institutereject', args=[ins.id]) }}"
-       class="btn btn-sm btn-danger text-white">
+       class="btn btn-sm btn-danger text-white"
+       data-no-ttv2-ajax="1">
       <i class='bx bx-x-circle me-1'></i>Reject
     </a>
   </div>

@@ -1,6 +1,6 @@
 """Render admin email template previews with sample placeholder data."""
 
-from communication.email_layout import wrap_email_layout
+from communication.email_layout import rewrite_hardcoded_email_hosts, wrap_email_layout
 from communication.email_template_registry import get_email_template_meta
 from communication.email_templates import _SafeFormatDict
 from communication.builtin_email_content import load_builtin_body_html
@@ -115,7 +115,11 @@ PREVIEW_SAMPLE_CONTEXT = {
 def render_admin_email_preview(slug, subject_template='', body_html_template=''):
     """Return (subject, full_wrapped_html) using sample placeholder values."""
     meta = get_email_template_meta(slug)
-    ctx = _SafeFormatDict(PREVIEW_SAMPLE_CONTEXT.get(slug, {}))
+    sample = {
+        key: rewrite_hardcoded_email_hosts(value) if isinstance(value, str) else value
+        for key, value in PREVIEW_SAMPLE_CONTEXT.get(slug, {}).items()
+    }
+    ctx = _SafeFormatDict(sample)
 
     subject_default = meta.get('default_subject') or 'TopTeen notification'
     subject_src = (subject_template or '').strip() or subject_default
