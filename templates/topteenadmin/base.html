@@ -672,6 +672,14 @@
 																</span>
 																<div class="menu-sub menu-sub-accordion menu-active-bg">
 																	<div class="menu-item">
+																		<a class="menu-link {% if active_tab =="trendingexams" %} active {% endif %}" href="{{url("topteenadminmanaged:trendingexamswidget")}}">
+																			<span class="menu-bullet">
+																				<span class="bullet bullet-dot"></span>
+																			</span>
+																			<span class="menu-title">Trending exams</span>
+																		</a>
+																	</div>
+																	<div class="menu-item">
 																		<a class="menu-link {% if active_tab =="entranceexam" %} active {% endif %}" href="{{url("topteenadminmanaged:entranceexamlist")}}">
 																			<span class="menu-bullet">
 																				<span class="bullet bullet-dot"></span>

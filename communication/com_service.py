@@ -574,6 +574,45 @@ class ComService:
         )
         status = self.send_mail(subject, to, text_content, html_content)
         return "Email sent to {}".format(email) if status else "Failed to send email to {}".format(email)
+
+    def send_institute_approved_mail(self, email, ins_name, principal_name):
+        url = absolute_email_url(reverse("users:login"))
+        django_context = {
+            "url": url,
+            "email": email,
+            "Ins_name": ins_name,
+            "principal_name": principal_name,
+        }
+        format_context = {
+            **django_context,
+            "ins_name": ins_name,
+            "url_no_scheme": referral_url_without_scheme(url),
+        }
+        subject, text_content, html_content = render_transactional_email(
+            "institute_approved",
+            format_context=format_context,
+            django_context=django_context,
+        )
+        return self.send_mail(subject, email, text_content, html_content)
+
+    def send_institute_rejected_mail(self, email, ins_name, principal_name):
+        support_email = getattr(settings, "TOPTEEN_SUPPORT_EMAIL", None) or "support@topteen.careers"
+        django_context = {
+            "email": email,
+            "Ins_name": ins_name,
+            "principal_name": principal_name,
+            "support_email": support_email,
+        }
+        format_context = {
+            **django_context,
+            "ins_name": ins_name,
+        }
+        subject, text_content, html_content = render_transactional_email(
+            "institute_rejected",
+            format_context=format_context,
+            django_context=django_context,
+        )
+        return self.send_mail(subject, email, text_content, html_content)
     
     def send_institute_create_homepage_mail_bulk(self, user_email, emails, password, Ins_name, principal_name, contact_number, Address, institute_type):
         """
