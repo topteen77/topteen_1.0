@@ -1,9 +1,52 @@
 """Shared payload for the trending-exams widget and public API."""
 
+import re
+from html import unescape
+
 from django.utils.html import strip_tags
 
 from core import choices
 from core.models import EntranceTestPrepExam, TrendingExam
+
+
+def _html_to_plain(raw):
+    """Turn CMS HTML into a single plain-text line (space between blocks, entities decoded)."""
+    html = raw or ""
+    html = re.sub(r"(?i)<br\s*/?>", "\n", html)
+    html = re.sub(r"(?i)</(p|div|h[1-6]|li|tr|section|article|header|figcaption)>", "\n", html)
+    text = unescape(strip_tags(html))
+    # Headings glued to the next sentence: "(CLAT)The Common…"
+    text = re.sub(r"\)(?=[A-Za-z])", ") ", text)
+    text = re.sub(r"([a-z])([A-Z])", r"\1 \2", text)
+    return " ".join(text.split())
+
+
+def _strip_echoed_title(text, exam_name=""):
+    """
+    CMS pages often start with an H1 that repeats the opening of the overview.
+    After stripping tags that becomes: "Title Title is …" or "Title The Title is …".
+    Keep a single readable sentence.
+    """
+    text = (text or "").strip()
+    if not text:
+        return text
+
+    name = (exam_name or "").strip()
+    if name and text.lower().startswith(name.lower()):
+        rest = text[len(name) :].lstrip(" :-–—|.")
+        if len(rest) > 40:
+            text = rest
+
+    words = text.split()
+    max_size = min(14, len(words) // 2)
+    for size in range(max_size, 2, -1):
+        first = [w.lower() for w in words[:size]]
+        if first == [w.lower() for w in words[size : size + size]]:
+            return " ".join(words[size:])
+        if size + 1 + size <= len(words) and words[size].lower() in {"the", "a", "an"}:
+            if first == [w.lower() for w in words[size + 1 : size + 1 + size]]:
+                return " ".join(words[size:])
+    return text
 
 
 def exam_widget_summary(exam, override=""):
@@ -17,7 +60,8 @@ def exam_widget_summary(exam, override=""):
                 break
     if not text:
         text = exam.content_html or ""
-    text = " ".join(strip_tags(text).split())
+    text = _html_to_plain(text)
+    text = _strip_echoed_title(text, getattr(exam, "name", "") or "")
     if len(text) > 220:
         text = text[:217].rsplit(" ", 1)[0].rstrip(".,;:") + "..."
     return text
