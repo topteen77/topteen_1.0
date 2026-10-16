@@ -717,6 +717,32 @@ class EntranceTestPrepExam(BaseModel, SlugModel):
         verbose_name_plural = "Entrance Test Prep Exams"
 
 
+class TrendingExam(models.Model):
+    """Exam chosen by staff to appear in the public trending-exams widget."""
+
+    exam = models.OneToOneField(
+        EntranceTestPrepExam,
+        on_delete=models.CASCADE,
+        related_name="trending_entry",
+    )
+    position = models.PositiveSmallIntegerField(default=1, help_text="Lower numbers appear first.")
+    summary = models.CharField(
+        max_length=400,
+        blank=True,
+        help_text="Short line on the widget. Leave blank to use text from the exam page.",
+    )
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("position", "id")
+        verbose_name = "Trending exam"
+        verbose_name_plural = "Trending exams"
+
+    def __str__(self):
+        return self.exam.name
+
+
 class EntranceTestPrepExamSection(BaseModel):
     """Section within an exam (e.g. Overview, Eligibility); drives accordion + quick links on detail page."""
     exam = models.ForeignKey(

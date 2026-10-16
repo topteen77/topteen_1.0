@@ -1,5 +1,6 @@
 from django.urls import path,include
 from topteenadmin import views
+from topteenadmin.trending_exams_views import TrendingExamWidgetView
 
 app_name="topteenadminmanaged"
 urlpatterns = [
@@ -303,6 +304,7 @@ urlpatterns = [
     
     #EntranceExam APP CRUD
     #entranceexam CRUD
+    path('entrance_exams/trending/', TrendingExamWidgetView.as_view(), name="trendingexamswidget"),
     path('entrance_exams/entranceexam/list',views.EntranceExamListView.as_view(),name="entranceexamlist"),
     path('entrance_exams/entranceexam/view/<pk>',views.EntranceExamDetailView.as_view(),name='entranceexamdetail'),
     path('entrance_exams/entranceexam/add',views.CreateEntranceExam.as_view(),name="entranceexamcreate"),

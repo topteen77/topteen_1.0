@@ -1,0 +1,113 @@
+{% extends 'topteenadmin/base.html' %}
+{% block main %}
+<div class="post d-flex flex-column-fluid" id="kt_post">
+  <div id="kt_content_container" class="container-xxl">
+    {% include 'topteenadmin/includes/messages.html' %}
+    <div class="row g-5">
+      <div class="col-lg-7">
+        <div class="card">
+          <div class="card-header border-0 pt-6">
+            <div class="card-title">
+              <h2 class="fw-bold mb-0">Trending exams</h2>
+            </div>
+            <div class="card-toolbar text-muted">Shown in this order on the public widget</div>
+          </div>
+          <div class="card-body pt-0">
+            {% if trending %}
+            <div class="table-responsive">
+              <table class="table align-middle table-row-dashed">
+                <thead>
+                  <tr class="text-start text-gray-400 fw-bold fs-7 text-uppercase">
+                    <th>Order</th>
+                    <th>Exam</th>
+                    <th>Widget line</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for row in trending %}
+                  <tr>
+                    <td class="fw-bold">{{ row.position }}</td>
+                    <td>
+                      <div class="fw-bold">{{ row.exam.name }}</div>
+                      <div class="text-muted fs-7">{{ row.exam.category.name if row.exam.category else "" }}</div>
+                    </td>
+                    <td style="min-width: 240px;">
+                      <form method="post" action="{{ url('topteenadminmanaged:trendingexamswidget') }}">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                        <input type="hidden" name="action" value="summary">
+                        <input type="hidden" name="trending_id" value="{{ row.id }}">
+                        <input type="hidden" name="q" value="{{ query }}">
+                        <textarea name="summary" class="form-control form-control-sm mb-2" rows="2" maxlength="400" placeholder="Short description shown under the exam name">{{ row.summary }}</textarea>
+                        <button type="submit" class="btn btn-sm btn-light-primary">Save line</button>
+                      </form>
+                    </td>
+                    <td class="text-end">
+                      <form method="post" action="{{ url('topteenadminmanaged:trendingexamswidget') }}" class="d-inline">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                        <input type="hidden" name="action" value="up">
+                        <input type="hidden" name="trending_id" value="{{ row.id }}">
+                        <input type="hidden" name="q" value="{{ query }}">
+                        <button type="submit" class="btn btn-sm btn-light">Up</button>
+                      </form>
+                      <form method="post" action="{{ url('topteenadminmanaged:trendingexamswidget') }}" class="d-inline">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                        <input type="hidden" name="action" value="down">
+                        <input type="hidden" name="trending_id" value="{{ row.id }}">
+                        <input type="hidden" name="q" value="{{ query }}">
+                        <button type="submit" class="btn btn-sm btn-light">Down</button>
+                      </form>
+                      <form method="post" action="{{ url('topteenadminmanaged:trendingexamswidget') }}" class="d-inline">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                        <input type="hidden" name="action" value="remove">
+                        <input type="hidden" name="trending_id" value="{{ row.id }}">
+                        <input type="hidden" name="q" value="{{ query }}">
+                        <button type="submit" class="btn btn-sm btn-light-danger">Remove</button>
+                      </form>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">No trending exams yet. Search on the right and mark the exams that should appear on the other site.</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="card">
+          <div class="card-header border-0 pt-6">
+            <div class="card-title"><h2 class="fw-bold mb-0">Find an exam</h2></div>
+          </div>
+          <div class="card-body pt-0">
+            <form method="get" action="{{ url('topteenadminmanaged:trendingexamswidget') }}" class="d-flex gap-2 mb-4">
+              <input type="search" name="q" value="{{ query }}" class="form-control" placeholder="Search NEET, JEE, CLAT...">
+              <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+            {% if query and not search_results %}
+            <p class="text-muted">No unmarked exams match “{{ query }}”.</p>
+            {% endif %}
+            {% for exam in search_results %}
+            <div class="d-flex justify-content-between align-items-center border-bottom py-3">
+              <div>
+                <div class="fw-bold">{{ exam.name }}</div>
+                <div class="text-muted fs-7">{{ exam.level }}{% if exam.level and exam.category %} · {% endif %}{{ exam.category }}</div>
+              </div>
+              <form method="post" action="{{ url('topteenadminmanaged:trendingexamswidget') }}">
+                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                <input type="hidden" name="action" value="add">
+                <input type="hidden" name="exam_id" value="{{ exam.id }}">
+                <input type="hidden" name="q" value="{{ query }}">
+                <button type="submit" class="btn btn-sm btn-success">Mark trending</button>
+              </form>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
