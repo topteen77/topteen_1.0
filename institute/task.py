@@ -1,7 +1,11 @@
+import logging
+
 from topteens.celery import app
 from communication.com_service import ComService
 from institute.models import StudentManagement,Institute,InstituteLog
 from users.models import UserProfile
+
+logger = logging.getLogger(__name__)
 @app.task()
 def create_student_and_send_mail(stu_manage_id,email,password,ins_name,image_url):
     sm=StudentManagement.objects.select_related('institute').get(id=stu_manage_id)
@@ -58,6 +62,29 @@ def create_institute_log(ins_id,email_list,email_count):
     ins_log=InstituteLog(institute=ins,email=email_list,students_counts=email_count)
     ins_log.save()
     print("Create Institute Log")
+
+def notify_institute_registration_decision(institute, approved):
+    """Email the principal after approve or reject. Returns True when the send succeeds."""
+    user = getattr(institute, "created_by", None)
+    email = (getattr(user, "email", None) or "").strip()
+    if not email:
+        logger.warning("Institute %s decision email skipped: no principal email", getattr(institute, "pk", None))
+        return False
+    principal_name = (getattr(user, "name", None) or "").strip() or email
+    ins_name = (getattr(institute, "name", None) or "").strip() or "your institute"
+    cs = ComService()
+    try:
+        if approved:
+            sent = cs.send_institute_approved_mail(email, ins_name, principal_name)
+        else:
+            sent = cs.send_institute_rejected_mail(email, ins_name, principal_name)
+    except Exception:
+        logger.exception("Institute decision email failed for %s", email)
+        return False
+    if not sent:
+        logger.warning("Institute decision email was not delivered to %s approved=%s", email, approved)
+    return bool(sent)
+
 
 @app.task()
 def send_institute_group_mail(group_name,email,password):

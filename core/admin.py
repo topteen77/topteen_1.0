@@ -38,6 +38,7 @@ from .models import (
     EntranceTestPrepCategory,
     EntranceTestPrepExam,
     EntranceTestPrepExamSection,
+    TrendingExam,
     Ebook,
     S3FileUpload,
     FourPillarsAssessment,
@@ -2013,6 +2014,16 @@ def _entrance_test_prep_exam_accordion_issues(exam):
     if not final and has_source:
         errors.append("No visible accordion sections (all blank or unresolved)")
     return errors
+
+
+@admin.register(TrendingExam)
+class TrendingExamAdmin(admin.ModelAdmin):
+    list_display = ("exam", "position", "summary")
+    list_display_links = ("exam",)
+    list_editable = ("position",)
+    search_fields = ("exam__name", "summary")
+    autocomplete_fields = ("exam",)
+    ordering = ("position", "id")
 
 
 @admin.register(EntranceTestPrepExam)

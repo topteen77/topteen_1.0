@@ -12,4 +12,5 @@ urlpatterns = [
     # New isolated API routes for marketing authentication
     # old code not in use - end
     path('marketing/', include('apis.marketing.urls')),
+    path('entrance-exams/', include('apis.exams.urls')),
 ]
