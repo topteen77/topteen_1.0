@@ -43,6 +43,10 @@ app.conf.beat_schedule = {
         'task': 'user_analytics.tasks.send_daily_new_user_report',
         'schedule': crontab(minute=0, hour=15),  # 15:00 IST — overridden from DB when Django starts
     },
+    'send-daily-failure-alert': {
+        'task': 'core.tasks.send_daily_failure_alert',
+        'schedule': crontab(minute=0, hour=8),  # 08:00 IST — yesterday's failures, one email
+    },
     'send-loan-daily-report-0930': {
         'task': 'loan_desk.tasks.send_loan_daily_report',
         'schedule': crontab(minute=30, hour=9),  # default 09:30 IST — replaced from Ops settings on startup
