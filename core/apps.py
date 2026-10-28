@@ -50,6 +50,24 @@ class CoreConfig(AppConfig):
             logger.debug('Daily report beat schedule not patched from Configuration: %s', e)
 
         try:
+            from celery.schedules import crontab
+
+            from core.models import Configuration
+            from topteens.celery import app
+
+            raw = str(Configuration.get('DAILY_FAILURE_ALERT_TIME', default='08:00', editable=True)).strip()
+            hour_str, minute_str = raw.split(':', 1)
+            hour, minute = int(hour_str), int(minute_str)
+            if not (0 <= hour <= 23 and 0 <= minute <= 59):
+                raise ValueError('invalid hour/minute')
+            app.conf.beat_schedule['send-daily-failure-alert'] = {
+                'task': 'core.tasks.send_daily_failure_alert',
+                'schedule': crontab(minute=minute, hour=hour),
+            }
+        except Exception as e:
+            logger.debug('Daily failure alert beat schedule not patched from Configuration: %s', e)
+
+        try:
             from core.admin_hub import register_admin_hub_urls
             register_admin_hub_urls()
         except Exception as e:
