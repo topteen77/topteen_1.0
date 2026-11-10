@@ -3482,9 +3482,9 @@ class ProfileBasicDetails(TemplateView):
         except Exception:
             ctx["school_suggestions"] = []
         from django.conf import settings
+        # Do not fall back to GOOGLE_API_KEY — that is a Generative AI key, not Maps.
         ctx["google_maps_api_key"] = (
-            getattr(settings, "GOOGLE_MAPS_API_KEY", None)
-            or getattr(settings, "GOOGLE_API_KEY", "")
+            getattr(settings, "GOOGLE_MAPS_API_KEY", None) or ""
         )
         ctx["html_head"] = self.html_head()
         return ctx

@@ -27,13 +27,28 @@ _CACHE_TTL = 60 * 60 * 24 * 30  # 30 days
 _TRANSLATION_CACHE_ALIAS = 'translations'
 
 
+def _openai_key():
+    return (getattr(settings, 'OPENAI_API_KEY', None) or '').strip()
+
+
+def _google_key():
+    """Gemini key only — ignore placeholders so a bad/empty value cannot block OpenAI."""
+    key = (getattr(settings, 'GOOGLE_API_KEY', None) or '').strip()
+    if not key or key.lower().startswith('your_google'):
+        return ''
+    return key
+
+
 def translation_complexity_available():
-    provider = getattr(settings, 'AI_PROVIDER', 'none')
-    if provider == 'gemini' and getattr(settings, 'GOOGLE_API_KEY', ''):
-        return True
-    if provider == 'openai' and getattr(settings, 'OPENAI_API_KEY', ''):
-        return True
-    return bool(getattr(settings, 'GOOGLE_API_KEY', '') or getattr(settings, 'OPENAI_API_KEY', ''))
+    provider = (getattr(settings, 'AI_PROVIDER', 'none') or 'none').strip().lower()
+    openai_key = _openai_key()
+    google_key = _google_key()
+    if provider == 'openai':
+        return bool(openai_key)
+    if provider == 'gemini':
+        # Prefer Gemini when configured; OpenAI still counts as available for fallback.
+        return bool(google_key or openai_key)
+    return bool(openai_key or google_key)
 
 
 def _translation_cache():
@@ -120,7 +135,9 @@ def _parse_adjusted_texts(raw, expected_len):
 def _call_gemini(prompt, user=None, request=None):
     import google.generativeai as genai
 
-    api_key = getattr(settings, 'GOOGLE_API_KEY', '')
+    api_key = _google_key()
+    if not api_key:
+        raise RuntimeError('GOOGLE_API_KEY is not configured')
     genai.configure(api_key=api_key)
     model_name = getattr(settings, 'GEMINI_MODEL', 'gemini-1.5-flash')
     model = genai.GenerativeModel(model_name)
@@ -198,13 +215,36 @@ def _call_openai(prompt, user=None, request=None):
 
 
 def _call_model(prompt, user=None, request=None):
-    provider = getattr(settings, 'AI_PROVIDER', 'none')
-    if provider == 'openai' and getattr(settings, 'OPENAI_API_KEY', ''):
+    """
+    Route by AI_PROVIDER. A bad/missing GOOGLE_API_KEY must not block OpenAI:
+    - openai → OpenAI only
+    - gemini → Gemini, then OpenAI fallback on failure
+    - other/none → OpenAI first, then Gemini
+    """
+    provider = (getattr(settings, 'AI_PROVIDER', 'none') or 'none').strip().lower()
+    openai_key = _openai_key()
+    google_key = _google_key()
+
+    if provider == 'openai':
+        if not openai_key:
+            raise RuntimeError('OPENAI_API_KEY is not configured for translation complexity')
         return _call_openai(prompt, user=user, request=request)
-    if getattr(settings, 'GOOGLE_API_KEY', ''):
+
+    if provider == 'gemini':
+        if google_key:
+            try:
+                return _call_gemini(prompt, user=user, request=request)
+            except Exception as exc:
+                logger.warning('Gemini translation failed; falling back to OpenAI: %s', exc)
+        if openai_key:
+            return _call_openai(prompt, user=user, request=request)
+        raise RuntimeError('No usable Gemini/OpenAI key for translation complexity')
+
+    # Auto: prefer OpenAI so an invalid GOOGLE_API_KEY cannot break the feature.
+    if openai_key:
+        return _call_openai(prompt, user=user, request=request)
+    if google_key:
         return _call_gemini(prompt, user=user, request=request)
-    if getattr(settings, 'OPENAI_API_KEY', ''):
-        return _call_openai(prompt, user=user, request=request)
     raise RuntimeError('No AI provider configured for translation complexity')
 
 
