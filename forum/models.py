@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
@@ -68,9 +69,20 @@ class Query(models.Model):
     country_context = models.CharField(max_length=100, blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
     processed_at = models.DateTimeField(null=True, blank=True)
     response_time_ms = models.IntegerField(null=True, blank=True)  # Response time in milliseconds
     source = models.CharField(max_length=20, default='ai', choices=[('ai', 'AI Generated'), ('database', 'From Database')])
+    # Present in DB (moderation); must be on the model or MySQL rejects inserts (no default).
+    is_hidden = models.BooleanField(default=False, db_index=True)
+    hidden_at = models.DateTimeField(null=True, blank=True)
+    hidden_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='hidden_forum_queries',
+    )
 
     class Meta:
         verbose_name_plural = "Queries"
