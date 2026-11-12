@@ -21,32 +21,12 @@ from django.conf.urls import handler404
 from users import views as users_views
 from user_analytics import views as user_analytics_views
 from core import views as core_views
-from core.seo_views import robots_txt, sitemap_xml, facebook_domain_verification
+from core.seo_views import robots_txt, sitemap_index, sitemap_section, facebook_domain_verification
 from core.pwa_views import manifest_json, service_worker_js
-from core.sitemaps import (
-    BlogSitemap,
-    CareerSitemap,
-    CollegeSitemap,
-    CourseSitemap,
-    EntranceExamSitemap,
-    EntranceTestPrepExamSitemap,
-    GeneratedPageSitemap,
-    StaticViewSitemap,
-    VocationalCourseSitemap,
-)
+from core.sitemaps import SITEMAPS
 from django.views.generic import TemplateView
 
-sitemaps = {
-    "static": StaticViewSitemap,
-    "blogs": BlogSitemap,
-    "careers": CareerSitemap,
-    "colleges": CollegeSitemap,
-    "courses": CourseSitemap,
-    "entrance_exams": EntranceExamSitemap,
-    "entrance_test_prep_exams": EntranceTestPrepExamSitemap,
-    "vocational_courses": VocationalCourseSitemap,
-    "generated_pages": GeneratedPageSitemap,
-}
+sitemaps = SITEMAPS
 
 urlpatterns = [
     path("manifest.json", manifest_json, name="pwa_manifest"),
@@ -57,7 +37,13 @@ urlpatterns = [
         TemplateView.as_view(template_name="template20/pwa/offline.html"),
         name="pwa_offline",
     ),
-    path("sitemap.xml", sitemap_xml, {"sitemaps": sitemaps}, name="sitemap"),
+    path("sitemap.xml", sitemap_index, {"sitemaps": sitemaps}, name="sitemap"),
+    path(
+        "sitemap-<section>.xml",
+        sitemap_section,
+        {"sitemaps": sitemaps},
+        name="sitemap-section",
+    ),
     path("robots.txt", robots_txt, name="robots_txt"),
     path(
         "80fczxf7zf2ysu54gokd497v0b09zu.html",
