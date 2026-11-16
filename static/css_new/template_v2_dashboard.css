@@ -4618,6 +4618,67 @@ body.ttv2-shell .ttv2-roster-actions .btn-group .btn.active{
   background: linear-gradient(135deg, var(--c-accent, #5249DF), #7d4dff);
   color: #fff;
 }
+body.ttv2-shell .ttv2-roster-actions .ttv2-download-login-btn:disabled{
+  opacity: 0.45;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+body.ttv2-shell .ttv2-login-sheet-dialog{
+  max-width: 440px;
+}
+body.ttv2-shell .ttv2-login-sheet-modal{
+  border: 0;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+}
+body.ttv2-shell .ttv2-login-sheet-modal .modal-body{
+  padding: 1.6rem 1.5rem 0.4rem;
+  text-align: center;
+}
+body.ttv2-shell .ttv2-login-sheet-icon{
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 0.85rem;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--c-accent, #5249DF), #7d4dff);
+}
+body.ttv2-shell .ttv2-login-sheet-title{
+  margin: 0 0 0.45rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+body.ttv2-shell .ttv2-login-sheet-school{
+  display: inline-block;
+  margin: 0 0 0.75rem;
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--c-accent, #5249DF) 12%, transparent);
+  color: var(--c-accent, #5249DF);
+}
+body.ttv2-shell .ttv2-login-sheet-copy{
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--c-text2, #5c6578);
+}
+body.ttv2-shell .ttv2-login-sheet-modal .modal-footer{
+  border: 0;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem 1.35rem;
+}
+body.ttv2-shell .ttv2-login-sheet-modal .modal-footer .btn{
+  min-width: 124px;
+  border-radius: 11px;
+  font-weight: 700;
+}
 body.ttv2-shell .ttv2-roster-actions .ttv2-history-btn{
   border-radius: 11px;
   border-color: color-mix(in srgb, var(--c-border2, var(--ttv2-border)) 78%, transparent);
