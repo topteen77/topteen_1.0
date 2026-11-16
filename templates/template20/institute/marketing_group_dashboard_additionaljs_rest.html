@@ -1410,6 +1410,9 @@
       const updateForm = e.target.closest('form[id^="updateInstituteForm"]');
       if (updateForm) {
         e.preventDefault();
+        if (typeof window.ttv2SyncAccountTypeSections === 'function') {
+          window.ttv2SyncAccountTypeSections(updateForm.closest('.ttv2-update-institute-modal') || updateForm);
+        }
         const formData = new FormData(updateForm);
         const submitBtn = updateForm.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
