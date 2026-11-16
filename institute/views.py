@@ -1062,26 +1062,40 @@ def scoped_student_management_for_dashboard(request):
     return get_students_by_role(request.user, counselor=None, institute=None)
 
 
-def mask_phone_middle_six(value):
-    """Hide the middle 6 digits. A 10-digit mobile becomes 98XXXXXX10."""
-    digits = _re.sub(r"\D", "", value or "")
-    if not digits:
+def login_sheet_class(student_management):
+    """Class label for the login sheet, with stream when the class has one."""
+    sm = student_management
+    if sm is None:
         return ""
-    if len(digits) <= 6:
-        return "X" * len(digits)
-    start = (len(digits) - 6) // 2
-    return digits[:start] + ("X" * 6) + digits[start + 6 :]
+    try:
+        label = (sm.display_class_label() or "").strip()
+    except Exception:
+        label = ""
+    section = getattr(sm, "class_and_section", None)
+    stream = (getattr(section, "stream", None) or "").strip() if section else ""
+    if stream and stream.lower() not in label.lower():
+        label = "{} · {}".format(label, stream) if label else stream
+    return label
 
 
-def login_sheet_mobileno(email, mobile):
-    """Yopmail logins are placeholders, so the sheet leaves mobileno blank."""
-    domain = ""
-    raw = (email or "").strip().lower()
-    if "@" in raw:
-        domain = raw.rsplit("@", 1)[-1]
-    if domain == "yopmail.com":
-        return ""
-    return mask_phone_middle_six(mobile)
+def _login_sheet_sort_key(student_management):
+    """Class number, then stream, then name, so the sheet is grouped by class."""
+    from core.psychometric_grade import _parse_class_number
+
+    sm = student_management
+    section = getattr(sm, "class_and_section", None) if sm is not None else None
+    raw_class = (getattr(section, "class_and_section", None) or "").strip() if section else ""
+    number = _parse_class_number(raw_class)
+    stream = (getattr(section, "stream", None) or "").strip().lower() if section else ""
+    stu = getattr(sm, "student", None) if sm is not None else None
+    name = (getattr(stu, "name", None) or "").strip().lower() if stu else ""
+    return (
+        0 if number is not None else 1,
+        number if number is not None else 0,
+        stream,
+        name,
+        getattr(sm, "id", 0) or 0,
+    )
 
 
 def marketing_student_login_csv_response(request):
@@ -1152,11 +1166,24 @@ def marketing_student_login_csv_response(request):
         student__is_system_demo=True
     )
 
+    sheet_rows = []
+    for sm in filtered:
+        stu = sm.student
+        if (
+            not stu
+            or not (stu.email or "").strip()
+            or getattr(stu, "is_demo_account", False)
+            or getattr(stu, "is_system_demo", False)
+        ):
+            continue
+        sheet_rows.append(sm)
+    sheet_rows.sort(key=_login_sheet_sort_key)
+
     buf = io.StringIO()
     writer = csv.writer(buf)
-    writer.writerow(["Name", "mobileno", "Login", "Password"])
+    writer.writerow(["Name", "class", "Login", "Password"])
     with transaction.atomic():
-        for sm in filtered.order_by("student__name", "id"):
+        for sm in sheet_rows:
             stu = sm.student
             if (
                 not stu
@@ -1171,7 +1198,7 @@ def marketing_student_login_csv_response(request):
             email = (stu.email or "").strip()
             writer.writerow([
                 (stu.name or "").strip(),
-                login_sheet_mobileno(email, stu.mobile),
+                login_sheet_class(sm),
                 email,
                 password,
             ])
