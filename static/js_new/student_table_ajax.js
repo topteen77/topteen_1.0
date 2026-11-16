@@ -1638,8 +1638,22 @@ function ttv2InitStudentTableAfterBodyInject() {
       searchEl.addEventListener('input', onSearchChange);
     }
 
+    function syncDownloadLoginBtn() {
+      var btn = document.getElementById('ttv2DownloadLoginBtn');
+      if (!btn) return;
+      var schoolEl = document.getElementById('institute_slug_filter');
+      var school = schoolEl ? (schoolEl.value || '').trim() : '';
+      var nameFilter = instNameEl ? (instNameEl.value || '').trim() : '';
+      var inactive = !school || nameFilter.length > 0;
+      btn.disabled = inactive;
+      btn.title = inactive
+        ? 'Select one school and clear the institute name filter to download logins'
+        : 'Download login details for the students in the current filters';
+    }
+
     function onInstNameChange() {
       if (!instNameEl) return;
+      syncDownloadLoginBtn();
       var v = (instNameEl.value || '').trim();
       if (tInst) {
         clearTimeout(tInst);
@@ -1656,12 +1670,41 @@ function ttv2InitStudentTableAfterBodyInject() {
       instNameEl.addEventListener('input', onInstNameChange);
     }
 
+    var downloadLoginBtn = document.getElementById('ttv2DownloadLoginBtn');
+    if (downloadLoginBtn && !downloadLoginBtn.dataset.ttv2Bound) {
+      downloadLoginBtn.dataset.ttv2Bound = '1';
+      downloadLoginBtn.addEventListener('click', function () {
+        if (downloadLoginBtn.disabled) return;
+        var schoolEl = document.getElementById('institute_slug_filter');
+        var school = schoolEl ? (schoolEl.value || '').trim() : '';
+        var nameFilter = instNameEl ? (instNameEl.value || '').trim() : '';
+        if (!school || nameFilter) return;
+        var ok = window.confirm(
+          'This creates a new password for each student in the current filters. ' +
+          'The CSV contains those new passwords, and the previous passwords stop working. Download the login sheet?'
+        );
+        if (!ok) return;
+        var params;
+        try {
+          params = new URLSearchParams(new FormData(filterForm));
+        } catch (eForm) {
+          params = new URLSearchParams(window.location.search);
+        }
+        params.delete('data_type');
+        params.delete('page');
+        params.set('institute_slug', school);
+        params.set('download_login', '1');
+        window.location.assign(window.location.pathname + '?' + params.toString());
+      });
+    }
+
     ['classes', 'streams', 'assessment', 'counselor_assigned', 'institute_slug_filter'].forEach(function (id) {
       var el = document.getElementById(id);
       if (!el || el.dataset.ttv2Bound) return;
       el.dataset.ttv2Bound = '1';
       el.addEventListener('change', function(){
         if (id === 'institute_slug_filter') {
+          syncDownloadLoginBtn();
           var classEl = document.getElementById('classes');
           var streamEl = document.getElementById('streams');
           if (classEl) classEl.value = '';

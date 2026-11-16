@@ -331,6 +331,16 @@
       </div>
       {% set _display_mode = (request.GET.get('display','cards') or 'cards') %}
       <div class="d-flex align-items-center gap-2 ttv2-roster-actions">
+        {% if ttv2_students_role is defined and ttv2_students_role == 'marketing_group' and request.user.user_type == 5 %}
+          {% set _login_school = (request.GET.get('institute_slug') or '')|trim %}
+          <button type="button"
+                  id="ttv2DownloadLoginBtn"
+                  class="btn btn-sm btn-outline-primary ttv2-download-login-btn"
+                  {% if not _login_school %}disabled{% endif %}
+                  title="{% if _login_school %}Download login details for the students in the current filters{% else %}Select one school to download logins{% endif %}">
+            <i class="bx bx-download me-1" aria-hidden="true"></i> Download login
+          </button>
+        {% endif %}
         {# Counselor: follow-up history. Institute: session report history. #}
         {% if ttv2_students_role is defined and ttv2_students_role == 'counselor' %}
           <a href="{{ url('counselor:Counselor_follow_up_page', args=[coun_id]) }}"

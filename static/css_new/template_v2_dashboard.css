@@ -4618,6 +4618,11 @@ body.ttv2-shell .ttv2-roster-actions .btn-group .btn.active{
   background: linear-gradient(135deg, var(--c-accent, #5249DF), #7d4dff);
   color: #fff;
 }
+body.ttv2-shell .ttv2-roster-actions .ttv2-download-login-btn:disabled{
+  opacity: 0.45;
+  pointer-events: none;
+  cursor: not-allowed;
+}
 body.ttv2-shell .ttv2-roster-actions .ttv2-history-btn{
   border-radius: 11px;
   border-color: color-mix(in srgb, var(--c-border2, var(--ttv2-border)) 78%, transparent);
