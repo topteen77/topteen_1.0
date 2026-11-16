@@ -17,10 +17,16 @@ from django.views.generic import TemplateView, View
 from core import choices
 from institute.models import Institute, StudentManagement
 from institute.views import (
-    _csv_indian_mobile_ok,
+    CSV_UPLOAD_CONFIRM_INVALID,
+    _CSV_UPLOAD_PENDING_KEY,
     _institute_logo_url_safe,
     _normalize_csv_mobile_digits,
+    csv_upload_cancel_redirect,
+    flash_csv_preflight_block,
     flash_csv_student_upload_summary,
+    hold_csv_upload_for_duplicate_confirm,
+    load_confirmed_csv_upload,
+    preflight_student_csv_rows,
     user_can_bulk_upload_students_for_institute,
 )
 from users.models import User
@@ -94,7 +100,6 @@ class InstituteHigherEdCsvStudentCreateView(TemplateView):
         from users.models import UserProfile
 
         referer = request.META.get('HTTP_REFERER') or reverse('institute:institutegroupdashboard')
-        evalid = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
 
         raw_inst = (request.POST.get('institute') or '').strip()
         if not raw_inst.isdigit():
@@ -111,37 +116,9 @@ class InstituteHigherEdCsvStudentCreateView(TemplateView):
             messages.error(request, block)
             return HttpResponseRedirect(referer)
 
-        csv_file = request.FILES.get('stu_file')
-        if not csv_file:
-            messages.error(request, 'No file uploaded')
-            return HttpResponseRedirect(referer)
-
-        file_content = csv_file.read()
-        try:
-            csvfile = file_content.decode('utf-8').splitlines()
-        except UnicodeDecodeError:
-            try:
-                csvfile = file_content.decode('utf-8-sig').splitlines()
-            except Exception:
-                csvfile = file_content.decode('latin-1').splitlines()
-
-        reader = csv.reader(csvfile)
-        try:
-            header = [h.strip().lower() for h in next(reader)]
-        except StopIteration:
-            messages.error(request, 'CSV file is empty')
-            return HttpResponseRedirect(referer)
-
-        required_headers = ['name', 'mobile']
-        missing_headers = [h for h in required_headers if h not in header]
-        if missing_headers:
-            messages.error(
-                request,
-                'CSV file is missing required columns: '
-                + ', '.join(missing_headers)
-                + '. Required columns are: name, mobile. Email is optional.',
-            )
-            return HttpResponseRedirect(referer)
+        cancelled = csv_upload_cancel_redirect(request, referer)
+        if cancelled is not None:
+            return cancelled
 
         education_level = normalize_education_level(request.POST.get('education_level'))
         if not education_level:
@@ -158,65 +135,112 @@ class InstituteHigherEdCsvStudentCreateView(TemplateView):
                 messages.error(request, package_error)
                 return HttpResponseRedirect(referer)
 
-        error_list = []
-        email_list = []
-        row_number = 1
+        pending = load_confirmed_csv_upload(request, kind="higher_ed", institute_id=institute.id)
+        if pending is CSV_UPLOAD_CONFIRM_INVALID:
+            messages.error(request, "This upload confirmation expired. Choose the file and upload it again.")
+            return HttpResponseRedirect(referer)
+        if pending:
+            parsed = list(pending.get("rows") or [])
+            referer = pending.get("referer") or referer
+        else:
+            csv_file = request.FILES.get('stu_file')
+            if not csv_file:
+                messages.error(request, 'No file uploaded')
+                return HttpResponseRedirect(referer)
+
+            file_content = csv_file.read()
+            try:
+                csvfile = file_content.decode('utf-8').splitlines()
+            except UnicodeDecodeError:
+                try:
+                    csvfile = file_content.decode('utf-8-sig').splitlines()
+                except Exception:
+                    csvfile = file_content.decode('latin-1').splitlines()
+
+            reader = csv.reader(csvfile)
+            try:
+                header = [h.strip().lower() for h in next(reader)]
+            except StopIteration:
+                messages.error(request, 'CSV file is empty')
+                return HttpResponseRedirect(referer)
+
+            required_headers = ['name', 'mobile']
+            missing_headers = [h for h in required_headers if h not in header]
+            if missing_headers:
+                messages.error(
+                    request,
+                    'CSV file is missing required columns: '
+                    + ', '.join(missing_headers)
+                    + '. Required columns are: name, mobile. Email is optional.',
+                )
+                return HttpResponseRedirect(referer)
+
+            parsed = []
+            row_number = 1
+            for stu in reader:
+                row_number += 1
+                if not any(stu):
+                    continue
+                stu_d = {
+                    header[i]: s.strip() if s and s.strip() else None
+                    for i, s in enumerate(stu)
+                    if i < len(header)
+                }
+                stu_name = stu_d.get('name')
+                stu_email = stu_d.get('email')
+                if not stu_email:
+                    suffix = str(random.randint(1000, 9999))
+                    if stu_name:
+                        stu_email = f"{stu_name.lower().replace(' ', '_')}_{suffix}@yopmail.com"
+                    else:
+                        stu_email = f"student_{suffix}@yopmail.com"
+                parsed.append({
+                    "row_number": row_number,
+                    "name": stu_name,
+                    "email": stu_email,
+                    "mobile": _normalize_csv_mobile_digits(stu_d.get('mobile')),
+                    "class_section": "",
+                })
+
+        plan = preflight_student_csv_rows(
+            parsed,
+            require_class=False,
+            credits_left=institute.get_current_credits_count(),
+        )
+        if plan["errors"]:
+            request.session.pop(_CSV_UPLOAD_PENDING_KEY, None)
+            flash_csv_preflight_block(request, plan["errors"])
+            create_institute_log.delay(
+                institute.id,
+                [e.get("reason") for e in plan["errors"]],
+                len(parsed),
+            )
+            return HttpResponseRedirect(referer)
+        if not pending:
+            held = hold_csv_upload_for_duplicate_confirm(
+                request,
+                kind="higher_ed",
+                institute=institute,
+                rows=parsed,
+                referer=referer,
+                extra={
+                    "education_level": education_level,
+                    "package_code": package_code,
+                },
+            )
+            if held is not None:
+                return held
+
         imported_ok = 0
-        already_exist = 0
-        invalid_email = 0
-        invalid_mobile = 0
-        missing_fields_count = 0
-        no_credits = 0
         other_errors = 0
-
-        for stu in reader:
-            row_number += 1
-            if not any(stu):
-                continue
-            email_list.append(stu)
-            stu_d = {
-                header[i]: s.strip() if s and s.strip() else None
-                for i, s in enumerate(stu)
-                if i < len(header)
-            }
-            stu_name = stu_d.get('name')
-            stu_mobile_norm = _normalize_csv_mobile_digits(stu_d.get('mobile'))
-            stu_email = stu_d.get('email')
-
-            if not stu_email:
-                suffix = str(random.randint(1000, 9999))
-                if stu_name:
-                    stu_email = f"{stu_name.lower().replace(' ', '_')}_{suffix}@yopmail.com"
-                else:
-                    stu_email = f"student_{suffix}@yopmail.com"
-
-            if not (stu_name and stu_email and stu_mobile_norm):
-                missing_fields_count += 1
-                error_list.append(f"Row {row_number}")
-                continue
-
-            if User.objects.filter(email=stu_email).exists():
-                already_exist += 1
-                error_list.append(stu_email)
-                continue
-            if not institute.is_valid_credit_count():
-                no_credits += 1
-                error_list.append(stu_email)
-                continue
-            if not re.match(evalid, stu_email):
-                invalid_email += 1
-                error_list.append(stu_email)
-                continue
-            if not _csv_indian_mobile_ok(stu_mobile_norm):
-                invalid_mobile += 1
-                error_list.append(str(stu_mobile_norm))
-                continue
-
+        error_list = []
+        logo_url = _institute_logo_url_safe(institute)
+        for row in plan["create"]:
             password = ''.join(str(random.randint(0, 9)) for _ in range(6))
             student = User.create_user(
-                name=stu_name,
-                mobile=stu_mobile_norm,
-                email=stu_email,
+                name=row["name"],
+                mobile=row["mobile"],
+                email=row["email"],
                 password=password,
             )
             stu_manage = StudentManagement.objects.create(
@@ -235,27 +259,25 @@ class InstituteHigherEdCsvStudentCreateView(TemplateView):
                 )
                 if not ok_pkg and pkg_msg:
                     other_errors += 1
-                    error_list.append(f'{stu_email}: {pkg_msg}')
-            update_student_data.delay(institute.id, institute.name)
+                    error_list.append(f'{row["email"]}: {pkg_msg}')
             create_student_and_send_mail.delay(
                 stu_manage.id,
-                stu_email,
+                row["email"],
                 password,
                 institute.name,
-                _institute_logo_url_safe(institute),
+                logo_url,
             )
             imported_ok += 1
+        if imported_ok:
+            update_student_data.delay(institute.id, institute.name)
 
-        create_institute_log.delay(institute.id, error_list, len(email_list))
+        create_institute_log.delay(institute.id, error_list, len(parsed))
         flash_csv_student_upload_summary(
             request,
-            processed=len(email_list),
+            processed=len(parsed),
             created=imported_ok,
-            already_exist=already_exist,
-            invalid_email=invalid_email,
-            invalid_mobile=invalid_mobile,
-            missing_fields=missing_fields_count,
-            no_credits=no_credits,
+            already_exist=len(plan["already"]),
             other_errors=other_errors,
+            email_changes=plan.get("email_changes"),
         )
         return HttpResponseRedirect(referer)
