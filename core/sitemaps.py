@@ -416,7 +416,8 @@ SITEMAPS = {
     "blogs": BlogSitemap,
     "ebooks": EbookSitemap,
     "career-library": CareerLibrarySitemap,
-    "colleges": CollegeSitemap,
+    # /colleges/ is Disallow in robots.txt (KaunsaCollege). An empty colleges
+    # sitemap fails Search Console validation, so it is not listed.
     "video-library": VideoLibrarySitemap,
     "assessments": AssessmentsSitemap,
     "college-career-readiness": CollegeCareerReadinessSitemap,

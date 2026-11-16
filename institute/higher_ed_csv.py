@@ -20,6 +20,7 @@ from institute.views import (
     _csv_indian_mobile_ok,
     _institute_logo_url_safe,
     _normalize_csv_mobile_digits,
+    flash_csv_student_upload_summary,
     user_can_bulk_upload_students_for_institute,
 )
 from users.models import User
@@ -161,6 +162,12 @@ class InstituteHigherEdCsvStudentCreateView(TemplateView):
         email_list = []
         row_number = 1
         imported_ok = 0
+        already_exist = 0
+        invalid_email = 0
+        invalid_mobile = 0
+        missing_fields_count = 0
+        no_credits = 0
+        other_errors = 0
 
         for stu in reader:
             row_number += 1
@@ -184,35 +191,24 @@ class InstituteHigherEdCsvStudentCreateView(TemplateView):
                     stu_email = f"student_{suffix}@yopmail.com"
 
             if not (stu_name and stu_email and stu_mobile_norm):
-                missing_fields = []
-                if not stu_name:
-                    missing_fields.append('name')
-                if not stu_mobile_norm:
-                    missing_fields.append('mobile')
-                messages.error(
-                    request,
-                    f"Row {row_number}: Missing or invalid fields - " + ', '.join(missing_fields),
-                )
+                missing_fields_count += 1
                 error_list.append(f"Row {row_number}")
                 continue
 
             if User.objects.filter(email=stu_email).exists():
-                messages.error(request, f"{stu_email} Already Exist !!")
+                already_exist += 1
                 error_list.append(stu_email)
                 continue
             if not institute.is_valid_credit_count():
-                messages.error(request, 'No remaining credits')
+                no_credits += 1
                 error_list.append(stu_email)
                 continue
             if not re.match(evalid, stu_email):
-                messages.error(request, f"{stu_email} Invalid Email !!")
+                invalid_email += 1
                 error_list.append(stu_email)
                 continue
             if not _csv_indian_mobile_ok(stu_mobile_norm):
-                messages.error(
-                    request,
-                    f"Invalid mobile number (row {row_number}): use 10 digits starting 6–9, or +91 prefix.",
-                )
+                invalid_mobile += 1
                 error_list.append(str(stu_mobile_norm))
                 continue
 
@@ -238,7 +234,8 @@ class InstituteHigherEdCsvStudentCreateView(TemplateView):
                     institute, student, package_code, assigned_by=request.user
                 )
                 if not ok_pkg and pkg_msg:
-                    messages.error(request, f'{stu_email}: {pkg_msg}')
+                    other_errors += 1
+                    error_list.append(f'{stu_email}: {pkg_msg}')
             update_student_data.delay(institute.id, institute.name)
             create_student_and_send_mail.delay(
                 stu_manage.id,
@@ -250,8 +247,15 @@ class InstituteHigherEdCsvStudentCreateView(TemplateView):
             imported_ok += 1
 
         create_institute_log.delay(institute.id, error_list, len(email_list))
-        if imported_ok:
-            messages.success(request, f"Successfully imported {imported_ok} student(s).")
-        elif email_list:
-            messages.error(request, 'No students were imported. Fix the CSV errors above and try again.')
+        flash_csv_student_upload_summary(
+            request,
+            processed=len(email_list),
+            created=imported_ok,
+            already_exist=already_exist,
+            invalid_email=invalid_email,
+            invalid_mobile=invalid_mobile,
+            missing_fields=missing_fields_count,
+            no_credits=no_credits,
+            other_errors=other_errors,
+        )
         return HttpResponseRedirect(referer)
