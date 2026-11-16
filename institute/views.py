@@ -658,6 +658,41 @@ def _institute_logo_url_safe(institute) -> str:
     return ""
 
 
+def flash_csv_student_upload_summary(
+    request,
+    *,
+    processed,
+    created,
+    already_exist=0,
+    invalid_email=0,
+    invalid_mobile=0,
+    missing_fields=0,
+    no_credits=0,
+    other_errors=0,
+):
+    """One toast for the whole CSV instead of a banner per skipped email."""
+    if processed <= 0:
+        return
+
+    parts = [f"{created} new created", f"{already_exist} already exist"]
+    if invalid_email:
+        parts.append(f"{invalid_email} invalid email")
+    if invalid_mobile:
+        parts.append(f"{invalid_mobile} invalid mobile")
+    if missing_fields:
+        parts.append(f"{missing_fields} missing fields")
+    if no_credits:
+        parts.append(f"{no_credits} skipped (no credits)")
+    if other_errors:
+        parts.append(f"{other_errors} other error(s)")
+
+    summary = f"Total {processed} uploaded: " + ", ".join(parts) + "."
+    if created:
+        messages.success(request, summary)
+    else:
+        messages.error(request, summary)
+
+
 def _render_ttv2_tieup_payments_partial(request, ctx):
     """AJAX fragment for tie-up payments status tabs (no full dashboard reload)."""
     if (ctx.get("ttv2_page") or "").strip().lower() != "payments":
@@ -7569,6 +7604,12 @@ class InstituteCsvStudentCreateView(TemplateView):
         email_list = []
         row_number = 1
         imported_ok = 0
+        already_exist = 0
+        invalid_email = 0
+        invalid_mobile = 0
+        missing_fields_count = 0
+        no_credits = 0
+        other_errors = 0
         default_package_code = (request.POST.get('psychometric_package') or '').strip()
 
         for stu in stu_file:
@@ -7634,7 +7675,8 @@ class InstituteCsvStudentCreateView(TemplateView):
                         institute, student, package_code, assigned_by=request.user
                     )
                     if not ok_pkg and pkg_msg:
-                        messages.error(request, f'{stu_email}: {pkg_msg}')
+                        other_errors += 1
+                        error_list.append(f'{stu_email}: {pkg_msg}')
                     update_student_data.delay(institute.id, institute.name)
                     create_student_and_send_mail.delay(
                         stu_manage.id,
@@ -7646,26 +7688,22 @@ class InstituteCsvStudentCreateView(TemplateView):
                     imported_ok += 1
                 else:
                     if stu_exist:
-                        messages.error(request, "{} Already Exist !!".format(stu_email))
+                        already_exist += 1
                         error_list.append(stu_email)
                     elif not institute.is_valid_credit_count():
-                        messages.error(request, "No remaining credits")
+                        no_credits += 1
                         error_list.append(stu_email)
                     elif not stu_em:
-                        messages.error(request, "{} Invalid Email !!".format(stu_email))
+                        invalid_email += 1
                         error_list.append(stu_email)
                     elif not stu_mob_ok:
-                        messages.error(
-                            request,
-                            "Invalid mobile number (row %s): use 10 digits starting 6–9, or +91 prefix."
-                            % row_number,
-                        )
+                        invalid_mobile += 1
                         error_list.append(str(stu_mobile_norm))
                     elif not class_section:
-                        messages.error(request, "Class Not Selected")
+                        missing_fields_count += 1
                         error_list.append(stu_email)
                     else:
-                        messages.error(request, "Something Went Wrong !!")
+                        other_errors += 1
                         error_list.append(stu_email)
             else:
                 missing_fields = []
@@ -7676,24 +7714,24 @@ class InstituteCsvStudentCreateView(TemplateView):
                 if not class_section:
                     missing_fields.append("class_and_section")
 
-                error_msg = (
+                missing_fields_count += 1
+                error_list.append(
                     f"Row {row_number}: Missing required fields - "
                     + ", ".join(missing_fields)
                 )
-                messages.error(request, error_msg)
-                error_list.append(f"Row {row_number}: {error_msg}")
 
         create_institute_log.delay(institute.id, error_list, len(email_list))
-        if imported_ok:
-            messages.success(
-                request,
-                "Successfully imported %s student(s)." % imported_ok,
-            )
-        elif email_list:
-            messages.error(
-                request,
-                "No students were imported. Fix the CSV errors above and try again.",
-            )
+        flash_csv_student_upload_summary(
+            request,
+            processed=len(email_list),
+            created=imported_ok,
+            already_exist=already_exist,
+            invalid_email=invalid_email,
+            invalid_mobile=invalid_mobile,
+            missing_fields=missing_fields_count,
+            no_credits=no_credits,
+            other_errors=other_errors,
+        )
 
         return HttpResponseRedirect(referer)
 
@@ -7779,6 +7817,12 @@ class InstitutePostMatricCsvStudentCreateView(TemplateView):
         email_list = []
         row_number = 1
         imported_ok = 0
+        already_exist = 0
+        invalid_email = 0
+        invalid_mobile = 0
+        missing_fields_count = 0
+        no_credits = 0
+        other_errors = 0
         default_package_code = (request.POST.get('psychometric_package') or '').strip()
 
         for stu in stu_file:
@@ -7852,7 +7896,8 @@ class InstitutePostMatricCsvStudentCreateView(TemplateView):
                         institute, student, package_code, assigned_by=request.user
                     )
                     if not ok_pkg and pkg_msg:
-                        messages.error(request, f'{stu_email}: {pkg_msg}')
+                        other_errors += 1
+                        error_list.append(f'{stu_email}: {pkg_msg}')
                     update_student_data.delay(institute.id, institute.name)
                     create_student_and_send_mail.delay(
                         stu_manage.id,
@@ -7864,26 +7909,22 @@ class InstitutePostMatricCsvStudentCreateView(TemplateView):
                     imported_ok += 1
                 else:
                     if stu_exist:
-                        messages.error(request, "{} Already Exist !!".format(stu_email))
+                        already_exist += 1
                         error_list.append(stu_email)
                     elif not institute.is_valid_credit_count():
-                        messages.error(request, "No remaining credits")
+                        no_credits += 1
                         error_list.append(stu_email)
                     elif not stu_em:
-                        messages.error(request, "{} Invalid Email !!".format(stu_email))
+                        invalid_email += 1
                         error_list.append(stu_email)
                     elif not stu_mob_ok:
-                        messages.error(
-                            request,
-                            "Invalid mobile number (row %s): use 10 digits starting 6–9, or +91 prefix."
-                            % row_number,
-                        )
+                        invalid_mobile += 1
                         error_list.append(str(stu_mobile_norm))
                     elif not class_section:
-                        messages.error(request, "Class Not Selected")
+                        missing_fields_count += 1
                         error_list.append(stu_email)
                     else:
-                        messages.error(request, "Something Went Wrong !!")
+                        other_errors += 1
                         error_list.append(stu_email)
             else:
                 missing_fields = []
@@ -7894,24 +7935,24 @@ class InstitutePostMatricCsvStudentCreateView(TemplateView):
                 if not class_section:
                     missing_fields.append("class_and_section")
 
-                error_msg = (
+                missing_fields_count += 1
+                error_list.append(
                     f"Row {row_number}: Missing required fields - "
                     + ", ".join(missing_fields)
                 )
-                messages.error(request, error_msg)
-                error_list.append(f"Row {row_number}: {error_msg}")
 
         create_institute_log.delay(institute.id, error_list, len(email_list))
-        if imported_ok:
-            messages.success(
-                request,
-                "Successfully imported %s student(s)." % imported_ok,
-            )
-        elif email_list:
-            messages.error(
-                request,
-                "No students were imported. Fix the CSV errors above and try again.",
-            )
+        flash_csv_student_upload_summary(
+            request,
+            processed=len(email_list),
+            created=imported_ok,
+            already_exist=already_exist,
+            invalid_email=invalid_email,
+            invalid_mobile=invalid_mobile,
+            missing_fields=missing_fields_count,
+            no_credits=no_credits,
+            other_errors=other_errors,
+        )
 
         return HttpResponseRedirect(referer)
 

@@ -16,7 +16,6 @@ SECTION_PATHS = {
     "blogs": "/blogs/",
     "ebooks": "/ebooks/",
     "career-library": "/careers/",
-    "colleges": "/colleges/",
     "video-library": "/careers/career-videos/",
     "assessments": "/four-pillars-of-learning/",
     "college-career-readiness": "/skilllabcourse/",
@@ -24,6 +23,10 @@ SECTION_PATHS = {
     "entrance-exams": "/entrance-test-prep/",
     "pages": "/",
 }
+
+W3C_LASTMOD = __import__("re").compile(
+    r"^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})?)?$"
+)
 
 
 def _locs(content, tag):
@@ -97,3 +100,24 @@ class SitemapSectionTests(TestCase):
         index = self.client.get("/sitemap.xml")
         locs = _locs(index.content, "sitemap")
         self.assertFalse(any(urlparse(loc).path == "/sitemap-courses.xml" for loc in locs))
+
+    def test_colleges_sitemap_not_listed(self):
+        index = self.client.get("/sitemap.xml")
+        locs = _locs(index.content, "sitemap")
+        self.assertFalse(any(urlparse(loc).path == "/sitemap-colleges.xml" for loc in locs))
+
+    def test_lastmod_is_w3c_datetime(self):
+        category = ExtracurricularActivityCategory.objects.create(name="Arts")
+        ExtracurricularActivity.objects.create(category=category, name="Theatre")
+        response = self.client.get("/sitemap-extracurricular.xml")
+        self.assertEqual(response.status_code, 200)
+        root = ET.fromstring(response.content)
+        lastmods = [
+            node.text
+            for node in root.findall("sm:url/sm:lastmod", NS)
+            if node.text
+        ]
+        self.assertTrue(lastmods)
+        for value in lastmods:
+            self.assertRegex(value, W3C_LASTMOD, msg=value)
+            self.assertNotIn(" ", value)

@@ -4,7 +4,8 @@
   <url>
     <loc>{{ url.location }}</loc>
 {% if url.lastmod %}
-    <lastmod>{{ url.lastmod }}</lastmod>
+    {# Google requires W3C Datetime (YYYY-MM-DD or ISO-8601 with T), not Python's " " datetime dump. #}
+    <lastmod>{{ url.lastmod.isoformat() }}</lastmod>
 {% endif %}
 {% if url.changefreq %}
     <changefreq>{{ url.changefreq }}</changefreq>
