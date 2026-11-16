@@ -1670,7 +1670,28 @@ function ttv2InitStudentTableAfterBodyInject() {
       instNameEl.addEventListener('input', onInstNameChange);
     }
 
+    function startLoginSheetDownload() {
+      var schoolEl = document.getElementById('institute_slug_filter');
+      var school = schoolEl ? (schoolEl.value || '').trim() : '';
+      var nameFilter = instNameEl ? (instNameEl.value || '').trim() : '';
+      if (!school || nameFilter) return;
+      var params;
+      try {
+        params = new URLSearchParams(new FormData(filterForm));
+      } catch (eForm) {
+        params = new URLSearchParams(window.location.search);
+      }
+      params.delete('data_type');
+      params.delete('page');
+      params.delete('institute_name');
+      params.set('institute_slug', school);
+      params.set('download_login', '1');
+      window.location.assign(window.location.pathname + '?' + params.toString());
+    }
+
     var downloadLoginBtn = document.getElementById('ttv2DownloadLoginBtn');
+    var downloadLoginModal = document.getElementById('ttv2DownloadLoginModal');
+    var downloadLoginConfirm = document.getElementById('ttv2DownloadLoginConfirm');
     if (downloadLoginBtn && !downloadLoginBtn.dataset.ttv2Bound) {
       downloadLoginBtn.dataset.ttv2Bound = '1';
       downloadLoginBtn.addEventListener('click', function () {
@@ -1678,23 +1699,26 @@ function ttv2InitStudentTableAfterBodyInject() {
         var schoolEl = document.getElementById('institute_slug_filter');
         var school = schoolEl ? (schoolEl.value || '').trim() : '';
         var nameFilter = instNameEl ? (instNameEl.value || '').trim() : '';
-        if (!school || nameFilter) return;
-        var ok = window.confirm(
-          'This creates a new password for each student in the current filters. ' +
-          'The CSV contains those new passwords, and the previous passwords stop working. Download the login sheet?'
-        );
-        if (!ok) return;
-        var params;
-        try {
-          params = new URLSearchParams(new FormData(filterForm));
-        } catch (eForm) {
-          params = new URLSearchParams(window.location.search);
+        if (!school || nameFilter || !downloadLoginModal) return;
+        var schoolLabel = document.getElementById('ttv2DownloadLoginSchool');
+        if (schoolLabel) {
+          var selected = schoolEl && schoolEl.selectedOptions && schoolEl.selectedOptions[0];
+          var label = selected ? (selected.textContent || '').replace(/\s+/g, ' ').trim() : school;
+          schoolLabel.textContent = label.replace(/\s+—\s+\d+\s+credits left$/i, '');
         }
-        params.delete('data_type');
-        params.delete('page');
-        params.set('institute_slug', school);
-        params.set('download_login', '1');
-        window.location.assign(window.location.pathname + '?' + params.toString());
+        if (window.bootstrap && window.bootstrap.Modal) {
+          window.bootstrap.Modal.getOrCreateInstance(downloadLoginModal).show();
+        }
+      });
+    }
+    if (downloadLoginConfirm && !downloadLoginConfirm.dataset.ttv2Bound) {
+      downloadLoginConfirm.dataset.ttv2Bound = '1';
+      downloadLoginConfirm.addEventListener('click', function () {
+        if (downloadLoginModal && window.bootstrap && window.bootstrap.Modal) {
+          var openModal = window.bootstrap.Modal.getInstance(downloadLoginModal);
+          if (openModal) openModal.hide();
+        }
+        startLoginSheetDownload();
       });
     }
 

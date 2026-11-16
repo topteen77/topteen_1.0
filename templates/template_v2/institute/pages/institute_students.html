@@ -395,6 +395,30 @@
   </div>
 </div>
 
+{% if ttv2_students_role is defined and ttv2_students_role == 'marketing_group' and request.user.user_type == 5 %}
+<div class="modal fade" id="ttv2DownloadLoginModal" tabindex="-1" aria-labelledby="ttv2DownloadLoginTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered ttv2-login-sheet-dialog">
+    <div class="modal-content ttv2-login-sheet-modal">
+      <div class="modal-body">
+        <div class="ttv2-login-sheet-icon" aria-hidden="true"><i class="bx bx-download"></i></div>
+        <h2 class="ttv2-login-sheet-title" id="ttv2DownloadLoginTitle">Download login sheet</h2>
+        <p class="ttv2-login-sheet-school" id="ttv2DownloadLoginSchool"></p>
+        <p class="ttv2-login-sheet-copy mb-0">
+          This creates a new password for each student in the current filters.
+          The CSV contains those new passwords, and the previous passwords stop working.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="ttv2DownloadLoginConfirm">
+          <i class="bx bx-download me-1" aria-hidden="true"></i> Download CSV
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
 {# Counselor: show weekly session report widget at page bottom (below roster). #}
 {% if ttv2_students_role is defined and ttv2_students_role == 'counselor' %}
   <div class="mt-3">

@@ -1148,13 +1148,22 @@ def marketing_student_login_csv_response(request):
         elif test_taken_filter == "In Progress":
             filtered = filtered.filter(any_attempt).filter(~completed_exists)
 
+    filtered = filtered.exclude(student__is_demo_account=True).exclude(
+        student__is_system_demo=True
+    )
+
     buf = io.StringIO()
     writer = csv.writer(buf)
     writer.writerow(["Name", "mobileno", "Login", "Password"])
     with transaction.atomic():
         for sm in filtered.order_by("student__name", "id"):
             stu = sm.student
-            if not stu or not (stu.email or "").strip():
+            if (
+                not stu
+                or not (stu.email or "").strip()
+                or getattr(stu, "is_demo_account", False)
+                or getattr(stu, "is_system_demo", False)
+            ):
                 continue
             password = "".join(str(random.randint(0, 9)) for _ in range(6))
             stu.set_password(password)
