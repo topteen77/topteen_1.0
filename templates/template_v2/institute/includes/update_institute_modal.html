@@ -95,7 +95,7 @@
                   </div>
                 </div>
                 <input type="hidden" name="institute_account_type" value="{% if ins.is_demo_institute %}demo{% else %}paid{% endif %}" data-ttv2-account-type-value>
-                <div class="border rounded-3 p-3 bg-light-subtle" data-ttv2-demo-only-section>
+                <div class="border rounded-3 p-3 bg-light-subtle{% if not ins.is_demo_institute %} d-none{% endif %}" data-ttv2-demo-only-section>
                   <p class="fw-semibold mb-1">Demo student seed</p>
                   <p class="small text-muted mb-2">
                     Max 5 per class, {{ 3 - (ins.demo_seed_count|default(0)|int) }} seed run(s) left
@@ -115,7 +115,7 @@
                 </div>
               </div>
             </div>
-            <div class="col-12" data-ttv2-paid-only-section>
+            <div class="col-12{% if ins.is_demo_institute %} d-none{% endif %}" data-ttv2-paid-only-section>
               <div class="row g-3">
                 <div class="col-12">
                   {% include "template_v2/institute/includes/psychometric_institute_settings.html" %}
