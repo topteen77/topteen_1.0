@@ -19,7 +19,6 @@ from core.models import (
     VocationalCourse,
     VocationalCourseCategory,
 )
-from courses.models import Course
 from entrance_exams.models import EntranceExam
 from skilllab.models import SkillLabCourse
 
@@ -277,7 +276,13 @@ class CollegeSitemap(SectionSitemap):
     named_urls = ["colleges:college"]
 
     def _published_colleges(self):
-        return _with_slug(College.objects.filter(publish_status=choices.PublishStatus.PUBLISHED))
+        # India institutes are served by KaunsaCollege, not these local rows.
+        return _with_slug(
+            College.objects.filter(publish_status=choices.PublishStatus.PUBLISHED)
+            .exclude(country__name__iexact="INDIA")
+            .exclude(country__short_name__iexact="IND")
+            .exclude(country__short_name__iexact="IN")
+        )
 
     def _model_count(self):
         return self._published_colleges().count()
@@ -402,21 +407,8 @@ class EntranceExamsSitemap(SectionSitemap):
         return reverse("entrance_exams:testprepdetail", args=[value.slug])
 
 
-class CourseSitemap(SectionSitemap):
-    priority = 0.7
-
-    def _model_count(self):
-        return _with_slug(Course.objects).count()
-
-    def _model_items(self):
-        courses = Course.objects.order_by("-modified", "-id")
-        return [("course", course) for course in _with_slug(courses)]
-
-    def model_location(self, kind, value):
-        return reverse("courses:coursedetail", args=[value.slug, value.id])
-
-
 # Keys become /sitemap-<key>.xml and are listed from /sitemap.xml.
+# Local Course rows were the old Indian-college catalog. They are not indexed.
 SITEMAPS = {
     "extracurricular": ExtracurricularSitemap,
     "vocational-courses": VocationalCoursesSitemap,
@@ -430,6 +422,5 @@ SITEMAPS = {
     "college-career-readiness": CollegeCareerReadinessSitemap,
     "counselor-course": CounselorCourseSitemap,
     "entrance-exams": EntranceExamsSitemap,
-    "courses": CourseSitemap,
     "pages": PagesSitemap,
 }

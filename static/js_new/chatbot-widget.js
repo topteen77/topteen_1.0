@@ -1218,7 +1218,7 @@
       w.innerHTML = `
         <div class="cb-welcome-icon"><img src="${getWelcomeIconSrc()}" alt="" width="60" height="60" decoding="async" /></div>
         <h3>Hello! I'm your ${CFG.botName} <span class="cb-welcome-wave" aria-hidden="true">👋</span></h3>
-        <p>Ask me anything — I'll help with accurate, up‑to‑date answers.</p>
+        <p>Smart career choices start here - powered by real-time AI guidance.</p>
         ${CFG.devMode
           ? '<span class="cb-welcome-dev-note">⚙ Dev Mode — create or connect a session above</span>'
           : ''}

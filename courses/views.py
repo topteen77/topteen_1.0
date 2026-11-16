@@ -1,7 +1,9 @@
-from django.shortcuts import render, get_object_or_404
+from django.http import Http404
+from django.shortcuts import redirect, render, get_object_or_404
 from django.views.generic import TemplateView
-from .models import Course
+from core import choices
 from core.utils import build_html_head
+from .models import Course
 
 class CourseDetailView(TemplateView):
     """Public view for Course details accessible to all users including students"""
@@ -20,7 +22,10 @@ class CourseDetailView(TemplateView):
             course = get_object_or_404(Course, id=course_id, slug=slug)
         else:
             course = get_object_or_404(Course, id=course_id)
-        
+        college = course.college
+        if college is None or college.publish_status != choices.PublishStatus.PUBLISHED:
+            raise Http404("Course is not published")
+
         ctx['course'] = course
         ctx['html_head'] = self.html_head(course)
         
@@ -36,4 +41,5 @@ class CourseDetailView(TemplateView):
         return ctx
     
     def get(self, request, *args, **kwargs):
-        return render(request, self.template_name, self.get_context(request, *args, **kwargs))
+        # These rows are the old Indian-college catalog. KaunsaCollege is the listing now.
+        return redirect("colleges:college", permanent=True)
