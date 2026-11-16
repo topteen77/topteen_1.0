@@ -164,7 +164,10 @@
 <script>
 (function () {
   function isDemoAccountType(root) {
-    var checked = root.querySelector('input[name="institute_account_type"]:checked');
+    var checked = root.querySelector('input[data-ttv2-account-type]:checked');
+    if (!checked) {
+      checked = root.querySelector('input[name="institute_account_type"]:checked');
+    }
     return !!(checked && checked.value === 'demo');
   }
 
@@ -181,13 +184,16 @@
     });
   }
 
-  function syncAccountTypeSections(root) {
+  function syncAccountTypeSections(root, opts) {
     if (!root) return;
+    opts = opts || {};
     var demoOn = isDemoAccountType(root);
+    var hidden = root.querySelector('[data-ttv2-account-type-value]');
+    if (hidden) hidden.value = demoOn ? 'demo' : 'paid';
     setSectionHidden(root.querySelector('[data-ttv2-demo-only-section]'), !demoOn);
     setSectionHidden(root.querySelector('[data-ttv2-paid-only-section]'), demoOn);
 
-    if (demoOn) {
+    if (demoOn && opts.seedDefaults) {
       var n10El = root.querySelector('[name="demo_class10_count"]');
       var n12El = root.querySelector('[name="demo_class12_count"]');
       var n10 = parseInt((n10El && n10El.value) || '0', 10) || 0;
@@ -214,10 +220,30 @@
     root.__ttv2AccountTypeBound = true;
     root.querySelectorAll('[data-ttv2-account-type]').forEach(function (radio) {
       radio.addEventListener('change', function () {
-        syncAccountTypeSections(root);
+        syncAccountTypeSections(root, { seedDefaults: true });
       });
     });
     syncAccountTypeSections(root);
+  }
+
+  window.ttv2SyncAccountTypeSections = function (root) {
+    syncAccountTypeSections(root);
+  };
+
+  if (!window.__ttv2AccountTypeDelegate) {
+    window.__ttv2AccountTypeDelegate = true;
+    document.addEventListener('change', function (e) {
+      var t = e.target;
+      if (!t || !t.matches || !t.matches('input[data-ttv2-account-type]')) return;
+      var modal = t.closest('.ttv2-update-institute-modal');
+      if (!modal) return;
+      syncAccountTypeSections(modal);
+    });
+    document.addEventListener('shown.bs.modal', function (e) {
+      var modal = e.target;
+      if (!modal || !modal.classList || !modal.classList.contains('ttv2-update-institute-modal')) return;
+      syncAccountTypeSections(modal);
+    });
   }
 
   function showCreateInstituteError(form, msg) {
