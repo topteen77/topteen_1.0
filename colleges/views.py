@@ -1,6 +1,6 @@
 from asyncio import streams
 from urllib import request
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.http import JsonResponse
 from colleges.document_filters import CollegeDocumentFilter
 from .models import College, CollegeShortlist, IndianCollegeShortlist
@@ -38,6 +38,7 @@ class CollegeDetails(TemplateView):
         college=get_object_or_404(
             College.objects.select_related('country', 'state', 'city').prefetch_related('flat_texts'),
             slug=slug,
+            publish_status=choices.PublishStatus.PUBLISHED,
         )
         ctx['college']=college
         country=Country.objects.all()
@@ -45,7 +46,9 @@ class CollegeDetails(TemplateView):
         courses=Course.objects.filter(college=college).select_related('stream')
         # Related colleges: the template only renders colleges[:6]. get_all_colleges()
         # already select_related's location FKs, so get_location() adds no extra queries.
-        all_colleges = College.get_all_colleges().exclude(id=college.id)[:12]
+        all_colleges = College.get_all_colleges().filter(
+            publish_status=choices.PublishStatus.PUBLISHED,
+        ).exclude(id=college.id)[:12]
         if hasattr(all_colleges, '__iter__') and not isinstance(all_colleges, str):
             colleges_list = list(all_colleges)
         else:
@@ -138,6 +141,14 @@ class CollegeDetails(TemplateView):
         ])
 
     def get(self, request,slug, *args, **kwargs):
+        indexed_college = (
+            College.objects.complete()
+            .select_related("country")
+            .filter(slug=slug)
+            .first()
+        )
+        if indexed_college and indexed_college.is_indian():
+            return redirect("colleges:college", permanent=True)
         if is_ajax(request=request):
             try:
                 clgd=CollegeDocumentFilter()
