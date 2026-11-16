@@ -91,8 +91,9 @@ class SitemapSectionTests(TestCase):
         self.assertEqual(index.status_code, 404)
         self.assertEqual(section.status_code, 404)
 
-    def test_courses_section_is_urlset(self):
+    def test_old_indian_course_sitemap_is_gone(self):
         response = self.client.get("/sitemap-courses.xml")
-        self.assertEqual(response.status_code, 200)
-        root = ET.fromstring(response.content)
-        self.assertTrue(root.tag.endswith("urlset"))
+        self.assertEqual(response.status_code, 404)
+        index = self.client.get("/sitemap.xml")
+        locs = _locs(index.content, "sitemap")
+        self.assertFalse(any(urlparse(loc).path == "/sitemap-courses.xml" for loc in locs))
