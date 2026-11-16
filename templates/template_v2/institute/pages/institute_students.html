@@ -241,10 +241,14 @@
             {% endif %}
             <select name="class_and_section" id="classes" class="form-control custom-input">
               <option value="">All classes</option>
+              {% set _seen_classes = [] %}
               {% for cas in class_and_sections %}
+              {% if cas.class_and_section and cas.class_and_section not in _seen_classes %}
+              {% if _seen_classes.append(cas.class_and_section) %}{% endif %}
               <option value="{{ cas.class_and_section }}" {% if request.GET.get('class_and_section')==cas.class_and_section %}selected{% endif %}>
                 {{ cas.class_and_section }}
               </option>
+              {% endif %}
               {% endfor %}
             </select>
 

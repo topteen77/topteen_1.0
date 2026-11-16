@@ -1661,6 +1661,24 @@ function ttv2InitStudentTableAfterBodyInject() {
       if (!el || el.dataset.ttv2Bound) return;
       el.dataset.ttv2Bound = '1';
       el.addEventListener('change', function(){
+        if (id === 'institute_slug_filter') {
+          var classEl = document.getElementById('classes');
+          var streamEl = document.getElementById('streams');
+          if (classEl) classEl.value = '';
+          if (streamEl) streamEl.value = '';
+          try {
+            var params = new URLSearchParams(new FormData(filterForm));
+            params.delete('data_type');
+            params.delete('page');
+            params.delete('class_and_section');
+            params.delete('stream');
+            var qs = params.toString();
+            window.location.assign(window.location.pathname + (qs ? ('?' + qs) : ''));
+          } catch (eNav) {
+            submitIfOk();
+          }
+          return;
+        }
         submitIfOk();
       });
     });
