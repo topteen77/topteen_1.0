@@ -468,6 +468,7 @@
                 Use our column template for bulk import.
                 <a href="{{ url('institute:download_student_sample_csv') }}" target="_blank" rel="noopener" download>Download sample CSV</a>
               </p>
+              {% include "template_v2/includes/ttv2_csv_upload_rerun_hint.html" %}
             </div>
           </div>
           <div class="mb-3">
@@ -520,6 +521,7 @@
                 Post-matric layout differs from matric.
                 <a href="{{ url('institute:post_matric_student_sample_csv') }}" target="_blank" rel="noopener" download>Download sample CSV</a>
               </p>
+              {% include "template_v2/includes/ttv2_csv_upload_rerun_hint.html" %}
             </div>
           </div>
           <div class="mb-3">
@@ -572,6 +574,7 @@
                 Columns: name, mobile, email. Education level and package are chosen here and apply to every row.
                 <a href="{{ url('institute:higher_ed_student_sample_csv') }}" target="_blank" rel="noopener" download>Download sample CSV</a>
               </p>
+              {% include "template_v2/includes/ttv2_csv_upload_rerun_hint.html" %}
             </div>
           </div>
           <div class="mb-3">
