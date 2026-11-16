@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.sitemaps.views import index as django_sitemap_index
 from django.contrib.sitemaps.views import sitemap as django_sitemap_view
 from django.db.utils import OperationalError, ProgrammingError
 from django.http import Http404
@@ -63,11 +64,27 @@ def robots_txt(request):
     return HttpResponse("\n".join(lines), content_type="text/plain")
 
 
-def sitemap_xml(request, sitemaps):
+def sitemap_index(request, sitemaps):
+    """sitemap.xml — index of one sitemap file per public section."""
+    _ensure_indexable(request)
+    response = django_sitemap_index(
+        request,
+        sitemaps=sitemaps,
+        sitemap_url_name="sitemap-section",
+        template_name="sitemap_index.xml",
+        content_type="application/xml",
+    )
+    response["X-Robots-Tag"] = "noindex, noodp, noarchive"
+    return response
+
+
+def sitemap_section(request, sitemaps, section):
+    """sitemap-<section>.xml — URLs for one subcategory."""
     _ensure_indexable(request)
     return django_sitemap_view(
         request,
         sitemaps=sitemaps,
+        section=section,
         template_name="sitemap.xml",
         content_type="application/xml",
     )

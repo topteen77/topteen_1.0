@@ -21,6 +21,7 @@ from django.conf import settings
 app_name = 'users'
 
 urlpatterns = [
+   path('welcome/', RedirectView.as_view(url='/', permanent=True), name='legacy_welcome'),
    path('login/', views.LoginView.as_view(),name='login'),
    path('login/<str:enc_id>/', views.LoginView.as_view(),name='referallogin'),
    path('demo-login/', views.DemoLoginView.as_view(), name='demo_login'),

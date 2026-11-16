@@ -65,6 +65,23 @@ class College(BaseModel,SeoModel,SlugModel,PublishableModel):
         # does not trigger N+1 queries when iterated in templates/views.
         return College.objects.select_related('country', 'state', 'city')
 
+    @classmethod
+    def indian_records(cls):
+        """Local College rows for India. KaunsaCollege now serves these institutes."""
+        return cls.objects.complete().filter(
+            Q(country__name__iexact="INDIA")
+            | Q(country__short_name__iexact="IND")
+            | Q(country__short_name__iexact="IN")
+        )
+
+    def is_indian(self):
+        country = self.country
+        if country is None:
+            return False
+        name = (country.name or "").strip().casefold()
+        short = (country.short_name or "").strip().casefold()
+        return name == "india" or short in {"ind", "in"}
+
     def save(self, *args, **kwargs):
         current_user=get_current_user()
         if self.created_by is None:

@@ -77,7 +77,7 @@ def _should_skip_analytics_path(path):
     """
     if not path:
         return False
-    if path in _BASE_ANALYTICS_SKIP_EXACT_PATHS:
+    if path in _BASE_ANALYTICS_SKIP_EXACT_PATHS or path.startswith("/sitemap-"):
         return True
     # REST and nested app APIs (e.g. /api/v1/, /forum/api/queries/, /careers/api/...)
     if path.startswith('/api/') or path == '/api' or '/api/' in path:
