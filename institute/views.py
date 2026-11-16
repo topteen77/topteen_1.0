@@ -640,6 +640,326 @@ def _csv_indian_mobile_ok(norm: str) -> bool:
     return bool(re.match(r"^[6789]\d{9}$", norm))
 
 
+def _csv_person_name(value):
+    return " ".join((value or "").strip().lower().split())
+
+
+import re as _re
+
+_CSV_EMAIL_RE = _re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+
+
+def preflight_student_csv_rows(rows, *, require_class=True, credits_left=None):
+    """
+    Check a parsed CSV before any student is created.
+
+    Hard errors (missing fields, invalid email, invalid mobile, or not enough
+    credits) block the upload and nothing is saved. An email already used by a
+    different student is not a block: that row is still created with a free
+    email. A student who is already saved is skipped, so a re-upload creates
+    only the remaining rows.
+
+    Returns errors, create, already, and email_changes.
+    """
+    emails = []
+    mobiles = []
+    for row in rows:
+        email = (row.get("email") or "").strip()
+        mobile = (row.get("mobile") or "").strip()
+        if email:
+            emails.append(email)
+            emails.append(email.lower())
+        if mobile:
+            mobiles.append(mobile)
+    by_email = {}
+    if emails:
+        for user in User.objects.filter(email__in=list(set(emails))).only(
+            "id", "name", "email", "mobile"
+        ):
+            by_email[(user.email or "").strip().lower()] = user
+        spare_q = None
+        seen_locals = set()
+        for email_key in list(by_email):
+            local = email_key.split("@", 1)[0]
+            if not local or local in seen_locals:
+                continue
+            seen_locals.add(local)
+            clause = Q(email__istartswith=f"{local}-")
+            spare_q = clause if spare_q is None else (spare_q | clause)
+        if spare_q is not None:
+            for user in User.objects.filter(spare_q).only("email")[:500]:
+                by_email.setdefault((user.email or "").strip().lower(), user)
+    by_person_mobile = {}
+    if mobiles:
+        for user in User.objects.filter(mobile__in=list(set(mobiles))).only(
+            "id", "name", "email", "mobile"
+        ):
+            by_person_mobile[
+                (_csv_person_name(user.name), (user.mobile or "").strip())
+            ] = user
+
+    errors = []
+    create = []
+    already = []
+    duplicates = []
+    email_changes = []
+    seen_email = {}
+    seen_person_mobile = set()
+    taken_emails = set(by_email)
+
+    def spare_email(email):
+        local, _, domain = (email or "").partition("@")
+        domain = domain or "yopmail.com"
+        local = local or "student"
+        for n in range(2, 100):
+            candidate = f"{local}-{n}@{domain}"
+            if candidate.lower() not in taken_emails:
+                taken_emails.add(candidate.lower())
+                return candidate
+        return ""
+
+    for row in rows:
+        row_number = row.get("row_number")
+        name = (row.get("name") or "").strip()
+        email = (row.get("email") or "").strip()
+        mobile = (row.get("mobile") or "").strip()
+        class_section = (row.get("class_section") or "").strip()
+        person = _csv_person_name(name)
+        missing = []
+        if not name:
+            missing.append("name")
+        if not mobile:
+            missing.append("mobile")
+        if require_class and not class_section:
+            missing.append("class")
+        if missing:
+            errors.append({
+                "row": row_number,
+                "name": name,
+                "reason": "missing " + ", ".join(missing),
+            })
+            continue
+        if email and not _CSV_EMAIL_RE.match(email):
+            errors.append({
+                "row": row_number,
+                "name": name,
+                "reason": f"invalid email {email}",
+            })
+            continue
+        if not _csv_indian_mobile_ok(mobile):
+            errors.append({
+                "row": row_number,
+                "name": name,
+                "reason": f"invalid mobile {mobile}",
+            })
+            continue
+
+        email_key = email.lower()
+        owner = by_email.get(email_key)
+        prior_name = seen_email.get(email_key)
+        already_saved = (
+            (owner and _csv_person_name(owner.name) == person)
+            or (person, mobile) in by_person_mobile
+        )
+        duplicate_reason = ""
+        email_taken_by = ""
+        if owner and _csv_person_name(owner.name) != person:
+            email_taken_by = (owner.name or "").strip()
+            duplicate_reason = f"email {email} is already used by {email_taken_by}"
+        elif prior_name and _csv_person_name(prior_name) != person:
+            email_taken_by = prior_name
+            duplicate_reason = f"email {email} is repeated in this file for {prior_name}"
+        elif prior_name and _csv_person_name(prior_name) == person:
+            duplicate_reason = f"duplicate row for {name} ({email})"
+
+        if duplicate_reason and already_saved:
+            duplicates.append({
+                "row": row_number,
+                "name": name,
+                "reason": duplicate_reason + ". Already uploaded, skipped.",
+            })
+            already.append(row)
+            seen_email.setdefault(email_key, name)
+            seen_person_mobile.add((person, mobile))
+            continue
+        if duplicate_reason:
+            new_email = spare_email(email)
+            if not new_email:
+                errors.append({
+                    "row": row_number,
+                    "name": name,
+                    "reason": duplicate_reason,
+                })
+                duplicates.append({
+                    "row": row_number,
+                    "name": name,
+                    "reason": duplicate_reason,
+                })
+                continue
+            changed = dict(row)
+            changed["email"] = new_email
+            create.append(changed)
+            email_changes.append({
+                "row": row_number,
+                "name": name,
+                "email": new_email,
+                "used_by": email_taken_by,
+            })
+            duplicates.append({
+                "row": row_number,
+                "name": name,
+                "reason": duplicate_reason + f". Saved as {new_email}.",
+            })
+            seen_person_mobile.add((person, mobile))
+            continue
+        if already_saved or (person, mobile) in seen_person_mobile:
+            already.append(row)
+            seen_email.setdefault(email_key, name)
+            seen_person_mobile.add((person, mobile))
+            continue
+        seen_email[email_key] = name
+        taken_emails.add(email_key)
+        seen_person_mobile.add((person, mobile))
+        create.append(row)
+
+    if not errors and credits_left is not None and len(create) > int(credits_left):
+        errors.append({
+            "row": "",
+            "name": "",
+            "reason": (
+                f"This file needs {len(create)} new credits and "
+                f"{max(int(credits_left), 0)} are left. Nothing was saved."
+            ),
+        })
+    return {
+        "errors": errors,
+        "create": create,
+        "already": already,
+        "email_changes": email_changes,
+        "duplicates": duplicates,
+    }
+
+
+def flash_csv_preflight_duplicates(request, duplicates):
+    """Always show duplicate rows found before upload."""
+    if not duplicates:
+        return
+    parts = [f"Duplicate check: {len(duplicates)} row(s)."]
+    for item in duplicates[:12]:
+        parts.append(f"Row {item.get('row')} {item.get('name')}: {item.get('reason')}")
+    extra = len(duplicates) - 12
+    if extra > 0:
+        parts.append(f"and {extra} more.")
+    messages.warning(request, " ".join(parts))
+
+
+_CSV_UPLOAD_PENDING_KEY = "csv_student_upload_pending"
+CSV_UPLOAD_CONFIRM_INVALID = object()
+
+
+def csv_file_email_duplicates(rows):
+    """Emails repeated inside this file only. Does not look at saved students."""
+    buckets = {}
+    order = []
+    for row in rows:
+        email = (row.get("email") or "").strip().lower()
+        if not email:
+            continue
+        if email not in buckets:
+            buckets[email] = []
+            order.append(email)
+        buckets[email].append(row)
+    groups = []
+    for email in order:
+        items = buckets[email]
+        if len(items) < 2:
+            continue
+        groups.append({
+            "email": email,
+            "students": [
+                {
+                    "row": item.get("row_number") or "",
+                    "name": (item.get("name") or "").strip(),
+                    "email": (item.get("email") or "").strip(),
+                    "mobile": (item.get("mobile") or "").strip(),
+                }
+                for item in items
+            ],
+        })
+    return groups
+
+
+def csv_upload_cancel_redirect(request, fallback):
+    if request.POST.get("cancel_csv_duplicates") != "1":
+        return None
+    pending = request.session.pop(_CSV_UPLOAD_PENDING_KEY, None) or {}
+    request.session.modified = True
+    return HttpResponseRedirect(pending.get("referer") or fallback)
+
+
+def load_confirmed_csv_upload(request, *, kind, institute_id):
+    """Return the saved file after the user confirms, or None when this is a new upload."""
+    if request.POST.get("confirm_csv_duplicates") != "1":
+        return None
+    pending = request.session.pop(_CSV_UPLOAD_PENDING_KEY, None)
+    request.session.modified = True
+    if (
+        not isinstance(pending, dict)
+        or pending.get("kind") != kind
+        or int(pending.get("institute_id") or 0) != int(institute_id)
+    ):
+        return CSV_UPLOAD_CONFIRM_INVALID
+    return pending
+
+
+def hold_csv_upload_for_duplicate_confirm(request, *, kind, institute, rows, referer, extra=None):
+    """Show in-file duplicate emails and wait. Nothing is saved until confirm."""
+    groups = csv_file_email_duplicates(rows)
+    if not groups:
+        return None
+    extra = extra or {}
+    request.session[_CSV_UPLOAD_PENDING_KEY] = {
+        "kind": kind,
+        "institute_id": institute.id,
+        "rows": rows,
+        "referer": referer,
+        "extra": extra,
+    }
+    request.session.modified = True
+    students = []
+    for group in groups:
+        students.extend(group["students"])
+    return render(
+        request,
+        "template_v2/institute/csv_upload_duplicate_confirm.html",
+        {
+            "duplicate_students": students,
+            "duplicate_student_count": len(students),
+            "duplicate_email_count": len(groups),
+            "total_rows": len(rows),
+            "institute_id": institute.id,
+            "form_action": request.path,
+            "education_level": extra.get("education_level") or "",
+            "package_code": extra.get("package_code") or "",
+        },
+    )
+
+
+def flash_csv_preflight_block(request, errors):
+    """One message. Nothing is written when this is shown."""
+    parts = ["Upload not saved. Fix these rows, then upload the file again."]
+    for err in errors[:12]:
+        row = err.get("row")
+        name = (err.get("name") or "").strip()
+        reason = err.get("reason") or "Invalid row"
+        who = f"Row {row} {name}".strip() if row else ""
+        parts.append(f"{who}: {reason}".strip() if who else reason)
+    extra = len(errors) - 12
+    if extra > 0:
+        parts.append(f"and {extra} more.")
+    messages.error(request, " ".join(parts))
+
+
 def user_can_bulk_upload_students_for_institute(request, institute) -> bool:
     """CSV bulk-upload permission aligned with roster/API institute scope."""
     if not getattr(request, "user", None) or not request.user.is_authenticated:
@@ -669,6 +989,7 @@ def flash_csv_student_upload_summary(
     missing_fields=0,
     no_credits=0,
     other_errors=0,
+    email_changes=None,
 ):
     """One toast for the whole CSV instead of a banner per skipped email."""
     if processed <= 0:
@@ -687,6 +1008,15 @@ def flash_csv_student_upload_summary(
         parts.append(f"{other_errors} other error(s)")
 
     summary = f"Total {processed} uploaded: " + ", ".join(parts) + "."
+    changes = email_changes or []
+    if changes:
+        shown = [
+            f"Row {c.get('row')} {c.get('name')} saved as {c.get('email')} ({c.get('used_by')} already had that email)"
+            for c in changes[:8]
+        ]
+        summary += " " + " ".join(shown)
+        if len(changes) > 8:
+            summary += f" and {len(changes) - 8} more."
     if created:
         messages.success(request, summary)
     else:
@@ -7566,171 +7896,153 @@ class InstituteCsvStudentCreateView(TemplateView):
             messages.error(request, _block)
             return HttpResponseRedirect(referer)
 
-        csv_file = request.FILES.get("stu_file")
-        if not csv_file:
-            messages.error(request, "No file uploaded")
-            return HttpResponseRedirect(referer)
+        cancelled = csv_upload_cancel_redirect(request, referer)
+        if cancelled is not None:
+            return cancelled
 
-        file_content = csv_file.read()
-        try:
-            csvfile = file_content.decode("utf-8").splitlines()
-        except UnicodeDecodeError:
+        pending = load_confirmed_csv_upload(request, kind="matric", institute_id=institute.id)
+        if pending is CSV_UPLOAD_CONFIRM_INVALID:
+            messages.error(request, "This upload confirmation expired. Choose the file and upload it again.")
+            return HttpResponseRedirect(referer)
+        if pending:
+            parsed = list(pending.get("rows") or [])
+            referer = pending.get("referer") or referer
+        else:
+            csv_file = request.FILES.get("stu_file")
+            if not csv_file:
+                messages.error(request, "No file uploaded")
+                return HttpResponseRedirect(referer)
+
+            file_content = csv_file.read()
             try:
-                csvfile = file_content.decode("utf-8-sig").splitlines()
-            except Exception:
-                csvfile = file_content.decode("latin-1").splitlines()
+                csvfile = file_content.decode("utf-8").splitlines()
+            except UnicodeDecodeError:
+                try:
+                    csvfile = file_content.decode("utf-8-sig").splitlines()
+                except Exception:
+                    csvfile = file_content.decode("latin-1").splitlines()
 
-        stu_file = csv.reader(csvfile)
+            stu_file = csv.reader(csvfile)
 
-        try:
-            header_raw = next(stu_file)
-            header = [h.strip().lower() for h in header_raw]
-        except StopIteration:
-            messages.error(request, "CSV file is empty")
-            return HttpResponseRedirect(referer)
+            try:
+                header_raw = next(stu_file)
+                header = [h.strip().lower() for h in header_raw]
+            except StopIteration:
+                messages.error(request, "CSV file is empty")
+                return HttpResponseRedirect(referer)
 
-        required_headers = ["name", "mobile", "class_and_section"]
-        missing_headers = [h for h in required_headers if h not in header]
-        if missing_headers:
-            messages.error(
-                request,
-                "CSV file is missing required columns: "
-                + ", ".join(missing_headers)
-                + ". Required columns are: name, mobile, class_and_section. Email is optional.",
+            required_headers = ["name", "mobile", "class_and_section"]
+            missing_headers = [h for h in required_headers if h not in header]
+            if missing_headers:
+                messages.error(
+                    request,
+                    "CSV file is missing required columns: "
+                    + ", ".join(missing_headers)
+                    + ". Required columns are: name, mobile, class_and_section. Email is optional.",
+                )
+                return HttpResponseRedirect(referer)
+
+            parsed = []
+            row_number = 1
+            default_package_code = (request.POST.get('psychometric_package') or '').strip()
+            for stu in stu_file:
+                row_number += 1
+                if not any(stu):
+                    continue
+                stu_d = {
+                    header[i]: s.strip() if s and s.strip() else None
+                    for i, s in enumerate(stu)
+                    if i < len(header)
+                }
+                stu_name = stu_d.get("name")
+                stu_email = stu_d.get("email")
+                if not stu_email:
+                    suffix = str(random.randint(1000, 9999))
+                    if stu_name:
+                        stu_email = f"{stu_name.lower().replace(' ', '_')}_{suffix}@yopmail.com"
+                    else:
+                        stu_email = f"student_{suffix}@yopmail.com"
+                parsed.append({
+                    "row_number": row_number,
+                    "name": stu_name,
+                    "email": stu_email,
+                    "mobile": _normalize_csv_mobile_digits(stu_d.get("mobile")),
+                    "class_section": stu_d.get("class_and_section"),
+                    "package_code": (
+                        stu_d.get("package_code")
+                        or stu_d.get("psychometric_package")
+                        or default_package_code
+                        or ""
+                    ).strip(),
+                })
+
+        plan = preflight_student_csv_rows(
+            parsed,
+            require_class=True,
+            credits_left=institute.get_current_credits_count(),
+        )
+        if plan["errors"]:
+            request.session.pop(_CSV_UPLOAD_PENDING_KEY, None)
+            flash_csv_preflight_block(request, plan["errors"])
+            create_institute_log.delay(
+                institute.id,
+                [e.get("reason") for e in plan["errors"]],
+                len(parsed),
             )
             return HttpResponseRedirect(referer)
+        if not pending:
+            held = hold_csv_upload_for_duplicate_confirm(
+                request,
+                kind="matric",
+                institute=institute,
+                rows=parsed,
+                referer=referer,
+                extra={"package_code": (request.POST.get("psychometric_package") or "").strip()},
+            )
+            if held is not None:
+                return held
 
-        error_list = []
-        email_list = []
-        row_number = 1
         imported_ok = 0
-        already_exist = 0
-        invalid_email = 0
-        invalid_mobile = 0
-        missing_fields_count = 0
-        no_credits = 0
         other_errors = 0
-        default_package_code = (request.POST.get('psychometric_package') or '').strip()
+        error_list = []
+        logo_url = _institute_logo_url_safe(institute)
+        for row in plan["create"]:
+            cas, _cas = _resolve_class_and_section(row["class_section"])
+            password = "".join(str(random.randint(0, 9)) for _ in range(6))
+            student = User.create_user(
+                name=row["name"],
+                mobile=row["mobile"],
+                email=row["email"],
+                password=password,
+            )
+            stu_manage = StudentManagement(
+                institute=institute,
+                student=student,
+                class_and_section=cas,
+            )
+            stu_manage.save()
+            from institute.psychometric_packages import try_assign_package_code
+            ok_pkg, pkg_msg = try_assign_package_code(
+                institute, student, row.get("package_code") or "", assigned_by=request.user
+            )
+            if not ok_pkg and pkg_msg:
+                other_errors += 1
+                error_list.append(f'{row["email"]}: {pkg_msg}')
+            create_student_and_send_mail.delay(
+                stu_manage.id, row["email"], password, institute.name, logo_url
+            )
+            imported_ok += 1
+        if imported_ok:
+            update_student_data.delay(institute.id, institute.name)
 
-        for stu in stu_file:
-            row_number += 1
-            if not any(stu) or len(stu) == 0:
-                continue
-
-            email_list.append(stu)
-            stu_d = {
-                header[i]: s.strip() if s and s.strip() else None
-                for i, s in enumerate(stu)
-                if i < len(header)
-            }
-            stu_name = stu_d.get("name")
-            stu_mobile_norm = _normalize_csv_mobile_digits(stu_d.get("mobile"))
-            stu_email = stu_d.get("email")
-            class_section = stu_d.get("class_and_section")
-
-            if not stu_email:
-                random_number = str(random.randint(1000, 9999))
-                if stu_name:
-                    stu_email = (
-                        f"{stu_name.lower().replace(' ', '_')}_{random_number}@yopmail.com"
-                    )
-                else:
-                    stu_email = f"student_{random_number}@yopmail.com"
-
-            if stu_name and stu_email and stu_mobile_norm and class_section:
-                stu_exist = User.objects.filter(email=stu_email).exists()
-                stu_em = re.match(evalid, stu_email)
-                stu_mob_ok = _csv_indian_mobile_ok(stu_mobile_norm)
-                if (
-                    institute.is_valid_credit_count()
-                    and stu_em
-                    and stu_mob_ok
-                    and class_section
-                    and not stu_exist
-                ):
-                    cas, _cas = _resolve_class_and_section(class_section)
-
-                    password = "".join([str(random.randint(0, 9)) for _ in range(6)])
-                    user_dict = {
-                        "name": stu_name,
-                        "mobile": stu_mobile_norm,
-                        "email": stu_email,
-                        "password": password,
-                    }
-                    student = User.create_user(**user_dict)
-                    stu_manage = StudentManagement(
-                        institute=institute,
-                        student=student,
-                        class_and_section=cas,
-                    )
-                    stu_manage.save()
-                    package_code = (
-                        stu_d.get('package_code')
-                        or stu_d.get('psychometric_package')
-                        or default_package_code
-                        or ''
-                    ).strip()
-                    from institute.psychometric_packages import try_assign_package_code
-                    ok_pkg, pkg_msg = try_assign_package_code(
-                        institute, student, package_code, assigned_by=request.user
-                    )
-                    if not ok_pkg and pkg_msg:
-                        other_errors += 1
-                        error_list.append(f'{stu_email}: {pkg_msg}')
-                    update_student_data.delay(institute.id, institute.name)
-                    create_student_and_send_mail.delay(
-                        stu_manage.id,
-                        stu_email,
-                        password,
-                        institute.name,
-                        _institute_logo_url_safe(institute),
-                    )
-                    imported_ok += 1
-                else:
-                    if stu_exist:
-                        already_exist += 1
-                        error_list.append(stu_email)
-                    elif not institute.is_valid_credit_count():
-                        no_credits += 1
-                        error_list.append(stu_email)
-                    elif not stu_em:
-                        invalid_email += 1
-                        error_list.append(stu_email)
-                    elif not stu_mob_ok:
-                        invalid_mobile += 1
-                        error_list.append(str(stu_mobile_norm))
-                    elif not class_section:
-                        missing_fields_count += 1
-                        error_list.append(stu_email)
-                    else:
-                        other_errors += 1
-                        error_list.append(stu_email)
-            else:
-                missing_fields = []
-                if not stu_name:
-                    missing_fields.append("name")
-                if not stu_mobile_norm:
-                    missing_fields.append("mobile")
-                if not class_section:
-                    missing_fields.append("class_and_section")
-
-                missing_fields_count += 1
-                error_list.append(
-                    f"Row {row_number}: Missing required fields - "
-                    + ", ".join(missing_fields)
-                )
-
-        create_institute_log.delay(institute.id, error_list, len(email_list))
+        create_institute_log.delay(institute.id, error_list, len(parsed))
         flash_csv_student_upload_summary(
             request,
-            processed=len(email_list),
+            processed=len(parsed),
             created=imported_ok,
-            already_exist=already_exist,
-            invalid_email=invalid_email,
-            invalid_mobile=invalid_mobile,
-            missing_fields=missing_fields_count,
-            no_credits=no_credits,
+            already_exist=len(plan["already"]),
             other_errors=other_errors,
+            email_changes=plan.get("email_changes"),
         )
 
         return HttpResponseRedirect(referer)
@@ -7779,179 +8091,159 @@ class InstitutePostMatricCsvStudentCreateView(TemplateView):
             messages.error(request, _block)
             return HttpResponseRedirect(referer)
 
-        csv_file = request.FILES.get("stu_file")
-        if not csv_file:
-            messages.error(request, "No file uploaded")
-            return HttpResponseRedirect(referer)
+        cancelled = csv_upload_cancel_redirect(request, referer)
+        if cancelled is not None:
+            return cancelled
 
-        file_content = csv_file.read()
-        try:
-            csvfile = file_content.decode("utf-8").splitlines()
-        except UnicodeDecodeError:
+        pending = load_confirmed_csv_upload(request, kind="postmatric", institute_id=institute.id)
+        if pending is CSV_UPLOAD_CONFIRM_INVALID:
+            messages.error(request, "This upload confirmation expired. Choose the file and upload it again.")
+            return HttpResponseRedirect(referer)
+        if pending:
+            parsed = list(pending.get("rows") or [])
+            referer = pending.get("referer") or referer
+        else:
+            csv_file = request.FILES.get("stu_file")
+            if not csv_file:
+                messages.error(request, "No file uploaded")
+                return HttpResponseRedirect(referer)
+
+            file_content = csv_file.read()
             try:
-                csvfile = file_content.decode("utf-8-sig").splitlines()
-            except Exception:
-                csvfile = file_content.decode("latin-1").splitlines()
+                csvfile = file_content.decode("utf-8").splitlines()
+            except UnicodeDecodeError:
+                try:
+                    csvfile = file_content.decode("utf-8-sig").splitlines()
+                except Exception:
+                    csvfile = file_content.decode("latin-1").splitlines()
 
-        stu_file = csv.reader(csvfile)
+            stu_file = csv.reader(csvfile)
 
-        try:
-            header_raw = next(stu_file)
-            header = [h.strip().lower() for h in header_raw]
-        except StopIteration:
-            messages.error(request, "CSV file is empty")
-            return HttpResponseRedirect(referer)
+            try:
+                header_raw = next(stu_file)
+                header = [h.strip().lower() for h in header_raw]
+            except StopIteration:
+                messages.error(request, "CSV file is empty")
+                return HttpResponseRedirect(referer)
 
-        required_headers = ["name", "mobile", "class_and_section"]
-        missing_headers = [h for h in required_headers if h not in header]
-        if missing_headers:
-            messages.error(
-                request,
-                "CSV file is missing required columns: "
-                + ", ".join(missing_headers)
-                + ". Required columns are: name, mobile, class_and_section. Email and gender are optional.",
+            required_headers = ["name", "mobile", "class_and_section"]
+            missing_headers = [h for h in required_headers if h not in header]
+            if missing_headers:
+                messages.error(
+                    request,
+                    "CSV file is missing required columns: "
+                    + ", ".join(missing_headers)
+                    + ". Required columns are: name, mobile, class_and_section. Email and gender are optional.",
+                )
+                return HttpResponseRedirect(referer)
+
+            parsed = []
+            row_number = 1
+            default_package_code = (request.POST.get('psychometric_package') or '').strip()
+            for stu in stu_file:
+                row_number += 1
+                if not any(stu):
+                    continue
+                stu_d = {
+                    header[i]: s.strip() if s and s.strip() else None
+                    for i, s in enumerate(stu)
+                    if i < len(header)
+                }
+                stu_name = stu_d.get("name")
+                stu_email = stu_d.get("email")
+                if not stu_email:
+                    suffix = str(random.randint(1000, 9999))
+                    if stu_name:
+                        stu_email = f"{stu_name.lower().replace(' ', '_')}_{suffix}@yopmail.com"
+                    else:
+                        stu_email = f"student_{suffix}@yopmail.com"
+                parsed.append({
+                    "row_number": row_number,
+                    "name": stu_name,
+                    "email": stu_email,
+                    "mobile": _normalize_csv_mobile_digits(stu_d.get("mobile")),
+                    "class_section": stu_d.get("class_and_section"),
+                    "stream": stu_d.get("stream"),
+                    "gender": stu_d.get("gender"),
+                    "package_code": (
+                        stu_d.get("package_code")
+                        or stu_d.get("psychometric_package")
+                        or default_package_code
+                        or ""
+                    ).strip(),
+                })
+
+        plan = preflight_student_csv_rows(
+            parsed,
+            require_class=True,
+            credits_left=institute.get_current_credits_count(),
+        )
+        if plan["errors"]:
+            request.session.pop(_CSV_UPLOAD_PENDING_KEY, None)
+            flash_csv_preflight_block(request, plan["errors"])
+            create_institute_log.delay(
+                institute.id,
+                [e.get("reason") for e in plan["errors"]],
+                len(parsed),
             )
             return HttpResponseRedirect(referer)
+        if not pending:
+            held = hold_csv_upload_for_duplicate_confirm(
+                request,
+                kind="postmatric",
+                institute=institute,
+                rows=parsed,
+                referer=referer,
+                extra={"package_code": (request.POST.get("psychometric_package") or "").strip()},
+            )
+            if held is not None:
+                return held
 
-        error_list = []
-        email_list = []
-        row_number = 1
         imported_ok = 0
-        already_exist = 0
-        invalid_email = 0
-        invalid_mobile = 0
-        missing_fields_count = 0
-        no_credits = 0
         other_errors = 0
-        default_package_code = (request.POST.get('psychometric_package') or '').strip()
+        error_list = []
+        logo_url = _institute_logo_url_safe(institute)
+        for row in plan["create"]:
+            cas, _cas = _resolve_class_and_section(row["class_section"], row.get("stream"))
+            password = "".join(str(random.randint(0, 9)) for _ in range(6))
+            student = User.create_user(
+                name=row["name"],
+                mobile=row["mobile"],
+                email=row["email"],
+                password=password,
+            )
+            user_profile, _created = UserProfile.objects.get_or_create(user=student)
+            if row.get("gender"):
+                user_profile.gender = get_gender_value(row.get("gender"))
+                user_profile.save()
+            stu_manage = StudentManagement(
+                institute=institute,
+                student=student,
+                class_and_section=cas,
+            )
+            stu_manage.save()
+            from institute.psychometric_packages import try_assign_package_code
+            ok_pkg, pkg_msg = try_assign_package_code(
+                institute, student, row.get("package_code") or "", assigned_by=request.user
+            )
+            if not ok_pkg and pkg_msg:
+                other_errors += 1
+                error_list.append(f'{row["email"]}: {pkg_msg}')
+            create_student_and_send_mail.delay(
+                stu_manage.id, row["email"], password, institute.name, logo_url
+            )
+            imported_ok += 1
+        if imported_ok:
+            update_student_data.delay(institute.id, institute.name)
 
-        for stu in stu_file:
-            row_number += 1
-            if not any(stu) or len(stu) == 0:
-                continue
-
-            email_list.append(stu)
-            stu_d = {
-                header[i]: s.strip() if s and s.strip() else None
-                for i, s in enumerate(stu)
-                if i < len(header)
-            }
-            stu_name = stu_d.get("name")
-            stu_mobile_norm = _normalize_csv_mobile_digits(stu_d.get("mobile"))
-            stu_email = stu_d.get("email")
-            stu_gender = stu_d.get("gender")
-            class_section_stream = stu_d.get("stream")
-            class_section = stu_d.get("class_and_section")
-
-            if not stu_email:
-                random_number = str(random.randint(1000, 9999))
-                if stu_name:
-                    stu_email = (
-                        f"{stu_name.lower().replace(' ', '_')}_{random_number}@yopmail.com"
-                    )
-                else:
-                    stu_email = f"student_{random_number}@yopmail.com"
-
-            if stu_name and stu_email and stu_mobile_norm and class_section:
-                stu_exist = User.objects.filter(email=stu_email).exists()
-                stu_em = re.match(evalid, stu_email)
-                stu_mob_ok = _csv_indian_mobile_ok(stu_mobile_norm)
-                if (
-                    institute.is_valid_credit_count()
-                    and stu_em
-                    and stu_mob_ok
-                    and class_section
-                    and not stu_exist
-                ):
-                    cas, _cas = _resolve_class_and_section(class_section, class_section_stream)
-
-                    password = "".join([str(random.randint(0, 9)) for _ in range(6)])
-                    user_dict = {
-                        "name": stu_name,
-                        "mobile": stu_mobile_norm,
-                        "email": stu_email,
-                        "password": password,
-                    }
-                    student = User.create_user(**user_dict)
-                    user_profile, _created = UserProfile.objects.get_or_create(user=student)
-                    if stu_gender:
-                        stu_gender_raw = stu_d.get("gender")
-                        gv = get_gender_value(stu_gender_raw)
-                        user_profile.gender = gv
-                        user_profile.save()
-                    stu_manage = StudentManagement(
-                        institute=institute,
-                        student=student,
-                        class_and_section=cas,
-                    )
-                    stu_manage.save()
-                    package_code = (
-                        stu_d.get('package_code')
-                        or stu_d.get('psychometric_package')
-                        or default_package_code
-                        or ''
-                    ).strip()
-                    from institute.psychometric_packages import try_assign_package_code
-                    ok_pkg, pkg_msg = try_assign_package_code(
-                        institute, student, package_code, assigned_by=request.user
-                    )
-                    if not ok_pkg and pkg_msg:
-                        other_errors += 1
-                        error_list.append(f'{stu_email}: {pkg_msg}')
-                    update_student_data.delay(institute.id, institute.name)
-                    create_student_and_send_mail.delay(
-                        stu_manage.id,
-                        stu_email,
-                        password,
-                        institute.name,
-                        _institute_logo_url_safe(institute),
-                    )
-                    imported_ok += 1
-                else:
-                    if stu_exist:
-                        already_exist += 1
-                        error_list.append(stu_email)
-                    elif not institute.is_valid_credit_count():
-                        no_credits += 1
-                        error_list.append(stu_email)
-                    elif not stu_em:
-                        invalid_email += 1
-                        error_list.append(stu_email)
-                    elif not stu_mob_ok:
-                        invalid_mobile += 1
-                        error_list.append(str(stu_mobile_norm))
-                    elif not class_section:
-                        missing_fields_count += 1
-                        error_list.append(stu_email)
-                    else:
-                        other_errors += 1
-                        error_list.append(stu_email)
-            else:
-                missing_fields = []
-                if not stu_name:
-                    missing_fields.append("name")
-                if not stu_mobile_norm:
-                    missing_fields.append("mobile")
-                if not class_section:
-                    missing_fields.append("class_and_section")
-
-                missing_fields_count += 1
-                error_list.append(
-                    f"Row {row_number}: Missing required fields - "
-                    + ", ".join(missing_fields)
-                )
-
-        create_institute_log.delay(institute.id, error_list, len(email_list))
+        create_institute_log.delay(institute.id, error_list, len(parsed))
         flash_csv_student_upload_summary(
             request,
-            processed=len(email_list),
+            processed=len(parsed),
             created=imported_ok,
-            already_exist=already_exist,
-            invalid_email=invalid_email,
-            invalid_mobile=invalid_mobile,
-            missing_fields=missing_fields_count,
-            no_credits=no_credits,
+            already_exist=len(plan["already"]),
             other_errors=other_errors,
+            email_changes=plan.get("email_changes"),
         )
 
         return HttpResponseRedirect(referer)
