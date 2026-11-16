@@ -1062,6 +1062,127 @@ def scoped_student_management_for_dashboard(request):
     return get_students_by_role(request.user, counselor=None, institute=None)
 
 
+def mask_phone_middle_six(value):
+    """Hide the middle 6 digits. A 10-digit mobile becomes 98XXXXXX10."""
+    digits = _re.sub(r"\D", "", value or "")
+    if not digits:
+        return ""
+    if len(digits) <= 6:
+        return "X" * len(digits)
+    start = (len(digits) - 6) // 2
+    return digits[:start] + ("X" * 6) + digits[start + 6 :]
+
+
+def login_sheet_mobileno(email, mobile):
+    """Yopmail logins are placeholders, so the sheet leaves mobileno blank."""
+    domain = ""
+    raw = (email or "").strip().lower()
+    if "@" in raw:
+        domain = raw.rsplit("@", 1)[-1]
+    if domain == "yopmail.com":
+        return ""
+    return mask_phone_middle_six(mobile)
+
+
+def marketing_student_login_csv_response(request):
+    """
+    CSV of one school's filtered students for the marketing admin.
+    Saved passwords cannot be read back, so each row gets a new password
+    and that password is written in the file.
+    """
+    import csv
+    import io
+    import random
+
+    user = request.user
+    if getattr(user, "user_type", None) != choices.UserType.MARKETINGGROUPADMIN:
+        return HttpResponse("Not allowed.", status=403)
+
+    institute = _resolve_dashboard_institute_from_request(request)
+    if institute is None or (request.GET.get("institute_name") or "").strip():
+        return HttpResponse("Select one school and clear the institute name filter before downloading logins.", status=400)
+
+    qs = (
+        scoped_student_management_for_dashboard(request)
+        .select_related("student", "class_and_section", "institute")
+    )
+    filtered = apply_student_filters(qs, request, results_data=None)
+    if not hasattr(filtered, "filter"):
+        filtered = qs
+    stream_filter = (request.GET.get("stream") or "").strip()
+    if stream_filter:
+        filtered = filtered.filter(class_and_section__stream=stream_filter)
+
+    test_taken_filter = (request.GET.get("test_taken") or "").strip()
+    if test_taken_filter:
+        from core.student_psychometric_metrics import (
+            student_management_psychometric_complete_exists,
+        )
+        from app_post_matric.models import TestSession as PostMatricTestSession
+
+        completed_exists = student_management_psychometric_complete_exists()
+        any_legacy_attempt = Exists(
+            TestCompletion.objects.filter(user_id=OuterRef("student_id")).filter(
+                Q(test1_complete=True)
+                | Q(test2_complete=True)
+                | Q(test3_complete=True)
+                | Q(numerical_complete=True)
+                | Q(verbal_complete=True)
+                | Q(logical_complete=True)
+                | Q(emotional_complete=True)
+                | Q(machanical_complete=True)
+                | Q(language_complete=True)
+                | Q(spatial_complete=True)
+            )
+        )
+        any_post_attempt = Exists(
+            PostMatricTestSession.objects.filter(
+                user_id=OuterRef("student_id"), is_completed=True
+            )
+        )
+        any_attempt = any_legacy_attempt | any_post_attempt
+        if test_taken_filter == "Yes":
+            filtered = filtered.filter(completed_exists)
+        elif test_taken_filter == "No":
+            filtered = filtered.filter(~any_attempt)
+        elif test_taken_filter == "In Progress":
+            filtered = filtered.filter(any_attempt).filter(~completed_exists)
+
+    filtered = filtered.exclude(student__is_demo_account=True).exclude(
+        student__is_system_demo=True
+    )
+
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(["Name", "mobileno", "Login", "Password"])
+    with transaction.atomic():
+        for sm in filtered.order_by("student__name", "id"):
+            stu = sm.student
+            if (
+                not stu
+                or not (stu.email or "").strip()
+                or getattr(stu, "is_demo_account", False)
+                or getattr(stu, "is_system_demo", False)
+            ):
+                continue
+            password = "".join(str(random.randint(0, 9)) for _ in range(6))
+            stu.set_password(password)
+            stu.save(update_fields=["password"])
+            email = (stu.email or "").strip()
+            writer.writerow([
+                (stu.name or "").strip(),
+                login_sheet_mobileno(email, stu.mobile),
+                email,
+                password,
+            ])
+        payload = buf.getvalue()
+
+    filename = "{}-student-logins.csv".format(institute.slug or "school")
+    response = HttpResponse(payload, content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="{}"'.format(filename)
+    return response
+
+
 def _ttv2_marketing_counselor_followups_response(request, group_admin):
     """
     JSON rows for marketing counselors drill-down modal (scoped follow-ups or roster).
@@ -3359,7 +3480,10 @@ class MarketingGroupDashboardView(TemplateView):
         # Check if this is an AJAX request for specific data
         is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
         data_type = request.GET.get('data_type', '')
-        
+
+        if (request.GET.get("download_login") or "").strip() == "1":
+            return marketing_student_login_csv_response(request)
+
         if is_ajax and data_type == 'students_analytics':
             group_admin = request.user
             qs = StudentManagement.objects.filter(
